@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "server": "http-server ../ -p 8003 -o dev-server/app.html -c-1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

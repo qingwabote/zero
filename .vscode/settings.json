@@ -1,0 +1,4 @@
+{
+    "typescript.preferences.importModuleSpecifierEnding": "js",
+    "editor.formatOnSave": true
+}
