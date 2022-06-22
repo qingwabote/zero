@@ -3,8 +3,5 @@
   "include": [
     "../../core",
     "."
-  ],
-  "compilerOptions": {
-    "outDir": "../../../dev-server/dist"
-  }
+  ]
 }

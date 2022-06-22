@@ -2,15 +2,23 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <title>Zero Engine</title>
+  <meta charset="utf-8">
+  <title>Zero Engine</title>
+  <link rel="icon" href="favicon.ico" />
 </head>
 
 <body>
-    <div id="ZeroGameContainer">
-        <canvas id="GameCanvas" width="1280" height="960"></canvas>
-    </div>
-    <script src="./dist/platforms/webgl/app.js" type="module"></script>
+  <div id="ZeroGameContainer">
+    <canvas id="GameCanvas" width="1280" height="960"></canvas>
+  </div>
+  <script type="importmap">
+        {
+          "imports": {
+            "gl-matrix": "../script/node_modules/gl-matrix/esm/index.js"
+          }
+        }
+    </script>
+  <script src="./dist/platforms/webgl/app.js" type="module"></script>
 </body>
 
 </html>

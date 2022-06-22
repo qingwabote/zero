@@ -1,20 +1,30 @@
 import game from "../../core/game.js";
 import gfx from "../../core/gfx.js";
-import { WebGLDevice } from "./gfx/WebGLDevice.js";
+import WebCommandBuffer from "./gfx/WebCommandBuffer.js";
+import WebDevice from "./gfx/WebDevice.js";
 
-gfx.init(new WebGLDevice)
+const DEBUG_DT_THRESHOLD = 1;
+
+const canvas = document.querySelector<HTMLCanvasElement>('#GameCanvas')!;
+const gl = canvas.getContext('webgl2')!;
+
+gfx.init(new WebDevice(gl), new WebCommandBuffer(gl))
+
+game.init()
 
 let requestId: number;
 
-let time: number = 0;
+let time: number = performance.now();
 
-function mainLoop() {
-    const now = Date.now()
-    const dt = now > time ? (now - time) / 1000 : 0;
+function mainLoop(now: number) {
+    let dt = now > time ? (now - time) / 1000 : 0;
+    if (dt > DEBUG_DT_THRESHOLD) {
+        dt = 1 / 60;
+    }
     time = now;
     game.tick(dt)
     requestId = window.requestAnimationFrame(mainLoop);
 }
 
-mainLoop();
+mainLoop(time);
 
