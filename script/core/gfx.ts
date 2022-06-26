@@ -46,11 +46,6 @@ export interface Device {
     createBuffer(info: BufferInfo): Buffer;
 }
 
-export interface VertexInputBindingDescription {
-    readonly binding: number;
-    readonly stride: number;
-}
-
 export enum Format {
     RG32F
 }
@@ -71,19 +66,19 @@ export interface VertexInputAttributeDescription {
     readonly format: Format;
 }
 
-export interface PipelineVertexInput {
-    readonly vertexAttributeDescriptions: VertexInputAttributeDescription[];
+export interface InputAssembler {
+    readonly attributes: VertexInputAttributeDescription[];
+    readonly vertexBuffers: Buffer[];
 }
 
 export interface Pipeline {
     readonly shader: Shader;
-    readonly vertexInput: PipelineVertexInput
 }
 
 export interface CommandBuffer {
     beginRenderPass(): void;
     bindPipeline(pipeline: Pipeline): void;
-    bindVertexBuffers(buffers: Buffer[], bufferBindings: number[]): void
+    bindInputAssembler(inputAssembler: InputAssembler): void;
     draw(): void;
     endRenderPass(): void
 }

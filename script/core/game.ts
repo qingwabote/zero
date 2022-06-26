@@ -1,4 +1,4 @@
-import gfx, { BufferUsageBit, Format, Pipeline, PipelineVertexInput, ShaderStageBit, VertexInputAttributeDescription } from "./gfx.js";
+import gfx, { BufferUsageBit, Format, InputAssembler, Pipeline, ShaderStageBit, VertexInputAttributeDescription } from "./gfx.js";
 
 const vs = `#version 300 es
     
@@ -46,13 +46,13 @@ export default {
             binding: 0,
             format: Format.RG32F,
         }
-        const vertexInput: PipelineVertexInput = { vertexAttributeDescriptions: [attribute] }
-        const pipeline: Pipeline = { shader, vertexInput };
+        const pipeline: Pipeline = { shader };
+        const inputAssembler: InputAssembler = { attributes: [attribute], vertexBuffers: [vertexBuffer] }
 
         const commandBuffer = gfx.commandBuffer;
         commandBuffer.beginRenderPass()
         commandBuffer.bindPipeline(pipeline)
-        commandBuffer.bindVertexBuffers([vertexBuffer], [0])
+        commandBuffer.bindInputAssembler(inputAssembler)
         commandBuffer.draw()
         commandBuffer.endRenderPass()
     },
