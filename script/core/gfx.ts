@@ -29,12 +29,16 @@ export enum BufferUsageBit {
 
 export interface BufferInfo {
     readonly usage: BufferUsageBit
+    readonly stride: number;
     readonly size: number;
     readonly offset: number
 }
 
 export abstract class Buffer {
     protected _info: BufferInfo;
+    get info(): BufferInfo {
+        return this._info;
+    }
     constructor(info: BufferInfo) {
         this._info = info
     }
@@ -69,6 +73,7 @@ export interface VertexInputAttributeDescription {
 export interface InputAssembler {
     readonly attributes: VertexInputAttributeDescription[];
     readonly vertexBuffers: Buffer[];
+    readonly indexBuffer: Buffer;
 }
 
 export interface Pipeline {

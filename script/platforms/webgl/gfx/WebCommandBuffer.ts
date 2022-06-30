@@ -18,11 +18,21 @@ function calculateOffset(attribute: VertexInputAttributeDescription, attributes:
     return offset;
 }
 
+function stride2indexType(stride: number, gl: WebGL2RenderingContext): GLenum {
+    switch (stride) {
+        case 1: return gl.UNSIGNED_BYTE;
+        case 2: return gl.UNSIGNED_SHORT;
+        case 4: return gl.UNSIGNED_INT;
+    }
+    return -1;
+}
+
 const input2vao: Map<InputAssembler, WebGLVertexArrayObject> = new Map;
 
 
 export default class WebCommandBuffer implements CommandBuffer {
     private _gl: WebGL2RenderingContext;
+    private _inputAssembler: InputAssembler | null = null;
 
     constructor(gl: WebGL2RenderingContext) {
         this._gl = gl;
@@ -56,17 +66,27 @@ export default class WebCommandBuffer implements CommandBuffer {
                     formatInfo.count,
                     format2WebGLType(attribute.format, gl),
                     false,
-                    formatInfo.size,
+                    buffer.info.stride,
                     calculateOffset(attribute, attributes));
             }
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);
             input2vao.set(inputAssembler, vao);
+
+            gl.bindVertexArray(null);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         }
         gl.bindVertexArray(vao);
+
+        this._inputAssembler = inputAssembler;
     }
 
     draw() {
+        if (!this._inputAssembler) return;
+
         const gl = this._gl;
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        const buffer = this._inputAssembler.indexBuffer;
+        gl.drawElements(gl.TRIANGLES, buffer.info.size / buffer.info.stride, stride2indexType(buffer.info.stride, gl), buffer.info.offset);
     }
 
     endRenderPass() {

@@ -9,7 +9,7 @@
 				"$tsc-watch"
 			],
 			"group": "build",
-			"label": "tsc: 监视 - script/platforms/webgl/tsconfig.json"
+			"label": "tsc: 监视"
 		},
 		{
 			"type": "npm",
@@ -17,7 +17,7 @@
 			"path": "dev-server",
 			"problemMatcher": [],
 			"label": "npm: server - dev-server",
-			"detail": "http-server ../ -p 8003 -o dev-server/app.html -c-1"
+			"detail": "http-server"
 		}
 	]
 }

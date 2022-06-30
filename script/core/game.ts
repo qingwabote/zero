@@ -33,13 +33,17 @@ export default {
             ]
         });
 
-        const positions = new Float32Array([
+        const vertices = new Float32Array([
             0, 0,
             0, 0.5,
             0.7, 0,
         ]);
-        const vertexBuffer = gfx.device.createBuffer({ usage: BufferUsageBit.VERTEX, size: positions.buffer.byteLength, offset: 0 });
-        vertexBuffer.update(positions.buffer)
+        const vertexBuffer = gfx.device.createBuffer({ usage: BufferUsageBit.VERTEX, stride: 8, size: vertices.buffer.byteLength, offset: 0 });
+        vertexBuffer.update(vertices.buffer)
+
+        const indices = new Uint16Array([0, 1, 2]);
+        const intexBuffer = gfx.device.createBuffer({ usage: BufferUsageBit.INDEX, stride: 2, size: indices.buffer.byteLength, offset: 0 });
+        intexBuffer.update(indices.buffer);
 
         const attribute: VertexInputAttributeDescription = {
             location: 0,
@@ -47,7 +51,7 @@ export default {
             format: Format.RG32F,
         }
         const pipeline: Pipeline = { shader };
-        const inputAssembler: InputAssembler = { attributes: [attribute], vertexBuffers: [vertexBuffer] }
+        const inputAssembler: InputAssembler = { attributes: [attribute], vertexBuffers: [vertexBuffer], indexBuffer: intexBuffer }
 
         const commandBuffer = gfx.commandBuffer;
         commandBuffer.beginRenderPass()
