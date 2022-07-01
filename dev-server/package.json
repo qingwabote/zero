@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "server": "http-server ../ -p 8003 -o dev-server/app.html -c-1"
+    "server": "http-server ../ -p 8003 -o projects/test/app.html -c-1"
   },
   "dependencies": {},
   "devDependencies": {

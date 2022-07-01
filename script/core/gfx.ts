@@ -31,7 +31,7 @@ export interface BufferInfo {
     readonly usage: BufferUsageBit
     readonly stride: number;
     readonly size: number;
-    readonly offset: number
+    // readonly offset: number
 }
 
 export abstract class Buffer {
@@ -42,7 +42,7 @@ export abstract class Buffer {
     constructor(info: BufferInfo) {
         this._info = info
     }
-    abstract update(buffer: Readonly<ArrayBuffer>): void;
+    abstract update(buffer: Readonly<BufferSource>): void;
 }
 
 export interface Device {
@@ -51,7 +51,9 @@ export interface Device {
 }
 
 export enum Format {
-    RG32F
+    R8UI,
+    RG32F,
+    RGB32F
 }
 
 interface FormatInfo {
@@ -61,7 +63,9 @@ interface FormatInfo {
 }
 
 export const FormatInfos: Readonly<FormatInfo[]> = [
-    { name: "RG32F", size: 8, count: 2 }
+    { name: "R8UI", size: 2, count: 1 },
+    { name: "RG32F", size: 8, count: 2 },
+    { name: "RGB32F", size: 12, count: 3 },
 ]
 
 export interface VertexInputAttributeDescription {
@@ -87,6 +91,10 @@ export interface CommandBuffer {
     draw(): void;
     endRenderPass(): void
 }
+
+// export interface DrawPass {
+
+// }
 
 let _device: Device
 

@@ -26,7 +26,7 @@ export default class WebBuffer extends Buffer {
         this._gl = gl;
     }
 
-    public update(arrayBuffer: Readonly<ArrayBuffer>): void {
+    public update(buffer: Readonly<BufferSource>): void {
         const gl = this._gl;
         if (!gl) return;
 
@@ -41,6 +41,6 @@ export default class WebBuffer extends Buffer {
         gl.bindVertexArray(null);
 
         gl.bindBuffer(target, this._buffer);
-        gl.bufferSubData(target, this._info.offset, arrayBuffer);
+        gl.bufferSubData(target, 0, buffer);
     }
 }

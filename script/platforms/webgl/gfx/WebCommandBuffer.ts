@@ -4,7 +4,9 @@ import WebShader from "./WebShader.js";
 
 function format2WebGLType(format: Format, gl: WebGL2RenderingContext): GLenum {
     switch (format) {
+        case Format.R8UI: return gl.BYTE
         case Format.RG32F: return gl.FLOAT;
+        case Format.RGB32F: return gl.FLOAT;
     }
 }
 
@@ -86,7 +88,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         const gl = this._gl;
         const buffer = this._inputAssembler.indexBuffer;
-        gl.drawElements(gl.TRIANGLES, buffer.info.size / buffer.info.stride, stride2indexType(buffer.info.stride, gl), buffer.info.offset);
+        gl.drawElements(gl.LINES, buffer.info.size / buffer.info.stride, stride2indexType(buffer.info.stride, gl), 0);
     }
 
     endRenderPass() {
