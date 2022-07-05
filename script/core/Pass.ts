@@ -1,4 +1,4 @@
-import { Shader } from "./gfx.js";
+import Shader from "./Shader.js";
 
 export default class Pass {
     private _shader: Shader;

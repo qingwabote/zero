@@ -1,4 +1,7 @@
-import { CommandBuffer, Format, FormatInfos, InputAssembler, Pipeline, VertexInputAttributeDescription } from "../../../core/gfx.js";
+import CommandBuffer from "../../../core/CommandBuffer.js";
+import { Format, FormatInfos } from "../../../core/gfx.js";
+import { InputAssembler, VertexInputAttributeDescription } from "../../../core/InputAssembler.js";
+import Pipeline, { DescriptorSet } from "../../../core/Pipeline.js";
 import WebBuffer from "./WebBuffer.js";
 import WebShader from "./WebShader.js";
 
@@ -48,6 +51,14 @@ export default class WebCommandBuffer implements CommandBuffer {
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
         gl.useProgram((pipeline.shader as WebShader).program)
+    }
+
+    bindDescriptorSet(index: number, descriptorSet: DescriptorSet): void {
+        const gl = this._gl;
+        for (const layoutBinding of descriptorSet.layout.bindings) {
+            const buffer = descriptorSet.buffers[layoutBinding.binding] as WebBuffer;
+            gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding, buffer.buffer);
+        }
     }
 
     bindInputAssembler(inputAssembler: InputAssembler): void {

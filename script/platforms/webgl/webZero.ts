@@ -1,17 +1,16 @@
 import Asset from "../../core/assets/Asset.js";
 import game from "../../core/game.js";
 import gfx from "../../core/gfx.js";
-import WebCommandBuffer from "./gfx/WebCommandBuffer.js";
 import WebDevice from "./gfx/WebDevice.js";
 import WebLoader from "./WebLoader.js";
 
 const DEBUG_DT_THRESHOLD = 1;
 
 export default {
-    init(gl: WebGL2RenderingContext) {
-        gfx.init(new WebDevice(gl), new WebCommandBuffer(gl));
+    init(gl: WebGL2RenderingContext, width: number, height: number) {
+        gfx.init(new WebDevice(gl));
         Asset.loader = new WebLoader;
-        game.init()
+        game.init(width, height)
     },
 
     run() {

@@ -1,4 +1,15 @@
-import { Buffer, BufferInfo, BufferUsageBit } from "../../../core/gfx.js";
+import Buffer, { BufferInfo, BufferUsageBit } from "../../../core/Buffer.js";
+
+function usage2target(usage: BufferUsageBit): GLenum {
+    if (usage & BufferUsageBit.VERTEX) {
+        return WebGL2RenderingContext.ARRAY_BUFFER;
+    } else if (usage & BufferUsageBit.INDEX) {
+        return WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER;
+    } else if (usage & BufferUsageBit.UNIFORM) {
+        return WebGL2RenderingContext.UNIFORM_BUFFER;
+    }
+    return -1;
+}
 
 export default class WebBuffer extends Buffer {
     private _gl: WebGL2RenderingContext | null = null;
@@ -10,15 +21,9 @@ export default class WebBuffer extends Buffer {
 
     constructor(gl: WebGL2RenderingContext, info: BufferInfo) {
         super(info);
+
         this._buffer = gl.createBuffer()!
-        let target: GLenum;
-        if (this._info.usage & BufferUsageBit.VERTEX) {
-            target = gl.ARRAY_BUFFER;
-        } else if (this._info.usage & BufferUsageBit.INDEX) {
-            target = gl.ELEMENT_ARRAY_BUFFER;
-        } else {
-            return;
-        }
+        const target = usage2target(info.usage);
         gl.bindBuffer(target, this._buffer);
         gl.bufferData(target, info.size, gl.DYNAMIC_DRAW);
 
@@ -30,17 +35,13 @@ export default class WebBuffer extends Buffer {
         const gl = this._gl;
         if (!gl) return;
 
-        let target: GLenum;
-        if (this._info.usage & BufferUsageBit.VERTEX) {
-            target = gl.ARRAY_BUFFER;
-        } else if (this._info.usage & BufferUsageBit.INDEX) {
-            target = gl.ELEMENT_ARRAY_BUFFER;
-        } else {
-            return;
-        }
+        const target = usage2target(this._info.usage);
+
         gl.bindVertexArray(null);
 
         gl.bindBuffer(target, this._buffer);
         gl.bufferSubData(target, 0, buffer);
+
+        gl.bindBuffer(target, null);
     }
 }

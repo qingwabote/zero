@@ -1,4 +1,5 @@
-import { Buffer, Format } from "./gfx.js";
+import Buffer from "./Buffer.js";
+import { Format } from "./gfx.js";
 
 export interface Attribute {
     name: string

@@ -1,4 +1,4 @@
-import { InputAssembler } from "./gfx.js";
+import { InputAssembler } from "./InputAssembler.js";
 import Pass from "./Pass.js";
 import SubMesh from "./SubMesh.js";
 

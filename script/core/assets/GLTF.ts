@@ -1,4 +1,5 @@
-import gfx, { Buffer, BufferUsageBit, Format, FormatInfos } from "../gfx.js";
+import Buffer, { BufferUsageBit } from "../Buffer.js";
+import gfx, { Format, FormatInfos } from "../gfx.js";
 import Mesh from "../Mesh.js";
 import SubMesh, { Attribute } from "../SubMesh.js";
 import Asset from "./Asset.js";
