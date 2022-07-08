@@ -6,5 +6,9 @@ export default class RenderScene {
         return this._models;
     }
 
-    tick(dt: number) { }
+    update(dt: number) {
+        for (const model of this._models) {
+            model.update()
+        }
+    }
 }

@@ -6,13 +6,6 @@ interface Layout {
 }
 
 export default class WebShader extends Shader {
-    // private _attributes: Attribute[];
-    // get attributes(): Attribute[] {
-    //     return this._attributes;
-    // }
-
-    private _gl: WebGL2RenderingContext;
-
     private _program!: WebGLProgram;
     get program(): WebGLProgram {
         return this._program;
@@ -20,18 +13,14 @@ export default class WebShader extends Shader {
 
     constructor(gl: WebGL2RenderingContext, info: ShaderInfo) {
         super(info);
-        this._gl = gl;
 
-        const uniform2layout: Record<string, Layout> = {};
+        const block2layout: Record<string, Layout> = {};
         const shaders = [];
         for (const stage of info.stages) {
             let source = stage.source;
-            if (stage.type == ShaderStageFlags.VERTEX) {
 
-            }
-
-            source = source.replace(/layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w+)/, function (_, set, binding, name): string {
-                uniform2layout[name] = { set: parseInt(set), binding: parseInt(binding) }
+            source = source.replace(/layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w+)/g, function (_, set, binding, name): string {
+                block2layout[name] = { set: parseInt(set), binding: parseInt(binding) }
                 return `uniform ${name}`;
             })
 
@@ -61,10 +50,10 @@ export default class WebShader extends Shader {
             return;
         }
 
-        for (const name in uniform2layout) {
-            const layout = uniform2layout[name];
+        for (const name in block2layout) {
+            const layout = block2layout[name];
             const index = gl.getUniformBlockIndex(program, name);
-            gl.uniformBlockBinding(program, index, layout.binding)
+            gl.uniformBlockBinding(program, index, layout.binding + layout.set * 10)
         }
 
         //After the link operation, applications are free to modify attached shader objects, compile attached shader objects, detach shader objects, delete shader objects, and attach additional shader objects. None of these operations affects the information log or the program that is part of the program object

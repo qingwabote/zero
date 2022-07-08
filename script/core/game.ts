@@ -1,11 +1,18 @@
 import Buffer from "./Buffer.js";
 import Camera from "./Camera.js";
+import { ComponentInvoker } from "./ComponentInvoker.js";
 import gfx from "./gfx.js";
-import Pipeline, { DescriptorSet, globalDescriptorSetLayout, PipelineGlobalBindings } from "./Pipeline.js";
+import Node from "./Node.js";
+import Pipeline, { DescriptorSet, blocksGlobal, globalDescriptorSetLayout, blocksLocal } from "./Pipeline.js";
 import RenderScene from "./RenderScene.js";
 
 let _width: number;
 let _height: number;
+
+let _componentStartInvoker: ComponentInvoker = new ComponentInvoker(function (com) { com.start() }, true)
+let _componentUpdateInvoker: ComponentInvoker = new ComponentInvoker(function (com, dt) { com.update(dt) }, false)
+
+let _scene: Node;
 
 let _renderScene: RenderScene;
 
@@ -22,6 +29,14 @@ export default {
         return _height;
     },
 
+    get componentStartInvoker(): ComponentInvoker {
+        return _componentStartInvoker;
+    },
+
+    get componentUpdateInvoker(): ComponentInvoker {
+        return _componentUpdateInvoker;
+    },
+
     get renderScene(): RenderScene {
         return _renderScene;
     },
@@ -30,31 +45,39 @@ export default {
         _width = width;
         _height = height;
 
+        _scene = new Node();
+
         _renderScene = new RenderScene;
 
         _camera = new Camera(10);
 
         const buffers: Buffer[] = [];
-        buffers[PipelineGlobalBindings.UBO_CAMERA] = _camera.ubo;
-        _globalDescriptorSet = { layout: globalDescriptorSetLayout, buffers }
+        buffers[blocksGlobal.blocks.Camera.binding] = _camera.ubo;
+        _globalDescriptorSet = { layout: globalDescriptorSetLayout, buffers };
     },
 
     tick(dt: number) {
-        _renderScene.tick(dt);
+        // _scene.update(dt);
+
+        _componentStartInvoker.invoke(dt);
+        _componentUpdateInvoker.invoke(dt);
+
+        _renderScene.update(dt);
 
         _camera.update();
 
         const commandBuffer = gfx.device.commandBuffer;
         commandBuffer.beginRenderPass()
+        commandBuffer.bindDescriptorSet(blocksGlobal.set, _globalDescriptorSet);
 
         for (const model of _renderScene.models) {
+            commandBuffer.bindDescriptorSet(blocksLocal.set, model.descriptorSet);
             for (const subModel of model.subModels) {
                 for (const pass of subModel.passes) {
                     const pipeline: Pipeline = { shader: pass.shader };
-                    commandBuffer.bindPipeline(pipeline)
-                    commandBuffer.bindDescriptorSet(0, _globalDescriptorSet);
-                    commandBuffer.bindInputAssembler(subModel.inputAssembler)
-                    commandBuffer.draw()
+                    commandBuffer.bindPipeline(pipeline);
+                    commandBuffer.bindInputAssembler(subModel.inputAssembler);
+                    commandBuffer.draw();
                 }
             }
         }

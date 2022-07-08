@@ -1,4 +1,4 @@
-import { InputAssembler } from "./InputAssembler.js";
+import { InputAssembler, VertexInputAttributeDescription } from "./InputAssembler.js";
 import Pass from "./Pass.js";
 import SubMesh from "./SubMesh.js";
 
@@ -18,9 +18,19 @@ export default class SubModel {
         return this._inputAssembler;
     }
 
-    constructor(subMesh: SubMesh, passes: Pass[], inputAssembler: InputAssembler) {
+    constructor(subMesh: SubMesh, passes: Pass[]) {
         this._subMesh = subMesh;
         this._passes = passes;
-        this._inputAssembler = inputAssembler;
+
+        const attributeDescriptions: VertexInputAttributeDescription[] = [];
+        for (const attribute of subMesh.attributes) {
+            const attributeDescription: VertexInputAttributeDescription = {
+                location: 0, // FIXME
+                binding: attribute.binding,
+                format: attribute.format,
+            }
+            attributeDescriptions.push(attributeDescription);
+        }
+        this._inputAssembler = { attributes: attributeDescriptions, vertexBuffers: subMesh.vertexBuffers, indexBuffer: subMesh.indexBuffer };
     }
 }

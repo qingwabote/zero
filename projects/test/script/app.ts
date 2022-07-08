@@ -1,11 +1,9 @@
 import GLTF from "../../../script/core/assets/GLTF.js";
-import game from "../../../script/core/game.js";
 import gfx from "../../../script/core/gfx.js";
-import { InputAssembler, VertexInputAttributeDescription } from "../../../script/core/InputAssembler.js";
-import Model from "../../../script/core/Model.js";
+import MeshRenderer from "../../../script/core/MeshRenderer.js";
+import Node from "../../../script/core/Node.js";
 import Pass from "../../../script/core/Pass.js";
 import { ShaderStageFlags } from "../../../script/core/Shader.js";
-import SubModel from "../../../script/core/SubModel.js";
 import webZero from "../../../script/platforms/webgl/webZero.js";
 
 const vs = `
@@ -17,10 +15,14 @@ layout(set = 0, binding = 0) uniform Camera {
     mat4 matProj;
 };
 
+layout(set = 1, binding = 0) uniform Local {
+    mat4 matWorld;
+};
+
 void main() {
     v_position = a_position.xyz;
 
-    gl_Position = matProj * a_position;
+    gl_Position = matProj * matWorld * a_position;
 }
 `
 
@@ -59,24 +61,14 @@ webZero.init(gl, canvas.width, canvas.height);
 
     const pass = new Pass(shader);
 
-    for (const node of glTF.nodes) {
-        const subModels: SubModel[] = [];
-        for (const subMesh of node.mesh.subMeshes) {
-            const attributeDescriptions: VertexInputAttributeDescription[] = [];
-            for (const attribute of subMesh.attributes) {
-                const attributeDescription: VertexInputAttributeDescription = {
-                    location: 0, // FIXME
-                    binding: attribute.binding,
-                    format: attribute.format,
-                }
-                attributeDescriptions.push(attributeDescription);
-            }
-            const inputAssembler: InputAssembler = { attributes: attributeDescriptions, vertexBuffers: subMesh.vertexBuffers, indexBuffer: subMesh.indexBuffer }
-            const subModel = new SubModel(subMesh, [pass], inputAssembler);
-            subModels.push(subModel);
-        }
-        const model = new Model(subModels);
-        game.renderScene.models.push(model);
+    for (const n of glTF.nodes) {
+        const node = new Node();
+        node.eulerX = 45;
+        node.eulerY = 45;
+        // node.eulerZ = 45;
+        const renderer = node.addComponent(MeshRenderer);
+        renderer.mesh = n.mesh;
+        renderer.passes = [pass];
     }
 
     webZero.run();

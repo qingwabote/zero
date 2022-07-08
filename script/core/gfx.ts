@@ -18,9 +18,11 @@ export const FormatInfos: Readonly<FormatInfo[]> = [
     { name: "RGB32F", size: 12, count: 3 },
 ]
 
-// export interface DrawPass {
-
-// }
+export interface Transform {
+    eulerX: number;
+    eulerY: number;
+    eulerZ: number;
+}
 
 let _device: Device
 

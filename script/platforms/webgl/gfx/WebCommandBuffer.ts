@@ -5,11 +5,11 @@ import Pipeline, { DescriptorSet } from "../../../core/Pipeline.js";
 import WebBuffer from "./WebBuffer.js";
 import WebShader from "./WebShader.js";
 
-function format2WebGLType(format: Format, gl: WebGL2RenderingContext): GLenum {
+function format2WebGLType(format: Format): GLenum {
     switch (format) {
-        case Format.R8UI: return gl.BYTE
-        case Format.RG32F: return gl.FLOAT;
-        case Format.RGB32F: return gl.FLOAT;
+        case Format.R8UI: return WebGL2RenderingContext.BYTE
+        case Format.RG32F: return WebGL2RenderingContext.FLOAT;
+        case Format.RGB32F: return WebGL2RenderingContext.FLOAT;
     }
 }
 
@@ -23,11 +23,11 @@ function calculateOffset(attribute: VertexInputAttributeDescription, attributes:
     return offset;
 }
 
-function stride2indexType(stride: number, gl: WebGL2RenderingContext): GLenum {
+function stride2indexType(stride: number): GLenum {
     switch (stride) {
-        case 1: return gl.UNSIGNED_BYTE;
-        case 2: return gl.UNSIGNED_SHORT;
-        case 4: return gl.UNSIGNED_INT;
+        case 1: return WebGL2RenderingContext.UNSIGNED_BYTE;
+        case 2: return WebGL2RenderingContext.UNSIGNED_SHORT;
+        case 4: return WebGL2RenderingContext.UNSIGNED_INT;
     }
     return -1;
 }
@@ -37,7 +37,7 @@ const input2vao: Map<InputAssembler, WebGLVertexArrayObject> = new Map;
 
 export default class WebCommandBuffer implements CommandBuffer {
     private _gl: WebGL2RenderingContext;
-    private _inputAssembler: InputAssembler | null = null;
+    private _inputAssembler: InputAssembler | undefined;
 
     constructor(gl: WebGL2RenderingContext) {
         this._gl = gl;
@@ -57,7 +57,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         const gl = this._gl;
         for (const layoutBinding of descriptorSet.layout.bindings) {
             const buffer = descriptorSet.buffers[layoutBinding.binding] as WebBuffer;
-            gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding, buffer.buffer);
+            gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
         }
     }
 
@@ -77,7 +77,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.vertexAttribPointer(
                     attribute.location,
                     formatInfo.count,
-                    format2WebGLType(attribute.format, gl),
+                    format2WebGLType(attribute.format),
                     false,
                     buffer.info.stride,
                     calculateOffset(attribute, attributes));
@@ -99,7 +99,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         const gl = this._gl;
         const buffer = this._inputAssembler.indexBuffer;
-        gl.drawElements(gl.LINES, buffer.info.size / buffer.info.stride, stride2indexType(buffer.info.stride, gl), 0);
+        gl.drawElements(gl.TRIANGLES, buffer.info.size / buffer.info.stride, stride2indexType(buffer.info.stride), 0);
     }
 
     endRenderPass() {
