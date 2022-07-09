@@ -1,4 +1,4 @@
-import Buffer, { BufferInfo, BufferUsageBit } from "../../../core/Buffer.js";
+import Buffer, { BufferInfo, BufferUsageBit } from "../../../core/gfx/Buffer.js";
 
 function usage2target(usage: BufferUsageBit): GLenum {
     if (usage & BufferUsageBit.VERTEX) {

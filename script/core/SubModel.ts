@@ -1,4 +1,4 @@
-import { InputAssembler, VertexInputAttributeDescription } from "./InputAssembler.js";
+import { InputAssembler, VertexInputAttributeDescription } from "./gfx/InputAssembler.js";
 import Pass from "./Pass.js";
 import SubMesh from "./SubMesh.js";
 
@@ -22,15 +22,20 @@ export default class SubModel {
         this._subMesh = subMesh;
         this._passes = passes;
 
-        const attributeDescriptions: VertexInputAttributeDescription[] = [];
+        const descriptions: VertexInputAttributeDescription[] = [];
         for (const attribute of subMesh.attributes) {
-            const attributeDescription: VertexInputAttributeDescription = {
-                location: 0, // FIXME
-                binding: attribute.binding,
+            const definition = passes[0].shader.attributes[attribute.name];
+            if (!definition) {
+                console.error(`attribute ${attribute.name} has no definition in ${passes[0].shader.info.name}`)
+                continue;
+            }
+            const description: VertexInputAttributeDescription = {
+                location: passes[0].shader.attributes[attribute.name].location,// presume that muti-passes share the same attribute layout.
+                binding: attribute.buffer,
                 format: attribute.format,
             }
-            attributeDescriptions.push(attributeDescription);
+            descriptions.push(description);
         }
-        this._inputAssembler = { attributes: attributeDescriptions, vertexBuffers: subMesh.vertexBuffers, indexBuffer: subMesh.indexBuffer };
+        this._inputAssembler = { attributes: descriptions, vertexBuffers: subMesh.vertexBuffers, indexBuffer: subMesh.indexBuffer };
     }
 }

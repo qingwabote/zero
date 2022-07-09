@@ -1,5 +1,5 @@
 import Buffer from "./Buffer.js";
-import { Format } from "./gfx.js";
+import { Format } from "../gfx.js";
 
 export interface VertexInputAttributeDescription {
     readonly location: number;

@@ -1,7 +1,8 @@
 export interface LoaderTypes {
     text: string,
     json: any,
-    arraybuffer: ArrayBuffer
+    arraybuffer: ArrayBuffer,
+    blob: Blob
 }
 
 export interface Loader {

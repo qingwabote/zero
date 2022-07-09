@@ -1,4 +1,4 @@
-import Device from "./Device.js";
+import Device from "./gfx/Device.js";
 
 export enum Format {
     R8UI,

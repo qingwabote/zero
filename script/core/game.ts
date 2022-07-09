@@ -1,9 +1,9 @@
-import Buffer from "./Buffer.js";
+import Buffer from "./gfx/Buffer.js";
 import Camera from "./Camera.js";
 import { ComponentInvoker } from "./ComponentInvoker.js";
 import gfx from "./gfx.js";
 import Node from "./Node.js";
-import Pipeline, { DescriptorSet, blocksGlobal, globalDescriptorSetLayout, blocksLocal } from "./Pipeline.js";
+import Pipeline, { DescriptorSet, BuiltinUniformBlocks, BuiltinDescriptorSetLayouts } from "./gfx/Pipeline.js";
 import RenderScene from "./RenderScene.js";
 
 let _width: number;
@@ -52,8 +52,8 @@ export default {
         _camera = new Camera(10);
 
         const buffers: Buffer[] = [];
-        buffers[blocksGlobal.blocks.Camera.binding] = _camera.ubo;
-        _globalDescriptorSet = { layout: globalDescriptorSetLayout, buffers };
+        buffers[BuiltinUniformBlocks.global.blocks.Camera.binding] = _camera.ubo;
+        _globalDescriptorSet = { layout: BuiltinDescriptorSetLayouts.global, buffers, textures: [] };
     },
 
     tick(dt: number) {
@@ -68,15 +68,16 @@ export default {
 
         const commandBuffer = gfx.device.commandBuffer;
         commandBuffer.beginRenderPass()
-        commandBuffer.bindDescriptorSet(blocksGlobal.set, _globalDescriptorSet);
+        commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.global.set, _globalDescriptorSet);
 
         for (const model of _renderScene.models) {
-            commandBuffer.bindDescriptorSet(blocksLocal.set, model.descriptorSet);
+            commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set, model.descriptorSet);
             for (const subModel of model.subModels) {
+                commandBuffer.bindInputAssembler(subModel.inputAssembler);
                 for (const pass of subModel.passes) {
                     const pipeline: Pipeline = { shader: pass.shader };
                     commandBuffer.bindPipeline(pipeline);
-                    commandBuffer.bindInputAssembler(subModel.inputAssembler);
+                    commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set + 1, pass.descriptorSet);
                     commandBuffer.draw();
                 }
             }

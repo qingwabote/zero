@@ -1,32 +1,35 @@
 import Buffer from "./Buffer.js";
 import Shader from "./Shader.js";
+import Texture from "./Texture.js";
 
-export const blocksGlobal = {
-    set: 0,
-    blocks: {
-        Camera: {
-            binding: 0,
-            uniforms: [
-                { name: "matProj" }
-            ]
+export const BuiltinUniformBlocks = {
+    global: {
+        set: 0,
+        blocks: {
+            Camera: {
+                binding: 0,
+                uniforms: {
+                    matProj: {}
+                }
+            }
         }
-    }
-}
-
-export const blocksLocal = {
-    set: 1,
-    blocks: {
-        Local: {
-            binding: 0,
-            uniforms: [
-                { name: "matWorld" }
-            ]
+    },
+    local: {
+        set: 1,
+        blocks: {
+            Local: {
+                binding: 0,
+                uniforms: {
+                    matWorld: {}
+                }
+            }
         }
     }
 }
 
 export enum DescriptorType {
-    UNIFORM_BUFFER = 0x1
+    UNIFORM_BUFFER = 0x1,
+    SAMPLER_TEXTURE = 0x10,
 }
 
 export interface DescriptorSetLayoutBinding {
@@ -43,6 +46,7 @@ export interface DescriptorSetLayout {
 export interface DescriptorSet {
     readonly layout: DescriptorSetLayout;
     readonly buffers: Buffer[];
+    readonly textures: Texture[];
 }
 
 export interface PipelineLayout {
@@ -51,7 +55,7 @@ export interface PipelineLayout {
 
 function buildDescriptorSetLayout(res: {
     set: number,
-    blocks: Record<string, { binding: number, uniforms: { name: string }[] }>
+    blocks: Record<string, { binding: number, uniforms: Record<string, {}> }>
 }): DescriptorSetLayout {
     const bindings: DescriptorSetLayoutBinding[] = [];
     for (const name in res.blocks) {
@@ -61,8 +65,10 @@ function buildDescriptorSetLayout(res: {
     return { bindings }
 }
 
-export const globalDescriptorSetLayout: DescriptorSetLayout = buildDescriptorSetLayout(blocksGlobal);
-export const localDescriptorSetLayout: DescriptorSetLayout = buildDescriptorSetLayout(blocksLocal);
+export const BuiltinDescriptorSetLayouts = {
+    global: buildDescriptorSetLayout(BuiltinUniformBlocks.global),
+    local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
+}
 
 
 // export const pipelineLayout: PipelineLayout = {

@@ -1,9 +1,10 @@
-import CommandBuffer from "../../../core/CommandBuffer.js";
+import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import { Format, FormatInfos } from "../../../core/gfx.js";
-import { InputAssembler, VertexInputAttributeDescription } from "../../../core/InputAssembler.js";
-import Pipeline, { DescriptorSet } from "../../../core/Pipeline.js";
+import { InputAssembler, VertexInputAttributeDescription } from "../../../core/gfx/InputAssembler.js";
+import Pipeline, { DescriptorSet, DescriptorType } from "../../../core/gfx/Pipeline.js";
 import WebBuffer from "./WebBuffer.js";
 import WebShader from "./WebShader.js";
+import WebTexture from "./WebTexture.js";
 
 function format2WebGLType(format: Format): GLenum {
     switch (format) {
@@ -56,8 +57,13 @@ export default class WebCommandBuffer implements CommandBuffer {
     bindDescriptorSet(index: number, descriptorSet: DescriptorSet): void {
         const gl = this._gl;
         for (const layoutBinding of descriptorSet.layout.bindings) {
-            const buffer = descriptorSet.buffers[layoutBinding.binding] as WebBuffer;
-            gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
+            if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
+                const buffer = descriptorSet.buffers[layoutBinding.binding] as WebBuffer;
+                gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
+            } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
+                const texture = descriptorSet.textures[layoutBinding.binding] as WebTexture;
+                gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+            }
         }
     }
 

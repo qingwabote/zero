@@ -1,7 +1,7 @@
 import { mat4 } from "gl-matrix";
-import Buffer, { BufferUsageBit } from "./Buffer.js";
+import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
 import gfx, { Transform } from "./gfx.js";
-import { DescriptorSet, blocksLocal, localDescriptorSetLayout } from "./Pipeline.js";
+import { DescriptorSet, BuiltinUniformBlocks, BuiltinDescriptorSetLayouts } from "./gfx/Pipeline.js";
 import SubModel from "./SubModel.js";
 
 export default class Model {
@@ -22,8 +22,8 @@ export default class Model {
         this._transform = transform;
 
         const buffers: Buffer[] = [];
-        buffers[blocksLocal.blocks.Local.binding] = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: Float32Array.BYTES_PER_ELEMENT * 16, stride: 1 });
-        this._descriptorSet = { layout: localDescriptorSetLayout, buffers };
+        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: Float32Array.BYTES_PER_ELEMENT * 16, stride: 1 });
+        this._descriptorSet = { layout: BuiltinDescriptorSetLayouts.local, buffers, textures: [] };
     }
 
     update() {
@@ -31,6 +31,6 @@ export default class Model {
         mat4.rotateX(matWorld, matWorld, Math.PI / 180 * this._transform.eulerX);
         mat4.rotateY(matWorld, matWorld, Math.PI / 180 * this._transform.eulerY);
         mat4.rotateZ(matWorld, matWorld, Math.PI / 180 * this._transform.eulerZ);
-        this._descriptorSet.buffers[blocksLocal.blocks.Local.binding].update(matWorld as Float32Array);
+        this._descriptorSet.buffers[BuiltinUniformBlocks.local.blocks.Local.binding].update(matWorld as Float32Array);
     }
 }

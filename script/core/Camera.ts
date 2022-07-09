@@ -1,5 +1,5 @@
 import { mat4 } from "gl-matrix";
-import Buffer, { BufferUsageBit } from "./Buffer.js";
+import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
 import game from "./game.js";
 import gfx from "./gfx.js";
 

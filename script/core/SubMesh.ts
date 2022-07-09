@@ -1,10 +1,10 @@
-import Buffer from "./Buffer.js";
+import Buffer from "./gfx/Buffer.js";
 import { Format } from "./gfx.js";
 
 export interface Attribute {
     name: string
     format: Format
-    binding: number
+    buffer: number
 }
 
 export default class SubMesh {
