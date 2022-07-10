@@ -45,13 +45,23 @@ export default class WebCommandBuffer implements CommandBuffer {
     }
 
     beginRenderPass() {
-        this._gl.clearColor(0, 0, 0, 1)
-        this._gl.clear(this._gl.COLOR_BUFFER_BIT)
+        const gl = this._gl;
+
+        gl.clearColor(0, 0, 0, 1)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     }
 
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
-        gl.useProgram((pipeline.shader as WebShader).program)
+
+        gl.useProgram((pipeline.shader as WebShader).program);
+
+        const dss = pipeline.depthStencilState;
+        if (dss.depthTest) {
+            gl.enable(gl.DEPTH_TEST);
+        } else {
+            gl.disable(gl.DEPTH_TEST);
+        }
     }
 
     bindDescriptorSet(index: number, descriptorSet: DescriptorSet): void {

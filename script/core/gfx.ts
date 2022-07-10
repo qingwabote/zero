@@ -19,6 +19,9 @@ export const FormatInfos: Readonly<FormatInfo[]> = [
 ]
 
 export interface Transform {
+    x: number;
+    y: number;
+    z: number;
     eulerX: number;
     eulerY: number;
     eulerZ: number;

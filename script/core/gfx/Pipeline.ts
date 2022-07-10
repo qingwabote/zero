@@ -78,7 +78,12 @@ export const BuiltinDescriptorSetLayouts = {
 //     ]
 // }
 
+export interface DepthStencilState {
+    depthTest: boolean;
+}
+
 export default interface Pipeline {
     readonly shader: Shader;
+    readonly depthStencilState: DepthStencilState;
     // readonly layout: PipelineLayout;
 }

@@ -6,6 +6,10 @@ type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Compon
 export default class Node implements Transform {
     private _components: Component[] = [];
 
+    x: number = 0;
+    y: number = 0;
+    z: number = 0;
+
     eulerX: number = 0;
     eulerY: number = 0;
     eulerZ: number = 0;

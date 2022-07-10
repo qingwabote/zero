@@ -23,7 +23,7 @@ export default class Camera {
         const aspect = game.width / game.height
         const x = this._orthoHeight * aspect;
         const y = this._orthoHeight;
-        mat4.ortho(this._matProj, -x, x, -y, y, -1, 2000);
+        mat4.ortho(this._matProj, -x, x, -y, y, -2, 2000);
 
         this._ubo.update(this._matProj);
     }

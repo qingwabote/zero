@@ -1,4 +1,4 @@
-import { mat4 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
 import gfx, { Transform } from "./gfx.js";
 import { DescriptorSet, BuiltinUniformBlocks, BuiltinDescriptorSetLayouts } from "./gfx/Pipeline.js";
@@ -28,6 +28,7 @@ export default class Model {
 
     update() {
         const matWorld = mat4.create();
+        mat4.translate(matWorld, matWorld, vec3.fromValues(this._transform.x, this._transform.y, this._transform.z))
         mat4.rotateX(matWorld, matWorld, Math.PI / 180 * this._transform.eulerX);
         mat4.rotateY(matWorld, matWorld, Math.PI / 180 * this._transform.eulerY);
         mat4.rotateZ(matWorld, matWorld, Math.PI / 180 * this._transform.eulerZ);

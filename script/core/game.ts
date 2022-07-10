@@ -75,7 +75,7 @@ export default {
             for (const subModel of model.subModels) {
                 commandBuffer.bindInputAssembler(subModel.inputAssembler);
                 for (const pass of subModel.passes) {
-                    const pipeline: Pipeline = { shader: pass.shader };
+                    const pipeline: Pipeline = { shader: pass.shader, depthStencilState: { depthTest: true } };
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set + 1, pass.descriptorSet);
                     commandBuffer.draw();
