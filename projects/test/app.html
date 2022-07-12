@@ -3,13 +3,27 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Zero Engine</title>
+  <title>test</title>
   <link rel="icon" href="favicon.ico" />
 </head>
 
-<body>
-  <div id="ZeroGameContainer">
-    <canvas id="GameCanvas" width="960" height="640"></canvas>
+<body style="display:flex;">
+  <div id="ZeroContainer">
+    <canvas id="ZeroCanvas" width="640" height="960"></canvas>
+  </div>
+  <div id="ControlContainer">
+    <div>
+      <input id="eulerXInput" type="range" min="0" max="360" value="0" />
+      <label id="eulerXLabel"></label>
+    </div>
+    <div>
+      <input id="eulerYInput" type="range" min="0" max="360" value="90" />
+      <label id="eulerYLabel"></label>
+    </div>
+    <div>
+      <input id="eulerZInput" type="range" min="0" max="360" value="90" />
+      <label id="eulerZLabel"></label>
+    </div>
   </div>
   <script type="importmap">
         {

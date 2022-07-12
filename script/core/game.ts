@@ -49,7 +49,8 @@ export default {
 
         _renderScene = new RenderScene;
 
-        _camera = new Camera(10);
+        _camera = new Camera();
+        _camera.fov = 45;
 
         const buffers: Buffer[] = [];
         buffers[BuiltinUniformBlocks.global.blocks.Camera.binding] = _camera.ubo;
