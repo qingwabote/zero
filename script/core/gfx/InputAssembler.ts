@@ -5,6 +5,7 @@ export interface VertexInputAttributeDescription {
     readonly location: number;
     readonly binding: number;
     readonly format: Format;
+    readonly offset: number
 }
 
 export interface InputAssembler {

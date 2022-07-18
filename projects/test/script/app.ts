@@ -1,5 +1,4 @@
 import GLTF from "../../../script/core/assets/GLTF.js";
-import MeshRenderer from "../../../script/core/MeshRenderer.js";
 import Node from "../../../script/core/Node.js";
 import webZero from "../../../script/platforms/webgl/webZero.js";
 import ZeroComponent from "./ZeroComponent.js";
@@ -9,20 +8,17 @@ const gl = canvas.getContext('webgl2')!;
 
 webZero.init(gl, canvas.width, canvas.height);
 
-const node = new Node();
+let node: Node;
 
-(async () => {
-    const glTF = new GLTF();
-    await glTF.load('./asset/untitled');
+// (async () => {
+const glTF = new GLTF();
+await glTF.load('./asset/untitled');
 
-    const n = glTF.nodes[0];
-    const renderer = node.addComponent(MeshRenderer);
-    renderer.mesh = n.mesh;
-    renderer.materials = n.materials;
-    node.addComponent(ZeroComponent);
+node = glTF.createScene("Scene");
+node.addComponent(ZeroComponent);
 
-    webZero.run();
-})()
+webZero.run();
+// })()
 
 const eulerXLabel = document.querySelector<HTMLLabelElement>('#eulerXLabel')!;
 const eulerXInput = document.querySelector<HTMLInputElement>('#eulerXInput')!;

@@ -14,15 +14,15 @@ function format2WebGLType(format: Format): GLenum {
     }
 }
 
-function calculateOffset(attribute: VertexInputAttributeDescription, attributes: VertexInputAttributeDescription[]): number {
-    let offset = 0;
-    for (const iterator of attributes) {
-        if (iterator.binding != attribute.binding) continue;
-        if (iterator.location >= attribute.location) continue;
-        offset += FormatInfos[iterator.format].size;
-    }
-    return offset;
-}
+// function calculateOffset(attribute: VertexInputAttributeDescription, attributes: VertexInputAttributeDescription[]): number {
+//     let offset = 0;
+//     for (const iterator of attributes) {
+//         if (iterator.binding != attribute.binding) continue;
+//         if (iterator.location >= attribute.location) continue;
+//         offset += FormatInfos[iterator.format].size;
+//     }
+//     return offset;
+// }
 
 function stride2indexType(stride: number): GLenum {
     switch (stride) {
@@ -96,7 +96,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                     format2WebGLType(attribute.format),
                     false,
                     buffer.info.stride,
-                    calculateOffset(attribute, attributes));
+                    attribute.offset);
             }
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);
             input2vao.set(inputAssembler, vao);

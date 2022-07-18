@@ -33,6 +33,7 @@ export default class SubModel {
                 location: passes[0].shader.attributes[attribute.name].location,// presume that muti-passes share the same attribute layout.
                 binding: attribute.buffer,
                 format: attribute.format,
+                offset: attribute.offset
             }
             descriptions.push(description);
         }
