@@ -24,9 +24,15 @@ export default class SubMesh {
         return this._indexBuffer;
     }
 
-    constructor(attributes: Attribute[], vertexBuffers: Buffer[], indexBuffer: Buffer) {
+    private _indexType: Format;
+    get indexType(): Format {
+        return this._indexType;
+    }
+
+    constructor(attributes: Attribute[], vertexBuffers: Buffer[], indexBuffer: Buffer, indexType: Format) {
         this._attributes = attributes;
         this._vertexBuffers = vertexBuffers;
         this._indexBuffer = indexBuffer;
+        this._indexType = indexType;
     }
 } 

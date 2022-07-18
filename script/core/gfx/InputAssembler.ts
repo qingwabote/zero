@@ -12,4 +12,5 @@ export interface InputAssembler {
     readonly attributes: VertexInputAttributeDescription[];
     readonly vertexBuffers: Buffer[];
     readonly indexBuffer: Buffer;
+    readonly indexType: Format
 }

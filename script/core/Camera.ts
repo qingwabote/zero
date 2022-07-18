@@ -15,7 +15,7 @@ export default class Camera {
     }
 
     constructor() {
-        this._ubo = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: this._matProj.byteLength, stride: 1 });
+        this._ubo = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: this._matProj.byteLength });
     }
 
     update() {

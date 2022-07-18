@@ -7,7 +7,7 @@ export enum BufferUsageBit {
 export interface BufferInfo {
     readonly usage: BufferUsageBit
     readonly size: number;
-    readonly stride: number;
+    readonly stride?: number;
     // readonly offset: number
 }
 

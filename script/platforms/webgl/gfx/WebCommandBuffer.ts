@@ -6,9 +6,11 @@ import WebBuffer from "./WebBuffer.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
+// https://webgl2fundamentals.org/webgl/lessons/webgl-data-textures.html
 function format2WebGLType(format: Format): GLenum {
     switch (format) {
-        case Format.R8UI: return WebGL2RenderingContext.BYTE
+        case Format.R8UI: return WebGL2RenderingContext.UNSIGNED_BYTE;
+        case Format.R16UI: return WebGL2RenderingContext.UNSIGNED_SHORT;
         case Format.RG32F: return WebGL2RenderingContext.FLOAT;
         case Format.RGB32F: return WebGL2RenderingContext.FLOAT;
     }
@@ -23,15 +25,6 @@ function format2WebGLType(format: Format): GLenum {
 //     }
 //     return offset;
 // }
-
-function stride2indexType(stride: number): GLenum {
-    switch (stride) {
-        case 1: return WebGL2RenderingContext.UNSIGNED_BYTE;
-        case 2: return WebGL2RenderingContext.UNSIGNED_SHORT;
-        case 4: return WebGL2RenderingContext.UNSIGNED_INT;
-    }
-    return -1;
-}
 
 const input2vao: Map<InputAssembler, WebGLVertexArrayObject> = new Map;
 
@@ -95,7 +88,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                     formatInfo.count,
                     format2WebGLType(attribute.format),
                     false,
-                    buffer.info.stride,
+                    buffer.info.stride || formatInfo.size,
                     attribute.offset);
             }
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);
@@ -115,7 +108,8 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         const gl = this._gl;
         const buffer = this._inputAssembler.indexBuffer;
-        gl.drawElements(gl.TRIANGLES, buffer.info.size / buffer.info.stride, stride2indexType(buffer.info.stride), 0);
+        const formatInfo = FormatInfos[this._inputAssembler.indexType];
+        gl.drawElements(gl.TRIANGLES, buffer.info.size / formatInfo.size, format2WebGLType(this._inputAssembler.indexType), 0);
     }
 
     endRenderPass() {

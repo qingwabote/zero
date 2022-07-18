@@ -1,8 +1,8 @@
 import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
-import gfx, { Transform } from "./gfx.js";
+import gfx from "./gfx.js";
 import { DescriptorSet, BuiltinUniformBlocks, BuiltinDescriptorSetLayouts } from "./gfx/Pipeline.js";
 import SubModel from "./SubModel.js";
-import mat4 from "./math/mat4.js";
+import Node from "./Node.js";
 
 export default class Model {
     private _descriptorSet: DescriptorSet;
@@ -15,9 +15,9 @@ export default class Model {
         return this._subModels;
     }
 
-    private _transform: Transform;
+    private _transform: Node;
 
-    constructor(subModels: SubModel[], transform: Transform) {
+    constructor(subModels: SubModel[], transform: Node) {
         this._subModels = subModels;
         this._transform = transform;
 
@@ -27,7 +27,6 @@ export default class Model {
     }
 
     update() {
-        const matWorld = mat4.fromRTS(mat4.create(), this._transform.rotation, this._transform.position, [1, 1, 1])
-        this._descriptorSet.buffers[BuiltinUniformBlocks.local.blocks.Local.binding].update(new Float32Array(matWorld));
+        this._descriptorSet.buffers[BuiltinUniformBlocks.local.blocks.Local.binding].update(new Float32Array(this._transform.matrix));
     }
 }

@@ -14,7 +14,7 @@ let node: Node;
 const glTF = new GLTF();
 await glTF.load('./asset/untitled');
 
-node = glTF.createScene("Scene");
+node = glTF.createScene("Scene")!;
 node.addComponent(ZeroComponent);
 
 webZero.run();

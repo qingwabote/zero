@@ -37,6 +37,6 @@ export default class SubModel {
             }
             descriptions.push(description);
         }
-        this._inputAssembler = { attributes: descriptions, vertexBuffers: subMesh.vertexBuffers, indexBuffer: subMesh.indexBuffer };
+        this._inputAssembler = { attributes: descriptions, vertexBuffers: subMesh.vertexBuffers, indexBuffer: subMesh.indexBuffer, indexType: subMesh.indexType };
     }
 }

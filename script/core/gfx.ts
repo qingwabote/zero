@@ -4,6 +4,7 @@ import { Vec3 } from "./math/vec3.js";
 
 export enum Format {
     R8UI,
+    R16UI,
     RG32F,
     RGB32F
 }
@@ -15,15 +16,11 @@ interface FormatInfo {
 }
 
 export const FormatInfos: Readonly<FormatInfo[]> = [
-    { name: "R8UI", size: 2, count: 1 },
+    { name: "R8UI", size: 1, count: 1 },
+    { name: "R16UI", size: 2, count: 1 },
     { name: "RG32F", size: 8, count: 2 },
     { name: "RGB32F", size: 12, count: 3 },
 ]
-
-export interface Transform {
-    rotation: Readonly<Quat>;
-    position: Readonly<Vec3>;
-}
 
 let _device: Device
 

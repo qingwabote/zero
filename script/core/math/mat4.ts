@@ -105,7 +105,7 @@ export default {
         ]
     },
 
-    translate(out: Mat4, a: Mat4, x: number, y: number, z: number): Mat4 {
+    translate(out: Mat4, a: Mat4, v: Readonly<Vec3>): Mat4 {
         if (out != a) {
             out[0] = a[0];
             out[1] = a[1];
@@ -123,13 +123,37 @@ export default {
             out[15] = a[15];
         }
 
-        out[12] += x;
-        out[13] += y;
-        out[14] += z;
+        out[12] += v[0];
+        out[13] += v[1];
+        out[14] += v[2];
         return out;
     },
 
-    multiply(out: Mat4, a: Mat4, b: Mat4): Mat4 {
+    translate2(out: Mat4, a: Mat4, v: Readonly<Vec3>): Mat4 {
+        if (out != a) {
+            out[0] = a[0];
+            out[1] = a[1];
+            out[2] = a[2];
+            out[3] = a[3];
+            out[4] = a[4];
+            out[5] = a[5];
+            out[6] = a[6];
+            out[7] = a[7];
+            out[8] = a[8];
+            out[9] = a[9];
+            out[10] = a[10];
+            out[11] = a[11];
+
+            out[15] = a[15];
+        }
+
+        out[12] = v[0];
+        out[13] = v[1];
+        out[14] = v[2];
+        return out;
+    },
+
+    multiply(out: Mat4, a: Readonly<Mat4>, b: Readonly<Mat4>): Mat4 {
         let [x, y, z, w] = [b[0], b[1], b[2], b[3]];
         out[0] = x * a[0] + y * a[4] + z * a[8] + w * a[12];
         out[1] = x * a[1] + y * a[5] + z * a[9] + w * a[13];

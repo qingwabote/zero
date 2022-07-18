@@ -23,14 +23,16 @@ const formatPart1Names: Record<string, string> = {
 }
 
 const formatPart2Names: Record<number, string> = {
-    5126: "32F",
-    5123: "8UI"
+    5123: "16UI",
+    5126: "32F"
 }
 
 export default class GLTF extends Asset {
     private _json: any;
     private _bin: ArrayBuffer | undefined;
     private _texture: Texture | undefined;
+
+    private _buffers: Buffer[] = [];
 
     async load(url: string) {
         const res = url.match(/(.+)\/(.+)$/);
@@ -54,62 +56,79 @@ export default class GLTF extends Asset {
         this._json = json;
     }
 
-    createScene(name: string): Node {
-        const rootNode = new Node;
-        if (!this._json || !this._bin || !this._texture) return rootNode;
+    createScene(name: string): Node | null {
+        if (!this._json || !this._bin || !this._texture) return null;
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);
-        const root = this._json.nodes[scene.nodes[0]];
-        const subMeshes: SubMesh[] = [];
-        const materials: Material[] = [];
-        const m = this._json.meshes[root.mesh];
-        for (const primitive of m.primitives) {
-            const vertexBuffers: Buffer[] = [];
-            const attributes: Attribute[] = [];
-            for (const name in primitive.attributes) {
-                const accessor = this._json.accessors[primitive.attributes[name]];
-                const format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`]
-                const attribute: Attribute = {
-                    name: attributeNames[name] || name,
-                    format,
-                    buffer: vertexBuffers.length,
-                    offset: accessor.byteOffset || 0
+        return this.createNode(this._json.nodes[scene.nodes[0]]);
+    }
+
+    private createNode(info: any, parent?: Node): Node {
+        const node = new Node;
+        if (info.translation) {
+            node.position = info.translation;
+        }
+        if (info.children) {
+            for (const idx of info.children) {
+                const info = this._json.nodes[idx];
+                node.addChild(this.createNode(info, node))
+            }
+        } else {
+            const subMeshes: SubMesh[] = [];
+            const materials: Material[] = [];
+            const m = this._json.meshes[info.mesh];
+            for (const primitive of m.primitives) {
+                const vertexBuffers: Buffer[] = [];
+                const attributes: Attribute[] = [];
+                for (const name in primitive.attributes) {
+                    const accessor = this._json.accessors[primitive.attributes[name]];
+                    const format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`]
+                    const attribute: Attribute = {
+                        name: attributeNames[name] || name,
+                        format,
+                        buffer: vertexBuffers.length,
+                        offset: accessor.byteOffset || 0
+                    }
+                    attributes.push(attribute);
+                    vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageBit.VERTEX));
                 }
-                attributes.push(attribute);
-                const viewInfo = this._json.bufferViews[accessor.bufferView];
-                const view = new DataView(this._bin, viewInfo.byteOffset, viewInfo.byteLength)
-                const buffer = gfx.device.createBuffer({
-                    usage: BufferUsageBit.VERTEX,
-                    stride: viewInfo.byteStride || FormatInfos[format].size,
-                    size: viewInfo.byteLength
-                });
-                buffer.update(view);
-                vertexBuffers.push(buffer);
+
+                const accessor = this._json.accessors[primitive.indices];
+                const format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`]
+                const buffer = this.getBuffer(accessor.bufferView, BufferUsageBit.INDEX)
+
+                const pass = new Pass('zero');
+                pass.descriptorSet.textures[0] = this._texture!;
+                const material = new Material([pass]);
+                materials.push(material);
+
+                subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, format))
             }
 
-            const accessor = this._json.accessors[primitive.indices];
-            const viewInfo = this._json.bufferViews[accessor.bufferView];
-            const format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`]
-            const buffer: Buffer = gfx.device.createBuffer({
-                usage: BufferUsageBit.INDEX,
-                stride: FormatInfos[format].size,
+            const renderer = node.addComponent(MeshRenderer);
+            renderer.mesh = new Mesh(subMeshes);
+            renderer.materials = materials;
+        }
+        parent?.addChild(node);
+        return node;
+    }
+
+    private getBuffer(index: number, usage: BufferUsageBit): Buffer {
+        let buffer = this._buffers[index];
+        if (!this._buffers[index]) {
+            const viewInfo = this._json.bufferViews[index];
+            const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
+            buffer = gfx.device.createBuffer({
+                usage: usage,
+                stride: viewInfo.byteStride,
                 size: viewInfo.byteLength
             });
-            buffer.update(new DataView(this._bin, viewInfo.byteOffset, viewInfo.byteLength));
-
-            const pass = new Pass('zero');
-            pass.descriptorSet.textures[0] = this._texture;
-            const material = new Material([pass]);
-            materials.push(material);
-
-            subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer))
+            buffer.update(view);
+            this._buffers[index] = buffer;
         }
 
-        const renderer = rootNode.addComponent(MeshRenderer);
-        renderer.mesh = new Mesh(subMeshes);
-        renderer.materials = materials;
-
-        return rootNode;
+        console.assert(buffer.info.usage == usage);
+        return buffer;
     }
 }
