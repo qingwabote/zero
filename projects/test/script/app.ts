@@ -30,9 +30,7 @@ const eulerZLabel = document.querySelector<HTMLLabelElement>('#eulerZLabel')!;
 const eulerZInput = document.querySelector<HTMLInputElement>('#eulerZInput')!;
 
 function onEulerInput(): void {
-    node.eulerX = eulerXInput.valueAsNumber;
-    node.eulerY = eulerYInput.valueAsNumber;
-    node.eulerZ = eulerZInput.valueAsNumber;
+    node.euler = [eulerXInput.valueAsNumber, eulerYInput.valueAsNumber, eulerZInput.valueAsNumber]
     eulerXLabel.textContent = `eulerX: ${eulerXInput.valueAsNumber}`;
     eulerYLabel.textContent = `eulerY: ${eulerYInput.valueAsNumber}`;
     eulerZLabel.textContent = `eulerZ: ${eulerZInput.valueAsNumber}`;

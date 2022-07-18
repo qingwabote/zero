@@ -1,18 +1,31 @@
 import Component from "./Component.js";
 import { Transform } from "./gfx.js";
+import quat, { Quat } from "./math/quat.js";
+import vec3, { Vec3 } from "./math/vec3.js";
 
 type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Component>) => T;
 
 export default class Node implements Transform {
     private _components: Component[] = [];
 
-    x: number = 0;
-    y: number = 0;
-    z: number = 0;
+    private _rotation: Quat = quat.create()
+    get rotation(): Readonly<Quat> {
+        return this._rotation;
+    }
 
-    eulerX: number = 0;
-    eulerY: number = 0;
-    eulerZ: number = 0;
+    set rotation(value: Readonly<Quat>) {
+        Object.assign(this._rotation, value);
+    }
+
+    get euler(): Readonly<Vec3> {
+        return quat.toEuler(vec3.create(), this._rotation);
+    }
+
+    set euler(value: Readonly<Vec3>) {
+        quat.fromEuler(this._rotation, value[0], value[1], value[2])
+    }
+
+    position: Readonly<Vec3> = vec3.create();
 
     addComponent<T extends Component>(constructor: ComponentConstructor<T>): T {
         const component = new constructor(this);

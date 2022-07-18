@@ -1,4 +1,6 @@
 import Device from "./gfx/Device.js";
+import { Quat } from "./math/quat.js";
+import { Vec3 } from "./math/vec3.js";
 
 export enum Format {
     R8UI,
@@ -19,12 +21,8 @@ export const FormatInfos: Readonly<FormatInfo[]> = [
 ]
 
 export interface Transform {
-    x: number;
-    y: number;
-    z: number;
-    eulerX: number;
-    eulerY: number;
-    eulerZ: number;
+    rotation: Readonly<Quat>;
+    position: Readonly<Vec3>;
 }
 
 let _device: Device

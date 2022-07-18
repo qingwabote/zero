@@ -27,22 +27,7 @@ export default class Model {
     }
 
     update() {
-        // const matWorld = mat4.create();
-        // mat4.translate(matWorld, matWorld, vec3.fromValues(this._transform.x, this._transform.y, this._transform.z))
-        // mat4.rotateX(matWorld, matWorld, Math.PI / 180 * this._transform.eulerX);
-        // mat4.rotateY(matWorld, matWorld, Math.PI / 180 * this._transform.eulerY);
-        // mat4.rotateZ(matWorld, matWorld, Math.PI / 180 * this._transform.eulerZ);
-
-        const rx = mat4.fromXRotation(Math.PI / 180 * this._transform.eulerX);
-        const ry = mat4.fromYRotation(Math.PI / 180 * this._transform.eulerY);
-        const rz = mat4.fromZRotation(Math.PI / 180 * this._transform.eulerZ);
-        const r = mat4.multiply(mat4.create(), rz, mat4.multiply(mat4.create(), ry, rx));
-        // const matWorld = mat4.translate(mat4.create(), rx, this._transform.x, this._transform.y, this._transform.z);
-        const t = mat4.fromTranslation(this._transform.x, this._transform.y, this._transform.z);
-        const matWorld = mat4.multiply(mat4.create(), t, r)
-
-
-
+        const matWorld = mat4.fromRTS(mat4.create(), this._transform.rotation, this._transform.position, [1, 1, 1])
         this._descriptorSet.buffers[BuiltinUniformBlocks.local.blocks.Local.binding].update(new Float32Array(matWorld));
     }
 }

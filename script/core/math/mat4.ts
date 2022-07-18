@@ -1,5 +1,8 @@
 //right-handed
 
+import { Quat } from "./quat.js";
+import { Vec3 } from "./vec3.js";
+
 export type Mat4 = [
     number, number, number, number,
     number, number, number, number,
@@ -16,6 +19,45 @@ export default {
             0, 0, 1, 0,
             0, 0, 0, 1
         ]
+    },
+
+    fromRTS(out: Mat4, r: Readonly<Quat>, t: Readonly<Vec3>, s: Vec3) {
+        const x = r[0]; const y = r[1]; const z = r[2]; const w = r[3];
+        const x2 = x + x;
+        const y2 = y + y;
+        const z2 = z + z;
+
+        const xx = x * x2;
+        const xy = x * y2;
+        const xz = x * z2;
+        const yy = y * y2;
+        const yz = y * z2;
+        const zz = z * z2;
+        const wx = w * x2;
+        const wy = w * y2;
+        const wz = w * z2;
+        const sx = s[0];
+        const sy = s[1];
+        const sz = s[2];
+
+        out[0] = (1 - (yy + zz)) * sx;
+        out[1] = (xy + wz) * sx;
+        out[2] = (xz - wy) * sx;
+        out[3] = 0;
+        out[4] = (xy - wz) * sy;
+        out[5] = (1 - (xx + zz)) * sy;
+        out[6] = (yz + wx) * sy;
+        out[7] = 0;
+        out[8] = (xz + wy) * sz;
+        out[9] = (yz - wx) * sz;
+        out[10] = (1 - (xx + yy)) * sz;
+        out[11] = 0;
+        out[12] = t[0];
+        out[13] = t[1];
+        out[14] = t[2];
+        out[15] = 1;
+
+        return out;
     },
 
     fromXRotation(radian: number): Mat4 {
