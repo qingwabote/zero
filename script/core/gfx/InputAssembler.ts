@@ -1,5 +1,5 @@
-import Buffer from "./Buffer.js";
 import { Format } from "../gfx.js";
+import Buffer from "./Buffer.js";
 
 export interface VertexInputAttributeDescription {
     readonly location: number;
@@ -9,8 +9,10 @@ export interface VertexInputAttributeDescription {
 }
 
 export interface InputAssembler {
-    readonly attributes: VertexInputAttributeDescription[];
-    readonly vertexBuffers: Buffer[];
-    readonly indexBuffer: Buffer;
-    readonly indexType: Format
+    attributes: VertexInputAttributeDescription[];
+    vertexBuffers: Buffer[];
+    indexBuffer: Buffer;
+    indexType: Format;
+    indexCount: number;
+    indexOffset: number
 }

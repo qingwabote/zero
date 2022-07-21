@@ -1,4 +1,4 @@
-import { DescriptorSetLayout, DescriptorType } from "./Pipeline.js"
+import { DescriptorSetLayout, DescriptorType } from "./Pipeline.js";
 
 export enum ShaderStageFlags {
     VERTEX = 0x1,
@@ -7,8 +7,9 @@ export enum ShaderStageFlags {
 }
 
 export interface ShaderInfo {
-    readonly name: string
-    readonly stages: ShaderStage[]
+    readonly name: string;
+    readonly stages: ShaderStage[];
+    readonly macros: Readonly<Record<string, number>>;
 }
 
 export interface ShaderStage {
@@ -32,7 +33,7 @@ export default abstract class Shader {
     }
 
     protected _attributes: Record<string, Attribute> = {};
-    get attributes(): Record<string, Attribute> {
+    get attributes(): Readonly<Record<string, Attribute>> {
         return this._attributes;
     }
 

@@ -25,7 +25,7 @@ export default class WebBuffer extends Buffer {
         this._buffer = gl.createBuffer()!
         const target = usage2target(info.usage);
         gl.bindBuffer(target, this._buffer);
-        gl.bufferData(target, info.size, gl.DYNAMIC_DRAW);
+        gl.bufferData(target, info.size, gl.STATIC_DRAW);
 
         gl.bindBuffer(target, null);
         this._gl = gl;

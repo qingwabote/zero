@@ -7,6 +7,10 @@ export default {
         return [0, 0, 0]
     },
 
+    length(v: Vec3) {
+        return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    },
+
     transformMat4(out: Vec3, a: Readonly<Vec3>, m: Readonly<Mat4>): Vec3 {
         const x = a[0];
         const y = a[1];

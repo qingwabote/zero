@@ -14,7 +14,7 @@ export default class SubModel {
     }
 
     private _inputAssembler: InputAssembler;
-    get inputAssembler(): InputAssembler {
+    get inputAssembler(): Readonly<InputAssembler> {
         return this._inputAssembler;
     }
 
@@ -24,19 +24,26 @@ export default class SubModel {
 
         const descriptions: VertexInputAttributeDescription[] = [];
         for (const attribute of subMesh.attributes) {
-            const definition = passes[0].shader.attributes[attribute.name];
+            const definition = passes[0].shader.attributes[attribute.name];// presume that muti-passes share the same attribute layout.
             if (!definition) {
-                console.error(`attribute ${attribute.name} has no definition in ${passes[0].shader.info.name}`)
+                // console.warn(`attribute ${attribute.name} has no definition in ${passes[0].shader.info.name}`)
                 continue;
             }
             const description: VertexInputAttributeDescription = {
-                location: passes[0].shader.attributes[attribute.name].location,// presume that muti-passes share the same attribute layout.
+                location: definition.location,
                 binding: attribute.buffer,
                 format: attribute.format,
                 offset: attribute.offset
             }
             descriptions.push(description);
         }
-        this._inputAssembler = { attributes: descriptions, vertexBuffers: subMesh.vertexBuffers, indexBuffer: subMesh.indexBuffer, indexType: subMesh.indexType };
+        this._inputAssembler = {
+            attributes: descriptions,
+            vertexBuffers: subMesh.vertexBuffers,
+            indexBuffer: subMesh.indexBuffer,
+            indexType: subMesh.indexType,
+            indexCount: subMesh.indexCount,
+            indexOffset: subMesh.indexOffset
+        };
     }
 }

@@ -12,9 +12,12 @@ let node: Node;
 
 // (async () => {
 const glTF = new GLTF();
-await glTF.load('./asset/untitled');
+await glTF.load('./asset/guardian_zelda_botw_fan-art/scene');
+node = glTF.createScene("Sketchfab_Scene")!;
 
-node = glTF.createScene("Scene")!;
+// await glTF.load('./asset/untitled');
+// node = glTF.createScene("Scene")!;
+
 node.addComponent(ZeroComponent);
 
 webZero.run();

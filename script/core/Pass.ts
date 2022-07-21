@@ -1,6 +1,5 @@
 import { DescriptorSet } from "./gfx/Pipeline.js";
 import Shader from "./gfx/Shader.js";
-import shaderLib from "./shaderLib.js";
 
 export default class Pass {
     private _shader: Shader;
@@ -13,8 +12,8 @@ export default class Pass {
         return this._descriptorSet;
     }
 
-    constructor(shader: string) {
-        this._shader = shaderLib.getShader(shader);
+    constructor(shader: Shader) {
+        this._shader = shader;
         this._descriptorSet = { layout: this._shader.descriptorSetLayout, buffers: [], textures: [] }
     }
 }

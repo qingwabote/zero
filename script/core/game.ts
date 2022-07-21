@@ -1,9 +1,9 @@
-import Buffer from "./gfx/Buffer.js";
 import Camera from "./Camera.js";
 import { ComponentInvoker } from "./ComponentInvoker.js";
 import gfx from "./gfx.js";
+import Buffer from "./gfx/Buffer.js";
+import Pipeline, { BlendFactor, BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "./gfx/Pipeline.js";
 import Node from "./Node.js";
-import Pipeline, { DescriptorSet, BuiltinUniformBlocks, BuiltinDescriptorSetLayouts } from "./gfx/Pipeline.js";
 import RenderScene from "./RenderScene.js";
 
 let _width: number;
@@ -76,7 +76,20 @@ export default {
             for (const subModel of model.subModels) {
                 commandBuffer.bindInputAssembler(subModel.inputAssembler);
                 for (const pass of subModel.passes) {
-                    const pipeline: Pipeline = { shader: pass.shader, depthStencilState: { depthTest: true } };
+                    const pipeline: Pipeline = {
+                        shader: pass.shader,
+                        depthStencilState: { depthTest: true },
+                        blendState: {
+                            blends: [
+                                {
+                                    blend: false,
+                                    srcRGB: BlendFactor.ONE,
+                                    dstRGB: BlendFactor.ZERO,
+                                    srcAlpha: BlendFactor.ONE,
+                                    dstAlpha: BlendFactor.ZERO
+                                }]
+                        }
+                    };
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set + 1, pass.descriptorSet);
                     commandBuffer.draw();

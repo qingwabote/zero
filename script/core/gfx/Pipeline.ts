@@ -82,8 +82,39 @@ export interface DepthStencilState {
     depthTest: boolean;
 }
 
+export enum BlendFactor {
+    ZERO,
+    ONE,
+    // SRC_ALPHA,
+    // DST_ALPHA,
+    // ONE_MINUS_SRC_ALPHA,
+    // ONE_MINUS_DST_ALPHA,
+    // SRC_COLOR,
+    // DST_COLOR,
+    // ONE_MINUS_SRC_COLOR,
+    // ONE_MINUS_DST_COLOR,
+    // SRC_ALPHA_SATURATE,
+    // CONSTANT_COLOR,
+    // ONE_MINUS_CONSTANT_COLOR,
+    // CONSTANT_ALPHA,
+    // ONE_MINUS_CONSTANT_ALPHA,
+}
+
+export interface Blend {
+    blend: boolean;
+    srcRGB: BlendFactor;
+    dstRGB: BlendFactor;
+    srcAlpha: BlendFactor;
+    dstAlpha: BlendFactor;
+}
+
+export interface BlendState {
+    blends: Blend[];
+}
+
 export default interface Pipeline {
     readonly shader: Shader;
-    readonly depthStencilState: DepthStencilState;
+    readonly depthStencilState: Readonly<DepthStencilState>;
+    readonly blendState: Readonly<BlendState>;
     // readonly layout: PipelineLayout;
 }

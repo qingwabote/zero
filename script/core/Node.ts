@@ -15,7 +15,21 @@ export enum TransformBit {
 type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Component>) => T;
 
 export default class Node {
-    private _dirtyFlag = TransformBit.TRS
+    private _name: string;
+    get name(): string {
+        return this._name;
+    }
+
+    private _dirtyFlag = TransformBit.TRS;
+
+    private _scale: Readonly<Vec3> = [1, 1, 1];
+    get scale(): Readonly<Vec3> {
+        return this._scale
+    }
+    set scale(value: Readonly<Vec3>) {
+        this._scale = value;
+        this.dirty(TransformBit.SCALE);
+    }
 
     private _rotation: Quat = quat.create()
     get rotation(): Readonly<Quat> {
@@ -58,6 +72,10 @@ export default class Node {
         return this._matrix;
     }
 
+    constructor(name: string = '') {
+        this._name = name;
+    }
+
     addComponent<T extends Component>(constructor: ComponentConstructor<T>): T {
         const component = new constructor(this);
         this._components.push(component);
@@ -93,7 +111,7 @@ export default class Node {
             // if (this._dirtyFlag & TransformBit.POSITION) {
             //     mat4.translate2(this._matrix, this._matrix, this._position);
             // }
-            mat4.fromRTS(this._matrix, this._rotation, this._position, [1, 1, 1]);
+            mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
             this._dirtyFlag = TransformBit.NONE;
             return;
         }
@@ -102,7 +120,7 @@ export default class Node {
         // if (this._dirtyFlag & TransformBit.POSITION) {
         // const worldPos = vec3.transformMat4(vec3.create(), this._position, this._parent.matrix)
         // mat4.translate2(this._matrix, this._matrix, worldPos);
-        mat4.fromRTS(this._matrix, this._rotation, this._position, [1, 1, 1]);
+        mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
         this._dirtyFlag = TransformBit.NONE;
         // }

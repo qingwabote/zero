@@ -1,7 +1,12 @@
 //right-handed
 
-import { Quat } from "./quat.js";
+import mat3 from "./mat3.js";
+import quat, { Quat } from "./quat.js";
 import { Vec3 } from "./vec3.js";
+
+function vec3_length(x: number, y: number, z: number) {
+    return Math.sqrt(x * x + y * y + z * z);
+}
 
 export type Mat4 = [
     number, number, number, number,
@@ -9,7 +14,6 @@ export type Mat4 = [
     number, number, number, number,
     number, number, number, number
 ]
-
 
 export default {
     create(): Mat4 {
@@ -21,7 +25,7 @@ export default {
         ]
     },
 
-    fromRTS(out: Mat4, r: Readonly<Quat>, t: Readonly<Vec3>, s: Vec3) {
+    fromRTS(out: Mat4, r: Readonly<Quat>, t: Readonly<Vec3>, s: Readonly<Vec3>) {
         const x = r[0]; const y = r[1]; const z = r[2]; const w = r[3];
         const x2 = x + x;
         const y2 = y + y;
@@ -58,6 +62,29 @@ export default {
         out[15] = 1;
 
         return out;
+    },
+
+    toRTS(m: Mat4, q: Quat, v: Vec3, s: Vec3) {
+        s[0] = vec3_length(m[0], m[1], m[2])
+
+        const m3_1 = mat3.create();
+        m3_1[0] = m[0] / s[0];
+        m3_1[1] = m[1] / s[0];
+        m3_1[2] = m[2] / s[0];
+        s[1] = vec3_length(m[4], m[5], m[6])
+        m3_1[3] = m[4] / s[1];
+        m3_1[4] = m[5] / s[1];
+        m3_1[5] = m[6] / s[1];
+        s[2] = vec3_length(m[8], m[9], m[10])
+        m3_1[6] = m[8] / s[2];
+        m3_1[7] = m[9] / s[2];
+        m3_1[8] = m[10] / s[2];
+        const det = mat3.determinant(m3_1);
+        if (det < 0) { s[0] *= -1; m3_1[0] *= -1; m3_1[1] *= -1; m3_1[2] *= -1; }
+        quat.fromMat3(q, m3_1); // already normalized
+        v[0] = m[12];
+        v[1] = m[13];
+        v[2] = m[14];
     },
 
     fromXRotation(radian: number): Mat4 {

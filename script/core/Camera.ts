@@ -1,7 +1,7 @@
 import { mat4 } from "gl-matrix";
-import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
 import game from "./game.js";
 import gfx from "./gfx.js";
+import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
 
 export default class Camera {
     orthoHeight = -1;
