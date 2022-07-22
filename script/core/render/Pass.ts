@@ -1,5 +1,5 @@
-import { DescriptorSet } from "./gfx/Pipeline.js";
-import Shader from "./gfx/Shader.js";
+import { DescriptorSet } from "../gfx/Pipeline.js";
+import Shader from "../gfx/Shader.js";
 
 export default class Pass {
     private _shader: Shader;

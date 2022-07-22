@@ -1,8 +1,12 @@
-import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
-import gfx from "./gfx.js";
-import { DescriptorSet, BuiltinUniformBlocks, BuiltinDescriptorSetLayouts } from "./gfx/Pipeline.js";
+import gfx from "../gfx.js";
+import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
+import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "../gfx/Pipeline.js";
+import { Mat4 } from "../math/mat4.js";
 import SubModel from "./SubModel.js";
-import Node from "./Node.js";
+
+export interface Transform {
+    matrix: Readonly<Mat4>
+}
 
 export default class Model {
     private _descriptorSet: DescriptorSet;
@@ -15,9 +19,9 @@ export default class Model {
         return this._subModels;
     }
 
-    private _transform: Node;
+    private _transform: Transform;
 
-    constructor(subModels: SubModel[], transform: Node) {
+    constructor(subModels: SubModel[], transform: Transform) {
         this._subModels = subModels;
         this._transform = transform;
 

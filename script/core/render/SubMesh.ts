@@ -1,5 +1,5 @@
-import { Format } from "./gfx.js";
-import Buffer from "./gfx/Buffer.js";
+import { Format } from "../gfx.js";
+import Buffer from "../gfx/Buffer.js";
 
 export interface Attribute {
     readonly name: string

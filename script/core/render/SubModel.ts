@@ -1,4 +1,4 @@
-import { InputAssembler, VertexInputAttributeDescription } from "./gfx/InputAssembler.js";
+import { InputAssembler, VertexInputAttributeDescription } from "../gfx/InputAssembler.js";
 import Pass from "./Pass.js";
 import SubMesh from "./SubMesh.js";
 

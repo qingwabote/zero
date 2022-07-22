@@ -1,12 +1,12 @@
 import GLTF from "../../../script/core/assets/GLTF.js";
 import Node from "../../../script/core/Node.js";
-import webZero from "../../../script/platforms/webgl/webZero.js";
+import webgame from "../../../script/platforms/webgl/webgame.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 const canvas = document.querySelector<HTMLCanvasElement>('#ZeroCanvas')!;
 const gl = canvas.getContext('webgl2')!;
 
-webZero.init(gl, canvas.width, canvas.height);
+webgame.init(gl, canvas.width, canvas.height);
 
 let node: Node;
 
@@ -20,7 +20,7 @@ node = glTF.createScene("Sketchfab_Scene")!;
 
 node.addComponent(ZeroComponent);
 
-webZero.run();
+webgame.run();
 // })()
 
 const eulerXLabel = document.querySelector<HTMLLabelElement>('#eulerXLabel')!;

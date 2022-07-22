@@ -1,7 +1,6 @@
 import { mat4 } from "gl-matrix";
-import game from "./game.js";
-import gfx from "./gfx.js";
-import Buffer, { BufferUsageBit } from "./gfx/Buffer.js";
+import gfx from "../gfx.js";
+import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 
 export default class Camera {
     orthoHeight = -1;
@@ -14,12 +13,18 @@ export default class Camera {
         return this._ubo;
     }
 
-    constructor() {
+    private _width: number;
+    private _height: number;
+
+    constructor(width: number, height: number) {
+        this._width = width;
+        this._height = height;
+
         this._ubo = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: this._matProj.byteLength });
     }
 
     update() {
-        const aspect = game.width / game.height;
+        const aspect = this._width / this._height;
         if (this.orthoHeight != -1) {
             const x = this.orthoHeight * aspect;
             const y = this.orthoHeight;

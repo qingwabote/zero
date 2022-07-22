@@ -3,16 +3,16 @@
 import gfx, { Format } from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import Texture from "../gfx/Texture.js";
-import Material from "../Material.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
-import Mesh from "../Mesh.js";
 import MeshRenderer from "../MeshRenderer.js";
 import Node from "../Node.js";
-import Pass from "../Pass.js";
-import shaderLib from "../shaderLib.js";
-import SubMesh, { Attribute } from "../SubMesh.js";
+import Material from "../render/Material.js";
+import Mesh from "../render/Mesh.js";
+import Pass from "../render/Pass.js";
+import SubMesh, { Attribute } from "../render/SubMesh.js";
+import shaders from "../shaders.js";
 import Asset from "./Asset.js";
 
 const builtinAttributes: Record<string, string> = {
@@ -144,7 +144,7 @@ export default class GLTF extends Asset {
             if (primitive.material != undefined) {
                 const info = this._json.materials[primitive.material];
                 const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-                const shader = shaderLib.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
+                const shader = shaders.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
                 const pass = new Pass(shader);
                 if (textureIdx != undefined) {
                     pass.descriptorSet.textures[0] = this._textures![this._json.textures[textureIdx].source];

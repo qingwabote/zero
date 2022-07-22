@@ -1,18 +1,15 @@
-import Camera from "./Camera.js";
 import { ComponentInvoker } from "./ComponentInvoker.js";
 import gfx from "./gfx.js";
 import Buffer from "./gfx/Buffer.js";
 import Pipeline, { BlendFactor, BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "./gfx/Pipeline.js";
-import Node from "./Node.js";
-import RenderScene from "./RenderScene.js";
+import Camera from "./render/Camera.js";
+import RenderScene from "./render/RenderScene.js";
 
 let _width: number;
 let _height: number;
 
 let _componentStartInvoker: ComponentInvoker = new ComponentInvoker(function (com) { com.start() }, true)
 let _componentUpdateInvoker: ComponentInvoker = new ComponentInvoker(function (com, dt) { com.update(dt) }, false)
-
-let _scene: Node;
 
 let _renderScene: RenderScene;
 
@@ -42,15 +39,13 @@ export default {
     },
 
     init(width: number, height: number) {
-        _width = width;
-        _height = height;
-
-        _scene = new Node();
-
         _renderScene = new RenderScene;
 
-        _camera = new Camera();
+        _camera = new Camera(width, height);
         _camera.fov = 45;
+
+        _width = width;
+        _height = height;
 
         const buffers: Buffer[] = [];
         buffers[BuiltinUniformBlocks.global.blocks.Camera.binding] = _camera.ubo;
@@ -58,8 +53,6 @@ export default {
     },
 
     tick(dt: number) {
-        // _scene.update(dt);
-
         _componentStartInvoker.invoke(dt);
         _componentUpdateInvoker.invoke(dt);
 

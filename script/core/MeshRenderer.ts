@@ -1,9 +1,9 @@
 import Component from "./Component.js";
 import game from "./game.js";
-import Material from "./Material.js";
-import Mesh from "./Mesh.js";
-import Model from "./Model.js";
-import SubModel from "./SubModel.js";
+import Material from "./render/Material.js";
+import Mesh from "./render/Mesh.js";
+import Model from "./render/Model.js";
+import SubModel from "./render/SubModel.js";
 
 export default class MeshRenderer extends Component {
     mesh: Mesh | undefined;
