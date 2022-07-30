@@ -21,14 +21,19 @@ node.addComponent(ZeroComponent);
 webgame.run();
 // })()
 
+const origin = node.euler;
+
 const eulerXLabel = document.querySelector<HTMLLabelElement>('#eulerXLabel')!;
 const eulerXInput = document.querySelector<HTMLInputElement>('#eulerXInput')!;
+eulerXInput.valueAsNumber = origin[0];
 
 const eulerYLabel = document.querySelector<HTMLLabelElement>('#eulerYLabel')!;
 const eulerYInput = document.querySelector<HTMLInputElement>('#eulerYInput')!;
+eulerYInput.valueAsNumber = origin[1];
 
 const eulerZLabel = document.querySelector<HTMLLabelElement>('#eulerZLabel')!;
 const eulerZInput = document.querySelector<HTMLInputElement>('#eulerZInput')!;
+eulerZInput.valueAsNumber = origin[2];
 
 function onEulerInput(): void {
     node.euler = [eulerXInput.valueAsNumber, eulerYInput.valueAsNumber, eulerZInput.valueAsNumber]

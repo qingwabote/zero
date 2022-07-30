@@ -1,5 +1,7 @@
 import Component from "../../../script/core/Component.js";
 import game from "../../../script/core/game.js";
+import { Touch } from "../../../script/core/Input.js";
+import quat from "../../../script/core/math/quat.js";
 import vec3 from "../../../script/core/math/vec3.js";
 
 export default class ZeroComponent extends Component {
@@ -14,8 +16,29 @@ export default class ZeroComponent extends Component {
         // this._node.eulerY = 45;
         // this._node.eulerZ = 45;
 
+        let touch: Touch;
+        game.input.on("TOUCH_START", event => {
+            touch = event.touches[0];
+        })
         game.input.on("TOUCH_MOVE", event => {
-            console.log(event.touches[0])
+            const dx = event.touches[0].x - touch.x;
+            const dy = event.touches[0].y - touch.y;
+
+            const axis = vec3.create(-dy, dx, 0);// rotate 90°
+            vec3.normalize(axis, axis);
+            const rad = Math.PI / 180 * Math.sqrt(dx * dx + dy * dy);
+
+            // get inv-axis (local to rot)
+            const rot = quat.create();
+            quat.invert(rot, this._node.rotation);
+            vec3.transformQuat(axis, axis, rot);
+            // rotate by inv-axis
+            quat.fromAxisAngle(rot, axis, rad);
+            quat.multiply(rot, this._node.rotation, rot);
+
+            this._node.rotation = rot;
+
+            touch = event.touches[0];
         })
     }
 

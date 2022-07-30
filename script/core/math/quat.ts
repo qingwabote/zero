@@ -101,5 +101,40 @@ export default {
         }
 
         return out;
+    },
+
+    fromAxisAngle(out: Quat, axis: Vec3, rad: number) {
+        rad *= 0.5;
+        const s = Math.sin(rad);
+        out[0] = s * axis[0];
+        out[1] = s * axis[1];
+        out[2] = s * axis[2];
+        out[3] = Math.cos(rad);
+        return out;
+    },
+
+    multiply(out: Quat, a: Readonly<Quat>, b: Readonly<Quat>) {
+        const x = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1];
+        const y = a[1] * b[3] + a[3] * b[1] + a[2] * b[0] - a[0] * b[2];
+        const z = a[2] * b[3] + a[3] * b[2] + a[0] * b[1] - a[1] * b[0];
+        const w = a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2];
+        out[0] = x;
+        out[1] = y;
+        out[2] = z;
+        out[3] = w;
+        return out;
+    },
+
+    invert(out: Quat, a: Readonly<Quat>) {
+        const dot = a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
+        const invDot = dot ? 1.0 / dot : 0;
+
+        // TODO: Would be faster to return [0,0,0,0] immediately if dot == 0
+
+        out[0] = -a[0] * invDot;
+        out[1] = -a[1] * invDot;
+        out[2] = -a[2] * invDot;
+        out[3] = a[3] * invDot;
+        return out;
     }
 }
