@@ -4,9 +4,7 @@ import webgame from "../../../script/platforms/webgl/webgame.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 const canvas = document.querySelector<HTMLCanvasElement>('#ZeroCanvas')!;
-const gl = canvas.getContext('webgl2')!;
-
-webgame.init(gl, canvas.width, canvas.height);
+webgame.init(canvas);
 
 let node: Node;
 

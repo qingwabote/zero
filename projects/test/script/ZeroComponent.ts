@@ -1,4 +1,5 @@
 import Component from "../../../script/core/Component.js";
+import game from "../../../script/core/game.js";
 import vec3 from "../../../script/core/math/vec3.js";
 
 export default class ZeroComponent extends Component {
@@ -12,6 +13,10 @@ export default class ZeroComponent extends Component {
         // this._node.eulerX = 45;
         // this._node.eulerY = 45;
         // this._node.eulerZ = 45;
+
+        game.input.on("TOUCH_MOVE", event => {
+            console.log(event.touches[0])
+        })
     }
 
     override update(dt: number): void {

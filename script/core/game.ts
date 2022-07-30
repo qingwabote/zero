@@ -2,8 +2,11 @@ import { ComponentInvoker } from "./ComponentInvoker.js";
 import gfx from "./gfx.js";
 import Buffer from "./gfx/Buffer.js";
 import Pipeline, { BlendFactor, BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "./gfx/Pipeline.js";
+import Input from "./Input.js";
 import Camera from "./render/Camera.js";
 import RenderScene from "./render/RenderScene.js";
+
+let _input: Input;
 
 let _width: number;
 let _height: number;
@@ -18,6 +21,10 @@ let _globalDescriptorSet: DescriptorSet;
 let _camera: Camera;
 
 export default {
+    get input(): Input {
+        return _input;
+    },
+
     get width(): number {
         return _width;
     },
@@ -38,7 +45,9 @@ export default {
         return _renderScene;
     },
 
-    init(width: number, height: number) {
+    init(input: Input, width: number, height: number) {
+        _input = input;
+
         _renderScene = new RenderScene;
 
         _camera = new Camera(width, height);
