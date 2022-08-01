@@ -1,4 +1,3 @@
-import Asset from "../../core/assets/Asset.js";
 import game from "../../core/game.js";
 import gfx from "../../core/gfx.js";
 import WebDevice from "./gfx/WebDevice.js";
@@ -11,8 +10,7 @@ export default {
     init(canvas: HTMLCanvasElement) {
         const gl = canvas.getContext('webgl2')!;
         gfx.init(new WebDevice(gl));
-        Asset.loader = new WebLoader;
-        game.init(new WebInput(canvas), canvas.width, canvas.height)
+        game.init(new WebInput(canvas), new WebLoader, canvas.width, canvas.height)
     },
 
     run() {

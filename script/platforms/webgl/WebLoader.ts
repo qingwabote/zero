@@ -1,7 +1,7 @@
-import { Loader, LoaderTypes } from "../../core/assets/Asset.js";
+import Loader, { LoaderTypes } from "../../core/Loader.js";
 
 export default class WebLoader implements Loader {
-    load<T extends keyof LoaderTypes>(url: string, type: T): Promise<LoaderTypes[T]> {
+    load<T extends keyof LoaderTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]> {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.responseType = type;
@@ -13,6 +13,11 @@ export default class WebLoader implements Loader {
                     reject(`download failed: ${url}, status: ${xhr.status}(no response)`)
                 }
             };
+            if (onProgress) {
+                xhr.onprogress = (event) => {
+                    onProgress(event.loaded, event.total, url);
+                }
+            }
             xhr.onerror = () => {
                 reject(`download failed: ${url}, status: ${xhr.status}(error)`)
             };

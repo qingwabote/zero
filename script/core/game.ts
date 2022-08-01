@@ -2,6 +2,7 @@ import ComponentScheduler from "./ComponentScheduler.js";
 import gfx from "./gfx.js";
 import Pipeline, { BlendFactor, BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
+import Loader from "./Loader.js";
 import render from "./render.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
@@ -9,6 +10,8 @@ import RenderWindow from "./render/RenderWindow.js";
 let _window: RenderWindow;
 
 let _input: Input;
+
+let _loader: Loader;
 
 let _renderScene: RenderScene;
 
@@ -25,6 +28,10 @@ export default {
         return _input;
     },
 
+    get loader(): Loader {
+        return _loader;
+    },
+
     get renderScene(): RenderScene {
         return _renderScene;
     },
@@ -33,14 +40,15 @@ export default {
         return _componentScheduler;
     },
 
-    init(input: Input, width: number, height: number) {
+    init(input: Input, loader: Loader, width: number, height: number) {
         _window = { width, height };
-
-        _input = input;
 
         _renderScene = new RenderScene;
 
         _globalDescriptorSet = { layout: BuiltinDescriptorSetLayouts.global, buffers: [], textures: [] };
+
+        _input = input;
+        _loader = loader;
     },
 
     tick(dt: number) {
