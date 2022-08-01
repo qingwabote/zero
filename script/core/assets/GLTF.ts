@@ -1,6 +1,7 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
 import MeshRenderer from "../components/MeshRenderer.js";
+import game from "../game.js";
 import gfx, { Format } from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import Texture from "../gfx/Texture.js";
@@ -55,8 +56,8 @@ export default class GLTF extends Asset {
         }
         const parent = res[1];
         const name = res[2];
-        const json = await Asset.loader.load(`${parent}/${name}.gltf`, "json");
-        const bin = await Asset.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer");
+        const json = await game.loader.load(`${parent}/${name}.gltf`, "json", this.onProgress);
+        const bin = await game.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
 
         const images: any[] = json.images;
         this._textures = await Promise.all(images.map(info => this.loadTexture(`${parent}/${info.uri}`)));
@@ -66,7 +67,7 @@ export default class GLTF extends Asset {
     }
 
     private async loadTexture(url: string): Promise<Texture> {
-        const blob = await Asset.loader.load(url, "blob");
+        const blob = await game.loader.load(url, "blob", this.onProgress);
         const imageBitmap = await gfx.device.createImageBitmap(blob);
         const texture = gfx.device.createTexture({});
         texture.update(imageBitmap);
@@ -182,5 +183,9 @@ export default class GLTF extends Asset {
 
         console.assert(buffer.info.usage == usage);
         return buffer;
+    }
+
+    private onProgress(loaded: number, total: number, url: string) {
+        console.log(`download: ${url}, progress: ${loaded / total * 100}`)
     }
 }
