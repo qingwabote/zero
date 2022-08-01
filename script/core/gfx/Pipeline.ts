@@ -8,9 +8,9 @@ export const BuiltinUniformBlocks = {
         blocks: {
             Camera: {
                 binding: 0,
-                uniforms: {
-                    matProj: {}
-                }
+                // uniforms: {
+                //     matProj: {}
+                // }
             }
         }
     },
@@ -19,9 +19,9 @@ export const BuiltinUniformBlocks = {
         blocks: {
             Local: {
                 binding: 0,
-                uniforms: {
-                    matWorld: {}
-                }
+                // uniforms: {
+                //     matWorld: {}
+                // }
             }
         }
     }
@@ -55,7 +55,7 @@ export interface PipelineLayout {
 
 function buildDescriptorSetLayout(res: {
     set: number,
-    blocks: Record<string, { binding: number, uniforms: Record<string, {}> }>
+    blocks: Record<string, { binding: number }>
 }): DescriptorSetLayout {
     const bindings: DescriptorSetLayoutBinding[] = [];
     for (const name in res.blocks) {

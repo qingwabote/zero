@@ -2,6 +2,7 @@ import { Format, FormatInfos } from "../../../core/gfx.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import { InputAssembler } from "../../../core/gfx/InputAssembler.js";
 import Pipeline, { BlendFactor, DescriptorSet, DescriptorType } from "../../../core/gfx/Pipeline.js";
+import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
@@ -64,8 +65,13 @@ export default class WebCommandBuffer implements CommandBuffer {
         this._gl = gl;
     }
 
-    beginRenderPass() {
+    beginRenderPass(viewport: Rect) {
         const gl = this._gl;
+
+        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
 
         gl.clearColor(0, 0, 0, 1)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

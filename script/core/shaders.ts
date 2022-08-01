@@ -12,6 +12,7 @@ layout(location = 2) in vec2 a_texCoord;
 out vec2 v_uv;
 
 layout(set = 0, binding = 0) uniform Camera {
+    mat4 matView;
     mat4 matProj;
 };
 
@@ -22,7 +23,7 @@ layout(set = 1, binding = 0) uniform Local {
 void main() {
     v_uv = a_texCoord;
 
-    gl_Position = matProj * matWorld * a_position;
+    gl_Position = matProj * (matView * matWorld) * a_position;
 }
 `);
 buildinSource.push(`

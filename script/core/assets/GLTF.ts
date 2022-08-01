@@ -1,12 +1,12 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
+import MeshRenderer from "../components/MeshRenderer.js";
 import gfx, { Format } from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import Texture from "../gfx/Texture.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
-import MeshRenderer from "../MeshRenderer.js";
 import Node from "../Node.js";
 import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";

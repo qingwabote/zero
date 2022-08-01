@@ -1,7 +1,9 @@
 import Component from "./Component.js";
+import game from "./game.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";
+import render, { Transform } from "./render.js";
 
 export enum TransformBit {
     NONE = 0,
@@ -14,7 +16,7 @@ export enum TransformBit {
 
 type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Component>) => T;
 
-export default class Node {
+export default class Node implements Transform {
     private _name: string;
     get name(): string {
         return this._name;
@@ -68,7 +70,6 @@ export default class Node {
 
     private _matrix: Mat4 = mat4.create();
     get matrix(): Readonly<Mat4> {
-        this.clean();
         return this._matrix;
     }
 
@@ -78,8 +79,8 @@ export default class Node {
 
     addComponent<T extends Component>(constructor: ComponentConstructor<T>): T {
         const component = new constructor(this);
+        game.componentScheduler.add(component);
         this._components.push(component);
-
         return component;
     }
 
@@ -99,12 +100,13 @@ export default class Node {
 
     private dirty(flag: TransformBit): void {
         this._dirtyFlag |= flag;
-        for (const [child] of this._children) {
+        render.dirtyTransforms.set(this, this);
+        for (const child of this._children.keys()) {
             child.dirty(flag);
         }
     }
 
-    private clean(): void {
+    public updateMatrix(): void {
         if (this._dirtyFlag == TransformBit.NONE) return;
 
         if (!this._parent) {
@@ -116,7 +118,7 @@ export default class Node {
             return;
         }
 
-        this._parent.clean();
+        this._parent.updateMatrix();
         // if (this._dirtyFlag & TransformBit.POSITION) {
         // const worldPos = vec3.transformMat4(vec3.create(), this._position, this._parent.matrix)
         // mat4.translate2(this._matrix, this._matrix, worldPos);

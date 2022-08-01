@@ -21,7 +21,7 @@ export class ComponentInvoker {
     }
 
     invoke(dt: number): void {
-        for (const [com] of this._components) {
+        for (const com of this._components.keys()) {
             this._func(com, dt)
         }
         if (this._oneOff) {

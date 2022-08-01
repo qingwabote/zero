@@ -11,7 +11,7 @@ export default class ZeroComponent extends Component {
         scale[1] *= 0.8;
         scale[2] *= 0.8;
         this._node.scale = scale;
-        this._node.position = [0, 0, -10]
+        // this._node.position = [0, 0, -10]
         // this._node.eulerX = 45;
         // this._node.eulerY = 45;
         // this._node.eulerZ = 45;
