@@ -5,6 +5,7 @@ import render from "./render.js";
 import RenderScene from "./render/RenderScene.js";
 let _window;
 let _input;
+let _loader;
 let _renderScene;
 let _globalDescriptorSet;
 let _componentScheduler = new ComponentScheduler;
@@ -15,17 +16,21 @@ export default {
     get input() {
         return _input;
     },
+    get loader() {
+        return _loader;
+    },
     get renderScene() {
         return _renderScene;
     },
     get componentScheduler() {
         return _componentScheduler;
     },
-    init(input, width, height) {
+    init(input, loader, width, height) {
         _window = { width, height };
-        _input = input;
         _renderScene = new RenderScene;
         _globalDescriptorSet = { layout: BuiltinDescriptorSetLayouts.global, buffers: [], textures: [] };
+        _input = input;
+        _loader = loader;
     },
     tick(dt) {
         _componentScheduler.update(dt);

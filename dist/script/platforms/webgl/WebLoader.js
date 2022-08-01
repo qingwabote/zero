@@ -1,5 +1,5 @@
 export default class WebLoader {
-    load(url, type) {
+    load(url, type, onProgress) {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.responseType = type;
@@ -12,6 +12,11 @@ export default class WebLoader {
                     reject(`download failed: ${url}, status: ${xhr.status}(no response)`);
                 }
             };
+            if (onProgress) {
+                xhr.onprogress = (event) => {
+                    onProgress(event.loaded, event.total, url);
+                };
+            }
             xhr.onerror = () => {
                 reject(`download failed: ${url}, status: ${xhr.status}(error)`);
             };
