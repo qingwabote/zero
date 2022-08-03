@@ -1,6 +1,7 @@
 import GLTF from "../../../script/core/assets/GLTF.js";
 import Camera from "../../../script/core/components/Camera.js";
-import Node from "../../../script/core/Node.js";
+import { Vec3 } from "../../../script/core/math/vec3.js";
+import Node, { TransformBit } from "../../../script/core/Node.js";
 import webgame from "../../../script/platforms/webgl/webgame.js";
 import ZeroComponent from "./ZeroComponent.js";
 
@@ -35,29 +36,48 @@ node.addComponent(ZeroComponent);
 webgame.run();
 // })()
 
-// const origin = node.euler;
+const eulerXLabel = document.querySelector<HTMLLabelElement>('#eulerXLabel')!;
+const eulerXInput = document.querySelector<HTMLInputElement>('#eulerXInput')!;
 
-// const eulerXLabel = document.querySelector<HTMLLabelElement>('#eulerXLabel')!;
-// const eulerXInput = document.querySelector<HTMLInputElement>('#eulerXInput')!;
-// eulerXInput.valueAsNumber = origin[0];
+const eulerYLabel = document.querySelector<HTMLLabelElement>('#eulerYLabel')!;
+const eulerYInput = document.querySelector<HTMLInputElement>('#eulerYInput')!;
 
-// const eulerYLabel = document.querySelector<HTMLLabelElement>('#eulerYLabel')!;
-// const eulerYInput = document.querySelector<HTMLInputElement>('#eulerYInput')!;
-// eulerYInput.valueAsNumber = origin[1];
+const eulerZLabel = document.querySelector<HTMLLabelElement>('#eulerZLabel')!;
+const eulerZInput = document.querySelector<HTMLInputElement>('#eulerZInput')!;
 
-// const eulerZLabel = document.querySelector<HTMLLabelElement>('#eulerZLabel')!;
-// const eulerZInput = document.querySelector<HTMLInputElement>('#eulerZInput')!;
-// eulerZInput.valueAsNumber = origin[2];
+function updateInput(euler: Readonly<Vec3>): void {
+    eulerXInput.valueAsNumber = euler[0];
+    eulerYInput.valueAsNumber = euler[1];
+    eulerZInput.valueAsNumber = euler[2];
+}
 
-// function onEulerInput(): void {
-//     node.euler = [eulerXInput.valueAsNumber, eulerYInput.valueAsNumber, eulerZInput.valueAsNumber]
-//     eulerXLabel.textContent = `eulerX: ${eulerXInput.valueAsNumber}`;
-//     eulerYLabel.textContent = `eulerY: ${eulerYInput.valueAsNumber}`;
-//     eulerZLabel.textContent = `eulerZ: ${eulerZInput.valueAsNumber}`;
-// }
+function updateLabel(euler: Readonly<Vec3>): void {
+    eulerXLabel.textContent = `eulerX: ${euler[0]}`;
+    eulerYLabel.textContent = `eulerY: ${euler[1]}`;
+    eulerZLabel.textContent = `eulerZ: ${euler[2]}`;
+}
 
-// eulerXInput.addEventListener('input', onEulerInput);
-// eulerYInput.addEventListener('input', onEulerInput);
-// eulerZInput.addEventListener('input', onEulerInput);
+function onTransform(flag: TransformBit) {
+    if (flag & TransformBit.ROTATION) {
+        const euler = node.euler;
+        updateInput(euler);
+        updateLabel(euler);
+    }
+}
 
-// onEulerInput()
+function onEulerInput(): void {
+    const euler: Vec3 = [eulerXInput.valueAsNumber, eulerYInput.valueAsNumber, eulerZInput.valueAsNumber];
+    node.eventEmitter.off("TRANSFORM_CHANGED", onTransform);
+    node.euler = euler;
+    node.eventEmitter.on("TRANSFORM_CHANGED", onTransform)
+    updateLabel(euler);
+}
+
+eulerXInput.addEventListener('input', onEulerInput);
+eulerYInput.addEventListener('input', onEulerInput);
+eulerZInput.addEventListener('input', onEulerInput);
+
+node.eventEmitter.on("TRANSFORM_CHANGED", onTransform)
+
+updateInput(node.euler)
+updateLabel(node.euler)

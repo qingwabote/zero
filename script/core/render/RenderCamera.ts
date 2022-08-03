@@ -2,7 +2,7 @@ import gfx from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import mat4 from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
-import render, { Transform } from "../render.js";
+import render, { TransformSource } from "../render.js";
 import RenderWindow from "./RenderWindow.js";
 
 export default class RenderCamera {
@@ -47,9 +47,9 @@ export default class RenderCamera {
 
     private _window: RenderWindow;
 
-    private _transform: Transform;
+    private _transform: TransformSource;
 
-    constructor(window: RenderWindow, transform: Transform) {
+    constructor(window: RenderWindow, transform: TransformSource) {
         render.dirtyTransforms.set(transform, transform);
 
         this._uboSrc = new Float32Array(this._matView.length + this._matProj.length);

@@ -1,7 +1,7 @@
 import gfx from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "../gfx/Pipeline.js";
-import render, { Transform } from "../render.js";
+import render, { TransformSource } from "../render.js";
 import SubModel from "./SubModel.js";
 
 const float32Array = new Float32Array(16);
@@ -17,9 +17,9 @@ export default class Model {
         return this._subModels;
     }
 
-    private _transform: Transform;
+    private _transform: TransformSource;
 
-    constructor(subModels: SubModel[], transform: Transform) {
+    constructor(subModels: SubModel[], transform: TransformSource) {
         render.dirtyTransforms.set(transform, transform);
 
         const buffers: Buffer[] = [];

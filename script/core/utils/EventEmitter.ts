@@ -16,6 +16,11 @@ export default class EventEmitter<T> {
         callbacks.set(listener);
     }
 
+    off<K extends keyof T & string>(name: K, listener: T[K] extends Listener ? T[K] : Listener): void {
+        let callbacks = this._event2callbacks.get(name);
+        callbacks?.delete(listener);
+    }
+
     emit<K extends keyof T & string>(name: K, event: Parameters<T[K] extends Listener ? T[K] : Listener>[0]): void {
         const callbacks = this._event2callbacks.get(name);
         callbacks?.call(event)
