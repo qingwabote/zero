@@ -53,5 +53,12 @@ export default {
         out[1] = iy * q[3] + iw * -q[1] + iz * -q[0] - ix * -q[2];
         out[2] = iz * q[3] + iw * -q[2] + ix * -q[1] - iy * -q[0];
         return out;
+    },
+
+    cross(out: Vec3, a: Vec3, b: Vec3) {
+        out[0] = a[1] * b[2] - a[2] * b[1];
+        out[1] = a[2] * b[0] - a[0] * b[2];
+        out[2] = a[0] * b[1] - a[1] * b[0];
+        return out;
     }
 }
