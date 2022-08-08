@@ -3,5 +3,11 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
+    },
+    "files.associations": {
+        "chrono": "cpp",
+        "system_error": "cpp",
+        "xmemory": "cpp",
+        "xstring": "cpp"
     }
 }

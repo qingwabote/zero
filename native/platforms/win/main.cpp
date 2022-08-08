@@ -1,8 +1,6 @@
 // #include <tchar.h>
 #include <windows.h>
-#include <iostream>
-#include "SDL.h"
-#include "volk.h"
+#include "Window.hpp"
 
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
@@ -10,13 +8,5 @@ int WINAPI WinMain(
     _In_ LPSTR lpCmdLine,
     _In_ int nCmdShow)
 {
-    if (volkInitialize())
-    {
-        printf("Failed to initialize volk");
-        return -1;
-    }
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return -1;
-    }
+    return Window::instance()->loop();
 }
