@@ -1,8 +1,12 @@
 #include "Window.hpp"
 #include "Log.hpp"
 #include "SDL.h"
+#include "v8.h"
+#include "libplatform/libplatform.h"
 #include <chrono>
 #include <thread>
+
+using namespace v8;
 
 #define NANOSECONDS_PER_SECOND 1000000000
 #define NANOSECONDS_60FPS 16666667L
@@ -44,6 +48,41 @@ int Window::loop()
         return -1;
     }
 
+    // Initialize V8.
+    std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+    v8::V8::InitializePlatform(platform.get());
+    v8::V8::Initialize();
+    {
+        // Create a new Isolate and make it the current one.
+        std::unique_ptr<v8::ArrayBuffer::Allocator> allocator{v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
+        v8::Isolate::CreateParams create_params;
+        create_params.array_buffer_allocator = allocator.get();
+        auto isolateDeleter = [](v8::Isolate *ptr)
+        { ptr->Dispose(); };
+        std::unique_ptr<v8::Isolate, decltype(isolateDeleter)> isolate{v8::Isolate::New(create_params), isolateDeleter};
+        {
+            v8::Isolate::Scope isolate_scope(isolate.get());
+            // Create a stack-allocated handle scope.
+            v8::HandleScope handle_scope(isolate.get());
+            // Create a new context.
+            v8::Local<v8::Context> context = v8::Context::New(isolate.get());
+            // Enter the context for compiling and running the hello world script.
+            v8::Context::Scope context_scope(context);
+
+            // Create a string containing the JavaScript source code.
+            v8::Local<v8::String> source =
+                v8::String::NewFromUtf8Literal(isolate.get(), "'Hello' + ', World!'");
+            // Compile the source code.
+            v8::Local<v8::Script> script =
+                v8::Script::Compile(context, source).ToLocalChecked();
+            // Run the script to get the result.
+            v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
+            // Convert the result to an UTF8 string and print it.
+            v8::String::Utf8Value utf8(isolate.get(), result);
+            Log::log("%s\n", *utf8);
+        }
+    }
+
     bool running = true;
     auto time = std::chrono::steady_clock::now();
     while (running)
@@ -76,6 +115,10 @@ int Window::loop()
 
         SDL_GL_SwapWindow(window);
     }
+
+    // tear down V8.
+    v8::V8::Dispose();
+    v8::V8::DisposePlatform();
 
     return 0;
 }

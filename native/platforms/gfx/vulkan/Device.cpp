@@ -23,4 +23,6 @@ bool Device::initialize()
         Log::log("Failed to initialize volk");
         return false;
     }
+
+    return true;
 }
