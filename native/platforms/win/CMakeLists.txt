@@ -6,7 +6,7 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT z
 
 set(SRC_FILES
     main.cpp
-    Log.cpp
+    utils/log.cpp
 )
 
 add_executable(zero WIN32 ${SRC_FILES})

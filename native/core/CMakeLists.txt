@@ -1,5 +1,7 @@
 set(SRC_FILES
     Window.cpp
+    utils/rw.cpp
+    utils/v8sugar.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})

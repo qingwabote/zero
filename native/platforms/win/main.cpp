@@ -1,6 +1,7 @@
 // #include <tchar.h>
 #include <windows.h>
 #include "Window.hpp"
+#include <thread>
 
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
@@ -8,5 +9,9 @@ int WINAPI WinMain(
     _In_ LPSTR lpCmdLine,
     _In_ int nCmdShow)
 {
-    return Window::instance()->loop();
+    if (Window::instance()->loop())
+    {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(30000000000));
+    }
+    return 0;
 }
