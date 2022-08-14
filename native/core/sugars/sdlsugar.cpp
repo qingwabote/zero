@@ -28,16 +28,17 @@ namespace sugar
             windowDeleter};
     }
 
-    static void charDeleter(char *ptr)
+    unique_char sdl_getBasePath()
     {
-        free(ptr);
+        return unique_char{SDL_GetBasePath(), SDL_free};
     }
+
     unique_char sdl_rw_readUtf8(const char *file)
     {
         SDL_RWops *rw = SDL_RWFromFile(file, "r");
         if (rw == NULL)
         {
-            return unique_char{nullptr, charDeleter};
+            return unique_char{nullptr, free};
         }
 
         auto size = SDL_RWsize(rw);
@@ -51,6 +52,6 @@ namespace sugar
 
         res[size] = '\0';
 
-        return unique_char{res, charDeleter};
+        return unique_char{res, free};
     }
 }

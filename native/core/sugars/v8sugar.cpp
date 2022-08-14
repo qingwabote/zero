@@ -18,7 +18,7 @@ namespace sugar
 
         v8::Isolate::CreateParams create_params;
         create_params.array_buffer_allocator_shared = std::shared_ptr<v8::ArrayBuffer::Allocator>{v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
-        return unique_isolate{ v8::Isolate::New(create_params), isolateDeleter };
+        return unique_isolate{v8::Isolate::New(create_params), isolateDeleter};
     }
 
     v8::MaybeLocal<v8::Module> v8_module_load(
@@ -31,15 +31,11 @@ namespace sugar
         v8::EscapableHandleScope handle_scope(context->GetIsolate());
         v8::Context::Scope context_scope(context);
 
-        const char *base = SDL_GetBasePath();
-        v8::Local<v8::String> full = v8::String::Concat(context->GetIsolate(), v8::String::NewFromUtf8(context->GetIsolate(), base).ToLocalChecked(), specifier);
-        v8::String::Utf8Value utf8{context->GetIsolate(), full};
-
-        auto res = sugar::sdl_rw_readUtf8(*utf8);
+        auto res = sugar::sdl_rw_readUtf8(*v8::String::Utf8Value(context->GetIsolate(), specifier));
         if (!res)
         {
             context->GetIsolate()->ThrowException(v8::String::NewFromUtf8Literal(context->GetIsolate(), "module resolution error"));
-            return v8::MaybeLocal<v8::Module>();
+            return {};
         }
 
         auto str = v8::String::NewFromUtf8(context->GetIsolate(), res.get()).ToLocalChecked();
