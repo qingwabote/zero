@@ -1,9 +1,9 @@
-import GLTF from "../../../script/core/assets/GLTF.js";
-import Camera from "../../../script/core/components/Camera.js";
-import { Vec3 } from "../../../script/core/math/vec3.js";
-import Node, { TransformBit } from "../../../script/core/Node.js";
-import webgame from "../../../script/platforms/webgl/webgame.js";
-import ZeroComponent from "./ZeroComponent.js";
+import GLTF from "../../../../../script/core/assets/GLTF.js";
+import Camera from "../../../../../script/core/components/Camera.js";
+import { Vec3 } from "../../../../../script/core/math/vec3.js";
+import Node, { TransformBit } from "../../../../../script/core/Node.js";
+import webgame from "../../../../../script/platforms/webgl/webgame.js";
+import ZeroComponent from "../../ZeroComponent.js";
 
 const canvas = document.querySelector<HTMLCanvasElement>('#ZeroCanvas')!;
 webgame.init(canvas);

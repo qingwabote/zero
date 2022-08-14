@@ -2,6 +2,7 @@ import Loader, { LoaderTypes } from "../../core/Loader.js";
 
 export default class WebLoader implements Loader {
     load<T extends keyof LoaderTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]> {
+        url = "../../../" + url;// FIXME
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.responseType = type;
