@@ -1,11 +1,11 @@
 set(SRC_FILES
     Window.cpp
-    utils/rw.cpp
-    utils/v8sugar.cpp
+    sugars/sdlsugar.cpp
+    sugars/v8sugar.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})
-target_include_directories(core INTERFACE ./)
+target_include_directories(core PUBLIC ./)
 
 add_subdirectory(thirdparty/sdl2)
 target_link_libraries(core PRIVATE SDL2)
