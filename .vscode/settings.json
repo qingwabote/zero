@@ -1,7 +1,9 @@
 {
-    "typescript.preferences.importModuleSpecifierEnding": "js",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": true
-    }
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "C_Cpp.autoAddFileAssociations": false,
+  "cmake.configureOnOpen": false
 }

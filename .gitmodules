@@ -1,0 +1,6 @@
+[submodule "native/platforms/gfx/vulkan/thirdparty/vulkan"]
+	path = native/platforms/gfx/vulkan/thirdparty/vulkan
+	url = git@github.com:KhronosGroup/Vulkan-Headers.git
+[submodule "native/platforms/gfx/vulkan/thirdparty/volk"]
+	path = native/platforms/gfx/vulkan/thirdparty/volk
+	url = git@github.com:zeux/volk.git

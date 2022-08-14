@@ -3,7 +3,8 @@ import game from "./game.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";
-import render, { Transform } from "./render.js";
+import render, { TransformSource } from "./render.js";
+import EventEmitter from "./utils/EventEmitter.js";
 
 export enum TransformBit {
     NONE = 0,
@@ -16,13 +17,25 @@ export enum TransformBit {
 
 type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Component>) => T;
 
-export default class Node implements Transform {
+interface EventMap {
+    TRANSFORM_CHANGED: (flag: TransformBit) => void;
+}
+
+export default class Node implements TransformSource {
     private _name: string;
     get name(): string {
         return this._name;
     }
 
     private _dirtyFlag = TransformBit.TRS;
+
+    private _eventEmitter: EventEmitter<EventMap> | undefined;
+    get eventEmitter(): EventEmitter<EventMap> {
+        if (!this._eventEmitter) {
+            this._eventEmitter = new EventEmitter;
+        }
+        return this._eventEmitter;
+    }
 
     private _scale: Readonly<Vec3> = [1, 1, 1];
     get scale(): Readonly<Vec3> {
@@ -101,6 +114,7 @@ export default class Node implements Transform {
     private dirty(flag: TransformBit): void {
         this._dirtyFlag |= flag;
         render.dirtyTransforms.set(this, this);
+        this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
         for (const child of this._children.keys()) {
             child.dirty(flag);
         }

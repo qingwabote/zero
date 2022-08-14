@@ -1,0 +1,28 @@
+import game from "../../core/game.js";
+import gfx from "../../core/gfx.js";
+import WebDevice from "./gfx/WebDevice.js";
+import WebInput from "./WebInput.js";
+import WebLoader from "./WebLoader.js";
+const DEBUG_DT_THRESHOLD = 1;
+export default {
+    init(canvas) {
+        const gl = canvas.getContext('webgl2');
+        gfx.init(new WebDevice(gl));
+        game.init(new WebInput(canvas), new WebLoader, canvas.width, canvas.height);
+    },
+    run() {
+        let requestId;
+        let time = performance.now();
+        function mainLoop(now) {
+            let dt = now > time ? (now - time) / 1000 : 0;
+            if (dt > DEBUG_DT_THRESHOLD) {
+                dt = 1 / 60;
+            }
+            time = now;
+            game.tick(dt);
+            requestId = window.requestAnimationFrame(mainLoop);
+        }
+        mainLoop(time);
+    }
+};
+//# sourceMappingURL=webgame.js.map
