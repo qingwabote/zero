@@ -13,7 +13,7 @@ namespace sugar
     {
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
-            zero::log("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+            printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
             return unique_window{nullptr, windowDeleter};
         }
 
@@ -43,7 +43,11 @@ namespace sugar
 
         auto size = SDL_RWsize(rw);
         char *res = (char *)malloc(size + 1);
-        if (SDL_RWread(rw, res, size, 1) != 1)
+        if (res == NULL)
+        {
+            return unique_char{nullptr, free};
+        }
+        if (size && SDL_RWread(rw, res, size, 1) != 1)
         {
             // https://gitlab.com/wikibooks-opengl/modern-tutorials/blob/master/common-sdl2/shader_utils.cpp
             throw "not yet implemented";

@@ -2,5 +2,5 @@
 
 namespace zero
 {
-    void log(const char *formats, ...);
+    // void log(const char *formats, ...);
 }
