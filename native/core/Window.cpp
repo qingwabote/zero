@@ -4,6 +4,7 @@
 #include "utils/log.hpp"
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
+#include "bindings/console.hpp"
 #include <chrono>
 #include <thread>
 
@@ -48,6 +49,9 @@ int Window::loop()
     v8::HandleScope handle_scope(isolate.get());
     v8::Local<v8::Context> context = v8::Context::New(isolate.get());
     v8::Context::Scope context_scope(context);
+
+    auto global = context->Global();
+    binding::console(context, global);
 
     v8::Local<v8::Object> bootstrap;
     {
@@ -125,6 +129,7 @@ int Window::loop()
     }
     auto module = maybeModule.ToLocalChecked();
     context->SetAlignedPointerInEmbedderData(1, &root);
+    v8::TryCatch try_catch(isolate.get());
     auto maybeOk = module->InstantiateModule(
         context,
         [](
@@ -136,6 +141,15 @@ int Window::loop()
             auto root = static_cast<v8::Local<v8::String> *>(context->GetAlignedPointerFromEmbedderData(1));
             return sugar::v8_module_load(context, v8::String::Concat(context->GetIsolate(), *root, specifier), import_assertions, referrer);
         });
+    if (try_catch.HasCaught())
+    {
+        v8::Local<v8::Message> message = try_catch.Message();
+        printf(
+            "%s\nSTACK:\n%s\n",
+            *v8::String::Utf8Value{isolate.get(), message->Get()},
+            sugar::v8_stackTrace_toString(message->GetStackTrace()).c_str()); // FIXME: stack trace is always empty here, why?
+        return -1;
+    }
     if (maybeOk.IsNothing())
     {
         printf("script load failed: %s\n", *v8::String::Utf8Value(isolate.get(), path));

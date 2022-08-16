@@ -2,6 +2,7 @@ set(SRC_FILES
     Window.cpp
     sugars/sdlsugar.cpp
     sugars/v8sugar.cpp
+    bindings/console.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})

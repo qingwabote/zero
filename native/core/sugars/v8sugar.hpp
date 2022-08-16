@@ -40,18 +40,18 @@ namespace sugar
         return handleScope.Escape(maybeValue.ToLocalChecked().As<S>());
     }
 
-    template <class S>
-    void v8_object_set(v8::Local<v8::Context> context, v8::Local<v8::Object> object, const char *name, v8::Local<S> value)
-    {
-        v8::EscapableHandleScope handleScope(context->GetIsolate());
+    // template <class S>
+    // void v8_object_set(v8::Local<v8::Context> context, v8::Local<v8::Object> object, const char *name, v8::Local<S> value)
+    // {
+    //     v8::HandleScope handleScope(context->GetIsolate());
 
-        v8::Local<v8::String> key = v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
-        v8::Maybe<bool> ok = object->Set(context, key, value);
-        if (ok.IsNothing())
-        {
-            throw "v8_object_set failed";
-        }
-    }
+    //     v8::Local<v8::String> key = v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
+    //     v8::Maybe<bool> ok = object->Set(context, key, value);
+    //     if (ok.IsNothing())
+    //     {
+    //         throw "v8_object_set failed";
+    //     }
+    // }
 
     void v8_gc(v8::Local<v8::Context> context);
 }
