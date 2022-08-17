@@ -11,11 +11,13 @@ namespace sugar
 
     void v8_isolate_promiseRejectCallback(v8::PromiseRejectMessage msg);
 
-    v8::MaybeLocal<v8::Module> v8_module_load(
+    v8::MaybeLocal<v8::Module> v8_module_resolve(
         v8::Local<v8::Context> context,
         v8::Local<v8::String> specifier,
         v8::Local<v8::FixedArray> import_assertions = v8::Local<v8::FixedArray>(),
         v8::Local<v8::Module> referrer = v8::Local<v8::Module>());
+
+    v8::MaybeLocal<v8::Module> v8_module_evaluate(v8::Local<v8::Context> context, v8::Local<v8::String> specifier);
 
     template <class S>
     v8::Local<S> v8_object_get(v8::Local<v8::Context> context, v8::Local<v8::Object> object, const char *name)
@@ -52,6 +54,14 @@ namespace sugar
     //         throw "v8_object_set failed";
     //     }
     // }
+
+    template <class S>
+    v8::Persistent<S> *v8_setWeakCallback(v8::Isolate *isolate, v8::Local<S> obj, void(callback)(const v8::WeakCallbackInfo<v8::Persistent<S>> &data))
+    {
+        v8::Persistent<S> *ref = new v8::Persistent<S>(isolate, obj);
+        ref->SetWeak<v8::Persistent<S>>(ref, callback, v8::WeakCallbackType::kParameter);
+        return ref;
+    }
 
     void v8_gc(v8::Local<v8::Context> context);
 }

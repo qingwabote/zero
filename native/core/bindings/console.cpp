@@ -3,9 +3,9 @@
 
 namespace binding
 {
-    void console(v8::Local<v8::Context> context, v8::Local<v8::Object> ns)
+    v8::Local<v8::Object> console(v8::Local<v8::Context> context)
     {
-        v8::HandleScope scope(context->GetIsolate());
+        v8::EscapableHandleScope scope(context->GetIsolate());
         v8::Local<v8::Object> console = v8::Object::New(context->GetIsolate());
 
         console->Set(
@@ -33,6 +33,6 @@ namespace binding
                 ->GetFunction(context)
                 .ToLocalChecked());
 
-        ns->Set(context, v8::String::NewFromUtf8Literal(context->GetIsolate(), "console"), console);
+        return scope.Escape(console);
     }
 }

@@ -16,6 +16,7 @@ add_subdirectory(../../core ${CMAKE_CURRENT_BINARY_DIR}/core)
 target_link_libraries(zero PRIVATE core)
 
 add_subdirectory(../gfx/vulkan gfx)
+target_link_libraries(zero PRIVATE gfx)
 
 foreach(item ${WIN32_DLLS})
     get_filename_component(filename ${item} NAME)

@@ -1,5 +1,5 @@
 set(SRC_FILES
-    Device.cpp
+    device.cpp
 )
 
 add_library(gfx STATIC ${SRC_FILES})

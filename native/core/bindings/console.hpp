@@ -4,5 +4,5 @@
 
 namespace binding
 {
-    void console(v8::Local<v8::Context> context, v8::Local<v8::Object> ns);
+    v8::Local<v8::Object> console(v8::Local<v8::Context> context);
 }
