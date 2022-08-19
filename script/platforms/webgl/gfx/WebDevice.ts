@@ -40,4 +40,8 @@ export default class WebDevice implements Device {
     createImageBitmap(blob: Blob): Promise<ImageBitmap> {
         return createImageBitmap(blob)
     }
+
+    submit(commandBuffer: CommandBuffer): void {
+        throw new Error("Method not implemented.");
+    }
 }

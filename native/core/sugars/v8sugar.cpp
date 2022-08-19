@@ -7,15 +7,21 @@
 
 namespace sugar
 {
-    static std::unordered_map<std::string, v8::Global<v8::Module>> moduleCache;
+    static const uint32_t SLOT_CONSTRUCTOR_CACHE = 0;
 
-    static void isolateDeleter(v8::Isolate *ptr)
+    static const uint32_t SLOT_MODULE_CACHE = 1;
+
+    static void isolateDeleter(v8::Isolate *isolate)
     {
-        for (auto &it : moduleCache)
+        for (auto &it : *v8_isolate_getConstructorCache(isolate))
         {
             it.second.Reset();
         }
-        ptr->Dispose();
+        for (auto &it : *v8_isolate_getModuleCache(isolate))
+        {
+            it.second.Reset();
+        }
+        isolate->Dispose();
         v8::V8::Dispose();
         v8::V8::DisposePlatform();
     }
@@ -27,7 +33,11 @@ namespace sugar
 
         v8::Isolate::CreateParams create_params;
         create_params.array_buffer_allocator_shared = std::shared_ptr<v8::ArrayBuffer::Allocator>{v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
-        return unique_isolate{v8::Isolate::New(create_params), isolateDeleter};
+        v8::Isolate *isolate = v8::Isolate::New(create_params);
+        isolate->SetData(SLOT_CONSTRUCTOR_CACHE, new std::unordered_map<std::string, v8::Global<v8::FunctionTemplate>>);
+        isolate->SetData(SLOT_MODULE_CACHE, new std::unordered_map<std::string, v8::Global<v8::Module>>);
+
+        return unique_isolate{isolate, isolateDeleter};
     }
 
     std::string v8_stackTrace_toString(v8::Local<v8::StackTrace> stack)
@@ -103,6 +113,16 @@ namespace sugar
         }
     }
 
+    std::unordered_map<std::string, v8::Global<v8::FunctionTemplate>> *v8_isolate_getConstructorCache(v8::Isolate *isolate)
+    {
+        return (std::unordered_map<std::string, v8::Global<v8::FunctionTemplate>> *)isolate->GetData(SLOT_CONSTRUCTOR_CACHE);
+    }
+
+    std::unordered_map<std::string, v8::Global<v8::Module>> *v8_isolate_getModuleCache(v8::Isolate *isolate)
+    {
+        return (std::unordered_map<std::string, v8::Global<v8::Module>> *)isolate->GetData(SLOT_MODULE_CACHE);
+    }
+
     v8::MaybeLocal<v8::Module> v8_module_resolve(
         v8::Local<v8::Context> context,
         v8::Local<v8::String> specifier,
@@ -140,8 +160,9 @@ namespace sugar
             file = ref + "/" + file.substr(2);
         }
 
-        auto it = moduleCache.find(file);
-        if (it != moduleCache.end())
+        auto moduleCache = v8_isolate_getModuleCache(isolate);
+        auto it = moduleCache->find(file);
+        if (it != moduleCache->end())
         {
             return handle_scope.EscapeMaybe(v8::MaybeLocal<v8::Module>{it->second.Get(isolate)});
         }
@@ -162,7 +183,7 @@ namespace sugar
         resolvedMap.emplace(module->GetIdentityHash(), file);
         auto global = v8::Global<v8::Module>{isolate, module};
         global.SetWeak();
-        moduleCache.emplace(file, std::move(global));
+        moduleCache->emplace(file, std::move(global));
 
         return handle_scope.EscapeMaybe(maybeModule);
     }

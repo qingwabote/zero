@@ -13,4 +13,6 @@ export default interface Device {
     createTexture(info: TextureInfo): Texture;
 
     createImageBitmap(blob: Blob): Promise<ImageBitmap>;
+
+    submit(commandBuffer: CommandBuffer): void;
 }

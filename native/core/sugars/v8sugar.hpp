@@ -1,6 +1,7 @@
 #pragma once
 
 #include "v8.h"
+#include <unordered_map>
 
 namespace sugar
 {
@@ -10,6 +11,10 @@ namespace sugar
     std::string v8_stackTrace_toString(v8::Local<v8::StackTrace> stack);
 
     void v8_isolate_promiseRejectCallback(v8::PromiseRejectMessage msg);
+
+    std::unordered_map<std::string, v8::Global<v8::FunctionTemplate>> *v8_isolate_getConstructorCache(v8::Isolate *isolate);
+
+    std::unordered_map<std::string, v8::Global<v8::Module>> *v8_isolate_getModuleCache(v8::Isolate *isolate);
 
     v8::MaybeLocal<v8::Module> v8_module_resolve(
         v8::Local<v8::Context> context,

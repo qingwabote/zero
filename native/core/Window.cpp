@@ -54,7 +54,9 @@ int Window::loop()
     v8::Context::Scope context_scope(context);
 
     auto global = context->Global();
-    global->Set(context, v8::String::NewFromUtf8Literal(context->GetIsolate(), "console"), binding::console(context));
+    global->Set(
+        context, v8::String::NewFromUtf8Literal(isolate.get(), "console"),
+        binding::console(isolate.get())->InstanceTemplate()->NewInstance(context).ToLocalChecked());
 
     v8::Local<v8::Object> bootstrap;
     {
@@ -121,7 +123,7 @@ int Window::loop()
             printf("app: no init function found\n");
             return -1;
         }
-        v8::Local<v8::Value> args[] = {binding::gfx::device(context)};
+        v8::Local<v8::Value> args[] = {binding::gfx::device(isolate.get())->InstanceTemplate()->NewInstance(context).ToLocalChecked()};
         init->Call(context, default, 1, args);
 
         app = handle_scope.Escape(default);
