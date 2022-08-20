@@ -10,7 +10,7 @@ namespace binding
 
     inline v8::Local<v8::FunctionTemplate> console(v8::Isolate *isolate)
     {
-        auto cache = sugar::v8_isolate_getConstructorCache(isolate);
+        auto cache = sugar::v8::isolate_getConstructorCache(isolate);
         auto it = cache->find("console");
         if (it != cache->end())
         {

@@ -2,71 +2,75 @@
 
 #include "v8.h"
 #include <unordered_map>
+namespace _v8 = v8;
 
 namespace sugar
 {
-    typedef std::unique_ptr<v8::Isolate, void (*)(v8::Isolate *)> unique_isolate;
-    unique_isolate v8_initWithIsolate();
-
-    std::string v8_stackTrace_toString(v8::Local<v8::StackTrace> stack);
-
-    void v8_isolate_promiseRejectCallback(v8::PromiseRejectMessage msg);
-
-    std::unordered_map<std::string, v8::Global<v8::FunctionTemplate>> *v8_isolate_getConstructorCache(v8::Isolate *isolate);
-
-    std::unordered_map<std::string, v8::Global<v8::Module>> *v8_isolate_getModuleCache(v8::Isolate *isolate);
-
-    v8::MaybeLocal<v8::Module> v8_module_resolve(
-        v8::Local<v8::Context> context,
-        v8::Local<v8::String> specifier,
-        v8::Local<v8::FixedArray> import_assertions = v8::Local<v8::FixedArray>(),
-        v8::Local<v8::Module> referrer = v8::Local<v8::Module>());
-
-    v8::MaybeLocal<v8::Module> v8_module_evaluate(v8::Local<v8::Context> context, v8::Local<v8::String> specifier);
-
-    template <class S>
-    v8::Local<S> v8_object_get(v8::Local<v8::Context> context, v8::Local<v8::Object> object, const char *name)
+    namespace v8
     {
-        v8::EscapableHandleScope handleScope(context->GetIsolate());
+        typedef std::unique_ptr<_v8::Isolate, void (*)(_v8::Isolate *)> unique_isolate;
+        unique_isolate initWithIsolate();
 
-        v8::Local<v8::String> key = v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
-        v8::Maybe<bool> maybeExist = object->Has(context, key);
-        if (maybeExist.IsNothing())
+        std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack);
+
+        void isolate_promiseRejectCallback(_v8::PromiseRejectMessage msg);
+
+        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate);
+
+        std::unordered_map<std::string, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate);
+
+        _v8::MaybeLocal<_v8::Module> module_resolve(
+            _v8::Local<_v8::Context> context,
+            _v8::Local<_v8::String> specifier,
+            _v8::Local<_v8::FixedArray> import_assertions = _v8::Local<_v8::FixedArray>(),
+            _v8::Local<_v8::Module> referrer = _v8::Local<_v8::Module>());
+
+        _v8::MaybeLocal<_v8::Module> module_evaluate(_v8::Local<_v8::Context> context, _v8::Local<_v8::String> specifier);
+
+        template <class S>
+        _v8::Local<S> object_get(_v8::Local<_v8::Context> context, _v8::Local<_v8::Object> object, const char *name)
         {
-            return {};
+            _v8::EscapableHandleScope handleScope(context->GetIsolate());
+
+            _v8::Local<_v8::String> key = _v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
+            _v8::Maybe<bool> maybeExist = object->Has(context, key);
+            if (maybeExist.IsNothing())
+            {
+                return {};
+            }
+            if (!maybeExist.FromJust())
+            {
+                return {};
+            }
+            _v8::MaybeLocal<_v8::Value> maybeValue = object->Get(context, key);
+            if (maybeValue.IsEmpty())
+            {
+                return {};
+            }
+            return handleScope.Escape(maybeValue.ToLocalChecked().As<S>());
         }
-        if (!maybeExist.FromJust())
+
+        // template <class S>
+        // void v8_object_set(_v8::Local<_v8::Context> context, _v8::Local<_v8::Object> object, const char *name, _v8::Local<S> value)
+        // {
+        //     _v8::HandleScope handleScope(context->GetIsolate());
+
+        //     _v8::Local<_v8::String> key = _v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
+        //     _v8::Maybe<bool> ok = object->Set(context, key, value);
+        //     if (ok.IsNothing())
+        //     {
+        //         throw "v8_object_set failed";
+        //     }
+        // }
+
+        template <class S>
+        _v8::Persistent<S> *setWeakCallback(_v8::Isolate *isolate, _v8::Local<S> obj, void(callback)(const _v8::WeakCallbackInfo<_v8::Persistent<S>> &data))
         {
-            return {};
+            _v8::Persistent<S> *ref = new _v8::Persistent<S>(isolate, obj);
+            ref->SetWeak<_v8::Persistent<S>>(ref, callback, _v8::WeakCallbackType::kParameter);
+            return ref;
         }
-        v8::MaybeLocal<v8::Value> maybeValue = object->Get(context, key);
-        if (maybeValue.IsEmpty())
-        {
-            return {};
-        }
-        return handleScope.Escape(maybeValue.ToLocalChecked().As<S>());
+
+        void gc(_v8::Local<_v8::Context> context);
     }
-
-    // template <class S>
-    // void v8_object_set(v8::Local<v8::Context> context, v8::Local<v8::Object> object, const char *name, v8::Local<S> value)
-    // {
-    //     v8::HandleScope handleScope(context->GetIsolate());
-
-    //     v8::Local<v8::String> key = v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
-    //     v8::Maybe<bool> ok = object->Set(context, key, value);
-    //     if (ok.IsNothing())
-    //     {
-    //         throw "v8_object_set failed";
-    //     }
-    // }
-
-    template <class S>
-    v8::Persistent<S> *v8_setWeakCallback(v8::Isolate *isolate, v8::Local<S> obj, void(callback)(const v8::WeakCallbackInfo<v8::Persistent<S>> &data))
-    {
-        v8::Persistent<S> *ref = new v8::Persistent<S>(isolate, obj);
-        ref->SetWeak<v8::Persistent<S>>(ref, callback, v8::WeakCallbackType::kParameter);
-        return ref;
-    }
-
-    void v8_gc(v8::Local<v8::Context> context);
 }

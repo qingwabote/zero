@@ -11,7 +11,7 @@ namespace binding
 
         inline v8::Local<v8::FunctionTemplate> device(v8::Isolate *isolate)
         {
-            auto cache = sugar::v8_isolate_getConstructorCache(isolate);
+            auto cache = sugar::v8::isolate_getConstructorCache(isolate);
             auto it = cache->find("gfx.device");
             if (it != cache->end())
             {
@@ -22,14 +22,8 @@ namespace binding
 
             v8::Local<v8::FunctionTemplate> constructor{v8::FunctionTemplate::New(isolate, device_constructor)};
             constructor->SetClassName(v8::String::NewFromUtf8Literal(isolate, "Device"));
+            // constructor->InstanceTemplate()->Set(isolate, "commandBuffer", commandbuffer(isolate)->InstanceTemplate());
             // constructor->InstanceTemplate()->SetInternalFieldCount(1);
-
-            // commandbuffer(context)->InstanceTemplate()->NewInstance(context).ToLocalChecked();
-
-            // auto prototype = constructor->PrototypeTemplate();
-            // prototype->Set(
-            //     v8::String::NewFromUtf8Literal(context->GetIsolate(), "commandBuffer"),
-            //     commandbuffer(context)->InstanceTemplate());
 
             cache->emplace("gfx.device", v8::Global<v8::FunctionTemplate>{isolate, constructor});
 

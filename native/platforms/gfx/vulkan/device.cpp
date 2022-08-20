@@ -1,5 +1,5 @@
 #include "bindings/gfx/device.hpp"
-#include "sugars/v8sugar.hpp"
+#include "bindings/gfx/commandbuffer.hpp"
 
 namespace binding
 {
@@ -8,12 +8,12 @@ namespace binding
         void device_constructor(const v8::FunctionCallbackInfo<v8::Value> &info)
         {
             v8::Isolate *isolate = info.GetIsolate();
+            auto context = isolate->GetCurrentContext();
 
-            // info.This()->Set(
-            //     isolate->GetCurrentContext(),
-            //     v8::String::NewFromUtf8Literal(isolate, "commandBuffer"),
-
-            // )
+            info.This()->Set(
+                context,
+                v8::String::NewFromUtf8Literal(isolate, "commandBuffer"),
+                commandbuffer(isolate)->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked());
         }
     }
 }

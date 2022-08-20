@@ -4,7 +4,10 @@ namespace binding
 {
     namespace gfx
     {
-        void commandbuffer_constructor(const v8::FunctionCallbackInfo<v8::Value> &info) {}
+        void commandbuffer_constructor(const v8::FunctionCallbackInfo<v8::Value> &info)
+        {
+            printf("commandbuffer_constructor\n");
+        }
 
         void commandbuffer_beginRenderPass(const v8::FunctionCallbackInfo<v8::Value> &info)
         {

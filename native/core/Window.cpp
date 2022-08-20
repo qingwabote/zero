@@ -1,7 +1,4 @@
 #include "Window.hpp"
-#include "SDL.h"
-#include "v8.h"
-#include "utils/log.hpp"
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "bindings/console.hpp"
@@ -24,20 +21,20 @@ Window::~Window() {}
 
 int Window::loop()
 {
-    sugar::unique_window window = sugar::sdl_initWithWindow();
+    sugar::sdl::unique_window window = sugar::sdl::initWithWindow();
     if (!window)
     {
         printf("Could not create window: %s\n", SDL_GetError());
         return -1;
     }
 
-    sugar::unique_isolate isolate = sugar::v8_initWithIsolate();
+    sugar::v8::unique_isolate isolate = sugar::v8::initWithIsolate();
     isolate->SetOOMErrorHandler(
         [](const char *location, const v8::OOMDetails &details)
         {
             throw "Function SetOOMErrorHandler not yet implemented";
         });
-    isolate->SetPromiseRejectCallback(sugar::v8_isolate_promiseRejectCallback);
+    isolate->SetPromiseRejectCallback(sugar::v8::isolate_promiseRejectCallback);
     isolate->SetCaptureStackTraceForUncaughtExceptions(true, 20, v8::StackTrace::kOverview);
     isolate->AddMessageListener(
         [](v8::Local<v8::Message> message, v8::Local<v8::Value> data)
@@ -45,7 +42,7 @@ int Window::loop()
             printf(
                 "%s\nSTACK:\n%s\n",
                 *v8::String::Utf8Value{v8::Isolate::GetCurrent(), message->Get()},
-                sugar::v8_stackTrace_toString(message->GetStackTrace()).c_str());
+                sugar::v8::stackTrace_toString(message->GetStackTrace()).c_str());
         });
 
     v8::Isolate::Scope isolate_scope(isolate.get());
@@ -56,7 +53,7 @@ int Window::loop()
     auto global = context->Global();
     global->Set(
         context, v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-        binding::console(isolate.get())->InstanceTemplate()->NewInstance(context).ToLocalChecked());
+        binding::console(isolate.get())->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked());
 
     v8::Local<v8::Object> bootstrap;
     {
@@ -64,16 +61,16 @@ int Window::loop()
 
         v8::Local<v8::String> path = v8::String::Concat(
             isolate.get(),
-            v8::String::NewFromUtf8(isolate.get(), sugar::sdl_getBasePath().get()).ToLocalChecked(),
+            v8::String::NewFromUtf8(isolate.get(), sugar::sdl::getBasePath().get()).ToLocalChecked(),
             v8::String::NewFromUtf8Literal(isolate.get(), "bootstrap.js"));
-        auto maybeModule = sugar::v8_module_evaluate(context, path);
+        auto maybeModule = sugar::v8::module_evaluate(context, path);
         if (maybeModule.IsEmpty())
         {
             printf("bootstrap.js: load failed\n");
             return -1;
         }
         v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-        v8::Local<v8::Object> default = sugar::v8_object_get<v8::Object>(context, ns, "default");
+        v8::Local<v8::Object> default = sugar::v8::object_get<v8::Object>(context, ns, "default");
         if (default.IsEmpty())
         {
             printf("bootstrap.js: no default export found\n");
@@ -81,7 +78,7 @@ int Window::loop()
         }
         bootstrap = handle_scope.Escape(default);
 
-        // sugar::v8_setWeakCallback<v8::Module>(
+        // sugar::v8::setWeakCallback<v8::Module>(
         //     isolate.get(),
         //     maybeModule.ToLocalChecked(),
         //     [](const v8::WeakCallbackInfo<v8::Persistent<v8::Module>> &data)
@@ -90,8 +87,8 @@ int Window::loop()
         //         delete data.GetParameter();
         //     });
     }
-    // sugar::v8_gc(context);
-    auto appSrc = sugar::v8_object_get<v8::String>(context, bootstrap, "app");
+    // sugar::v8::gc(context);
+    auto appSrc = sugar::v8::object_get<v8::String>(context, bootstrap, "app");
     if (appSrc.IsEmpty())
     {
         printf("bootstrap.js: no app found\n");
@@ -102,7 +99,7 @@ int Window::loop()
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
 
-        auto maybeModule = sugar::v8_module_evaluate(context, appSrc);
+        auto maybeModule = sugar::v8::module_evaluate(context, appSrc);
         if (maybeModule.IsEmpty())
         {
             printf("app load failed: %s\n", *v8::String::Utf8Value(isolate.get(), appSrc));
@@ -110,25 +107,25 @@ int Window::loop()
         }
 
         v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-        v8::Local<v8::Object> default = sugar::v8_object_get<v8::Object>(context, ns, "default");
+        v8::Local<v8::Object> default = sugar::v8::object_get<v8::Object>(context, ns, "default");
         if (default.IsEmpty())
         {
             printf("app: no default export found\n");
             return -1;
         }
 
-        auto init = sugar::v8_object_get<v8::Function>(context, default, "init");
+        auto init = sugar::v8::object_get<v8::Function>(context, default, "init");
         if (init.IsEmpty())
         {
             printf("app: no init function found\n");
             return -1;
         }
-        v8::Local<v8::Value> args[] = {binding::gfx::device(isolate.get())->InstanceTemplate()->NewInstance(context).ToLocalChecked()};
+        v8::Local<v8::Value> args[] = {binding::gfx::device(isolate.get())->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked()};
         init->Call(context, default, 1, args);
 
         app = handle_scope.Escape(default);
     }
-    auto tick = sugar::v8_object_get<v8::Function>(context, app, "tick");
+    auto tick = sugar::v8::object_get<v8::Function>(context, app, "tick");
     if (tick.IsEmpty())
     {
         printf("app: no tick function found\n");

@@ -12,7 +12,7 @@ namespace binding
 
         inline v8::Local<v8::FunctionTemplate> commandbuffer(v8::Isolate *isolate)
         {
-            auto cache = sugar::v8_isolate_getConstructorCache(isolate);
+            auto cache = sugar::v8::isolate_getConstructorCache(isolate);
             auto it = cache->find("gfx.commandbuffer");
             if (it != cache->end())
             {
@@ -24,6 +24,7 @@ namespace binding
             v8::Local<v8::FunctionTemplate> constructor{v8::FunctionTemplate::New(isolate, commandbuffer_constructor)};
             constructor->SetClassName(v8::String::NewFromUtf8Literal(isolate, "Device"));
             // constructor->InstanceTemplate()->SetInternalFieldCount(1);
+            // constructor->InstanceTemplate()->SetCallAsFunctionHandler(commandbuffer_constructor);
 
             auto prototype = constructor->PrototypeTemplate();
 
