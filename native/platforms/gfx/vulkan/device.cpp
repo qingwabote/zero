@@ -14,6 +14,14 @@ namespace binding
                 context,
                 v8::String::NewFromUtf8Literal(isolate, "commandBuffer"),
                 commandbuffer(isolate)->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked());
+
+            new sugar::v8::SetWeakCallback<v8::Object>(
+                isolate,
+                info.This(),
+                []()
+                {
+                    printf("SetWeakCallback");
+                });
         }
     }
 }

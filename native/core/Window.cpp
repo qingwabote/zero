@@ -77,17 +77,7 @@ int Window::loop()
             return -1;
         }
         bootstrap = handle_scope.Escape(default);
-
-        // sugar::v8::setWeakCallback<v8::Module>(
-        //     isolate.get(),
-        //     maybeModule.ToLocalChecked(),
-        //     [](const v8::WeakCallbackInfo<v8::Persistent<v8::Module>> &data)
-        //     {
-        //         data.GetParameter()->Reset();
-        //         delete data.GetParameter();
-        //     });
     }
-    // sugar::v8::gc(context);
     auto appSrc = sugar::v8::object_get<v8::String>(context, bootstrap, "app");
     if (appSrc.IsEmpty())
     {
@@ -125,6 +115,7 @@ int Window::loop()
 
         app = handle_scope.Escape(default);
     }
+
     auto tick = sugar::v8::object_get<v8::Function>(context, app, "tick");
     if (tick.IsEmpty())
     {

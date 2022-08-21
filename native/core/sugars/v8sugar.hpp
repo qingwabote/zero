@@ -64,12 +64,31 @@ namespace sugar
         // }
 
         template <class S>
-        _v8::Persistent<S> *setWeakCallback(_v8::Isolate *isolate, _v8::Local<S> obj, void(callback)(const _v8::WeakCallbackInfo<_v8::Persistent<S>> &data))
+        struct SetWeakCallback
         {
-            _v8::Persistent<S> *ref = new _v8::Persistent<S>(isolate, obj);
-            ref->SetWeak<_v8::Persistent<S>>(ref, callback, _v8::WeakCallbackType::kParameter);
-            return ref;
-        }
+            _v8::Persistent<S> ref;
+            std::function<void()> callback;
+
+            SetWeakCallback(_v8::Isolate *isolate, _v8::Local<S> obj, std::function<void()> &&cb)
+            {
+                ref.Reset(isolate, obj);
+                callback = cb;
+
+                ref.SetWeak<SetWeakCallback<S>>(
+                    this,
+                    [](const _v8::WeakCallbackInfo<SetWeakCallback<S>> &info)
+                    {
+                        SetWeakCallback<S> *p = info.GetParameter();
+                        p->callback();
+                        delete p;
+                    },
+                    _v8::WeakCallbackType::kParameter);
+            }
+            ~SetWeakCallback()
+            {
+                ref.Reset();
+            }
+        };
 
         void gc(_v8::Local<_v8::Context> context);
     }
