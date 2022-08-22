@@ -6,6 +6,8 @@ import Texture, { TextureInfo } from "./Texture.js";
 export default interface Device {
     get commandBuffer(): CommandBuffer;
 
+    initialize(): boolean;
+
     createShader(info: ShaderInfo): Shader;
 
     createBuffer(info: BufferInfo): Buffer;

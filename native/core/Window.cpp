@@ -111,7 +111,16 @@ int Window::loop()
             return -1;
         }
         v8::Local<v8::Value> args[] = {binding::gfx::device(isolate.get())->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked()};
-        init->Call(context, default, 1, args);
+        v8::Local<v8::Value> res = init->Call(context, default, 1, args).ToLocalChecked();
+        if (!res->IsBoolean())
+        {
+            printf("app: invalid init function return value\n");
+            return -1;
+        }
+        if (res->BooleanValue(isolate.get()))
+        {
+            return -1;
+        }
 
         app = handle_scope.Escape(default);
     }

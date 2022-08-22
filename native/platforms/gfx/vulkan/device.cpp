@@ -23,5 +23,22 @@ namespace binding
                     printf("SetWeakCallback");
                 });
         }
+
+        void device_initialize(const v8::FunctionCallbackInfo<v8::Value> &info)
+        {
+            // if (volkInitialize())
+            // {
+            //     info.GetReturnValue().Set(true);
+            //     return;
+            // }
+
+            // uint32_t apiVersion = VK_API_VERSION_1_0;
+            // vkEnumerateInstanceVersion(&apiVersion);
+
+            v8::Isolate *isolate = info.GetIsolate();
+            auto context = isolate->GetCurrentContext();
+
+            info.GetReturnValue().Set(false);
+        }
     }
 }
