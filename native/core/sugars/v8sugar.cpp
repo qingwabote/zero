@@ -4,16 +4,60 @@
 #include <sstream>
 #include <unordered_map>
 
+namespace
+{
+    const uint32_t SLOT_CONSTRUCTOR_CACHE = 0;
+
+    const uint32_t SLOT_MODULE_CACHE = 1;
+
+    const uint32_t SLOT_WEAK_CALLBACK_CACHE = 2;
+
+    std::unordered_map<std::string, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate)
+    {
+        return (std::unordered_map<std::string, _v8::Global<_v8::Module>> *)isolate->GetData(SLOT_MODULE_CACHE);
+    }
+
+    struct SetWeakCallback;
+
+    std::unordered_map<SetWeakCallback *, void *> *isolate_getWeakCallbackCache(_v8::Isolate *isolate)
+    {
+        return (std::unordered_map<SetWeakCallback *, void *> *)isolate->GetData(SLOT_WEAK_CALLBACK_CACHE);
+    }
+
+    struct SetWeakCallback
+    {
+        _v8::Persistent<_v8::Data> ref;
+        std::function<void()> callback;
+
+        SetWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb)
+        {
+            ref.Reset(isolate, obj);
+            callback = cb;
+
+            ref.SetWeak<SetWeakCallback>(
+                this,
+                [](const _v8::WeakCallbackInfo<SetWeakCallback> &info)
+                {
+                    SetWeakCallback *p = info.GetParameter();
+                    isolate_getWeakCallbackCache(info.GetIsolate())->erase(p);
+                    delete p;
+                },
+                _v8::WeakCallbackType::kParameter);
+        }
+        ~SetWeakCallback()
+        {
+            callback();
+            ref.Reset();
+        }
+    };
+}
+
 namespace _v8 = v8;
 
 namespace sugar
 {
     namespace v8
     {
-        static const uint32_t SLOT_CONSTRUCTOR_CACHE = 0;
-
-        static const uint32_t SLOT_MODULE_CACHE = 1;
-
         static void isolateDeleter(_v8::Isolate *isolate)
         {
             for (auto &it : *isolate_getConstructorCache(isolate))
@@ -23,6 +67,10 @@ namespace sugar
             for (auto &it : *isolate_getModuleCache(isolate))
             {
                 it.second.Reset();
+            }
+            for (auto &it : *isolate_getWeakCallbackCache(isolate))
+            {
+                delete it.first;
             }
             isolate->Dispose();
             _v8::V8::Dispose();
@@ -39,8 +87,13 @@ namespace sugar
             _v8::Isolate *isolate = _v8::Isolate::New(create_params);
             isolate->SetData(SLOT_CONSTRUCTOR_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>>);
             isolate->SetData(SLOT_MODULE_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::Module>>);
-
+            isolate->SetData(SLOT_WEAK_CALLBACK_CACHE, new std::unordered_map<void *, void *>);
             return unique_isolate{isolate, isolateDeleter};
+        }
+
+        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate)
+        {
+            return (std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *)isolate->GetData(SLOT_CONSTRUCTOR_CACHE);
         }
 
         std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack)
@@ -114,16 +167,6 @@ namespace sugar
                 break;
             }
             }
-        }
-
-        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate)
-        {
-            return (std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *)isolate->GetData(SLOT_CONSTRUCTOR_CACHE);
-        }
-
-        std::unordered_map<std::string, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate)
-        {
-            return (std::unordered_map<std::string, _v8::Global<_v8::Module>> *)isolate->GetData(SLOT_MODULE_CACHE);
         }
 
         _v8::MaybeLocal<_v8::Module> module_resolve(
@@ -236,6 +279,11 @@ namespace sugar
                 return {};
             }
             return handle_scope.EscapeMaybe(maybeModule);
+        }
+
+        void setWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb)
+        {
+            isolate_getWeakCallbackCache(isolate)->emplace(new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb)), nullptr);
         }
 
         void gc(_v8::Local<_v8::Context> context)

@@ -2,7 +2,7 @@
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "bindings/console.hpp"
-#include "bindings/gfx/device.hpp"
+#include "bindings/gfx/Device.hpp"
 #include <chrono>
 #include <thread>
 
@@ -110,8 +110,10 @@ int Window::loop()
             printf("app: no init function found\n");
             return -1;
         }
-        v8::Local<v8::Value> args[] = {binding::gfx::device(isolate.get())->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked()};
-        v8::Local<v8::Value> res = init->Call(context, default, 1, args).ToLocalChecked();
+        v8::Local<v8::Value> device_args[] = {v8::External::New(isolate.get(), window.get())};
+        v8::Local<v8::Object> device = binding::gfx::Device::constructor(isolate.get())->GetFunction(context).ToLocalChecked()->NewInstance(context, 1, device_args).ToLocalChecked();
+        v8::Local<v8::Value> init_args[] = {device};
+        v8::Local<v8::Value> res = init->Call(context, default, 1, init_args).ToLocalChecked();
         if (!res->IsBoolean())
         {
             printf("app: invalid init function return value\n");
@@ -124,6 +126,7 @@ int Window::loop()
 
         app = handle_scope.Escape(default);
     }
+    sugar::v8::gc(context);
 
     auto tick = sugar::v8::object_get<v8::Function>(context, app, "tick");
     if (tick.IsEmpty())

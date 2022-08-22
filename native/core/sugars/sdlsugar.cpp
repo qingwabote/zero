@@ -1,5 +1,4 @@
 #include "sdlsugar.hpp"
-#include "utils/log.hpp"
 
 namespace sugar
 {

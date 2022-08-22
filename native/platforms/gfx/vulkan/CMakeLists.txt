@@ -1,6 +1,5 @@
 set(SRC_FILES
-    device.cpp
-    commandbuffer.cpp
+    VkDevice.cpp
 )
 
 add_library(gfx STATIC ${SRC_FILES})

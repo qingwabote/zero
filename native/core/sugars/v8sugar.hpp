@@ -11,13 +11,11 @@ namespace sugar
         typedef std::unique_ptr<_v8::Isolate, void (*)(_v8::Isolate *)> unique_isolate;
         unique_isolate initWithIsolate();
 
+        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate);
+
         std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack);
 
         void isolate_promiseRejectCallback(_v8::PromiseRejectMessage msg);
-
-        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate);
-
-        std::unordered_map<std::string, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate);
 
         _v8::MaybeLocal<_v8::Module> module_resolve(
             _v8::Local<_v8::Context> context,
@@ -63,32 +61,15 @@ namespace sugar
         //     }
         // }
 
+        void setWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb);
+
         template <class S>
-        struct SetWeakCallback
+        S *bind(_v8::Isolate *isolate, S *cobj, _v8::Local<_v8::Object> obj)
         {
-            _v8::Persistent<S> ref;
-            std::function<void()> callback;
-
-            SetWeakCallback(_v8::Isolate *isolate, _v8::Local<S> obj, std::function<void()> &&cb)
-            {
-                ref.Reset(isolate, obj);
-                callback = cb;
-
-                ref.SetWeak<SetWeakCallback<S>>(
-                    this,
-                    [](const _v8::WeakCallbackInfo<SetWeakCallback<S>> &info)
-                    {
-                        SetWeakCallback<S> *p = info.GetParameter();
-                        p->callback();
-                        delete p;
-                    },
-                    _v8::WeakCallbackType::kParameter);
-            }
-            ~SetWeakCallback()
-            {
-                ref.Reset();
-            }
-        };
+            setWeakCallback(isolate, obj, [cobj]()
+                            { delete cobj; });
+            return cobj;
+        }
 
         void gc(_v8::Local<_v8::Context> context);
     }
