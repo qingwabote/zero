@@ -1,5 +1,6 @@
 #include "bindings/gfx/device.hpp"
 #include "bindings/gfx/commandbuffer.hpp"
+#include "VkBootstrap.h"
 
 namespace binding
 {
@@ -32,9 +33,18 @@ namespace binding
             //     return;
             // }
 
-            // uint32_t apiVersion = VK_API_VERSION_1_0;
-            // vkEnumerateInstanceVersion(&apiVersion);
-
+            vkb::InstanceBuilder builder;
+            auto inst_ret = builder
+                                .set_app_name("_app_name")
+                                .request_validation_layers(true)
+                                .require_api_version(1, 1, 0)
+                                .build();
+            if (!inst_ret)
+            {
+                printf("Failed to create Vulkan instance. Error: %s\n", inst_ret.error().message().c_str());
+                info.GetReturnValue().Set(true);
+                return;
+            }
             v8::Isolate *isolate = info.GetIsolate();
             auto context = isolate->GetCurrentContext();
 
