@@ -291,5 +291,32 @@ namespace sugar
             auto gc = object_get<_v8::Function>(context, context->Global(), "__gc__");
             gc->Call(context, context->Global(), 0, nullptr);
         }
+
+        Class::Class(_v8::Isolate *isolate, const char *name, _v8::FunctionCallback callback)
+        {
+            _v8::HandleScope scope(isolate);
+
+            _v8::Local<_v8::FunctionTemplate> constructor{_v8::FunctionTemplate::New(isolate, callback)};
+            constructor->SetClassName(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked());
+            constructor->InstanceTemplate()->SetInternalFieldCount(1);
+
+            _functionTemplate.Reset(isolate, constructor);
+            _isolate = isolate;
+        }
+
+        void Class::defineFunction(const char *name, _v8::FunctionCallback callback)
+        {
+            _functionTemplate.Get(_isolate)->PrototypeTemplate()->Set(_isolate, name, _v8::FunctionTemplate::New(_isolate, callback));
+        }
+
+        _v8::Global<_v8::FunctionTemplate> Class::flush()
+        {
+            return std::move(_functionTemplate);
+        }
+
+        Class::~Class()
+        {
+            _functionTemplate.Reset();
+        }
     }
 }

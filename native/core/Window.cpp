@@ -126,7 +126,6 @@ int Window::loop()
 
         app = handle_scope.Escape(default);
     }
-    sugar::v8::gc(context);
 
     auto tick = sugar::v8::object_get<v8::Function>(context, app, "tick");
     if (tick.IsEmpty())

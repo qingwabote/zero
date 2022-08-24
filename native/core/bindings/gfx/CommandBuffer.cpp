@@ -1,19 +1,13 @@
-#pragma once
-
-#include "sugars/v8sugar.hpp"
+#include "CommandBuffer.hpp"
 
 namespace binding
 {
     namespace gfx
     {
-        void commandbuffer_constructor(const v8::FunctionCallbackInfo<v8::Value> &info);
-
-        void commandbuffer_beginRenderPass(const v8::FunctionCallbackInfo<v8::Value> &info);
-
-        inline v8::Local<v8::FunctionTemplate> commandbuffer(v8::Isolate *isolate)
+        v8::Local<v8::FunctionTemplate> CommandBuffer::constructor(v8::Isolate *isolate)
         {
             auto cache = sugar::v8::isolate_getConstructorCache(isolate);
-            auto it = cache->find("gfx.commandbuffer");
+            auto it = cache->find("gfx.CommandBuffer");
             if (it != cache->end())
             {
                 return it->second.Get(isolate);
@@ -32,7 +26,7 @@ namespace binding
                 v8::String::NewFromUtf8Literal(isolate, "beginRenderPass"),
                 v8::FunctionTemplate::New(isolate, commandbuffer_beginRenderPass));
 
-            cache->emplace("gfx.commandbuffer", v8::Global<v8::FunctionTemplate>{isolate, constructor});
+            cache->emplace("gfx.CommandBuffer", v8::Global<v8::FunctionTemplate>{isolate, constructor});
 
             return scope.Escape(constructor);
         }

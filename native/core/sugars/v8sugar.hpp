@@ -72,5 +72,21 @@ namespace sugar
         }
 
         void gc(_v8::Local<_v8::Context> context);
+
+        class Class
+        {
+        private:
+            _v8::Isolate *_isolate = nullptr;
+            _v8::Global<_v8::FunctionTemplate> _functionTemplate;
+
+        public:
+            Class(_v8::Isolate *isolate, const char *name, _v8::FunctionCallback constructor);
+
+            void defineFunction(const char *name, _v8::FunctionCallback callback);
+
+            _v8::Global<_v8::FunctionTemplate> flush();
+
+            ~Class();
+        };
     }
 }
