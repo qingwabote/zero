@@ -1,7 +1,7 @@
 #include "Window.hpp"
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
-#include "bindings/console.hpp"
+#include "bindings/Console.hpp"
 #include "bindings/gfx/Device.hpp"
 #include <chrono>
 #include <thread>
@@ -50,10 +50,12 @@ int Window::loop()
     v8::Local<v8::Context> context = v8::Context::New(isolate.get());
     v8::Context::Scope context_scope(context);
 
+    auto console = new binding::Console(isolate.get());
+
     auto global = context->Global();
     global->Set(
         context, v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-        binding::console(isolate.get())->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked());
+        console->js());
 
     v8::Local<v8::Object> bootstrap;
     {
@@ -110,9 +112,9 @@ int Window::loop()
             printf("app: no init function found\n");
             return -1;
         }
-        v8::Local<v8::Value> device_args[] = {v8::External::New(isolate.get(), window.get())};
-        v8::Local<v8::Object> device = binding::gfx::Device::constructor(isolate.get())->GetFunction(context).ToLocalChecked()->NewInstance(context, 1, device_args).ToLocalChecked();
-        v8::Local<v8::Value> init_args[] = {device};
+        binding::gfx::Device *device = new binding::gfx::Device(isolate.get(), window.get());
+        v8::Local<v8::Object> js_device = device->js();
+        v8::Local<v8::Value> init_args[] = {js_device};
         v8::Local<v8::Value> res = init->Call(context, default, 1, init_args).ToLocalChecked();
         if (!res->IsBoolean())
         {

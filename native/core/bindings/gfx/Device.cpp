@@ -4,57 +4,40 @@ namespace binding
 {
     namespace gfx
     {
-        v8::Local<v8::FunctionTemplate> Device::constructor(v8::Isolate *isolate)
+        v8::Local<v8::FunctionTemplate> Device::createTemplate()
         {
-            auto cache = sugar::v8::isolate_getConstructorCache(isolate);
-            auto it = cache->find("gfx.Device");
-            if (it != cache->end())
-            {
-                return it->second.Get(isolate);
-            }
+            v8::EscapableHandleScope scope(_isolate);
 
-            v8::EscapableHandleScope scope(isolate);
+            sugar::v8::Class cls{_isolate, "Device"};
 
-            sugar::v8::Class cls{
-                isolate,
-                "Device",
-                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+            cls.defineAccessor(
+                "commandBuffer",
+                [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
                 {
-                    v8::Isolate *isolate = info.GetIsolate();
-                    auto context = isolate->GetCurrentContext();
-
-                    SDL_Window *window = static_cast<SDL_Window *>(info[0].As<v8::External>()->Value());
-                    info.This()->SetAlignedPointerInInternalField(0, sugar::v8::bind(isolate, new Device(window), info.This()));
-                    // info.This()->Set(
-                    //     context,
-                    //     v8::String::NewFromUtf8Literal(isolate, "commandBuffer"),
-                    //     commandbuffer(isolate)->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked());
-                }};
+                    auto cobj = static_cast<Device *>(info.This()->GetAlignedPointerFromInternalField(0));
+                    info.GetReturnValue().Set(cobj->commandBuffer()->js());
+                });
 
             cls.defineFunction(
                 "initialize",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
-                    // vkb::InstanceBuilder builder;
-                    // auto inst_ret = builder
-                    //                     .set_app_name("_app_name")
-                    //                     .request_validation_layers(true)
-                    //                     .require_api_version(1, 1, 0)
-                    //                     .use_default_debug_messenger()
-                    //                     .build();
-                    // if (!inst_ret)
-                    // {
-                    //     printf("Failed to create Vulkan instance. Error: %s\n", inst_ret.error().message().c_str());
-                    //     info.GetReturnValue().Set(true);
-                    //     return;
-                    // }
-                    v8::Isolate *isolate = info.GetIsolate();
-                    auto context = isolate->GetCurrentContext();
+                    auto cobj = static_cast<Device *>(info.This()->GetAlignedPointerFromInternalField(0));
+                    if (cobj->initialize())
+                    {
+                        info.GetReturnValue().Set(true);
+                        return;
+                    }
+
+                    v8::Isolate *_isolate = info.GetIsolate();
+                    auto context = _isolate->GetCurrentContext();
+
+                    // CommandBuffer::constructor(_isolate)->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked();
 
                     info.GetReturnValue().Set(false);
                 });
 
-            return scope.Escape(cache->emplace("gfx.Device", cls.flush()).first->second.Get(isolate));
+            return scope.Escape(cls.flush());
         }
     }
 }

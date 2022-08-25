@@ -63,14 +63,6 @@ namespace sugar
 
         void setWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb);
 
-        template <class S>
-        S *bind(_v8::Isolate *isolate, S *cobj, _v8::Local<_v8::Object> obj)
-        {
-            setWeakCallback(isolate, obj, [cobj]()
-                            { delete cobj; });
-            return cobj;
-        }
-
         void gc(_v8::Local<_v8::Context> context);
 
         class Class
@@ -80,11 +72,13 @@ namespace sugar
             _v8::Global<_v8::FunctionTemplate> _functionTemplate;
 
         public:
-            Class(_v8::Isolate *isolate, const char *name, _v8::FunctionCallback constructor);
+            Class(_v8::Isolate *isolate, const char *name);
 
             void defineFunction(const char *name, _v8::FunctionCallback callback);
 
-            _v8::Global<_v8::FunctionTemplate> flush();
+            void defineAccessor(const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter = nullptr);
+
+            _v8::Local<_v8::FunctionTemplate> flush();
 
             ~Class();
         };

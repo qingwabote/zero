@@ -2,8 +2,10 @@ set(SRC_FILES
     Window.cpp
     sugars/sdlsugar.cpp
     sugars/v8sugar.cpp
-    bindings/console.cpp
+    Binding.cpp
+    bindings/Console.cpp
     bindings/gfx/Device.cpp
+    bindings/gfx/CommandBuffer.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})

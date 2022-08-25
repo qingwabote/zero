@@ -1,20 +1,26 @@
 #pragma once
 
-#include "sugars/v8sugar.hpp"
+#include "Binding.hpp"
 #include "sugars/sdlsugar.hpp"
+#include "CommandBuffer.hpp"
 
 namespace binding
 {
     namespace gfx
     {
-        class Device
+        class Device : public Binding
         {
         private:
-            /* data */
-        public:
-            static v8::Local<v8::FunctionTemplate> constructor(v8::Isolate *isolate);
+            class Impl;
+            Impl *_impl = nullptr;
 
-            Device(SDL_Window *window);
+        protected:
+            virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
+
+        public:
+            Device(v8::Isolate *isolate, SDL_Window *window);
+
+            CommandBuffer *commandBuffer();
 
             bool initialize();
 

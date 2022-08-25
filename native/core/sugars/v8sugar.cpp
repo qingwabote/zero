@@ -93,7 +93,7 @@ namespace sugar
 
         std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate)
         {
-            return (std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *)isolate->GetData(SLOT_CONSTRUCTOR_CACHE);
+            return static_cast<std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *>(isolate->GetData(SLOT_CONSTRUCTOR_CACHE));
         }
 
         std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack)
@@ -292,11 +292,11 @@ namespace sugar
             gc->Call(context, context->Global(), 0, nullptr);
         }
 
-        Class::Class(_v8::Isolate *isolate, const char *name, _v8::FunctionCallback callback)
+        Class::Class(_v8::Isolate *isolate, const char *name)
         {
             _v8::HandleScope scope(isolate);
 
-            _v8::Local<_v8::FunctionTemplate> constructor{_v8::FunctionTemplate::New(isolate, callback)};
+            _v8::Local<_v8::FunctionTemplate> constructor{_v8::FunctionTemplate::New(isolate)};
             constructor->SetClassName(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked());
             constructor->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -309,9 +309,14 @@ namespace sugar
             _functionTemplate.Get(_isolate)->PrototypeTemplate()->Set(_isolate, name, _v8::FunctionTemplate::New(_isolate, callback));
         }
 
-        _v8::Global<_v8::FunctionTemplate> Class::flush()
+        void Class::defineAccessor(const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter)
         {
-            return std::move(_functionTemplate);
+            _functionTemplate.Get(_isolate)->PrototypeTemplate()->SetAccessor(_v8::String::NewFromUtf8(_isolate, name).ToLocalChecked(), getter, setter);
+        }
+
+        _v8::Local<_v8::FunctionTemplate> Class::flush()
+        {
+            return _functionTemplate.Get(_isolate);
         }
 
         Class::~Class()
