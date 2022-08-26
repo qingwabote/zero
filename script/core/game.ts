@@ -1,6 +1,6 @@
 import ComponentScheduler from "./ComponentScheduler.js";
 import gfx from "./gfx.js";
-import Pipeline, { BlendFactor, BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "./gfx/Pipeline.js";
+import { BlendFactor, BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
 import render from "./render.js";
@@ -78,7 +78,8 @@ export default {
                 for (const subModel of model.subModels) {
                     commandBuffer.bindInputAssembler(subModel.inputAssembler);
                     for (const pass of subModel.passes) {
-                        const pipeline: Pipeline = {
+                        const pipeline = gfx.device.createPipeline();
+                        pipeline.initialize({
                             shader: pass.shader,
                             depthStencilState: { depthTest: true },
                             blendState: {
@@ -91,7 +92,7 @@ export default {
                                         dstAlpha: BlendFactor.ZERO
                                     }]
                             }
-                        };
+                        })
                         commandBuffer.bindPipeline(pipeline);
                         commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set + 1, pass.descriptorSet);
                         commandBuffer.draw();

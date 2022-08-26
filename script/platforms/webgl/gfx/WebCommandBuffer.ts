@@ -4,6 +4,7 @@ import { InputAssembler } from "../../../core/gfx/InputAssembler.js";
 import Pipeline, { BlendFactor, DescriptorSet, DescriptorType } from "../../../core/gfx/Pipeline.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
+import WebPipeline from "./WebPipeline.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
@@ -79,17 +80,18 @@ export default class WebCommandBuffer implements CommandBuffer {
 
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
+        const info = (pipeline as WebPipeline).info!;
 
-        gl.useProgram((pipeline.shader as WebShader).program);
+        gl.useProgram((info.shader as WebShader).program);
 
-        const dss = pipeline.depthStencilState;
+        const dss = info.depthStencilState;
         if (dss.depthTest) {
             gl.enable(gl.DEPTH_TEST);
         } else {
             gl.disable(gl.DEPTH_TEST);
         }
 
-        const blend = pipeline.blendState.blends[0];
+        const blend = info.blendState.blends[0];
         if (blend.blend) {
             gl.enable(gl.BLEND);
         } else {

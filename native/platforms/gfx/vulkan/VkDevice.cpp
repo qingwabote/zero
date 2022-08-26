@@ -1,6 +1,8 @@
 #include "bindings/gfx/device.hpp"
 #include "VkBootstrap.h"
 #include "SDL_vulkan.h"
+#include "VkCommandBufferImpl.hpp"
+#include "VkPipelineImpl.hpp"
 
 namespace binding
 {
@@ -16,28 +18,26 @@ namespace binding
             vkb::Device _vkb_device;
             vkb::DispatchTable _dispatchTable;
             vkb::Swapchain _vkb_swapchain;
+            std::vector<VkImageView> _swapchainImageViews;
+
             VkQueue _graphicsQueue = nullptr;
             VkCommandPool _commandPool = nullptr;
+            VkRenderPass _renderPass = nullptr;
+            std::vector<VkFramebuffer> _framebuffers;
+
             CommandBuffer *_commandBuffer = nullptr;
+            v8::Global<v8::Object> _js_commandBuffer;
 
         public:
             Impl(v8::Isolate *isolate, SDL_Window *window) : _isolate(isolate), _window(window) {}
 
-            CommandBuffer *commandBuffer()
-            {
-                return _commandBuffer;
-            }
+            CommandBuffer *commandBuffer() { return _commandBuffer; }
 
             bool initialize()
             {
+                // instance
                 vkb::InstanceBuilder builder;
-
                 auto system_info_ret = vkb::SystemInfo::get_system_info();
-                // if (!system_info_ret)
-                // {
-                //     printf("%s\n", system_info_ret.error().message().c_str());
-                //     return -1;
-                // }
                 auto system_info = system_info_ret.value();
                 if (system_info.validation_layers_available)
                 {
@@ -45,26 +45,21 @@ namespace binding
                     // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Validation_layers
                     builder.enable_validation_layers();
                 }
-
                 auto inst_ret = builder
                                     .set_app_name("_app_name")
                                     .require_api_version(1, 1, 0)
                                     .use_default_debug_messenger()
                                     .build();
-                if (!inst_ret)
-                {
-                    printf("failed to create Vulkan instance. Error: %s\n", inst_ret.error().message().c_str());
-                    return true;
-                }
-
                 _vkb_instance = inst_ret.value();
 
+                // surface
                 if (!SDL_Vulkan_CreateSurface(_window, _vkb_instance.instance, &_surface))
                 {
                     printf("failed to create surface, SDL Error: %s", SDL_GetError());
                     return true;
                 }
 
+                // physical device
                 vkb::PhysicalDeviceSelector selector{_vkb_instance};
                 vkb::PhysicalDevice physicalDevice = selector
                                                          .set_minimum_version(1, 1)
@@ -72,21 +67,24 @@ namespace binding
                                                          .select()
                                                          .value();
 
+                // logical device
                 vkb::DeviceBuilder deviceBuilder{physicalDevice};
                 _vkb_device = deviceBuilder.build().value();
                 _dispatchTable = _vkb_device.make_table();
 
+                // swapchain
                 vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, _vkb_device.device, _surface};
                 _vkb_swapchain = swapchainBuilder
                                      .use_default_format_selection()
-                                     // use vsync present mode
                                      .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
                                      .build()
                                      .value();
 
+                // queue
                 _graphicsQueue = _vkb_device.get_queue(vkb::QueueType::graphics).value();
                 auto graphicsQueueFamily = _vkb_device.get_queue_index(vkb::QueueType::graphics).value();
 
+                // command pool and buffer
                 VkCommandPoolCreateInfo commandPoolInfo = {};
                 commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
                 commandPoolInfo.pNext = nullptr;
@@ -102,14 +100,80 @@ namespace binding
                 cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
                 VkCommandBuffer vk_commandBuffer = nullptr;
                 _dispatchTable.allocateCommandBuffers(&cmdAllocInfo, &vk_commandBuffer);
-                _commandBuffer = new CommandBuffer(_isolate);
+                _commandBuffer = new CommandBuffer(_isolate, std::make_unique<CommandBufferImpl>(vk_commandBuffer));
+                _js_commandBuffer.Reset(_isolate, _commandBuffer->js());
+
+                // color attachment.
+                VkAttachmentDescription color_attachment = {};
+                color_attachment.format = _vkb_swapchain.image_format;
+                // 1 sample, we won't be doing MSAA
+                color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+                // we Clear when this attachment is loaded
+                color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                // we keep the attachment stored when the renderpass ends
+                color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                // after the renderpass ends, the image has to be on a layout ready for display
+                color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                VkAttachmentReference color_attachment_ref = {};
+                // attachment number will index into the pAttachments array in the parent renderpass itself
+                color_attachment_ref.attachment = 0;
+                color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                // subpass
+                // we are going to create 1 subpass, which is the minimum you can do
+                VkSubpassDescription subpass = {};
+                subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+                subpass.colorAttachmentCount = 1;
+                subpass.pColorAttachments = &color_attachment_ref;
+
+                // renderpass
+                VkRenderPassCreateInfo render_pass_info = {};
+                render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+                render_pass_info.attachmentCount = 1;
+                render_pass_info.pAttachments = &color_attachment;
+                render_pass_info.subpassCount = 1;
+                render_pass_info.pSubpasses = &subpass;
+                _dispatchTable.createRenderPass(&render_pass_info, nullptr, &_renderPass);
+
+                // framebuffers
+                VkFramebufferCreateInfo fb_info = {};
+                fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+                fb_info.pNext = nullptr;
+                fb_info.renderPass = _renderPass;
+                fb_info.attachmentCount = 1;
+                fb_info.width = _vkb_swapchain.extent.width;
+                fb_info.height = _vkb_swapchain.extent.height;
+                fb_info.layers = 1;
+                _framebuffers = std::vector<VkFramebuffer>(_vkb_swapchain.image_count);
+                _swapchainImageViews = _vkb_swapchain.get_image_views().value();
+                for (int i = 0; i < _vkb_swapchain.image_count; i++)
+                {
+                    fb_info.pAttachments = &_swapchainImageViews[i];
+                    _dispatchTable.createFramebuffer(&fb_info, nullptr, &_framebuffers[i]);
+                }
 
                 return false;
             }
 
+            Pipeline *createPipeline() { return new Pipeline(_isolate, std::make_unique<PipelineImpl>()); }
+
             ~Impl()
             {
+                for (int i = 0; i < _framebuffers.size(); i++)
+                {
+                    _dispatchTable.destroyFramebuffer(_framebuffers[i], nullptr);
+                }
+                _dispatchTable.destroyRenderPass(_renderPass, nullptr);
+                _js_commandBuffer.Reset();
                 _dispatchTable.destroyCommandPool(_commandPool, nullptr);
+                for (int i = 0; i < _swapchainImageViews.size(); i++)
+                {
+                    _dispatchTable.destroyImageView(_swapchainImageViews[i], nullptr);
+                }
                 vkb::destroy_swapchain(_vkb_swapchain);
                 vkb::destroy_device(_vkb_device);
                 vkb::destroy_surface(_vkb_instance.instance, _surface);
@@ -118,20 +182,9 @@ namespace binding
         };
 
         Device::Device(v8::Isolate *isolate, SDL_Window *window) : Binding(isolate), _impl(new Impl(isolate, window)) {}
-
-        CommandBuffer *Device::commandBuffer()
-        {
-            return _impl->commandBuffer();
-        }
-
-        bool Device::initialize()
-        {
-            return _impl->initialize();
-        }
-
-        Device::~Device()
-        {
-            delete _impl;
-        }
+        CommandBuffer *Device::commandBuffer() { return _impl->commandBuffer(); }
+        bool Device::initialize() { return _impl->initialize(); }
+        Pipeline *Device::createPipeline() { return _impl->createPipeline(); }
+        Device::~Device() { delete _impl; }
     }
 }

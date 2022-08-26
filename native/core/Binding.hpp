@@ -5,11 +5,10 @@
 class Binding
 {
 private:
-    /* data */
+    v8::Global<v8::Object> _js;
+
 protected:
     v8::Isolate *_isolate = nullptr;
-
-    v8::Global<v8::Object> _js;
 
     virtual v8::Local<v8::FunctionTemplate> createTemplate() { return {}; };
 

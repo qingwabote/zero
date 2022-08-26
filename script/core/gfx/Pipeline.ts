@@ -112,9 +112,13 @@ export interface BlendState {
     blends: Blend[];
 }
 
-export default interface Pipeline {
+export interface PipelineInfo {
     readonly shader: Shader;
     readonly depthStencilState: Readonly<DepthStencilState>;
     readonly blendState: Readonly<BlendState>;
     // readonly layout: PipelineLayout;
+}
+
+export default interface Pipeline {
+    initialize(info: PipelineInfo): boolean;
 }

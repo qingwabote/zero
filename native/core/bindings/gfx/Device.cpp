@@ -1,4 +1,4 @@
-#include "bindings/gfx/device.hpp"
+#include "device.hpp"
 
 namespace binding
 {
@@ -23,18 +23,15 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto cobj = static_cast<Device *>(info.This()->GetAlignedPointerFromInternalField(0));
-                    if (cobj->initialize())
-                    {
-                        info.GetReturnValue().Set(true);
-                        return;
-                    }
+                    info.GetReturnValue().Set(cobj->initialize());
+                });
 
-                    v8::Isolate *_isolate = info.GetIsolate();
-                    auto context = _isolate->GetCurrentContext();
-
-                    // CommandBuffer::constructor(_isolate)->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked();
-
-                    info.GetReturnValue().Set(false);
+            cls.defineFunction(
+                "createPipeline",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto cobj = static_cast<Device *>(info.This()->GetAlignedPointerFromInternalField(0));
+                    info.GetReturnValue().Set(cobj->createPipeline()->js());
                 });
 
             return scope.Escape(cls.flush());

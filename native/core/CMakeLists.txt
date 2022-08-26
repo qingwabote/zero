@@ -6,6 +6,7 @@ set(SRC_FILES
     bindings/Console.cpp
     bindings/gfx/Device.cpp
     bindings/gfx/CommandBuffer.cpp
+    bindings/gfx/Pipeline.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})

@@ -1,10 +1,12 @@
 import Buffer, { BufferInfo } from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device from "../../../core/gfx/Device.js";
+import Pipeline from "../../../core/gfx/Pipeline.js";
 import Shader, { ShaderInfo } from "../../../core/gfx/Shader.js";
 import Texture, { TextureInfo } from "../../../core/gfx/Texture.js";
 import WebBuffer from "./WebBuffer.js";
 import WebCommandBuffer from "./WebCommandBuffer.js";
+import WebPipeline from "./WebPipeline.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
@@ -19,6 +21,14 @@ export default class WebDevice implements Device {
     constructor(gl: WebGL2RenderingContext) {
         this._commandBuffer = new WebCommandBuffer(gl);
         this._gl = gl;
+    }
+
+    initialize(): boolean {
+        throw new Error("Method not implemented.");
+    }
+
+    createPipeline(): Pipeline {
+        return new WebPipeline();
     }
 
     createShader(info: ShaderInfo): Shader {

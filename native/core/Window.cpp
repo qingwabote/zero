@@ -115,7 +115,12 @@ int Window::loop()
         binding::gfx::Device *device = new binding::gfx::Device(isolate.get(), window.get());
         v8::Local<v8::Object> js_device = device->js();
         v8::Local<v8::Value> init_args[] = {js_device};
-        v8::Local<v8::Value> res = init->Call(context, default, 1, init_args).ToLocalChecked();
+        v8::MaybeLocal<v8::Value> maybeRes = init->Call(context, default, 1, init_args);
+        if (maybeRes.IsEmpty())
+        {
+            return -1;
+        }
+        auto res = maybeRes.ToLocalChecked();
         if (!res->IsBoolean())
         {
             printf("app: invalid init function return value\n");
