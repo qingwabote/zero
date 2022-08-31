@@ -1,5 +1,6 @@
 import gfx from "./gfx.js";
-import Shader, { ShaderStage, ShaderStageFlags } from "./gfx/Shader.js";
+import { DescriptorSetLayout } from "./gfx/Pipeline.js";
+import Shader from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
 
 const buildinSource: string[] = [];
@@ -49,8 +50,36 @@ void main() {
 }
 `)
 
+export enum ShaderStageFlags {
+    VERTEX = 0x1,
+    FRAGMENT = 0x10,
+    ALL = 0x3f
+}
+
+export interface ShaderStage {
+    readonly type: ShaderStageFlags
+    source: string
+}
+
 const name2source: Record<string, ShaderStage[]> = {};
+
+export interface Attribute {
+    readonly location: number
+}
+
+export interface Uniform {
+    set: number;
+    binding: number;
+}
+
 const name2macros: Record<string, Set<string>> = {};
+
+export interface Meta {
+    attributes: Record<string, Attribute>;
+    samplerTextures: Record<string, Uniform>;
+    blocks: Record<string, Uniform>;
+    descriptorSetLayout: DescriptorSetLayout;
+}
 
 while (buildinSource.length > 2) {
     const fs = buildinSource.pop()!;
@@ -74,11 +103,13 @@ export default {
         }
 
         if (!shaders[key]) {
+            const res = preprocessor.preprocess(name2source[name], '', macros);
             shaders[key] = gfx.device.createShader({
                 name,
-                stages: name2source[name].map(stage => ({ type: stage.type, source: preprocessor.preprocess(stage.source, '', macros) })),
-                macros
+                stages: res.out,
+                meta: res.meta
             });
+
         }
         return shaders[key];
     }

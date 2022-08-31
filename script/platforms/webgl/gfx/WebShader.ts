@@ -1,7 +1,13 @@
-import Shader, { ShaderStage, ShaderStageFlags, Uniform } from "../../../core/gfx/Shader.js";
+import Shader, { ShaderInfo } from "../../../core/gfx/Shader.js";
+import { ShaderStage, ShaderStageFlags, Uniform } from "../../../core/shaders.js";
 
-export default class WebShader extends Shader {
+export default class WebShader implements Shader {
     private _gl: WebGL2RenderingContext;
+
+    protected _info!: ShaderInfo;
+    get info(): ShaderInfo {
+        return this._info;
+    }
 
     private _program!: WebGLProgram;
     get program(): WebGLProgram {
@@ -9,13 +15,12 @@ export default class WebShader extends Shader {
     }
 
     constructor(gl: WebGL2RenderingContext) {
-        super();
         this._gl = gl;
     }
 
-    protected override compileUniform(content: string, set: string, binding: string, type: string, name: string): string {
-        super.compileUniform(content, set, binding, type, name);
-        return type ? `uniform ${type} ${name}` : `uniform ${name}`;
+    initialize(info: ShaderInfo): void {
+        this._info = info;
+        this.compileShader(info.stages, info.meta.blocks, info.meta.samplerTextures);
     }
 
     protected compileShader(stages: ShaderStage[], blocks: Record<string, Uniform>, samplerTextures: Record<string, Uniform>): void {

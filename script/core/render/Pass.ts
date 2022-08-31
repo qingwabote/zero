@@ -14,6 +14,6 @@ export default class Pass {
 
     constructor(shader: Shader) {
         this._shader = shader;
-        this._descriptorSet = { layout: this._shader.descriptorSetLayout, buffers: [], textures: [] }
+        this._descriptorSet = { layout: this._shader.info.meta.descriptorSetLayout, buffers: [], textures: [] }
     }
 }

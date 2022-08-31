@@ -24,7 +24,7 @@ export default class SubModel {
 
         const descriptions: VertexInputAttributeDescription[] = [];
         for (const attribute of subMesh.attributes) {
-            const definition = passes[0].shader.attributes[attribute.name];// presume that muti-passes share the same attribute layout.
+            const definition = passes[0].shader.info.meta.attributes[attribute.name];// presume that muti-passes share the same attribute layout.
             if (!definition) {
                 // console.warn(`attribute ${attribute.name} has no definition in ${passes[0].shader.info.name}`)
                 continue;
