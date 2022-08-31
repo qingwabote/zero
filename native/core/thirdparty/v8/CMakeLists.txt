@@ -24,10 +24,9 @@ target_link_libraries(v8 INTERFACE v8_libbase v8_libplatform)
 
 # target_link_libraries(v8 INTERFACE winmm.lib)
 # target_link_libraries(v8 INTERFACE dbghelp.lib)
-
 if(MSVC)
-    file(GLOB_RECURSE WIN32_DLLS
-        ${CMAKE_CURRENT_LIST_DIR}/libs/x64/*.dll
-    )
-    set(WIN32_DLLS ${WIN32_DLLS} PARENT_SCOPE)
+  file(GLOB_RECURSE _WIN32_DLLS
+    ${CMAKE_CURRENT_LIST_DIR}/libs/x64/*.dll
+  )
+  set(WIN32_DLLS ${WIN32_DLLS} ${_WIN32_DLLS} PARENT_SCOPE)
 endif()

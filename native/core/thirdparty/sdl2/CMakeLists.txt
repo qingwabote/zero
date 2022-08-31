@@ -10,8 +10,8 @@ set_target_properties(SDL2 PROPERTIES
 # IMPORTED_IMPLIB ${CMAKE_CURRENT_LIST_DIR}/lib/SDL2main.lib
 # )
 if(MSVC)
-    file(GLOB_RECURSE WIN32_DLLS
+    file(GLOB_RECURSE _WIN32_DLLS
         ${CMAKE_CURRENT_LIST_DIR}/lib/*.dll
     )
-    set(WIN32_DLLS ${WIN32_DLLS} PARENT_SCOPE)
+    set(WIN32_DLLS ${WIN32_DLLS} ${_WIN32_DLLS} PARENT_SCOPE)
 endif()
