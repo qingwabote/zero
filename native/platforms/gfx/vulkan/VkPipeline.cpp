@@ -5,8 +5,7 @@ namespace binding
 {
     namespace gfx
     {
-        PipelineImpl::PipelineImpl() {}
-        PipelineImpl::~PipelineImpl() {}
+        PipelineImpl::PipelineImpl(VkDevice device) {}
 
         Pipeline::Pipeline(v8::Isolate *isolate, std::unique_ptr<PipelineImpl> impl)
             : Binding(isolate), _impl(std::move(impl)) {}

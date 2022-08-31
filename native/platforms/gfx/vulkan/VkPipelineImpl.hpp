@@ -1,3 +1,5 @@
+#include "vulkan/vulkan.hpp"
+
 namespace binding
 {
     namespace gfx
@@ -7,8 +9,8 @@ namespace binding
         private:
             /* data */
         public:
-            PipelineImpl();
-            ~PipelineImpl();
+            PipelineImpl(VkDevice device);
+            ~PipelineImpl(){};
         };
     }
 }

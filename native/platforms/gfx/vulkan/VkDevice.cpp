@@ -16,7 +16,6 @@ namespace binding
             vkb::Instance _vkb_instance;
             VkSurfaceKHR _surface = nullptr;
             vkb::Device _vkb_device;
-            vkb::DispatchTable _dispatchTable;
             vkb::Swapchain _vkb_swapchain;
             std::vector<VkImageView> _swapchainImageViews;
 
@@ -70,7 +69,6 @@ namespace binding
                 // logical device
                 vkb::DeviceBuilder deviceBuilder{physicalDevice};
                 _vkb_device = deviceBuilder.build().value();
-                _dispatchTable = _vkb_device.make_table();
 
                 // swapchain
                 vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, _vkb_device.device, _surface};
@@ -90,7 +88,7 @@ namespace binding
                 commandPoolInfo.pNext = nullptr;
                 commandPoolInfo.queueFamilyIndex = graphicsQueueFamily;
                 commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-                _dispatchTable.createCommandPool(&commandPoolInfo, nullptr, &_commandPool);
+                vkCreateCommandPool(_vkb_device.device, &commandPoolInfo, nullptr, &_commandPool);
 
                 VkCommandBufferAllocateInfo cmdAllocInfo = {};
                 cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -99,7 +97,7 @@ namespace binding
                 cmdAllocInfo.commandBufferCount = 1;
                 cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
                 VkCommandBuffer vk_commandBuffer = nullptr;
-                _dispatchTable.allocateCommandBuffers(&cmdAllocInfo, &vk_commandBuffer);
+                vkAllocateCommandBuffers(_vkb_device.device, &cmdAllocInfo, &vk_commandBuffer);
                 _commandBuffer = new CommandBuffer(_isolate, std::make_unique<CommandBufferImpl>(vk_commandBuffer));
                 _js_commandBuffer.Reset(_isolate, _commandBuffer->js());
 
@@ -137,7 +135,7 @@ namespace binding
                 render_pass_info.pAttachments = &color_attachment;
                 render_pass_info.subpassCount = 1;
                 render_pass_info.pSubpasses = &subpass;
-                _dispatchTable.createRenderPass(&render_pass_info, nullptr, &_renderPass);
+                vkCreateRenderPass(_vkb_device.device, &render_pass_info, nullptr, &_renderPass);
 
                 // framebuffers
                 VkFramebufferCreateInfo fb_info = {};
@@ -153,26 +151,26 @@ namespace binding
                 for (int i = 0; i < _vkb_swapchain.image_count; i++)
                 {
                     fb_info.pAttachments = &_swapchainImageViews[i];
-                    _dispatchTable.createFramebuffer(&fb_info, nullptr, &_framebuffers[i]);
+                    vkCreateFramebuffer(_vkb_device.device, &fb_info, nullptr, &_framebuffers[i]);
                 }
 
                 return false;
             }
 
-            Pipeline *createPipeline() { return new Pipeline(_isolate, std::make_unique<PipelineImpl>()); }
+            Pipeline *createPipeline() { return new Pipeline(_isolate, std::make_unique<PipelineImpl>(_vkb_device.device)); }
 
             ~Impl()
             {
                 for (int i = 0; i < _framebuffers.size(); i++)
                 {
-                    _dispatchTable.destroyFramebuffer(_framebuffers[i], nullptr);
+                    vkDestroyFramebuffer(_vkb_device.device, _framebuffers[i], nullptr);
                 }
-                _dispatchTable.destroyRenderPass(_renderPass, nullptr);
+                vkDestroyRenderPass(_vkb_device.device, _renderPass, nullptr);
                 _js_commandBuffer.Reset();
-                _dispatchTable.destroyCommandPool(_commandPool, nullptr);
+                vkDestroyCommandPool(_vkb_device.device, _commandPool, nullptr);
                 for (int i = 0; i < _swapchainImageViews.size(); i++)
                 {
-                    _dispatchTable.destroyImageView(_swapchainImageViews[i], nullptr);
+                    vkDestroyImageView(_vkb_device.device, _swapchainImageViews[i], nullptr);
                 }
                 vkb::destroy_swapchain(_vkb_swapchain);
                 vkb::destroy_device(_vkb_device);
