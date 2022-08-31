@@ -1,5 +1,5 @@
 import { DescriptorSetLayout, DescriptorType } from "./gfx/Pipeline.js";
-import { Attribute, Meta, ShaderStage, ShaderStageFlags, Uniform } from "./shaders.js";
+import { Attribute, Meta, ShaderStage, ShaderStageFlags, Uniform } from "./gfx/Shader.js";
 
 const ifMacroExp = /#if\s+(\w+)\s+([\s\S]+?)[ \t]*#endif\s*?\n/g;
 

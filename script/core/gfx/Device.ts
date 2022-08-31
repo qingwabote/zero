@@ -1,7 +1,7 @@
 import Buffer, { BufferInfo } from "./Buffer.js";
 import CommandBuffer from "./CommandBuffer.js";
 import Pipeline from "./Pipeline.js";
-import Shader, { ShaderInfo } from "./Shader.js";
+import Shader from "./Shader.js";
 import Texture, { TextureInfo } from "./Texture.js";
 
 export default interface Device {
@@ -11,7 +11,7 @@ export default interface Device {
 
     createPipeline(): Pipeline;
 
-    createShader(info: ShaderInfo): Shader;
+    createShader(): Shader;
 
     createBuffer(info: BufferInfo): Buffer;
 

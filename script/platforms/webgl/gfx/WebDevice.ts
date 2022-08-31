@@ -2,7 +2,7 @@ import Buffer, { BufferInfo } from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device from "../../../core/gfx/Device.js";
 import Pipeline from "../../../core/gfx/Pipeline.js";
-import Shader, { ShaderInfo } from "../../../core/gfx/Shader.js";
+import Shader from "../../../core/gfx/Shader.js";
 import Texture, { TextureInfo } from "../../../core/gfx/Texture.js";
 import WebBuffer from "./WebBuffer.js";
 import WebCommandBuffer from "./WebCommandBuffer.js";
@@ -31,10 +31,8 @@ export default class WebDevice implements Device {
         return new WebPipeline();
     }
 
-    createShader(info: ShaderInfo): Shader {
-        const shader = new WebShader(this._gl);
-        shader.initialize(info);
-        return shader;
+    createShader(): Shader {
+        return new WebShader(this._gl);
     }
 
     createBuffer(info: BufferInfo): Buffer {

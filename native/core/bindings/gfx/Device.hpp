@@ -3,6 +3,7 @@
 #include "Binding.hpp"
 #include "sugars/sdlsugar.hpp"
 #include "CommandBuffer.hpp"
+#include "Shader.hpp"
 #include "Pipeline.hpp"
 
 namespace binding
@@ -24,6 +25,8 @@ namespace binding
             CommandBuffer *commandBuffer();
 
             bool initialize();
+
+            Shader *createShader();
 
             Pipeline *createPipeline();
 

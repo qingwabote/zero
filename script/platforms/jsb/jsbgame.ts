@@ -7,8 +7,8 @@ export default {
             return true;
         }
         gfx.init(device);
-        const pipeline = device.createPipeline();
-        console.log("device.createPipline", pipeline);
+        const pipeline = device.createShader();
+        console.log("device.createShader", pipeline);
 
         // game.init(new WebInput(canvas), new WebLoader, canvas.width, canvas.height)
         // return false;

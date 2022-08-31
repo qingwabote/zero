@@ -1,6 +1,5 @@
-import { Format, FormatInfos } from "../../../core/gfx.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import { InputAssembler } from "../../../core/gfx/InputAssembler.js";
+import { Format, FormatInfos, InputAssembler } from "../../../core/gfx/InputAssembler.js";
 import Pipeline, { BlendFactor, DescriptorSet, DescriptorType } from "../../../core/gfx/Pipeline.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";

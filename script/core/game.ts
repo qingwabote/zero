@@ -1,11 +1,12 @@
 import ComponentScheduler from "./ComponentScheduler.js";
 import gfx from "./gfx.js";
-import { BlendFactor, BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "./gfx/Pipeline.js";
+import { BlendFactor, DescriptorSet } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
 import render from "./render.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
+import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks } from "./shaders.js";
 
 let _window: RenderWindow;
 

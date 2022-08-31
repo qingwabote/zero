@@ -1,4 +1,4 @@
-#include "bindings/gfx/commandbuffer.hpp"
+#include "bindings/gfx/Commandbuffer.hpp"
 #include "VkCommandBufferImpl.hpp"
 
 namespace binding

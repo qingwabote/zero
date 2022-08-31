@@ -2,8 +2,9 @@
 
 import MeshRenderer from "../components/MeshRenderer.js";
 import game from "../game.js";
-import gfx, { Format } from "../gfx.js";
+import gfx from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
+import { Format } from "../gfx/InputAssembler.js";
 import Texture from "../gfx/Texture.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";

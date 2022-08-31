@@ -2,6 +2,7 @@
 #include "VkBootstrap.h"
 #include "SDL_vulkan.h"
 #include "VkCommandBufferImpl.hpp"
+#include "VkShaderImpl.hpp"
 #include "VkPipelineImpl.hpp"
 
 namespace binding
@@ -157,6 +158,8 @@ namespace binding
                 return false;
             }
 
+            Shader *createShader() { return new Shader(_isolate, std::make_unique<ShaderImpl>(_vkb_device.device)); }
+
             Pipeline *createPipeline() { return new Pipeline(_isolate, std::make_unique<PipelineImpl>(_vkb_device.device)); }
 
             ~Impl()
@@ -182,6 +185,7 @@ namespace binding
         Device::Device(v8::Isolate *isolate, SDL_Window *window) : Binding(isolate), _impl(new Impl(isolate, window)) {}
         CommandBuffer *Device::commandBuffer() { return _impl->commandBuffer(); }
         bool Device::initialize() { return _impl->initialize(); }
+        Shader *Device::createShader() { return _impl->createShader(); }
         Pipeline *Device::createPipeline() { return _impl->createPipeline(); }
         Device::~Device() { delete _impl; }
     }

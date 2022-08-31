@@ -1,7 +1,8 @@
 import gfx from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
-import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "../gfx/Pipeline.js";
+import { DescriptorSet } from "../gfx/Pipeline.js";
 import render, { TransformSource } from "../render.js";
+import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks } from "../shaders.js";
 import SubModel from "./SubModel.js";
 
 const float32Array = new Float32Array(16);

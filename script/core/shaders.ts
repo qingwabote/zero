@@ -1,7 +1,49 @@
 import gfx from "./gfx.js";
-import { DescriptorSetLayout } from "./gfx/Pipeline.js";
-import Shader from "./gfx/Shader.js";
+import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
+import Shader, { ShaderStage, ShaderStageFlags } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
+
+export const BuiltinUniformBlocks = {
+    global: {
+        set: 0,
+        blocks: {
+            Camera: {
+                binding: 0,
+                // uniforms: {
+                //     matProj: {}
+                // }
+            }
+        }
+    },
+    local: {
+        set: 1,
+        blocks: {
+            Local: {
+                binding: 0,
+                // uniforms: {
+                //     matWorld: {}
+                // }
+            }
+        }
+    }
+}
+
+function buildDescriptorSetLayout(res: {
+    set: number,
+    blocks: Record<string, { binding: number }>
+}): DescriptorSetLayout {
+    const bindings: DescriptorSetLayoutBinding[] = [];
+    for (const name in res.blocks) {
+        const block = res.blocks[name];
+        bindings[block.binding] = { binding: block.binding, descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 }
+    }
+    return { bindings }
+}
+
+export const BuiltinDescriptorSetLayouts = {
+    global: buildDescriptorSetLayout(BuiltinUniformBlocks.global),
+    local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
+}
 
 const buildinSource: string[] = [];
 
@@ -28,8 +70,6 @@ void main() {
 }
 `);
 buildinSource.push(`
-// fragment shaders don't have a default precision so we need
-// to pick one. highp is a good default. It means "high precision"
 precision highp float;
 
 in vec2 v_uv;
@@ -50,36 +90,9 @@ void main() {
 }
 `)
 
-export enum ShaderStageFlags {
-    VERTEX = 0x1,
-    FRAGMENT = 0x10,
-    ALL = 0x3f
-}
-
-export interface ShaderStage {
-    readonly type: ShaderStageFlags
-    source: string
-}
-
 const name2source: Record<string, ShaderStage[]> = {};
 
-export interface Attribute {
-    readonly location: number
-}
-
-export interface Uniform {
-    set: number;
-    binding: number;
-}
-
 const name2macros: Record<string, Set<string>> = {};
-
-export interface Meta {
-    attributes: Record<string, Attribute>;
-    samplerTextures: Record<string, Uniform>;
-    blocks: Record<string, Uniform>;
-    descriptorSetLayout: DescriptorSetLayout;
-}
 
 while (buildinSource.length > 2) {
     const fs = buildinSource.pop()!;
@@ -104,7 +117,8 @@ export default {
 
         if (!shaders[key]) {
             const res = preprocessor.preprocess(name2source[name], '', macros);
-            shaders[key] = gfx.device.createShader({
+            shaders[key] = gfx.device.createShader();
+            shaders[key].initialize({
                 name,
                 stages: res.out,
                 meta: res.meta
