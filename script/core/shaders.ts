@@ -45,23 +45,41 @@ export const BuiltinDescriptorSetLayouts = {
     local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
 }
 
-const buildinSource: string[] = [];
-
-buildinSource.push('zero');
-buildinSource.push(`
-layout(location = 0) in vec4 a_position;
-layout(location = 2) in vec2 a_texCoord;
-
-out vec2 v_uv;
-
+const chunks: string[] = [];
+chunks.push("global");
+chunks.push(`
 layout(set = 0, binding = 0) uniform Camera {
     mat4 matView;
     mat4 matProj;
 };
+`);
 
+chunks.push("local");
+chunks.push(`
 layout(set = 1, binding = 0) uniform Local {
     mat4 matWorld;
 };
+`);
+const name2chunk: Record<string, string> = {};
+while (chunks.length > 1) {
+    const chunk = chunks.pop()!;
+    const name = chunks.pop()!;
+    name2chunk[name] = chunk;
+}
+
+const buildinSource: string[] = [];
+
+buildinSource.push('triangle');
+
+buildinSource.push('zero');
+buildinSource.push(`
+#include <global>
+#include <local>
+
+layout(location = 0) in vec4 a_position;
+layout(location = 2) in vec2 a_texCoord;
+
+out vec2 v_uv;
 
 void main() {
     v_uv = a_texCoord;
@@ -103,7 +121,7 @@ while (buildinSource.length > 2) {
         { type: ShaderStageFlags.VERTEX, source: vs },
         { type: ShaderStageFlags.FRAGMENT, source: fs },
     ];
-    name2macros[name] = preprocessor.macrosExtract(fs, '');
+    name2macros[name] = preprocessor.macrosExtract(fs);
 }
 
 const shaders: Record<string, Shader> = {};
@@ -116,7 +134,7 @@ export default {
         }
 
         if (!shaders[key]) {
-            const res = preprocessor.preprocess(name2source[name], '', macros);
+            const res = preprocessor.preprocess(name2chunk, name2source[name], macros);
             shaders[key] = gfx.device.createShader();
             shaders[key].initialize({
                 name,

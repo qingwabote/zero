@@ -7,7 +7,7 @@ export enum ShaderStageFlags {
 }
 
 export interface ShaderStage {
-    readonly type: ShaderStageFlags
+    type: ShaderStageFlags
     source: string
 }
 

@@ -3,8 +3,20 @@ import { Attribute, Meta, ShaderStage, ShaderStageFlags, Uniform } from "./gfx/S
 
 const ifMacroExp = /#if\s+(\w+)\s+([\s\S]+?)[ \t]*#endif\s*?\n/g;
 
+function includeExpand(chunks: Readonly<Record<string, string>>, source: string): string {
+    return source.replace(/#include\s+<(\w+)>/g, function (_: string, name: string): string {
+        return includeExpand(chunks, chunks[name]);
+    });
+}
+
+function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
+    return source.replace(ifMacroExp, function (_: string, macro: string, content: string) {
+        return macros[macro] ? content : '';
+    });
+}
+
 export default {
-    macrosExtract(src: string, searchPath: string): Set<string> {
+    macrosExtract(src: string): Set<string> {
         const macros: Set<string> = new Set;
         let matches = src.matchAll(ifMacroExp);
         for (const match of matches) {
@@ -13,22 +25,16 @@ export default {
         return macros;
     },
 
-    preprocess(stages: ShaderStage[], searchPath: string, macros: Record<string, number>): { out: ShaderStage[], meta: Meta } {
-        const out: ShaderStage[] = [];
-        for (const stage of stages) {
-            const source = stage.source.replace(ifMacroExp, function (_: string, macro: string, content: string) {
-                return macros[macro] ? content : '';
-            });
-            out.push({ type: stage.type, source });
-        }
+    preprocess(chunks: Readonly<Record<string, string>>, stages: Readonly<ShaderStage[]>, macros: Readonly<Record<string, number>>): { out: ShaderStage[], meta: Meta } {
+        let out = stages
+            .map(stage => ({ type: stage.type, source: includeExpand(chunks, stage.source) }))
+            .map(stage => ({ type: stage.type, source: macroExpand(macros, stage.source) }));
 
-        const vertexStage = out.find(stage => stage.type == ShaderStageFlags.VERTEX)!;
         const attributes: Record<string, Attribute> = {};
-        let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
+        let matches = out.find(stage => stage.type == ShaderStageFlags.VERTEX)!.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
         for (const match of matches) {
-            attributes[match[2]] = { location: parseInt(match[1]) }
+            attributes[match[2]] = { location: parseInt(match[1]) };
         }
-
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
         const descriptorSetLayout: DescriptorSetLayout = { bindings: [] };
@@ -43,6 +49,7 @@ export default {
                         descriptorSetLayout.bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.SAMPLER_TEXTURE, count: 1 });
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
+                    // remove unsupported layout declaration for webgl
                     if (window) {
                         return type ? `uniform ${type} ${name}` : `uniform ${name}`;
                     } else {

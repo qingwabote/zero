@@ -24,7 +24,7 @@ export default class Model {
         render.dirtyTransforms.set(transform, transform);
 
         const buffers: Buffer[] = [];
-        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: float32Array.byteLength, stride: 1 });
+        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: float32Array.byteLength });
         this._descriptorSet = { layout: BuiltinDescriptorSetLayouts.local, buffers, textures: [] };
 
         this._subModels = subModels;
