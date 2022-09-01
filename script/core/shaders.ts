@@ -67,12 +67,32 @@ while (chunks.length > 1) {
     name2chunk[name] = chunk;
 }
 
-const buildinSource: string[] = [];
+const sources: string[] = [];
 
-buildinSource.push('triangle');
+sources.push('triangle');
+sources.push(`
+#include <global>
+#include <local>
 
-buildinSource.push('zero');
-buildinSource.push(`
+layout(location = 0) in vec4 a_position;
+
+void main() {
+    gl_Position = matProj * (matView * matWorld) * a_position;
+}
+`);
+sources.push(`
+precision highp float;
+
+out vec4 v_color;
+
+void main() {
+    vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
+    v_color = baseColor;
+}
+`)
+
+sources.push('zero');
+sources.push(`
 #include <global>
 #include <local>
 
@@ -87,7 +107,7 @@ void main() {
     gl_Position = matProj * (matView * matWorld) * a_position;
 }
 `);
-buildinSource.push(`
+sources.push(`
 precision highp float;
 
 in vec2 v_uv;
@@ -109,13 +129,11 @@ void main() {
 `)
 
 const name2source: Record<string, ShaderStage[]> = {};
-
 const name2macros: Record<string, Set<string>> = {};
-
-while (buildinSource.length > 2) {
-    const fs = buildinSource.pop()!;
-    const vs = buildinSource.pop()!;
-    const name = buildinSource.pop()!;
+while (sources.length > 2) {
+    const fs = sources.pop()!;
+    const vs = sources.pop()!;
+    const name = sources.pop()!;
 
     name2source[name] = [
         { type: ShaderStageFlags.VERTEX, source: vs },
@@ -125,9 +143,8 @@ while (buildinSource.length > 2) {
 }
 
 const shaders: Record<string, Shader> = {};
-
 export default {
-    getShader(name: string, macros: Record<string, number>): Shader {
+    getShader(name: string, macros: Record<string, number> = {}): Shader {
         let key = name;
         for (const macro of name2macros[name]) {
             key += macros[macro] || 0

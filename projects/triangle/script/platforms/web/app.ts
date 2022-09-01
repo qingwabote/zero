@@ -1,13 +1,17 @@
 import Camera from "../../../../../script/core/components/Camera.js";
+import MeshRenderer from "../../../../../script/core/components/MeshRenderer.js";
 import gfx from "../../../../../script/core/gfx.js";
 import Buffer, { BufferUsageBit } from "../../../../../script/core/gfx/Buffer.js";
 import { Format } from "../../../../../script/core/gfx/InputAssembler.js";
 import { Vec3 } from "../../../../../script/core/math/vec3.js";
 import Node, { TransformBit } from "../../../../../script/core/Node.js";
+import Material from "../../../../../script/core/render/Material.js";
 import Mesh from "../../../../../script/core/render/Mesh.js";
+import Pass from "../../../../../script/core/render/Pass.js";
 import SubMesh, { Attribute } from "../../../../../script/core/render/SubMesh.js";
+import shaders from "../../../../../script/core/shaders.js";
 import webgame from "../../../../../script/platforms/webgl/webgame.js";
-import ZeroComponent from "../../ZeroComponent.js";
+import ZeroComponent from "../../main/ZeroComponent.js";
 
 const canvas = document.querySelector<HTMLCanvasElement>('#ZeroCanvas')!;
 webgame.init(canvas);
@@ -24,17 +28,21 @@ node = new Node;
 const cameraB = node.addComponent(Camera);
 cameraB.fov = 45;
 cameraB.viewport = { x: 0.5, y: 0, width: 0.5, height: 1 };
-node.position = [0, 16, 0];
-node.euler = [-90, 0, 0];
+node.position = [0, 30, 10];
+node.euler = [-60, 0, 0];
 
-const vertexArray = new Float32Array([1, 1, 0, -1, 1, 0, 0, -1, 0]);
+const vertexArray = new Float32Array([
+    1, 1, 0, 1,
+    -1, 1, 0, 1,
+    0, -1, 0, 1
+]);
 
 const attributes: Attribute[] = [];
 const vertexBuffers: Buffer[] = [];
 
 const attribute: Attribute = {
     name: "a_position",
-    format: Format.RGB32F,
+    format: Format.RGBA32F,
     buffer: 0,
     offset: 0
 };
@@ -44,13 +52,19 @@ const vertexBuffer = gfx.device.createBuffer({ usage: BufferUsageBit.VERTEX, siz
 vertexBuffer.update(vertexArray);
 vertexBuffers.push(vertexBuffer);
 
-const indexArray = new Float32Array([0, 1, 2]);
+const indexArray = new Uint8Array([0, 1, 2]);
 const indexBuffer = gfx.device.createBuffer({ usage: BufferUsageBit.INDEX, size: indexArray.byteLength });
 indexBuffer.update(indexArray);
 
-const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, indexBuffer, Format.RGB32F, indexArray.length, 0)]);
+const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, indexBuffer, Format.R8UI, indexArray.length, 0)]);
+const shader = shaders.getShader('triangle');
+const pass = new Pass(shader);
+const material = new Material([pass]);
 
 node = new Node;
+const renderer = node.addComponent(MeshRenderer);
+renderer.mesh = mesh;
+renderer.materials = [material];
 
 node.addComponent(ZeroComponent);
 
@@ -102,3 +116,4 @@ node.eventEmitter.on("TRANSFORM_CHANGED", onTransform)
 
 updateInput(node.euler)
 updateLabel(node.euler)
+

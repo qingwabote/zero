@@ -7,18 +7,6 @@ import WebPipeline from "./WebPipeline.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
-// https://webgl2fundamentals.org/webgl/lessons/webgl-data-textures.html
-function format2WebGL(format: Format): GLenum {
-    switch (format) {
-        case Format.R8UI: return WebGL2RenderingContext.UNSIGNED_BYTE;
-        case Format.R16UI: return WebGL2RenderingContext.UNSIGNED_SHORT;
-        case Format.R32UI: return WebGL2RenderingContext.UNSIGNED_INT;
-        case Format.RG32F: return WebGL2RenderingContext.FLOAT;
-        case Format.RGB32F: return WebGL2RenderingContext.FLOAT;
-        case Format.RGBA32F: return WebGL2RenderingContext.FLOAT;
-    }
-}
-
 function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
         case BlendFactor.ZERO: return WebGL2RenderingContext.ZERO;
@@ -131,10 +119,21 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
+                let type: GLenum
+                switch (attribute.format) {
+                    case Format.RG32F:
+                    case Format.RGB32F:
+                    case Format.RGBA32F:
+                        type = WebGL2RenderingContext.FLOAT;
+                        break;
+                    default:
+                        console.error('unsupported vertex type');
+                        return;
+                }
                 gl.vertexAttribPointer(
                     attribute.location,
                     formatInfo.count,
-                    format2WebGL(attribute.format),
+                    type,
                     false,
                     buffer.info.stride || formatInfo.size,
                     attribute.offset);
@@ -154,8 +153,24 @@ export default class WebCommandBuffer implements CommandBuffer {
     draw() {
         if (!this._inputAssembler) return;
 
+        let type: GLenum;
+        switch (this._inputAssembler.indexType) {
+            case Format.R8UI:
+                type = WebGL2RenderingContext.UNSIGNED_BYTE;
+                break;
+            case Format.R16UI:
+                type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                break;
+            case Format.R32UI:
+                type = WebGL2RenderingContext.UNSIGNED_INT;
+                break;
+            default:
+                console.error('unsupported index type');
+                return;
+        }
+
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, format2WebGL(this._inputAssembler.indexType), this._inputAssembler.indexOffset);
+        gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, type, this._inputAssembler.indexOffset);
     }
 
     endRenderPass() {
