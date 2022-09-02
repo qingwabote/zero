@@ -1,2 +1,2 @@
-cd .\projects\test\script\platforms\jsb\
+cd .\projects\triangle\script\platforms\jsb
 npm run tsc

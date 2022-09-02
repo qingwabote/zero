@@ -24,7 +24,7 @@ export default class WebDevice implements Device {
     }
 
     initialize(): boolean {
-        throw new Error("Method not implemented.");
+        return false;
     }
 
     createPipeline(): Pipeline {

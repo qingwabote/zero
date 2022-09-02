@@ -10,7 +10,7 @@ namespace sugar
             SDL_DestroyWindow(ptr);
             SDL_Quit();
         }
-        unique_window initWithWindow()
+        unique_window initWithWindow(int width, int height)
         {
             if (SDL_Init(SDL_INIT_VIDEO) < 0)
             {
@@ -22,8 +22,8 @@ namespace sugar
                 SDL_CreateWindow("An SDL2 window",        // window title
                                  SDL_WINDOWPOS_UNDEFINED, // initial x position
                                  SDL_WINDOWPOS_UNDEFINED, // initial y position
-                                 640,                     // width, in pixels
-                                 480,                     // height, in pixels
+                                 width,                   // width, in pixels
+                                 height,                  // height, in pixels
                                  SDL_WINDOW_VULKAN        // flags
                                  ),
                 windowDeleter};

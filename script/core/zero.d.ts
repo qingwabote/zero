@@ -1,0 +1,1 @@
+declare const zero: import("./Zero.js").default;

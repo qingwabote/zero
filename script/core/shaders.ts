@@ -1,4 +1,3 @@
-import gfx from "./gfx.js";
 import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
 import Shader, { ShaderStage, ShaderStageFlags } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
@@ -152,7 +151,7 @@ export default {
 
         if (!shaders[key]) {
             const res = preprocessor.preprocess(name2chunk, name2source[name], macros);
-            shaders[key] = gfx.device.createShader();
+            shaders[key] = zero.device.createShader();
             shaders[key].initialize({
                 name,
                 stages: res.out,

@@ -1,4 +1,3 @@
-import gfx from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import { DescriptorSet } from "../gfx/Pipeline.js";
 import render, { TransformSource } from "../render.js";
@@ -24,7 +23,7 @@ export default class Model {
         render.dirtyTransforms.set(transform, transform);
 
         const buffers: Buffer[] = [];
-        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: float32Array.byteLength });
+        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = zero.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: float32Array.byteLength });
         this._descriptorSet = { layout: BuiltinDescriptorSetLayouts.local, buffers, textures: [] };
 
         this._subModels = subModels;

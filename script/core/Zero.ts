@@ -1,5 +1,5 @@
 import ComponentScheduler from "./ComponentScheduler.js";
-import gfx from "./gfx.js";
+import Device from "./gfx/Device.js";
 import { BlendFactor, DescriptorSet } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
@@ -8,78 +8,85 @@ import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks } from "./shaders.js";
 
-let _window: RenderWindow;
+export default class Zero {
+    private _device!: Device;
+    get device(): Device {
+        return this._device;
+    }
 
-let _input: Input;
-
-let _loader: Loader;
-
-let _renderScene: RenderScene;
-
-let _globalDescriptorSet: DescriptorSet;
-
-let _componentScheduler = new ComponentScheduler;
-
-export default {
+    private _window!: RenderWindow;
     get window(): RenderWindow {
-        return _window;
-    },
+        return this._window;
+    }
 
+    private _input!: Input;
     get input(): Input {
-        return _input;
-    },
+        return this._input;
+    }
 
+    private _loader!: Loader;
     get loader(): Loader {
-        return _loader;
-    },
+        return this._loader;
+    }
 
+    private _renderScene!: RenderScene;
     get renderScene(): RenderScene {
-        return _renderScene;
-    },
+        return this._renderScene;
+    }
 
+    private _componentScheduler: ComponentScheduler = new ComponentScheduler;
     get componentScheduler(): ComponentScheduler {
-        return _componentScheduler;
-    },
+        return this._componentScheduler;
+    }
 
-    init(input: Input, loader: Loader, width: number, height: number) {
-        _window = { width, height };
+    private _globalDescriptorSet!: DescriptorSet;
 
-        _renderScene = new RenderScene;
+    initialize(device: Device, input: Input, loader: Loader, width: number, height: number): boolean {
+        if (device.initialize()) {
+            return true;
+        }
+        this._device = device;
 
-        _globalDescriptorSet = { layout: BuiltinDescriptorSetLayouts.global, buffers: [], textures: [] };
+        this._window = { width, height };
 
-        _input = input;
-        _loader = loader;
-    },
+        this._renderScene = new RenderScene;
+
+        this._globalDescriptorSet = { layout: BuiltinDescriptorSetLayouts.global, buffers: [], textures: [] };
+
+        this._input = input;
+        this._loader = loader;
+
+        return false;
+    }
 
     tick(dt: number) {
-        _componentScheduler.update(dt)
+        this._componentScheduler.update(dt)
 
-        _renderScene.update(dt);
+        this._renderScene.update(dt);
 
         render.dirtyTransforms.clear();
 
-        const cameras = _renderScene.cameras;
+        const cameras = this._renderScene.cameras;
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            _globalDescriptorSet.buffers[BuiltinUniformBlocks.global.blocks.Camera.binding] = camera.ubo;
+            this._globalDescriptorSet.buffers[BuiltinUniformBlocks.global.blocks.Camera.binding] = camera.ubo;
 
-            const commandBuffer = gfx.device.commandBuffer;
+            const commandBuffer = this._device.commandBuffer;
             const viewport = camera.viewport;
             commandBuffer.beginRenderPass({
-                x: _window.width * viewport.x,
-                y: _window.height * viewport.y,
-                width: _window.width * viewport.width,
-                height: _window.height * viewport.height
+                x: this._window.width * viewport.x,
+                y: this._window.height * viewport.y,
+                width: this._window.width * viewport.width,
+                height: this._window.height * viewport.height
             })
-            commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.global.set, _globalDescriptorSet);
+            commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.global.set, this._globalDescriptorSet);
 
-            for (const model of _renderScene.models) {
+            for (const model of this._renderScene.models) {
                 commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set, model.descriptorSet);
                 for (const subModel of model.subModels) {
                     commandBuffer.bindInputAssembler(subModel.inputAssembler);
                     for (const pass of subModel.passes) {
-                        const pipeline = gfx.device.createPipeline();
+                        const pipeline = this._device.createPipeline();
                         pipeline.initialize({
                             shader: pass.shader,
                             depthStencilState: { depthTest: true },
@@ -104,4 +111,4 @@ export default {
             commandBuffer.endRenderPass()
         }
     }
-}
+} 

@@ -1,4 +1,3 @@
-import gfx from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import mat4 from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
@@ -53,7 +52,7 @@ export default class RenderCamera {
         render.dirtyTransforms.set(transform, transform);
 
         this._uboSrc = new Float32Array(this._matView.length + this._matProj.length);
-        this._ubo = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: this._uboSrc.byteLength });
+        this._ubo = zero.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: this._uboSrc.byteLength });
 
         this._window = window;
         this._transform = transform;

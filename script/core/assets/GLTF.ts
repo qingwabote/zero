@@ -1,8 +1,6 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
 import MeshRenderer from "../components/MeshRenderer.js";
-import game from "../game.js";
-import gfx from "../gfx.js";
 import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
 import { Format } from "../gfx/InputAssembler.js";
 import Texture from "../gfx/Texture.js";
@@ -57,8 +55,8 @@ export default class GLTF extends Asset {
         }
         const parent = res[1];
         const name = res[2];
-        const json = await game.loader.load(`${parent}/${name}.gltf`, "json", this.onProgress);
-        const bin = await game.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
+        const json = await zero.loader.load(`${parent}/${name}.gltf`, "json", this.onProgress);
+        const bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
 
         const images: any[] = json.images;
         this._textures = await Promise.all(images.map(info => this.loadTexture(`${parent}/${info.uri}`)));
@@ -68,9 +66,9 @@ export default class GLTF extends Asset {
     }
 
     private async loadTexture(url: string): Promise<Texture> {
-        const blob = await game.loader.load(url, "blob", this.onProgress);
-        const imageBitmap = await gfx.device.createImageBitmap(blob);
-        const texture = gfx.device.createTexture({});
+        const blob = await zero.loader.load(url, "blob", this.onProgress);
+        const imageBitmap = await zero.device.createImageBitmap(blob);
+        const texture = zero.device.createTexture({});
         texture.update(imageBitmap);
         return texture;
     }
@@ -173,7 +171,7 @@ export default class GLTF extends Asset {
             //     console.assert(viewInfo.target == 34963)
             // }
             const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
-            buffer = gfx.device.createBuffer({
+            buffer = zero.device.createBuffer({
                 usage: usage,
                 stride: viewInfo.byteStride,
                 size: viewInfo.byteLength

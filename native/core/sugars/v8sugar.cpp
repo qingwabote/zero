@@ -216,8 +216,8 @@ namespace sugar
             auto res = sugar::sdl::rw_readUtf8(file.c_str());
             if (!res)
             {
-                printf("module resolution failed to read the file '%s'\n", file.c_str());
-                // isolate->ThrowException(_v8::String::NewFromUtf8Literal(isolate, "module resolution error"));
+                std::string exception{"module resolve failed to read the file: " + file};
+                isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, exception.c_str()).ToLocalChecked()));
                 return {};
             }
 

@@ -1,5 +1,4 @@
-import game from "../../core/game.js";
-import gfx from "../../core/gfx.js";
+import Zero from "../../core/Zero.js";
 import WebDevice from "./gfx/WebDevice.js";
 import WebInput from "./WebInput.js";
 import WebLoader from "./WebLoader.js";
@@ -7,13 +6,11 @@ import WebLoader from "./WebLoader.js";
 const DEBUG_DT_THRESHOLD = 1;
 
 export default {
-    init(canvas: HTMLCanvasElement) {
+    run(canvas: HTMLCanvasElement, App: new () => Zero) {
         const gl = canvas.getContext('webgl2')!;
-        gfx.init(new WebDevice(gl));
-        game.init(new WebInput(canvas), new WebLoader, canvas.width, canvas.height)
-    },
+        (window as any).zero = new App();
+        zero.initialize(new WebDevice(gl), new WebInput(canvas), new WebLoader, canvas.width, canvas.height);
 
-    run() {
         let requestId: number;
         let time: number = performance.now();
 
@@ -23,7 +20,7 @@ export default {
                 dt = 1 / 60;
             }
             time = now;
-            game.tick(dt)
+            zero.tick(dt)
             requestId = window.requestAnimationFrame(mainLoop);
         }
 

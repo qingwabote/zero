@@ -9,6 +9,12 @@
 #define NANOSECONDS_PER_SECOND 1000000000
 #define NANOSECONDS_60FPS 16666667L
 
+namespace
+{
+    int width = 640;
+    int height = 480;
+}
+
 Window *Window::instance()
 {
     static Window instance;
@@ -21,7 +27,7 @@ Window::~Window() {}
 
 int Window::loop()
 {
-    sugar::sdl::unique_window window = sugar::sdl::initWithWindow();
+    sugar::sdl::unique_window window = sugar::sdl::initWithWindow(width, height);
     if (!window)
     {
         printf("Could not create window: %s\n", SDL_GetError());
@@ -50,13 +56,11 @@ int Window::loop()
     v8::Local<v8::Context> context = v8::Context::New(isolate.get());
     v8::Context::Scope context_scope(context);
 
-    auto console = new binding::Console(isolate.get());
-
     auto global = context->Global();
     global->Set(
-        context, v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-        console->js());
-
+        context,
+        v8::String::NewFromUtf8Literal(isolate.get(), "console"),
+        (new binding::Console(isolate.get()))->js());
     v8::Local<v8::Object> bootstrap;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
@@ -86,7 +90,6 @@ int Window::loop()
         printf("bootstrap.js: no app found\n");
         return -1;
     }
-    printf("app: %s\n", *v8::String::Utf8Value(isolate.get(), appSrc));
     v8::Local<v8::Object> app;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
@@ -99,39 +102,44 @@ int Window::loop()
         }
 
         v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-        v8::Local<v8::Object> default = sugar::v8::object_get<v8::Object>(context, ns, "default");
-        if (default.IsEmpty())
+        v8::Local<v8::Function> constructor = sugar::v8::object_get<v8::Function>(context, ns, "default");
+        if (constructor.IsEmpty())
         {
-            printf("app: no default export found\n");
+            printf("app: no default class found\n");
             return -1;
         }
+        auto maybeApp = constructor->NewInstance(context);
+        if (maybeApp.IsEmpty())
+        {
+            return -1;
+        }
+        app = handle_scope.Escape(maybeApp.ToLocalChecked());
+    }
+    global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app);
 
-        auto init = sugar::v8::object_get<v8::Function>(context, default, "init");
-        if (init.IsEmpty())
-        {
-            printf("app: no init function found\n");
-            return -1;
-        }
-        binding::gfx::Device *device = new binding::gfx::Device(isolate.get(), window.get());
-        v8::Local<v8::Object> js_device = device->js();
-        v8::Local<v8::Value> init_args[] = {js_device};
-        v8::MaybeLocal<v8::Value> maybeRes = init->Call(context, default, 1, init_args);
-        if (maybeRes.IsEmpty())
-        {
-            return -1;
-        }
-        auto res = maybeRes.ToLocalChecked();
-        if (!res->IsBoolean())
-        {
-            printf("app: invalid init function return value\n");
-            return -1;
-        }
-        if (res->BooleanValue(isolate.get()))
-        {
-            return -1;
-        }
-
-        app = handle_scope.Escape(default);
+    auto initialize = sugar::v8::object_get<v8::Function>(context, app, "initialize");
+    if (initialize.IsEmpty())
+    {
+        printf("app: no initialize function found\n");
+        return -1;
+    }
+    binding::gfx::Device *device = new binding::gfx::Device(isolate.get(), window.get());
+    v8::Local<v8::Object> js_device = device->js();
+    v8::Local<v8::Value> args[] = {
+        js_device,
+        v8::Object::New(isolate.get()),
+        v8::Object::New(isolate.get()),
+        v8::Number::New(isolate.get(), width),
+        v8::Number::New(isolate.get(), height)};
+    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 5, args);
+    if (maybeRes.IsEmpty())
+    {
+        return -1;
+    }
+    auto res = maybeRes.ToLocalChecked();
+    if (res->BooleanValue(isolate.get()))
+    {
+        return -1;
     }
 
     auto tick = sugar::v8::object_get<v8::Function>(context, app, "tick");

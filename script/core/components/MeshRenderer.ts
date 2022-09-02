@@ -1,5 +1,4 @@
 import Component from "../Component.js";
-import game from "../game.js";
 import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
 import Model from "../render/Model.js";
@@ -21,6 +20,6 @@ export default class MeshRenderer extends Component {
             subModels.push(subModel);
         }
         const model = new Model(subModels, this._node);
-        game.renderScene.models.push(model);
+        zero.renderScene.models.push(model);
     }
 }
