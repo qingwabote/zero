@@ -3,6 +3,7 @@
 #include "sdlsugar.hpp"
 #include <sstream>
 #include <unordered_map>
+#include <map>
 
 namespace
 {
@@ -10,7 +11,7 @@ namespace
 
     const uint32_t SLOT_MODULE_CACHE = 1;
 
-    const uint32_t SLOT_WEAK_CALLBACK_CACHE = 2;
+    const uint32_t SLOT_WEAK_CALLBACKS = 2;
 
     std::unordered_map<std::string, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate)
     {
@@ -19,15 +20,23 @@ namespace
 
     struct SetWeakCallback;
 
-    std::unordered_map<SetWeakCallback *, void *> *isolate_getWeakCallbackCache(_v8::Isolate *isolate)
+    std::map<uint32_t, SetWeakCallback *> *isolate_getWeakCallbacks(_v8::Isolate *isolate)
     {
-        return (std::unordered_map<SetWeakCallback *, void *> *)isolate->GetData(SLOT_WEAK_CALLBACK_CACHE);
+        return (std::map<uint32_t, SetWeakCallback *> *)isolate->GetData(SLOT_WEAK_CALLBACKS);
     }
 
     struct SetWeakCallback
     {
+    private:
+        uint32_t _older;
+
+    public:
         _v8::Persistent<_v8::Data> ref;
         std::function<void()> callback;
+        uint32_t older()
+        {
+            return _older;
+        }
 
         SetWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb)
         {
@@ -39,10 +48,13 @@ namespace
                 [](const _v8::WeakCallbackInfo<SetWeakCallback> &info)
                 {
                     SetWeakCallback *p = info.GetParameter();
-                    isolate_getWeakCallbackCache(info.GetIsolate())->erase(p);
+                    isolate_getWeakCallbacks(info.GetIsolate())->erase(p->older());
                     delete p;
                 },
                 _v8::WeakCallbackType::kParameter);
+
+            static uint32_t count = 0;
+            _older = ++count;
         }
         ~SetWeakCallback()
         {
@@ -68,9 +80,10 @@ namespace sugar
             {
                 it.second.Reset();
             }
-            for (auto &it : *isolate_getWeakCallbackCache(isolate))
+            auto weakCallbacks = isolate_getWeakCallbacks(isolate);
+            for (auto it = weakCallbacks->rbegin(); it != weakCallbacks->rend(); it++)
             {
-                delete it.first;
+                delete it->second;
             }
             isolate->Dispose();
             _v8::V8::Dispose();
@@ -87,7 +100,7 @@ namespace sugar
             _v8::Isolate *isolate = _v8::Isolate::New(create_params);
             isolate->SetData(SLOT_CONSTRUCTOR_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>>);
             isolate->SetData(SLOT_MODULE_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::Module>>);
-            isolate->SetData(SLOT_WEAK_CALLBACK_CACHE, new std::unordered_map<void *, void *>);
+            isolate->SetData(SLOT_WEAK_CALLBACKS, new std::map<uint32_t, SetWeakCallback *>);
             return unique_isolate{isolate, isolateDeleter};
         }
 
@@ -283,12 +296,13 @@ namespace sugar
 
         void setWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb)
         {
-            isolate_getWeakCallbackCache(isolate)->emplace(new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb)), nullptr);
+            auto callback = new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb));
+            isolate_getWeakCallbacks(isolate)->emplace(callback->older(), callback);
         }
 
         void gc(_v8::Local<_v8::Context> context)
         {
-            auto gc = object_get<_v8::Function>(context, context->Global(), "__gc__");
+            auto gc = object_get<_v8::Function>(context->Global(), "__gc__");
             gc->Call(context, context->Global(), 0, nullptr);
         }
 

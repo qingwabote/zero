@@ -11,27 +11,38 @@ function usage2target(usage: BufferUsageBit): GLenum {
     return -1;
 }
 
-export default class WebBuffer extends Buffer {
-    private _gl: WebGL2RenderingContext | null = null;
+export default class WebBuffer implements Buffer {
+    private _gl: WebGL2RenderingContext;
 
-    private _buffer: WebGLBuffer;
+    private _buffer!: WebGLBuffer;
     get buffer(): WebGLBuffer {
         return this._buffer;
     }
 
-    constructor(gl: WebGL2RenderingContext, info: BufferInfo) {
-        super(info);
+    private _info!: BufferInfo;
+    get info(): BufferInfo {
+        return this._info;
+    }
+
+    constructor(gl: WebGL2RenderingContext) {
+        this._gl = gl;
+    }
+
+    initialize(info: BufferInfo): boolean {
+        const gl = this._gl;
 
         this._buffer = gl.createBuffer()!
         const target = usage2target(info.usage);
         gl.bindBuffer(target, this._buffer);
         gl.bufferData(target, info.size, gl.STATIC_DRAW);
-
         gl.bindBuffer(target, null);
-        this._gl = gl;
+
+        this._info = info;
+
+        return false;
     }
 
-    public update(buffer: Readonly<BufferSource>): void {
+    update(buffer: Readonly<BufferSource>): void {
         const gl = this._gl;
         if (!gl) return;
 

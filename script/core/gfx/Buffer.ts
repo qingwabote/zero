@@ -1,3 +1,4 @@
+// copy from VkBufferUsageFlagBits in vulkan_core.h
 export enum BufferUsageBit {
     INDEX = 0x4,
     VERTEX = 0x8,
@@ -11,13 +12,8 @@ export interface BufferInfo {
     // readonly offset: number
 }
 
-export default abstract class Buffer {
-    protected _info: BufferInfo;
-    get info(): BufferInfo {
-        return this._info;
-    }
-    constructor(info: BufferInfo) {
-        this._info = info
-    }
-    abstract update(buffer: Readonly<BufferSource>): void;
+export default interface Buffer {
+    get info(): BufferInfo;
+    initialize(info: BufferInfo): boolean;
+    update(buffer: Readonly<BufferSource>): void;
 }

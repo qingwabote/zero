@@ -27,6 +27,14 @@ namespace binding
                 });
 
             cls.defineFunction(
+                "createBuffer",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto cobj = static_cast<Device *>(info.This()->GetAlignedPointerFromInternalField(0));
+                    info.GetReturnValue().Set(cobj->createBuffer()->js());
+                });
+
+            cls.defineFunction(
                 "createShader",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {

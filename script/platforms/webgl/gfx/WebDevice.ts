@@ -1,4 +1,4 @@
-import Buffer, { BufferInfo } from "../../../core/gfx/Buffer.js";
+import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device from "../../../core/gfx/Device.js";
 import Pipeline from "../../../core/gfx/Pipeline.js";
@@ -35,8 +35,8 @@ export default class WebDevice implements Device {
         return new WebShader(this._gl);
     }
 
-    createBuffer(info: BufferInfo): Buffer {
-        return new WebBuffer(this._gl, info);
+    createBuffer(): Buffer {
+        return new WebBuffer(this._gl);
     }
 
     createTexture(info: TextureInfo): Texture {

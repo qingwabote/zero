@@ -26,11 +26,13 @@ namespace sugar
         _v8::MaybeLocal<_v8::Module> module_evaluate(_v8::Local<_v8::Context> context, _v8::Local<_v8::String> specifier);
 
         template <class S>
-        _v8::Local<S> object_get(_v8::Local<_v8::Context> context, _v8::Local<_v8::Object> object, const char *name)
+        _v8::Local<S> object_get(_v8::Local<_v8::Object> object, const char *name)
         {
-            _v8::EscapableHandleScope handleScope(context->GetIsolate());
+            _v8::Isolate *isolate = object->GetIsolate();
+            _v8::EscapableHandleScope handleScope(isolate);
+            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
-            _v8::Local<_v8::String> key = _v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
+            _v8::Local<_v8::String> key = _v8::String::NewFromUtf8(isolate, name).ToLocalChecked();
             _v8::Maybe<bool> maybeExist = object->Has(context, key);
             if (maybeExist.IsNothing())
             {

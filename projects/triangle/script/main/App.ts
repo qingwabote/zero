@@ -53,12 +53,14 @@ export default class App extends Zero {
         };
         attributes.push(attribute);
 
-        const vertexBuffer = zero.device.createBuffer({ usage: BufferUsageBit.VERTEX, size: vertexArray.byteLength });
+        const vertexBuffer = zero.device.createBuffer();
+        vertexBuffer.initialize({ usage: BufferUsageBit.VERTEX, size: vertexArray.byteLength });
         vertexBuffer.update(vertexArray);
         vertexBuffers.push(vertexBuffer);
 
         const indexArray = new Uint8Array([0, 1, 2]);
-        const indexBuffer = zero.device.createBuffer({ usage: BufferUsageBit.INDEX, size: indexArray.byteLength });
+        const indexBuffer = zero.device.createBuffer();
+        indexBuffer.initialize({ usage: BufferUsageBit.INDEX, size: indexArray.byteLength });
         indexBuffer.update(indexArray);
 
         const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, indexBuffer, Format.R8UI, indexArray.length, 0)]);

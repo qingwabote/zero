@@ -171,11 +171,12 @@ export default class GLTF extends Asset {
             //     console.assert(viewInfo.target == 34963)
             // }
             const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
-            buffer = zero.device.createBuffer({
+            buffer = zero.device.createBuffer();
+            buffer.initialize({
                 usage: usage,
                 stride: viewInfo.byteStride,
                 size: viewInfo.byteLength
-            });
+            })
             buffer.update(view);
             this._buffers[index] = buffer;
         }

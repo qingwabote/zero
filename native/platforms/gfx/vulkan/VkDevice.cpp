@@ -2,8 +2,12 @@
 #include "VkBootstrap.h"
 #include "SDL_vulkan.h"
 #include "VkCommandBufferImpl.hpp"
+#include "VkBufferImpl.hpp"
 #include "VkShaderImpl.hpp"
 #include "VkPipelineImpl.hpp"
+
+#define VMA_IMPLEMENTATION
+#include "vma/vk_mem_alloc.h"
 
 namespace binding
 {
@@ -24,6 +28,8 @@ namespace binding
             VkCommandPool _commandPool = nullptr;
             VkRenderPass _renderPass = nullptr;
             std::vector<VkFramebuffer> _framebuffers;
+
+            VmaAllocator _allocator;
 
             CommandBuffer *_commandBuffer = nullptr;
             v8::Global<v8::Object> _js_commandBuffer;
@@ -155,8 +161,16 @@ namespace binding
                     vkCreateFramebuffer(_vkb_device.device, &fb_info, nullptr, &_framebuffers[i]);
                 }
 
+                VmaAllocatorCreateInfo allocatorInfo = {};
+                allocatorInfo.physicalDevice = physicalDevice.physical_device;
+                allocatorInfo.device = _vkb_device.device;
+                allocatorInfo.instance = _vkb_instance.instance;
+                vmaCreateAllocator(&allocatorInfo, &_allocator);
+
                 return false;
             }
+
+            Buffer *createBuffer() { return new Buffer(_isolate, std::make_unique<BufferImpl>(_vkb_device.device, _allocator)); }
 
             Shader *createShader() { return new Shader(_isolate, std::make_unique<ShaderImpl>(_vkb_device.device)); }
 
@@ -164,6 +178,7 @@ namespace binding
 
             ~Impl()
             {
+                vmaDestroyAllocator(_allocator);
                 for (int i = 0; i < _framebuffers.size(); i++)
                 {
                     vkDestroyFramebuffer(_vkb_device.device, _framebuffers[i], nullptr);
@@ -185,6 +200,7 @@ namespace binding
         Device::Device(v8::Isolate *isolate, SDL_Window *window) : Binding(isolate), _impl(new Impl(isolate, window)) {}
         CommandBuffer *Device::commandBuffer() { return _impl->commandBuffer(); }
         bool Device::initialize() { return _impl->initialize(); }
+        Buffer *Device::createBuffer() { return _impl->createBuffer(); }
         Shader *Device::createShader() { return _impl->createShader(); }
         Pipeline *Device::createPipeline() { return _impl->createPipeline(); }
         Device::~Device() { delete _impl; }

@@ -1,6 +1,7 @@
 set(SRC_FILES
     VkDevice.cpp
     VKCommandBuffer.cpp
+    VKBuffer.cpp
     VkShader.cpp
     VkPipeline.cpp
 )

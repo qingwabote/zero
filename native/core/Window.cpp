@@ -76,7 +76,7 @@ int Window::loop()
             return -1;
         }
         v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-        v8::Local<v8::Object> default = sugar::v8::object_get<v8::Object>(context, ns, "default");
+        v8::Local<v8::Object> default = sugar::v8::object_get<v8::Object>(ns, "default");
         if (default.IsEmpty())
         {
             printf("bootstrap.js: no default export found\n");
@@ -84,7 +84,7 @@ int Window::loop()
         }
         bootstrap = handle_scope.Escape(default);
     }
-    auto appSrc = sugar::v8::object_get<v8::String>(context, bootstrap, "app");
+    auto appSrc = sugar::v8::object_get<v8::String>(bootstrap, "app");
     if (appSrc.IsEmpty())
     {
         printf("bootstrap.js: no app found\n");
@@ -102,7 +102,7 @@ int Window::loop()
         }
 
         v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-        v8::Local<v8::Function> constructor = sugar::v8::object_get<v8::Function>(context, ns, "default");
+        v8::Local<v8::Function> constructor = sugar::v8::object_get<v8::Function>(ns, "default");
         if (constructor.IsEmpty())
         {
             printf("app: no default class found\n");
@@ -117,7 +117,7 @@ int Window::loop()
     }
     global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app);
 
-    auto initialize = sugar::v8::object_get<v8::Function>(context, app, "initialize");
+    auto initialize = sugar::v8::object_get<v8::Function>(app, "initialize");
     if (initialize.IsEmpty())
     {
         printf("app: no initialize function found\n");
@@ -142,7 +142,7 @@ int Window::loop()
         return -1;
     }
 
-    auto tick = sugar::v8::object_get<v8::Function>(context, app, "tick");
+    auto tick = sugar::v8::object_get<v8::Function>(app, "tick");
     if (tick.IsEmpty())
     {
         printf("app: no tick function found\n");

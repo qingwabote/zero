@@ -52,7 +52,8 @@ export default class RenderCamera {
         render.dirtyTransforms.set(transform, transform);
 
         this._uboSrc = new Float32Array(this._matView.length + this._matProj.length);
-        this._ubo = zero.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: this._uboSrc.byteLength });
+        this._ubo = zero.device.createBuffer();
+        this._ubo.initialize({ usage: BufferUsageBit.UNIFORM, size: this._uboSrc.byteLength });
 
         this._window = window;
         this._transform = transform;
