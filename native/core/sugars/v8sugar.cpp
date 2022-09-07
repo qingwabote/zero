@@ -158,6 +158,15 @@ namespace sugar
             return stackStr;
         }
 
+        void tryCatch_print(_v8::TryCatch &tryCatch)
+        {
+            _v8::Local<_v8::Message> message = tryCatch.Message();
+            printf(
+                "%s\nSTACK:\n%s\n",
+                *_v8::String::Utf8Value{message->GetIsolate(), message->Get()},
+                stackTrace_toString(message->GetStackTrace()).c_str());
+        }
+
         void isolate_promiseRejectCallback(_v8::PromiseRejectMessage rejectMessage)
         {
             _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
@@ -256,11 +265,7 @@ namespace sugar
             auto maybeModule = module_resolve(context, specifier);
             if (try_catch.HasCaught())
             {
-                _v8::Local<_v8::Message> message = try_catch.Message();
-                printf(
-                    "%s\nSTACK:\n%s\n",
-                    *_v8::String::Utf8Value{isolate, message->Get()},
-                    stackTrace_toString(message->GetStackTrace()).c_str()); // FIXME: stack trace is always empty here, why?
+                tryCatch_print(try_catch);
                 return {};
             }
             if (maybeModule.IsEmpty())
@@ -269,15 +274,10 @@ namespace sugar
                 return {};
             }
             auto module = maybeModule.ToLocalChecked();
-            // context->SetAlignedPointerInEmbedderData(1, &root);
             auto maybeOk = module->InstantiateModule(context, module_resolve);
             if (try_catch.HasCaught())
             {
-                _v8::Local<_v8::Message> message = try_catch.Message();
-                printf(
-                    "%s\nSTACK:\n%s\n",
-                    *_v8::String::Utf8Value{isolate, message->Get()},
-                    stackTrace_toString(message->GetStackTrace()).c_str()); // FIXME: stack trace is always empty here, why?
+                tryCatch_print(try_catch);
                 return {};
             }
             if (maybeOk.IsNothing())

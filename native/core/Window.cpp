@@ -195,7 +195,13 @@ int Window::loop()
         float dt = dtNS / NANOSECONDS_PER_SECOND;
 
         v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), dt)};
-        // app_tick->Call(context, app, 1, args);
+        _v8::TryCatch try_catch(isolate.get());
+        app_tick->Call(context, app, 1, args);
+        if (try_catch.HasCaught())
+        {
+            sugar::v8::tryCatch_print(try_catch);
+            return -1;
+        }
 
         SDL_GL_SwapWindow(window.get());
     }

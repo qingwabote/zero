@@ -15,6 +15,8 @@ namespace sugar
 
         std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack);
 
+        void tryCatch_print(_v8::TryCatch &tryCatch);
+
         void isolate_promiseRejectCallback(_v8::PromiseRejectMessage msg);
 
         _v8::MaybeLocal<_v8::Module> module_resolve(
