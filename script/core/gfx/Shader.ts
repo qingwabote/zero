@@ -1,13 +1,13 @@
 import { DescriptorSetLayout } from "./Pipeline.js";
 
-export enum ShaderStageFlags {
+// copy values from VkShaderStageFlagBits in vulkan_core.h
+export enum ShaderStageFlagBits {
     VERTEX = 0x1,
-    FRAGMENT = 0x10,
-    ALL = 0x3f
+    FRAGMENT = 0x10
 }
 
 export interface ShaderStage {
-    type: ShaderStageFlags
+    type: ShaderStageFlagBits
     source: string
 }
 

@@ -1,6 +1,6 @@
 import Camera from "../../../../script/core/components/Camera.js";
 import MeshRenderer from "../../../../script/core/components/MeshRenderer.js";
-import Buffer, { BufferUsageBit } from "../../../../script/core/gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits } from "../../../../script/core/gfx/Buffer.js";
 import Device from "../../../../script/core/gfx/Device.js";
 import { Format } from "../../../../script/core/gfx/InputAssembler.js";
 import Loader from "../../../../script/core/Loader.js";
@@ -52,13 +52,13 @@ export default class App extends Zero {
         attributes.push(attribute);
 
         const vertexBuffer = zero.device.createBuffer();
-        vertexBuffer.initialize({ usage: BufferUsageBit.VERTEX, size: vertexArray.byteLength });
+        vertexBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: vertexArray.byteLength });
         vertexBuffer.update(vertexArray);
         vertexBuffers.push(vertexBuffer);
 
         const indexArray = new Uint8Array([0, 1, 2]);
         const indexBuffer = zero.device.createBuffer();
-        indexBuffer.initialize({ usage: BufferUsageBit.INDEX, size: indexArray.byteLength });
+        indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: indexArray.byteLength });
         indexBuffer.update(indexArray);
 
         const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, indexBuffer, Format.R8UI, indexArray.length, 0)]);

@@ -1,4 +1,4 @@
-import Shader, { ShaderInfo, ShaderStage, ShaderStageFlags, Uniform } from "../../../core/gfx/Shader.js";
+import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits, Uniform } from "../../../core/gfx/Shader.js";
 
 export default class WebShader implements Shader {
     private _gl: WebGL2RenderingContext;
@@ -29,11 +29,11 @@ export default class WebShader implements Shader {
         for (const stage of stages) {
             const source = `#version 300 es\n${stage.source}`
 
-            const shader = gl.createShader(stage.type == ShaderStageFlags.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER)!;
+            const shader = gl.createShader(stage.type == ShaderStageFlagBits.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER)!;
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error(`${stage.type == ShaderStageFlags.VERTEX ? "VertexShader" : "FragmentShader"} in '${this._info.name}' compilation failed.`);
+                console.error(`${stage.type == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in '${this._info.name}' compilation failed.`);
                 console.error(gl.getShaderInfoLog(shader));
                 let lineNumber = 1;
                 console.error('Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `));

@@ -27,30 +27,10 @@ namespace sugar
 
         _v8::MaybeLocal<_v8::Module> module_evaluate(_v8::Local<_v8::Context> context, _v8::Local<_v8::String> specifier);
 
-        template <class S>
-        _v8::Local<S> object_get(_v8::Local<_v8::Object> object, const char *name)
-        {
-            _v8::Isolate *isolate = object->GetIsolate();
-            _v8::EscapableHandleScope handleScope(isolate);
-            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
-
-            _v8::Local<_v8::String> key = _v8::String::NewFromUtf8(isolate, name).ToLocalChecked();
-            // _v8::Maybe<bool> maybeExist = object->Has(context, key);
-            // if (maybeExist.IsNothing())
-            // {
-            //     return {};
-            // }
-            // if (!maybeExist.FromJust())
-            // {
-            //     return {};
-            // }
-            _v8::MaybeLocal<_v8::Value> maybeValue = object->Get(context, key);
-            if (maybeValue.IsEmpty())
-            {
-                return {};
-            }
-            return handleScope.Escape(maybeValue.ToLocalChecked().As<S>());
-        }
+        /**
+         * If fails, it returns an empty value without crash
+         */
+        _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name);
 
         // template <class S>
         // void v8_object_set(_v8::Local<_v8::Context> context, _v8::Local<_v8::Object> object, const char *name, _v8::Local<S> value)

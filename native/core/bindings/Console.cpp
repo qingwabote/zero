@@ -21,7 +21,7 @@ namespace binding
                     array->Set(context, i, info[i]);
                 }
 
-                auto join = sugar::v8::object_get<v8::Function>(array, "join");
+                auto join = sugar::v8::object_get(array, "join").As<v8::Function>();
                 v8::Local<v8::Value> a[] = {v8::String::NewFromUtf8Literal(isolate, " ")};
                 auto res = join->Call(context, array, 1, a).ToLocalChecked().As<v8::String>();
                 printf("%s\n", *v8::String::Utf8Value(isolate, res));

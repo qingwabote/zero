@@ -1,5 +1,5 @@
 import { DescriptorSetLayout, DescriptorType } from "./gfx/Pipeline.js";
-import { Attribute, Meta, ShaderStage, ShaderStageFlags, Uniform } from "./gfx/Shader.js";
+import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "./gfx/Shader.js";
 
 const ifMacroExp = /#if\s+(\w+)\s+([\s\S]+?)[ \t]*#endif\s*?\n/g;
 
@@ -31,7 +31,7 @@ export default {
             .map(stage => ({ type: stage.type, source: macroExpand(macros, stage.source) }));
 
         const attributes: Record<string, Attribute> = {};
-        let matches = out.find(stage => stage.type == ShaderStageFlags.VERTEX)!.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
+        let matches = out.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
         for (const match of matches) {
             attributes[match[2]] = { location: parseInt(match[1]) };
         }
@@ -49,7 +49,7 @@ export default {
                         descriptorSetLayout.bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.SAMPLER_TEXTURE, count: 1 });
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
-                    // remove unsupported layout declaration for webgl
+                    // remove unsupported layout declaration for webgl, e.g. descriptor sets, no such concept in OpenGL
                     if (typeof window != 'undefined') {
                         return type ? `uniform ${type} ${name}` : `uniform ${name}`;
                     } else {

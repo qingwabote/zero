@@ -76,7 +76,7 @@ int Window::loop()
             return -1;
         }
         v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-        v8::Local<v8::Object> default = sugar::v8::object_get<v8::Object>(ns, "default");
+        v8::Local<v8::Object> default = sugar::v8::object_get(ns, "default").As<v8::Object>();
         if (default.IsEmpty())
         {
             printf("bootstrap.js: no default export found\n");
@@ -84,7 +84,7 @@ int Window::loop()
         }
         bootstrap = handle_scope.Escape(default);
     }
-    auto appSrc = sugar::v8::object_get<v8::String>(bootstrap, "app");
+    auto appSrc = sugar::v8::object_get(bootstrap, "app").As<v8::String>();
     if (appSrc.IsEmpty())
     {
         printf("bootstrap.js: no app found\n");
@@ -102,7 +102,7 @@ int Window::loop()
         }
 
         v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-        v8::Local<v8::Function> constructor = sugar::v8::object_get<v8::Function>(ns, "default");
+        v8::Local<v8::Function> constructor = sugar::v8::object_get(ns, "default").As<v8::Function>();
         if (constructor.IsEmpty())
         {
             printf("app: no default class found\n");
@@ -117,7 +117,7 @@ int Window::loop()
     }
     global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app);
 
-    auto initialize = sugar::v8::object_get<v8::Function>(app, "initialize");
+    auto initialize = sugar::v8::object_get(app, "initialize").As<v8::Function>();
     if (initialize.IsEmpty())
     {
         printf("app: no initialize function found\n");
@@ -142,10 +142,10 @@ int Window::loop()
         return -1;
     }
 
-    auto input = sugar::v8::object_get<v8::Object>(app, "input");
-    auto input_emit = sugar::v8::object_get<v8::Function>(input, "emit");
+    auto input = sugar::v8::object_get(app, "input").As<v8::Object>();
+    auto input_emit = sugar::v8::object_get(input, "emit").As<v8::Function>();
 
-    auto app_tick = sugar::v8::object_get<v8::Function>(app, "tick");
+    auto app_tick = sugar::v8::object_get(app, "tick").As<v8::Function>();
 
     bool running = true;
     auto time = std::chrono::steady_clock::now();

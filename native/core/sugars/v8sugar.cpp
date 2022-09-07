@@ -294,6 +294,17 @@ namespace sugar
             return handle_scope.EscapeMaybe(maybeModule);
         }
 
+        _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name)
+        {
+            _v8::Isolate *isolate = object->GetIsolate();
+            _v8::EscapableHandleScope handleScope(isolate);
+            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
+
+            _v8::Local<_v8::Value> out;
+            object->Get(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked()).ToLocal(&out);
+            return handleScope.Escape(out);
+        }
+
         void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb)
         {
             _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
@@ -303,7 +314,7 @@ namespace sugar
 
         void gc(_v8::Local<_v8::Context> context)
         {
-            auto gc = object_get<_v8::Function>(context->Global(), "__gc__");
+            auto gc = object_get(context->Global(), "__gc__").As<_v8::Function>();
             gc->Call(context, context->Global(), 0, nullptr);
         }
 

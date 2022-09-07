@@ -1,4 +1,6 @@
-#include "vulkan/vulkan.hpp"
+#pragma once
+
+#include "VkContext.hpp"
 
 namespace binding
 {
@@ -7,10 +9,14 @@ namespace binding
         class ShaderImpl
         {
         private:
+            Context *_context = nullptr;
+
             v8::Global<v8::Object> _info;
 
+            std::vector<VkPipelineShaderStageCreateInfo> _stageInfos;
+
         public:
-            ShaderImpl(VkDevice device);
+            ShaderImpl(Context *context);
 
             v8::Local<v8::Object> info();
 

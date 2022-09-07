@@ -1,5 +1,5 @@
 import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
-import Shader, { ShaderStage, ShaderStageFlags } from "./gfx/Shader.js";
+import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
 
 export const BuiltinUniformBlocks = {
@@ -82,7 +82,7 @@ void main() {
 sources.push(`
 precision highp float;
 
-out vec4 v_color;
+layout(location = 0) out vec4 v_color;
 
 void main() {
     vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
@@ -135,8 +135,8 @@ while (sources.length > 2) {
     const name = sources.pop()!;
 
     name2source[name] = [
-        { type: ShaderStageFlags.VERTEX, source: vs },
-        { type: ShaderStageFlags.FRAGMENT, source: fs },
+        { type: ShaderStageFlagBits.VERTEX, source: vs },
+        { type: ShaderStageFlagBits.FRAGMENT, source: fs },
     ];
     name2macros[name] = preprocessor.macrosExtract(fs);
 }

@@ -1,7 +1,7 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
 import MeshRenderer from "../components/MeshRenderer.js";
-import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { Format } from "../gfx/InputAssembler.js";
 import Texture from "../gfx/Texture.js";
 import mat4 from "../math/mat4.js";
@@ -135,11 +135,11 @@ export default class GLTF extends Asset {
                     offset: accessor.byteOffset
                 }
                 attributes.push(attribute);
-                vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageBit.VERTEX));
+                vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX));
             }
 
             const accessor = this._json.accessors[primitive.indices];
-            const buffer = this.getBuffer(accessor.bufferView, BufferUsageBit.INDEX);
+            const buffer = this.getBuffer(accessor.bufferView, BufferUsageFlagBits.INDEX);
 
             if (primitive.material != undefined) {
                 const info = this._json.materials[primitive.material];
@@ -161,7 +161,7 @@ export default class GLTF extends Asset {
         renderer.materials = materials;
     }
 
-    private getBuffer(index: number, usage: BufferUsageBit): Buffer {
+    private getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
         let buffer = this._buffers[index];
         if (!this._buffers[index]) {
             const viewInfo = this._json.bufferViews[index];

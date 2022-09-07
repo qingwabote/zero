@@ -15,11 +15,11 @@ namespace binding
 
         bool BufferImpl::initialize(v8::Local<v8::Object> info)
         {
-            auto usage = sugar::v8::object_get<v8::Number>(info, "usage");
+            auto usage = sugar::v8::object_get(info, "usage").As<v8::Number>();
             VkBufferCreateInfo bufferInfo = {};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
             bufferInfo.usage = usage->Value();
-            auto size = sugar::v8::object_get<v8::Number>(info, "size");
+            auto size = sugar::v8::object_get(info, "size").As<v8::Number>();
             bufferInfo.size = size->Value();
 
             VmaAllocationCreateInfo allocationCreateInfo = {};
@@ -39,7 +39,7 @@ namespace binding
         void BufferImpl::update(v8::Local<v8::ArrayBufferView> buffer)
         {
             auto info = _info.Get(v8::Isolate::GetCurrent());
-            auto size = sugar::v8::object_get<v8::Number>(info, "size");
+            auto size = sugar::v8::object_get(info, "size").As<v8::Number>();
             memcpy(_allocationInfo.pMappedData, buffer->Buffer()->Data(), size->Value());
         }
 

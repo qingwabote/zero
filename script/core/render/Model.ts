@@ -1,4 +1,4 @@
-import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { DescriptorSet } from "../gfx/Pipeline.js";
 import render, { TransformSource } from "../render.js";
 import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks } from "../shaders.js";
@@ -24,7 +24,7 @@ export default class Model {
 
         const buffers: Buffer[] = [];
         const buffer = zero.device.createBuffer();
-        buffer.initialize({ usage: BufferUsageBit.UNIFORM, size: float32Array.byteLength });
+        buffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: float32Array.byteLength });
         buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = buffer;
         this._descriptorSet = { layout: BuiltinDescriptorSetLayouts.local, buffers, textures: [] };
 

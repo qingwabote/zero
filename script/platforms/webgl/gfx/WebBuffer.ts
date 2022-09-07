@@ -1,11 +1,11 @@
-import Buffer, { BufferInfo, BufferUsageBit } from "../../../core/gfx/Buffer.js";
+import Buffer, { BufferInfo, BufferUsageFlagBits } from "../../../core/gfx/Buffer.js";
 
-function usage2target(usage: BufferUsageBit): GLenum {
-    if (usage & BufferUsageBit.VERTEX) {
+function usage2target(usage: BufferUsageFlagBits): GLenum {
+    if (usage & BufferUsageFlagBits.VERTEX) {
         return WebGL2RenderingContext.ARRAY_BUFFER;
-    } else if (usage & BufferUsageBit.INDEX) {
+    } else if (usage & BufferUsageFlagBits.INDEX) {
         return WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER;
-    } else if (usage & BufferUsageBit.UNIFORM) {
+    } else if (usage & BufferUsageFlagBits.UNIFORM) {
         return WebGL2RenderingContext.UNIFORM_BUFFER;
     }
     return -1;

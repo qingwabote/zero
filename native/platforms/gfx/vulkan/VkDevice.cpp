@@ -1,4 +1,5 @@
 #include "bindings/gfx/device.hpp"
+#include "VkContext.hpp"
 #include "VkBootstrap.h"
 #include "SDL_vulkan.h"
 #include "VkCommandBufferImpl.hpp"
@@ -8,6 +9,8 @@
 
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
+
+#include "glslang/Public/ShaderLang.h"
 
 namespace binding
 {
@@ -20,6 +23,9 @@ namespace binding
             vkb::Instance _vkb_instance;
             VkSurfaceKHR _surface = nullptr;
             vkb::Device _vkb_device;
+
+            std::unique_ptr<Context> _context;
+
             vkb::Swapchain _vkb_swapchain;
             std::vector<VkImageView> _swapchainImageViews;
 
@@ -40,6 +46,8 @@ namespace binding
 
             bool initialize()
             {
+                const uint32_t version = VK_MAKE_API_VERSION(0, 1, 1, 0);
+
                 // instance
                 vkb::InstanceBuilder builder;
                 auto system_info_ret = vkb::SystemInfo::get_system_info();
@@ -52,7 +60,7 @@ namespace binding
                 }
                 auto inst_ret = builder
                                     .set_app_name("_app_name")
-                                    .require_api_version(1, 1, 0)
+                                    .require_api_version(version)
                                     .use_default_debug_messenger()
                                     .build();
                 _vkb_instance = inst_ret.value();
@@ -75,6 +83,8 @@ namespace binding
                 // logical device
                 vkb::DeviceBuilder deviceBuilder{physicalDevice};
                 _vkb_device = deviceBuilder.build().value();
+
+                _context = std::make_unique<Context>(version, _vkb_device.device);
 
                 // swapchain
                 vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, _vkb_device.device, _surface};
@@ -166,17 +176,21 @@ namespace binding
                 allocatorInfo.instance = _vkb_instance.instance;
                 vmaCreateAllocator(&allocatorInfo, &_allocator);
 
+                glslang::InitializeProcess();
+
                 return false;
             }
 
             Buffer *createBuffer() { return new Buffer(std::make_unique<BufferImpl>(_vkb_device.device, _allocator)); }
 
-            Shader *createShader() { return new Shader(std::make_unique<ShaderImpl>(_vkb_device.device)); }
+            Shader *createShader() { return new Shader(std::make_unique<ShaderImpl>(_context.get())); }
 
             Pipeline *createPipeline() { return new Pipeline(std::make_unique<PipelineImpl>(_vkb_device.device)); }
 
             ~Impl()
             {
+                glslang::FinalizeProcess();
+
                 vmaDestroyAllocator(_allocator);
                 for (int i = 0; i < _framebuffers.size(); i++)
                 {
