@@ -19,7 +19,7 @@ export default class Zero {
         return this._window;
     }
 
-    private _input!: Input;
+    private _input: Input = new Input;
     get input(): Input {
         return this._input;
     }
@@ -41,7 +41,7 @@ export default class Zero {
 
     private _globalDescriptorSet!: DescriptorSet;
 
-    initialize(device: Device, input: Input, loader: Loader, width: number, height: number): boolean {
+    initialize(device: Device, loader: Loader, width: number, height: number): boolean {
         if (device.initialize()) {
             return true;
         }
@@ -53,7 +53,6 @@ export default class Zero {
 
         this._globalDescriptorSet = { layout: BuiltinDescriptorSetLayouts.global, buffers: [], textures: [] };
 
-        this._input = input;
         this._loader = loader;
 
         return false;

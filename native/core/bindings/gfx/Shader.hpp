@@ -17,7 +17,9 @@ namespace binding
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            Shader(v8::Isolate *isolate, std::unique_ptr<ShaderImpl> impl);
+            Shader(std::unique_ptr<ShaderImpl> impl);
+
+            v8::Local<v8::Object> info();
 
             bool initialize(v8::Local<v8::Object> info);
 

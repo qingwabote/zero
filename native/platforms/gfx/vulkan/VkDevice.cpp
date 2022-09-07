@@ -16,7 +16,6 @@ namespace binding
         class Device::Impl
         {
         private:
-            v8::Isolate *_isolate = nullptr;
             SDL_Window *_window = nullptr;
             vkb::Instance _vkb_instance;
             VkSurfaceKHR _surface = nullptr;
@@ -35,7 +34,7 @@ namespace binding
             v8::Global<v8::Object> _js_commandBuffer;
 
         public:
-            Impl(v8::Isolate *isolate, SDL_Window *window) : _isolate(isolate), _window(window) {}
+            Impl(SDL_Window *window) : _window(window) {}
 
             CommandBuffer *commandBuffer() { return _commandBuffer; }
 
@@ -105,8 +104,8 @@ namespace binding
                 cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
                 VkCommandBuffer vk_commandBuffer = nullptr;
                 vkAllocateCommandBuffers(_vkb_device.device, &cmdAllocInfo, &vk_commandBuffer);
-                _commandBuffer = new CommandBuffer(_isolate, std::make_unique<CommandBufferImpl>(vk_commandBuffer));
-                _js_commandBuffer.Reset(_isolate, _commandBuffer->js());
+                _commandBuffer = new CommandBuffer(std::make_unique<CommandBufferImpl>(vk_commandBuffer));
+                _js_commandBuffer.Reset(v8::Isolate::GetCurrent(), _commandBuffer->js());
 
                 // color attachment.
                 VkAttachmentDescription color_attachment = {};
@@ -170,11 +169,11 @@ namespace binding
                 return false;
             }
 
-            Buffer *createBuffer() { return new Buffer(_isolate, std::make_unique<BufferImpl>(_vkb_device.device, _allocator)); }
+            Buffer *createBuffer() { return new Buffer(std::make_unique<BufferImpl>(_vkb_device.device, _allocator)); }
 
-            Shader *createShader() { return new Shader(_isolate, std::make_unique<ShaderImpl>(_vkb_device.device)); }
+            Shader *createShader() { return new Shader(std::make_unique<ShaderImpl>(_vkb_device.device)); }
 
-            Pipeline *createPipeline() { return new Pipeline(_isolate, std::make_unique<PipelineImpl>(_vkb_device.device)); }
+            Pipeline *createPipeline() { return new Pipeline(std::make_unique<PipelineImpl>(_vkb_device.device)); }
 
             ~Impl()
             {
@@ -197,7 +196,7 @@ namespace binding
             }
         };
 
-        Device::Device(v8::Isolate *isolate, SDL_Window *window) : Binding(isolate), _impl(new Impl(isolate, window)) {}
+        Device::Device(SDL_Window *window) : Binding(), _impl(new Impl(window)) {}
         CommandBuffer *Device::commandBuffer() { return _impl->commandBuffer(); }
         bool Device::initialize() { return _impl->initialize(); }
         Buffer *Device::createBuffer() { return _impl->createBuffer(); }

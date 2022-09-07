@@ -1,6 +1,5 @@
 import Zero from "../../core/Zero.js";
 import WebDevice from "./gfx/WebDevice.js";
-import WebInput from "./WebInput.js";
 import WebLoader from "./WebLoader.js";
 
 const DEBUG_DT_THRESHOLD = 1;
@@ -9,7 +8,20 @@ export default {
     run(canvas: HTMLCanvasElement, App: new () => Zero) {
         const gl = canvas.getContext('webgl2')!;
         (window as any).zero = new App();
-        zero.initialize(new WebDevice(gl), new WebInput(canvas), new WebLoader, canvas.width, canvas.height);
+        zero.initialize(new WebDevice(gl), new WebLoader, canvas.width, canvas.height);
+
+        const input = zero.input;
+        canvas.addEventListener("mousedown", (mouseEvent) => {
+            input.emit("TOUCH_START", { touches: [{ x: mouseEvent.offsetX, y: canvas.height - mouseEvent.offsetY }] })
+        })
+        canvas.addEventListener("mousemove", (mouseEvent) => {
+            if (mouseEvent.buttons) {
+                input.emit("TOUCH_MOVE", { touches: [{ x: mouseEvent.offsetX, y: canvas.height - mouseEvent.offsetY }] })
+            }
+        })
+        canvas.addEventListener("mouseup", (mouseEvent) => {
+            input.emit("TOUCH_END", { touches: [{ x: mouseEvent.offsetX, y: canvas.height - mouseEvent.offsetY }] })
+        })
 
         let requestId: number;
         let time: number = performance.now();

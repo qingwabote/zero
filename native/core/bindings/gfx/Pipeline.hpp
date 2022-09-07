@@ -17,7 +17,7 @@ namespace binding
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            Pipeline(v8::Isolate *isolate, std::unique_ptr<PipelineImpl> impl);
+            Pipeline(std::unique_ptr<PipelineImpl> impl);
 
             bool initialize(v8::Local<v8::Object> info);
 

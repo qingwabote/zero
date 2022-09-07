@@ -17,7 +17,7 @@ namespace binding
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            Buffer(v8::Isolate *isolate, std::unique_ptr<BufferImpl> impl);
+            Buffer(std::unique_ptr<BufferImpl> impl);
 
             v8::Local<v8::Object> info();
 

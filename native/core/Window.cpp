@@ -60,7 +60,7 @@ int Window::loop()
     global->Set(
         context,
         v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-        (new binding::Console(isolate.get()))->js());
+        (new binding::Console())->js());
     v8::Local<v8::Object> bootstrap;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
@@ -123,7 +123,7 @@ int Window::loop()
         printf("app: no initialize function found\n");
         return -1;
     }
-    binding::gfx::Device *device = new binding::gfx::Device(isolate.get(), window.get());
+    binding::gfx::Device *device = new binding::gfx::Device(window.get());
     v8::Local<v8::Object> js_device = device->js();
     v8::Local<v8::Value> args[] = {
         js_device,
@@ -142,17 +142,17 @@ int Window::loop()
         return -1;
     }
 
-    auto tick = sugar::v8::object_get<v8::Function>(app, "tick");
-    if (tick.IsEmpty())
-    {
-        printf("app: no tick function found\n");
-        return -1;
-    }
+    auto input = sugar::v8::object_get<v8::Object>(app, "input");
+    auto input_emit = sugar::v8::object_get<v8::Function>(input, "emit");
+
+    auto app_tick = sugar::v8::object_get<v8::Function>(app, "tick");
 
     bool running = true;
     auto time = std::chrono::steady_clock::now();
     while (running)
     {
+        v8::HandleScope handle_scope(isolate.get());
+
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -160,6 +160,21 @@ int Window::loop()
             {
             case SDL_QUIT:
                 running = false;
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+            {
+                auto touch = v8::Object::New(isolate.get());
+                touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "x"), v8::Number::New(isolate.get(), event.button.x));
+                touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "y"), v8::Number::New(isolate.get(), event.button.y));
+                auto touches = v8::Array::New(isolate.get(), 1);
+                touches->Set(context, 0, touch);
+                auto touchEvent = v8::Object::New(isolate.get());
+                touchEvent->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "touches"), touches);
+                v8::Local<v8::Value> args[] = {v8::String::NewFromUtf8Literal(isolate.get(), "TOUCH_START"), touchEvent};
+                input_emit->Call(context, input, 2, args);
+                break;
+            }
+            case SDL_MOUSEMOTION:
                 break;
             default:
                 break;
@@ -179,10 +194,8 @@ int Window::loop()
 
         float dt = dtNS / NANOSECONDS_PER_SECOND;
 
-        v8::HandleScope handle_scope(isolate.get());
-
         v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), dt)};
-        tick->Call(context, app, 1, args);
+        // app_tick->Call(context, app, 1, args);
 
         SDL_GL_SwapWindow(window.get());
     }

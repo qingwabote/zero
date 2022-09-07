@@ -1,4 +1,5 @@
 #include "device.hpp"
+#include "sugars/v8sugar.hpp"
 
 namespace binding
 {
@@ -6,9 +7,9 @@ namespace binding
     {
         v8::Local<v8::FunctionTemplate> Device::createTemplate()
         {
-            v8::EscapableHandleScope scope(_isolate);
+            v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-            sugar::v8::Class cls{_isolate, "Device"};
+            sugar::v8::Class cls{"Device"};
 
             cls.defineAccessor(
                 "commandBuffer",

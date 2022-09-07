@@ -17,7 +17,7 @@ namespace binding
             virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            CommandBuffer(v8::Isolate *isolate, std::unique_ptr<CommandBufferImpl> impl);
+            CommandBuffer(std::unique_ptr<CommandBufferImpl> impl);
 
             ~CommandBuffer();
         };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Binding.hpp"
-#include "sugars/sdlsugar.hpp"
+#include "SDL_video.h"
 #include "CommandBuffer.hpp"
 #include "Buffer.hpp"
 #include "Shader.hpp"
@@ -21,7 +21,7 @@ namespace binding
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            Device(v8::Isolate *isolate, SDL_Window *window);
+            Device(SDL_Window *window);
 
             CommandBuffer *commandBuffer();
 

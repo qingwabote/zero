@@ -13,8 +13,8 @@ namespace binding
         {
         }
 
-        CommandBuffer::CommandBuffer(v8::Isolate *isolate, std::unique_ptr<CommandBufferImpl> impl)
-            : Binding(isolate), _impl(std::move(impl)) {}
+        CommandBuffer::CommandBuffer(std::unique_ptr<CommandBufferImpl> impl)
+            : Binding(), _impl(std::move(impl)) {}
 
         CommandBuffer::~CommandBuffer()
         {

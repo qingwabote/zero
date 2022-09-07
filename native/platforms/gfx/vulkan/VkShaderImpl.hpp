@@ -7,9 +7,12 @@ namespace binding
         class ShaderImpl
         {
         private:
-            /* data */
+            v8::Global<v8::Object> _info;
+
         public:
             ShaderImpl(VkDevice device);
+
+            v8::Local<v8::Object> info();
 
             bool initialize(v8::Local<v8::Object> info);
 

@@ -3,10 +3,8 @@ import MeshRenderer from "../../../../script/core/components/MeshRenderer.js";
 import Buffer, { BufferUsageBit } from "../../../../script/core/gfx/Buffer.js";
 import Device from "../../../../script/core/gfx/Device.js";
 import { Format } from "../../../../script/core/gfx/InputAssembler.js";
-import Input from "../../../../script/core/Input.js";
 import Loader from "../../../../script/core/Loader.js";
-import { Vec3 } from "../../../../script/core/math/vec3.js";
-import Node, { TransformBit } from "../../../../script/core/Node.js";
+import Node from "../../../../script/core/Node.js";
 import Material from "../../../../script/core/render/Material.js";
 import Mesh from "../../../../script/core/render/Mesh.js";
 import Pass from "../../../../script/core/render/Pass.js";
@@ -16,8 +14,8 @@ import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 export default class App extends Zero {
-    initialize(device: Device, input: Input, loader: Loader, width: number, height: number): boolean {
-        if (super.initialize(device, input, loader, width, height)) {
+    initialize(device: Device, loader: Loader, width: number, height: number): boolean {
+        if (super.initialize(device, loader, width, height)) {
             return true;
         }
 
@@ -74,52 +72,6 @@ export default class App extends Zero {
         renderer.materials = [material];
 
         node.addComponent(ZeroComponent);
-
-        const eulerXLabel = document.querySelector<HTMLLabelElement>('#eulerXLabel')!;
-        const eulerXInput = document.querySelector<HTMLInputElement>('#eulerXInput')!;
-
-        const eulerYLabel = document.querySelector<HTMLLabelElement>('#eulerYLabel')!;
-        const eulerYInput = document.querySelector<HTMLInputElement>('#eulerYInput')!;
-
-        const eulerZLabel = document.querySelector<HTMLLabelElement>('#eulerZLabel')!;
-        const eulerZInput = document.querySelector<HTMLInputElement>('#eulerZInput')!;
-
-        function updateInput(euler: Readonly<Vec3>): void {
-            eulerXInput.valueAsNumber = euler[0];
-            eulerYInput.valueAsNumber = euler[1];
-            eulerZInput.valueAsNumber = euler[2];
-        }
-
-        function updateLabel(euler: Readonly<Vec3>): void {
-            eulerXLabel.textContent = `eulerX: ${euler[0]}`;
-            eulerYLabel.textContent = `eulerY: ${euler[1]}`;
-            eulerZLabel.textContent = `eulerZ: ${euler[2]}`;
-        }
-
-        function onTransform(flag: TransformBit) {
-            if (flag & TransformBit.ROTATION) {
-                const euler = node.euler;
-                updateInput(euler);
-                updateLabel(euler);
-            }
-        }
-
-        function onEulerInput(): void {
-            const euler: Vec3 = [eulerXInput.valueAsNumber, eulerYInput.valueAsNumber, eulerZInput.valueAsNumber];
-            node.eventEmitter.off("TRANSFORM_CHANGED", onTransform);
-            node.euler = euler;
-            node.eventEmitter.on("TRANSFORM_CHANGED", onTransform)
-            updateLabel(euler);
-        }
-
-        eulerXInput.addEventListener('input', onEulerInput);
-        eulerYInput.addEventListener('input', onEulerInput);
-        eulerZInput.addEventListener('input', onEulerInput);
-
-        node.eventEmitter.on("TRANSFORM_CHANGED", onTransform)
-
-        updateInput(node.euler)
-        updateLabel(node.euler)
 
         return false;
     }

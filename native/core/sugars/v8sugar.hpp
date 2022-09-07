@@ -33,15 +33,15 @@ namespace sugar
             _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
             _v8::Local<_v8::String> key = _v8::String::NewFromUtf8(isolate, name).ToLocalChecked();
-            _v8::Maybe<bool> maybeExist = object->Has(context, key);
-            if (maybeExist.IsNothing())
-            {
-                return {};
-            }
-            if (!maybeExist.FromJust())
-            {
-                return {};
-            }
+            // _v8::Maybe<bool> maybeExist = object->Has(context, key);
+            // if (maybeExist.IsNothing())
+            // {
+            //     return {};
+            // }
+            // if (!maybeExist.FromJust())
+            // {
+            //     return {};
+            // }
             _v8::MaybeLocal<_v8::Value> maybeValue = object->Get(context, key);
             if (maybeValue.IsEmpty())
             {
@@ -63,18 +63,17 @@ namespace sugar
         //     }
         // }
 
-        void setWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb);
+        void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb);
 
         void gc(_v8::Local<_v8::Context> context);
 
         class Class
         {
         private:
-            _v8::Isolate *_isolate = nullptr;
             _v8::Global<_v8::FunctionTemplate> _functionTemplate;
 
         public:
-            Class(_v8::Isolate *isolate, const char *name);
+            Class(const char *name);
 
             void defineFunction(const char *name, _v8::FunctionCallback callback);
 

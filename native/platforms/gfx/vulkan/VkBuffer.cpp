@@ -1,5 +1,6 @@
 #include "bindings/gfx/Buffer.hpp"
 #include "VkBufferImpl.hpp"
+#include "sugars/v8sugar.hpp"
 
 namespace binding
 {
@@ -48,8 +49,8 @@ namespace binding
             vmaDestroyBuffer(_allocator, _buffer, _allocation);
         }
 
-        Buffer::Buffer(v8::Isolate *isolate, std::unique_ptr<BufferImpl> impl)
-            : Binding(isolate), _impl(std::move(impl)) {}
+        Buffer::Buffer(std::unique_ptr<BufferImpl> impl)
+            : Binding(), _impl(std::move(impl)) {}
         v8::Local<v8::Object> Buffer::info() { return _impl->info(); }
         bool Buffer::initialize(v8::Local<v8::Object> info) { return _impl->initialize(info); }
         void Buffer::update(v8::Local<v8::ArrayBufferView> buffer) { return _impl->update(buffer); }

@@ -1,4 +1,5 @@
 #include "Buffer.hpp"
+#include "sugars/v8sugar.hpp"
 
 namespace binding
 {
@@ -6,9 +7,9 @@ namespace binding
     {
         v8::Local<v8::FunctionTemplate> Buffer::createTemplate()
         {
-            v8::EscapableHandleScope scope(_isolate);
+            v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-            sugar::v8::Class cls{_isolate, "Buffer"};
+            sugar::v8::Class cls{"Buffer"};
             cls.defineAccessor(
                 "info",
                 [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)

@@ -1,10 +1,11 @@
 #include "Console.hpp"
+#include "sugars/v8sugar.hpp"
 
 namespace binding
 {
     v8::Local<v8::FunctionTemplate> Console::createTemplate()
     {
-        sugar::v8::Class cls{_isolate, "Console"};
+        sugar::v8::Class cls{"Console"};
         cls.defineFunction(
             "log",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)

@@ -50,7 +50,7 @@ export default {
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
                     // remove unsupported layout declaration for webgl
-                    if (window) {
+                    if (typeof window != 'undefined') {
                         return type ? `uniform ${type} ${name}` : `uniform ${name}`;
                     } else {
                         return content;
