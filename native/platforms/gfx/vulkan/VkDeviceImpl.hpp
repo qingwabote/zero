@@ -38,16 +38,22 @@ namespace binding
             CommandBuffer *_commandBuffer = nullptr;
             v8::Global<v8::Object> _js_commandBuffer;
 
-        public:
-            uint32_t version()
-            {
-                return _version;
-            }
+            VkFence _renderFence = nullptr;
+            VkSemaphore _presentSemaphore = nullptr;
+            VkSemaphore _renderSemaphore = nullptr;
 
-            VkDevice device()
-            {
-                return _vkb_device.device;
-            }
+        public:
+            uint32_t version() { return _version; }
+
+            VkDevice device() { return _vkb_device.device; }
+
+            VkCommandPool commandPool() { return _commandPool; }
+
+            VkRenderPass renderPass() { return _renderPass; }
+
+            VkFence renderFence() { return _renderFence; }
+            VkSemaphore presentSemaphore() { return _presentSemaphore; }
+            VkSemaphore renderSemaphore() { return _renderSemaphore; }
 
             DeviceImpl(SDL_Window *window);
 
@@ -60,6 +66,8 @@ namespace binding
             Shader *createShader();
 
             Pipeline *createPipeline();
+
+            void present();
 
             ~DeviceImpl();
         };

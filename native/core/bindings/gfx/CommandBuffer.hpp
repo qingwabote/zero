@@ -19,6 +19,8 @@ namespace binding
         public:
             CommandBuffer(std::unique_ptr<CommandBufferImpl> impl);
 
+            void begin();
+
             ~CommandBuffer();
         };
     }

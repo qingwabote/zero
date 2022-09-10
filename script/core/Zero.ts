@@ -65,12 +65,14 @@ export default class Zero {
 
         render.dirtyTransforms.clear();
 
+        const commandBuffer = this._device.commandBuffer;
+        commandBuffer.begin();
+
         const cameras = this._renderScene.cameras;
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             this._globalDescriptorSet.buffers[BuiltinUniformBlocks.global.blocks.Camera.binding] = camera.ubo;
 
-            const commandBuffer = this._device.commandBuffer;
             const viewport = camera.viewport;
             commandBuffer.beginRenderPass({
                 x: this._window.width * viewport.x,
@@ -109,5 +111,6 @@ export default class Zero {
 
             commandBuffer.endRenderPass()
         }
+        this._device.present();
     }
 } 

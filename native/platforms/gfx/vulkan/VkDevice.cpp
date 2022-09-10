@@ -80,15 +80,7 @@ namespace binding
             commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
             vkCreateCommandPool(_vkb_device.device, &commandPoolInfo, nullptr, &_commandPool);
 
-            VkCommandBufferAllocateInfo cmdAllocInfo = {};
-            cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            cmdAllocInfo.pNext = nullptr;
-            cmdAllocInfo.commandPool = _commandPool;
-            cmdAllocInfo.commandBufferCount = 1;
-            cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            VkCommandBuffer vk_commandBuffer = nullptr;
-            vkAllocateCommandBuffers(_vkb_device.device, &cmdAllocInfo, &vk_commandBuffer);
-            _commandBuffer = new CommandBuffer(std::make_unique<CommandBufferImpl>(vk_commandBuffer));
+            _commandBuffer = new CommandBuffer(std::make_unique<CommandBufferImpl>(this));
             _js_commandBuffer.Reset(v8::Isolate::GetCurrent(), _commandBuffer->js());
 
             // color attachment.
@@ -150,6 +142,18 @@ namespace binding
             allocatorInfo.instance = _vkb_instance.instance;
             vmaCreateAllocator(&allocatorInfo, &_allocator);
 
+            VkFenceCreateInfo fenceCreateInfo = {};
+            fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            fenceCreateInfo.pNext = nullptr;
+            fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+            vkCreateFence(_vkb_device.device, &fenceCreateInfo, nullptr, &_renderFence);
+
+            VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+            semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            semaphoreCreateInfo.pNext = nullptr;
+            vkCreateSemaphore(_vkb_device.device, &semaphoreCreateInfo, nullptr, &_presentSemaphore);
+            vkCreateSemaphore(_vkb_device.device, &semaphoreCreateInfo, nullptr, &_renderSemaphore);
+
             glslang::InitializeProcess();
 
             return false;
@@ -161,9 +165,21 @@ namespace binding
 
         Pipeline *DeviceImpl::createPipeline() { return new Pipeline(std::make_unique<PipelineImpl>(_vkb_device.device)); }
 
+        void DeviceImpl::present()
+        {
+            vkWaitForFences(_vkb_device.device, 1, &_renderFence, true, 1000000000);
+            vkResetFences(_vkb_device.device, 1, &_renderFence);
+        }
+
         DeviceImpl::~DeviceImpl()
         {
             glslang::FinalizeProcess();
+
+            vkDeviceWaitIdle(_vkb_device.device);
+
+            vkDestroyFence(_vkb_device.device, _renderFence, nullptr);
+            vkDestroySemaphore(_vkb_device.device, _presentSemaphore, nullptr);
+            vkDestroySemaphore(_vkb_device.device, _renderSemaphore, nullptr);
 
             vmaDestroyAllocator(_allocator);
             for (int i = 0; i < _framebuffers.size(); i++)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan/vulkan.hpp"
+#include "VkDeviceImpl.hpp"
 
 namespace binding
 {
@@ -9,10 +9,12 @@ namespace binding
         class CommandBufferImpl
         {
         private:
-            /* data */
+            VkCommandBuffer _commandBuffer = nullptr;
+
         public:
+            void begin();
             void beginRenderPass(v8::Local<v8::Object> area);
-            CommandBufferImpl(VkCommandBuffer commandBuffer);
+            CommandBufferImpl(DeviceImpl *device);
             ~CommandBufferImpl();
         };
     }

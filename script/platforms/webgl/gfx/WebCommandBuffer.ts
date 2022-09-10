@@ -53,6 +53,8 @@ export default class WebCommandBuffer implements CommandBuffer {
         this._gl = gl;
     }
 
+    begin(): void { }
+
     beginRenderPass(viewport: Rect) {
         const gl = this._gl;
 

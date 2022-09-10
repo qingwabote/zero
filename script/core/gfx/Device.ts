@@ -19,5 +19,5 @@ export default interface Device {
 
     createImageBitmap(blob: Blob): Promise<ImageBitmap>;
 
-    submit(commandBuffer: CommandBuffer): void;
+    present(): void;
 }
