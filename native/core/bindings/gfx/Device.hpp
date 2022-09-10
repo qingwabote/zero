@@ -11,11 +11,12 @@ namespace binding
 {
     namespace gfx
     {
+        class DeviceImpl;
+
         class Device : public Binding
         {
         private:
-            class Impl;
-            Impl *_impl = nullptr;
+            DeviceImpl *_impl = nullptr;
 
         protected:
             v8::Local<v8::FunctionTemplate> createTemplate() override;

@@ -122,7 +122,7 @@ namespace binding
 {
     namespace gfx
     {
-        ShaderImpl::ShaderImpl(Context *context) : _context(context) {}
+        ShaderImpl::ShaderImpl(DeviceImpl *device) : _device(device) {}
 
         v8::Local<v8::Object> ShaderImpl::info()
         {
@@ -152,16 +152,16 @@ namespace binding
                 glslang::TShader shader{stage};
                 shader.setStrings(&source_c_str, 1);
                 shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, version_semantics);
-                shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_context->version()));
+                shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_device->version()));
                 glslang::EShTargetLanguageVersion version_spirv;
-                switch (_context->version())
+                switch (_device->version())
                 {
                 case VK_MAKE_API_VERSION(0, 1, 1, 0):
                     version_spirv = glslang::EShTargetSpv_1_3;
                     break;
 
                 default:
-                    printf("Unsupported vulkan api version %d\n", _context->version());
+                    printf("Unsupported vulkan api version %d\n", _device->version());
                     return true;
                 }
                 shader.setEnvTarget(glslang::EShTargetSpv, version_spirv);
@@ -197,7 +197,7 @@ namespace binding
                 moduleCreateInfo.codeSize = spirv.size() * sizeof(uint32_t);
                 moduleCreateInfo.pCode = spirv.data();
                 VkShaderModule shaderModule;
-                if (vkCreateShaderModule(_context->device(), &moduleCreateInfo, nullptr, &shaderModule))
+                if (vkCreateShaderModule(_device->device(), &moduleCreateInfo, nullptr, &shaderModule))
                 {
                     return true;
                 }
@@ -223,7 +223,7 @@ namespace binding
 
             for (size_t i = 0; i < _stageInfos.size(); i++)
             {
-                vkDestroyShaderModule(_context->device(), _stageInfos[i].module, nullptr);
+                vkDestroyShaderModule(_device->device(), _stageInfos[i].module, nullptr);
             }
         }
 

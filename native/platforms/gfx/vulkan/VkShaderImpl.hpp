@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VkContext.hpp"
+#include "VkDeviceImpl.hpp"
 
 namespace binding
 {
@@ -9,14 +9,14 @@ namespace binding
         class ShaderImpl
         {
         private:
-            Context *_context = nullptr;
+            DeviceImpl *_device = nullptr;
 
             v8::Global<v8::Object> _info;
 
             std::vector<VkPipelineShaderStageCreateInfo> _stageInfos;
 
         public:
-            ShaderImpl(Context *context);
+            ShaderImpl(DeviceImpl *device);
 
             v8::Local<v8::Object> info();
 

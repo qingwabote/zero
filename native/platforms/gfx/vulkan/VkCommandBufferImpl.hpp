@@ -11,6 +11,7 @@ namespace binding
         private:
             /* data */
         public:
+            void beginRenderPass(v8::Local<v8::Object> area);
             CommandBufferImpl(VkCommandBuffer commandBuffer);
             ~CommandBufferImpl();
         };

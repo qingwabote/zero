@@ -5,6 +5,10 @@ namespace binding
 {
     namespace gfx
     {
+        void beginRenderPass(v8::Local<v8::Object> area)
+        {
+        }
+
         CommandBufferImpl::CommandBufferImpl(VkCommandBuffer commandBuffer)
         {
         }
