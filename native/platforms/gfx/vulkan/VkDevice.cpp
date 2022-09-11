@@ -81,6 +81,7 @@ namespace binding
             vkCreateCommandPool(_vkb_device.device, &commandPoolInfo, nullptr, &_commandPool);
 
             _commandBuffer = new CommandBuffer(std::make_unique<CommandBufferImpl>(this));
+            _commandBuffer->initialize();
             _js_commandBuffer.Reset(v8::Isolate::GetCurrent(), _commandBuffer->js());
 
             // color attachment.
@@ -169,6 +170,8 @@ namespace binding
         {
             vkWaitForFences(_vkb_device.device, 1, &_renderFence, true, 1000000000);
             vkResetFences(_vkb_device.device, 1, &_renderFence);
+
+            vkAcquireNextImageKHR(_vkb_device.device, _vkb_swapchain.swapchain, 1000000000, _presentSemaphore, nullptr, &_swapchainImageIndex);
         }
 
         DeviceImpl::~DeviceImpl()

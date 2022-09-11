@@ -128,10 +128,9 @@ int Window::loop()
     v8::Local<v8::Value> args[] = {
         js_device,
         v8::Object::New(isolate.get()),
-        v8::Object::New(isolate.get()),
         v8::Number::New(isolate.get(), width),
         v8::Number::New(isolate.get(), height)};
-    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 5, args);
+    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 4, args);
     if (maybeRes.IsEmpty())
     {
         return -1;

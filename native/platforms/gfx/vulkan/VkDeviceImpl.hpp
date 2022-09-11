@@ -42,6 +42,8 @@ namespace binding
             VkSemaphore _presentSemaphore = nullptr;
             VkSemaphore _renderSemaphore = nullptr;
 
+            uint32_t _swapchainImageIndex = 0;
+
         public:
             uint32_t version() { return _version; }
 
@@ -54,6 +56,12 @@ namespace binding
             VkFence renderFence() { return _renderFence; }
             VkSemaphore presentSemaphore() { return _presentSemaphore; }
             VkSemaphore renderSemaphore() { return _renderSemaphore; }
+
+            // uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
+
+            // const std::vector<VkFramebuffer> &framebuffers() { return _framebuffers; }
+
+            VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
 
             DeviceImpl(SDL_Window *window);
 

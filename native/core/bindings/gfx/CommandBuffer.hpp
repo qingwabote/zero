@@ -19,7 +19,11 @@ namespace binding
         public:
             CommandBuffer(std::unique_ptr<CommandBufferImpl> impl);
 
+            bool initialize();
+
             void begin();
+
+            void beginRenderPass(v8::Local<v8::Object> area);
 
             ~CommandBuffer();
         };
