@@ -3,6 +3,8 @@ import { Format, FormatInfos, InputAssembler } from "../../../core/gfx/InputAsse
 import Pipeline, { BlendFactor, DescriptorSet, DescriptorType } from "../../../core/gfx/Pipeline.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
+import WebDescriptorSet from "./WebDescriptorSet.js";
+import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebPipeline from "./WebPipeline.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
@@ -97,12 +99,12 @@ export default class WebCommandBuffer implements CommandBuffer {
 
     bindDescriptorSet(index: number, descriptorSet: DescriptorSet): void {
         const gl = this._gl;
-        for (const layoutBinding of descriptorSet.layout.bindings) {
+        for (const layoutBinding of ((descriptorSet as WebDescriptorSet).layout as WebDescriptorSetLayout).bindings) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
-                const buffer = descriptorSet.buffers[layoutBinding.binding] as WebBuffer;
+                const buffer = (descriptorSet as WebDescriptorSet).buffers[layoutBinding.binding] as WebBuffer;
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
-                const texture = descriptorSet.textures[layoutBinding.binding] as WebTexture;
+                const texture = (descriptorSet as WebDescriptorSet).textures[layoutBinding.binding] as WebTexture;
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);
             }
         }

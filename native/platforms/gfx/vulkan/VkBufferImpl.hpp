@@ -21,6 +21,8 @@ namespace binding
             v8::Global<v8::Object> _info;
 
         public:
+            VkBuffer buffer() { return _buffer; }
+
             BufferImpl(VkDevice device, VmaAllocator allocator);
 
             v8::Local<v8::Object> info();

@@ -4,6 +4,8 @@ set(SRC_FILES
     VKBuffer.cpp
     VkShader.cpp
     VkPipeline.cpp
+    VkDescriptorSetLayout.cpp
+    VkDescriptorSet.cpp
 )
 
 add_library(gfx STATIC ${SRC_FILES})

@@ -1,7 +1,7 @@
 import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { DescriptorSet } from "../gfx/Pipeline.js";
 import render, { TransformSource } from "../render.js";
-import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks } from "../shaders.js";
+import shaders, { BuiltinUniformBlocks } from "../shaders.js";
 import SubModel from "./SubModel.js";
 
 const float32Array = new Float32Array(16);
@@ -17,16 +17,19 @@ export default class Model {
         return this._subModels;
     }
 
+    private _localBuffer: Buffer;
+
     private _transform: TransformSource;
 
     constructor(subModels: SubModel[], transform: TransformSource) {
         render.dirtyTransforms.set(transform, transform);
 
-        const buffers: Buffer[] = [];
-        const buffer = zero.device.createBuffer();
-        buffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: float32Array.byteLength });
-        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = buffer;
-        this._descriptorSet = { layout: BuiltinDescriptorSetLayouts.local, buffers, textures: [] };
+        this._localBuffer = zero.device.createBuffer();
+        this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: float32Array.byteLength });
+
+        this._descriptorSet = zero.device.createDescriptorSet();
+        this._descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local);
+        this._descriptorSet.bindBuffer(BuiltinUniformBlocks.local.blocks.Local.binding, this._localBuffer);
 
         this._subModels = subModels;
         this._transform = transform;
@@ -36,7 +39,7 @@ export default class Model {
         if (render.dirtyTransforms.has(this._transform)) {
             this._transform.updateMatrix();
             float32Array.set(this._transform.matrix);
-            this._descriptorSet.buffers[BuiltinUniformBlocks.local.blocks.Local.binding].update(float32Array);
+            this._localBuffer.update(float32Array);
         }
     }
 }

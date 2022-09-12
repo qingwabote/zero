@@ -147,7 +147,7 @@ export default class GLTF extends Asset {
                 const shader = shaders.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
                 const pass = new Pass(shader);
                 if (textureIdx != undefined) {
-                    pass.descriptorSet.textures[0] = this._textures![this._json.textures[textureIdx].source];
+                    pass.descriptorSet.bindTexture(0, this._textures![this._json.textures[textureIdx].source]);
                 }
                 const material = new Material([pass]);
                 materials.push(material);

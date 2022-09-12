@@ -6,7 +6,7 @@ import Loader from "./Loader.js";
 import render from "./render.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
-import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks } from "./shaders.js";
+import shaders, { BuiltinUniformBlocks } from "./shaders.js";
 
 export default class Zero {
     private _device!: Device;
@@ -51,7 +51,8 @@ export default class Zero {
 
         this._renderScene = new RenderScene;
 
-        this._globalDescriptorSet = { layout: BuiltinDescriptorSetLayouts.global, buffers: [], textures: [] };
+        this._globalDescriptorSet = device.createDescriptorSet();
+        this._globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global)
 
         this._loader = loader;
 
@@ -71,7 +72,7 @@ export default class Zero {
         const cameras = this._renderScene.cameras;
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            this._globalDescriptorSet.buffers[BuiltinUniformBlocks.global.blocks.Camera.binding] = camera.ubo;
+            this._globalDescriptorSet.bindBuffer(BuiltinUniformBlocks.global.blocks.Camera.binding, camera.ubo);
 
             const viewport = camera.viewport;
             commandBuffer.beginRenderPass({

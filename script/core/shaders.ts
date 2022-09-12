@@ -2,6 +2,11 @@ import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType } from 
 import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
 
+interface BuiltinDescriptorSetLayouts {
+    global: DescriptorSetLayout,
+    local: DescriptorSetLayout
+}
+
 export const BuiltinUniformBlocks = {
     global: {
         set: 0,
@@ -34,15 +39,19 @@ function buildDescriptorSetLayout(res: {
     const bindings: DescriptorSetLayoutBinding[] = [];
     for (const name in res.blocks) {
         const block = res.blocks[name];
-        bindings[block.binding] = { binding: block.binding, descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 }
+        bindings[block.binding] = {
+            binding: block.binding,
+            descriptorType: DescriptorType.UNIFORM_BUFFER,
+            descriptorCount: 1,
+            stageFlags: ShaderStageFlagBits.VERTEX
+        }
     }
-    return { bindings }
+    const descriptorSetLayout = zero.device.createDescriptorSetLayout();
+    descriptorSetLayout.initialize(bindings);
+    return descriptorSetLayout;
 }
 
-export const BuiltinDescriptorSetLayouts = {
-    global: buildDescriptorSetLayout(BuiltinUniformBlocks.global),
-    local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
-}
+let _builtinDescriptorSetLayouts: BuiltinDescriptorSetLayouts;
 
 const chunks: string[] = [];
 chunks.push("global");
@@ -69,6 +78,7 @@ while (chunks.length > 1) {
 const sources: string[] = [];
 
 sources.push('triangle');
+// vertex
 sources.push(`
 #include <global>
 #include <local>
@@ -79,6 +89,7 @@ void main() {
     gl_Position = matProj * (matView * matWorld) * a_position;
 }
 `);
+// fragment
 sources.push(`
 precision highp float;
 
@@ -91,6 +102,7 @@ void main() {
 `)
 
 sources.push('zero');
+// vertex
 sources.push(`
 #include <global>
 #include <local>
@@ -106,6 +118,7 @@ void main() {
     gl_Position = matProj * (matView * matWorld) * a_position;
 }
 `);
+// fragment
 sources.push(`
 precision highp float;
 
@@ -143,6 +156,16 @@ while (sources.length > 2) {
 
 const shaders: Record<string, Shader> = {};
 export default {
+    get builtinDescriptorSetLayouts(): BuiltinDescriptorSetLayouts {
+        if (!_builtinDescriptorSetLayouts) {
+            _builtinDescriptorSetLayouts = {
+                global: buildDescriptorSetLayout(BuiltinUniformBlocks.global),
+                local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
+            }
+        }
+        return _builtinDescriptorSetLayouts;
+    },
+
     getShader(name: string, macros: Record<string, number> = {}): Shader {
         let key = name;
         for (const macro of name2macros[name]) {

@@ -1,4 +1,4 @@
-import { DescriptorSetLayout, DescriptorType } from "./gfx/Pipeline.js";
+import { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
 import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "./gfx/Shader.js";
 
 const ifMacroExp = /#if\s+(\w+)\s+([\s\S]+?)[ \t]*#endif\s*?\n/g;
@@ -37,16 +37,21 @@ export default {
         }
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
-        const descriptorSetLayout: DescriptorSetLayout = { bindings: [] };
+        const bindings: DescriptorSetLayoutBinding[] = []
         for (const stage of out) {
             stage.source = stage.source.replace(
                 /layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/g,
                 function (content: string, set: string, binding: string, type: string, name: string): string {
                     if (!type) {
-                        // descriptorSetLayout.bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 })
+                        // bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 })
                         blocks[name] = { set: parseInt(set), binding: parseInt(binding) };
                     } else if (type == 'sampler2D') {
-                        descriptorSetLayout.bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.SAMPLER_TEXTURE, count: 1 });
+                        bindings.push({
+                            binding: parseInt(binding),
+                            descriptorType: DescriptorType.SAMPLER_TEXTURE,
+                            descriptorCount: 1,
+                            stageFlags: ShaderStageFlagBits.FRAGMENT
+                        });
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
                     // remove unsupported layout declaration for webgl, e.g. descriptor sets, no such concept in OpenGL
@@ -57,6 +62,8 @@ export default {
                     }
                 })
         }
+        const descriptorSetLayout = zero.device.createDescriptorSetLayout();
+        descriptorSetLayout.initialize(bindings);
 
         return {
             out,

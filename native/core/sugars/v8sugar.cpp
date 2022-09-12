@@ -305,6 +305,15 @@ namespace sugar
             return handleScope.Escape(out);
         }
 
+        void object_set(_v8::Local<_v8::Object> object, const char *name, _v8::Local<_v8::Value> value)
+        {
+            _v8::Isolate *isolate = object->GetIsolate();
+            _v8::HandleScope handleScope(isolate);
+            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
+
+            object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value);
+        }
+
         void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb)
         {
             _v8::Isolate *isolate = _v8::Isolate::GetCurrent();

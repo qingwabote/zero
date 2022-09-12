@@ -12,7 +12,7 @@ namespace binding
             /* data */
         public:
             PipelineImpl(VkDevice device);
-            ~PipelineImpl(){};
+            ~PipelineImpl();
         };
     }
 }

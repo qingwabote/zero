@@ -9,6 +9,8 @@
 #include "bindings/gfx/Commandbuffer.hpp"
 #include "bindings/gfx/Buffer.hpp"
 #include "bindings/gfx/Shader.hpp"
+#include "bindings/gfx/DescriptorSetLayout.hpp"
+#include "bindings/gfx/DescriptorSet.hpp"
 #include "bindings/gfx/Pipeline.hpp"
 
 namespace binding
@@ -30,6 +32,7 @@ namespace binding
 
             VkQueue _graphicsQueue = nullptr;
             VkCommandPool _commandPool = nullptr;
+            VkDescriptorPool _descriptorPool = nullptr;
             VkRenderPass _renderPass = nullptr;
             std::vector<VkFramebuffer> _framebuffers;
 
@@ -50,6 +53,8 @@ namespace binding
             VkDevice device() { return _vkb_device.device; }
 
             VkCommandPool commandPool() { return _commandPool; }
+
+            VkDescriptorPool descriptorPool() { return _descriptorPool; }
 
             VkRenderPass renderPass() { return _renderPass; }
 
@@ -72,6 +77,10 @@ namespace binding
             Buffer *createBuffer();
 
             Shader *createShader();
+
+            DescriptorSetLayout *createDescriptorSetLayout();
+
+            DescriptorSet *createDescriptorSet();
 
             Pipeline *createPipeline();
 

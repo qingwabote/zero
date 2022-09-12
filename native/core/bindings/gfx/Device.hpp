@@ -5,6 +5,8 @@
 #include "CommandBuffer.hpp"
 #include "Buffer.hpp"
 #include "Shader.hpp"
+#include "DescriptorSetLayout.hpp"
+#include "DescriptorSet.hpp"
 #include "Pipeline.hpp"
 
 namespace binding
@@ -31,6 +33,10 @@ namespace binding
             Buffer *createBuffer();
 
             Shader *createShader();
+
+            DescriptorSetLayout *createDescriptorSetLayout();
+
+            DescriptorSet *createDescriptorSet();
 
             Pipeline *createPipeline();
 

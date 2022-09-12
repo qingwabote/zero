@@ -9,6 +9,8 @@ set(SRC_FILES
     bindings/gfx/Buffer.cpp
     bindings/gfx/Shader.cpp
     bindings/gfx/Pipeline.cpp
+    bindings/gfx/DescriptorSetLayout.cpp
+    bindings/gfx/DescriptorSet.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})

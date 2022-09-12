@@ -7,6 +7,8 @@
 #include "VkCommandBufferImpl.hpp"
 #include "VkBufferImpl.hpp"
 #include "VkShaderImpl.hpp"
+#include "VkDescriptorSetLayout_impl.hpp"
+#include "VkDescriptorSet_impl.hpp"
 #include "VkPipelineImpl.hpp"
 
 #include "glslang/Public/ShaderLang.h"
@@ -83,6 +85,16 @@ namespace binding
             _commandBuffer = new CommandBuffer(std::make_unique<CommandBufferImpl>(this));
             _commandBuffer->initialize();
             _js_commandBuffer.Reset(v8::Isolate::GetCurrent(), _commandBuffer->js());
+
+            // descriptor pool
+            std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
+            VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
+            descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            descriptorPoolCreateInfo.flags = 0;
+            descriptorPoolCreateInfo.maxSets = 10;
+            descriptorPoolCreateInfo.poolSizeCount = (uint32_t)descriptorPoolSizes.size();
+            descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
+            vkCreateDescriptorPool(_vkb_device.device, &descriptorPoolCreateInfo, nullptr, &_descriptorPool);
 
             // color attachment.
             VkAttachmentDescription color_attachment = {};
@@ -164,6 +176,10 @@ namespace binding
 
         Shader *DeviceImpl::createShader() { return new Shader(std::make_unique<ShaderImpl>(this)); }
 
+        DescriptorSetLayout *DeviceImpl::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(this)); }
+
+        DescriptorSet *DeviceImpl::createDescriptorSet() { return new DescriptorSet(std::make_unique<DescriptorSet_impl>(this)); }
+
         Pipeline *DeviceImpl::createPipeline() { return new Pipeline(std::make_unique<PipelineImpl>(_vkb_device.device)); }
 
         void DeviceImpl::present()
@@ -191,6 +207,7 @@ namespace binding
             }
             vkDestroyRenderPass(_vkb_device.device, _renderPass, nullptr);
             _js_commandBuffer.Reset();
+            vkDestroyDescriptorPool(_vkb_device.device, _descriptorPool, nullptr);
             vkDestroyCommandPool(_vkb_device.device, _commandPool, nullptr);
             for (int i = 0; i < _swapchainImageViews.size(); i++)
             {
@@ -207,6 +224,8 @@ namespace binding
         bool Device::initialize() { return _impl->initialize(); }
         Buffer *Device::createBuffer() { return _impl->createBuffer(); }
         Shader *Device::createShader() { return _impl->createShader(); }
+        DescriptorSetLayout *Device::createDescriptorSetLayout() { return _impl->createDescriptorSetLayout(); }
+        DescriptorSet *Device::createDescriptorSet() { return _impl->createDescriptorSet(); }
         Pipeline *Device::createPipeline() { return _impl->createPipeline(); }
         Device::~Device() { delete _impl; }
     }

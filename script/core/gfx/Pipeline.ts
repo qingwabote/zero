@@ -1,27 +1,28 @@
 import Buffer from "./Buffer.js";
-import Shader from "./Shader.js";
+import Shader, { ShaderStageFlagBits } from "./Shader.js";
 import Texture from "./Texture.js";
 
+// copy values from VkDescriptorType in vulkan_core.h
 export enum DescriptorType {
-    UNIFORM_BUFFER = 0x1,
-    SAMPLER_TEXTURE = 0x10,
+    SAMPLER_TEXTURE = 1,
+    UNIFORM_BUFFER = 6,
 }
 
 export interface DescriptorSetLayoutBinding {
     readonly binding: number;
     readonly descriptorType: DescriptorType;
-    readonly count: number;
-    // readonly stageFlags: ShaderStageFlags;
+    readonly descriptorCount: number;
+    readonly stageFlags: ShaderStageFlagBits;
 }
 
 export interface DescriptorSetLayout {
-    readonly bindings: DescriptorSetLayoutBinding[]
+    initialize(bindings: DescriptorSetLayoutBinding[]): boolean;
 }
 
 export interface DescriptorSet {
-    readonly layout: DescriptorSetLayout;
-    readonly buffers: Buffer[];
-    readonly textures: Texture[];
+    initialize(layout: DescriptorSetLayout): boolean;
+    bindBuffer(binding: number, buffer: Buffer): void;
+    bindTexture(binding: number, texture: Texture): void;
 }
 
 export interface PipelineLayout {
