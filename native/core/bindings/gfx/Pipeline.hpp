@@ -6,18 +6,18 @@ namespace binding
 {
     namespace gfx
     {
-        class PipelineImpl;
+        class Pipeline_impl;
 
         class Pipeline : public Binding
         {
         private:
-            std::unique_ptr<PipelineImpl> _impl;
+            std::unique_ptr<Pipeline_impl> _impl;
 
         protected:
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            Pipeline(std::unique_ptr<PipelineImpl> impl);
+            Pipeline(std::unique_ptr<Pipeline_impl> impl);
 
             bool initialize(v8::Local<v8::Object> info);
 

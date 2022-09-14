@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VkDeviceImpl.hpp"
+#include "VkDevice_impl.hpp"
 
 namespace binding
 {
@@ -8,16 +8,16 @@ namespace binding
     {
         class DescriptorSetLayout_impl
         {
+            friend class DescriptorSetLayout;
+
         private:
-            DeviceImpl *_device = nullptr;
+            Device_impl *_device = nullptr;
             VkDescriptorSetLayout _setLayout = nullptr;
 
         public:
             const VkDescriptorSetLayout setLayout() { return _setLayout; }
 
-            DescriptorSetLayout_impl(DeviceImpl *device);
-
-            bool initialize(v8::Local<v8::Array> js_setLayoutBindings);
+            DescriptorSetLayout_impl(Device_impl *device);
 
             ~DescriptorSetLayout_impl();
         };

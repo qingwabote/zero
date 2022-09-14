@@ -6,20 +6,20 @@ namespace binding
 {
     namespace gfx
     {
-        class BufferImpl;
+        class Buffer_impl;
 
         class Buffer : public Binding
         {
         private:
-            std::unique_ptr<BufferImpl> _impl;
+            std::unique_ptr<Buffer_impl> _impl;
 
         protected:
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            BufferImpl *impl() { return _impl.get(); }
+            Buffer_impl *impl() { return _impl.get(); }
 
-            Buffer(std::unique_ptr<BufferImpl> impl);
+            Buffer(std::unique_ptr<Buffer_impl> impl);
 
             v8::Local<v8::Object> info();
 

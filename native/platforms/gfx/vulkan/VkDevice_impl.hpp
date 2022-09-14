@@ -6,7 +6,7 @@
 
 #include "vma/vk_mem_alloc.h"
 
-#include "bindings/gfx/Commandbuffer.hpp"
+#include "bindings/gfx/CommandBuffer.hpp"
 #include "bindings/gfx/Buffer.hpp"
 #include "bindings/gfx/Shader.hpp"
 #include "bindings/gfx/DescriptorSetLayout.hpp"
@@ -17,8 +17,10 @@ namespace binding
 {
     namespace gfx
     {
-        class DeviceImpl
+        class Device_impl
         {
+            friend class Device;
+
         private:
             uint32_t _version;
 
@@ -58,35 +60,11 @@ namespace binding
 
             VkRenderPass renderPass() { return _renderPass; }
 
-            VkFence renderFence() { return _renderFence; }
-            VkSemaphore presentSemaphore() { return _presentSemaphore; }
-            VkSemaphore renderSemaphore() { return _renderSemaphore; }
-
-            // uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
-
-            // const std::vector<VkFramebuffer> &framebuffers() { return _framebuffers; }
-
             VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
 
-            DeviceImpl(SDL_Window *window);
+            Device_impl(SDL_Window *window);
 
-            CommandBuffer *commandBuffer();
-
-            bool initialize();
-
-            Buffer *createBuffer();
-
-            Shader *createShader();
-
-            DescriptorSetLayout *createDescriptorSetLayout();
-
-            DescriptorSet *createDescriptorSet();
-
-            Pipeline *createPipeline();
-
-            void present();
-
-            ~DeviceImpl();
+            ~Device_impl();
         };
     }
 }

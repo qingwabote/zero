@@ -2,14 +2,15 @@
 
 #include "vulkan/vulkan.hpp"
 #include "vma/vk_mem_alloc.h"
-#include "v8.h"
 
 namespace binding
 {
     namespace gfx
     {
-        class BufferImpl
+        class Buffer_impl
         {
+            friend class Buffer;
+
         private:
             VkDevice _device = nullptr;
             VmaAllocator _allocator = nullptr;
@@ -21,17 +22,12 @@ namespace binding
             v8::Global<v8::Object> _info;
 
         public:
+            Buffer_impl(VkDevice device, VmaAllocator allocator);
+
             VkBuffer buffer() { return _buffer; }
 
-            BufferImpl(VkDevice device, VmaAllocator allocator);
-
-            v8::Local<v8::Object> info();
-
-            bool initialize(v8::Local<v8::Object> info);
-
-            void update(v8::Local<v8::ArrayBufferView> buffer);
-
-            ~BufferImpl();
+            ~Buffer_impl();
         };
+
     }
 }

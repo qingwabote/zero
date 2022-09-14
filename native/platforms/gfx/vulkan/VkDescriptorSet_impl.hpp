@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VkDeviceImpl.hpp"
+#include "VkDevice_impl.hpp"
 
 namespace binding
 {
@@ -8,16 +8,14 @@ namespace binding
     {
         class DescriptorSet_impl
         {
+            friend class DescriptorSet;
+
         private:
-            DeviceImpl *_device = nullptr;
+            Device_impl *_device = nullptr;
             VkDescriptorSet _descriptorSet = nullptr;
 
         public:
-            bool initialize(DescriptorSetLayout *layout);
-
-            void bindBuffer(uint32_t binding, Buffer *buffer);
-
-            DescriptorSet_impl(DeviceImpl *device);
+            DescriptorSet_impl(Device_impl *device);
             ~DescriptorSet_impl();
         };
     }

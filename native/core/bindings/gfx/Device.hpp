@@ -13,12 +13,12 @@ namespace binding
 {
     namespace gfx
     {
-        class DeviceImpl;
+        class Device_impl;
 
         class Device : public Binding
         {
         private:
-            DeviceImpl *_impl = nullptr;
+            Device_impl *_impl = nullptr;
 
         protected:
             v8::Local<v8::FunctionTemplate> createTemplate() override;
@@ -39,6 +39,8 @@ namespace binding
             DescriptorSet *createDescriptorSet();
 
             Pipeline *createPipeline();
+
+            void present();
 
             ~Device();
         };

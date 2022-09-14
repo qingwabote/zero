@@ -1,5 +1,5 @@
 #include "bindings/gfx/Shader.hpp"
-#include "VkShaderImpl.hpp"
+#include "VkShader_impl.hpp"
 #include "sugars/v8sugar.hpp"
 
 #include "glslang/Public/ShaderLang.h"
@@ -122,14 +122,19 @@ namespace binding
 {
     namespace gfx
     {
-        ShaderImpl::ShaderImpl(DeviceImpl *device) : _device(device) {}
+        Shader_impl::Shader_impl(Device_impl *device) : _device(device) {}
 
-        v8::Local<v8::Object> ShaderImpl::info()
+        Shader_impl::~Shader_impl() {}
+
+        Shader::Shader(std::unique_ptr<Shader_impl> impl)
+            : Binding(), _impl(std::move(impl)) {}
+
+        v8::Local<v8::Object> Shader::info()
         {
-            return _info.Get(v8::Isolate::GetCurrent());
+            return _impl->_info.Get(v8::Isolate::GetCurrent());
         }
 
-        bool ShaderImpl::initialize(v8::Local<v8::Object> info)
+        bool Shader::initialize(v8::Local<v8::Object> info)
         {
             v8::Isolate *isolate = info->GetIsolate();
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
@@ -152,16 +157,16 @@ namespace binding
                 glslang::TShader shader{stage};
                 shader.setStrings(&source_c_str, 1);
                 shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, version_semantics);
-                shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_device->version()));
+                shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_impl->_device->version()));
                 glslang::EShTargetLanguageVersion version_spirv;
-                switch (_device->version())
+                switch (_impl->_device->version())
                 {
                 case VK_MAKE_API_VERSION(0, 1, 1, 0):
                     version_spirv = glslang::EShTargetSpv_1_3;
                     break;
 
                 default:
-                    printf("Unsupported vulkan api version %d\n", _device->version());
+                    printf("Unsupported vulkan api version %d\n", _impl->_device->version());
                     return true;
                 }
                 shader.setEnvTarget(glslang::EShTargetSpv, version_spirv);
@@ -197,7 +202,7 @@ namespace binding
                 moduleCreateInfo.codeSize = spirv.size() * sizeof(uint32_t);
                 moduleCreateInfo.pCode = spirv.data();
                 VkShaderModule shaderModule;
-                if (vkCreateShaderModule(_device->device(), &moduleCreateInfo, nullptr, &shaderModule))
+                if (vkCreateShaderModule(_impl->_device->device(), &moduleCreateInfo, nullptr, &shaderModule))
                 {
                     return true;
                 }
@@ -209,28 +214,22 @@ namespace binding
                 stageCreateInfo.module = shaderModule;
                 // the entry point of the shader
                 stageCreateInfo.pName = "main";
-                _stageInfos.push_back(stageCreateInfo);
+                _impl->_stageInfos.push_back(stageCreateInfo);
             }
 
-            _info.Reset(info->GetIsolate(), info);
+            _impl->_info.Reset(info->GetIsolate(), info);
 
             return false;
         }
 
-        ShaderImpl::~ShaderImpl()
+        Shader::~Shader()
         {
-            _info.Reset();
+            _impl->_info.Reset();
 
-            for (size_t i = 0; i < _stageInfos.size(); i++)
+            for (size_t i = 0; i < _impl->_stageInfos.size(); i++)
             {
-                vkDestroyShaderModule(_device->device(), _stageInfos[i].module, nullptr);
+                vkDestroyShaderModule(_impl->_device->device(), _impl->_stageInfos[i].module, nullptr);
             }
         }
-
-        Shader::Shader(std::unique_ptr<ShaderImpl> impl)
-            : Binding(), _impl(std::move(impl)) {}
-        v8::Local<v8::Object> Shader::info() { return _impl->info(); }
-        bool Shader::initialize(v8::Local<v8::Object> info) { return _impl->initialize(info); }
-        Shader::~Shader() {}
     }
 }

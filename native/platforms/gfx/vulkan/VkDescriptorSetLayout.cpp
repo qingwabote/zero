@@ -6,9 +6,13 @@ namespace binding
 {
     namespace gfx
     {
-        DescriptorSetLayout_impl::DescriptorSetLayout_impl(DeviceImpl *device) : _device(device) {}
+        DescriptorSetLayout_impl::DescriptorSetLayout_impl(Device_impl *device) : _device(device) {}
 
-        bool DescriptorSetLayout_impl::initialize(v8::Local<v8::Array> js_setLayoutBindings)
+        DescriptorSetLayout_impl::~DescriptorSetLayout_impl() {}
+
+        DescriptorSetLayout::DescriptorSetLayout(std::unique_ptr<DescriptorSetLayout_impl> impl) : Binding(), _impl(std::move(impl)) {}
+
+        bool DescriptorSetLayout::initialize(v8::Local<v8::Array> js_setLayoutBindings)
         {
             uint32_t bindingCount = js_setLayoutBindings->Length();
             std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{bindingCount};
@@ -34,7 +38,7 @@ namespace binding
             layoutInfo.pBindings = setLayoutBindings.data();
             layoutInfo.flags = 0;
 
-            if (vkCreateDescriptorSetLayout(_device->device(), &layoutInfo, nullptr, &_setLayout))
+            if (vkCreateDescriptorSetLayout(_impl->_device->device(), &layoutInfo, nullptr, &_impl->_setLayout))
             {
                 return true;
             }
@@ -42,19 +46,9 @@ namespace binding
             return false;
         }
 
-        DescriptorSetLayout_impl::~DescriptorSetLayout_impl()
+        DescriptorSetLayout::~DescriptorSetLayout()
         {
-            vkDestroyDescriptorSetLayout(_device->device(), _setLayout, nullptr);
+            vkDestroyDescriptorSetLayout(_impl->_device->device(), _impl->_setLayout, nullptr);
         }
-
-        DescriptorSetLayout::DescriptorSetLayout(std::unique_ptr<DescriptorSetLayout_impl> impl) : Binding(), _impl(std::move(impl)) {}
-
-        bool DescriptorSetLayout::initialize(v8::Local<v8::Array> bindings)
-        {
-            sugar::v8::object_set(js(), "_bindings", bindings);
-            return _impl->initialize(bindings);
-        }
-
-        DescriptorSetLayout::~DescriptorSetLayout() {}
     }
 }

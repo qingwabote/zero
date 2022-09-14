@@ -6,13 +6,15 @@ namespace binding
 {
     namespace gfx
     {
-        class PipelineImpl
+        class Pipeline_impl
         {
+            friend class Pipeline;
+
         private:
             /* data */
         public:
-            PipelineImpl(VkDevice device);
-            ~PipelineImpl();
+            Pipeline_impl(VkDevice device);
+            ~Pipeline_impl();
         };
     }
 }
