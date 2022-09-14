@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Binding.hpp"
-#include "DescriptorSetLayout.hpp"
-#include "Buffer.hpp"
+#include "bindings/gfx/DescriptorSetLayout.hpp"
+#include "bindings/gfx/Buffer.hpp"
 
 namespace binding
 {
@@ -20,7 +20,7 @@ namespace binding
         public:
             DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl);
 
-            bool initialize(DescriptorSetLayout *layout);
+            bool initialize(DescriptorSetLayout *setLayout);
 
             void bindBuffer(uint32_t binding, Buffer *buffer);
 

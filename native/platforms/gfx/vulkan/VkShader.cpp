@@ -131,11 +131,13 @@ namespace binding
 
         v8::Local<v8::Object> Shader::info()
         {
-            return _impl->_info.Get(v8::Isolate::GetCurrent());
+            return retrieve("info");
         }
 
         bool Shader::initialize(v8::Local<v8::Object> info)
         {
+            retain(info, "info");
+
             v8::Isolate *isolate = info->GetIsolate();
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
@@ -217,15 +219,11 @@ namespace binding
                 _impl->_stageInfos.push_back(stageCreateInfo);
             }
 
-            _impl->_info.Reset(info->GetIsolate(), info);
-
             return false;
         }
 
         Shader::~Shader()
         {
-            _impl->_info.Reset();
-
             for (size_t i = 0; i < _impl->_stageInfos.size(); i++)
             {
                 vkDestroyShaderModule(_impl->_device->device(), _impl->_stageInfos[i].module, nullptr);

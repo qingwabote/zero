@@ -19,8 +19,6 @@ namespace binding
             VmaAllocation _allocation = nullptr;
             VmaAllocationInfo _allocationInfo;
 
-            v8::Global<v8::Object> _info;
-
         public:
             Buffer_impl(VkDevice device, VmaAllocator allocator);
 

@@ -46,7 +46,7 @@ namespace binding
             const uint32_t width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
             const uint32_t height = sugar::v8::object_get(area, "height").As<v8::Number>()->Value();
 
-            VkClearValue clearValue;
+            VkClearValue clearValue = {};
             clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
 
             VkRenderPassBeginInfo info = {};

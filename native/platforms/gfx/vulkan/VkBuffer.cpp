@@ -15,11 +15,13 @@ namespace binding
 
         v8::Local<v8::Object> Buffer::info()
         {
-            return _impl->_info.Get(v8::Isolate::GetCurrent());
+            return retrieve("info");
         }
 
         bool Buffer::initialize(v8::Local<v8::Object> info)
         {
+            retain(info, "info");
+
             auto usage = sugar::v8::object_get(info, "usage").As<v8::Number>();
             VkBufferCreateInfo bufferInfo = {};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -36,21 +38,17 @@ namespace binding
                 return true;
             }
 
-            _impl->_info.Reset(info->GetIsolate(), info);
-
             return false;
         }
 
         void Buffer::update(v8::Local<v8::ArrayBufferView> buffer)
         {
-            auto info = _impl->_info.Get(v8::Isolate::GetCurrent());
-            auto size = sugar::v8::object_get(info, "size").As<v8::Number>();
+            auto size = sugar::v8::object_get(info(), "size").As<v8::Number>();
             memcpy(_impl->_allocationInfo.pMappedData, buffer->Buffer()->Data(), size->Value());
         }
 
         Buffer::~Buffer()
         {
-            _impl->_info.Reset();
             vmaDestroyBuffer(_impl->_allocator, _impl->_buffer, _impl->_allocation);
         }
     }

@@ -24,9 +24,9 @@ namespace binding
 
         Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
 
-        CommandBuffer *Device::commandBuffer()
+        v8::Local<v8::Object> Device::commandBuffer()
         {
-            return _impl->_commandBuffer;
+            return retrieve("commandBuffer");
         }
 
         bool Device::initialize()
@@ -36,7 +36,7 @@ namespace binding
             // instance
             vkb::InstanceBuilder builder;
             auto system_info_ret = vkb::SystemInfo::get_system_info();
-            auto system_info = system_info_ret.value();
+            auto& system_info = system_info_ret.value();
             if (system_info.validation_layers_available)
             {
                 // Validation layers can only be used if they have been installed onto the system
@@ -89,9 +89,9 @@ namespace binding
             commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
             vkCreateCommandPool(_impl->_vkb_device.device, &commandPoolInfo, nullptr, &_impl->_commandPool);
 
-            _impl->_commandBuffer = new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl));
-            _impl->_commandBuffer->initialize();
-            _impl->_js_commandBuffer.Reset(v8::Isolate::GetCurrent(), _impl->_commandBuffer->js());
+            CommandBuffer *c_commandBuffer = new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl));
+            c_commandBuffer->initialize();
+            retain(c_commandBuffer->js_obj(), "commandBuffer");
 
             // descriptor pool
             std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
@@ -225,7 +225,6 @@ namespace binding
                 vkDestroyFramebuffer(_impl->_vkb_device.device, _impl->_framebuffers[i], nullptr);
             }
             vkDestroyRenderPass(_impl->_vkb_device.device, _impl->_renderPass, nullptr);
-            _impl->_js_commandBuffer.Reset();
             vkDestroyDescriptorPool(_impl->_vkb_device.device, _impl->_descriptorPool, nullptr);
             vkDestroyCommandPool(_impl->_vkb_device.device, _impl->_commandPool, nullptr);
             for (int i = 0; i < _impl->_swapchainImageViews.size(); i++)

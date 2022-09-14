@@ -14,15 +14,15 @@ namespace binding
                 "begin",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
-                    auto cobj = static_cast<CommandBuffer *>(info.This()->GetAlignedPointerFromInternalField(0));
-                    cobj->begin();
+                    auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    c_obj->begin();
                 });
             cls.defineFunction(
                 "beginRenderPass",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
-                    auto cobj = static_cast<CommandBuffer *>(info.This()->GetAlignedPointerFromInternalField(0));
-                    cobj->beginRenderPass(info[0].As<v8::Object>());
+                    auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    c_obj->beginRenderPass(info[0].As<v8::Object>());
                 });
 
             return scope.Escape(cls.flush());

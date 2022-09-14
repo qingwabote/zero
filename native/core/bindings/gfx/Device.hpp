@@ -2,7 +2,6 @@
 
 #include "Binding.hpp"
 #include "SDL_video.h"
-#include "CommandBuffer.hpp"
 #include "Buffer.hpp"
 #include "Shader.hpp"
 #include "DescriptorSetLayout.hpp"
@@ -26,7 +25,7 @@ namespace binding
         public:
             Device(SDL_Window *window);
 
-            CommandBuffer *commandBuffer();
+            v8::Local<v8::Object> commandBuffer();
 
             bool initialize();
 

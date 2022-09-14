@@ -1,17 +1,16 @@
 #include "Binding.hpp"
 #include <typeinfo>
-#include "sugars/v8sugar.hpp"
 
 Binding::Binding()
 {
 }
 
-v8::Local<v8::Object> Binding::js()
+v8::Local<v8::Object> Binding::js_obj()
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
-    if (!_js.IsEmpty())
+    if (!_js_obj.IsEmpty())
     {
-        return _js.Get(isolate);
+        return _js_obj.Get(isolate);
     }
 
     v8::EscapableHandleScope scope(isolate);
@@ -36,13 +35,50 @@ v8::Local<v8::Object> Binding::js()
     sugar::v8::setWeakCallback(obj, [this]()
                                { delete this; });
 
-    _js.Reset(isolate, obj);
-    _js.SetWeak();
+    _js_obj.Reset(isolate, obj);
+    _js_obj.SetWeak();
 
     return scope.Escape(obj);
 }
 
+void Binding::retain(v8::Local<v8::Object> obj, const char *key)
+{
+    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope scope{isolate};
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+    v8::Local<v8::Object> self = js_obj();
+    v8::Local<v8::Map> map = sugar::v8::object_get(self, "_map_").As<v8::Map>();
+    if (map->IsUndefined())
+    {
+        map = v8::Map::New(isolate);
+        sugar::v8::object_set(self, "_map_", map);
+    }
+    if (key)
+    {
+        map->Set(context, v8::String::NewFromUtf8(isolate, key).ToLocalChecked(), obj);
+    }
+    else
+    {
+        map->Set(context, obj, obj);
+    }
+}
+
+void Binding::release(v8::Local<v8::Object> obj)
+{
+    v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
+    map->Delete(v8::Isolate::GetCurrent()->GetCurrentContext(), obj);
+}
+
+v8::Local<v8::Object> Binding::retrieve(const char *key)
+{
+    v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
+    return map->Get(v8::Isolate::GetCurrent()->GetCurrentContext(), v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key).ToLocalChecked())
+        .ToLocalChecked()
+        .As<v8::Object>();
+}
+
 Binding::~Binding()
 {
-    _js.Reset();
+    _js_obj.Reset();
 }

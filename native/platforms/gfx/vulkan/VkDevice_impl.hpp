@@ -40,9 +40,6 @@ namespace binding
 
             VmaAllocator _allocator;
 
-            CommandBuffer *_commandBuffer = nullptr;
-            v8::Global<v8::Object> _js_commandBuffer;
-
             VkFence _renderFence = nullptr;
             VkSemaphore _presentSemaphore = nullptr;
             VkSemaphore _renderSemaphore = nullptr;

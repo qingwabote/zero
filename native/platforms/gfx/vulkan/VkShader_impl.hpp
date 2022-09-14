@@ -13,8 +13,6 @@ namespace binding
         private:
             Device_impl *_device = nullptr;
 
-            v8::Global<v8::Object> _info;
-
             std::vector<VkPipelineShaderStageCreateInfo> _stageInfos;
 
         public:

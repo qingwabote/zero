@@ -14,8 +14,8 @@ namespace binding
                 "initialize",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
-                    auto cobj = static_cast<DescriptorSetLayout *>(info.This()->GetAlignedPointerFromInternalField(0));
-                    info.GetReturnValue().Set(cobj->initialize(info[0].As<v8::Array>()));
+                    auto c_obj = Binding::c_obj<DescriptorSetLayout>(info.This());
+                    info.GetReturnValue().Set(c_obj->initialize(info[0].As<v8::Array>()));
                 });
 
             return scope.Escape(cls.flush());

@@ -60,7 +60,7 @@ int Window::loop()
     global->Set(
         context,
         v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-        (new binding::Console())->js());
+        (new binding::Console())->js_obj());
     v8::Local<v8::Object> bootstrap;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
@@ -124,7 +124,7 @@ int Window::loop()
         return -1;
     }
     binding::gfx::Device *device = new binding::gfx::Device(window.get());
-    v8::Local<v8::Object> js_device = device->js();
+    v8::Local<v8::Object> js_device = device->js_obj();
     v8::Local<v8::Value> args[] = {
         js_device,
         v8::Object::New(isolate.get()),

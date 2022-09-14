@@ -14,14 +14,14 @@ namespace binding
 
         DescriptorSet::DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl) : Binding(), _impl(std::move(impl)) {}
 
-        bool DescriptorSet::initialize(DescriptorSetLayout *gfx_setLayout)
+        bool DescriptorSet::initialize(DescriptorSetLayout *c_setLayout)
         {
             VkDescriptorSetAllocateInfo allocInfo = {};
             allocInfo.pNext = nullptr;
             allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
             allocInfo.descriptorPool = _impl->_device->descriptorPool();
             allocInfo.descriptorSetCount = 1;
-            VkDescriptorSetLayout setLayout = gfx_setLayout->impl()->setLayout();
+            VkDescriptorSetLayout setLayout = c_setLayout->impl()->setLayout();
             allocInfo.pSetLayouts = &setLayout;
 
             if (vkAllocateDescriptorSets(_impl->_device->device(), &allocInfo, &_impl->_descriptorSet))
@@ -32,12 +32,12 @@ namespace binding
             return false;
         }
 
-        void DescriptorSet::bindBuffer(uint32_t binding, Buffer *buffer)
+        void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer)
         {
-            auto size = sugar::v8::object_get(buffer->info(), "size").As<v8::Number>();
+            auto size = sugar::v8::object_get(c_buffer->info(), "size").As<v8::Number>();
 
-            VkDescriptorBufferInfo bufferInfo;
-            bufferInfo.buffer = buffer->impl()->buffer();
+            VkDescriptorBufferInfo bufferInfo = {};
+            bufferInfo.buffer = c_buffer->impl()->buffer();
             bufferInfo.offset = 0;
             bufferInfo.range = size->Value();
 
