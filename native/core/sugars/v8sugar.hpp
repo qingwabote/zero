@@ -31,6 +31,8 @@ namespace sugar
 
         void object_set(_v8::Local<_v8::Object> object, const char *name, _v8::Local<_v8::Value> value);
 
+        _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object);
+
         // template <class S>
         // void v8_object_set(_v8::Local<_v8::Context> context, _v8::Local<_v8::Object> object, const char *name, _v8::Local<S> value)
         // {

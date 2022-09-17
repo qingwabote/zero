@@ -314,6 +314,15 @@ namespace sugar
             object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value);
         }
 
+        _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object)
+        {
+            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+            _v8::HandleScope scope{isolate};
+            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
+
+            return _v8::String::Utf8Value(isolate, _v8::JSON::Stringify(context, object, _v8::String::NewFromUtf8Literal(isolate, " ")).ToLocalChecked());
+        }
+
         void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb)
         {
             _v8::Isolate *isolate = _v8::Isolate::GetCurrent();

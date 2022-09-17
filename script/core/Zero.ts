@@ -1,6 +1,6 @@
 import ComponentScheduler from "./ComponentScheduler.js";
 import Device from "./gfx/Device.js";
-import { BlendFactor, DescriptorSet } from "./gfx/Pipeline.js";
+import { BlendFactor, DescriptorSet, PipelineLayout } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
 import render from "./render.js";
@@ -88,9 +88,23 @@ export default class Zero {
                 for (const subModel of model.subModels) {
                     commandBuffer.bindInputAssembler(subModel.inputAssembler);
                     for (const pass of subModel.passes) {
+                        commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.material.set, pass.descriptorSet);
+
+                        const shader = pass.shader;
+                        const layout: PipelineLayout = {
+                            setLayouts: [
+                                shaders.builtinDescriptorSetLayouts.global,
+                                shaders.builtinDescriptorSetLayouts.local,
+                                shader.info.meta.descriptorSetLayout
+                            ]
+                        };
                         const pipeline = this._device.createPipeline();
                         pipeline.initialize({
-                            shader: pass.shader,
+                            shader,
+                            vertexInputState: {
+                                bindings: subModel.inputAssembler.bindings,
+                                attributes: subModel.inputAssembler.attributes
+                            },
                             depthStencilState: { depthTest: true },
                             blendState: {
                                 blends: [
@@ -101,10 +115,11 @@ export default class Zero {
                                         srcAlpha: BlendFactor.ONE,
                                         dstAlpha: BlendFactor.ZERO
                                     }]
-                            }
+                            },
+                            layout
                         })
                         commandBuffer.bindPipeline(pipeline);
-                        commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set + 1, pass.descriptorSet);
+
                         commandBuffer.draw();
                     }
                 }

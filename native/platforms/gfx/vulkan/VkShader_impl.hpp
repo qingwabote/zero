@@ -16,6 +16,11 @@ namespace binding
             std::vector<VkPipelineShaderStageCreateInfo> _stageInfos;
 
         public:
+            std::vector<VkPipelineShaderStageCreateInfo> &stageInfos()
+            {
+                return _stageInfos;
+            }
+
             Shader_impl(Device_impl *device);
 
             ~Shader_impl();

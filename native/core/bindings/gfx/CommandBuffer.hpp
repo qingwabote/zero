@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Binding.hpp"
+#include "DescriptorSet.hpp"
 
 namespace binding
 {
@@ -24,6 +25,10 @@ namespace binding
             void begin();
 
             void beginRenderPass(v8::Local<v8::Object> area);
+
+            void bindDescriptorSet(uint32_t index, DescriptorSet *descriptorSet);
+
+            void bindInputAssembler(v8::Local<v8::Object> inputAssembler);
 
             ~CommandBuffer();
         };

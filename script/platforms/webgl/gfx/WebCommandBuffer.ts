@@ -1,6 +1,5 @@
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import { Format, FormatInfos, InputAssembler } from "../../../core/gfx/InputAssembler.js";
-import Pipeline, { BlendFactor, DescriptorSet, DescriptorType } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, InputAssembler } from "../../../core/gfx/Pipeline.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
@@ -119,6 +118,7 @@ export default class WebCommandBuffer implements CommandBuffer {
             gl.bindVertexArray(vao);
             const attributes = inputAssembler.attributes;
             for (const attribute of attributes) {
+                const binding = inputAssembler.bindings[attribute.binding];
                 const buffer = inputAssembler.vertexBuffers[attribute.binding] as WebBuffer;
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
                 gl.enableVertexAttribArray(attribute.location);
@@ -139,7 +139,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                     formatInfo.count,
                     type,
                     false,
-                    buffer.info.stride || formatInfo.size,
+                    binding.stride,
                     attribute.offset);
             }
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);

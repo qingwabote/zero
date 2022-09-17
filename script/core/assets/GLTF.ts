@@ -2,7 +2,7 @@
 
 import MeshRenderer from "../components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { Format } from "../gfx/InputAssembler.js";
+import { Format } from "../gfx/Pipeline.js";
 import Texture from "../gfx/Texture.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";

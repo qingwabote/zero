@@ -2,7 +2,7 @@ import Camera from "../../../../script/core/components/Camera.js";
 import MeshRenderer from "../../../../script/core/components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits } from "../../../../script/core/gfx/Buffer.js";
 import Device from "../../../../script/core/gfx/Device.js";
-import { Format } from "../../../../script/core/gfx/InputAssembler.js";
+import { Format } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
 import Material from "../../../../script/core/render/Material.js";

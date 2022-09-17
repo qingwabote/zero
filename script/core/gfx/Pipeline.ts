@@ -2,6 +2,65 @@ import Buffer from "./Buffer.js";
 import Shader, { ShaderStageFlagBits } from "./Shader.js";
 import Texture from "./Texture.js";
 
+// copy values from VkFormat in vulkan_core.h
+export enum Format {
+    R8UI = 13,
+    R16UI = 74,
+    R32UI = 98,
+    RG32F = 103,
+    RGB32F = 106,
+    RGBA32F = 109
+}
+
+interface FormatInfo {
+    readonly name: string;
+    readonly size: number
+    readonly count: number;
+}
+
+export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
+    [Format.R8UI]: { name: "R8UI", size: 1, count: 1 },
+    [Format.R16UI]: { name: "R16UI", size: 2, count: 1 },
+    [Format.R32UI]: { name: "R32UI", size: 4, count: 1 },
+    [Format.RG32F]: { name: "RG32F", size: 8, count: 2 },
+    [Format.RGB32F]: { name: "RGB32F", size: 12, count: 3 },
+    [Format.RGBA32F]: { name: "RGBA32F", size: 16, count: 4 },
+}
+
+// copy values from VkVertexInputRate in vulkan_core.h
+export enum VertexInputRate {
+    VERTEX = 0,
+    INSTANCE = 1
+}
+
+export interface VertexInputBindingDescription {
+    readonly binding: number;
+    readonly stride: number;
+    readonly inputRate: VertexInputRate;
+}
+
+export interface VertexInputAttributeDescription {
+    readonly location: number;
+    readonly binding: number;
+    readonly format: Format;
+    readonly offset: number
+}
+
+export interface VertexInputState {
+    bindings: VertexInputBindingDescription[];
+    attributes: VertexInputAttributeDescription[];
+}
+
+export interface InputAssembler {
+    bindings: VertexInputBindingDescription[];
+    attributes: VertexInputAttributeDescription[];
+    vertexBuffers: Buffer[];
+    indexBuffer: Buffer;
+    indexType: Format;
+    indexCount: number;
+    indexOffset: number
+}
+
 // copy values from VkDescriptorType in vulkan_core.h
 export enum DescriptorType {
     SAMPLER_TEXTURE = 1,
@@ -73,9 +132,10 @@ export interface BlendState {
 
 export interface PipelineInfo {
     readonly shader: Shader;
+    readonly vertexInputState: VertexInputState;
     readonly depthStencilState: Readonly<DepthStencilState>;
     readonly blendState: Readonly<BlendState>;
-    // readonly layout: PipelineLayout;
+    readonly layout: PipelineLayout;
 }
 
 export default interface Pipeline {

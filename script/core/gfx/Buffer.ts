@@ -8,6 +8,12 @@ export enum BufferUsageFlagBits {
 export interface BufferInfo {
     readonly usage: BufferUsageFlagBits
     readonly size: number;
+    /**
+     * When byteStride of the referenced bufferView is not defined, 
+     * it means that accessor elements are tightly packed, 
+     * i.e., effective stride equals the size of the element.
+     * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
+     */
     readonly stride?: number;
     // readonly offset: number
 }

@@ -63,6 +63,14 @@ namespace binding
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
         }
 
+        void CommandBuffer::bindDescriptorSet(uint32_t index, DescriptorSet *descriptorSet)
+        {
+        }
+
+        void CommandBuffer::bindInputAssembler(v8::Local<v8::Object> inputAssembler)
+        {
+        }
+
         CommandBuffer::~CommandBuffer() {}
     }
 }

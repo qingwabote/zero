@@ -1,6 +1,5 @@
 import { Rect } from "../math/rect.js";
-import { InputAssembler } from "./InputAssembler.js";
-import Pipeline, { DescriptorSet } from "./Pipeline.js";
+import Pipeline, { DescriptorSet, InputAssembler } from "./Pipeline.js";
 
 export default interface CommandBuffer {
     begin(): void;

@@ -36,7 +36,7 @@ namespace binding
             // instance
             vkb::InstanceBuilder builder;
             auto system_info_ret = vkb::SystemInfo::get_system_info();
-            auto& system_info = system_info_ret.value();
+            auto &system_info = system_info_ret.value();
             if (system_info.validation_layers_available)
             {
                 // Validation layers can only be used if they have been installed onto the system
@@ -198,7 +198,7 @@ namespace binding
 
         Pipeline *Device::createPipeline()
         {
-            return new Pipeline(std::make_unique<Pipeline_impl>(_impl->_vkb_device.device));
+            return new Pipeline(std::make_unique<Pipeline_impl>(_impl));
         }
 
         void Device::present()

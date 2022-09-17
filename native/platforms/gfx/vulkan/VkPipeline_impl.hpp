@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan/vulkan.hpp"
+#include "VkDevice_impl.hpp"
 
 namespace binding
 {
@@ -11,9 +11,12 @@ namespace binding
             friend class Pipeline;
 
         private:
-            /* data */
+            Device_impl *_device = nullptr;
+            VkPipelineLayout _layout = nullptr;
+            VkPipeline _pipeline = nullptr;
+
         public:
-            Pipeline_impl(VkDevice device);
+            Pipeline_impl(Device_impl *device);
             ~Pipeline_impl();
         };
     }
