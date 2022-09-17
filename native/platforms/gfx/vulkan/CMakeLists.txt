@@ -3,6 +3,7 @@ set(SRC_FILES
     VKCommandBuffer.cpp
     VKBuffer.cpp
     VkShader.cpp
+    VkPipelineLayout.cpp
     VkPipeline.cpp
     VkDescriptorSetLayout.cpp
     VkDescriptorSet.cpp

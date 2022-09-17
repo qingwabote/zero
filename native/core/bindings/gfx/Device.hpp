@@ -7,6 +7,7 @@
 #include "DescriptorSetLayout.hpp"
 #include "DescriptorSet.hpp"
 #include "Pipeline.hpp"
+#include "PipelineLayout.hpp"
 
 namespace binding
 {
@@ -36,6 +37,8 @@ namespace binding
             DescriptorSetLayout *createDescriptorSetLayout();
 
             DescriptorSet *createDescriptorSet();
+
+            PipelineLayout *createPipelineLayout();
 
             Pipeline *createPipeline();
 

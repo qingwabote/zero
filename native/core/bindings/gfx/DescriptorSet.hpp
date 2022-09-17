@@ -18,6 +18,8 @@ namespace binding
             virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
+            DescriptorSet_impl &impl() { return *_impl.get(); }
+
             DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl);
 
             bool initialize(DescriptorSetLayout *setLayout);

@@ -8,6 +8,7 @@ set(SRC_FILES
     bindings/gfx/CommandBuffer.cpp
     bindings/gfx/Buffer.cpp
     bindings/gfx/Shader.cpp
+    bindings/gfx/PipelineLayout.cpp
     bindings/gfx/Pipeline.cpp
     bindings/gfx/DescriptorSetLayout.cpp
     bindings/gfx/DescriptorSet.cpp

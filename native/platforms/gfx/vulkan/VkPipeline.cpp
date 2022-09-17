@@ -2,10 +2,13 @@
 #include "VkPipeline_impl.hpp"
 
 #include "bindings/gfx/Shader.hpp"
-#include "VKShader_impl.hpp"
+#include "VkShader_impl.hpp"
 
 #include "bindings/gfx/DescriptorSetLayout.hpp"
-#include "VKDescriptorSetLayout_impl.hpp"
+#include "VkDescriptorSetLayout_impl.hpp"
+
+#include "bindings/gfx/PipelineLayout.hpp"
+#include "VkPipelineLayout_impl.hpp"
 
 namespace binding
 {
@@ -121,21 +124,8 @@ namespace binding
             pipelineInfo.pDepthStencilState = &depthStencilState;
 
             v8::Local<v8::Object> js_layout = sugar::v8::object_get(info, "layout").As<v8::Object>();
-            v8::Local<v8::Array> js_setLayouts = sugar::v8::object_get(js_layout, "setLayouts").As<v8::Array>();
-            std::vector<VkDescriptorSetLayout> descriptorSetLayouts(js_setLayouts->Length());
-            for (uint32_t i = 0; i < js_setLayouts->Length(); ++i)
-            {
-
-                v8::Local<v8::Object> js_setLayout = js_setLayouts->Get(context, i).ToLocalChecked().As<v8::Object>();
-                DescriptorSetLayout *c_setLayout = retain<DescriptorSetLayout>(js_setLayout);
-                descriptorSetLayouts[i] = c_setLayout->impl()->setLayout();
-            }
-
-            VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
-            pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
-            pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
-            vkCreatePipelineLayout(_impl->_device->device(), &pipelineLayoutCreateInfo, nullptr, &_impl->_layout);
-            pipelineInfo.layout = _impl->_layout;
+            PipelineLayout *c_layout = retain<PipelineLayout>(js_layout);
+            pipelineInfo.layout = c_layout->impl();
 
             pipelineInfo.renderPass = _impl->_device->renderPass();
             pipelineInfo.subpass = 0;
@@ -151,7 +141,6 @@ namespace binding
         Pipeline::~Pipeline()
         {
             vkDestroyPipeline(_impl->_device->device(), _impl->_pipeline, nullptr);
-            vkDestroyPipelineLayout(_impl->_device->device(), _impl->_layout, nullptr);
         }
     }
 }

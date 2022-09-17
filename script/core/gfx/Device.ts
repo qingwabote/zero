@@ -1,6 +1,6 @@
 import Buffer from "./Buffer.js";
 import CommandBuffer from "./CommandBuffer.js";
-import Pipeline, { DescriptorSet, DescriptorSetLayout } from "./Pipeline.js";
+import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "./Pipeline.js";
 import Shader from "./Shader.js";
 import Texture, { TextureInfo } from "./Texture.js";
 
@@ -12,6 +12,8 @@ export default interface Device {
     createDescriptorSetLayout(): DescriptorSetLayout;
 
     createDescriptorSet(): DescriptorSet;
+
+    createPipelineLayout(): PipelineLayout;
 
     createPipeline(): Pipeline;
 

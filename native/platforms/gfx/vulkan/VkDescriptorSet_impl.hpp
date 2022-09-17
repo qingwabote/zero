@@ -16,6 +16,9 @@ namespace binding
 
         public:
             DescriptorSet_impl(Device_impl *device);
+
+            operator VkDescriptorSet() const { return _descriptorSet; }
+
             ~DescriptorSet_impl();
         };
     }

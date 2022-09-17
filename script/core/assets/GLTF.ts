@@ -2,7 +2,7 @@
 
 import MeshRenderer from "../components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { Format } from "../gfx/Pipeline.js";
+import { Format, IndexType } from "../gfx/Pipeline.js";
 import Texture from "../gfx/Texture.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
@@ -31,14 +31,6 @@ const formatPart2Names: Record<number, string> = {
     5123: "16UI",
     5125: "32UI",
     5126: "32F"
-}
-
-function getFormat(accessor: any): Format {
-    const format: Format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`];
-    // if (format == undefined) {
-    //     console.error(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`)
-    // }
-    return format;
 }
 
 export default class GLTF extends Asset {
@@ -128,9 +120,13 @@ export default class GLTF extends Asset {
             const attributes: Attribute[] = [];
             for (const name in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[name]];
+                const format: Format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`];
+                // if (format == undefined) {
+                //     console.error(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`)
+                // }
                 const attribute: Attribute = {
                     name: builtinAttributes[name] || name,
-                    format: getFormat(accessor),
+                    format,
                     buffer: vertexBuffers.length,
                     offset: accessor.byteOffset
                 }
@@ -153,7 +149,20 @@ export default class GLTF extends Asset {
                 materials.push(material);
             }
 
-            subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, getFormat(accessor), accessor.count, accessor.byteOffset))
+            console.assert(accessor.type == "SCALAR");
+            let indexType: IndexType;
+            switch (accessor.componentType) {
+                case 5123:
+                    indexType = IndexType.UINT16;
+                    break;
+                case 5125:
+                    indexType = IndexType.UINT32;
+                    break;
+                default:
+                    console.error('unsupported index type');
+                    return;
+            }
+            subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, indexType, accessor.count, accessor.byteOffset))
         }
 
         const renderer = node.addComponent(MeshRenderer);

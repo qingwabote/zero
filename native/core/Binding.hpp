@@ -10,13 +10,6 @@ private:
 protected:
     virtual v8::Local<v8::FunctionTemplate> createTemplate() { return {}; };
 
-    template <class T>
-    T *retain(v8::Local<v8::Object> js_obj, const char *key = nullptr)
-    {
-        retain(js_obj, key);
-        return c_obj<T>(js_obj);
-    }
-
 public:
     template <class T>
     static T *c_obj(v8::Local<v8::Object> js_obj)
@@ -28,7 +21,14 @@ public:
 
     v8::Local<v8::Object> js_obj();
 
-    void retain(v8::Local<v8::Object> js_obj, const char *key = nullptr);
+    template <class T>
+    T *retain(v8::Local<v8::Object> js_obj, const std::string &key = "")
+    {
+        retain(js_obj, key);
+        return c_obj<T>(js_obj);
+    }
+
+    void retain(v8::Local<v8::Object> js_obj, const std::string &key = "");
 
     void release(v8::Local<v8::Object> js_obj);
 

@@ -1,5 +1,5 @@
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, InputAssembler } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
@@ -96,7 +96,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         );
     }
 
-    bindDescriptorSet(index: number, descriptorSet: DescriptorSet): void {
+    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet): void {
         const gl = this._gl;
         for (const layoutBinding of ((descriptorSet as WebDescriptorSet).layout as WebDescriptorSetLayout).bindings) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
@@ -159,13 +159,10 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         let type: GLenum;
         switch (this._inputAssembler.indexType) {
-            case Format.R8UI:
-                type = WebGL2RenderingContext.UNSIGNED_BYTE;
-                break;
-            case Format.R16UI:
+            case IndexType.UINT16:
                 type = WebGL2RenderingContext.UNSIGNED_SHORT;
                 break;
-            case Format.R32UI:
+            case IndexType.UINT32:
                 type = WebGL2RenderingContext.UNSIGNED_INT;
                 break;
             default:

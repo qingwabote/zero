@@ -1,5 +1,5 @@
 import Buffer from "../gfx/Buffer.js";
-import { Format } from "../gfx/Pipeline.js";
+import { Format, IndexType } from "../gfx/Pipeline.js";
 
 export interface Attribute {
     readonly name: string
@@ -24,8 +24,8 @@ export default class SubMesh {
         return this._indexBuffer;
     }
 
-    private _indexType: Format;
-    get indexType(): Format {
+    private _indexType: IndexType;
+    get indexType(): IndexType {
         return this._indexType;
     }
 
@@ -39,7 +39,7 @@ export default class SubMesh {
         return this._indexOffset;
     }
 
-    constructor(attributes: Attribute[], vertexBuffers: Buffer[], indexBuffer: Buffer, indexType: Format, indexCount: number, indexOffset: number) {
+    constructor(attributes: Attribute[], vertexBuffers: Buffer[], indexBuffer: Buffer, indexType: IndexType, indexCount: number, indexOffset: number) {
         this._attributes = attributes;
         this._vertexBuffers = vertexBuffers;
         this._indexBuffer = indexBuffer;

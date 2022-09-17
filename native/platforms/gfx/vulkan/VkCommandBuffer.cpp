@@ -1,5 +1,8 @@
 #include "bindings/gfx/CommandBuffer.hpp"
 #include "VkCommandBuffer_impl.hpp"
+#include "VkPipelineLayout_impl.hpp"
+#include "VkDescriptorSet_impl.hpp"
+#include "VkBuffer_impl.hpp"
 #include "sugars/v8sugar.hpp"
 
 namespace binding
@@ -63,11 +66,39 @@ namespace binding
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
         }
 
-        void CommandBuffer::bindDescriptorSet(uint32_t index, DescriptorSet *descriptorSet)
+        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *gfx_descriptorSet)
         {
+            VkDescriptorSet descriptorSet = gfx_descriptorSet->impl();
+            vkCmdBindDescriptorSets(_impl->_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->impl(), index, 1, &descriptorSet, 0, nullptr);
         }
 
         void CommandBuffer::bindInputAssembler(v8::Local<v8::Object> inputAssembler)
+        {
+            v8::Isolate *isolate = v8::Isolate::GetCurrent();
+            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+            v8::Local<v8::Array> js_vertexBuffers = sugar::v8::object_get(inputAssembler, "vertexBuffers").As<v8::Array>();
+            std::vector<VkBuffer> vertexBuffers{js_vertexBuffers->Length()};
+            for (uint32_t i = 0; i < js_vertexBuffers->Length(); i++)
+            {
+                Buffer *c_buffer = retain<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>(), "vertexBuffer_" + std::to_string(i));
+                vertexBuffers[i] = c_buffer->impl();
+            }
+            VkDeviceSize offset = 0;
+            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), &offset);
+
+            v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(inputAssembler, "indexBuffer").As<v8::Object>();
+            Buffer *c_buffer = retain<Buffer>(js_indexBuffer, "indexBuffer");
+            VkIndexType indexType = static_cast<VkIndexType>(sugar::v8::object_get(inputAssembler, "indexType").As<v8::Number>()->Value());
+            vkCmdBindIndexBuffer(_impl->_commandBuffer, c_buffer->impl(), 0, indexType);
+        }
+
+        void CommandBuffer::bindPipeline(v8::Local<v8::Object> pipeline)
+        {
+            retain(pipeline, "pipeline");
+        }
+
+        void CommandBuffer::draw()
         {
         }
 

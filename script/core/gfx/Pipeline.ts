@@ -51,12 +51,18 @@ export interface VertexInputState {
     attributes: VertexInputAttributeDescription[];
 }
 
+// copy values from VkIndexType in vulkan_core.h
+export enum IndexType {
+    UINT16 = 0,
+    UINT32 = 1,
+}
+
 export interface InputAssembler {
     bindings: VertexInputBindingDescription[];
     attributes: VertexInputAttributeDescription[];
     vertexBuffers: Buffer[];
     indexBuffer: Buffer;
-    indexType: Format;
+    indexType: IndexType;
     indexCount: number;
     indexOffset: number
 }
@@ -84,17 +90,10 @@ export interface DescriptorSet {
     bindTexture(binding: number, texture: Texture): void;
 }
 
+
 export interface PipelineLayout {
-    readonly setLayouts: DescriptorSetLayout[];
+    initialize(setLayouts: DescriptorSetLayout[]): boolean;
 }
-
-
-// export const pipelineLayout: PipelineLayout = {
-//     setLayouts: [
-//         globalDescriptorSetLayout,
-//         localDescriptorSetLayout
-//     ]
-// }
 
 export interface DepthStencilState {
     depthTest: boolean;

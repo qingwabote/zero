@@ -37,7 +37,7 @@ namespace binding
             auto size = sugar::v8::object_get(c_buffer->info(), "size").As<v8::Number>();
 
             VkDescriptorBufferInfo bufferInfo = {};
-            bufferInfo.buffer = c_buffer->impl()->buffer();
+            bufferInfo.buffer = c_buffer->impl();
             bufferInfo.offset = 0;
             bufferInfo.range = size->Value();
 

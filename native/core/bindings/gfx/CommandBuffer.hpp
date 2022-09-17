@@ -2,6 +2,8 @@
 
 #include "Binding.hpp"
 #include "DescriptorSet.hpp"
+#include "PipelineLayout.hpp"
+#include "Pipeline.hpp"
 
 namespace binding
 {
@@ -26,9 +28,13 @@ namespace binding
 
             void beginRenderPass(v8::Local<v8::Object> area);
 
-            void bindDescriptorSet(uint32_t index, DescriptorSet *descriptorSet);
+            void bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet);
 
             void bindInputAssembler(v8::Local<v8::Object> inputAssembler);
+
+            void bindPipeline(v8::Local<v8::Object> pipeline);
+
+            void draw();
 
             ~CommandBuffer();
         };

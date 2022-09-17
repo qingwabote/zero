@@ -22,7 +22,7 @@ namespace binding
         public:
             Buffer_impl(VkDevice device, VmaAllocator allocator);
 
-            VkBuffer buffer() { return _buffer; }
+            operator VkBuffer() { return _buffer; }
 
             ~Buffer_impl();
         };

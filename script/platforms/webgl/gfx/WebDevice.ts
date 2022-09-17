@@ -1,7 +1,7 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device from "../../../core/gfx/Device.js";
-import Pipeline, { DescriptorSet, DescriptorSetLayout } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import Shader from "../../../core/gfx/Shader.js";
 import Texture, { TextureInfo } from "../../../core/gfx/Texture.js";
 import WebBuffer from "./WebBuffer.js";
@@ -9,6 +9,7 @@ import WebCommandBuffer from "./WebCommandBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebPipeline from "./WebPipeline.js";
+import WebPipelineLayout from "./WebPipelineLayout.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
@@ -31,6 +32,10 @@ export default class WebDevice implements Device {
 
     createDescriptorSetLayout(): DescriptorSetLayout {
         return new WebDescriptorSetLayout();
+    }
+
+    createPipelineLayout(): PipelineLayout {
+        return new WebPipelineLayout();
     }
 
     createDescriptorSet(): DescriptorSet {

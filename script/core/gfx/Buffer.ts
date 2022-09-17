@@ -1,7 +1,7 @@
 // copy values from VkBufferUsageFlagBits in vulkan_core.h
 export enum BufferUsageFlagBits {
-    INDEX = 0x4,
-    VERTEX = 0x8,
+    INDEX = 0x40,
+    VERTEX = 0x80,
     UNIFORM = 0x10,
 }
 

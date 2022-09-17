@@ -1,6 +1,6 @@
 import ComponentScheduler from "./ComponentScheduler.js";
 import Device from "./gfx/Device.js";
-import { BlendFactor, DescriptorSet, PipelineLayout } from "./gfx/Pipeline.js";
+import { BlendFactor, DescriptorSet } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
 import render from "./render.js";
@@ -81,23 +81,24 @@ export default class Zero {
                 width: this._window.width * viewport.width,
                 height: this._window.height * viewport.height
             })
-            commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.global.set, this._globalDescriptorSet);
 
             for (const model of this._renderScene.models) {
-                commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.local.set, model.descriptorSet);
                 for (const subModel of model.subModels) {
                     commandBuffer.bindInputAssembler(subModel.inputAssembler);
                     for (const pass of subModel.passes) {
-                        commandBuffer.bindDescriptorSet(BuiltinUniformBlocks.material.set, pass.descriptorSet);
-
                         const shader = pass.shader;
-                        const layout: PipelineLayout = {
-                            setLayouts: [
-                                shaders.builtinDescriptorSetLayouts.global,
-                                shaders.builtinDescriptorSetLayouts.local,
-                                shader.info.meta.descriptorSetLayout
-                            ]
-                        };
+
+                        const layout = zero.device.createPipelineLayout();
+                        layout.initialize([
+                            shaders.builtinDescriptorSetLayouts.global,
+                            shaders.builtinDescriptorSetLayouts.local,
+                            shader.info.meta.descriptorSetLayout]
+                        )
+
+                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.material.set, pass.descriptorSet);
+
                         const pipeline = this._device.createPipeline();
                         pipeline.initialize({
                             shader,

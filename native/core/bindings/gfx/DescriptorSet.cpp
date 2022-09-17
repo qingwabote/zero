@@ -24,8 +24,7 @@ namespace binding
                 {
                     auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
                     uint32_t binding = info[0].As<v8::Number>()->Value();
-                    std::string key = "buffer_" + std::to_string(binding);
-                    Buffer *c_buffer = c_obj->retain<Buffer>(info[1].As<v8::Object>(), key.c_str());
+                    Buffer *c_buffer = c_obj->retain<Buffer>(info[1].As<v8::Object>(), "buffer_" + std::to_string(binding));
                     c_obj->bindBuffer(binding, c_buffer);
                 });
 

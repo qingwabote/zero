@@ -2,7 +2,7 @@ import Camera from "../../../../script/core/components/Camera.js";
 import MeshRenderer from "../../../../script/core/components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits } from "../../../../script/core/gfx/Buffer.js";
 import Device from "../../../../script/core/gfx/Device.js";
-import { Format } from "../../../../script/core/gfx/Pipeline.js";
+import { Format, IndexType } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
 import Material from "../../../../script/core/render/Material.js";
@@ -56,12 +56,12 @@ export default class App extends Zero {
         vertexBuffer.update(vertexArray);
         vertexBuffers.push(vertexBuffer);
 
-        const indexArray = new Uint8Array([0, 1, 2]);
+        const indexArray = new Uint16Array([0, 1, 2]);
         const indexBuffer = zero.device.createBuffer();
         indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: indexArray.byteLength });
         indexBuffer.update(indexArray);
 
-        const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, indexBuffer, Format.R8UI, indexArray.length, 0)]);
+        const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, indexBuffer, IndexType.UINT16, indexArray.length, 0)]);
         const shader = shaders.getShader('triangle');
         const pass = new Pass(shader);
         const material = new Material([pass]);

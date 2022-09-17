@@ -12,7 +12,6 @@ namespace binding
 
         private:
             Device_impl *_device = nullptr;
-            VkPipelineLayout _layout = nullptr;
             VkPipeline _pipeline = nullptr;
 
         public:

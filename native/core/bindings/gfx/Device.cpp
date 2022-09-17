@@ -60,6 +60,14 @@ namespace binding
                 });
 
             cls.defineFunction(
+                "createPipelineLayout",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<Device>(info.This());
+                    info.GetReturnValue().Set(c_obj->createPipelineLayout()->js_obj());
+                });
+
+            cls.defineFunction(
                 "createPipeline",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {

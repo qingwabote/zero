@@ -9,6 +9,7 @@
 #include "VkShader_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
+#include "VkPipelineLayout_impl.hpp"
 #include "VkPipeline_impl.hpp"
 
 #include "glslang/Public/ShaderLang.h"
@@ -194,6 +195,11 @@ namespace binding
         DescriptorSet *Device::createDescriptorSet()
         {
             return new DescriptorSet(std::make_unique<DescriptorSet_impl>(_impl));
+        }
+
+        PipelineLayout *Device::createPipelineLayout()
+        {
+            return new PipelineLayout(std::make_unique<PipelineLayout_impl>(_impl));
         }
 
         Pipeline *Device::createPipeline()

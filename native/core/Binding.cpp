@@ -41,7 +41,7 @@ v8::Local<v8::Object> Binding::js_obj()
     return scope.Escape(obj);
 }
 
-void Binding::retain(v8::Local<v8::Object> obj, const char *key)
+void Binding::retain(v8::Local<v8::Object> obj, const std::string &key)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::HandleScope scope{isolate};
@@ -54,9 +54,9 @@ void Binding::retain(v8::Local<v8::Object> obj, const char *key)
         map = v8::Map::New(isolate);
         sugar::v8::object_set(self, "_map_", map);
     }
-    if (key)
+    if (key.length())
     {
-        map->Set(context, v8::String::NewFromUtf8(isolate, key).ToLocalChecked(), obj);
+        map->Set(context, v8::String::NewFromUtf8(isolate, key.c_str()).ToLocalChecked(), obj);
     }
     else
     {
