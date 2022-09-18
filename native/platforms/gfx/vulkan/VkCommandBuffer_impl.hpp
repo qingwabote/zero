@@ -16,6 +16,9 @@ namespace binding
 
         public:
             CommandBuffer_impl(Device_impl *device);
+
+            operator VkCommandBuffer() const { return _commandBuffer; }
+
             ~CommandBuffer_impl();
         };
     }

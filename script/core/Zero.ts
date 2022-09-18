@@ -70,7 +70,8 @@ export default class Zero {
         commandBuffer.begin();
 
         const cameras = this._renderScene.cameras;
-        for (let i = 0; i < cameras.length; i++) {
+        // for (let i = 0; i < cameras.length; i++) {
+        for (let i = 0; i < 1; i++) {
             const camera = cameras[i];
             this._globalDescriptorSet.bindBuffer(BuiltinUniformBlocks.global.blocks.Camera.binding, camera.ubo);
 
@@ -92,13 +93,8 @@ export default class Zero {
                         layout.initialize([
                             shaders.builtinDescriptorSetLayouts.global,
                             shaders.builtinDescriptorSetLayouts.local,
-                            shader.info.meta.descriptorSetLayout]
-                        )
-
-                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet);
-                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
-                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.material.set, pass.descriptorSet);
-
+                            shader.info.meta.descriptorSetLayout
+                        ])
                         const pipeline = this._device.createPipeline();
                         pipeline.initialize({
                             shader,
@@ -120,6 +116,9 @@ export default class Zero {
                             layout
                         })
                         commandBuffer.bindPipeline(pipeline);
+                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.material.set, pass.descriptorSet);
 
                         commandBuffer.draw();
                     }
@@ -128,6 +127,9 @@ export default class Zero {
 
             commandBuffer.endRenderPass()
         }
+
+        commandBuffer.end();
+
         this._device.present();
     }
 } 

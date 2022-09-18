@@ -70,10 +70,10 @@ void Binding::release(v8::Local<v8::Object> obj)
     map->Delete(v8::Isolate::GetCurrent()->GetCurrentContext(), obj);
 }
 
-v8::Local<v8::Object> Binding::retrieve(const char *key)
+v8::Local<v8::Object> Binding::retrieve(const std::string &key)
 {
     v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
-    return map->Get(v8::Isolate::GetCurrent()->GetCurrentContext(), v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key).ToLocalChecked())
+    return map->Get(v8::Isolate::GetCurrent()->GetCurrentContext(), v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key.c_str()).ToLocalChecked())
         .ToLocalChecked()
         .As<v8::Object>();
 }

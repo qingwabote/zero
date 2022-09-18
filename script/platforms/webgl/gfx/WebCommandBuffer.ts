@@ -61,7 +61,6 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-        gl.enable(gl.SCISSOR_TEST);
         gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
 
         gl.clearColor(0, 0, 0, 1)
@@ -73,6 +72,8 @@ export default class WebCommandBuffer implements CommandBuffer {
         const info = (pipeline as WebPipeline).info!;
 
         gl.useProgram((info.shader as WebShader).program);
+
+        gl.enable(gl.SCISSOR_TEST);
 
         const dss = info.depthStencilState;
         if (dss.depthTest) {
@@ -174,7 +175,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, type, this._inputAssembler.indexOffset);
     }
 
-    endRenderPass() {
+    endRenderPass() { }
 
-    }
+    end(): void { }
 }

@@ -44,7 +44,9 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                    c_obj->bindInputAssembler(info[0].As<v8::Object>());
+                    auto js_inputAssembler = info[0].As<v8::Object>();
+                    c_obj->retain(js_inputAssembler, "inputAssembler");
+                    c_obj->bindInputAssembler(js_inputAssembler);
                 });
 
             cls.defineFunction(
@@ -52,7 +54,8 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                    c_obj->bindPipeline(info[0].As<v8::Object>());
+                    Pipeline *c_pipeline = c_obj->retain<Pipeline>(info[0].As<v8::Object>(), "pipeline");
+                    c_obj->bindPipeline(c_pipeline);
                 });
 
             cls.defineFunction(
@@ -61,6 +64,22 @@ namespace binding
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
                     c_obj->draw();
+                });
+
+            cls.defineFunction(
+                "endRenderPass",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    c_obj->endRenderPass();
+                });
+
+            cls.defineFunction(
+                "end",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    c_obj->end();
                 });
 
             return scope.Escape(cls.flush());

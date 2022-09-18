@@ -20,6 +20,8 @@ namespace binding
             virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
+            CommandBuffer_impl &impl() { return *_impl.get(); }
+
             CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl);
 
             bool initialize();
@@ -32,9 +34,13 @@ namespace binding
 
             void bindInputAssembler(v8::Local<v8::Object> inputAssembler);
 
-            void bindPipeline(v8::Local<v8::Object> pipeline);
+            void bindPipeline(Pipeline *pipeline);
 
             void draw();
+
+            void endRenderPass();
+
+            void end();
 
             ~CommandBuffer();
         };

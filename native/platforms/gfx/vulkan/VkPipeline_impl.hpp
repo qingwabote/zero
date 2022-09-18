@@ -16,6 +16,9 @@ namespace binding
 
         public:
             Pipeline_impl(Device_impl *device);
+
+            operator VkPipeline() const { return _pipeline; }
+
             ~Pipeline_impl();
         };
     }

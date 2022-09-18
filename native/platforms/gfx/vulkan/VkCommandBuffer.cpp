@@ -1,9 +1,11 @@
 #include "bindings/gfx/CommandBuffer.hpp"
+#include "sugars/v8sugar.hpp"
+
 #include "VkCommandBuffer_impl.hpp"
 #include "VkPipelineLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "VkBuffer_impl.hpp"
-#include "sugars/v8sugar.hpp"
+#include "VkPipeline_impl.hpp"
 
 namespace binding
 {
@@ -64,6 +66,12 @@ namespace binding
             info.framebuffer = _impl->_device->curFramebuffer();
 
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+
+            VkViewport viewport{x, y, width, height, 0, 1};
+            vkCmdSetViewport(_impl->_commandBuffer, 0, 1, &viewport);
+
+            VkRect2D scissor = {{x, y}, {width, height}};
+            vkCmdSetScissor(_impl->_commandBuffer, 0, 1, &scissor);
         }
 
         void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *gfx_descriptorSet)
@@ -81,25 +89,39 @@ namespace binding
             std::vector<VkBuffer> vertexBuffers{js_vertexBuffers->Length()};
             for (uint32_t i = 0; i < js_vertexBuffers->Length(); i++)
             {
-                Buffer *c_buffer = retain<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>(), "vertexBuffer_" + std::to_string(i));
+                Buffer *c_buffer = Binding::c_obj<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>());
                 vertexBuffers[i] = c_buffer->impl();
             }
             VkDeviceSize offset = 0;
             vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), &offset);
 
             v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(inputAssembler, "indexBuffer").As<v8::Object>();
-            Buffer *c_buffer = retain<Buffer>(js_indexBuffer, "indexBuffer");
+            Buffer *c_buffer = Binding::c_obj<Buffer>(js_indexBuffer);
+            uint32_t indexOffset = sugar::v8::object_get(inputAssembler, "indexOffset").As<v8::Number>()->Value();
             VkIndexType indexType = static_cast<VkIndexType>(sugar::v8::object_get(inputAssembler, "indexType").As<v8::Number>()->Value());
-            vkCmdBindIndexBuffer(_impl->_commandBuffer, c_buffer->impl(), 0, indexType);
+            vkCmdBindIndexBuffer(_impl->_commandBuffer, c_buffer->impl(), indexOffset, indexType);
         }
 
-        void CommandBuffer::bindPipeline(v8::Local<v8::Object> pipeline)
+        void CommandBuffer::bindPipeline(Pipeline *pipeline)
         {
-            retain(pipeline, "pipeline");
+            vkCmdBindPipeline(_impl->_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->impl());
         }
 
         void CommandBuffer::draw()
         {
+            v8::Local<v8::Object> inputAssembler = retrieve("inputAssembler");
+            uint32_t indexCount = sugar::v8::object_get(inputAssembler, "indexCount").As<v8::Number>()->Value();
+            vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, 0, 0, 0);
+        }
+
+        void CommandBuffer::endRenderPass()
+        {
+            vkCmdEndRenderPass(_impl->_commandBuffer);
+        }
+
+        void CommandBuffer::end()
+        {
+            vkEndCommandBuffer(_impl->_commandBuffer);
         }
 
         CommandBuffer::~CommandBuffer() {}

@@ -168,12 +168,13 @@ namespace binding
             fenceCreateInfo.pNext = nullptr;
             fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
             vkCreateFence(_impl->_vkb_device.device, &fenceCreateInfo, nullptr, &_impl->_renderFence);
+            vkResetFences(_impl->_vkb_device.device, 1, &_impl->_renderFence);
 
-            VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-            semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            semaphoreCreateInfo.pNext = nullptr;
-            vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_presentSemaphore);
+            VkSemaphoreCreateInfo semaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
             vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_renderSemaphore);
+            vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_presentSemaphore);
+
+            vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
 
             glslang::InitializeProcess();
 
@@ -209,6 +210,31 @@ namespace binding
 
         void Device::present()
         {
+            VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
+
+            VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            submitInfo.pWaitDstStageMask = &waitStage;
+
+            submitInfo.waitSemaphoreCount = 1;
+            submitInfo.pWaitSemaphores = &_impl->_presentSemaphore;
+
+            submitInfo.pSignalSemaphores = &_impl->_renderSemaphore;
+            submitInfo.signalSemaphoreCount = 1;
+
+            CommandBuffer *c_commandBuffer = retrieve<CommandBuffer>("commandBuffer");
+            submitInfo.commandBufferCount = 1;
+            VkCommandBuffer commandBuffer = c_commandBuffer->impl();
+            submitInfo.pCommandBuffers = &commandBuffer;
+            vkQueueSubmit(_impl->_graphicsQueue, 1, &submitInfo, _impl->_renderFence);
+
+            VkPresentInfoKHR presentInfo = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
+            presentInfo.pSwapchains = &_impl->_vkb_swapchain.swapchain;
+            presentInfo.swapchainCount = 1;
+            presentInfo.pWaitSemaphores = &_impl->_renderSemaphore;
+            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.pImageIndices = &_impl->_swapchainImageIndex;
+            vkQueuePresentKHR(_impl->_graphicsQueue, &presentInfo);
+
             vkWaitForFences(_impl->_vkb_device.device, 1, &_impl->_renderFence, true, 1000000000);
             vkResetFences(_impl->_vkb_device.device, 1, &_impl->_renderFence);
 

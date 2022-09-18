@@ -75,6 +75,14 @@ namespace binding
                     info.GetReturnValue().Set(c_obj->createPipeline()->js_obj());
                 });
 
+            cls.defineFunction(
+                "present",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<Device>(info.This());
+                    c_obj->present();
+                });
+
             return scope.Escape(cls.flush());
         }
     }

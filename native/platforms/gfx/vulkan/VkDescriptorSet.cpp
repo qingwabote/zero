@@ -53,6 +53,9 @@ namespace binding
             vkUpdateDescriptorSets(_impl->_device->device(), 1, &write, 0, nullptr);
         }
 
-        DescriptorSet::~DescriptorSet() {}
+        DescriptorSet::~DescriptorSet()
+        {
+            // You don't need to explicitly clean up descriptor sets, because they will be automatically freed when the descriptor pool is destroyed
+        }
     }
 }

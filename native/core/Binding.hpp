@@ -32,7 +32,13 @@ public:
 
     void release(v8::Local<v8::Object> js_obj);
 
-    v8::Local<v8::Object> retrieve(const char *key);
+    template <class T>
+    T *retrieve(const std::string &key)
+    {
+        return c_obj<T>(retrieve(key));
+    }
+
+    v8::Local<v8::Object> retrieve(const std::string &key);
 
     virtual ~Binding();
 };

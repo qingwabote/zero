@@ -162,7 +162,7 @@ export default class GLTF extends Asset {
                     console.error('unsupported index type');
                     return;
             }
-            subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, indexType, accessor.count, accessor.byteOffset))
+            subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, indexType, accessor.count, accessor.byteOffset || 0))
         }
 
         const renderer = node.addComponent(MeshRenderer);
