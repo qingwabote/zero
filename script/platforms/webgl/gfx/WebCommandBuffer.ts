@@ -97,12 +97,19 @@ export default class WebCommandBuffer implements CommandBuffer {
         );
     }
 
-    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet): void {
+    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {
         const gl = this._gl;
+
+        let dynamicIndex = 0;
         for (const layoutBinding of ((descriptorSet as WebDescriptorSet).layout as WebDescriptorSetLayout).bindings) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
                 const buffer = (descriptorSet as WebDescriptorSet).buffers[layoutBinding.binding] as WebBuffer;
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
+            } else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
+                const offset = dynamicOffsets![dynamicIndex++];
+                const buffer = (descriptorSet as WebDescriptorSet).buffers[layoutBinding.binding] as WebBuffer;
+                const range = (descriptorSet as WebDescriptorSet).bufferRanges[layoutBinding.binding];
+                gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer, offset, range);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
                 const texture = (descriptorSet as WebDescriptorSet).textures[layoutBinding.binding] as WebTexture;
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);

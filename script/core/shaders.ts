@@ -7,15 +7,22 @@ interface BuiltinDescriptorSetLayouts {
     local: DescriptorSetLayout
 }
 
+const FLOAT32_BYTES = 4;
+
 export const BuiltinUniformBlocks = {
     global: {
         set: 0,
         blocks: {
             Camera: {
                 binding: 0,
-                // uniforms: {
-                //     matProj: {}
-                // }
+                uniforms: {
+                    matView: {
+                    },
+                    matProj: {
+                    }
+                },
+                size: (16 + 16) * FLOAT32_BYTES,
+                dynamic: true
             }
         }
     },
@@ -24,27 +31,28 @@ export const BuiltinUniformBlocks = {
         blocks: {
             Local: {
                 binding: 0,
-                // uniforms: {
-                //     matWorld: {}
-                // }
+                uniforms: {
+                    matWorld: {
+                    }
+                }
             }
         }
     },
     material: {
         set: 2
     }
-}
+} as const
 
 function buildDescriptorSetLayout(res: {
     set: number,
-    blocks: Record<string, { binding: number }>
+    blocks: Record<string, { binding: number, dynamic?: boolean }>
 }): DescriptorSetLayout {
     const bindings: DescriptorSetLayoutBinding[] = [];
     for (const name in res.blocks) {
         const block = res.blocks[name];
         bindings[block.binding] = {
             binding: block.binding,
-            descriptorType: DescriptorType.UNIFORM_BUFFER,
+            descriptorType: block.dynamic ? DescriptorType.UNIFORM_BUFFER_DYNAMIC : DescriptorType.UNIFORM_BUFFER,
             descriptorCount: 1,
             stageFlags: ShaderStageFlagBits.VERTEX
         }

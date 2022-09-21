@@ -22,4 +22,5 @@ export default interface Buffer {
     get info(): BufferInfo;
     initialize(info: BufferInfo): boolean;
     update(buffer: Readonly<BufferSource>): void;
+    destroy(): void;
 }

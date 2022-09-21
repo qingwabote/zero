@@ -40,6 +40,9 @@ export default class Zero {
     }
 
     private _globalDescriptorSet!: DescriptorSet;
+    get globalDescriptorSet(): DescriptorSet {
+        return this._globalDescriptorSet;
+    }
 
     initialize(device: Device, loader: Loader, width: number, height: number): boolean {
         if (device.initialize()) {
@@ -47,14 +50,14 @@ export default class Zero {
         }
         this._device = device;
 
+        this._loader = loader;
+
         this._window = { width, height };
 
-        this._renderScene = new RenderScene;
-
         this._globalDescriptorSet = device.createDescriptorSet();
-        this._globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global)
+        this._globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
 
-        this._loader = loader;
+        this._renderScene = new RenderScene;
 
         return false;
     }
@@ -70,11 +73,8 @@ export default class Zero {
         commandBuffer.begin();
 
         const cameras = this._renderScene.cameras;
-        // for (let i = 0; i < cameras.length; i++) {
-        for (let i = 0; i < 1; i++) {
-            const camera = cameras[i];
-            this._globalDescriptorSet.bindBuffer(BuiltinUniformBlocks.global.blocks.Camera.binding, camera.ubo);
-
+        for (let cameraIndex = 0; cameraIndex < cameras.length; cameraIndex++) {
+            const camera = cameras[cameraIndex];
             const viewport = camera.viewport;
             commandBuffer.beginRenderPass({
                 x: this._window.width * viewport.x,
@@ -116,7 +116,9 @@ export default class Zero {
                             layout
                         })
                         commandBuffer.bindPipeline(pipeline);
-                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet);
+                        const alignment = zero.device.capabilities.uniformBufferOffsetAlignment;
+                        const cameraUboSize = Math.ceil(BuiltinUniformBlocks.global.blocks.Camera.size / alignment) * alignment;
+                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet, [cameraIndex * cameraUboSize]);
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.material.set, pass.descriptorSet);
 

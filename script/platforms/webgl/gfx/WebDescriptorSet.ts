@@ -13,6 +13,11 @@ export default class WebDescriptorSet implements DescriptorSet {
         return this._buffers;
     }
 
+    private _bufferRanges: number[] = [];
+    get bufferRanges(): readonly number[] {
+        return this._bufferRanges;
+    }
+
     private _textures: Texture[] = [];
     get textures(): readonly Texture[] {
         return this._textures;
@@ -23,8 +28,9 @@ export default class WebDescriptorSet implements DescriptorSet {
         return false;
     }
 
-    bindBuffer(binding: number, buffer: Buffer): void {
+    bindBuffer(binding: number, buffer: Buffer, range?: number): void {
         this._buffers[binding] = buffer;
+        this._bufferRanges[binding] = range ? range : buffer.info.size;
     }
 
     bindTexture(binding: number, texture: Texture): void {

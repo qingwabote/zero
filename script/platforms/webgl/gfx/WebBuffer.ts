@@ -44,7 +44,6 @@ export default class WebBuffer implements Buffer {
 
     update(buffer: Readonly<BufferSource>): void {
         const gl = this._gl;
-        if (!gl) return;
 
         const target = usage2target(this._info.usage);
 
@@ -54,5 +53,11 @@ export default class WebBuffer implements Buffer {
         gl.bufferSubData(target, 0, buffer);
 
         gl.bindBuffer(target, null);
+    }
+
+    destroy(): void {
+        const gl = this._gl;
+
+        gl.deleteBuffer(this._buffer);
     }
 }

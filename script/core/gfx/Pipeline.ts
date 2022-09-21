@@ -71,6 +71,7 @@ export interface InputAssembler {
 export enum DescriptorType {
     SAMPLER_TEXTURE = 1,
     UNIFORM_BUFFER = 6,
+    UNIFORM_BUFFER_DYNAMIC = 8,
 }
 
 export interface DescriptorSetLayoutBinding {
@@ -86,7 +87,7 @@ export interface DescriptorSetLayout {
 
 export interface DescriptorSet {
     initialize(layout: DescriptorSetLayout): boolean;
-    bindBuffer(binding: number, buffer: Buffer): void;
+    bindBuffer(binding: number, buffer: Buffer, range?: number): void;
     bindTexture(binding: number, texture: Texture): void;
 }
 

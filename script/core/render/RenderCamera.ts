@@ -1,5 +1,4 @@
-import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import mat4 from "../math/mat4.js";
+import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import render, { TransformSource } from "../render.js";
 import RenderWindow from "./RenderWindow.js";
@@ -35,13 +34,13 @@ export default class RenderCamera {
     }
 
     private _matView = mat4.create();
+    get matView(): Mat4 {
+        return this._matView;
+    }
+
     private _matProj = mat4.create();
-
-    private _uboSrc: Float32Array;
-
-    private _ubo: Buffer;
-    get ubo(): Buffer {
-        return this._ubo;
+    get matProj(): Mat4 {
+        return this._matProj;
     }
 
     private _window: RenderWindow;
@@ -51,27 +50,19 @@ export default class RenderCamera {
     constructor(window: RenderWindow, transform: TransformSource) {
         render.dirtyTransforms.set(transform, transform);
 
-        this._uboSrc = new Float32Array(this._matView.length + this._matProj.length);
-        this._ubo = zero.device.createBuffer();
-        this._ubo.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: this._uboSrc.byteLength });
-
         this._window = window;
         this._transform = transform;
     }
 
-    update() {
-        let uboDirty = false;
+    update(): boolean {
+        let dataDirty = false;
 
-        let offset = 0;
         if (render.dirtyTransforms.has(this._transform)) {
             this._transform.updateMatrix();
-            const matView = mat4.create();
-            mat4.invert(matView, this._transform.matrix);
-            this._uboSrc.set(matView, offset);
+            mat4.invert(this._matView, this._transform.matrix);
 
-            uboDirty = true;
+            dataDirty = true;
         }
-        offset += 16;
 
         if (this._dirty) {
             const aspect = (this._window.width * this._viewport.width) / (this._window.height * this._viewport.height);
@@ -82,14 +73,11 @@ export default class RenderCamera {
             } else if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, 1, 1000);
             }
-            this._uboSrc.set(this._matProj, offset);
 
-            uboDirty = true;
+            dataDirty = true;
             this._dirty = false;
         }
 
-        if (uboDirty) {
-            this._ubo.update(this._uboSrc);
-        }
+        return dataDirty;
     }
 }
