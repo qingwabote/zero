@@ -68,6 +68,12 @@ namespace binding
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
 
             VkViewport viewport{x, y, width, height, 0, 1};
+            // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
+            // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
+            // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
+            viewport.y = y + height;
+            viewport.height = -viewport.height;
+            //
             vkCmdSetViewport(_impl->_commandBuffer, 0, 1, &viewport);
 
             VkRect2D scissor = {{x, y}, {width, height}};
