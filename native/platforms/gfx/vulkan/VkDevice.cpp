@@ -23,12 +23,17 @@ namespace binding
 
         Device_impl::~Device_impl() {}
 
-        Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
+        v8::Local<v8::Object> Device::capabilities()
+        {
+            return retrieve("capabilities");
+        }
 
         v8::Local<v8::Object> Device::commandBuffer()
         {
             return retrieve("commandBuffer");
         }
+
+        Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
 
         bool Device::initialize()
         {
@@ -89,10 +94,6 @@ namespace binding
             commandPoolInfo.queueFamilyIndex = graphicsQueueFamily;
             commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
             vkCreateCommandPool(_impl->_vkb_device.device, &commandPoolInfo, nullptr, &_impl->_commandPool);
-
-            CommandBuffer *c_commandBuffer = new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl));
-            c_commandBuffer->initialize();
-            retain(c_commandBuffer->js_obj(), "commandBuffer");
 
             // descriptor pool
             std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
@@ -174,9 +175,19 @@ namespace binding
             vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_renderSemaphore);
             vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_presentSemaphore);
 
-            vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
+            CommandBuffer *c_commandBuffer = new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl));
+            c_commandBuffer->initialize();
+            retain(c_commandBuffer->js_obj(), "commandBuffer");
+
+            v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
+            sugar::v8::object_set(capabilities,
+                                  "uniformBufferOffsetAlignment",
+                                  v8::Number::New(v8::Isolate::GetCurrent(), physicalDevice.properties.limits.minUniformBufferOffsetAlignment));
+            retain(capabilities, "capabilities");
 
             glslang::InitializeProcess();
+
+            vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
 
             return false;
         }

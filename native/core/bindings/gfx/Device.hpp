@@ -24,9 +24,11 @@ namespace binding
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
-            Device(SDL_Window *window);
+            v8::Local<v8::Object> capabilities();
 
             v8::Local<v8::Object> commandBuffer();
+
+            Device(SDL_Window *window);
 
             bool initialize();
 

@@ -32,14 +32,14 @@ namespace binding
             return false;
         }
 
-        void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer)
+        void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer, double range)
         {
-            auto size = sugar::v8::object_get(c_buffer->info(), "size").As<v8::Number>();
+            auto size = sugar::v8::object_get(c_buffer->info(), "size").As<v8::Number>()->Value();
 
             VkDescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = c_buffer->impl();
             bufferInfo.offset = 0;
-            bufferInfo.range = size->Value();
+            bufferInfo.range = range ? range : size;
 
             VkWriteDescriptorSet write = {};
             write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -47,7 +47,7 @@ namespace binding
             write.dstBinding = binding;
             write.dstSet = _impl->_descriptorSet;
             write.descriptorCount = 1;
-            write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            write.descriptorType = range ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             write.pBufferInfo = &bufferInfo;
 
             vkUpdateDescriptorSets(_impl->_device->device(), 1, &write, 0, nullptr);

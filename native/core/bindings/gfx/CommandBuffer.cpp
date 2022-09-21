@@ -36,7 +36,9 @@ namespace binding
 
                     DescriptorSet *c_descriptorSet = c_obj->retain<DescriptorSet>(info[2].As<v8::Object>(), "descriptorSet_" + std::to_string(index));
 
-                    c_obj->bindDescriptorSet(c_pipelineLayout, index, c_descriptorSet);
+                    v8::Local<v8::Array> dynamicOffsets = info.Length() > 3 ? info[3].As<v8::Array>() : v8::Array::New(v8::Isolate::GetCurrent());
+
+                    c_obj->bindDescriptorSet(c_pipelineLayout, index, c_descriptorSet, dynamicOffsets);
                 });
 
             cls.defineFunction(

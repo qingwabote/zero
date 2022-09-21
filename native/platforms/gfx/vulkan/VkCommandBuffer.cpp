@@ -74,10 +74,26 @@ namespace binding
             vkCmdSetScissor(_impl->_commandBuffer, 0, 1, &scissor);
         }
 
-        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *gfx_descriptorSet)
+        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *gfx_descriptorSet, v8::Local<v8::Array> js_dynamicOffsets)
         {
+            v8::Isolate *isolate = v8::Isolate::GetCurrent();
+            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+            std::vector<uint32_t> dynamicOffsets(js_dynamicOffsets->Length());
+            for (uint32_t i = 0; i < js_dynamicOffsets->Length(); i++)
+            {
+                dynamicOffsets[i] = js_dynamicOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
+            }
+
             VkDescriptorSet descriptorSet = gfx_descriptorSet->impl();
-            vkCmdBindDescriptorSets(_impl->_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->impl(), index, 1, &descriptorSet, 0, nullptr);
+            vkCmdBindDescriptorSets(_impl->_commandBuffer,
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    pipelineLayout->impl(),
+                                    index,
+                                    1,
+                                    &descriptorSet,
+                                    dynamicOffsets.size(),
+                                    dynamicOffsets.data());
         }
 
         void CommandBuffer::bindInputAssembler(v8::Local<v8::Object> inputAssembler)

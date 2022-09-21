@@ -25,7 +25,8 @@ namespace binding
                     auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
                     uint32_t binding = info[0].As<v8::Number>()->Value();
                     Buffer *c_buffer = c_obj->retain<Buffer>(info[1].As<v8::Object>(), "buffer_" + std::to_string(binding));
-                    c_obj->bindBuffer(binding, c_buffer);
+                    double range = info.Length() > 2 ? info[2].As<v8::Number>()->Value() : 0;
+                    c_obj->bindBuffer(binding, c_buffer, range);
                 });
 
             return scope.Escape(cls.flush());

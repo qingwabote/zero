@@ -24,7 +24,7 @@ namespace binding
 
             bool initialize(DescriptorSetLayout *setLayout);
 
-            void bindBuffer(uint32_t binding, Buffer *buffer);
+            void bindBuffer(uint32_t binding, Buffer *buffer, double range);
 
             ~DescriptorSet();
         };

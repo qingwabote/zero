@@ -12,6 +12,14 @@ namespace binding
             sugar::v8::Class cls{"Device"};
 
             cls.defineAccessor(
+                "capabilities",
+                [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<Device>(info.This());
+                    info.GetReturnValue().Set(c_obj->capabilities());
+                });
+
+            cls.defineAccessor(
                 "commandBuffer",
                 [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
                 {

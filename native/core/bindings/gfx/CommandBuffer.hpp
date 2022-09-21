@@ -30,7 +30,10 @@ namespace binding
 
             void beginRenderPass(v8::Local<v8::Object> area);
 
-            void bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet);
+            void bindDescriptorSet(PipelineLayout *pipelineLayout,
+                                   uint32_t index,
+                                   DescriptorSet *descriptorSet,
+                                   v8::Local<v8::Array> dynamicOffsets);
 
             void bindInputAssembler(v8::Local<v8::Object> inputAssembler);
 
