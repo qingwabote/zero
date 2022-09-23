@@ -41,7 +41,12 @@ namespace binding
 
         PipelineLayout::~PipelineLayout()
         {
-            vkDestroyPipelineLayout(_impl->_device->device(), _impl->_layout, nullptr);
+            VkDevice device = _impl->_device->device();
+            VkPipelineLayout layout = _impl->_layout;
+
+            _impl->_device->callAfterRender(
+                [device, layout]
+                { vkDestroyPipelineLayout(device, layout, nullptr); });
         }
     }
 }

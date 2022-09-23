@@ -194,7 +194,7 @@ namespace binding
 
         Buffer *Device::createBuffer()
         {
-            return new Buffer(std::make_unique<Buffer_impl>(_impl->_vkb_device.device, _impl->_allocator));
+            return new Buffer(std::make_unique<Buffer_impl>(_impl));
         }
 
         Shader *Device::createShader() { return new Shader(std::make_unique<Shader_impl>(_impl)); }
@@ -247,6 +247,13 @@ namespace binding
             vkQueuePresentKHR(_impl->_graphicsQueue, &presentInfo);
 
             vkWaitForFences(_impl->_vkb_device.device, 1, &_impl->_renderFence, true, 1000000000);
+
+            while (_impl->_afterRenderQueue.size())
+            {
+                _impl->_afterRenderQueue.front()();
+                _impl->_afterRenderQueue.pop();
+            }
+
             vkResetFences(_impl->_vkb_device.device, 1, &_impl->_renderFence);
 
             vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
@@ -257,6 +264,12 @@ namespace binding
             glslang::FinalizeProcess();
 
             vkDeviceWaitIdle(_impl->_vkb_device.device);
+
+            while (_impl->_afterRenderQueue.size())
+            {
+                _impl->_afterRenderQueue.front()();
+                _impl->_afterRenderQueue.pop();
+            }
 
             vkDestroyFence(_impl->_vkb_device.device, _impl->_renderFence, nullptr);
             vkDestroySemaphore(_impl->_vkb_device.device, _impl->_presentSemaphore, nullptr);

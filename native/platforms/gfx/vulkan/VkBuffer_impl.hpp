@@ -1,7 +1,6 @@
 #pragma once
 
-#include "vulkan/vulkan.hpp"
-#include "vma/vk_mem_alloc.h"
+#include "VkDevice_impl.hpp"
 
 namespace binding
 {
@@ -12,15 +11,14 @@ namespace binding
             friend class Buffer;
 
         private:
-            VkDevice _device = nullptr;
-            VmaAllocator _allocator = nullptr;
+            Device_impl *_device = nullptr;
 
             VkBuffer _buffer = nullptr;
             VmaAllocation _allocation = nullptr;
             VmaAllocationInfo _allocationInfo;
 
         public:
-            Buffer_impl(VkDevice device, VmaAllocator allocator);
+            Buffer_impl(Device_impl *device);
 
             operator VkBuffer() { return _buffer; }
 

@@ -13,6 +13,8 @@
 #include "bindings/gfx/DescriptorSet.hpp"
 #include "bindings/gfx/Pipeline.hpp"
 
+#include <queue>
+
 namespace binding
 {
     namespace gfx
@@ -46,6 +48,8 @@ namespace binding
 
             uint32_t _swapchainImageIndex = 0;
 
+            std::queue<std::function<void()>> _afterRenderQueue;
+
         public:
             uint32_t version() { return _version; }
 
@@ -59,7 +63,14 @@ namespace binding
 
             VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
 
+            VmaAllocator allocator() { return _allocator; }
+
             Device_impl(SDL_Window *window);
+
+            void callAfterRender(std::function<void()> &&function)
+            {
+                _afterRenderQueue.push(std::forward<std::function<void()>>(function));
+            }
 
             ~Device_impl();
         };

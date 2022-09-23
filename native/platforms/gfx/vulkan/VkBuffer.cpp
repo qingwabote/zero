@@ -6,8 +6,7 @@ namespace binding
 {
     namespace gfx
     {
-        Buffer_impl::Buffer_impl(VkDevice device, VmaAllocator allocator) : _device(device), _allocator{allocator} {}
-
+        Buffer_impl::Buffer_impl(Device_impl *device) : _device(device) {}
         Buffer_impl::~Buffer_impl() {}
 
         Buffer::Buffer(std::unique_ptr<Buffer_impl> impl)
@@ -33,7 +32,7 @@ namespace binding
             allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
             allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-            if (vmaCreateBuffer(_impl->_allocator, &bufferInfo, &allocationCreateInfo, &_impl->_buffer, &_impl->_allocation, &_impl->_allocationInfo))
+            if (vmaCreateBuffer(_impl->_device->allocator(), &bufferInfo, &allocationCreateInfo, &_impl->_buffer, &_impl->_allocation, &_impl->_allocationInfo))
             {
                 return true;
             }
@@ -49,7 +48,13 @@ namespace binding
 
         Buffer::~Buffer()
         {
-            vmaDestroyBuffer(_impl->_allocator, _impl->_buffer, _impl->_allocation);
+            VmaAllocator allocator = _impl->_device->allocator();
+            VkBuffer buffer = _impl->_buffer;
+            VmaAllocation allocation = _impl->_allocation;
+
+            _impl->_device->callAfterRender(
+                [allocator, buffer, allocation]
+                { vmaDestroyBuffer(allocator, buffer, allocation); });
         }
     }
 }

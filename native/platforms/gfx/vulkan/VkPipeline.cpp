@@ -140,7 +140,12 @@ namespace binding
 
         Pipeline::~Pipeline()
         {
-            vkDestroyPipeline(_impl->_device->device(), _impl->_pipeline, nullptr);
+            VkDevice device = _impl->_device->device();
+            VkPipeline pipeline = _impl->_pipeline;
+
+            _impl->_device->callAfterRender(
+                [device, pipeline]
+                { vkDestroyPipeline(device, pipeline, nullptr); });
         }
     }
 }
