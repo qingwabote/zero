@@ -23,7 +23,7 @@ export default class ZeroComponent extends Component {
             const dx = event.touches[0].x - touch.x;
             const dy = event.touches[0].y - touch.y;
 
-            const axis = vec3.create(-dy, dx, 0);// rotate 90°
+            const axis = vec3.create(dy, dx, 0);// rotate 90°
             vec3.normalize(axis, axis);
             const rad = Math.PI / 180 * Math.sqrt(dx * dx + dy * dy);
 

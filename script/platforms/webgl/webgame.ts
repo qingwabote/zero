@@ -12,15 +12,15 @@ export default {
 
         const input = zero.input;
         canvas.addEventListener("mousedown", (mouseEvent) => {
-            input.emit("TOUCH_START", { touches: [{ x: mouseEvent.offsetX, y: canvas.height - mouseEvent.offsetY }] })
+            input.emit("TOUCH_START", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
         })
         canvas.addEventListener("mousemove", (mouseEvent) => {
             if (mouseEvent.buttons) {
-                input.emit("TOUCH_MOVE", { touches: [{ x: mouseEvent.offsetX, y: canvas.height - mouseEvent.offsetY }] })
+                input.emit("TOUCH_MOVE", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
             }
         })
         canvas.addEventListener("mouseup", (mouseEvent) => {
-            input.emit("TOUCH_END", { touches: [{ x: mouseEvent.offsetX, y: canvas.height - mouseEvent.offsetY }] })
+            input.emit("TOUCH_END", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
         })
 
         let requestId: number;

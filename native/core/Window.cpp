@@ -161,20 +161,38 @@ int Window::loop()
                 running = false;
                 break;
             case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEMOTION:
             {
+                char *name = nullptr;
+                double x;
+                double y;
+                if (event.type == SDL_MOUSEBUTTONDOWN)
+                {
+                    name = "TOUCH_START";
+                    x = event.button.x;
+                    y = event.button.y;
+                }
+                else if (event.type == SDL_MOUSEMOTION)
+                {
+                    if ((event.motion.state & SDL_BUTTON_LMASK) == 0)
+                    {
+                        break;
+                    }
+                    name = "TOUCH_MOVE";
+                    x = event.motion.x;
+                    y = event.motion.y;
+                }
                 auto touch = v8::Object::New(isolate.get());
-                touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "x"), v8::Number::New(isolate.get(), event.button.x));
-                touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "y"), v8::Number::New(isolate.get(), event.button.y));
+                touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "x"), v8::Number::New(isolate.get(), x));
+                touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "y"), v8::Number::New(isolate.get(), y));
                 auto touches = v8::Array::New(isolate.get(), 1);
                 touches->Set(context, 0, touch);
                 auto touchEvent = v8::Object::New(isolate.get());
                 touchEvent->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "touches"), touches);
-                v8::Local<v8::Value> args[] = {v8::String::NewFromUtf8Literal(isolate.get(), "TOUCH_START"), touchEvent};
+                v8::Local<v8::Value> args[] = {v8::String::NewFromUtf8(isolate.get(), name).ToLocalChecked(), touchEvent};
                 input_emit->Call(context, input, 2, args);
                 break;
             }
-            case SDL_MOUSEMOTION:
-                break;
             default:
                 break;
             }
