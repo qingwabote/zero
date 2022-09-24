@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.24)
 
-# set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 project(zero CXX)
+
+set(CMAKE_CXX_STANDARD 17)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT zero)
 

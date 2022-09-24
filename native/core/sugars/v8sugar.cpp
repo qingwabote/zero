@@ -4,6 +4,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <map>
+#include <filesystem>
 
 namespace
 {
@@ -13,9 +14,9 @@ namespace
 
     const uint32_t SLOT_WEAK_CALLBACKS = 2;
 
-    std::unordered_map<std::string, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate)
+    std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate)
     {
-        return (std::unordered_map<std::string, _v8::Global<_v8::Module>> *)isolate->GetData(SLOT_MODULE_CACHE);
+        return (std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>> *)isolate->GetData(SLOT_MODULE_CACHE);
     }
 
     struct SetWeakCallback;
@@ -66,308 +67,288 @@ namespace
 
 namespace _v8 = v8;
 
-namespace sugar
+namespace sugar::v8
 {
-    namespace v8
+    static void isolateDeleter(_v8::Isolate *isolate)
     {
-        static void isolateDeleter(_v8::Isolate *isolate)
+        for (auto &it : *isolate_getConstructorCache(isolate))
         {
-            for (auto &it : *isolate_getConstructorCache(isolate))
-            {
-                it.second.Reset();
-            }
-            for (auto &it : *isolate_getModuleCache(isolate))
-            {
-                it.second.Reset();
-            }
-            auto weakCallbacks = isolate_getWeakCallbacks(isolate);
-            for (auto it = weakCallbacks->rbegin(); it != weakCallbacks->rend(); it++)
-            {
-                delete it->second;
-            }
-            isolate->Dispose();
-            _v8::V8::Dispose();
-            _v8::V8::DisposePlatform();
+            it.second.Reset();
         }
-        unique_isolate initWithIsolate()
+        for (auto &it : *isolate_getModuleCache(isolate))
         {
-            _v8::V8::InitializePlatform(_v8::platform::NewDefaultPlatform().release());
-            _v8::V8::SetFlagsFromString("--expose-gc-as=__gc__");
-            _v8::V8::Initialize();
-
-            _v8::Isolate::CreateParams create_params;
-            create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
-            _v8::Isolate *isolate = _v8::Isolate::New(create_params);
-            isolate->SetData(SLOT_CONSTRUCTOR_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>>);
-            isolate->SetData(SLOT_MODULE_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::Module>>);
-            isolate->SetData(SLOT_WEAK_CALLBACKS, new std::map<uint32_t, SetWeakCallback *>);
-            return unique_isolate{isolate, isolateDeleter};
+            it.second.Reset();
         }
-
-        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate)
+        auto weakCallbacks = isolate_getWeakCallbacks(isolate);
+        for (auto it = weakCallbacks->rbegin(); it != weakCallbacks->rend(); it++)
         {
-            return static_cast<std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *>(isolate->GetData(SLOT_CONSTRUCTOR_CACHE));
+            delete it->second;
         }
+        isolate->Dispose();
+        _v8::V8::Dispose();
+        _v8::V8::DisposePlatform();
+    }
+    unique_isolate initWithIsolate()
+    {
+        _v8::V8::InitializePlatform(_v8::platform::NewDefaultPlatform().release());
+        _v8::V8::SetFlagsFromString("--expose-gc-as=__gc__");
+        _v8::V8::Initialize();
 
-        std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack)
+        _v8::Isolate::CreateParams create_params;
+        create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
+        _v8::Isolate *isolate = _v8::Isolate::New(create_params);
+        isolate->SetData(SLOT_CONSTRUCTOR_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>>);
+        isolate->SetData(SLOT_MODULE_CACHE, new std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>>);
+        isolate->SetData(SLOT_WEAK_CALLBACKS, new std::map<uint32_t, SetWeakCallback *>);
+        return unique_isolate{isolate, isolateDeleter};
+    }
+
+    std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate)
+    {
+        return static_cast<std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *>(isolate->GetData(SLOT_CONSTRUCTOR_CACHE));
+    }
+
+    std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        _v8::HandleScope scope(isolate);
+
+        std::string stackStr;
+        if (stack.IsEmpty())
         {
-            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-            _v8::HandleScope scope(isolate);
-
-            std::string stackStr;
-            if (stack.IsEmpty())
-            {
-                return stackStr;
-            }
-
-            char tmp[100] = {0};
-            for (int i = 0, e = stack->GetFrameCount(); i < e; ++i)
-            {
-                _v8::Local<_v8::StackFrame> frame = stack->GetFrame(isolate, i);
-                _v8::Local<_v8::String> script = frame->GetScriptName();
-                std::string scriptName;
-                if (!script.IsEmpty())
-                {
-                    scriptName = *_v8::String::Utf8Value(isolate, script);
-                }
-
-                _v8::Local<_v8::String> func = frame->GetFunctionName();
-                std::string funcName;
-                if (!func.IsEmpty())
-                {
-                    funcName = *_v8::String::Utf8Value(isolate, func);
-                }
-
-                stackStr += " - [";
-                snprintf(tmp, sizeof(tmp), "%d", i);
-                stackStr += tmp;
-                stackStr += "]";
-                stackStr += (funcName.empty() ? "anonymous" : funcName.c_str());
-                stackStr += "@";
-                stackStr += (scriptName.empty() ? "(no filename)" : scriptName.c_str());
-                stackStr += ":";
-                snprintf(tmp, sizeof(tmp), "%d", frame->GetLineNumber());
-                stackStr += tmp;
-
-                if (i < (e - 1))
-                {
-                    stackStr += "\n";
-                }
-            }
-
             return stackStr;
         }
 
-        void tryCatch_print(_v8::TryCatch &tryCatch)
+        char tmp[100] = {0};
+        for (int i = 0, e = stack->GetFrameCount(); i < e; ++i)
         {
-            _v8::Local<_v8::Message> message = tryCatch.Message();
+            _v8::Local<_v8::StackFrame> frame = stack->GetFrame(isolate, i);
+            _v8::Local<_v8::String> script = frame->GetScriptName();
+            std::string scriptName;
+            if (!script.IsEmpty())
+            {
+                scriptName = *_v8::String::Utf8Value(isolate, script);
+            }
+
+            _v8::Local<_v8::String> func = frame->GetFunctionName();
+            std::string funcName;
+            if (!func.IsEmpty())
+            {
+                funcName = *_v8::String::Utf8Value(isolate, func);
+            }
+
+            stackStr += " - [";
+            snprintf(tmp, sizeof(tmp), "%d", i);
+            stackStr += tmp;
+            stackStr += "]";
+            stackStr += (funcName.empty() ? "anonymous" : funcName.c_str());
+            stackStr += "@";
+            stackStr += (scriptName.empty() ? "(no filename)" : scriptName.c_str());
+            stackStr += ":";
+            snprintf(tmp, sizeof(tmp), "%d", frame->GetLineNumber());
+            stackStr += tmp;
+
+            if (i < (e - 1))
+            {
+                stackStr += "\n";
+            }
+        }
+
+        return stackStr;
+    }
+
+    void tryCatch_print(_v8::TryCatch &tryCatch)
+    {
+        _v8::Local<_v8::Message> message = tryCatch.Message();
+        printf(
+            "%s\nSTACK:\n%s\n",
+            *_v8::String::Utf8Value{message->GetIsolate(), message->Get()},
+            stackTrace_toString(message->GetStackTrace()).c_str());
+    }
+
+    void isolate_promiseRejectCallback(_v8::PromiseRejectMessage rejectMessage)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        _v8::HandleScope scope(isolate);
+
+        switch (rejectMessage.GetEvent())
+        {
+        case _v8::kPromiseRejectWithNoHandler:
+        {
+            _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, rejectMessage.GetValue());
             printf(
                 "%s\nSTACK:\n%s\n",
-                *_v8::String::Utf8Value{message->GetIsolate(), message->Get()},
+                *_v8::String::Utf8Value{isolate, message->Get()},
                 stackTrace_toString(message->GetStackTrace()).c_str());
+            break;
         }
-
-        void isolate_promiseRejectCallback(_v8::PromiseRejectMessage rejectMessage)
+        default:
         {
-            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-            _v8::HandleScope scope(isolate);
-
-            switch (rejectMessage.GetEvent())
-            {
-            case _v8::kPromiseRejectWithNoHandler:
-            {
-                _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, rejectMessage.GetValue());
-                printf(
-                    "%s\nSTACK:\n%s\n",
-                    *_v8::String::Utf8Value{isolate, message->Get()},
-                    stackTrace_toString(message->GetStackTrace()).c_str());
-                break;
-            }
-            default:
-            {
-                throw "not yet implemented";
-                break;
-            }
-            }
+            throw "not yet implemented";
+            break;
         }
+        }
+    }
 
-        _v8::MaybeLocal<_v8::Module> module_resolve(
-            _v8::Local<_v8::Context> context,
-            _v8::Local<_v8::String> specifier,
-            _v8::Local<_v8::FixedArray> import_assertions,
-            _v8::Local<_v8::Module> referrer)
+    _v8::MaybeLocal<_v8::Module> module_resolve(
+        _v8::Local<_v8::Context> context,
+        _v8::Local<_v8::String> specifier,
+        _v8::Local<_v8::FixedArray> import_assertions,
+        _v8::Local<_v8::Module> referrer)
+    {
+        static std::unordered_map<int, std::filesystem::path> resolvedMap;
+
+        _v8::Isolate *isolate = context->GetIsolate();
+        _v8::EscapableHandleScope handle_scope(isolate);
+        _v8::Context::Scope context_scope(context);
+
+        std::filesystem::path path(*_v8::String::Utf8Value(isolate, specifier));
+        if (path.is_relative())
         {
-            static std::unordered_map<int, std::string> resolvedMap;
-
-            _v8::Isolate *isolate = context->GetIsolate();
-            _v8::EscapableHandleScope handle_scope(isolate);
-            _v8::Context::Scope context_scope(context);
-
-            std::string file = *_v8::String::Utf8Value(isolate, specifier);
-            int count = 0;
-            while (file.substr(0, 3) == "../")
-            {
-                file = file.substr(3);
-                count += 1;
-            }
-            if (count > 0)
-            {
-                std::string ref = resolvedMap.find(referrer->GetIdentityHash())->second;
-                while (count > -1)
-                {
-                    int index = ref.rfind("/");
-                    ref = ref.substr(0, index);
-                    count--;
-                }
-                file = ref + "/" + file;
-            }
-            else if (file.substr(0, 2) == "./")
-            {
-                std::string ref = resolvedMap.find(referrer->GetIdentityHash())->second;
-                ref = ref.substr(0, ref.rfind("/"));
-                file = ref + "/" + file.substr(2);
-            }
-
-            auto moduleCache = isolate_getModuleCache(isolate);
-            auto it = moduleCache->find(file);
-            if (it != moduleCache->end())
-            {
-                return handle_scope.EscapeMaybe(_v8::MaybeLocal<_v8::Module>{it->second.Get(isolate)});
-            }
-
-            auto res = sugar::sdl::rw_readUtf8(file.c_str());
-            if (!res)
-            {
-                std::string exception{"module resolve failed to read the file: " + file};
-                isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, exception.c_str()).ToLocalChecked()));
-                return {};
-            }
-
-            auto origin = _v8::ScriptOrigin(isolate, _v8::String::NewFromUtf8(isolate, file.c_str()).ToLocalChecked(), 0, 0, false, -1, _v8::Local<_v8::Value>(), false, false, true);
-            _v8::ScriptCompiler::Source source(_v8::String::NewFromUtf8(isolate, res.get()).ToLocalChecked(), origin);
-            auto maybeModule = _v8::ScriptCompiler::CompileModule(isolate, &source);
-
-            auto module = maybeModule.ToLocalChecked();
-            resolvedMap.emplace(module->GetIdentityHash(), file);
-            auto global = _v8::Global<_v8::Module>{isolate, module};
-            global.SetWeak();
-            moduleCache->emplace(file, std::move(global));
-
-            return handle_scope.EscapeMaybe(maybeModule);
+            std::filesystem::path &ref = resolvedMap.find(referrer->GetIdentityHash())->second;
+            std::filesystem::current_path(ref.parent_path());
+            path = std::filesystem::absolute(path);
         }
 
-        _v8::MaybeLocal<_v8::Module> module_evaluate(_v8::Local<_v8::Context> context, _v8::Local<_v8::String> specifier)
+        auto moduleCache = isolate_getModuleCache(isolate);
+        auto it = moduleCache->find(path);
+        if (it != moduleCache->end())
         {
-            _v8::Isolate *isolate = context->GetIsolate();
-            _v8::EscapableHandleScope handle_scope(isolate);
-
-            _v8::TryCatch try_catch(isolate);
-            auto maybeModule = module_resolve(context, specifier);
-            if (try_catch.HasCaught())
-            {
-                tryCatch_print(try_catch);
-                return {};
-            }
-            if (maybeModule.IsEmpty())
-            {
-                printf("module resolve failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
-                return {};
-            }
-            auto module = maybeModule.ToLocalChecked();
-            auto maybeOk = module->InstantiateModule(context, module_resolve);
-            if (try_catch.HasCaught())
-            {
-                tryCatch_print(try_catch);
-                return {};
-            }
-            if (maybeOk.IsNothing())
-            {
-                printf("module instantiate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
-                return {};
-            }
-            _v8::Local<_v8::Promise> promise = module->Evaluate(context).ToLocalChecked().As<_v8::Promise>();
-            if (promise->State() != _v8::Promise::kFulfilled)
-            {
-                printf("module evaluate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
-                return {};
-            }
-            return handle_scope.EscapeMaybe(maybeModule);
+            return handle_scope.EscapeMaybe(_v8::MaybeLocal<_v8::Module>{it->second.Get(isolate)});
         }
 
-        _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name)
+        auto res = sugar::sdl::rw_readUtf8(path.string().c_str());
+        if (!res)
         {
-            _v8::Isolate *isolate = object->GetIsolate();
-            _v8::EscapableHandleScope handleScope(isolate);
-            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
-
-            _v8::Local<_v8::Value> out;
-            object->Get(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked()).ToLocal(&out);
-            return handleScope.Escape(out);
+            std::string exception{"module resolve failed to read the file: " + path.string()};
+            isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, exception.c_str()).ToLocalChecked()));
+            return {};
         }
 
-        void object_set(_v8::Local<_v8::Object> object, const char *name, _v8::Local<_v8::Value> value)
+        auto origin = _v8::ScriptOrigin(isolate, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked(), 0, 0, false, -1, _v8::Local<_v8::Value>(), false, false, true);
+        _v8::ScriptCompiler::Source source(_v8::String::NewFromUtf8(isolate, res.get()).ToLocalChecked(), origin);
+        auto maybeModule = _v8::ScriptCompiler::CompileModule(isolate, &source);
+
+        auto module = maybeModule.ToLocalChecked();
+        resolvedMap.emplace(module->GetIdentityHash(), path);
+        auto global = _v8::Global<_v8::Module>{isolate, module};
+        global.SetWeak();
+        moduleCache->emplace(path, std::move(global));
+
+        return handle_scope.EscapeMaybe(maybeModule);
+    }
+
+    _v8::MaybeLocal<_v8::Module> module_evaluate(_v8::Local<_v8::Context> context, _v8::Local<_v8::String> specifier)
+    {
+        _v8::Isolate *isolate = context->GetIsolate();
+        _v8::EscapableHandleScope handle_scope(isolate);
+
+        _v8::TryCatch try_catch(isolate);
+        auto maybeModule = module_resolve(context, specifier);
+        if (try_catch.HasCaught())
         {
-            _v8::Isolate *isolate = object->GetIsolate();
-            _v8::HandleScope handleScope(isolate);
-            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
-
-            object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value);
+            tryCatch_print(try_catch);
+            return {};
         }
-
-        _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object)
+        if (maybeModule.IsEmpty())
         {
-            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-            _v8::HandleScope scope{isolate};
-            _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
-
-            return _v8::String::Utf8Value(isolate, _v8::JSON::Stringify(context, object, _v8::String::NewFromUtf8Literal(isolate, " ")).ToLocalChecked());
+            printf("module resolve failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            return {};
         }
-
-        void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb)
+        auto module = maybeModule.ToLocalChecked();
+        auto maybeOk = module->InstantiateModule(context, module_resolve);
+        if (try_catch.HasCaught())
         {
-            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-            auto callback = new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb));
-            isolate_getWeakCallbacks(isolate)->emplace(callback->older(), callback);
+            tryCatch_print(try_catch);
+            return {};
         }
-
-        void gc(_v8::Local<_v8::Context> context)
+        if (maybeOk.IsNothing())
         {
-            auto gc = object_get(context->Global(), "__gc__").As<_v8::Function>();
-            gc->Call(context, context->Global(), 0, nullptr);
+            printf("module instantiate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            return {};
         }
-
-        Class::Class(const char *name)
+        _v8::Local<_v8::Promise> promise = module->Evaluate(context).ToLocalChecked().As<_v8::Promise>();
+        if (promise->State() != _v8::Promise::kFulfilled)
         {
-            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-            _v8::HandleScope scope(isolate);
-
-            _v8::Local<_v8::FunctionTemplate> constructor{_v8::FunctionTemplate::New(isolate)};
-            constructor->SetClassName(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked());
-            constructor->InstanceTemplate()->SetInternalFieldCount(1);
-
-            _functionTemplate.Reset(isolate, constructor);
+            printf("module evaluate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            return {};
         }
+        return handle_scope.EscapeMaybe(maybeModule);
+    }
 
-        void Class::defineFunction(const char *name, _v8::FunctionCallback callback)
-        {
-            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-            _functionTemplate.Get(isolate)->PrototypeTemplate()->Set(isolate, name, _v8::FunctionTemplate::New(isolate, callback));
-        }
+    _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name)
+    {
+        _v8::Isolate *isolate = object->GetIsolate();
+        _v8::EscapableHandleScope handleScope(isolate);
+        _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
-        void Class::defineAccessor(const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter)
-        {
-            _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-            _functionTemplate.Get(isolate)->PrototypeTemplate()->SetAccessor(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), getter, setter);
-        }
+        _v8::Local<_v8::Value> out;
+        object->Get(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked()).ToLocal(&out);
+        return handleScope.Escape(out);
+    }
 
-        _v8::Local<_v8::FunctionTemplate> Class::flush()
-        {
-            return _functionTemplate.Get(_v8::Isolate::GetCurrent());
-        }
+    void object_set(_v8::Local<_v8::Object> object, const char *name, _v8::Local<_v8::Value> value)
+    {
+        _v8::Isolate *isolate = object->GetIsolate();
+        _v8::HandleScope handleScope(isolate);
+        _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
-        Class::~Class()
-        {
-            _functionTemplate.Reset();
-        }
+        object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value);
+    }
+
+    _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        _v8::HandleScope scope{isolate};
+        _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
+
+        return _v8::String::Utf8Value(isolate, _v8::JSON::Stringify(context, object, _v8::String::NewFromUtf8Literal(isolate, " ")).ToLocalChecked());
+    }
+
+    void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        auto callback = new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb));
+        isolate_getWeakCallbacks(isolate)->emplace(callback->older(), callback);
+    }
+
+    void gc(_v8::Local<_v8::Context> context)
+    {
+        auto gc = object_get(context->Global(), "__gc__").As<_v8::Function>();
+        gc->Call(context, context->Global(), 0, nullptr);
+    }
+
+    Class::Class(const char *name)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        _v8::HandleScope scope(isolate);
+
+        _v8::Local<_v8::FunctionTemplate> constructor{_v8::FunctionTemplate::New(isolate)};
+        constructor->SetClassName(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked());
+        constructor->InstanceTemplate()->SetInternalFieldCount(1);
+
+        _functionTemplate.Reset(isolate, constructor);
+    }
+
+    void Class::defineFunction(const char *name, _v8::FunctionCallback callback)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        _functionTemplate.Get(isolate)->PrototypeTemplate()->Set(isolate, name, _v8::FunctionTemplate::New(isolate, callback));
+    }
+
+    void Class::defineAccessor(const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        _functionTemplate.Get(isolate)->PrototypeTemplate()->SetAccessor(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), getter, setter);
+    }
+
+    _v8::Local<_v8::FunctionTemplate> Class::flush()
+    {
+        return _functionTemplate.Get(_v8::Isolate::GetCurrent());
+    }
+
+    Class::~Class()
+    {
+        _functionTemplate.Reset();
     }
 }
