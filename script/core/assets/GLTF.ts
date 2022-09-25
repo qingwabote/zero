@@ -47,7 +47,8 @@ export default class GLTF extends Asset {
         }
         const parent = res[1];
         const name = res[2];
-        const json = await zero.loader.load(`${parent}/${name}.gltf`, "json", this.onProgress);
+        const text = await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress);
+        const json = JSON.parse(text);
         const bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
 
         const images: any[] = json.images;
@@ -58,8 +59,8 @@ export default class GLTF extends Asset {
     }
 
     private async loadTexture(url: string): Promise<Texture> {
-        const blob = await zero.loader.load(url, "blob", this.onProgress);
-        const imageBitmap = await zero.device.createImageBitmap(blob);
+        const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
+        const imageBitmap = await zero.device.createImageBitmap(new Blob([arraybuffer]));
         const texture = zero.device.createTexture({});
         texture.update(imageBitmap);
         return texture;
