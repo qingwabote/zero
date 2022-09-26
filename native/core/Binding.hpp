@@ -40,5 +40,5 @@ public:
 
     v8::Local<v8::Object> retrieve(const std::string &key);
 
-    virtual ~Binding();
+    virtual ~Binding() {}
 };

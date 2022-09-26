@@ -77,8 +77,3 @@ v8::Local<v8::Object> Binding::retrieve(const std::string &key)
         .ToLocalChecked()
         .As<v8::Object>();
 }
-
-Binding::~Binding()
-{
-    _js_obj.Reset();
-}

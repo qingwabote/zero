@@ -61,6 +61,7 @@ int Window::loop()
         context,
         v8::String::NewFromUtf8Literal(isolate.get(), "console"),
         (new binding::Console())->js_obj());
+
     v8::Local<v8::Object> bootstrap;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
@@ -84,15 +85,26 @@ int Window::loop()
         }
         bootstrap = handle_scope.Escape(default);
     }
-    auto appSrc = sugar::v8::object_get(bootstrap, "app").As<v8::String>();
-    if (appSrc.IsEmpty())
-    {
-        printf("bootstrap.js: no app found\n");
-        return -1;
-    }
+
     v8::Local<v8::Object> app;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
+
+        auto projectDir = sugar::v8::object_get(bootstrap, "project").As<v8::String>();
+        if (!projectDir->IsString())
+        {
+            printf("bootstrap.js: no project found\n");
+            return -1;
+        }
+
+        auto appSrc = sugar::v8::object_get(bootstrap, "app").As<v8::String>();
+        if (!appSrc->IsString())
+        {
+            printf("bootstrap.js: no app found\n");
+            return -1;
+        }
+
+        appSrc = v8::String::Concat(isolate.get(), projectDir, appSrc);
 
         auto maybeModule = sugar::v8::module_evaluate(context, appSrc);
         if (maybeModule.IsEmpty())

@@ -8,23 +8,28 @@
 
 namespace
 {
-    const uint32_t SLOT_CONSTRUCTOR_CACHE = 0;
-
-    const uint32_t SLOT_MODULE_CACHE = 1;
-
-    const uint32_t SLOT_WEAK_CALLBACKS = 2;
-
-    std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>> *isolate_getModuleCache(_v8::Isolate *isolate)
-    {
-        return (std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>> *)isolate->GetData(SLOT_MODULE_CACHE);
-    }
-
     struct SetWeakCallback;
 
-    std::map<uint32_t, SetWeakCallback *> *isolate_getWeakCallbacks(_v8::Isolate *isolate)
+    struct IsolateData
     {
-        return (std::map<uint32_t, SetWeakCallback *> *)isolate->GetData(SLOT_WEAK_CALLBACKS);
-    }
+        static IsolateData *getCurrent(_v8::Isolate *isolate)
+        {
+            return static_cast<IsolateData *>(isolate->GetData(0));
+        }
+
+        IsolateData(_v8::Isolate *isolate)
+        {
+            isolate->SetData(0, this);
+        }
+
+        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> constructorCache;
+
+        std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>> moduleCache;
+
+        std::map<uint32_t, SetWeakCallback *> weakCallbacks;
+
+        std::unordered_map<int, _v8::Global<_v8::Value>> promiseRejectMessages;
+    };
 
     struct SetWeakCallback
     {
@@ -49,7 +54,7 @@ namespace
                 [](const _v8::WeakCallbackInfo<SetWeakCallback> &info)
                 {
                     SetWeakCallback *p = info.GetParameter();
-                    isolate_getWeakCallbacks(info.GetIsolate())->erase(p->older());
+                    IsolateData::getCurrent(info.GetIsolate())->weakCallbacks.erase(p->older());
                     delete p;
                 },
                 _v8::WeakCallbackType::kParameter);
@@ -65,25 +70,25 @@ namespace
     };
 }
 
-namespace _v8 = v8;
-
 namespace sugar::v8
 {
     static void isolateDeleter(_v8::Isolate *isolate)
     {
-        for (auto &it : *isolate_getConstructorCache(isolate))
+        IsolateData *data = IsolateData::getCurrent(isolate);
+        for (auto &it : data->constructorCache)
         {
             it.second.Reset();
         }
-        for (auto &it : *isolate_getModuleCache(isolate))
+        for (auto &it : data->moduleCache)
         {
             it.second.Reset();
         }
-        auto weakCallbacks = isolate_getWeakCallbacks(isolate);
-        for (auto it = weakCallbacks->rbegin(); it != weakCallbacks->rend(); it++)
+        for (auto it = data->weakCallbacks.rbegin(); it != data->weakCallbacks.rend(); it++)
         {
             delete it->second;
         }
+        delete data;
+
         isolate->Dispose();
         _v8::V8::Dispose();
         _v8::V8::DisposePlatform();
@@ -97,15 +102,13 @@ namespace sugar::v8
         _v8::Isolate::CreateParams create_params;
         create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
         _v8::Isolate *isolate = _v8::Isolate::New(create_params);
-        isolate->SetData(SLOT_CONSTRUCTOR_CACHE, new std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>>);
-        isolate->SetData(SLOT_MODULE_CACHE, new std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>>);
-        isolate->SetData(SLOT_WEAK_CALLBACKS, new std::map<uint32_t, SetWeakCallback *>);
+        new IsolateData(isolate);
         return unique_isolate{isolate, isolateDeleter};
     }
 
     std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate)
     {
-        return static_cast<std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *>(isolate->GetData(SLOT_CONSTRUCTOR_CACHE));
+        return &IsolateData::getCurrent(isolate)->constructorCache;
     }
 
     std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack)
@@ -169,25 +172,42 @@ namespace sugar::v8
     void isolate_promiseRejectCallback(_v8::PromiseRejectMessage rejectMessage)
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        _v8::HandleScope scope(isolate);
 
+        auto &promiseRejectMessages = IsolateData::getCurrent(isolate)->promiseRejectMessages;
         switch (rejectMessage.GetEvent())
         {
         case _v8::kPromiseRejectWithNoHandler:
         {
-            _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, rejectMessage.GetValue());
-            printf(
-                "%s\nSTACK:\n%s\n",
-                *_v8::String::Utf8Value{isolate, message->Get()},
-                stackTrace_toString(message->GetStackTrace()).c_str());
+            promiseRejectMessages.emplace(rejectMessage.GetPromise()->GetIdentityHash(),
+                                          _v8::Global<_v8::Value>(isolate, rejectMessage.GetValue()));
             break;
         }
-        default:
-        {
-            throw "not yet implemented";
+        case _v8::kPromiseHandlerAddedAfterReject:
+            promiseRejectMessages.erase(rejectMessage.GetPromise()->GetIdentityHash());
+            break;
+        case _v8::kPromiseRejectAfterResolved:
+            throw "not implemented yet";
+            break;
+        case _v8::kPromiseResolveAfterResolved:
+            throw "not implemented yet";
             break;
         }
-        }
+
+        isolate->EnqueueMicrotask(
+            [](void *p)
+            {
+                _v8::Isolate *isolate = static_cast<_v8::Isolate *>(p);
+                auto &promiseRejectMessages = IsolateData::getCurrent(isolate)->promiseRejectMessages;
+                for (auto &it : promiseRejectMessages)
+                {
+                    _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, it.second.Get(isolate));
+                    printf("%s\nSTACK:\n%s\n",
+                           *_v8::String::Utf8Value{isolate, message->Get()},
+                           stackTrace_toString(message->GetStackTrace()).c_str());
+                }
+                promiseRejectMessages.clear();
+            },
+            isolate);
     }
 
     _v8::MaybeLocal<_v8::Module> module_resolve(
@@ -210,9 +230,9 @@ namespace sugar::v8
             path = std::filesystem::absolute(path);
         }
 
-        auto moduleCache = isolate_getModuleCache(isolate);
-        auto it = moduleCache->find(path);
-        if (it != moduleCache->end())
+        auto &moduleCache = IsolateData::getCurrent(isolate)->moduleCache;
+        auto it = moduleCache.find(path);
+        if (it != moduleCache.end())
         {
             return handle_scope.EscapeMaybe(_v8::MaybeLocal<_v8::Module>{it->second.Get(isolate)});
         }
@@ -233,7 +253,7 @@ namespace sugar::v8
         resolvedMap.emplace(module->GetIdentityHash(), path);
         auto global = _v8::Global<_v8::Module>{isolate, module};
         global.SetWeak();
-        moduleCache->emplace(path, std::move(global));
+        moduleCache.emplace(path, std::move(global));
 
         return handle_scope.EscapeMaybe(maybeModule);
     }
@@ -309,7 +329,7 @@ namespace sugar::v8
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
         auto callback = new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb));
-        isolate_getWeakCallbacks(isolate)->emplace(callback->older(), callback);
+        IsolateData::getCurrent(isolate)->weakCallbacks.emplace(callback->older(), callback);
     }
 
     void gc(_v8::Local<_v8::Context> context)
@@ -345,10 +365,5 @@ namespace sugar::v8
     _v8::Local<_v8::FunctionTemplate> Class::flush()
     {
         return _functionTemplate.Get(_v8::Isolate::GetCurrent());
-    }
-
-    Class::~Class()
-    {
-        _functionTemplate.Reset();
     }
 }
