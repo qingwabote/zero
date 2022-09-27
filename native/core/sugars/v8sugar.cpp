@@ -186,8 +186,13 @@ namespace sugar::v8
             promiseRejectMessages.erase(rejectMessage.GetPromise()->GetIdentityHash());
             break;
         case _v8::kPromiseRejectAfterResolved:
-            throw "not implemented yet";
+        {
+            _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, rejectMessage.GetValue());
+            printf("%s\nSTACK:\n%s\n",
+                   *_v8::String::Utf8Value{isolate, message->Get()},
+                   stackTrace_toString(message->GetStackTrace()).c_str());
             break;
+        }
         case _v8::kPromiseResolveAfterResolved:
             throw "not implemented yet";
             break;

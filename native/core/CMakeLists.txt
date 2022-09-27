@@ -4,6 +4,7 @@ set(SRC_FILES
     sugars/v8sugar.cpp
     Binding.cpp
     bindings/Console.cpp
+    bindings/Loader.cpp
     bindings/gfx/Device.cpp
     bindings/gfx/CommandBuffer.cpp
     bindings/gfx/Buffer.cpp

@@ -2,6 +2,7 @@
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "bindings/Console.hpp"
+#include "bindings/Loader.hpp"
 #include "bindings/gfx/Device.hpp"
 #include <chrono>
 #include <thread>
@@ -86,16 +87,16 @@ int Window::loop()
         bootstrap = handle_scope.Escape(default);
     }
 
+    auto projectDir = sugar::v8::object_get(bootstrap, "project").As<v8::String>();
+    if (!projectDir->IsString())
+    {
+        printf("bootstrap.js: no project found\n");
+        return -1;
+    }
+
     v8::Local<v8::Object> app;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
-
-        auto projectDir = sugar::v8::object_get(bootstrap, "project").As<v8::String>();
-        if (!projectDir->IsString())
-        {
-            printf("bootstrap.js: no project found\n");
-            return -1;
-        }
 
         auto appSrc = sugar::v8::object_get(bootstrap, "app").As<v8::String>();
         if (!appSrc->IsString())
@@ -136,12 +137,13 @@ int Window::loop()
         return -1;
     }
     binding::gfx::Device *device = new binding::gfx::Device(window.get());
-    v8::Local<v8::Object> js_device = device->js_obj();
-    v8::Local<v8::Value> args[] = {
-        js_device,
-        v8::Object::New(isolate.get()),
-        v8::Number::New(isolate.get(), width),
-        v8::Number::New(isolate.get(), height)};
+    binding::Loader *loader = new binding::Loader(*v8::String::Utf8Value(isolate.get(), projectDir));
+    v8::Local<v8::Value>
+        args[] = {
+            device->js_obj(),
+            loader->js_obj(),
+            v8::Number::New(isolate.get(), width),
+            v8::Number::New(isolate.get(), height)};
     v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 4, args);
     if (maybeRes.IsEmpty())
     {
