@@ -3,20 +3,16 @@ import Device from "./gfx/Device.js";
 import { BlendFactor, DescriptorSet } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
+import Platfrom from "./Platfrom.js";
 import render from "./render.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 import shaders, { BuiltinUniformBlocks } from "./shaders.js";
 
 export default class Zero {
-    private _device!: Device;
-    get device(): Device {
-        return this._device;
-    }
-
-    private _window!: RenderWindow;
-    get window(): RenderWindow {
-        return this._window;
+    private _gfx!: Device;
+    get gfx(): Device {
+        return this._gfx;
     }
 
     private _input: Input = new Input;
@@ -27,6 +23,16 @@ export default class Zero {
     private _loader!: Loader;
     get loader(): Loader {
         return this._loader;
+    }
+
+    private _platfrom!: Platfrom;
+    get platfrom(): Platfrom {
+        return this._platfrom;
+    }
+
+    private _window!: RenderWindow;
+    get window(): RenderWindow {
+        return this._window;
     }
 
     private _renderScene!: RenderScene;
@@ -44,13 +50,15 @@ export default class Zero {
         return this._globalDescriptorSet;
     }
 
-    initialize(device: Device, loader: Loader, width: number, height: number): boolean {
+    initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
         if (device.initialize()) {
             return true;
         }
-        this._device = device;
+        this._gfx = device;
 
         this._loader = loader;
+
+        this._platfrom = platfrom;
 
         this._window = { width, height };
 
@@ -69,7 +77,7 @@ export default class Zero {
 
         render.dirtyTransforms.clear();
 
-        const commandBuffer = this._device.commandBuffer;
+        const commandBuffer = this._gfx.commandBuffer;
         commandBuffer.begin();
 
         const cameras = this._renderScene.cameras;
@@ -89,13 +97,13 @@ export default class Zero {
                     for (const pass of subModel.passes) {
                         const shader = pass.shader;
 
-                        const layout = zero.device.createPipelineLayout();
+                        const layout = zero.gfx.createPipelineLayout();
                         layout.initialize([
                             shaders.builtinDescriptorSetLayouts.global,
                             shaders.builtinDescriptorSetLayouts.local,
                             shader.info.meta.descriptorSetLayout
                         ])
-                        const pipeline = this._device.createPipeline();
+                        const pipeline = this._gfx.createPipeline();
                         pipeline.initialize({
                             shader,
                             vertexInputState: {
@@ -116,7 +124,7 @@ export default class Zero {
                             layout
                         })
                         commandBuffer.bindPipeline(pipeline);
-                        const alignment = zero.device.capabilities.uniformBufferOffsetAlignment;
+                        const alignment = zero.gfx.capabilities.uniformBufferOffsetAlignment;
                         const cameraUboSize = Math.ceil(BuiltinUniformBlocks.global.blocks.Camera.size / alignment) * alignment;
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet, [cameraIndex * cameraUboSize]);
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
@@ -132,6 +140,6 @@ export default class Zero {
 
         commandBuffer.end();
 
-        this._device.present();
+        this._gfx.present();
     }
 } 

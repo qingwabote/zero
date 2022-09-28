@@ -3,6 +3,7 @@
 #include "sugars/v8sugar.hpp"
 #include "bindings/Console.hpp"
 #include "bindings/Loader.hpp"
+#include "bindings/Platform.hpp"
 #include "bindings/gfx/Device.hpp"
 #include <chrono>
 #include <thread>
@@ -137,14 +138,16 @@ int Window::loop()
         return -1;
     }
     binding::gfx::Device *device = new binding::gfx::Device(window.get());
+    binding::Platform *platform = new binding::Platform();
     binding::Loader *loader = new binding::Loader(*v8::String::Utf8Value(isolate.get(), projectDir));
     v8::Local<v8::Value>
         args[] = {
             device->js_obj(),
             loader->js_obj(),
+            platform->js_obj(),
             v8::Number::New(isolate.get(), width),
             v8::Number::New(isolate.get(), height)};
-    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 4, args);
+    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 5, args);
     if (maybeRes.IsEmpty())
     {
         return -1;

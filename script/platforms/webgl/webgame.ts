@@ -1,6 +1,7 @@
 import Zero from "../../core/Zero.js";
 import WebDevice from "./gfx/WebDevice.js";
 import WebLoader from "./WebLoader.js";
+import WebPlatfrom from "./WebPlatform.js";
 
 const DEBUG_DT_THRESHOLD = 1;
 
@@ -8,7 +9,7 @@ export default {
     run(canvas: HTMLCanvasElement, App: new () => Zero) {
         const gl = canvas.getContext('webgl2')!;
         (window as any).zero = new App();
-        zero.initialize(new WebDevice(gl), new WebLoader, canvas.width, canvas.height);
+        zero.initialize(new WebDevice(gl), new WebLoader, new WebPlatfrom, canvas.width, canvas.height);
 
         const input = zero.input;
         canvas.addEventListener("mousedown", (mouseEvent) => {

@@ -57,7 +57,7 @@ function buildDescriptorSetLayout(res: {
             stageFlags: ShaderStageFlagBits.VERTEX
         }
     }
-    const descriptorSetLayout = zero.device.createDescriptorSetLayout();
+    const descriptorSetLayout = zero.gfx.createDescriptorSetLayout();
     descriptorSetLayout.initialize(bindings);
     return descriptorSetLayout;
 }
@@ -185,7 +185,7 @@ export default {
 
         if (!shaders[key]) {
             const res = preprocessor.preprocess(name2chunk, name2source[name], macros);
-            shaders[key] = zero.device.createShader();
+            shaders[key] = zero.gfx.createShader();
             shaders[key].initialize({
                 name,
                 stages: res.out,

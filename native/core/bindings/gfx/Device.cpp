@@ -90,7 +90,6 @@ namespace binding
                     auto c_obj = Binding::c_obj<Device>(info.This());
                     c_obj->present();
                 });
-
             return scope.Escape(cls.flush());
         }
     }

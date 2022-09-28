@@ -19,7 +19,7 @@ export default class RenderScene {
     }
 
     update(dt: number) {
-        const alignment = zero.device.capabilities.uniformBufferOffsetAlignment;
+        const alignment = zero.gfx.capabilities.uniformBufferOffsetAlignment;
         const CameraBlock = BuiltinUniformBlocks.global.blocks.Camera;
         const cameraUboSize = Math.ceil(CameraBlock.size / alignment) * alignment;
         const camerasUboSize = cameraUboSize * this._cameras.length;
@@ -50,7 +50,7 @@ export default class RenderScene {
                 this._camerasUbo = null;
             }
             if (!this._camerasUbo) {
-                this._camerasUbo = zero.device.createBuffer();
+                this._camerasUbo = zero.gfx.createBuffer();
                 this._camerasUbo.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: camerasUboSize });
                 zero.globalDescriptorSet.bindBuffer(CameraBlock.binding, this._camerasUbo, cameraUboSize);
             }

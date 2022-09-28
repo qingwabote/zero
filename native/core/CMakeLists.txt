@@ -5,6 +5,8 @@ set(SRC_FILES
     Binding.cpp
     bindings/Console.cpp
     bindings/Loader.cpp
+    bindings/ImageBitmap.cpp
+    bindings/Platform.cpp
     bindings/gfx/Device.cpp
     bindings/gfx/CommandBuffer.cpp
     bindings/gfx/Buffer.cpp

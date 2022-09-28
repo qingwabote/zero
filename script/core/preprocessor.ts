@@ -62,7 +62,7 @@ export default {
                     }
                 })
         }
-        const descriptorSetLayout = zero.device.createDescriptorSetLayout();
+        const descriptorSetLayout = zero.gfx.createDescriptorSetLayout();
         descriptorSetLayout.initialize(bindings);
 
         return {

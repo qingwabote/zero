@@ -24,10 +24,10 @@ export default class Model {
     constructor(subModels: SubModel[], transform: TransformSource) {
         render.dirtyTransforms.set(transform, transform);
 
-        this._localBuffer = zero.device.createBuffer();
+        this._localBuffer = zero.gfx.createBuffer();
         this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: float32Array.byteLength });
 
-        this._descriptorSet = zero.device.createDescriptorSet();
+        this._descriptorSet = zero.gfx.createDescriptorSet();
         this._descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local);
         this._descriptorSet.bindBuffer(BuiltinUniformBlocks.local.blocks.Local.binding, this._localBuffer);
 

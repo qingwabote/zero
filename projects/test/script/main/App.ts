@@ -3,12 +3,13 @@ import Camera from "../../../../script/core/components/Camera.js";
 import Device from "../../../../script/core/gfx/Device.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
+import Platfrom from "../../../../script/core/Platfrom.js";
 import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 export default class App extends Zero {
-    initialize(device: Device, loader: Loader, width: number, height: number): boolean {
-        if (super.initialize(device, loader, width, height)) {
+    initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
+        if (super.initialize(device, loader, platfrom, width, height)) {
             return true;
         }
 

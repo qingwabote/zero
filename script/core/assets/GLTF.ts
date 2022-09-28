@@ -60,8 +60,8 @@ export default class GLTF extends Asset {
 
     private async loadTexture(url: string): Promise<Texture> {
         const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
-        const imageBitmap = await zero.device.createImageBitmap(new Blob([arraybuffer]));
-        const texture = zero.device.createTexture({});
+        const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
+        const texture = zero.gfx.createTexture({});
         texture.update(imageBitmap);
         return texture;
     }
@@ -181,7 +181,7 @@ export default class GLTF extends Asset {
             //     console.assert(viewInfo.target == 34963)
             // }
             const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
-            buffer = zero.device.createBuffer();
+            buffer = zero.gfx.createBuffer();
             buffer.initialize({
                 usage: usage,
                 stride: viewInfo.byteStride,

@@ -68,9 +68,5 @@ export default class WebDevice implements Device {
         return texture;
     }
 
-    createImageBitmap(blob: Blob): Promise<ImageBitmap> {
-        return createImageBitmap(blob)
-    }
-
     present(): void { }
 }
