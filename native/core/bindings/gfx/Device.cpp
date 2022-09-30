@@ -1,5 +1,4 @@
 #include "device.hpp"
-#include "sugars/v8sugar.hpp"
 
 namespace binding
 {

@@ -1,5 +1,4 @@
 #include "Pipeline.hpp"
-#include "sugars/v8sugar.hpp"
 
 namespace binding
 {
