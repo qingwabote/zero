@@ -15,13 +15,16 @@ export default class WebTexture extends Texture {
 
     initialize(info: TextureInfo): void {
         const gl = this._gl;
-        this._texture = gl.createTexture()!
+        this._texture = gl.createTexture()!;
+        gl.bindTexture(gl.TEXTURE_2D, this._texture);
+        gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA8, info.width, info.height);
+        gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
     update(imageBitmap: ImageBitmap): void {
         const gl = this._gl;
         gl.bindTexture(gl.TEXTURE_2D, this._texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, imageBitmap.width, imageBitmap.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }

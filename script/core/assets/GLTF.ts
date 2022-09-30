@@ -61,7 +61,7 @@ export default class GLTF extends Asset {
     private async loadTexture(url: string): Promise<Texture> {
         const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
         const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
-        const texture = zero.gfx.createTexture({});
+        const texture = zero.gfx.createTexture({ width: imageBitmap.width, height: imageBitmap.height });
         texture.update(imageBitmap);
         return texture;
     }
