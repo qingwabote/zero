@@ -3,7 +3,7 @@ import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device, { Capabilities } from "../../../core/gfx/Device.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import Shader from "../../../core/gfx/Shader.js";
-import Texture, { TextureInfo } from "../../../core/gfx/Texture.js";
+import Texture from "../../../core/gfx/Texture.js";
 import WebBuffer from "./WebBuffer.js";
 import WebCommandBuffer from "./WebCommandBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
@@ -62,10 +62,8 @@ export default class WebDevice implements Device {
         return new WebBuffer(this._gl);
     }
 
-    createTexture(info: TextureInfo): Texture {
-        const texture = new WebTexture(this._gl);
-        texture.initialize(info);
-        return texture;
+    createTexture(): Texture {
+        return new WebTexture(this._gl);
     }
 
     present(): void { }

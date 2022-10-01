@@ -2,7 +2,7 @@ import Buffer from "./Buffer.js";
 import CommandBuffer from "./CommandBuffer.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "./Pipeline.js";
 import Shader from "./Shader.js";
-import Texture, { TextureInfo } from "./Texture.js";
+import Texture from "./Texture.js";
 
 export interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
@@ -27,7 +27,7 @@ export default interface Device {
 
     createBuffer(): Buffer;
 
-    createTexture(info: TextureInfo): Texture;
+    createTexture(): Texture;
 
     present(): void;
 }

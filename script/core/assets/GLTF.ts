@@ -61,7 +61,8 @@ export default class GLTF extends Asset {
     private async loadTexture(url: string): Promise<Texture> {
         const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
         const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
-        const texture = zero.gfx.createTexture({ width: imageBitmap.width, height: imageBitmap.height });
+        const texture = zero.gfx.createTexture();
+        texture.initialize({ width: imageBitmap.width, height: imageBitmap.height });
         texture.update(imageBitmap);
         return texture;
     }
@@ -150,7 +151,9 @@ export default class GLTF extends Asset {
                 materials.push(material);
             }
 
-            console.assert(accessor.type == "SCALAR");
+            if (accessor.type != "SCALAR") {
+                throw new Error("unsupported index type");
+            }
             let indexType: IndexType;
             switch (accessor.componentType) {
                 case 5123:
@@ -160,8 +163,7 @@ export default class GLTF extends Asset {
                     indexType = IndexType.UINT32;
                     break;
                 default:
-                    console.error('unsupported index type');
-                    return;
+                    throw new Error("unsupported index type");
             }
             subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, indexType, accessor.count, accessor.byteOffset || 0))
         }
@@ -191,7 +193,9 @@ export default class GLTF extends Asset {
             this._buffers[index] = buffer;
         }
 
-        console.assert(buffer.info.usage == usage);
+        if (buffer.info.usage != usage) {
+            throw new Error("");
+        }
         return buffer;
     }
 

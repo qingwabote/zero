@@ -121,7 +121,7 @@ sources.push(`
 layout(location = 0) in vec4 a_position;
 layout(location = 2) in vec2 a_texCoord;
 
-out vec2 v_uv;
+layout(location = 0) out vec2 v_uv;
 
 void main() {
     v_uv = a_texCoord;
@@ -133,14 +133,14 @@ void main() {
 sources.push(`
 precision highp float;
 
-in vec2 v_uv;
+layout(location = 0) in vec2 v_uv;
 
 #if USE_ALBEDO_MAP
     layout(set = 2, binding = 0) uniform sampler2D albedoMap;
 #endif
 
 
-out vec4 v_color;
+layout(location = 0) out vec4 v_color;
 
 void main() {
     vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);

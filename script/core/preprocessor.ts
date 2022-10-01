@@ -30,11 +30,33 @@ export default {
             .map(stage => ({ type: stage.type, source: includeExpand(chunks, stage.source) }))
             .map(stage => ({ type: stage.type, source: macroExpand(macros, stage.source) }));
 
+        const vertexStage = out.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!;
+        const fragmentStage = out.find(stage => stage.type == ShaderStageFlagBits.FRAGMENT)!;
+
         const attributes: Record<string, Attribute> = {};
-        let matches = out.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
+        let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
         for (const match of matches) {
             attributes[match[2]] = { location: parseInt(match[1]) };
         }
+
+        // remove unsupported layout qualifier for webgl
+        vertexStage.source = vertexStage.source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*out/g,
+            function (content: string): string {
+                if (typeof window != 'undefined') {
+                    return "out"
+                }
+                return content;
+            }
+        );
+        fragmentStage.source = fragmentStage.source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*in/g,
+            function (content: string): string {
+                if (typeof window != 'undefined') {
+                    return "in"
+                }
+                return content;
+            }
+        );
+
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
         const bindings: DescriptorSetLayoutBinding[] = []
@@ -54,12 +76,11 @@ export default {
                         });
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
-                    // remove unsupported layout declaration for webgl, e.g. descriptor sets, no such concept in OpenGL
+                    // remove unsupported layout qualifier for webgl, e.g. descriptor sets, no such concept in OpenGL
                     if (typeof window != 'undefined') {
                         return type ? `uniform ${type} ${name}` : `uniform ${name}`;
-                    } else {
-                        return content;
                     }
+                    return content;
                 })
         }
         const descriptorSetLayout = zero.gfx.createDescriptorSetLayout();
