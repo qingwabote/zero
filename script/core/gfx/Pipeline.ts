@@ -61,6 +61,7 @@ export interface InputAssembler {
     bindings: VertexInputBindingDescription[];
     attributes: VertexInputAttributeDescription[];
     vertexBuffers: Buffer[];
+    vertexOffsets: number[];
     indexBuffer: Buffer;
     indexType: IndexType;
     indexCount: number;

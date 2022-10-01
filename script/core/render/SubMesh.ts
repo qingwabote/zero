@@ -19,6 +19,11 @@ export default class SubMesh {
         return this._vertexBuffers;
     }
 
+    private _vertexOffsets: number[];
+    get vertexOffsets(): number[] {
+        return this._vertexOffsets;
+    }
+
     private _indexBuffer: Buffer;
     get indexBuffer(): Buffer {
         return this._indexBuffer;
@@ -39,9 +44,10 @@ export default class SubMesh {
         return this._indexOffset;
     }
 
-    constructor(attributes: Attribute[], vertexBuffers: Buffer[], indexBuffer: Buffer, indexType: IndexType, indexCount: number, indexOffset: number) {
+    constructor(attributes: Attribute[], vertexBuffers: Buffer[], vertexOffsets: number[], indexBuffer: Buffer, indexType: IndexType, indexCount: number, indexOffset: number) {
         this._attributes = attributes;
         this._vertexBuffers = vertexBuffers;
+        this._vertexOffsets = vertexOffsets;
         this._indexBuffer = indexBuffer;
         this._indexType = indexType;
         this._indexCount = indexCount;

@@ -128,6 +128,7 @@ export default class WebCommandBuffer implements CommandBuffer {
             for (const attribute of attributes) {
                 const binding = inputAssembler.bindings[attribute.binding];
                 const buffer = inputAssembler.vertexBuffers[attribute.binding] as WebBuffer;
+                const offset = inputAssembler.vertexOffsets[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
@@ -148,7 +149,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                     type,
                     false,
                     binding.stride,
-                    attribute.offset);
+                    offset + attribute.offset);
             }
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);
             input2vao.set(inputAssembler, vao);

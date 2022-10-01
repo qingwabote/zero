@@ -108,14 +108,21 @@ namespace binding
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
             v8::Local<v8::Array> js_vertexBuffers = sugar::v8::object_get(inputAssembler, "vertexBuffers").As<v8::Array>();
-            std::vector<VkBuffer> vertexBuffers{js_vertexBuffers->Length()};
+            std::vector<VkBuffer> vertexBuffers(js_vertexBuffers->Length());
             for (uint32_t i = 0; i < js_vertexBuffers->Length(); i++)
             {
                 Buffer *c_buffer = Binding::c_obj<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>());
                 vertexBuffers[i] = c_buffer->impl();
             }
-            std::vector<VkDeviceSize> offsets(js_vertexBuffers->Length(), 0);
-            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+
+            v8::Local<v8::Array> js_vertexOffsets = sugar::v8::object_get(inputAssembler, "vertexOffsets").As<v8::Array>();
+            std::vector<VkDeviceSize> vertexOffsets(js_vertexOffsets->Length());
+            for (uint32_t i = 0; i < js_vertexOffsets->Length(); i++)
+            {
+                vertexOffsets[i] = js_vertexOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
+            }
+
+            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), vertexOffsets.data());
 
             v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(inputAssembler, "indexBuffer").As<v8::Object>();
             Buffer *c_buffer = Binding::c_obj<Buffer>(js_indexBuffer);

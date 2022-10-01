@@ -55,6 +55,7 @@ export default class SubModel {
             bindings,
             attributes,
             vertexBuffers: subMesh.vertexBuffers,
+            vertexOffsets: subMesh.vertexOffsets,
             indexBuffer: subMesh.indexBuffer,
             indexType: subMesh.indexType,
             indexCount: subMesh.indexCount,

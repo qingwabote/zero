@@ -119,6 +119,7 @@ export default class GLTF extends Asset {
         const materials: Material[] = [];
         for (const primitive of info.primitives) {
             const vertexBuffers: Buffer[] = [];
+            const vertexOffsets: number[] = [];
             const attributes: Attribute[] = [];
             for (const name in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[name]];
@@ -130,10 +131,11 @@ export default class GLTF extends Asset {
                     name: builtinAttributes[name] || name,
                     format,
                     buffer: vertexBuffers.length,
-                    offset: accessor.byteOffset
+                    offset: 0
                 }
                 attributes.push(attribute);
                 vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX));
+                vertexOffsets.push(accessor.byteOffset || 0);
             }
 
             const accessor = this._json.accessors[primitive.indices];
@@ -165,7 +167,7 @@ export default class GLTF extends Asset {
                 default:
                     throw new Error("unsupported index type");
             }
-            subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, indexType, accessor.count, accessor.byteOffset || 0))
+            subMeshes.push(new SubMesh(attributes, vertexBuffers, vertexOffsets, buffer, indexType, accessor.count, accessor.byteOffset || 0))
         }
 
         const renderer = node.addComponent(MeshRenderer);
