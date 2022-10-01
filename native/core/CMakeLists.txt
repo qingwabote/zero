@@ -10,6 +10,7 @@ set(SRC_FILES
     bindings/gfx/Device.cpp
     bindings/gfx/CommandBuffer.cpp
     bindings/gfx/Buffer.cpp
+    bindings/gfx/Texture.cpp
     bindings/gfx/Shader.cpp
     bindings/gfx/PipelineLayout.cpp
     bindings/gfx/Pipeline.cpp

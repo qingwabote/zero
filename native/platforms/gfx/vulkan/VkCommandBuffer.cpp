@@ -114,8 +114,8 @@ namespace binding
                 Buffer *c_buffer = Binding::c_obj<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>());
                 vertexBuffers[i] = c_buffer->impl();
             }
-            VkDeviceSize offset = 0;
-            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), &offset);
+            std::vector<VkDeviceSize> offsets(js_vertexBuffers->Length(), 0);
+            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
 
             v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(inputAssembler, "indexBuffer").As<v8::Object>();
             Buffer *c_buffer = Binding::c_obj<Buffer>(js_indexBuffer);

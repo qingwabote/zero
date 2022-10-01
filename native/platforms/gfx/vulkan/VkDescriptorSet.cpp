@@ -2,6 +2,7 @@
 #include "VkDescriptorSet_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkBuffer_impl.hpp"
+#include "VkTexture_impl.hpp"
 #include "sugars/v8sugar.hpp"
 
 namespace binding
@@ -23,8 +24,8 @@ namespace binding
             allocInfo.descriptorSetCount = 1;
             VkDescriptorSetLayout setLayout = c_setLayout->impl()->setLayout();
             allocInfo.pSetLayouts = &setLayout;
-
-            if (vkAllocateDescriptorSets(_impl->_device->device(), &allocInfo, &_impl->_descriptorSet))
+            auto err = vkAllocateDescriptorSets(_impl->_device->device(), &allocInfo, &_impl->_descriptorSet);
+            if (err)
             {
                 return true;
             }
@@ -43,12 +44,29 @@ namespace binding
 
             VkWriteDescriptorSet write = {};
             write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write.pNext = nullptr;
             write.dstBinding = binding;
             write.dstSet = _impl->_descriptorSet;
             write.descriptorCount = 1;
             write.descriptorType = range ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             write.pBufferInfo = &bufferInfo;
+
+            vkUpdateDescriptorSets(_impl->_device->device(), 1, &write, 0, nullptr);
+        }
+
+        void DescriptorSet::bindTexture(uint32_t binding, Texture *texture)
+        {
+            VkDescriptorImageInfo imageBufferInfo;
+            imageBufferInfo.sampler = _impl->_device->defaultSampler();
+            imageBufferInfo.imageView = texture->impl().imageView();
+            imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VkWriteDescriptorSet write = {};
+            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstBinding = binding;
+            write.dstSet = _impl->_descriptorSet;
+            write.descriptorCount = 1;
+            write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write.pImageInfo = &imageBufferInfo;
 
             vkUpdateDescriptorSets(_impl->_device->device(), 1, &write, 0, nullptr);
         }

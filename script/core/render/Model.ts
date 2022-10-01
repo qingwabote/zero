@@ -27,9 +27,12 @@ export default class Model {
         this._localBuffer = zero.gfx.createBuffer();
         this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: float32Array.byteLength });
 
-        this._descriptorSet = zero.gfx.createDescriptorSet();
-        this._descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local);
-        this._descriptorSet.bindBuffer(BuiltinUniformBlocks.local.blocks.Local.binding, this._localBuffer);
+        const descriptorSet = zero.gfx.createDescriptorSet();
+        if (descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local)) {
+            throw new Error("descriptorSet initialize failed");
+        }
+        descriptorSet.bindBuffer(BuiltinUniformBlocks.local.blocks.Local.binding, this._localBuffer);
+        this._descriptorSet = descriptorSet;
 
         this._subModels = subModels;
         this._transform = transform;

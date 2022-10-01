@@ -1,7 +1,8 @@
 set(SRC_FILES
     VkDevice.cpp
-    VKCommandBuffer.cpp
-    VKBuffer.cpp
+    VkCommandBuffer.cpp
+    VkBuffer.cpp
+    VkTexture.cpp
     VkShader.cpp
     VkPipelineLayout.cpp
     VkPipeline.cpp

@@ -28,7 +28,15 @@ namespace binding
                     double range = info.Length() > 2 ? info[2].As<v8::Number>()->Value() : 0;
                     c_obj->bindBuffer(binding, c_buffer, range);
                 });
-
+            cls.defineFunction(
+                "bindTexture",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
+                    uint32_t binding = info[0].As<v8::Number>()->Value();
+                    Texture *c_texture = c_obj->retain<Texture>(info[1].As<v8::Object>(), "texture_" + std::to_string(binding));
+                    c_obj->bindTexture(binding, c_texture);
+                });
             return scope.Escape(cls.flush());
         }
     }

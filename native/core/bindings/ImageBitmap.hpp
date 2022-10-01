@@ -1,3 +1,6 @@
+// corresponds to the web API ImageBitmap
+// https://developer.mozilla.org/en-US/docs/Web/API/ImageBitmap
+
 #pragma once
 
 #include "Binding.hpp"
@@ -8,7 +11,7 @@ namespace binding
     class ImageBitmap : public Binding
     {
     private:
-        stbi_uc *_pixels = nullptr;
+        unsigned char *_pixels = nullptr;
         int _width;
         int _height;
 
@@ -16,21 +19,14 @@ namespace binding
         virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 
     public:
-        int width()
-        {
-            return _width;
-        }
+        unsigned char *pixels() { return _pixels; }
 
-        int height()
-        {
-            return _height;
-        }
+        int width() { return _width; }
 
-        ImageBitmap(stbi_uc *pixels, int width, int height) : Binding(), _pixels(pixels), _width(width), _height(height) {}
+        int height() { return _height; }
 
-        ~ImageBitmap()
-        {
-            stbi_image_free(_pixels);
-        }
+        ImageBitmap(unsigned char *pixels, int width, int height) : Binding(), _pixels(pixels), _width(width), _height(height) {}
+
+        ~ImageBitmap() { stbi_image_free(_pixels); }
     };
 }

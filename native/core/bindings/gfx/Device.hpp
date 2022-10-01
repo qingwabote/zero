@@ -3,6 +3,7 @@
 #include "Binding.hpp"
 #include "SDL_video.h"
 #include "Buffer.hpp"
+#include "Texture.hpp"
 #include "Shader.hpp"
 #include "DescriptorSetLayout.hpp"
 #include "DescriptorSet.hpp"
@@ -33,6 +34,8 @@ namespace binding
             bool initialize();
 
             Buffer *createBuffer();
+
+            Texture *createTexture();
 
             Shader *createShader();
 

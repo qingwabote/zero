@@ -3,6 +3,7 @@
 #include "Binding.hpp"
 #include "bindings/gfx/DescriptorSetLayout.hpp"
 #include "bindings/gfx/Buffer.hpp"
+#include "bindings/gfx/Texture.hpp"
 
 namespace binding
 {
@@ -25,6 +26,8 @@ namespace binding
             bool initialize(DescriptorSetLayout *setLayout);
 
             void bindBuffer(uint32_t binding, Buffer *buffer, double range);
+
+            void bindTexture(uint32_t binding, Texture *texture);
 
             ~DescriptorSet();
         };

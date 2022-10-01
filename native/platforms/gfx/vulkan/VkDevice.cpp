@@ -6,6 +6,7 @@
 #include "VkDevice_impl.hpp"
 #include "VkCommandBuffer_impl.hpp"
 #include "VkBuffer_impl.hpp"
+#include "VkTexture_impl.hpp"
 #include "VkShader_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
@@ -96,11 +97,12 @@ namespace binding
             vkCreateCommandPool(_impl->_vkb_device.device, &commandPoolInfo, nullptr, &_impl->_commandPool);
 
             // descriptor pool
-            std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
+            std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {
+                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
             VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
             descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             descriptorPoolCreateInfo.flags = 0;
-            descriptorPoolCreateInfo.maxSets = 10;
+            descriptorPoolCreateInfo.maxSets = 1000;
             descriptorPoolCreateInfo.poolSizeCount = (uint32_t)descriptorPoolSizes.size();
             descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
             vkCreateDescriptorPool(_impl->_vkb_device.device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);
@@ -175,6 +177,15 @@ namespace binding
             vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_renderSemaphore);
             vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_presentSemaphore);
 
+            VkSamplerCreateInfo samplerInfo = {};
+            samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+            samplerInfo.magFilter = VK_FILTER_NEAREST;
+            samplerInfo.minFilter = VK_FILTER_NEAREST;
+            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            vkCreateSampler(_impl->_vkb_device.device, &samplerInfo, nullptr, &_impl->_defaultSampler);
+
             CommandBuffer *c_commandBuffer = new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl));
             c_commandBuffer->initialize();
             retain(c_commandBuffer->js_obj(), "commandBuffer");
@@ -192,32 +203,19 @@ namespace binding
             return false;
         }
 
-        Buffer *Device::createBuffer()
-        {
-            return new Buffer(std::make_unique<Buffer_impl>(_impl));
-        }
+        Buffer *Device::createBuffer() { return new Buffer(std::make_unique<Buffer_impl>(_impl)); }
+
+        Texture *Device::createTexture() { return new Texture(std::make_unique<Texture_impl>(_impl)); }
 
         Shader *Device::createShader() { return new Shader(std::make_unique<Shader_impl>(_impl)); }
 
-        DescriptorSetLayout *Device::createDescriptorSetLayout()
-        {
-            return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl));
-        }
+        DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl)); }
 
-        DescriptorSet *Device::createDescriptorSet()
-        {
-            return new DescriptorSet(std::make_unique<DescriptorSet_impl>(_impl));
-        }
+        DescriptorSet *Device::createDescriptorSet() { return new DescriptorSet(std::make_unique<DescriptorSet_impl>(_impl)); }
 
-        PipelineLayout *Device::createPipelineLayout()
-        {
-            return new PipelineLayout(std::make_unique<PipelineLayout_impl>(_impl));
-        }
+        PipelineLayout *Device::createPipelineLayout() { return new PipelineLayout(std::make_unique<PipelineLayout_impl>(_impl)); }
 
-        Pipeline *Device::createPipeline()
-        {
-            return new Pipeline(std::make_unique<Pipeline_impl>(_impl));
-        }
+        Pipeline *Device::createPipeline() { return new Pipeline(std::make_unique<Pipeline_impl>(_impl)); }
 
         void Device::present()
         {
@@ -270,6 +268,8 @@ namespace binding
                 _impl->_afterRenderQueue.front()();
                 _impl->_afterRenderQueue.pop();
             }
+
+            vkDestroySampler(_impl->_vkb_device.device, _impl->_defaultSampler, nullptr);
 
             vkDestroyFence(_impl->_vkb_device.device, _impl->_renderFence, nullptr);
             vkDestroySemaphore(_impl->_vkb_device.device, _impl->_presentSemaphore, nullptr);

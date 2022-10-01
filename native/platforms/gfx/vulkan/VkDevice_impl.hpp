@@ -46,6 +46,8 @@ namespace binding
             VkSemaphore _presentSemaphore = nullptr;
             VkSemaphore _renderSemaphore = nullptr;
 
+            VkSampler _defaultSampler = nullptr;
+
             uint32_t _swapchainImageIndex = 0;
 
             std::queue<std::function<void()>> _afterRenderQueue;
@@ -64,6 +66,8 @@ namespace binding
             VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
 
             VmaAllocator allocator() { return _allocator; }
+
+            VkSampler defaultSampler() { return _defaultSampler; }
 
             Device_impl(SDL_Window *window);
 
