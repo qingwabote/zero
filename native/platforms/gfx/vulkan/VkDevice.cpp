@@ -50,46 +50,43 @@ namespace binding
                                 .require_api_version(_impl->_version)
                                 .use_default_debug_messenger()
                                 .build();
-            _impl->_vkb_instance = inst_ret.value();
+            auto vkb_instance = inst_ret.value();
 
             // surface
-            if (!SDL_Vulkan_CreateSurface(_impl->_window, _impl->_vkb_instance.instance, &_impl->_surface))
+            VkSurfaceKHR surface = nullptr;
+            if (!SDL_Vulkan_CreateSurface(_impl->_window, vkb_instance.instance, &surface))
             {
                 printf("failed to create surface, SDL Error: %s", SDL_GetError());
                 return true;
             }
 
             // physical device
-            vkb::PhysicalDeviceSelector selector{_impl->_vkb_instance};
+            vkb::PhysicalDeviceSelector selector{vkb_instance};
             vkb::PhysicalDevice physicalDevice = selector
                                                      .set_minimum_version(1, 1)
-                                                     .set_surface(_impl->_surface)
+                                                     .set_surface(surface)
                                                      .select()
                                                      .value();
 
             // logical device
             vkb::DeviceBuilder deviceBuilder{physicalDevice};
-            _impl->_vkb_device = deviceBuilder.build().value();
+            auto vkb_device = deviceBuilder.build().value();
+            auto device = vkb_device.device;
 
             // swapchain
-            vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, _impl->_vkb_device.device, _impl->_surface};
-            _impl->_vkb_swapchain = swapchainBuilder
-                                        .use_default_format_selection()
-                                        .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
-                                        .build()
-                                        .value();
+            vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, device, surface};
+            auto vkb_swapchain = swapchainBuilder
+                                     .use_default_format_selection()
+                                     .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
+                                     .build()
+                                     .value();
 
-            // queue
-            _impl->_graphicsQueue = _impl->_vkb_device.get_queue(vkb::QueueType::graphics).value();
-            auto graphicsQueueFamily = _impl->_vkb_device.get_queue_index(vkb::QueueType::graphics).value();
-
-            // command pool and buffer
+            // command pool and a buffer
             VkCommandPoolCreateInfo commandPoolInfo = {};
             commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-            commandPoolInfo.pNext = nullptr;
-            commandPoolInfo.queueFamilyIndex = graphicsQueueFamily;
+            commandPoolInfo.queueFamilyIndex = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
             commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-            vkCreateCommandPool(_impl->_vkb_device.device, &commandPoolInfo, nullptr, &_impl->_commandPool);
+            vkCreateCommandPool(device, &commandPoolInfo, nullptr, &_impl->_commandPool);
 
             // descriptor pool
             std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {
@@ -100,11 +97,11 @@ namespace binding
             descriptorPoolCreateInfo.maxSets = 1000;
             descriptorPoolCreateInfo.poolSizeCount = (uint32_t)descriptorPoolSizes.size();
             descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
-            vkCreateDescriptorPool(_impl->_vkb_device.device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);
+            vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);
 
             // color attachment.
             VkAttachmentDescription color_attachment = {};
-            color_attachment.format = _impl->_vkb_swapchain.image_format;
+            color_attachment.format = vkb_swapchain.image_format;
             // 1 sample, we won't be doing MSAA
             color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
             // we Clear when this attachment is loaded
@@ -136,7 +133,7 @@ namespace binding
             render_pass_info.pAttachments = &color_attachment;
             render_pass_info.subpassCount = 1;
             render_pass_info.pSubpasses = &subpass;
-            vkCreateRenderPass(_impl->_vkb_device.device, &render_pass_info, nullptr, &_impl->_renderPass);
+            vkCreateRenderPass(device, &render_pass_info, nullptr, &_impl->_renderPass);
 
             // framebuffers
             VkFramebufferCreateInfo fb_info = {};
@@ -144,31 +141,31 @@ namespace binding
             fb_info.pNext = nullptr;
             fb_info.renderPass = _impl->_renderPass;
             fb_info.attachmentCount = 1;
-            fb_info.width = _impl->_vkb_swapchain.extent.width;
-            fb_info.height = _impl->_vkb_swapchain.extent.height;
+            fb_info.width = vkb_swapchain.extent.width;
+            fb_info.height = vkb_swapchain.extent.height;
             fb_info.layers = 1;
-            _impl->_framebuffers = std::vector<VkFramebuffer>(_impl->_vkb_swapchain.image_count);
-            _impl->_swapchainImageViews = _impl->_vkb_swapchain.get_image_views().value();
-            for (int i = 0; i < _impl->_vkb_swapchain.image_count; i++)
+            _impl->_framebuffers = std::vector<VkFramebuffer>(vkb_swapchain.image_count);
+            _impl->_swapchainImageViews = vkb_swapchain.get_image_views().value();
+            for (int i = 0; i < vkb_swapchain.image_count; i++)
             {
                 fb_info.pAttachments = &_impl->_swapchainImageViews[i];
-                vkCreateFramebuffer(_impl->_vkb_device.device, &fb_info, nullptr, &_impl->_framebuffers[i]);
+                vkCreateFramebuffer(device, &fb_info, nullptr, &_impl->_framebuffers[i]);
             }
 
             VmaAllocatorCreateInfo allocatorInfo = {};
             allocatorInfo.physicalDevice = physicalDevice.physical_device;
-            allocatorInfo.device = _impl->_vkb_device.device;
-            allocatorInfo.instance = _impl->_vkb_instance.instance;
+            allocatorInfo.device = device;
+            allocatorInfo.instance = vkb_instance.instance;
             vmaCreateAllocator(&allocatorInfo, &_impl->_allocator);
 
             VkFenceCreateInfo fenceCreateInfo = {};
             fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
             fenceCreateInfo.pNext = nullptr;
-            vkCreateFence(_impl->_vkb_device.device, &fenceCreateInfo, nullptr, &_impl->_renderFence);
+            vkCreateFence(device, &fenceCreateInfo, nullptr, &_impl->_renderFence);
 
             VkSemaphoreCreateInfo semaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-            vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_renderSemaphore);
-            vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_presentSemaphore);
+            vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &_impl->_renderSemaphore);
+            vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &_impl->_presentSemaphore);
 
             VkSamplerCreateInfo samplerInfo = {};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -177,7 +174,7 @@ namespace binding
             samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            vkCreateSampler(_impl->_vkb_device.device, &samplerInfo, nullptr, &_impl->_defaultSampler);
+            vkCreateSampler(device, &samplerInfo, nullptr, &_impl->_defaultSampler);
 
             v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
             sugar::v8::object_set(capabilities,
@@ -187,7 +184,13 @@ namespace binding
 
             glslang::InitializeProcess();
 
-            vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
+            vkAcquireNextImageKHR(device, vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
+
+            _impl->_graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
+            _impl->_vkb_device = std::move(vkb_device);
+            _impl->_vkb_instance = std::move(vkb_instance);
+            _impl->_vkb_swapchain = std::move(vkb_swapchain);
+            _impl->_surface = surface;
 
             return false;
         }
