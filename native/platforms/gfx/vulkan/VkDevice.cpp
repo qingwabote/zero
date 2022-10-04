@@ -29,11 +29,6 @@ namespace binding
             return retrieve("capabilities");
         }
 
-        v8::Local<v8::Object> Device::commandBuffer()
-        {
-            return retrieve("commandBuffer");
-        }
-
         Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
 
         bool Device::initialize()
@@ -169,9 +164,7 @@ namespace binding
             VkFenceCreateInfo fenceCreateInfo = {};
             fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
             fenceCreateInfo.pNext = nullptr;
-            fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
             vkCreateFence(_impl->_vkb_device.device, &fenceCreateInfo, nullptr, &_impl->_renderFence);
-            vkResetFences(_impl->_vkb_device.device, 1, &_impl->_renderFence);
 
             VkSemaphoreCreateInfo semaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
             vkCreateSemaphore(_impl->_vkb_device.device, &semaphoreCreateInfo, nullptr, &_impl->_renderSemaphore);
@@ -185,10 +178,6 @@ namespace binding
             samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             vkCreateSampler(_impl->_vkb_device.device, &samplerInfo, nullptr, &_impl->_defaultSampler);
-
-            CommandBuffer *c_commandBuffer = new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl));
-            c_commandBuffer->initialize();
-            retain(c_commandBuffer->js_obj(), "commandBuffer");
 
             v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
             sugar::v8::object_set(capabilities,
@@ -217,7 +206,9 @@ namespace binding
 
         Pipeline *Device::createPipeline() { return new Pipeline(std::make_unique<Pipeline_impl>(_impl)); }
 
-        void Device::present()
+        CommandBuffer *Device::createCommandBuffer() { return new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl)); }
+
+        void Device::present(CommandBuffer *c_commandBuffer)
         {
             VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
 
@@ -230,7 +221,6 @@ namespace binding
             submitInfo.pSignalSemaphores = &_impl->_renderSemaphore;
             submitInfo.signalSemaphoreCount = 1;
 
-            CommandBuffer *c_commandBuffer = retrieve<CommandBuffer>("commandBuffer");
             submitInfo.commandBufferCount = 1;
             VkCommandBuffer commandBuffer = c_commandBuffer->impl();
             submitInfo.pCommandBuffers = &commandBuffer;

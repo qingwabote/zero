@@ -21,21 +21,19 @@ export default class WebDevice implements Device {
         return this._capabilities;
     }
 
-    private _commandBuffer: CommandBuffer;
-    get commandBuffer(): CommandBuffer {
-        return this._commandBuffer;
-    }
-
     constructor(gl: WebGL2RenderingContext) {
         this._capabilities = {
             uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT)
         }
-        this._commandBuffer = new WebCommandBuffer(gl);
         this._gl = gl;
     }
 
     initialize(): boolean {
         return false;
+    }
+
+    createCommandBuffer(): CommandBuffer {
+        return new WebCommandBuffer(this._gl);
     }
 
     createDescriptorSetLayout(): DescriptorSetLayout {
@@ -66,5 +64,5 @@ export default class WebDevice implements Device {
         return new WebTexture(this._gl);
     }
 
-    present(): void { }
+    present(commandBuffer: CommandBuffer): void { }
 }

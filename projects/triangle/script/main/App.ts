@@ -5,6 +5,7 @@ import Device from "../../../../script/core/gfx/Device.js";
 import { Format, IndexType } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
+import Platfrom from "../../../../script/core/Platfrom.js";
 import Material from "../../../../script/core/render/Material.js";
 import Mesh from "../../../../script/core/render/Mesh.js";
 import Pass from "../../../../script/core/render/Pass.js";
@@ -14,8 +15,8 @@ import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 export default class App extends Zero {
-    initialize(device: Device, loader: Loader, width: number, height: number): boolean {
-        if (super.initialize(device, loader, width, height)) {
+    initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
+        if (super.initialize(device, loader, platfrom, width, height)) {
             return true;
         }
 
@@ -42,6 +43,7 @@ export default class App extends Zero {
 
         const attributes: Attribute[] = [];
         const vertexBuffers: Buffer[] = [];
+        const vertexOffsets: number[] = [];
 
         const attribute: Attribute = {
             name: "a_position",
@@ -51,17 +53,18 @@ export default class App extends Zero {
         };
         attributes.push(attribute);
 
-        const vertexBuffer = zero.device.createBuffer();
+        const vertexBuffer = zero.gfx.createBuffer();
         vertexBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: vertexArray.byteLength });
         vertexBuffer.update(vertexArray);
         vertexBuffers.push(vertexBuffer);
+        vertexOffsets.push(0);
 
         const indexArray = new Uint16Array([0, 1, 2]);
-        const indexBuffer = zero.device.createBuffer();
+        const indexBuffer = zero.gfx.createBuffer();
         indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: indexArray.byteLength });
         indexBuffer.update(indexArray);
 
-        const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, indexBuffer, IndexType.UINT16, indexArray.length, 0)]);
+        const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, vertexOffsets, indexBuffer, IndexType.UINT16, indexArray.length, 0)]);
         const shader = shaders.getShader('triangle');
         const pass = new Pass(shader);
         const material = new Material([pass]);

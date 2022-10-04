@@ -11,8 +11,6 @@ export interface Capabilities {
 export default interface Device {
     get capabilities(): Capabilities;
 
-    get commandBuffer(): CommandBuffer;
-
     initialize(): boolean;
 
     createDescriptorSetLayout(): DescriptorSetLayout;
@@ -29,5 +27,7 @@ export default interface Device {
 
     createTexture(): Texture;
 
-    present(): void;
+    createCommandBuffer(): CommandBuffer;
+
+    present(commandBuffer: CommandBuffer): void;
 }

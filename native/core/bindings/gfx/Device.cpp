@@ -18,14 +18,6 @@ namespace binding
                     info.GetReturnValue().Set(c_obj->capabilities());
                 });
 
-            cls.defineAccessor(
-                "commandBuffer",
-                [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
-                {
-                    auto c_obj = Binding::c_obj<Device>(info.This());
-                    info.GetReturnValue().Set(c_obj->commandBuffer());
-                });
-
             cls.defineFunction(
                 "initialize",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
@@ -91,11 +83,19 @@ namespace binding
                 });
 
             cls.defineFunction(
+                "createCommandBuffer",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<Device>(info.This());
+                    info.GetReturnValue().Set(c_obj->createCommandBuffer()->js_obj());
+                });
+
+            cls.defineFunction(
                 "present",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<Device>(info.This());
-                    c_obj->present();
+                    c_obj->present(Binding::c_obj<CommandBuffer>(info[0].As<v8::Object>()));
                 });
             return scope.Escape(cls.flush());
         }

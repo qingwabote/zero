@@ -63,6 +63,11 @@ namespace binding
 
         void Texture::update(ImageBitmap *imageBitmap)
         {
+            VkCommandBufferBeginInfo beginInfo = {};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            // vkBeginCommandBuffer(_impl->_device->)
+
             memcpy(_impl->_allocationInfo.pMappedData, imageBitmap->pixels(), imageBitmap->width() * imageBitmap->height() * 4);
         }
 

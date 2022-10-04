@@ -2,6 +2,7 @@ import { Rect } from "../math/rect.js";
 import Pipeline, { DescriptorSet, InputAssembler, PipelineLayout } from "./Pipeline.js";
 
 export default interface CommandBuffer {
+    initialize(): boolean;
     begin(): void;
     beginRenderPass(viewport: Rect): void;
     bindPipeline(pipeline: Pipeline): void;

@@ -1,4 +1,5 @@
 import ComponentScheduler from "./ComponentScheduler.js";
+import CommandBuffer from "./gfx/CommandBuffer.js";
 import Device from "./gfx/Device.js";
 import { BlendFactor, DescriptorSet } from "./gfx/Pipeline.js";
 import Input from "./Input.js";
@@ -50,6 +51,8 @@ export default class Zero {
         return this._globalDescriptorSet;
     }
 
+    private _commandBuffer!: CommandBuffer;
+
     initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
         if (device.initialize()) {
             return true;
@@ -67,6 +70,9 @@ export default class Zero {
 
         this._renderScene = new RenderScene;
 
+        this._commandBuffer = this.gfx.createCommandBuffer();
+        this._commandBuffer.initialize();
+
         return false;
     }
 
@@ -77,7 +83,7 @@ export default class Zero {
 
         render.dirtyTransforms.clear();
 
-        const commandBuffer = this._gfx.commandBuffer;
+        const commandBuffer = this._commandBuffer;
         commandBuffer.begin();
 
         const cameras = this._renderScene.cameras;
@@ -140,6 +146,6 @@ export default class Zero {
 
         commandBuffer.end();
 
-        this._gfx.present();
+        this._gfx.present(commandBuffer);
     }
 } 

@@ -10,6 +10,13 @@ namespace binding
 
             sugar::v8::Class cls{"CommandBuffer"};
             cls.defineFunction(
+                "initialize",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    c_obj->initialize();
+                });
+            cls.defineFunction(
                 "begin",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {

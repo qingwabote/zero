@@ -9,6 +9,7 @@
 #include "DescriptorSet.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
+#include "CommandBuffer.hpp"
 
 namespace binding
 {
@@ -26,8 +27,6 @@ namespace binding
 
         public:
             v8::Local<v8::Object> capabilities();
-
-            v8::Local<v8::Object> commandBuffer();
 
             Device(SDL_Window *window);
 
@@ -47,7 +46,9 @@ namespace binding
 
             Pipeline *createPipeline();
 
-            void present();
+            CommandBuffer *createCommandBuffer();
+
+            void present(CommandBuffer *commandBuffer);
 
             ~Device();
         };
