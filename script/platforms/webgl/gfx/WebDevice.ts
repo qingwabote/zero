@@ -64,5 +64,7 @@ export default class WebDevice implements Device {
         return new WebTexture(this._gl);
     }
 
-    present(commandBuffer: CommandBuffer): void { }
+    submit(commandBuffer: CommandBuffer): void { }
+
+    present(): void { }
 }

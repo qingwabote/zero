@@ -5,5 +5,4 @@ export interface TextureInfo {
 
 export default interface Texture {
     initialize(info: TextureInfo): boolean;
-    update(imageBitmap: ImageBitmap): void;
 }

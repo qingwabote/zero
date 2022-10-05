@@ -52,6 +52,9 @@ export default class Zero {
     }
 
     private _commandBuffer!: CommandBuffer;
+    get commandBuffer(): CommandBuffer {
+        return this._commandBuffer;
+    }
 
     initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
         if (device.initialize()) {
@@ -146,6 +149,7 @@ export default class Zero {
 
         commandBuffer.end();
 
-        this._gfx.present(commandBuffer);
+        this._gfx.submit(commandBuffer);
+        this._gfx.present();
     }
 } 

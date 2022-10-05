@@ -1,5 +1,6 @@
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
@@ -57,6 +58,14 @@ export default class WebCommandBuffer implements CommandBuffer {
     initialize(): boolean { return false; }
 
     begin(): void { }
+
+    copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
+        const gl = this._gl;
+        gl.bindTexture(gl.TEXTURE_2D, (texture as WebTexture).texture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
 
     beginRenderPass(viewport: Rect) {
         const gl = this._gl;

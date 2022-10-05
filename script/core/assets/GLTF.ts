@@ -63,7 +63,11 @@ export default class GLTF extends Asset {
         const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
         const texture = zero.gfx.createTexture();
         texture.initialize({ width: imageBitmap.width, height: imageBitmap.height });
-        texture.update(imageBitmap);
+        const commandBuffer = zero.commandBuffer;
+        commandBuffer.begin();
+        commandBuffer.copyImageBitmapToTexture(imageBitmap, texture);
+        commandBuffer.end();
+        zero.gfx.submit(commandBuffer);
         return texture;
     }
 

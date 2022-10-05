@@ -29,5 +29,7 @@ export default interface Device {
 
     createCommandBuffer(): CommandBuffer;
 
-    present(commandBuffer: CommandBuffer): void;
+    submit(commandBuffer: CommandBuffer): void;
+
+    present(): void;
 }
