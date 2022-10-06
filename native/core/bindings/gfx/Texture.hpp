@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Binding.hpp"
-#include "bindings/ImageBitmap.hpp"
 
 namespace binding
 {
@@ -23,8 +22,6 @@ namespace binding
             Texture(std::unique_ptr<Texture_impl> impl);
 
             bool initialize(v8::Local<v8::Object> info);
-
-            void update(ImageBitmap *imageBitmap);
 
             ~Texture();
         };

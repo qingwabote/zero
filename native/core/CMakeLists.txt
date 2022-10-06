@@ -16,6 +16,8 @@ set(SRC_FILES
     bindings/gfx/Pipeline.cpp
     bindings/gfx/DescriptorSetLayout.cpp
     bindings/gfx/DescriptorSet.cpp
+    bindings/gfx/Fence.cpp
+    bindings/gfx/Semaphore.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})

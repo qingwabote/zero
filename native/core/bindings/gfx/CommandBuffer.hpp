@@ -4,6 +4,9 @@
 #include "DescriptorSet.hpp"
 #include "PipelineLayout.hpp"
 #include "Pipeline.hpp"
+#include "Texture.hpp"
+
+#include "bindings/ImageBitmap.hpp"
 
 namespace binding
 {
@@ -25,6 +28,8 @@ namespace binding
             CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl);
 
             bool initialize();
+
+            void copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture);
 
             void begin();
 

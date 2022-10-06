@@ -2,6 +2,12 @@ import Buffer from "./Buffer.js";
 import Shader, { ShaderStageFlagBits } from "./Shader.js";
 import Texture from "./Texture.js";
 
+// copy values from VkPipelineStageFlagBits in vulkan_core.h
+export enum PipelineStageFlagBits {
+    PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400
+}
+export type PipelineStageFlags = PipelineStageFlagBits;
+
 // copy values from VkFormat in vulkan_core.h
 export enum Format {
     R8UI = 13,

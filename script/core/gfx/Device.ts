@@ -1,7 +1,10 @@
 import Buffer from "./Buffer.js";
 import CommandBuffer from "./CommandBuffer.js";
+import Fence from "./Fence.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "./Pipeline.js";
+import Semaphore from "./Semaphore.js";
 import Shader from "./Shader.js";
+import { SubmitInfo } from "./SubmitInfo.js";
 import Texture from "./Texture.js";
 
 export interface Capabilities {
@@ -29,7 +32,15 @@ export default interface Device {
 
     createCommandBuffer(): CommandBuffer;
 
-    submit(commandBuffer: CommandBuffer): void;
+    createSemaphore(): Semaphore;
 
-    present(): void;
+    createFence(): Fence;
+
+    acquire(semaphore: Semaphore): void;
+
+    submit(info: SubmitInfo, fence: Fence): void;
+
+    present(waitSemaphore: Semaphore): void;
+
+    waitFence(fence: Fence): void;
 }

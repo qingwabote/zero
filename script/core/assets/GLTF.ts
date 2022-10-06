@@ -2,6 +2,8 @@
 
 import MeshRenderer from "../components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
+import CommandBuffer from "../gfx/CommandBuffer.js";
+import Fence from "../gfx/Fence.js";
 import { Format, IndexType } from "../gfx/Pipeline.js";
 import Texture from "../gfx/Texture.js";
 import mat4 from "../math/mat4.js";
@@ -40,6 +42,17 @@ export default class GLTF extends Asset {
     private _buffers: Buffer[] = [];
     private _textures: Texture[] | undefined;
 
+    private _commandBuffer: CommandBuffer;
+    private _fence: Fence;
+
+    constructor() {
+        super();
+        this._commandBuffer = zero.gfx.createCommandBuffer();
+        this._commandBuffer.initialize();
+        this._fence = zero.gfx.createFence();
+        this._fence.initialize();
+    }
+
     async load(url: string) {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
@@ -63,11 +76,12 @@ export default class GLTF extends Asset {
         const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
         const texture = zero.gfx.createTexture();
         texture.initialize({ width: imageBitmap.width, height: imageBitmap.height });
-        const commandBuffer = zero.commandBuffer;
+        const commandBuffer = this._commandBuffer;
         commandBuffer.begin();
         commandBuffer.copyImageBitmapToTexture(imageBitmap, texture);
         commandBuffer.end();
-        zero.gfx.submit(commandBuffer);
+        zero.gfx.submit({ commandBuffer }, this._fence);
+        zero.gfx.waitFence(this._fence);
         return texture;
     }
 

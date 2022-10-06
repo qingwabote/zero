@@ -1,7 +1,9 @@
 import ComponentScheduler from "./ComponentScheduler.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
 import Device from "./gfx/Device.js";
-import { BlendFactor, DescriptorSet } from "./gfx/Pipeline.js";
+import Fence from "./gfx/Fence.js";
+import { BlendFactor, DescriptorSet, PipelineStageFlagBits } from "./gfx/Pipeline.js";
+import Semaphore from "./gfx/Semaphore.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
 import Platfrom from "./Platfrom.js";
@@ -56,6 +58,10 @@ export default class Zero {
         return this._commandBuffer;
     }
 
+    private _presentSemaphore!: Semaphore;
+    private _renderSemaphore!: Semaphore;
+    private _renderFence!: Fence;
+
     initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
         if (device.initialize()) {
             return true;
@@ -73,13 +79,22 @@ export default class Zero {
 
         this._renderScene = new RenderScene;
 
-        this._commandBuffer = this.gfx.createCommandBuffer();
+        this._commandBuffer = device.createCommandBuffer();
         this._commandBuffer.initialize();
+
+        this._presentSemaphore = device.createSemaphore();
+        this._presentSemaphore.initialize();
+        this._renderSemaphore = device.createSemaphore();
+        this._renderSemaphore.initialize();
+        this._renderFence = device.createFence();
+        this._renderFence.initialize();
 
         return false;
     }
 
     tick(dt: number) {
+        this._gfx.acquire(this._presentSemaphore);
+
         this._componentScheduler.update(dt)
 
         this._renderScene.update(dt);
@@ -106,7 +121,7 @@ export default class Zero {
                     for (const pass of subModel.passes) {
                         const shader = pass.shader;
 
-                        const layout = zero.gfx.createPipelineLayout();
+                        const layout = this._gfx.createPipelineLayout();
                         layout.initialize([
                             shaders.builtinDescriptorSetLayouts.global,
                             shaders.builtinDescriptorSetLayouts.local,
@@ -133,7 +148,7 @@ export default class Zero {
                             layout
                         })
                         commandBuffer.bindPipeline(pipeline);
-                        const alignment = zero.gfx.capabilities.uniformBufferOffsetAlignment;
+                        const alignment = this._gfx.capabilities.uniformBufferOffsetAlignment;
                         const cameraUboSize = Math.ceil(BuiltinUniformBlocks.global.blocks.Camera.size / alignment) * alignment;
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet, [cameraIndex * cameraUboSize]);
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
@@ -149,7 +164,13 @@ export default class Zero {
 
         commandBuffer.end();
 
-        this._gfx.submit(commandBuffer);
-        this._gfx.present();
+        this._gfx.submit({
+            commandBuffer,
+            waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            waitSemaphore: this._presentSemaphore,
+            signalSemaphore: this._renderSemaphore
+        }, this._renderFence);
+        this._gfx.present(this._renderSemaphore);
+        this._gfx.waitFence(this._renderFence);
     }
 } 

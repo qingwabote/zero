@@ -12,6 +12,8 @@
 #include "VkDescriptorSet_impl.hpp"
 #include "VkPipelineLayout_impl.hpp"
 #include "VkPipeline_impl.hpp"
+#include "VkFence_impl.hpp"
+#include "VkSemaphore_impl.hpp"
 
 #include "glslang/Public/ShaderLang.h"
 
@@ -158,15 +160,6 @@ namespace binding
             allocatorInfo.instance = vkb_instance.instance;
             vmaCreateAllocator(&allocatorInfo, &_impl->_allocator);
 
-            VkFenceCreateInfo fenceCreateInfo = {};
-            fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-            fenceCreateInfo.pNext = nullptr;
-            vkCreateFence(device, &fenceCreateInfo, nullptr, &_impl->_renderFence);
-
-            VkSemaphoreCreateInfo semaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-            vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &_impl->_renderSemaphore);
-            vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &_impl->_presentSemaphore);
-
             VkSamplerCreateInfo samplerInfo = {};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
             samplerInfo.magFilter = VK_FILTER_NEAREST;
@@ -183,8 +176,6 @@ namespace binding
             retain(capabilities, "capabilities");
 
             glslang::InitializeProcess();
-
-            vkAcquireNextImageKHR(device, vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
 
             _impl->_graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
             _impl->_vkb_device = std::move(vkb_device);
@@ -211,62 +202,79 @@ namespace binding
 
         CommandBuffer *Device::createCommandBuffer() { return new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl)); }
 
-        void Device::present(CommandBuffer *c_commandBuffer)
+        Semaphore *Device::createSemaphore() { return new Semaphore(std::make_unique<Semaphore_impl>(_impl)); }
+
+        Fence *Device::createFence() { return new Fence(std::make_unique<Fence_impl>(_impl)); }
+
+        void Device::acquire(Semaphore *c_presentSemaphore)
+        {
+            VkSemaphore semaphore = c_presentSemaphore->impl();
+            vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, semaphore, nullptr, &_impl->_swapchainImageIndex);
+        }
+
+        void Device::submit(v8::Local<v8::Object> info, Fence *c_fence)
         {
             VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
 
-            VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            submitInfo.pWaitDstStageMask = &waitStage;
+            auto js_waitDstStageMask = sugar::v8::object_get(info, "waitDstStageMask").As<v8::Number>();
+            if (!js_waitDstStageMask->IsUndefined())
+            {
+                VkPipelineStageFlags waitStage = js_waitDstStageMask->Value();
+                submitInfo.pWaitDstStageMask = &waitStage;
+            }
 
-            submitInfo.waitSemaphoreCount = 1;
-            submitInfo.pWaitSemaphores = &_impl->_presentSemaphore;
+            auto js_waitSemaphore = sugar::v8::object_get(info, "waitSemaphore").As<v8::Object>();
+            if (!js_waitSemaphore->IsUndefined())
+            {
+                VkSemaphore waitSemaphore = Binding::c_obj<Semaphore>(js_waitSemaphore)->impl();
+                submitInfo.pWaitSemaphores = &waitSemaphore;
+                submitInfo.waitSemaphoreCount = 1;
+            }
 
-            submitInfo.pSignalSemaphores = &_impl->_renderSemaphore;
-            submitInfo.signalSemaphoreCount = 1;
+            auto js_signalSemaphore = sugar::v8::object_get(info, "signalSemaphore").As<v8::Object>();
+            if (!js_signalSemaphore->IsUndefined())
+            {
+                VkSemaphore signalSemaphore = Binding::c_obj<Semaphore>(js_signalSemaphore)->impl();
+                submitInfo.pSignalSemaphores = &signalSemaphore;
+                submitInfo.signalSemaphoreCount = 1;
+            }
 
-            submitInfo.commandBufferCount = 1;
-            VkCommandBuffer commandBuffer = c_commandBuffer->impl();
+            auto js_commandBuffer = sugar::v8::object_get(info, "commandBuffer").As<v8::Object>();
+            VkCommandBuffer commandBuffer = Binding::c_obj<CommandBuffer>(js_commandBuffer)->impl();
             submitInfo.pCommandBuffers = &commandBuffer;
-            vkQueueSubmit(_impl->_graphicsQueue, 1, &submitInfo, _impl->_renderFence);
+            submitInfo.commandBufferCount = 1;
+            vkQueueSubmit(_impl->_graphicsQueue, 1, &submitInfo, c_fence->impl());
+        }
 
+        void Device::present(Semaphore *c_waitSemaphore)
+        {
             VkPresentInfoKHR presentInfo = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
             presentInfo.pSwapchains = &_impl->_vkb_swapchain.swapchain;
             presentInfo.swapchainCount = 1;
-            presentInfo.pWaitSemaphores = &_impl->_renderSemaphore;
+            VkSemaphore waitSemaphore = c_waitSemaphore->impl();
+            presentInfo.pWaitSemaphores = &waitSemaphore;
             presentInfo.waitSemaphoreCount = 1;
             presentInfo.pImageIndices = &_impl->_swapchainImageIndex;
             vkQueuePresentKHR(_impl->_graphicsQueue, &presentInfo);
+        }
 
-            vkWaitForFences(_impl->_vkb_device.device, 1, &_impl->_renderFence, true, 1000000000);
+        void Device::waitFence(Fence *c_fence)
+        {
+            VkFence fence = c_fence->impl();
+            vkWaitForFences(_impl->_vkb_device.device, 1, &fence, true, 1000000000);
+            vkResetFences(_impl->_vkb_device.device, 1, &fence);
+        }
 
-            while (_impl->_afterRenderQueue.size())
-            {
-                _impl->_afterRenderQueue.front()();
-                _impl->_afterRenderQueue.pop();
-            }
-
-            vkResetFences(_impl->_vkb_device.device, 1, &_impl->_renderFence);
-
-            vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, _impl->_presentSemaphore, nullptr, &_impl->_swapchainImageIndex);
+        void Device::waitIdle()
+        {
+            vkDeviceWaitIdle(_impl->_vkb_device.device);
         }
 
         Device::~Device()
         {
             glslang::FinalizeProcess();
 
-            vkDeviceWaitIdle(_impl->_vkb_device.device);
-
-            while (_impl->_afterRenderQueue.size())
-            {
-                _impl->_afterRenderQueue.front()();
-                _impl->_afterRenderQueue.pop();
-            }
-
             vkDestroySampler(_impl->_vkb_device.device, _impl->_defaultSampler, nullptr);
-
-            vkDestroyFence(_impl->_vkb_device.device, _impl->_renderFence, nullptr);
-            vkDestroySemaphore(_impl->_vkb_device.device, _impl->_presentSemaphore, nullptr);
-            vkDestroySemaphore(_impl->_vkb_device.device, _impl->_renderSemaphore, nullptr);
 
             vmaDestroyAllocator(_impl->_allocator);
             for (int i = 0; i < _impl->_framebuffers.size(); i++)

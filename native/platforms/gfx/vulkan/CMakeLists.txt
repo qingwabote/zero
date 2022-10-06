@@ -8,6 +8,8 @@ set(SRC_FILES
     VkPipeline.cpp
     VkDescriptorSetLayout.cpp
     VkDescriptorSet.cpp
+    VkFence.cpp
+    VkSemaphore.cpp
 )
 
 add_library(gfx STATIC ${SRC_FILES})

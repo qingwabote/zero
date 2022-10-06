@@ -142,10 +142,7 @@ namespace binding
         {
             VkDevice device = _impl->_device->device();
             VkPipeline pipeline = _impl->_pipeline;
-
-            _impl->_device->callAfterRender(
-                [device, pipeline]
-                { vkDestroyPipeline(device, pipeline, nullptr); });
+            vkDestroyPipeline(device, pipeline, nullptr);
         }
     }
 }

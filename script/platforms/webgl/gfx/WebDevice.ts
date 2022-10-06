@@ -1,15 +1,20 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device, { Capabilities } from "../../../core/gfx/Device.js";
+import Fence from "../../../core/gfx/Fence.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import Semaphore from "../../../core/gfx/Semaphore.js";
 import Shader from "../../../core/gfx/Shader.js";
+import { SubmitInfo } from "../../../core/gfx/SubmitInfo.js";
 import Texture from "../../../core/gfx/Texture.js";
 import WebBuffer from "./WebBuffer.js";
 import WebCommandBuffer from "./WebCommandBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
+import WebFence from "./WebFence.js";
 import WebPipeline from "./WebPipeline.js";
 import WebPipelineLayout from "./WebPipelineLayout.js";
+import WebSemaphore from "./WebSemaphore.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
@@ -60,11 +65,24 @@ export default class WebDevice implements Device {
         return new WebBuffer(this._gl);
     }
 
+    createSemaphore(): Semaphore {
+        return new WebSemaphore;
+    }
+
     createTexture(): Texture {
         return new WebTexture(this._gl);
     }
 
-    submit(commandBuffer: CommandBuffer): void { }
+    createFence(): Fence {
+        return new WebFence;
+    }
+
+    acquire(semaphore: Semaphore): void { }
+
+    submit(info: SubmitInfo, fence: Fence): void { }
 
     present(): void { }
+
+    waitFence(fence: Fence): void { }
+
 }

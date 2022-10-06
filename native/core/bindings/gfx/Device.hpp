@@ -10,6 +10,8 @@
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
 #include "CommandBuffer.hpp"
+#include "Fence.hpp"
+#include "Semaphore.hpp"
 
 namespace binding
 {
@@ -48,7 +50,19 @@ namespace binding
 
             CommandBuffer *createCommandBuffer();
 
-            void present(CommandBuffer *commandBuffer);
+            Semaphore *createSemaphore();
+
+            Fence *createFence();
+
+            void acquire(Semaphore *presentSemaphore);
+
+            void submit(v8::Local<v8::Object> info, Fence *fence);
+
+            void present(Semaphore *waitSemaphore);
+
+            void waitFence(Fence *fence);
+
+            void waitIdle();
 
             ~Device();
         };

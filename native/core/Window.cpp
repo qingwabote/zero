@@ -240,5 +240,7 @@ int Window::loop()
         SDL_GL_SwapWindow(window.get());
     }
 
+    device->waitIdle();
+
     return 0;
 }

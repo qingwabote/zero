@@ -21,7 +21,17 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    c_obj->releaseAll();
                     c_obj->begin();
+                });
+            cls.defineFunction(
+                "copyImageBitmapToTexture",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    auto c_imageBitmap = c_obj->retain<ImageBitmap>(info[0].As<v8::Object>());
+                    auto c_texture = c_obj->retain<Texture>(info[1].As<v8::Object>());
+                    c_obj->copyImageBitmapToTexture(c_imageBitmap, c_texture);
                 });
             cls.defineFunction(
                 "beginRenderPass",
@@ -36,11 +46,11 @@ namespace binding
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
 
-                    PipelineLayout *c_pipelineLayout = Binding::c_obj<PipelineLayout>(info[0].As<v8::Object>());
+                    PipelineLayout *c_pipelineLayout = c_obj->retain<PipelineLayout>(info[0].As<v8::Object>());
 
                     uint32_t index = info[1].As<v8::Number>()->Value();
 
-                    DescriptorSet *c_descriptorSet = c_obj->retain<DescriptorSet>(info[2].As<v8::Object>(), "descriptorSet_" + std::to_string(index));
+                    DescriptorSet *c_descriptorSet = c_obj->retain<DescriptorSet>(info[2].As<v8::Object>());
 
                     v8::Local<v8::Array> dynamicOffsets = info.Length() > 3 ? info[3].As<v8::Array>() : v8::Array::New(v8::Isolate::GetCurrent());
 
@@ -53,7 +63,8 @@ namespace binding
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
                     auto js_inputAssembler = info[0].As<v8::Object>();
-                    c_obj->retain(js_inputAssembler, "inputAssembler");
+                    c_obj->retain(js_inputAssembler);
+                    c_obj->retain(js_inputAssembler, "lastInputAssembler");
                     c_obj->bindInputAssembler(js_inputAssembler);
                 });
 
@@ -62,7 +73,7 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                    Pipeline *c_pipeline = c_obj->retain<Pipeline>(info[0].As<v8::Object>(), "pipeline");
+                    Pipeline *c_pipeline = c_obj->retain<Pipeline>(info[0].As<v8::Object>());
                     c_obj->bindPipeline(c_pipeline);
                 });
 

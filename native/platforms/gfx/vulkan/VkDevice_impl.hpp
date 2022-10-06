@@ -42,15 +42,9 @@ namespace binding
 
             VmaAllocator _allocator;
 
-            VkFence _renderFence = nullptr;
-            VkSemaphore _presentSemaphore = nullptr;
-            VkSemaphore _renderSemaphore = nullptr;
-
             VkSampler _defaultSampler = nullptr;
 
             uint32_t _swapchainImageIndex = 0;
-
-            std::queue<std::function<void()>> _afterRenderQueue;
 
         public:
             uint32_t version() { return _version; }
@@ -70,11 +64,6 @@ namespace binding
             VkSampler defaultSampler() { return _defaultSampler; }
 
             Device_impl(SDL_Window *window);
-
-            void callAfterRender(std::function<void()> &&function)
-            {
-                _afterRenderQueue.push(std::forward<std::function<void()>>(function));
-            }
 
             ~Device_impl();
         };

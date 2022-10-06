@@ -32,6 +32,8 @@ public:
 
     void release(v8::Local<v8::Object> js_obj);
 
+    void releaseAll();
+
     template <class T>
     T *retrieve(const std::string &key)
     {

@@ -67,7 +67,21 @@ void Binding::retain(v8::Local<v8::Object> obj, const std::string &key)
 void Binding::release(v8::Local<v8::Object> obj)
 {
     v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
+    if (map->IsUndefined())
+    {
+        return;
+    }
     map->Delete(v8::Isolate::GetCurrent()->GetCurrentContext(), obj);
+}
+
+void Binding::releaseAll()
+{
+    v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
+    if (map->IsUndefined())
+    {
+        return;
+    }
+    map->Clear();
 }
 
 v8::Local<v8::Object> Binding::retrieve(const std::string &key)

@@ -51,10 +51,7 @@ namespace binding
             VmaAllocator allocator = _impl->_device->allocator();
             VkBuffer buffer = _impl->_buffer;
             VmaAllocation allocation = _impl->_allocation;
-
-            _impl->_device->callAfterRender(
-                [allocator, buffer, allocation]
-                { vmaDestroyBuffer(allocator, buffer, allocation); });
+            vmaDestroyBuffer(allocator, buffer, allocation);
         }
     }
 }

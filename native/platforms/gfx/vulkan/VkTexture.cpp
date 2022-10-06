@@ -31,11 +31,10 @@ namespace binding
             imageInfo.mipLevels = 1;
             imageInfo.arrayLayers = 1;
             imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-            imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
-            imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+            imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+            imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             VmaAllocationCreateInfo allocationCreateInfo = {};
-            allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-            allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+            allocationCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
             auto err = vmaCreateImage(_impl->_device->allocator(), &imageInfo, &allocationCreateInfo, &_impl->_image, &_impl->_allocation, &_impl->_allocationInfo);
             if (err)
             {
@@ -61,16 +60,6 @@ namespace binding
             return false;
         }
 
-        void Texture::update(ImageBitmap *imageBitmap)
-        {
-            VkCommandBufferBeginInfo beginInfo = {};
-            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            // vkBeginCommandBuffer(_impl->_device->)
-
-            memcpy(_impl->_allocationInfo.pMappedData, imageBitmap->pixels(), imageBitmap->width() * imageBitmap->height() * 4);
-        }
-
         Texture::~Texture()
         {
             VkDevice device = _impl->_device->device();
@@ -80,12 +69,8 @@ namespace binding
             VkImage image = _impl->_image;
             VmaAllocation allocation = _impl->_allocation;
 
-            _impl->_device->callAfterRender(
-                [device, imageView, allocator, image, allocation]
-                {
-                    vkDestroyImageView(device, imageView, nullptr);
-                    vmaDestroyImage(allocator, image, allocation);
-                });
+            vkDestroyImageView(device, imageView, nullptr);
+            vmaDestroyImage(allocator, image, allocation);
         }
     }
 }
