@@ -43,7 +43,8 @@ namespace binding
         void Buffer::update(v8::Local<v8::ArrayBufferView> buffer)
         {
             auto size = sugar::v8::object_get(info(), "size").As<v8::Number>();
-            memcpy(_impl->_allocationInfo.pMappedData, buffer->Buffer()->Data(), size->Value());
+            auto start = reinterpret_cast<const uint8_t *>(buffer->Buffer()->Data()) + buffer->ByteOffset();
+            memcpy(_impl->_allocationInfo.pMappedData, start, size->Value());
         }
 
         Buffer::~Buffer()
