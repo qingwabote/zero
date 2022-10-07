@@ -118,9 +118,6 @@ namespace binding
             const uint32_t width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
             const uint32_t height = sugar::v8::object_get(area, "height").As<v8::Number>()->Value();
 
-            VkClearValue clearValue = {};
-            clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             info.pNext = nullptr;
@@ -128,8 +125,15 @@ namespace binding
             info.renderArea.offset.x = x;
             info.renderArea.offset.y = y;
             info.renderArea.extent = {width, height};
-            info.clearValueCount = 1;
-            info.pClearValues = &clearValue;
+
+            VkClearValue clearValue = {};
+            clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+            VkClearValue depthClear;
+            depthClear.depthStencil.depth = 1.f;
+            VkClearValue clearValues[] = {clearValue, depthClear};
+            info.pClearValues = clearValues;
+            info.clearValueCount = 2;
+
             info.framebuffer = _impl->_device->curFramebuffer();
 
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);

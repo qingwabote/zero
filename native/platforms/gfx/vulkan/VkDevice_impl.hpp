@@ -34,13 +34,19 @@ namespace binding
             vkb::Swapchain _vkb_swapchain;
             std::vector<VkImageView> _swapchainImageViews;
 
-            VkQueue _graphicsQueue = nullptr;
-            VkCommandPool _commandPool = nullptr;
-            VkDescriptorPool _descriptorPool = nullptr;
+            VmaAllocator _allocator;
+
+            VkImage _depthImage;
+            VmaAllocation _depthImageAllocation;
+            VkImageView _depthImageView;
+
             VkRenderPass _renderPass = nullptr;
             std::vector<VkFramebuffer> _framebuffers;
 
-            VmaAllocator _allocator;
+            VkCommandPool _commandPool = nullptr;
+            VkDescriptorPool _descriptorPool = nullptr;
+
+            VkQueue _graphicsQueue = nullptr;
 
             VkSampler _defaultSampler = nullptr;
 
