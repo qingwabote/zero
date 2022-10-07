@@ -35,6 +35,11 @@ namespace binding
 
         void CommandBuffer::begin()
         {
+            while (_impl->_destructionQueue.size())
+            {
+                _impl->_destructionQueue.front()();
+                _impl->_destructionQueue.pop();
+            }
 
             VkCommandBufferBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -59,9 +64,12 @@ namespace binding
             allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
             VkBuffer buffer;
+            VmaAllocator allocator = _impl->_device->allocator();
             VmaAllocation allocation;
             VmaAllocationInfo allocationInfo;
-            vmaCreateBuffer(_impl->_device->allocator(), &bufferInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo);
+            vmaCreateBuffer(allocator, &bufferInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo);
+            _impl->_destructionQueue.push([allocator, buffer, allocation]()
+                                          { vmaDestroyBuffer(allocator, buffer, allocation); });
 
             memcpy(allocationInfo.pMappedData, imageBitmap->pixels(), size);
 
@@ -212,6 +220,13 @@ namespace binding
             vkEndCommandBuffer(_impl->_commandBuffer);
         }
 
-        CommandBuffer::~CommandBuffer() {}
+        CommandBuffer::~CommandBuffer()
+        {
+            while (_impl->_destructionQueue.size())
+            {
+                _impl->_destructionQueue.front()();
+                _impl->_destructionQueue.pop();
+            }
+        }
     }
 }

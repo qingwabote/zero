@@ -14,6 +14,8 @@ namespace binding
             VkCommandBuffer _commandBuffer = nullptr;
             Device_impl *_device = nullptr;
 
+            std::queue<std::function<void()>> _destructionQueue;
+
         public:
             CommandBuffer_impl(Device_impl *device);
 
