@@ -5,7 +5,6 @@ import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import Fence from "../gfx/Fence.js";
 import { Format, IndexType } from "../gfx/Pipeline.js";
-import Texture from "../gfx/Texture.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
@@ -16,6 +15,7 @@ import Pass from "../render/Pass.js";
 import SubMesh, { Attribute } from "../render/SubMesh.js";
 import shaders from "../shaders.js";
 import Asset from "./Asset.js";
+import Texture from "./Texture.js";
 
 const builtinAttributes: Record<string, string> = {
     "POSITION": "a_position",
@@ -65,24 +65,10 @@ export default class GLTF extends Asset {
         const bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
 
         const images: any[] = json.images;
-        this._textures = await Promise.all(images.map(info => this.loadTexture(`${parent}/${info.uri}`)));
+        this._textures = await Promise.all(images.map(info => (new Texture).load(`${parent}/${info.uri}`)));
 
         this._bin = bin;
         this._json = json;
-    }
-
-    private async loadTexture(url: string): Promise<Texture> {
-        const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
-        const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
-        const texture = zero.gfx.createTexture();
-        texture.initialize({ width: imageBitmap.width, height: imageBitmap.height });
-        const commandBuffer = this._commandBuffer;
-        commandBuffer.begin();
-        commandBuffer.copyImageBitmapToTexture(imageBitmap, texture);
-        commandBuffer.end();
-        zero.gfx.submit({ commandBuffer }, this._fence);
-        zero.gfx.waitFence(this._fence);
-        return texture;
     }
 
     createScene(name: string): Node | null {
@@ -165,7 +151,7 @@ export default class GLTF extends Asset {
                 const shader = shaders.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
                 const pass = new Pass(shader);
                 if (textureIdx != undefined) {
-                    pass.descriptorSet.bindTexture(0, this._textures![this._json.textures[textureIdx].source]);
+                    pass.descriptorSet.bindTexture(0, this._textures![this._json.textures[textureIdx].source].gfx_texture);
                 }
                 const material = new Material([pass]);
                 materials.push(material);

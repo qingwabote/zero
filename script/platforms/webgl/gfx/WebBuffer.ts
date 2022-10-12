@@ -42,7 +42,7 @@ export default class WebBuffer implements Buffer {
         return false;
     }
 
-    update(buffer: Readonly<BufferSource>): void {
+    update(buffer: ArrayBufferView): void {
         const gl = this._gl;
 
         const target = usage2target(this._info.usage);

@@ -41,7 +41,7 @@ v8::Local<v8::Object> Binding::js_obj()
     return scope.Escape(obj);
 }
 
-void Binding::retain(v8::Local<v8::Object> obj, const std::string &key)
+v8::Local<v8::Object> Binding::retain(v8::Local<v8::Object> obj, const std::string &key)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::HandleScope scope{isolate};
@@ -62,6 +62,7 @@ void Binding::retain(v8::Local<v8::Object> obj, const std::string &key)
     {
         map->Set(context, obj, obj);
     }
+    return obj;
 }
 
 void Binding::release(v8::Local<v8::Object> obj)

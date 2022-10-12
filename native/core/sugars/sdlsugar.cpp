@@ -19,7 +19,7 @@ namespace sugar
             }
 
             return unique_window{
-                SDL_CreateWindow("An SDL2 window",        // window title
+                SDL_CreateWindow("zero",                  // window title
                                  SDL_WINDOWPOS_UNDEFINED, // initial x position
                                  SDL_WINDOWPOS_UNDEFINED, // initial y position
                                  width,                   // width, in pixels

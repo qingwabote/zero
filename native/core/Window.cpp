@@ -14,7 +14,7 @@
 namespace
 {
     int width = 640;
-    int height = 480;
+    int height = 960;
 }
 
 Window *Window::instance()

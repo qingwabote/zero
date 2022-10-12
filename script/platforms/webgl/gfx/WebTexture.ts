@@ -8,6 +8,11 @@ export default class WebTexture implements Texture {
         return this._texture;
     }
 
+    private _info!: TextureInfo;
+    get info(): TextureInfo {
+        return this._info;
+    }
+
     constructor(gl: WebGL2RenderingContext) {
         this._gl = gl;
     }
@@ -18,6 +23,7 @@ export default class WebTexture implements Texture {
         gl.bindTexture(gl.TEXTURE_2D, this._texture);
         gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA8, info.width, info.height);
         gl.bindTexture(gl.TEXTURE_2D, null);
+        this._info = info;
         return false;
     }
 }

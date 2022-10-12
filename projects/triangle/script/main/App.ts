@@ -1,16 +1,10 @@
+import FNT from "../../../../script/core/assets/FNT.js";
 import Camera from "../../../../script/core/components/Camera.js";
-import MeshRenderer from "../../../../script/core/components/MeshRenderer.js";
-import Buffer, { BufferUsageFlagBits } from "../../../../script/core/gfx/Buffer.js";
+import Label from "../../../../script/core/components/Label.js";
 import Device from "../../../../script/core/gfx/Device.js";
-import { Format, IndexType } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
 import Platfrom from "../../../../script/core/Platfrom.js";
-import Material from "../../../../script/core/render/Material.js";
-import Mesh from "../../../../script/core/render/Mesh.js";
-import Pass from "../../../../script/core/render/Pass.js";
-import SubMesh, { Attribute } from "../../../../script/core/render/SubMesh.js";
-import shaders from "../../../../script/core/shaders.js";
 import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
@@ -20,61 +14,79 @@ export default class App extends Zero {
             return true;
         }
 
+        // let node: Node;
+
+        // node = new Node;
+        // const cameraA = node.addComponent(Camera);
+        // cameraA.fov = 45;
+        // cameraA.viewport = { x: 0, y: 0, width: 0.5, height: 1 };
+        // node.position = [0, 0, 10]
+
+        // node = new Node;
+        // const cameraB = node.addComponent(Camera);
+        // cameraB.fov = 45;
+        // cameraB.viewport = { x: 0.5, y: 0, width: 0.5, height: 1 };
+        // node.position = [0, 30, 10];
+        // node.euler = [-60, 0, 0];
+
+        // const vertexArray = new Float32Array([
+        //     1, 1, 0, 1,
+        //     -1, 1, 0, 1,
+        //     0, -1, 0, 1
+        // ]);
+
+        // const attributes: Attribute[] = [];
+        // const vertexBuffers: Buffer[] = [];
+        // const vertexOffsets: number[] = [];
+
+        // const attribute: Attribute = {
+        //     name: "a_position",
+        //     format: Format.RGBA32F,
+        //     buffer: 0,
+        //     offset: 0
+        // };
+        // attributes.push(attribute);
+
+        // const vertexBuffer = zero.gfx.createBuffer();
+        // vertexBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: vertexArray.byteLength });
+        // vertexBuffer.update(vertexArray);
+        // vertexBuffers.push(vertexBuffer);
+        // vertexOffsets.push(0);
+
+        // const indexArray = new Uint16Array([0, 1, 2]);
+        // const indexBuffer = zero.gfx.createBuffer();
+        // indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: indexArray.byteLength });
+        // indexBuffer.update(indexArray);
+
+        // const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, vertexOffsets, indexBuffer, IndexType.UINT16, indexArray.length, 0)]);
+        // const shader = shaders.getShader('triangle');
+        // const pass = new Pass(shader);
+        // const material = new Material([pass]);
+
+        // node = new Node;
+        // const renderer = node.addComponent(MeshRenderer);
+        // renderer.mesh = mesh;
+        // renderer.materials = [material];
+
+        // node.addComponent(ZeroComponent);
+
         let node: Node;
 
         node = new Node;
         const cameraA = node.addComponent(Camera);
         cameraA.fov = 45;
-        cameraA.viewport = { x: 0, y: 0, width: 0.5, height: 1 };
-        node.position = [0, 0, 10]
+        cameraA.viewport = { x: 0, y: 0, width: 1, height: 1 };
+        node.position = [0, 0, 500];
 
-        node = new Node;
-        const cameraB = node.addComponent(Camera);
-        cameraB.fov = 45;
-        cameraB.viewport = { x: 0.5, y: 0, width: 0.5, height: 1 };
-        node.position = [0, 30, 10];
-        node.euler = [-60, 0, 0];
-
-        const vertexArray = new Float32Array([
-            1, 1, 0, 1,
-            -1, 1, 0, 1,
-            0, -1, 0, 1
-        ]);
-
-        const attributes: Attribute[] = [];
-        const vertexBuffers: Buffer[] = [];
-        const vertexOffsets: number[] = [];
-
-        const attribute: Attribute = {
-            name: "a_position",
-            format: Format.RGBA32F,
-            buffer: 0,
-            offset: 0
-        };
-        attributes.push(attribute);
-
-        const vertexBuffer = zero.gfx.createBuffer();
-        vertexBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: vertexArray.byteLength });
-        vertexBuffer.update(vertexArray);
-        vertexBuffers.push(vertexBuffer);
-        vertexOffsets.push(0);
-
-        const indexArray = new Uint16Array([0, 1, 2]);
-        const indexBuffer = zero.gfx.createBuffer();
-        indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: indexArray.byteLength });
-        indexBuffer.update(indexArray);
-
-        const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, vertexOffsets, indexBuffer, IndexType.UINT16, indexArray.length, 0)]);
-        const shader = shaders.getShader('triangle');
-        const pass = new Pass(shader);
-        const material = new Material([pass]);
-
-        node = new Node;
-        const renderer = node.addComponent(MeshRenderer);
-        renderer.mesh = mesh;
-        renderer.materials = [material];
-
-        node.addComponent(ZeroComponent);
+        (async () => {
+            const fnt = new FNT;
+            await fnt.load('./asset/zero');
+            const node = new Node;
+            const label = node.addComponent(Label);
+            label.fnt = fnt;
+            label.text = 'FPS:';
+            node.addComponent(ZeroComponent);
+        })()
 
         return false;
     }
