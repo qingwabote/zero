@@ -117,7 +117,7 @@ export default class Zero {
 
             for (const model of this._renderScene.models) {
                 for (const subModel of model.subModels) {
-                    commandBuffer.bindInputAssembler(subModel.inputAssembler);
+                    commandBuffer.bindInputAssembler(subModel.inputAssembler!);
                     for (const pass of subModel.passes) {
                         const shader = pass.shader;
 
@@ -130,10 +130,7 @@ export default class Zero {
                         const pipeline = this._gfx.createPipeline();
                         pipeline.initialize({
                             shader,
-                            vertexInputState: {
-                                bindings: subModel.inputAssembler.bindings,
-                                attributes: subModel.inputAssembler.attributes
-                            },
+                            vertexInputState: subModel.inputAssembler!.vertexInputState,
                             depthStencilState: { depthTest: true },
                             blendState: {
                                 blends: [

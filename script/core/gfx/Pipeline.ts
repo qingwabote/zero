@@ -53,8 +53,8 @@ export interface VertexInputAttributeDescription {
 }
 
 export interface VertexInputState {
-    bindings: VertexInputBindingDescription[];
     attributes: VertexInputAttributeDescription[];
+    bindings: VertexInputBindingDescription[];
 }
 
 // copy values from VkIndexType in vulkan_core.h
@@ -63,9 +63,11 @@ export enum IndexType {
     UINT32 = 1,
 }
 
+/**
+ * InputAssembler is an immutable object, it correspond to a vao in WebGL.
+ */
 export interface InputAssembler {
-    bindings: VertexInputBindingDescription[];
-    attributes: VertexInputAttributeDescription[];
+    vertexInputState: VertexInputState;
     vertexBuffers: Buffer[];
     vertexOffsets: number[];
     indexBuffer: Buffer;

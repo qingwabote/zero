@@ -1,12 +1,12 @@
 import FNT from "../../../../script/core/assets/FNT.js";
 import Camera from "../../../../script/core/components/Camera.js";
+import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
 import Device from "../../../../script/core/gfx/Device.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
 import Platfrom from "../../../../script/core/Platfrom.js";
 import Zero from "../../../../script/core/Zero.js";
-import ZeroComponent from "./ZeroComponent.js";
 
 export default class App extends Zero {
     initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
@@ -74,9 +74,9 @@ export default class App extends Zero {
 
         node = new Node;
         const cameraA = node.addComponent(Camera);
-        cameraA.fov = 45;
+        cameraA.orthoHeight = height / 2;
         cameraA.viewport = { x: 0, y: 0, width: 1, height: 1 };
-        node.position = [0, 0, 500];
+        node.position = [0, 0, 1];
 
         (async () => {
             const fnt = new FNT;
@@ -84,8 +84,8 @@ export default class App extends Zero {
             const node = new Node;
             const label = node.addComponent(Label);
             label.fnt = fnt;
-            label.text = 'FPS:';
-            node.addComponent(ZeroComponent);
+            node.addComponent(FPS);
+            node.position = [-width / 2, height / 2, 0]
         })()
 
         return false;

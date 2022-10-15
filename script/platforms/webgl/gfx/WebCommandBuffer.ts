@@ -135,9 +135,9 @@ export default class WebCommandBuffer implements CommandBuffer {
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = inputAssembler.attributes;
+            const attributes = inputAssembler.vertexInputState.attributes;
             for (const attribute of attributes) {
-                const binding = inputAssembler.bindings[attribute.binding];
+                const binding = inputAssembler.vertexInputState.bindings[attribute.binding];
                 const buffer = inputAssembler.vertexBuffers[attribute.binding] as WebBuffer;
                 const offset = inputAssembler.vertexOffsets[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
