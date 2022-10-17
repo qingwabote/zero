@@ -1,11 +1,13 @@
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, ClearFlagBit, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import RenderPass from "../../../core/gfx/RenderPass.js";
 import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebPipeline from "./WebPipeline.js";
+import WebRenderPass from "./WebRenderPass.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
@@ -44,7 +46,7 @@ function bendFactor2WebGL(factor: BlendFactor): GLenum {
 //     return offset;
 // }
 
-const input2vao: Map<InputAssembler, WebGLVertexArrayObject> = new Map;
+const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
 
 
 export default class WebCommandBuffer implements CommandBuffer {
@@ -67,15 +69,23 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    beginRenderPass(viewport: Rect) {
+    beginRenderPass(renderPass: RenderPass, viewport: Rect) {
         const gl = this._gl;
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
         gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
 
-        gl.clearColor(0, 0, 0, 1)
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+        gl.clearColor(0, 0, 0, 1);
+        let flag: number = 0;
+        const clearFlag = (renderPass as WebRenderPass).info.clearFlag;
+        if (clearFlag & ClearFlagBit.COLOR) {
+            flag |= gl.COLOR_BUFFER_BIT;
+        }
+        if (clearFlag & ClearFlagBit.DEPTH) {
+            flag |= gl.DEPTH_BUFFER_BIT;
+        }
+        gl.clear(flag)
     }
 
     bindPipeline(pipeline: Pipeline) {
@@ -175,7 +185,9 @@ export default class WebCommandBuffer implements CommandBuffer {
     }
 
     draw() {
-        if (!this._inputAssembler) return;
+        if (!this._inputAssembler) {
+            return
+        };
 
         let type: GLenum;
         switch (this._inputAssembler.indexType) {
@@ -192,6 +204,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         const gl = this._gl;
         gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, type, this._inputAssembler.indexOffset);
+        gl.bindVertexArray(null);
     }
 
     endRenderPass() { }

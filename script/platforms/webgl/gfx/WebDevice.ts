@@ -3,6 +3,7 @@ import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device, { Capabilities } from "../../../core/gfx/Device.js";
 import Fence from "../../../core/gfx/Fence.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import RenderPass from "../../../core/gfx/RenderPass.js";
 import Semaphore from "../../../core/gfx/Semaphore.js";
 import Shader from "../../../core/gfx/Shader.js";
 import { SubmitInfo } from "../../../core/gfx/SubmitInfo.js";
@@ -14,6 +15,7 @@ import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebFence from "./WebFence.js";
 import WebPipeline from "./WebPipeline.js";
 import WebPipelineLayout from "./WebPipelineLayout.js";
+import WebRenderPass from "./WebRenderPass.js";
 import WebSemaphore from "./WebSemaphore.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
@@ -28,7 +30,8 @@ export default class WebDevice implements Device {
 
     constructor(gl: WebGL2RenderingContext) {
         this._capabilities = {
-            uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT)
+            uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+            clipSpaceMinZ: -1
         }
         this._gl = gl;
     }
@@ -63,6 +66,10 @@ export default class WebDevice implements Device {
 
     createBuffer(): Buffer {
         return new WebBuffer(this._gl);
+    }
+
+    createRenderPass(): RenderPass {
+        return new WebRenderPass;
     }
 
     createSemaphore(): Semaphore {

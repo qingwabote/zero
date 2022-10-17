@@ -10,6 +10,9 @@
 #include "bindings/gfx/PipelineLayout.hpp"
 #include "VkPipelineLayout_impl.hpp"
 
+#include "bindings/gfx/RenderPass.hpp"
+#include "VkRenderPass_impl.hpp"
+
 namespace binding
 {
     namespace gfx
@@ -37,7 +40,6 @@ namespace binding
 
             VkPipelineVertexInputStateCreateInfo vertexInputState = {};
             vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-            vertexInputState.pNext = nullptr;
 
             v8::Local<v8::Object> js_vertexInputState = sugar::v8::object_get(info, "vertexInputState").As<v8::Object>();
             v8::Local<v8::Array> js_attributes = sugar::v8::object_get(js_vertexInputState, "attributes").As<v8::Array>();
@@ -124,10 +126,10 @@ namespace binding
             pipelineInfo.pDepthStencilState = &depthStencilState;
 
             v8::Local<v8::Object> js_layout = sugar::v8::object_get(info, "layout").As<v8::Object>();
-            PipelineLayout *c_layout = retain<PipelineLayout>(js_layout);
-            pipelineInfo.layout = c_layout->impl();
+            pipelineInfo.layout = retain<PipelineLayout>(js_layout)->impl();
 
-            pipelineInfo.renderPass = _impl->_device->renderPass();
+            v8::Local<v8::Object> js_renderPass = sugar::v8::object_get(info, "renderPass").As<v8::Object>();
+            pipelineInfo.renderPass = retain<RenderPass>(js_renderPass)->impl();
             pipelineInfo.subpass = 0;
 
             if (vkCreateGraphicsPipelines(_impl->_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))

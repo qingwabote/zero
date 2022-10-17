@@ -8,6 +8,7 @@
 #include "VkBuffer_impl.hpp"
 #include "VkTexture_impl.hpp"
 #include "VkShader_impl.hpp"
+#include "VkRenderPass_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "VkPipelineLayout_impl.hpp"
@@ -21,11 +22,6 @@ namespace binding
 {
     namespace gfx
     {
-
-        Device_impl::Device_impl(SDL_Window *window) : _window(window) {}
-
-        Device_impl::~Device_impl() {}
-
         v8::Local<v8::Object> Device::capabilities()
         {
             return retrieve("capabilities");
@@ -124,102 +120,7 @@ namespace binding
             dview_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
             vkCreateImageView(device, &dview_info, nullptr, &depthImageView);
             _impl->_depthImage = depthImage;
-
-            // subpass
-            // we are going to create 1 subpass, which is the minimum you can do
-            VkSubpassDescription subpass = {};
-            subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-            subpass.colorAttachmentCount = 1;
-
-            VkAttachmentReference color_attachment_ref = {};
-            // attachment number will index into the pAttachments array in the parent renderpass itself
-            color_attachment_ref.attachment = 0;
-            color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            subpass.pColorAttachments = &color_attachment_ref;
-
-            VkAttachmentReference depth_attachment_ref = {};
-            depth_attachment_ref.attachment = 1;
-            depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            subpass.pDepthStencilAttachment = &depth_attachment_ref;
-
-            // renderpass
-            VkRenderPassCreateInfo render_pass_info = {};
-            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-
-            // color attachment.
-            VkAttachmentDescription color_attachment = {};
-            color_attachment.format = vkb_swapchain.image_format;
-            // 1 sample, we won't be doing MSAA
-            color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            // we Clear when this attachment is loaded
-            color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            // we keep the attachment stored when the renderpass ends
-            color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            // after the renderpass ends, the image has to be on a layout ready for display
-            color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            // depth attachment
-            VkAttachmentDescription depth_attachment = {};
-            depth_attachment.flags = 0;
-            depth_attachment.format = depthFormat;
-            depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            VkAttachmentDescription attachments[2] = {color_attachment, depth_attachment};
-            render_pass_info.pAttachments = attachments;
-            render_pass_info.attachmentCount = 2;
-            render_pass_info.pSubpasses = &subpass;
-            render_pass_info.subpassCount = 1;
-
-            // 1 dependency, which is from "outside" into the subpass. And we can read or write color
-            VkSubpassDependency dependency = {};
-            dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-            dependency.dstSubpass = 0;
-            dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dependency.srcAccessMask = 0;
-            dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            // dependency from outside to the subpass, making this subpass dependent on the previous renderpasses
-            VkSubpassDependency depth_dependency = {};
-            depth_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-            depth_dependency.dstSubpass = 0;
-            depth_dependency.srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            depth_dependency.srcAccessMask = 0;
-            depth_dependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            depth_dependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            VkSubpassDependency dependencies[2] = {dependency, depth_dependency};
-            render_pass_info.pDependencies = dependencies;
-            render_pass_info.dependencyCount = 2;
-            vkCreateRenderPass(device, &render_pass_info, nullptr, &_impl->_renderPass);
-
-            // framebuffers
-            VkFramebufferCreateInfo fb_info = {};
-            fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            fb_info.pNext = nullptr;
-            fb_info.renderPass = _impl->_renderPass;
-            fb_info.width = vkb_swapchain.extent.width;
-            fb_info.height = vkb_swapchain.extent.height;
-            fb_info.layers = 1;
-            std::vector<VkFramebuffer> framebuffers(vkb_swapchain.image_count);
-            std::vector<VkImageView> swapchainImageViews = vkb_swapchain.get_image_views().value();
-            for (int i = 0; i < vkb_swapchain.image_count; i++)
-            {
-                VkImageView attachments[2];
-                attachments[0] = swapchainImageViews[i];
-                attachments[1] = depthImageView;
-                fb_info.pAttachments = attachments;
-                fb_info.attachmentCount = 2;
-                vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffers[i]);
-            }
-            _impl->_swapchainImageViews = std::move(swapchainImageViews);
-            _impl->_depthImageView = depthImageView;
-            _impl->_framebuffers = std::move(framebuffers);
+            _impl->_depthFormat = depthFormat;
 
             VkSamplerCreateInfo samplerInfo = {};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -249,18 +150,57 @@ namespace binding
             vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);
 
             v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
-            sugar::v8::object_set(capabilities,
-                                  "uniformBufferOffsetAlignment",
-                                  v8::Number::New(v8::Isolate::GetCurrent(), physicalDevice.properties.limits.minUniformBufferOffsetAlignment));
+            sugar::v8::object_set(
+                capabilities,
+                "uniformBufferOffsetAlignment",
+                v8::Number::New(v8::Isolate::GetCurrent(), physicalDevice.properties.limits.minUniformBufferOffsetAlignment));
+            sugar::v8::object_set(
+                capabilities,
+                "clipSpaceMinZ",
+                v8::Number::New(v8::Isolate::GetCurrent(), 0));
             retain(capabilities, "capabilities");
-
-            glslang::InitializeProcess();
 
             _impl->_graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
             _impl->_vkb_device = std::move(vkb_device);
             _impl->_vkb_instance = std::move(vkb_instance);
             _impl->_vkb_swapchain = std::move(vkb_swapchain);
             _impl->_surface = surface;
+
+            // device initialization is done, we create some defaults below:
+
+            // default framebuffers
+            VkFramebufferCreateInfo fb_info = {};
+            fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+
+            RenderPass *aRenderPass = createRenderPass();
+            v8::Local<v8::Object> renderPassInfo = v8::Object::New(v8::Isolate::GetCurrent());
+            sugar::v8::object_set(
+                renderPassInfo,
+                "clearFlag",
+                v8::Number::New(v8::Isolate::GetCurrent(), 0));
+            aRenderPass->initialize(renderPassInfo);
+            fb_info.renderPass = aRenderPass->impl(); // https://github.com/KhronosGroup/Vulkan-Docs/issues/1147
+            _impl->_aRenderPass = aRenderPass;
+
+            fb_info.width = _impl->_vkb_swapchain.extent.width;
+            fb_info.height = _impl->_vkb_swapchain.extent.height;
+            fb_info.layers = 1;
+            std::vector<VkFramebuffer> framebuffers(_impl->_vkb_swapchain.image_count);
+            std::vector<VkImageView> swapchainImageViews = _impl->_vkb_swapchain.get_image_views().value();
+            for (int i = 0; i < _impl->_vkb_swapchain.image_count; i++)
+            {
+                VkImageView attachments[2];
+                attachments[0] = swapchainImageViews[i];
+                attachments[1] = depthImageView;
+                fb_info.pAttachments = attachments;
+                fb_info.attachmentCount = 2;
+                vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffers[i]);
+            }
+            _impl->_swapchainImageViews = std::move(swapchainImageViews);
+            _impl->_depthImageView = depthImageView;
+            _impl->_framebuffers = std::move(framebuffers);
+
+            glslang::InitializeProcess();
 
             return false;
         }
@@ -270,6 +210,8 @@ namespace binding
         Texture *Device::createTexture() { return new Texture(std::make_unique<Texture_impl>(_impl)); }
 
         Shader *Device::createShader() { return new Shader(std::make_unique<Shader_impl>(_impl)); }
+
+        RenderPass *Device::createRenderPass() { return new RenderPass(std::make_unique<RenderPass_impl>(_impl)); }
 
         DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl)); }
 
@@ -360,11 +302,12 @@ namespace binding
             vkDestroyDescriptorPool(vkb_device.device, _impl->_descriptorPool, nullptr);
             vkDestroyCommandPool(vkb_device.device, _impl->_commandPool, nullptr);
 
+            delete _impl->_aRenderPass;
+
             for (int i = 0; i < _impl->_framebuffers.size(); i++)
             {
                 vkDestroyFramebuffer(vkb_device.device, _impl->_framebuffers[i], nullptr);
             }
-            vkDestroyRenderPass(vkb_device.device, _impl->_renderPass, nullptr);
 
             vkDestroyImageView(vkb_device.device, _impl->_depthImageView, nullptr);
 

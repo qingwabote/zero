@@ -3,6 +3,7 @@ import CommandBuffer from "./gfx/CommandBuffer.js";
 import Device from "./gfx/Device.js";
 import Fence from "./gfx/Fence.js";
 import { BlendFactor, DescriptorSet, PipelineStageFlagBits } from "./gfx/Pipeline.js";
+import RenderPass from "./gfx/RenderPass.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
@@ -58,6 +59,9 @@ export default class Zero {
         return this._commandBuffer;
     }
 
+    private _clearFlag2renderPass: Record<number, RenderPass> = {};
+
+
     private _presentSemaphore!: Semaphore;
     private _renderSemaphore!: Semaphore;
     private _renderFence!: Fence;
@@ -108,16 +112,28 @@ export default class Zero {
         for (let cameraIndex = 0; cameraIndex < cameras.length; cameraIndex++) {
             const camera = cameras[cameraIndex];
             const viewport = camera.viewport;
-            commandBuffer.beginRenderPass({
-                x: this._window.width * viewport.x,
-                y: this._window.height * viewport.y,
-                width: this._window.width * viewport.width,
-                height: this._window.height * viewport.height
-            })
+            let renderPass = this._clearFlag2renderPass[camera.clearFlag];
+            if (!renderPass) {
+                renderPass = this._gfx.createRenderPass();
+                renderPass.initialize({ clearFlag: camera.clearFlag });
+                this._clearFlag2renderPass[camera.clearFlag] = renderPass;
+            }
+            commandBuffer.beginRenderPass(
+                renderPass,
+                {
+                    x: this._window.width * viewport.x,
+                    y: this._window.height * viewport.y,
+                    width: this._window.width * viewport.width,
+                    height: this._window.height * viewport.height
+                }
+            );
 
             for (const model of this._renderScene.models) {
                 for (const subModel of model.subModels) {
-                    commandBuffer.bindInputAssembler(subModel.inputAssembler!);
+                    if (!subModel.inputAssembler) {
+                        continue;
+                    }
+                    commandBuffer.bindInputAssembler(subModel.inputAssembler);
                     for (const pass of subModel.passes) {
                         const shader = pass.shader;
 
@@ -130,7 +146,7 @@ export default class Zero {
                         const pipeline = this._gfx.createPipeline();
                         pipeline.initialize({
                             shader,
-                            vertexInputState: subModel.inputAssembler!.vertexInputState,
+                            vertexInputState: subModel.inputAssembler.vertexInputState,
                             depthStencilState: { depthTest: true },
                             blendState: {
                                 blends: [
@@ -142,7 +158,8 @@ export default class Zero {
                                         dstAlpha: BlendFactor.ZERO
                                     }]
                             },
-                            layout
+                            layout,
+                            renderPass
                         })
                         commandBuffer.bindPipeline(pipeline);
                         const alignment = this._gfx.capabilities.uniformBufferOffsetAlignment;

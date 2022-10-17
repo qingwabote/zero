@@ -5,6 +5,7 @@
 #include "PipelineLayout.hpp"
 #include "Pipeline.hpp"
 #include "Texture.hpp"
+#include "RenderPass.hpp"
 
 #include "bindings/ImageBitmap.hpp"
 
@@ -33,7 +34,7 @@ namespace binding
 
             void begin();
 
-            void beginRenderPass(v8::Local<v8::Object> area);
+            void beginRenderPass(RenderPass *c_renderPass, v8::Local<v8::Object> area);
 
             void bindDescriptorSet(PipelineLayout *pipelineLayout,
                                    uint32_t index,

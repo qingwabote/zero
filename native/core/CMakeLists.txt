@@ -12,6 +12,7 @@ set(SRC_FILES
     bindings/gfx/Buffer.cpp
     bindings/gfx/Texture.cpp
     bindings/gfx/Shader.cpp
+    bindings/gfx/RenderPass.cpp
     bindings/gfx/PipelineLayout.cpp
     bindings/gfx/Pipeline.cpp
     bindings/gfx/DescriptorSetLayout.cpp

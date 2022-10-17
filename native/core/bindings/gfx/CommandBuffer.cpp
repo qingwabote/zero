@@ -38,7 +38,7 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                    c_obj->beginRenderPass(info[0].As<v8::Object>());
+                    c_obj->beginRenderPass(c_obj->retain<RenderPass>(info[0].As<v8::Object>()), info[1].As<v8::Object>());
                 });
             cls.defineFunction(
                 "bindDescriptorSet",

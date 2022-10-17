@@ -208,7 +208,7 @@ export default {
         return out;
     },
 
-    ortho(out: Mat4, left: number, right: number, bottom: number, top: number, near: number, far: number) {
+    ortho(out: Mat4, left: number, right: number, bottom: number, top: number, near: number, far: number, minClipZ: number) {
         var lr = 1 / (left - right);
         var bt = 1 / (bottom - top);
         var nf = 1 / (near - far);
@@ -222,11 +222,11 @@ export default {
         out[7] = 0;
         out[8] = 0;
         out[9] = 0;
-        out[10] = 2 * nf;
+        out[10] = nf * (1 - minClipZ);
         out[11] = 0;
         out[12] = (left + right) * lr;
         out[13] = (top + bottom) * bt;
-        out[14] = (far + near) * nf;
+        out[14] = (near - minClipZ * far) * nf;
         out[15] = 1;
         return out;
     },

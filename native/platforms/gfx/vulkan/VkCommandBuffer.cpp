@@ -7,6 +7,7 @@
 #include "VkBuffer_impl.hpp"
 #include "VkPipeline_impl.hpp"
 #include "VkTexture_impl.hpp"
+#include "VkRenderPass_impl.hpp"
 
 namespace binding
 {
@@ -73,7 +74,7 @@ namespace binding
 
             memcpy(allocationInfo.pMappedData, imageBitmap->pixels(), size);
 
-            VkImageSubresourceRange range;
+            VkImageSubresourceRange range = {};
             range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             range.baseMipLevel = 0;
             range.levelCount = 1;
@@ -111,7 +112,7 @@ namespace binding
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
         }
 
-        void CommandBuffer::beginRenderPass(v8::Local<v8::Object> area)
+        void CommandBuffer::beginRenderPass(RenderPass *c_renderPass, v8::Local<v8::Object> area)
         {
             const int32_t x = sugar::v8::object_get(area, "x").As<v8::Number>()->Value();
             const int32_t y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
@@ -121,14 +122,14 @@ namespace binding
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             info.pNext = nullptr;
-            info.renderPass = _impl->_device->renderPass();
+            info.renderPass = c_renderPass->impl();
             info.renderArea.offset.x = x;
             info.renderArea.offset.y = y;
             info.renderArea.extent = {width, height};
 
             VkClearValue clearValue = {};
             clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-            VkClearValue depthClear;
+            VkClearValue depthClear = {};
             depthClear.depthStencil.depth = 1.f;
             VkClearValue clearValues[] = {clearValue, depthClear};
             info.pClearValues = clearValues;

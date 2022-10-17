@@ -32,7 +32,8 @@ namespace binding
             allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
             allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-            if (vmaCreateBuffer(_impl->_device->allocator(), &bufferInfo, &allocationCreateInfo, &_impl->_buffer, &_impl->_allocation, &_impl->_allocationInfo))
+            auto res = vmaCreateBuffer(_impl->_device->allocator(), &bufferInfo, &allocationCreateInfo, &_impl->_buffer, &_impl->_allocation, &_impl->_allocationInfo);
+            if (res)
             {
                 return true;
             }

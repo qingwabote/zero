@@ -5,6 +5,7 @@
 #include "Buffer.hpp"
 #include "Texture.hpp"
 #include "Shader.hpp"
+#include "RenderPass.hpp"
 #include "DescriptorSetLayout.hpp"
 #include "DescriptorSet.hpp"
 #include "Pipeline.hpp"
@@ -39,6 +40,8 @@ namespace binding
             Texture *createTexture();
 
             Shader *createShader();
+
+            RenderPass *createRenderPass();
 
             DescriptorSetLayout *createDescriptorSetLayout();
 

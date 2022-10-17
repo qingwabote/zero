@@ -1,3 +1,4 @@
+import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import render, { TransformSource } from "../render.js";
@@ -23,6 +24,8 @@ export default class RenderCamera {
         this._fov = value;
         this._dirty = true;
     }
+
+    clearFlag: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 
     private _viewport: Rect = { x: 0, y: 0, width: 1, height: 1 };
     get viewport(): Readonly<Rect> {
@@ -69,7 +72,7 @@ export default class RenderCamera {
             if (this.orthoHeight != -1) {
                 const x = this.orthoHeight * aspect;
                 const y = this.orthoHeight;
-                mat4.ortho(this._matProj, -x, x, -y, y, 1, 2000);
+                mat4.ortho(this._matProj, -x, x, -y, y, 1, 2000, zero.gfx.capabilities.clipSpaceMinZ);
             } else if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, 1, 1000);
             }

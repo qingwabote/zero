@@ -1,4 +1,5 @@
 import Buffer from "./Buffer.js";
+import RenderPass from "./RenderPass.js";
 import Shader, { ShaderStageFlagBits } from "./Shader.js";
 import Texture from "./Texture.js";
 
@@ -105,6 +106,12 @@ export interface PipelineLayout {
     initialize(setLayouts: DescriptorSetLayout[]): boolean;
 }
 
+export enum ClearFlagBit {
+    NONE = 0,
+    COLOR = 0x1,
+    DEPTH = 0x2
+}
+
 export interface DepthStencilState {
     depthTest: boolean;
 }
@@ -145,6 +152,7 @@ export interface PipelineInfo {
     readonly depthStencilState: Readonly<DepthStencilState>;
     readonly blendState: Readonly<BlendState>;
     readonly layout: PipelineLayout;
+    readonly renderPass: RenderPass;
 }
 
 export default interface Pipeline {

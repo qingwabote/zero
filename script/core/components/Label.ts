@@ -105,7 +105,11 @@ export default class Label extends Component {
         if (this._dirtyFlag == DirtyFlagBit.NONE) {
             return;
         }
-        const indexCount = 6 * this._text.length
+        if (this._text.length == 0) {
+            this._subModel.inputAssembler = undefined;
+            return;
+        }
+        const indexCount = 6 * this._text.length;
         if (this._dirtyFlag & DirtyFlagBit.CAPABILITY) {
             this._texCoordArray = new Float32Array(2 * 4 * this._text.length);
             this._texCoordBuffer = zero.gfx.createBuffer();
