@@ -50,7 +50,8 @@ export default class MeshRenderer extends Component {
             const inputAssembler: InputAssembler = {
                 vertexInputState: {
                     attributes,
-                    bindings
+                    bindings,
+                    hash: "MeshRenderer"
                 },
                 vertexBuffers: subMesh.vertexBuffers,
                 vertexOffsets: subMesh.vertexOffsets,

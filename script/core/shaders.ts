@@ -189,7 +189,8 @@ export default {
             shaders[key].initialize({
                 name,
                 stages: res.out,
-                meta: res.meta
+                meta: res.meta,
+                hash: key
             });
 
         }

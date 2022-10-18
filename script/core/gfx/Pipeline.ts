@@ -54,8 +54,9 @@ export interface VertexInputAttributeDescription {
 }
 
 export interface VertexInputState {
-    attributes: VertexInputAttributeDescription[];
-    bindings: VertexInputBindingDescription[];
+    readonly attributes: VertexInputAttributeDescription[];
+    readonly bindings: VertexInputBindingDescription[];
+    readonly hash: string;
 }
 
 // copy values from VkIndexType in vulkan_core.h
@@ -149,8 +150,6 @@ export interface BlendState {
 export interface PipelineInfo {
     readonly shader: Shader;
     readonly vertexInputState: VertexInputState;
-    readonly depthStencilState: Readonly<DepthStencilState>;
-    readonly blendState: Readonly<BlendState>;
     readonly layout: PipelineLayout;
     readonly renderPass: RenderPass;
 }

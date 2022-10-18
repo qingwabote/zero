@@ -90,7 +90,7 @@ export default class Label extends Component {
             inputRate: VertexInputRate.VERTEX
         })
 
-        this._vertexInputState = { attributes, bindings };
+        this._vertexInputState = { attributes, bindings, hash: "Label" };
 
         const pass = new Pass(shader);
         pass.descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture);

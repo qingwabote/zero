@@ -7,7 +7,6 @@ import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebPipeline from "./WebPipeline.js";
-import WebRenderPass from "./WebRenderPass.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
@@ -78,7 +77,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;
-        const clearFlags = (renderPass as WebRenderPass).info.clearFlags;
+        const clearFlags = renderPass.info.clearFlags;
         if (clearFlags & ClearFlagBit.COLOR) {
             flag |= gl.COLOR_BUFFER_BIT;
         }
@@ -96,26 +95,21 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.enable(gl.SCISSOR_TEST);
 
-        const dss = info.depthStencilState;
-        if (dss.depthTest) {
-            gl.enable(gl.DEPTH_TEST);
-        } else {
-            gl.disable(gl.DEPTH_TEST);
-        }
+        gl.enable(gl.DEPTH_TEST);
 
-        const blend = info.blendState.blends[0];
-        if (blend.blend) {
-            gl.enable(gl.BLEND);
-        } else {
-            gl.disable(gl.BLEND);
-        }
+        // const blend = info.blendState.blends[0];
+        // if (blend.blend) {
+        //     gl.enable(gl.BLEND);
+        // } else {
+        //     gl.disable(gl.BLEND);
+        // }
 
-        gl.blendFuncSeparate(
-            bendFactor2WebGL(blend.srcRGB),
-            bendFactor2WebGL(blend.dstRGB),
-            bendFactor2WebGL(blend.srcAlpha),
-            bendFactor2WebGL(blend.dstAlpha),
-        );
+        // gl.blendFuncSeparate(
+        //     bendFactor2WebGL(blend.srcRGB),
+        //     bendFactor2WebGL(blend.dstRGB),
+        //     bendFactor2WebGL(blend.srcAlpha),
+        //     bendFactor2WebGL(blend.dstAlpha),
+        // );
     }
 
     bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {

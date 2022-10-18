@@ -2,7 +2,7 @@ import ComponentScheduler from "./ComponentScheduler.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
 import Device from "./gfx/Device.js";
 import Fence from "./gfx/Fence.js";
-import { BlendFactor, DescriptorSet, PipelineStageFlagBits } from "./gfx/Pipeline.js";
+import Pipeline, { DescriptorSet, PipelineInfo, PipelineLayout, PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import RenderPass from "./gfx/RenderPass.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input from "./Input.js";
@@ -66,6 +66,9 @@ export default class Zero {
 
     private _clearFlag2renderPass: Record<number, RenderPass> = {};
 
+    private _pipelineLayoutCache: Record<string, PipelineLayout> = {};
+    private _pipelineCache: Record<string, Pipeline> = {};
+
     private _presentSemaphore!: Semaphore;
     private _renderSemaphore!: Semaphore;
     private _renderFence!: Fence;
@@ -119,7 +122,7 @@ export default class Zero {
             let renderPass = this._clearFlag2renderPass[camera.clearFlags];
             if (!renderPass) {
                 renderPass = this._gfx.createRenderPass();
-                renderPass.initialize({ clearFlags: camera.clearFlags });
+                renderPass.initialize({ clearFlags: camera.clearFlags, hash: camera.clearFlags.toString() });
                 this._clearFlag2renderPass[camera.clearFlags] = renderPass;
             }
             commandBuffer.beginRenderPass(
@@ -144,30 +147,31 @@ export default class Zero {
                     for (const pass of subModel.passes) {
                         const shader = pass.shader;
 
-                        const layout = this._gfx.createPipelineLayout();
-                        layout.initialize([
-                            shaders.builtinDescriptorSetLayouts.global,
-                            shaders.builtinDescriptorSetLayouts.local,
-                            shader.info.meta.descriptorSetLayout
-                        ])
-                        const pipeline = this._gfx.createPipeline();
-                        pipeline.initialize({
+                        let layout = this._pipelineLayoutCache[shader.info.hash];
+                        if (!layout) {
+                            layout = this._gfx.createPipelineLayout();
+                            layout.initialize([
+                                shaders.builtinDescriptorSetLayouts.global,
+                                shaders.builtinDescriptorSetLayouts.local,
+                                shader.info.meta.descriptorSetLayout
+                            ])
+                            this._pipelineLayoutCache[shader.info.hash] = layout;
+                        }
+
+                        const pipelineInfo: PipelineInfo = {
                             shader,
                             vertexInputState: subModel.inputAssembler.vertexInputState,
-                            depthStencilState: { depthTest: true },
-                            blendState: {
-                                blends: [
-                                    {
-                                        blend: false,
-                                        srcRGB: BlendFactor.ONE,
-                                        dstRGB: BlendFactor.ZERO,
-                                        srcAlpha: BlendFactor.ONE,
-                                        dstAlpha: BlendFactor.ZERO
-                                    }]
-                            },
                             layout,
                             renderPass
-                        })
+                        }
+                        const pipelineHash = pipelineInfo.shader.info.hash + pipelineInfo.vertexInputState.hash + renderPass.info.hash;
+                        let pipeline = this._pipelineCache[pipelineHash];
+                        if (!pipeline) {
+                            pipeline = this._gfx.createPipeline();
+                            pipeline.initialize(pipelineInfo);
+                            this._pipelineCache[pipelineHash] = pipeline;
+                        }
+
                         commandBuffer.bindPipeline(pipeline);
                         const alignment = this._gfx.capabilities.uniformBufferOffsetAlignment;
                         const cameraUboSize = Math.ceil(BuiltinUniformBlocks.global.blocks.Camera.size / alignment) * alignment;
