@@ -221,8 +221,8 @@ int Window::loop()
         {
             std::this_thread::sleep_for(
                 std::chrono::nanoseconds(NANOSECONDS_60FPS - static_cast<int64_t>(dtNS)));
-            dtNS = static_cast<double>(NANOSECONDS_60FPS);
             now = std::chrono::steady_clock::now();
+            dtNS = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count());
         }
         time = now;
 
