@@ -1,7 +1,7 @@
 import { ClearFlagBit } from "./Pipeline.js";
 
 export interface RenderPassInfo {
-    clearFlag: ClearFlagBit
+    clearFlags: ClearFlagBit
 }
 
 export default interface RenderPass {

@@ -8,7 +8,7 @@ import Semaphore from "./gfx/Semaphore.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
 import Platfrom from "./Platfrom.js";
-import render from "./render.js";
+import { RenderNode } from "./render/RenderNode.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 import shaders, { BuiltinUniformBlocks } from "./shaders.js";
@@ -59,8 +59,12 @@ export default class Zero {
         return this._commandBuffer;
     }
 
-    private _clearFlag2renderPass: Record<number, RenderPass> = {};
+    private _dirtyTransforms: Map<RenderNode, RenderNode> = new Map;
+    get dirtyTransforms(): Map<RenderNode, RenderNode> {
+        return this._dirtyTransforms;
+    }
 
+    private _clearFlag2renderPass: Record<number, RenderPass> = {};
 
     private _presentSemaphore!: Semaphore;
     private _renderSemaphore!: Semaphore;
@@ -103,7 +107,7 @@ export default class Zero {
 
         this._renderScene.update(dt);
 
-        render.dirtyTransforms.clear();
+        this._dirtyTransforms.clear();
 
         const commandBuffer = this._commandBuffer;
         commandBuffer.begin();
@@ -112,11 +116,11 @@ export default class Zero {
         for (let cameraIndex = 0; cameraIndex < cameras.length; cameraIndex++) {
             const camera = cameras[cameraIndex];
             const viewport = camera.viewport;
-            let renderPass = this._clearFlag2renderPass[camera.clearFlag];
+            let renderPass = this._clearFlag2renderPass[camera.clearFlags];
             if (!renderPass) {
                 renderPass = this._gfx.createRenderPass();
-                renderPass.initialize({ clearFlag: camera.clearFlag });
-                this._clearFlag2renderPass[camera.clearFlag] = renderPass;
+                renderPass.initialize({ clearFlags: camera.clearFlags });
+                this._clearFlag2renderPass[camera.clearFlags] = renderPass;
             }
             commandBuffer.beginRenderPass(
                 renderPass,
@@ -129,6 +133,9 @@ export default class Zero {
             );
 
             for (const model of this._renderScene.models) {
+                if ((camera.visibilities & model.node.visibility) == 0) {
+                    continue;
+                }
                 for (const subModel of model.subModels) {
                     if (!subModel.inputAssembler) {
                         continue;

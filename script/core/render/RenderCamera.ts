@@ -1,8 +1,9 @@
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
-import render, { TransformSource } from "../render.js";
+import { RenderNode } from "./RenderNode.js";
 import RenderWindow from "./RenderWindow.js";
+import VisibilityBit from "./VisibilityBit.js";
 
 export default class RenderCamera {
     private _dirty = true;
@@ -25,7 +26,9 @@ export default class RenderCamera {
         this._dirty = true;
     }
 
-    clearFlag: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
+    visibilities: VisibilityBit = VisibilityBit.DEFAULT;
+
+    clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 
     private _viewport: Rect = { x: 0, y: 0, width: 1, height: 1 };
     get viewport(): Readonly<Rect> {
@@ -48,21 +51,21 @@ export default class RenderCamera {
 
     private _window: RenderWindow;
 
-    private _transform: TransformSource;
+    private _node: RenderNode;
 
-    constructor(window: RenderWindow, transform: TransformSource) {
-        render.dirtyTransforms.set(transform, transform);
+    constructor(window: RenderWindow, node: RenderNode) {
+        zero.dirtyTransforms.set(node, node);
 
         this._window = window;
-        this._transform = transform;
+        this._node = node;
     }
 
     update(): boolean {
         let dataDirty = false;
 
-        if (render.dirtyTransforms.has(this._transform)) {
-            this._transform.updateMatrix();
-            mat4.invert(this._matView, this._transform.matrix);
+        if (zero.dirtyTransforms.has(this._node)) {
+            this._node.updateMatrix();
+            mat4.invert(this._matView, this._node.matrix);
 
             dataDirty = true;
         }

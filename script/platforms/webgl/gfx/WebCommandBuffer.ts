@@ -78,11 +78,11 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;
-        const clearFlag = (renderPass as WebRenderPass).info.clearFlag;
-        if (clearFlag & ClearFlagBit.COLOR) {
+        const clearFlags = (renderPass as WebRenderPass).info.clearFlags;
+        if (clearFlags & ClearFlagBit.COLOR) {
             flag |= gl.COLOR_BUFFER_BIT;
         }
-        if (clearFlag & ClearFlagBit.DEPTH) {
+        if (clearFlags & ClearFlagBit.DEPTH) {
             flag |= gl.DEPTH_BUFFER_BIT;
         }
         gl.clear(flag)

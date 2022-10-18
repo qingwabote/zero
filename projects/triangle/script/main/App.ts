@@ -13,6 +13,7 @@ import Material from "../../../../script/core/render/Material.js";
 import Mesh from "../../../../script/core/render/Mesh.js";
 import Pass from "../../../../script/core/render/Pass.js";
 import SubMesh, { Attribute } from "../../../../script/core/render/SubMesh.js";
+import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
 import shaders from "../../../../script/core/shaders.js";
 import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
@@ -81,7 +82,8 @@ export default class App extends Zero {
         // FPS
         node = new Node;
         camera = node.addComponent(Camera);
-        camera.clearFlag = ClearFlagBit.DEPTH;
+        camera.visibilities = VisibilityBit.UI;
+        camera.clearFlags = ClearFlagBit.DEPTH;
         camera.orthoHeight = height / 2;
         camera.viewport = { x: 0, y: 0, width: 1, height: 1 };
         node.position = [0, 0, 1];
@@ -93,7 +95,8 @@ export default class App extends Zero {
             const label = node.addComponent(Label);
             label.fnt = fnt;
             node.addComponent(FPS);
-            node.position = [-width / 2, height / 2, 0]
+            node.position = [-width / 2, height / 2, 0];
+            node.visibility = VisibilityBit.UI;
         })()
 
         return false;

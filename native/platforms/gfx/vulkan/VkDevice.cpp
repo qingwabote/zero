@@ -176,7 +176,7 @@ namespace binding
             v8::Local<v8::Object> renderPassInfo = v8::Object::New(v8::Isolate::GetCurrent());
             sugar::v8::object_set(
                 renderPassInfo,
-                "clearFlag",
+                "clearFlags",
                 v8::Number::New(v8::Isolate::GetCurrent(), 0));
             aRenderPass->initialize(renderPassInfo);
             fb_info.renderPass = aRenderPass->impl(); // https://github.com/KhronosGroup/Vulkan-Docs/issues/1147

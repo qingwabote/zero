@@ -14,7 +14,7 @@ namespace binding
 
         bool RenderPass::initialize(v8::Local<v8::Object> info)
         {
-            uint32_t clearFlag = sugar::v8::object_get(info, "clearFlag").As<v8::Number>()->Value();
+            uint32_t clearFlags = sugar::v8::object_get(info, "clearFlags").As<v8::Number>()->Value();
 
             // subpass
             // we are going to create 1 subpass, which is the minimum you can do
@@ -47,7 +47,7 @@ namespace binding
             //     COLOR = 0x1,
             //     DEPTH = 0x2
             // }
-            if (clearFlag & 0x1)
+            if (clearFlags & 0x1)
             {
                 color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -67,7 +67,7 @@ namespace binding
             depth_attachment.flags = 0;
             depth_attachment.format = _impl->_device->depthFormat();
             depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            if (clearFlag & 0x2)
+            if (clearFlags & 0x2)
             {
                 depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
