@@ -2,6 +2,7 @@
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "bindings/Console.hpp"
+#include "bindings/Performance.hpp"
 #include "bindings/Loader.hpp"
 #include "bindings/Platform.hpp"
 #include "bindings/gfx/Device.hpp"
@@ -63,6 +64,10 @@ int Window::loop()
         context,
         v8::String::NewFromUtf8Literal(isolate.get(), "console"),
         (new binding::Console())->js_obj());
+    global->Set(
+        context,
+        v8::String::NewFromUtf8Literal(isolate.get(), "performance"),
+        (new binding::Performance())->js_obj());
 
     v8::Local<v8::Object> bootstrap;
     {

@@ -17,3 +17,30 @@ export default interface CommandBuffer {
     endRenderPass(): void;
     end(): void;
 }
+
+export class EmptyCommandBuffer implements CommandBuffer {
+    initialize(): boolean {
+        return false;
+    }
+    begin(): void {
+    }
+    copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void {
+    }
+    copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
+    }
+    beginRenderPass(renderPass: RenderPass, viewport: Rect): void {
+    }
+    bindPipeline(pipeline: Pipeline): void {
+    }
+    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[] | undefined): void {
+    }
+    bindInputAssembler(inputAssembler: InputAssembler): void {
+    }
+    draw(): void {
+    }
+    endRenderPass(): void {
+    }
+    end(): void {
+    }
+
+}

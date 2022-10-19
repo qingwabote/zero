@@ -4,6 +4,7 @@ set(SRC_FILES
     sugars/v8sugar.cpp
     Binding.cpp
     bindings/Console.cpp
+    bindings/Performance.cpp
     bindings/Loader.cpp
     bindings/ImageBitmap.cpp
     bindings/Platform.cpp

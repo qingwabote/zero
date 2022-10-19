@@ -9,6 +9,8 @@
 #include "VkTexture_impl.hpp"
 #include "VkRenderPass_impl.hpp"
 
+// #include <chrono>
+
 namespace binding
 {
     namespace gfx
@@ -68,8 +70,6 @@ namespace binding
 
             VkCommandBufferBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            info.pNext = nullptr;
-            info.pInheritanceInfo = nullptr;
             info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
             vkBeginCommandBuffer(_impl->_commandBuffer, &info);
@@ -140,7 +140,6 @@ namespace binding
 
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            info.pNext = nullptr;
             info.renderPass = c_renderPass->impl();
             info.renderArea.offset.x = x;
             info.renderArea.offset.y = y;
@@ -173,10 +172,12 @@ namespace binding
 
         void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *gfx_descriptorSet, v8::Local<v8::Array> js_dynamicOffsets)
         {
+            static std::vector<uint32_t> dynamicOffsets;
+
             v8::Isolate *isolate = v8::Isolate::GetCurrent();
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-            std::vector<uint32_t> dynamicOffsets(js_dynamicOffsets->Length());
+            dynamicOffsets.resize(js_dynamicOffsets->Length());
             for (uint32_t i = 0; i < js_dynamicOffsets->Length(); i++)
             {
                 dynamicOffsets[i] = js_dynamicOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
@@ -195,11 +196,16 @@ namespace binding
 
         void CommandBuffer::bindInputAssembler(v8::Local<v8::Object> inputAssembler)
         {
+            // auto time = std::chrono::steady_clock::now();
+
+            static std::vector<VkBuffer> vertexBuffers;
+            static std::vector<VkDeviceSize> vertexOffsets;
+
             v8::Isolate *isolate = v8::Isolate::GetCurrent();
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
             v8::Local<v8::Array> js_vertexBuffers = sugar::v8::object_get(inputAssembler, "vertexBuffers").As<v8::Array>();
-            std::vector<VkBuffer> vertexBuffers(js_vertexBuffers->Length());
+            vertexBuffers.resize(js_vertexBuffers->Length());
             for (uint32_t i = 0; i < js_vertexBuffers->Length(); i++)
             {
                 Buffer *c_buffer = Binding::c_obj<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>());
@@ -207,11 +213,14 @@ namespace binding
             }
 
             v8::Local<v8::Array> js_vertexOffsets = sugar::v8::object_get(inputAssembler, "vertexOffsets").As<v8::Array>();
-            std::vector<VkDeviceSize> vertexOffsets(js_vertexOffsets->Length());
+            vertexOffsets.resize(js_vertexOffsets->Length());
             for (uint32_t i = 0; i < js_vertexOffsets->Length(); i++)
             {
                 vertexOffsets[i] = js_vertexOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
             }
+
+            // auto dtNS = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - time).count());
+            // printf("vertexBuffers %f\n", dtNS * 0.001);
 
             vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), vertexOffsets.data());
 
