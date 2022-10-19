@@ -1,4 +1,4 @@
-import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import { BuiltinUniformBlocks } from "../shaders.js";
 import Model from "./Model.js";
 import RenderCamera from "./RenderCamera.js";
@@ -51,7 +51,7 @@ export default class RenderScene {
             }
             if (!this._camerasUbo) {
                 this._camerasUbo = zero.gfx.createBuffer();
-                this._camerasUbo.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: camerasUboSize });
+                this._camerasUbo.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: camerasUboSize });
                 zero.globalDescriptorSet.bindBuffer(CameraBlock.binding, this._camerasUbo, cameraUboSize);
             }
             this._camerasUbo.update(this._camerasData);

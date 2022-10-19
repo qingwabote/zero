@@ -15,6 +15,30 @@ namespace binding
     {
         CommandBuffer_impl::CommandBuffer_impl(Device_impl *device) : _device(device) {}
 
+        VkBuffer CommandBuffer_impl::createStagingBuffer(void const *src, size_t size)
+        {
+            VkBufferCreateInfo bufferInfo = {};
+            bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bufferInfo.size = size;
+            bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+            VmaAllocationCreateInfo allocationCreateInfo = {};
+            allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+            allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+            VkBuffer buffer;
+            VmaAllocator allocator = _device->allocator();
+            VmaAllocation allocation;
+            VmaAllocationInfo allocationInfo;
+            vmaCreateBuffer(allocator, &bufferInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo);
+            _destructionQueue.push([allocator, buffer, allocation]()
+                                   { vmaDestroyBuffer(allocator, buffer, allocation); });
+
+            memcpy(allocationInfo.pMappedData, src, size);
+
+            return buffer;
+        }
+
         CommandBuffer_impl::~CommandBuffer_impl() {}
 
         CommandBuffer::CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl)
@@ -51,28 +75,23 @@ namespace binding
             vkBeginCommandBuffer(_impl->_commandBuffer, &info);
         }
 
+        void CommandBuffer::copyBuffer(v8::Local<v8::ArrayBufferView> srcBuffer, Buffer *dstBuffer)
+        {
+            auto start = reinterpret_cast<const uint8_t *>(srcBuffer->Buffer()->Data()) + srcBuffer->ByteOffset();
+            VkBuffer buffer = _impl->createStagingBuffer(start, srcBuffer->ByteLength());
+
+            VkBufferCopy copy = {};
+            copy.dstOffset = 0;
+            copy.srcOffset = 0;
+            copy.size = srcBuffer->ByteLength();
+            vkCmdCopyBuffer(_impl->_commandBuffer, buffer, dstBuffer->impl(), 1, &copy);
+        }
+
         void CommandBuffer::copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture)
         {
             VkDeviceSize size = imageBitmap->width() * imageBitmap->height() * 4;
 
-            VkBufferCreateInfo bufferInfo = {};
-            bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.size = size;
-            bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-            VmaAllocationCreateInfo allocationCreateInfo = {};
-            allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-            allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-
-            VkBuffer buffer;
-            VmaAllocator allocator = _impl->_device->allocator();
-            VmaAllocation allocation;
-            VmaAllocationInfo allocationInfo;
-            vmaCreateBuffer(allocator, &bufferInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo);
-            _impl->_destructionQueue.push([allocator, buffer, allocation]()
-                                          { vmaDestroyBuffer(allocator, buffer, allocation); });
-
-            memcpy(allocationInfo.pMappedData, imageBitmap->pixels(), size);
+            VkBuffer buffer = _impl->createStagingBuffer(imageBitmap->pixels(), size);
 
             VkImageSubresourceRange range = {};
             range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -91,18 +110,18 @@ namespace binding
             imageBarrier_toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toTransfer);
 
-            VkBufferImageCopy copyRegion = {};
-            copyRegion.bufferOffset = 0;
-            copyRegion.bufferRowLength = 0;
-            copyRegion.bufferImageHeight = 0;
-            copyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            copyRegion.imageSubresource.mipLevel = 0;
-            copyRegion.imageSubresource.baseArrayLayer = 0;
-            copyRegion.imageSubresource.layerCount = 1;
-            copyRegion.imageExtent.width = imageBitmap->width();
-            copyRegion.imageExtent.height = imageBitmap->height();
-            copyRegion.imageExtent.depth = 1;
-            vkCmdCopyBufferToImage(_impl->_commandBuffer, buffer, texture->impl(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+            VkBufferImageCopy copy = {};
+            copy.bufferOffset = 0;
+            copy.bufferRowLength = 0;
+            copy.bufferImageHeight = 0;
+            copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            copy.imageSubresource.mipLevel = 0;
+            copy.imageSubresource.baseArrayLayer = 0;
+            copy.imageSubresource.layerCount = 1;
+            copy.imageExtent.width = imageBitmap->width();
+            copy.imageExtent.height = imageBitmap->height();
+            copy.imageExtent.depth = 1;
+            vkCmdCopyBufferToImage(_impl->_commandBuffer, buffer, texture->impl(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 
             VkImageMemoryBarrier imageBarrier_toReadable = imageBarrier_toTransfer;
             imageBarrier_toReadable.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;

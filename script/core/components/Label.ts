@@ -2,7 +2,7 @@
 
 import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
-import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import { Format, FormatInfos, IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
@@ -113,15 +113,15 @@ export default class Label extends Component {
         if (this._dirtyFlag & DirtyFlagBit.CAPABILITY) {
             this._texCoordArray = new Float32Array(2 * 4 * this._text.length);
             this._texCoordBuffer = zero.gfx.createBuffer();
-            this._texCoordBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: this._texCoordArray.byteLength });
+            this._texCoordBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, mem_usage: MemoryUsage.CPU_TO_GPU, size: this._texCoordArray.byteLength });
 
             this._positionArray = new Float32Array(4 * 4 * this._text.length);
             this._positionBuffer = zero.gfx.createBuffer();
-            this._positionBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: this._positionArray.byteLength });
+            this._positionBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, mem_usage: MemoryUsage.CPU_TO_GPU, size: this._positionArray.byteLength });
 
             this._indexArray = new Uint16Array(indexCount);
             this._indexBuffer = zero.gfx.createBuffer();
-            this._indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: this._indexArray.byteLength });
+            this._indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, mem_usage: MemoryUsage.CPU_TO_GPU, size: this._indexArray.byteLength });
         }
 
         const texCoordArray = this._texCoordArray;

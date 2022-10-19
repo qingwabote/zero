@@ -21,8 +21,6 @@ namespace binding
 
             Buffer(std::unique_ptr<Buffer_impl> impl);
 
-            v8::Local<v8::Object> info();
-
             bool initialize(v8::Local<v8::Object> info);
 
             void update(v8::Local<v8::ArrayBufferView> buffer);

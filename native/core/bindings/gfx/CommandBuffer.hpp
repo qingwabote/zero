@@ -4,6 +4,7 @@
 #include "DescriptorSet.hpp"
 #include "PipelineLayout.hpp"
 #include "Pipeline.hpp"
+#include "Buffer.hpp"
 #include "Texture.hpp"
 #include "RenderPass.hpp"
 
@@ -29,6 +30,8 @@ namespace binding
             CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl);
 
             bool initialize();
+
+            void copyBuffer(v8::Local<v8::ArrayBufferView> srcBuffer, Buffer *dstBuffer);
 
             void copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture);
 

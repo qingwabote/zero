@@ -1,4 +1,5 @@
 import { Rect } from "../math/rect.js";
+import Buffer from "./Buffer.js";
 import Pipeline, { DescriptorSet, InputAssembler, PipelineLayout } from "./Pipeline.js";
 import RenderPass from "./RenderPass.js";
 import Texture from "./Texture.js";
@@ -6,6 +7,7 @@ import Texture from "./Texture.js";
 export default interface CommandBuffer {
     initialize(): boolean;
     begin(): void;
+    copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void;
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;
     beginRenderPass(renderPass: RenderPass, viewport: Rect): void;
     bindPipeline(pipeline: Pipeline): void;

@@ -35,7 +35,7 @@ namespace binding
 
         void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer, double range)
         {
-            auto size = sugar::v8::object_get(c_buffer->info(), "size").As<v8::Number>()->Value();
+            auto size = sugar::v8::object_get(c_buffer->retrieve("info"), "size").As<v8::Number>()->Value();
 
             VkDescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = c_buffer->impl();
@@ -55,7 +55,7 @@ namespace binding
 
         void DescriptorSet::bindTexture(uint32_t binding, Texture *texture)
         {
-            VkDescriptorImageInfo imageBufferInfo;
+            VkDescriptorImageInfo imageBufferInfo = {};
             imageBufferInfo.sampler = _impl->_device->defaultSampler();
             imageBufferInfo.imageView = texture->impl().imageView();
             imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

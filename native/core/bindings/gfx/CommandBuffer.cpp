@@ -25,6 +25,15 @@ namespace binding
                     c_obj->begin();
                 });
             cls.defineFunction(
+                "copyBuffer",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                    auto js_view = info[0].As<v8::ArrayBufferView>();
+                    auto c_buffer = c_obj->retain<Buffer>(info[1].As<v8::Object>());
+                    c_obj->copyBuffer(js_view, c_buffer);
+                });
+            cls.defineFunction(
                 "copyImageBitmapToTexture",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {

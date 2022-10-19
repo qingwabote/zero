@@ -16,6 +16,8 @@ namespace binding
 
             std::queue<std::function<void()>> _destructionQueue;
 
+            VkBuffer createStagingBuffer(void const *src, size_t size);
+
         public:
             CommandBuffer_impl(Device_impl *device);
 

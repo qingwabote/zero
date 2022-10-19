@@ -1,3 +1,4 @@
+import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Pipeline, { BlendFactor, ClearFlagBit, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import RenderPass from "../../../core/gfx/RenderPass.js";
@@ -59,6 +60,10 @@ export default class WebCommandBuffer implements CommandBuffer {
     initialize(): boolean { return false; }
 
     begin(): void { }
+
+    copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void {
+        dstBuffer.update(srcBuffer);
+    }
 
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
         const gl = this._gl;

@@ -1,12 +1,20 @@
 // copy values from VkBufferUsageFlagBits in vulkan_core.h
 export enum BufferUsageFlagBits {
-    INDEX = 0x40,
-    VERTEX = 0x80,
-    UNIFORM = 0x10,
+    TRANSFER_DST = 0x00000002,
+    UNIFORM = 0x00000010,
+    INDEX = 0x00000040,
+    VERTEX = 0x00000080,
+}
+
+// copy values from VmaMemoryUsage in vk_men_alloc.h
+export enum MemoryUsage {
+    GPU_ONLY = 1,
+    CPU_TO_GPU = 3,
 }
 
 export interface BufferInfo {
-    readonly usage: BufferUsageFlagBits
+    readonly usage: BufferUsageFlagBits;
+    readonly mem_usage: MemoryUsage;
     readonly size: number;
     /**
      * When byteStride of the referenced bufferView is not defined, 

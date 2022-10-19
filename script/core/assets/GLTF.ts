@@ -1,7 +1,7 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
 import MeshRenderer from "../components/MeshRenderer.js";
-import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import Fence from "../gfx/Fence.js";
 import { Format, IndexType } from "../gfx/Pipeline.js";
@@ -34,6 +34,9 @@ const formatPart2Names: Record<number, string> = {
     5125: "32UI",
     5126: "32F"
 }
+
+let _commandBuffer: CommandBuffer;
+let _fence: Fence;
 
 export default class GLTF extends Asset {
     private _json: any;
@@ -190,16 +193,41 @@ export default class GLTF extends Asset {
             // }
             const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
             buffer = zero.gfx.createBuffer();
-            buffer.initialize({
-                usage: usage,
-                stride: viewInfo.byteStride,
-                size: viewInfo.byteLength
-            })
-            buffer.update(view);
+
+            if (usage & BufferUsageFlagBits.VERTEX) {
+                buffer.initialize({
+                    usage: usage | BufferUsageFlagBits.TRANSFER_DST,
+                    mem_usage: MemoryUsage.GPU_ONLY,
+                    stride: viewInfo.byteStride,
+                    size: viewInfo.byteLength
+                });
+                if (!_commandBuffer) {
+                    _commandBuffer = zero.gfx.createCommandBuffer();
+                    _commandBuffer.initialize();
+                }
+                if (!_fence) {
+                    _fence = zero.gfx.createFence();
+                    _fence.initialize();
+                }
+                _commandBuffer.begin();
+                _commandBuffer.copyBuffer(view, buffer);
+                _commandBuffer.end();
+                zero.gfx.submit({ commandBuffer: _commandBuffer }, _fence);
+                zero.gfx.waitFence(_fence);
+            } else {
+                buffer.initialize({
+                    usage: usage,
+                    mem_usage: MemoryUsage.CPU_TO_GPU,
+                    stride: viewInfo.byteStride,
+                    size: viewInfo.byteLength
+                });
+                buffer.update(view);
+            }
+
             this._buffers[index] = buffer;
         }
 
-        if (buffer.info.usage != usage) {
+        if ((buffer.info.usage & usage) != usage) {
             throw new Error("");
         }
         return buffer;

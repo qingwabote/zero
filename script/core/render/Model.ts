@@ -1,4 +1,4 @@
-import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import { DescriptorSet } from "../gfx/Pipeline.js";
 import shaders, { BuiltinUniformBlocks } from "../shaders.js";
 import { RenderNode } from "./RenderNode.js";
@@ -28,7 +28,7 @@ export default class Model {
         zero.dirtyTransforms.set(node, node);
 
         this._localBuffer = zero.gfx.createBuffer();
-        this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, size: float32Array.byteLength });
+        this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: float32Array.byteLength });
 
         const descriptorSet = zero.gfx.createDescriptorSet();
         if (descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local)) {
