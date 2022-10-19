@@ -21,7 +21,7 @@ namespace binding
 
             Fence(std::unique_ptr<Fence_impl> impl);
 
-            bool initialize();
+            bool initialize(bool signaled);
 
             ~Fence();
         };

@@ -12,10 +12,14 @@ namespace binding
         Fence::Fence(std::unique_ptr<Fence_impl> impl)
             : Binding(), _impl(std::move(impl)) {}
 
-        bool Fence::initialize()
+        bool Fence::initialize(bool signaled)
         {
             VkFenceCreateInfo fenceCreateInfo = {};
             fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            if (signaled)
+            {
+                fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+            }
             vkCreateFence(_impl->_device->device(), &fenceCreateInfo, nullptr, &_impl->_fence);
 
             return false;

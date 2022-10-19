@@ -1,3 +1,3 @@
 export default interface Fence {
-    initialize(): boolean;
+    initialize(signaled?: boolean): boolean;
 }

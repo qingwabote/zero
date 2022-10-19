@@ -14,7 +14,12 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<Fence>(info.This());
-                    info.GetReturnValue().Set(c_obj->initialize());
+                    bool signaled = false;
+                    if (info.Length() > 0)
+                    {
+                        signaled = info[1].As<v8::Boolean>()->Value();
+                    }
+                    info.GetReturnValue().Set(c_obj->initialize(signaled));
                 });
             return scope.Escape(cls.flush());
         }
