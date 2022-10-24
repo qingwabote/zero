@@ -231,9 +231,13 @@ int Window::loop()
         }
         time = now;
 
-        float dt = dtNS / NANOSECONDS_PER_SECOND;
+        auto functionQueue = _beforeTickQueue.flush();
+        for (const auto &func : functionQueue)
+        {
+            func();
+        }
 
-        v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), dt)};
+        v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), dtNS / NANOSECONDS_PER_SECOND)};
         _v8::TryCatch try_catch(isolate.get());
         app_tick->Call(context, app, 1, args);
         if (try_catch.HasCaught())

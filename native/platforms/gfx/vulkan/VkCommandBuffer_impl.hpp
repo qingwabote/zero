@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VkDevice_impl.hpp"
+#include <queue>
 
 namespace binding
 {

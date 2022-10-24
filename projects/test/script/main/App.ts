@@ -33,13 +33,6 @@ export default class App extends Zero {
         node.position = [0, 16, 0];
         node.euler = [-90, 0, 0];
 
-        (async () => {
-            const glTF = new GLTF();
-            await glTF.load('./asset/guardian_zelda_botw_fan-art/scene');
-            const node = glTF.createScene("Sketchfab_Scene")!;
-            node.addComponent(ZeroComponent);
-        })();
-
         // FPS
         node = new Node;
         const camera = node.addComponent(Camera);
@@ -57,8 +50,14 @@ export default class App extends Zero {
             node.addComponent(FPS);
             node.position = [-width / 2, height / 2, 0];
             node.visibility = VisibilityBit.UI;
-        })()
+        })();
 
+        (async () => {
+            const glTF = new GLTF();
+            await glTF.load('./asset/guardian_zelda_botw_fan-art/scene');
+            const node = glTF.createScene("Sketchfab_Scene")!;
+            node.addComponent(ZeroComponent);
+        })();
 
         return false;
     }

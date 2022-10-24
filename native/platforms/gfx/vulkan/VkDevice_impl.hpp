@@ -13,8 +13,6 @@
 #include "bindings/gfx/DescriptorSet.hpp"
 #include "bindings/gfx/Pipeline.hpp"
 
-#include <queue>
-
 namespace binding
 {
     namespace gfx
