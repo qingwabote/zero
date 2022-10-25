@@ -8,7 +8,7 @@ private:
     v8::Global<v8::Object> _js_obj;
 
 protected:
-    virtual v8::Local<v8::FunctionTemplate> createTemplate() { return {}; };
+    virtual v8::Local<v8::FunctionTemplate> createTemplate() = 0;
 
 public:
     template <class T>

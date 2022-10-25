@@ -232,7 +232,7 @@ int Window::loop()
         time = now;
 
         auto functionQueue = _beforeTickQueue.flush();
-        for (const auto &func : functionQueue)
+        for (auto &func : functionQueue)
         {
             func();
         }

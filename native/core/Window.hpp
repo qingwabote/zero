@@ -1,13 +1,14 @@
 #pragma once
 
 #include "ThreadSafeQueue.hpp"
+#include "UniqueFunction.hpp"
 
 class Window
 {
 private:
     Window(/* args */);
 
-    ThreadSafeQueue<std::function<void()>> _beforeTickQueue;
+    ThreadSafeQueue<UniqueFunction> _beforeTickQueue;
 
     ~Window();
 
@@ -16,8 +17,8 @@ public:
 
     int loop();
 
-    void beforeTick(std::function<void()> &&func)
+    void beforeTick(UniqueFunction &&func)
     {
-        _beforeTickQueue.push(std::forward<std::function<void()>>(func));
+        _beforeTickQueue.push(std::forward<UniqueFunction>(func));
     }
 };

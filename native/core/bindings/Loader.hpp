@@ -3,6 +3,7 @@
 #include "Binding.hpp"
 #include <filesystem>
 #include "ThreadSafeQueue.hpp"
+#include "UniqueFunction.hpp"
 
 namespace binding
 {
@@ -31,10 +32,7 @@ namespace binding
     class Loader : public Binding
     {
     private:
-        static ThreadSafeQueue<LoaderItem> _loaderItemQueue;
-
         std::filesystem::path _currentPath;
-        bool _loaderThreadCreated = false;
 
     protected:
         virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
@@ -42,7 +40,7 @@ namespace binding
     public:
         Loader(std::filesystem::path currentPath) : Binding(), _currentPath(currentPath) {}
 
-        v8::Local<v8::Promise> load(std::filesystem::path path, const char *type);
+        v8::Local<v8::Promise> load(std::filesystem::path path, const std::string type);
 
         ~Loader() {}
     };
