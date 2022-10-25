@@ -36,7 +36,7 @@ namespace binding
                             msg += file;
                             g_resolver.Get(isolate)->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
                         });
-                    Window::instance()->beforeTick(UniqueFunction::create<decltype(f)>(f));
+                    Window::instance().beforeTick(UniqueFunction::create<decltype(f)>(f));
                     return;
                 }
                 auto size = SDL_RWsize(rw);
@@ -68,7 +68,7 @@ namespace binding
                             free(res);
                             g_resolver.Get(isolate)->Resolve(context, str);
                         });
-                    Window::instance()->beforeTick(UniqueFunction::create<decltype(f)>(f));
+                    Window::instance().beforeTick(UniqueFunction::create<decltype(f)>(f));
                 }
                 else if (type == "arraybuffer")
                 {
@@ -94,7 +94,7 @@ namespace binding
 
                             g_resolver.Get(isolate)->Resolve(context, arraybuffer);
                         });
-                    Window::instance()->beforeTick(UniqueFunction::create<decltype(f)>(f));
+                    Window::instance().beforeTick(UniqueFunction::create<decltype(f)>(f));
                 }
             });
         ThreadPool::instance().run(UniqueFunction::create<decltype(f)>(f));

@@ -18,10 +18,10 @@ namespace
     int height = 960;
 }
 
-Window *Window::instance()
+Window &Window::instance()
 {
     static Window instance;
-    return &instance;
+    return instance;
 }
 
 Window::Window() {}

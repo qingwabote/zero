@@ -15,7 +15,7 @@ int WINAPI WinMain(
     freopen_s(&stream, "conout$", "w+t", stdout);
     freopen_s(&stream, "conout$", "w+t", stderr);
 
-    if (Window::instance()->loop())
+    if (Window::instance().loop())
     {
         std::this_thread::sleep_for(std::chrono::nanoseconds(30000000000));
     }

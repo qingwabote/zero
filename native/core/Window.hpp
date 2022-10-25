@@ -13,7 +13,7 @@ private:
     ~Window();
 
 public:
-    static Window *instance();
+    static Window &instance();
 
     int loop();
 
