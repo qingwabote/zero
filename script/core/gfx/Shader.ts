@@ -30,7 +30,7 @@ export interface Meta {
 export interface ShaderInfo {
     readonly name: string;
     readonly hash: string;
-    readonly stages: ShaderStage[];
+    readonly stages: Readonly<ShaderStage[]>;
     readonly meta: Meta;
 }
 

@@ -4,10 +4,10 @@ import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import { Format, FormatInfos, IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
+import Shader from "../gfx/Shader.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
 import SubModel from "../render/SubModel.js";
-import shaders from "../shaders.js";
 
 enum DirtyFlagBit {
     NONE = 0,
@@ -43,6 +43,14 @@ export default class Label extends Component {
         this._fnt = value;
     }
 
+    private _shader!: Shader;
+    get shader(): Shader {
+        return this._shader;
+    }
+    set shader(value: Shader) {
+        this._shader = value;
+    }
+
     private _texCoordArray = new Float32Array;
     private _texCoordBuffer!: Buffer;
 
@@ -57,12 +65,10 @@ export default class Label extends Component {
     private _subModel!: SubModel;
 
     override start(): void {
-        const shader = shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
-
         const attributes: VertexInputAttributeDescription[] = [];
         const bindings: VertexInputBindingDescription[] = [];
 
-        let definition = shader.info.meta.attributes["a_texCoord"];
+        let definition = this._shader.info.meta.attributes["a_texCoord"];
         let attribute: VertexInputAttributeDescription = {
             location: definition.location,
             binding: 0,
@@ -76,7 +82,7 @@ export default class Label extends Component {
             inputRate: VertexInputRate.VERTEX
         })
 
-        definition = shader.info.meta.attributes["a_position"];
+        definition = this._shader.info.meta.attributes["a_position"];
         attribute = {
             location: definition.location,
             binding: 1,
@@ -92,7 +98,7 @@ export default class Label extends Component {
 
         this._vertexInputState = { attributes, bindings, hash: "Label" };
 
-        const pass = new Pass(shader);
+        const pass = new Pass(this._shader);
         pass.descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture);
 
         const subModel: SubModel = { passes: [pass] };

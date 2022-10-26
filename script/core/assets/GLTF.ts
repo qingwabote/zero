@@ -43,7 +43,8 @@ export default class GLTF extends Asset {
     private _bin: ArrayBuffer | undefined;
 
     private _buffers: Buffer[] = [];
-    private _textures: Texture[] | undefined;
+    private _textures: Texture[] = [];
+    private _materials: Material[] = [];
 
     private _commandBuffer: CommandBuffer;
     private _fence: Fence;
@@ -61,16 +62,22 @@ export default class GLTF extends Asset {
         if (!res) {
             return;
         }
-        const parent = res[1];
-        const name = res[2];
-        const text = await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress);
-        const json = JSON.parse(text);
-        const bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
 
-        const images: any[] = json.images;
-        this._textures = await Promise.all(images.map(info => (new Texture).load(`${parent}/${info.uri}`)));
+        const [, parent, name] = res;
+        const json = JSON.parse(await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
+        this._bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
+        const textures = await Promise.all(json.images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
+        this._materials = await Promise.all(json.materials.map(async (info: any) => {
+            const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
+            const shader = await shaders.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
+            const pass = new Pass(shader);
+            if (textureIdx != undefined) {
+                pass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
+            }
+            return new Material([pass]);
+        }));
+        this._textures = textures;
 
-        this._bin = bin;
         this._json = json;
     }
 
@@ -96,14 +103,6 @@ export default class GLTF extends Asset {
             if (info.scale) {
                 node.scale = info.scale;
             }
-            // const m = mat4.fromRTS(mat4.create(), node.rotation, node.position, node.scale);
-            // const q = quat.create();
-            // const v = vec3.create();
-            // const s = vec3.create();
-            // mat4.toRTS(m, q, v, s);
-            // console.log("rotation:", node.rotation, q)
-            // console.log("position:", node.position, v)
-            // console.log("scale:", node.scale, s)
         }
 
         if (info.mesh != undefined) {
@@ -149,15 +148,7 @@ export default class GLTF extends Asset {
             const buffer = this.getBuffer(accessor.bufferView, BufferUsageFlagBits.INDEX);
 
             if (primitive.material != undefined) {
-                const info = this._json.materials[primitive.material];
-                const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-                const shader = shaders.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
-                const pass = new Pass(shader);
-                if (textureIdx != undefined) {
-                    pass.descriptorSet.bindTexture(0, this._textures![this._json.textures[textureIdx].source].gfx_texture);
-                }
-                const material = new Material([pass]);
-                materials.push(material);
+                materials.push(this._materials[primitive.material]);
             }
 
             if (accessor.type != "SCALAR") {

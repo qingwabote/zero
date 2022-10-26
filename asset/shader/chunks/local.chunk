@@ -1,0 +1,3 @@
+layout(set = 1, binding = 0) uniform Local {
+    mat4 matWorld;
+};

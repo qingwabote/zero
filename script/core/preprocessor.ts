@@ -1,11 +1,30 @@
 import { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
 import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "./gfx/Shader.js";
 
+async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
+    const promises: Promise<string>[] = []
+    value.replace(pattern, function (...args): string {
+        promises.push(replacer(...args))
+        return "";
+    });
+    const results = await Promise.all(promises);
+    return value.replace(pattern, function (): string {
+        return results.shift()!;
+    });
+}
+
+const chunks: Record<string, string> = {};
+
 const ifMacroExp = /#if\s+(\w+)\s+([\s\S]+?)[ \t]*#endif\s*?\n/g;
 
-function includeExpand(chunks: Readonly<Record<string, string>>, source: string): string {
-    return source.replace(/#include\s+<(\w+)>/g, function (_: string, name: string): string {
-        return includeExpand(chunks, chunks[name]);
+async function includeExpand(source: string): Promise<string> {
+    return string_replace(source, /#include\s+<(\w+)>/g, async function (_: string, name: string): Promise<string> {
+        let chunk = chunks[name];
+        if (!chunk) {
+            chunk = await zero.loader.load(`../../asset/shader/chunks/${name}.chunk`, "text");
+            chunks[name] = chunk;
+        }
+        return await includeExpand(chunk);
     });
 }
 
@@ -25,13 +44,13 @@ export default {
         return macros;
     },
 
-    preprocess(chunks: Readonly<Record<string, string>>, stages: Readonly<ShaderStage[]>, macros: Readonly<Record<string, number>>): { out: ShaderStage[], meta: Meta } {
-        let out = stages
-            .map(stage => ({ type: stage.type, source: includeExpand(chunks, stage.source) }))
-            .map(stage => ({ type: stage.type, source: macroExpand(macros, stage.source) }));
+    async preprocess(stages: Readonly<ShaderStage[]>, macros: Readonly<Record<string, number>>): Promise<{ stages: Readonly<ShaderStage[]>, meta: Meta }> {
 
-        const vertexStage = out.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!;
-        const fragmentStage = out.find(stage => stage.type == ShaderStageFlagBits.FRAGMENT)!;
+        stages = await Promise.all(stages.map(async stage => ({ type: stage.type, source: await includeExpand(stage.source) })));
+        stages = stages.map(stage => ({ type: stage.type, source: macroExpand(macros, stage.source) }));
+
+        const vertexStage = stages.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!;
+        const fragmentStage = stages.find(stage => stage.type == ShaderStageFlagBits.FRAGMENT)!;
 
         const attributes: Record<string, Attribute> = {};
         let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
@@ -60,7 +79,7 @@ export default {
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
         const bindings: DescriptorSetLayoutBinding[] = []
-        for (const stage of out) {
+        for (const stage of stages) {
             stage.source = stage.source.replace(
                 /layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/g,
                 function (content: string, set: string, binding: string, type: string, name: string): string {
@@ -87,7 +106,7 @@ export default {
         descriptorSetLayout.initialize(bindings);
 
         return {
-            out,
+            stages,
             meta: {
                 attributes,
                 blocks,
