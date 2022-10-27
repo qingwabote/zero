@@ -15,22 +15,22 @@ export default class Texture extends Asset {
     async load(url: string): Promise<Texture> {
         const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
         const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
-        const texture = zero.gfx.createTexture();
+        const texture = gfx.createTexture();
         texture.initialize({ width: imageBitmap.width, height: imageBitmap.height });
 
         if (!_commandBuffer) {
-            _commandBuffer = zero.gfx.createCommandBuffer();
+            _commandBuffer = gfx.createCommandBuffer();
             _commandBuffer.initialize();
         }
         if (!_fence) {
-            _fence = zero.gfx.createFence();
+            _fence = gfx.createFence();
             _fence.initialize();
         }
         _commandBuffer.begin();
         _commandBuffer.copyImageBitmapToTexture(imageBitmap, texture);
         _commandBuffer.end();
-        zero.gfx.submit({ commandBuffer: _commandBuffer }, _fence);
-        zero.gfx.waitFence(_fence);
+        gfx.submit({ commandBuffer: _commandBuffer }, _fence);
+        gfx.waitFence(_fence);
 
         this._gfx_texture = texture;
         return this;

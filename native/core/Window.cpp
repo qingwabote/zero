@@ -64,10 +64,18 @@ int Window::loop()
         context,
         v8::String::NewFromUtf8Literal(isolate.get(), "console"),
         (new binding::Console())->js_obj());
+
     global->Set(
         context,
         v8::String::NewFromUtf8Literal(isolate.get(), "performance"),
         (new binding::Performance())->js_obj());
+
+    binding::gfx::Device *gfx = new binding::gfx::Device(window.get());
+    gfx->initialize();
+    global->Set(
+        context,
+        v8::String::NewFromUtf8Literal(isolate.get(), "gfx"),
+        gfx->js_obj());
 
     v8::Local<v8::Object> bootstrap;
     {
@@ -142,17 +150,15 @@ int Window::loop()
         printf("app: no initialize function found\n");
         return -1;
     }
-    binding::gfx::Device *device = new binding::gfx::Device(window.get());
     binding::Platform *platform = new binding::Platform();
     binding::Loader *loader = new binding::Loader(*v8::String::Utf8Value(isolate.get(), projectDir));
     v8::Local<v8::Value>
         args[] = {
-            device->js_obj(),
             loader->js_obj(),
             platform->js_obj(),
             v8::Number::New(isolate.get(), width),
             v8::Number::New(isolate.get(), height)};
-    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 5, args);
+    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 4, args);
     if (maybeRes.IsEmpty())
     {
         return -1;
@@ -249,7 +255,7 @@ int Window::loop()
         SDL_GL_SwapWindow(window.get());
     }
 
-    device->waitIdle();
+    gfx->waitIdle();
 
     return 0;
 }

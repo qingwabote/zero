@@ -3,7 +3,6 @@ import GLTF from "../../../../script/core/assets/GLTF.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
-import Device from "../../../../script/core/gfx/Device.js";
 import { ClearFlagBit } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
@@ -14,8 +13,8 @@ import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 export default class App extends Zero {
-    initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
-        if (super.initialize(device, loader, platfrom, width, height)) {
+    initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
+        if (super.initialize(loader, platfrom, width, height)) {
             return true;
         }
 

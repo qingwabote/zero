@@ -118,15 +118,15 @@ export default class Label extends Component {
         const indexCount = 6 * this._text.length;
         if (this._dirtyFlag & DirtyFlagBit.CAPABILITY) {
             this._texCoordArray = new Float32Array(2 * 4 * this._text.length);
-            this._texCoordBuffer = zero.gfx.createBuffer();
+            this._texCoordBuffer = gfx.createBuffer();
             this._texCoordBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, mem_usage: MemoryUsage.CPU_TO_GPU, size: this._texCoordArray.byteLength });
 
             this._positionArray = new Float32Array(4 * 4 * this._text.length);
-            this._positionBuffer = zero.gfx.createBuffer();
+            this._positionBuffer = gfx.createBuffer();
             this._positionBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, mem_usage: MemoryUsage.CPU_TO_GPU, size: this._positionArray.byteLength });
 
             this._indexArray = new Uint16Array(indexCount);
-            this._indexBuffer = zero.gfx.createBuffer();
+            this._indexBuffer = gfx.createBuffer();
             this._indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, mem_usage: MemoryUsage.CPU_TO_GPU, size: this._indexArray.byteLength });
         }
 

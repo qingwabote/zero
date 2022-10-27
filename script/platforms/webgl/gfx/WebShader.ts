@@ -22,7 +22,7 @@ export default class WebShader implements Shader {
         this.compileShader(info.stages, info.meta.blocks, info.meta.samplerTextures);
     }
 
-    protected compileShader(stages: ShaderStage[], blocks: Record<string, Uniform>, samplerTextures: Record<string, Uniform>): void {
+    protected compileShader(stages: Readonly<ShaderStage[]>, blocks: Record<string, Uniform>, samplerTextures: Record<string, Uniform>): void {
         const gl = this._gl;
 
         const shaders: WebGLShader[] = [];

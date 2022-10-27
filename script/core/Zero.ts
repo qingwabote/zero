@@ -1,6 +1,5 @@
 import ComponentScheduler from "./ComponentScheduler.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
-import Device from "./gfx/Device.js";
 import Fence from "./gfx/Fence.js";
 import Pipeline, { DescriptorSet, PipelineInfo, PipelineLayout, PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import RenderPass from "./gfx/RenderPass.js";
@@ -21,11 +20,6 @@ interface Frame {
 }
 
 export default class Zero {
-    private _gfx!: Device;
-    get gfx(): Device {
-        return this._gfx;
-    }
-
     private _input: Input = new Input;
     get input(): Input {
         return this._input;
@@ -74,31 +68,26 @@ export default class Zero {
     private _pipelineLayoutCache: Record<string, PipelineLayout> = {};
     private _pipelineCache: Record<string, Pipeline> = {};
 
-    initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
-        if (device.initialize()) {
-            return true;
-        }
-        this._gfx = device;
-
+    initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
         this._loader = loader;
 
         this._platfrom = platfrom;
 
         this._window = { width, height };
 
-        this._globalDescriptorSet = device.createDescriptorSet();
+        this._globalDescriptorSet = gfx.createDescriptorSet();
         this._globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
 
         this._renderScene = new RenderScene;
 
         for (let i = 0; i < 2; i++) {
-            const commandBuffer = device.createCommandBuffer();
+            const commandBuffer = gfx.createCommandBuffer();
             commandBuffer.initialize();
-            const presentSemaphore = device.createSemaphore();
+            const presentSemaphore = gfx.createSemaphore();
             presentSemaphore.initialize();
-            const renderSemaphore = device.createSemaphore();
+            const renderSemaphore = gfx.createSemaphore();
             renderSemaphore.initialize();
-            const renderFence = device.createFence();
+            const renderFence = gfx.createFence();
             renderFence.initialize(i == 0);
             this._frames.push({
                 commandBuffer, presentSemaphore, renderSemaphore, renderFence
@@ -112,7 +101,7 @@ export default class Zero {
     tick(dt: number) {
         const current = this._frames[this._frameIndex];
 
-        this._gfx.acquire(current.presentSemaphore);
+        gfx.acquire(current.presentSemaphore);
 
         this._componentScheduler.update(dt)
 
@@ -129,7 +118,7 @@ export default class Zero {
             const viewport = camera.viewport;
             let renderPass = this._clearFlag2renderPass[camera.clearFlags];
             if (!renderPass) {
-                renderPass = this._gfx.createRenderPass();
+                renderPass = gfx.createRenderPass();
                 renderPass.initialize({ clearFlags: camera.clearFlags, hash: camera.clearFlags.toString() });
                 this._clearFlag2renderPass[camera.clearFlags] = renderPass;
             }
@@ -157,7 +146,7 @@ export default class Zero {
 
                         let layout = this._pipelineLayoutCache[shader.info.hash];
                         if (!layout) {
-                            layout = this._gfx.createPipelineLayout();
+                            layout = gfx.createPipelineLayout();
                             layout.initialize([
                                 shaders.builtinDescriptorSetLayouts.global,
                                 shaders.builtinDescriptorSetLayouts.local,
@@ -175,13 +164,13 @@ export default class Zero {
                         const pipelineHash = pipelineInfo.shader.info.hash + pipelineInfo.vertexInputState.hash + renderPass.info.hash;
                         let pipeline = this._pipelineCache[pipelineHash];
                         if (!pipeline) {
-                            pipeline = this._gfx.createPipeline();
+                            pipeline = gfx.createPipeline();
                             pipeline.initialize(pipelineInfo);
                             this._pipelineCache[pipelineHash] = pipeline;
                         }
 
                         commandBuffer.bindPipeline(pipeline);
-                        const alignment = this._gfx.capabilities.uniformBufferOffsetAlignment;
+                        const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
                         const cameraUboSize = Math.ceil(BuiltinUniformBlocks.global.blocks.Camera.size / alignment) * alignment;
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet, [cameraIndex * cameraUboSize]);
                         commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
@@ -198,15 +187,15 @@ export default class Zero {
         commandBuffer.end();
 
         const last = this._frames[this._frameIndex > 0 ? this._frameIndex - 1 : this._frames.length - 1];
-        this._gfx.waitFence(last.renderFence);
+        gfx.waitFence(last.renderFence);
 
-        this._gfx.submit({
+        gfx.submit({
             commandBuffer,
             waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             waitSemaphore: current.presentSemaphore,
             signalSemaphore: current.renderSemaphore
         }, current.renderFence);
-        this._gfx.present(current.renderSemaphore);
+        gfx.present(current.renderSemaphore);
 
         this._frameIndex = this._frameIndex < this._frames.length - 1 ? this._frameIndex + 1 : 0;
     }

@@ -27,10 +27,10 @@ export default class Model {
     constructor(subModels: SubModel[], node: RenderNode) {
         zero.dirtyTransforms.set(node, node);
 
-        this._localBuffer = zero.gfx.createBuffer();
+        this._localBuffer = gfx.createBuffer();
         this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: float32Array.byteLength });
 
-        const descriptorSet = zero.gfx.createDescriptorSet();
+        const descriptorSet = gfx.createDescriptorSet();
         if (descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local)) {
             throw new Error("descriptorSet initialize failed");
         }

@@ -33,6 +33,12 @@
         }
   </script> -->
   <script type="module">
+    import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
+    const gfx = new WebDevice(document.getElementById("ZeroCanvas").getContext('webgl2'));
+    gfx.initialize()
+    window.gfx = gfx;
+  </script>
+  <script type="module">
     import App from "./dist/projects/triangle/script/main/App.js";
     import webgame from "./dist/script/platforms/webgl/webgame.js";
     webgame.run(document.getElementById("ZeroCanvas"), App);

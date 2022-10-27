@@ -51,9 +51,9 @@ export default class GLTF extends Asset {
 
     constructor() {
         super();
-        this._commandBuffer = zero.gfx.createCommandBuffer();
+        this._commandBuffer = gfx.createCommandBuffer();
         this._commandBuffer.initialize();
-        this._fence = zero.gfx.createFence();
+        this._fence = gfx.createFence();
         this._fence.initialize();
     }
 
@@ -183,7 +183,7 @@ export default class GLTF extends Asset {
             //     console.assert(viewInfo.target == 34963)
             // }
             const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
-            buffer = zero.gfx.createBuffer();
+            buffer = gfx.createBuffer();
 
             if (usage & BufferUsageFlagBits.VERTEX) {
                 buffer.initialize({
@@ -193,18 +193,18 @@ export default class GLTF extends Asset {
                     size: viewInfo.byteLength
                 });
                 if (!_commandBuffer) {
-                    _commandBuffer = zero.gfx.createCommandBuffer();
+                    _commandBuffer = gfx.createCommandBuffer();
                     _commandBuffer.initialize();
                 }
                 if (!_fence) {
-                    _fence = zero.gfx.createFence();
+                    _fence = gfx.createFence();
                     _fence.initialize();
                 }
                 _commandBuffer.begin();
                 _commandBuffer.copyBuffer(view, buffer);
                 _commandBuffer.end();
-                zero.gfx.submit({ commandBuffer: _commandBuffer }, _fence);
-                zero.gfx.waitFence(_fence);
+                gfx.submit({ commandBuffer: _commandBuffer }, _fence);
+                gfx.waitFence(_fence);
             } else {
                 buffer.initialize({
                     usage: usage,

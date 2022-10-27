@@ -14,7 +14,7 @@ export default class Pass {
 
     constructor(shader: Shader) {
         this._shader = shader;
-        const descriptorSet = zero.gfx.createDescriptorSet();
+        const descriptorSet = gfx.createDescriptorSet();
         if (descriptorSet.initialize(this._shader.info.meta.descriptorSetLayout)) {
             throw new Error("descriptorSet initialize failed");
         }

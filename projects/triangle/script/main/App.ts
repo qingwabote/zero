@@ -3,8 +3,7 @@ import Camera from "../../../../script/core/components/Camera.js";
 import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
 import MeshRenderer from "../../../../script/core/components/MeshRenderer.js";
-import Buffer, { BufferUsageFlagBits } from "../../../../script/core/gfx/Buffer.js";
-import Device from "../../../../script/core/gfx/Device.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../../../../script/core/gfx/Buffer.js";
 import { ClearFlagBit, Format, IndexType } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
@@ -19,8 +18,8 @@ import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 export default class App extends Zero {
-    initialize(device: Device, loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
-        if (super.initialize(device, loader, platfrom, width, height)) {
+    initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
+        if (super.initialize(loader, platfrom, width, height)) {
             return true;
         }
 
@@ -51,28 +50,31 @@ export default class App extends Zero {
         };
         attributes.push(attribute);
 
-        const vertexBuffer = zero.gfx.createBuffer();
-        vertexBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: vertexArray.byteLength });
+        const vertexBuffer = gfx.createBuffer();
+        vertexBuffer.initialize({ usage: BufferUsageFlagBits.VERTEX, size: vertexArray.byteLength, mem_usage: MemoryUsage.CPU_TO_GPU });
         vertexBuffer.update(vertexArray);
         vertexBuffers.push(vertexBuffer);
         vertexOffsets.push(0);
 
         const indexArray = new Uint16Array([0, 1, 2]);
-        const indexBuffer = zero.gfx.createBuffer();
-        indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: indexArray.byteLength });
+        const indexBuffer = gfx.createBuffer();
+        indexBuffer.initialize({ usage: BufferUsageFlagBits.INDEX, size: indexArray.byteLength, mem_usage: MemoryUsage.CPU_TO_GPU });
         indexBuffer.update(indexArray);
 
         const mesh: Mesh = new Mesh([new SubMesh(attributes, vertexBuffers, vertexOffsets, indexBuffer, IndexType.UINT16, indexArray.length, 0)]);
-        const shader = shaders.getShader('triangle');
-        const pass = new Pass(shader);
-        const material = new Material([pass]);
+        (async () => {
+            const shader = await shaders.getShader('triangle');
+            const pass = new Pass(shader);
+            const material = new Material([pass]);
 
-        node = new Node;
-        const renderer = node.addComponent(MeshRenderer);
-        renderer.mesh = mesh;
-        renderer.materials = [material];
+            node = new Node;
+            const renderer = node.addComponent(MeshRenderer);
+            renderer.mesh = mesh;
+            renderer.materials = [material];
 
-        node.addComponent(ZeroComponent);
+            node.addComponent(ZeroComponent);
+        })()
+
 
 
         // if (1 + 1 == 2) {
@@ -89,11 +91,13 @@ export default class App extends Zero {
         node.position = [0, 0, 1];
 
         (async () => {
+            const shader = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
             const fnt = new FNT;
             await fnt.load('./asset/zero');
             const node = new Node;
             const label = node.addComponent(Label);
             label.fnt = fnt;
+            label.shader = shader;
             node.addComponent(FPS);
             node.position = [-width / 2, height / 2, 0];
             node.visibility = VisibilityBit.UI;
