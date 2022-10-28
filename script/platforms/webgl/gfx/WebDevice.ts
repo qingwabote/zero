@@ -1,43 +1,95 @@
-import Buffer, { BufferInfo } from "../../../core/gfx/Buffer.js";
+import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import Device from "../../../core/gfx/Device.js";
-import Shader, { ShaderInfo } from "../../../core/gfx/Shader.js";
-import Texture, { TextureInfo } from "../../../core/gfx/Texture.js";
+import Device, { Capabilities } from "../../../core/gfx/Device.js";
+import Fence from "../../../core/gfx/Fence.js";
+import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import RenderPass from "../../../core/gfx/RenderPass.js";
+import Semaphore from "../../../core/gfx/Semaphore.js";
+import Shader from "../../../core/gfx/Shader.js";
+import { SubmitInfo } from "../../../core/gfx/SubmitInfo.js";
+import Texture from "../../../core/gfx/Texture.js";
 import WebBuffer from "./WebBuffer.js";
 import WebCommandBuffer from "./WebCommandBuffer.js";
+import WebDescriptorSet from "./WebDescriptorSet.js";
+import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
+import WebFence from "./WebFence.js";
+import WebPipeline from "./WebPipeline.js";
+import WebPipelineLayout from "./WebPipelineLayout.js";
+import WebRenderPass from "./WebRenderPass.js";
+import WebSemaphore from "./WebSemaphore.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
 export default class WebDevice implements Device {
     private _gl: WebGL2RenderingContext;
 
-    private _commandBuffer: CommandBuffer;
-    get commandBuffer(): CommandBuffer {
-        return this._commandBuffer;
+    private _capabilities: Capabilities;
+    get capabilities(): Capabilities {
+        return this._capabilities;
     }
 
     constructor(gl: WebGL2RenderingContext) {
-        this._commandBuffer = new WebCommandBuffer(gl);
+        this._capabilities = {
+            uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+            clipSpaceMinZ: -1
+        }
         this._gl = gl;
     }
 
-    createShader(info: ShaderInfo): Shader {
-        const shader = new WebShader(this._gl);
-        shader.initialize(info);
-        return shader;
+    initialize(): boolean {
+        return false;
     }
 
-    createBuffer(info: BufferInfo): Buffer {
-        return new WebBuffer(this._gl, info);
+    createCommandBuffer(): CommandBuffer {
+        return new WebCommandBuffer(this._gl);
     }
 
-    createTexture(info: TextureInfo): Texture {
-        const texture = new WebTexture(this._gl);
-        texture.initialize(info);
-        return texture;
+    createDescriptorSetLayout(): DescriptorSetLayout {
+        return new WebDescriptorSetLayout();
     }
 
-    createImageBitmap(blob: Blob): Promise<ImageBitmap> {
-        return createImageBitmap(blob)
+    createPipelineLayout(): PipelineLayout {
+        return new WebPipelineLayout();
     }
+
+    createDescriptorSet(): DescriptorSet {
+        return new WebDescriptorSet();
+    }
+
+    createPipeline(): Pipeline {
+        return new WebPipeline();
+    }
+
+    createShader(): Shader {
+        return new WebShader(this._gl);
+    }
+
+    createBuffer(): Buffer {
+        return new WebBuffer(this._gl);
+    }
+
+    createRenderPass(): RenderPass {
+        return new WebRenderPass;
+    }
+
+    createSemaphore(): Semaphore {
+        return new WebSemaphore;
+    }
+
+    createTexture(): Texture {
+        return new WebTexture(this._gl);
+    }
+
+    createFence(): Fence {
+        return new WebFence;
+    }
+
+    acquire(semaphore: Semaphore): void { }
+
+    submit(info: SubmitInfo, fence: Fence): void { }
+
+    present(): void { }
+
+    waitFence(fence: Fence): void { }
+
 }

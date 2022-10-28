@@ -1,28 +1,31 @@
-import Shader, { ShaderStageFlags } from "../../../core/gfx/Shader.js";
-export default class WebShader extends Shader {
+import { ShaderStageFlagBits } from "../../../core/gfx/Shader.js";
+export default class WebShader {
     _gl;
+    _info;
+    get info() {
+        return this._info;
+    }
     _program;
     get program() {
         return this._program;
     }
     constructor(gl) {
-        super();
         this._gl = gl;
     }
-    compileUniform(content, set, binding, type, name) {
-        super.compileUniform(content, set, binding, type, name);
-        return type ? `uniform ${type} ${name}` : `uniform ${name}`;
+    initialize(info) {
+        this._info = info;
+        this.compileShader(info.stages, info.meta.blocks, info.meta.samplerTextures);
     }
     compileShader(stages, blocks, samplerTextures) {
         const gl = this._gl;
         const shaders = [];
         for (const stage of stages) {
             const source = `#version 300 es\n${stage.source}`;
-            const shader = gl.createShader(stage.type == ShaderStageFlags.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
+            const shader = gl.createShader(stage.type == ShaderStageFlagBits.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error(`${stage.type == ShaderStageFlags.VERTEX ? "VertexShader" : "FragmentShader"} in '${this._info.name}' compilation failed.`);
+                console.error(`${stage.type == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in '${this._info.name}' compilation failed.`);
                 console.error(gl.getShaderInfoLog(shader));
                 let lineNumber = 1;
                 console.error('Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `));

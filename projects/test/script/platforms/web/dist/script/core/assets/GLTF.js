@@ -1,8 +1,7 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 import MeshRenderer from "../components/MeshRenderer.js";
-import game from "../game.js";
-import gfx, { Format } from "../gfx.js";
-import { BufferUsageBit } from "../gfx/Buffer.js";
+import { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
+import { Format, IndexType } from "../gfx/Pipeline.js";
 import mat4 from "../math/mat4.js";
 import Node from "../Node.js";
 import Material from "../render/Material.js";
@@ -11,9 +10,11 @@ import Pass from "../render/Pass.js";
 import SubMesh from "../render/SubMesh.js";
 import shaders from "../shaders.js";
 import Asset from "./Asset.js";
+import Texture from "./Texture.js";
 const builtinAttributes = {
     "POSITION": "a_position",
-    "TEXCOORD_0": "a_texCoord"
+    "TEXCOORD_0": "a_texCoord",
+    "NORMAL": "a_normal"
 };
 const formatPart1Names = {
     "SCALAR": "R",
@@ -26,38 +27,43 @@ const formatPart2Names = {
     5125: "32UI",
     5126: "32F"
 };
-function getFormat(accessor) {
-    const format = Format[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`];
-    // if (format == undefined) {
-    //     console.error(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`)
-    // }
-    return format;
-}
+let _commandBuffer;
+let _fence;
 export default class GLTF extends Asset {
     _json;
     _bin;
     _buffers = [];
-    _textures;
+    _textures = [];
+    _materials = [];
+    _commandBuffer;
+    _fence;
+    constructor() {
+        super();
+        this._commandBuffer = gfx.createCommandBuffer();
+        this._commandBuffer.initialize();
+        this._fence = gfx.createFence();
+        this._fence.initialize();
+    }
     async load(url) {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
             return;
         }
-        const parent = res[1];
-        const name = res[2];
-        const json = await game.loader.load(`${parent}/${name}.gltf`, "json", this.onProgress);
-        const bin = await game.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
-        const images = json.images;
-        this._textures = await Promise.all(images.map(info => this.loadTexture(`${parent}/${info.uri}`)));
-        this._bin = bin;
+        const [, parent, name] = res;
+        const json = JSON.parse(await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
+        this._bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
+        const textures = await Promise.all(json.images.map((info) => (new Texture).load(`${parent}/${info.uri}`)));
+        this._materials = await Promise.all(json.materials.map(async (info) => {
+            const textureIdx = info.pbrMetallicRoughness.baseColorTexture?.index;
+            const shader = await shaders.getShader('phong', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 });
+            const pass = new Pass(shader);
+            if (textureIdx != undefined) {
+                pass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
+            }
+            return new Material([pass]);
+        }));
+        this._textures = textures;
         this._json = json;
-    }
-    async loadTexture(url) {
-        const blob = await game.loader.load(url, "blob", this.onProgress);
-        const imageBitmap = await gfx.device.createImageBitmap(blob);
-        const texture = gfx.device.createTexture({});
-        texture.update(imageBitmap);
-        return texture;
     }
     createScene(name) {
         if (!this._json || !this._bin || !this._textures)
@@ -81,14 +87,6 @@ export default class GLTF extends Asset {
             if (info.scale) {
                 node.scale = info.scale;
             }
-            // const m = mat4.fromRTS(mat4.create(), node.rotation, node.position, node.scale);
-            // const q = quat.create();
-            // const v = vec3.create();
-            // const s = vec3.create();
-            // mat4.toRTS(m, q, v, s);
-            // console.log("rotation:", node.rotation, q)
-            // console.log("position:", node.position, v)
-            // console.log("scale:", node.scale, s)
         }
         if (info.mesh != undefined) {
             this.createMesh(node, this._json.meshes[info.mesh]);
@@ -107,32 +105,44 @@ export default class GLTF extends Asset {
         const materials = [];
         for (const primitive of info.primitives) {
             const vertexBuffers = [];
+            const vertexOffsets = [];
             const attributes = [];
             for (const name in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[name]];
+                const format = Format[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`];
+                // if (format == undefined) {
+                //     console.error(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`)
+                // }
                 const attribute = {
                     name: builtinAttributes[name] || name,
-                    format: getFormat(accessor),
+                    format,
                     buffer: vertexBuffers.length,
-                    offset: accessor.byteOffset
+                    offset: 0
                 };
                 attributes.push(attribute);
-                vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageBit.VERTEX));
+                vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX));
+                vertexOffsets.push(accessor.byteOffset || 0);
             }
             const accessor = this._json.accessors[primitive.indices];
-            const buffer = this.getBuffer(accessor.bufferView, BufferUsageBit.INDEX);
+            const buffer = this.getBuffer(accessor.bufferView, BufferUsageFlagBits.INDEX);
             if (primitive.material != undefined) {
-                const info = this._json.materials[primitive.material];
-                const textureIdx = info.pbrMetallicRoughness.baseColorTexture?.index;
-                const shader = shaders.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 });
-                const pass = new Pass(shader);
-                if (textureIdx != undefined) {
-                    pass.descriptorSet.textures[0] = this._textures[this._json.textures[textureIdx].source];
-                }
-                const material = new Material([pass]);
-                materials.push(material);
+                materials.push(this._materials[primitive.material]);
             }
-            subMeshes.push(new SubMesh(attributes, vertexBuffers, buffer, getFormat(accessor), accessor.count, accessor.byteOffset));
+            if (accessor.type != "SCALAR") {
+                throw new Error("unsupported index type");
+            }
+            let indexType;
+            switch (accessor.componentType) {
+                case 5123:
+                    indexType = IndexType.UINT16;
+                    break;
+                case 5125:
+                    indexType = IndexType.UINT32;
+                    break;
+                default:
+                    throw new Error("unsupported index type");
+            }
+            subMeshes.push(new SubMesh(attributes, vertexBuffers, vertexOffsets, buffer, indexType, accessor.count, accessor.byteOffset || 0));
         }
         const renderer = node.addComponent(MeshRenderer);
         renderer.mesh = new Mesh(subMeshes);
@@ -148,15 +158,42 @@ export default class GLTF extends Asset {
             //     console.assert(viewInfo.target == 34963)
             // }
             const view = new DataView(this._bin, viewInfo.byteOffset, viewInfo.byteLength);
-            buffer = gfx.device.createBuffer({
-                usage: usage,
-                stride: viewInfo.byteStride,
-                size: viewInfo.byteLength
-            });
-            buffer.update(view);
+            buffer = gfx.createBuffer();
+            if (usage & BufferUsageFlagBits.VERTEX) {
+                buffer.initialize({
+                    usage: usage | BufferUsageFlagBits.TRANSFER_DST,
+                    mem_usage: MemoryUsage.GPU_ONLY,
+                    stride: viewInfo.byteStride,
+                    size: viewInfo.byteLength
+                });
+                if (!_commandBuffer) {
+                    _commandBuffer = gfx.createCommandBuffer();
+                    _commandBuffer.initialize();
+                }
+                if (!_fence) {
+                    _fence = gfx.createFence();
+                    _fence.initialize();
+                }
+                _commandBuffer.begin();
+                _commandBuffer.copyBuffer(view, buffer);
+                _commandBuffer.end();
+                gfx.submit({ commandBuffer: _commandBuffer }, _fence);
+                gfx.waitFence(_fence);
+            }
+            else {
+                buffer.initialize({
+                    usage: usage,
+                    mem_usage: MemoryUsage.CPU_TO_GPU,
+                    stride: viewInfo.byteStride,
+                    size: viewInfo.byteLength
+                });
+                buffer.update(view);
+            }
             this._buffers[index] = buffer;
         }
-        console.assert(buffer.info.usage == usage);
+        if ((buffer.info.usage & usage) != usage) {
+            throw new Error("");
+        }
         return buffer;
     }
     onProgress(loaded, total, url) {

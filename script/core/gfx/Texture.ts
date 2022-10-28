@@ -1,7 +1,9 @@
 export interface TextureInfo {
-
+    width: number;
+    height: number;
 }
 
-export default abstract class Texture {
-    abstract update(imageBitmap: ImageBitmap): void;
+export default interface Texture {
+    get info(): TextureInfo;
+    initialize(info: TextureInfo): boolean;
 }

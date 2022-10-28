@@ -1,0 +1,1 @@
+{"version":3,"file":"WebRenderPass.js","sourceRoot":"","sources":["../../../../../../../../../../script/platforms/webgl/gfx/WebRenderPass.ts"],"names":[],"mappings":"AAEA,MAAM,CAAC,OAAO,OAAO,aAAa;IACtB,KAAK,CAAkB;IAC/B,IAAI,IAAI;QACJ,OAAO,IAAI,CAAC,KAAK,CAAC;IACtB,CAAC;IAED,UAAU,CAAC,IAAoB;QAC3B,IAAI,CAAC,KAAK,GAAG,IAAI,CAAC;QAClB,OAAO,KAAK,CAAC;IACjB,CAAC;CAEJ"}

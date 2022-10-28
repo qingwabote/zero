@@ -1,84 +1,120 @@
-import gfx from "./gfx.js";
-import Shader, { ShaderStage, ShaderStageFlags } from "./gfx/Shader.js";
+import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
+import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
 
-const buildinSource: string[] = [];
-
-buildinSource.push('zero');
-buildinSource.push(`
-layout(location = 0) in vec4 a_position;
-layout(location = 2) in vec2 a_texCoord;
-
-out vec2 v_uv;
-
-layout(set = 0, binding = 0) uniform Camera {
-    mat4 matView;
-    mat4 matProj;
-};
-
-layout(set = 1, binding = 0) uniform Local {
-    mat4 matWorld;
-};
-
-void main() {
-    v_uv = a_texCoord;
-
-    gl_Position = matProj * (matView * matWorld) * a_position;
+function align(size: number) {
+    const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
+    return Math.ceil(size / alignment) * alignment;
 }
-`);
-buildinSource.push(`
-// fragment shaders don't have a default precision so we need
-// to pick one. highp is a good default. It means "high precision"
-precision highp float;
 
-in vec2 v_uv;
+const FLOAT32_BYTES = 4;
 
-#if USE_ALBEDO_MAP
-    layout(set = 2, binding = 0) uniform sampler2D albedoMap;
-#endif
+const builtinUniformBlocks = {
+    global: {
+        set: 0,
+        blocks: {
+            Global: {
+                binding: 0,
+                uniforms: {
+                    litDir: {}
+                },
+                size: 3 * FLOAT32_BYTES
+            },
+            Camera: {
+                binding: 1,
+                uniforms: {
+                    matView: {
+                        offset: 0
+                    },
+                    matProj: {
+                        offset: 16
+                    },
+                    cameraPos: {
+                        offset: 16 + 16
+                    }
+                },
+                size: align((16 + 16 + 4) * FLOAT32_BYTES),
+                dynamic: true
+            }
+        }
+    },
+    local: {
+        set: 1,
+        blocks: {
+            Local: {
+                binding: 0,
+                uniforms: {
+                    matWorld: {},
+                    matWorldIT: {}
+                },
+                size: (16 + 16) * FLOAT32_BYTES,
+            }
+        }
+    },
+    material: {
+        set: 2
+    }
+} as const
 
-
-out vec4 v_color;
-
-void main() {
-    vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
-    #if USE_ALBEDO_MAP
-        baseColor *= texture(albedoMap, v_uv);
-    #endif
-    v_color = baseColor;
+function buildDescriptorSetLayout(res: {
+    set: number,
+    blocks: Record<string, { binding: number, dynamic?: boolean }>
+}): DescriptorSetLayout {
+    const bindings: DescriptorSetLayoutBinding[] = [];
+    for (const name in res.blocks) {
+        const block = res.blocks[name];
+        bindings[block.binding] = {
+            binding: block.binding,
+            descriptorType: block.dynamic ? DescriptorType.UNIFORM_BUFFER_DYNAMIC : DescriptorType.UNIFORM_BUFFER,
+            descriptorCount: 1,
+            stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
+        }
+    }
+    const descriptorSetLayout = gfx.createDescriptorSetLayout();
+    descriptorSetLayout.initialize(bindings);
+    return descriptorSetLayout;
 }
-`)
 
 const name2source: Record<string, ShaderStage[]> = {};
 const name2macros: Record<string, Set<string>> = {};
 
-while (buildinSource.length > 2) {
-    const fs = buildinSource.pop()!;
-    const vs = buildinSource.pop()!;
-    const name = buildinSource.pop()!;
-
-    name2source[name] = [
-        { type: ShaderStageFlags.VERTEX, source: vs },
-        { type: ShaderStageFlags.FRAGMENT, source: fs },
-    ];
-    name2macros[name] = preprocessor.macrosExtract(fs, '');
-}
-
 const shaders: Record<string, Shader> = {};
 
 export default {
-    getShader(name: string, macros: Record<string, number>): Shader {
+    builtinUniformBlocks,
+
+    builtinDescriptorSetLayouts: {
+        global: buildDescriptorSetLayout(builtinUniformBlocks.global),
+        local: buildDescriptorSetLayout(builtinUniformBlocks.local)
+    },
+
+    async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
+        let source = name2source[name];
+        if (!source) {
+            const vs = await zero.loader.load(`../../asset/shader/${name}.vs`, "text");
+            const fs = await zero.loader.load(`../../asset/shader/${name}.fs`, "text");
+            name2source[name] = [
+                { type: ShaderStageFlagBits.VERTEX, source: vs },
+                { type: ShaderStageFlagBits.FRAGMENT, source: fs },
+            ];
+            name2macros[name] = preprocessor.macrosExtract(fs);
+        }
+
         let key = name;
         for (const macro of name2macros[name]) {
             key += macros[macro] || 0
         }
 
         if (!shaders[key]) {
-            shaders[key] = gfx.device.createShader({
+            const res = await preprocessor.preprocess(name2source[name], macros);
+            shaders[key] = gfx.createShader();
+            shaders[key].initialize({
                 name,
-                stages: name2source[name].map(stage => ({ type: stage.type, source: preprocessor.preprocess(stage.source, '', macros) })),
-                macros
+                stages: res.stages,
+                meta: res.meta,
+                hash: key
             });
+
         }
         return shaders[key];
     }

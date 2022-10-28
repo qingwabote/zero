@@ -15,5 +15,5 @@ export interface InputEventMap {
     TOUCH_END: (event: TouchEvent) => void,
 }
 
-export default abstract class Input extends EventEmitter<InputEventMap> {
+export default class Input extends EventEmitter<InputEventMap> {
 }

@@ -1,8 +1,7 @@
-import gfx from "../gfx.js";
-import { BufferUsageBit } from "../gfx/Buffer.js";
-import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks } from "../gfx/Pipeline.js";
-import render from "../render.js";
-const float32Array = new Float32Array(16);
+import { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
+import mat4 from "../math/mat4.js";
+import shaders from "../shaders.js";
+const float32Array = new Float32Array(shaders.builtinUniformBlocks.local.blocks.Local.size / Float32Array.BYTES_PER_ELEMENT);
 export default class Model {
     _descriptorSet;
     get descriptorSet() {
@@ -12,20 +11,30 @@ export default class Model {
     get subModels() {
         return this._subModels;
     }
-    _transform;
-    constructor(subModels, transform) {
-        render.dirtyTransforms.set(transform, transform);
-        const buffers = [];
-        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: float32Array.byteLength, stride: 1 });
-        this._descriptorSet = { layout: BuiltinDescriptorSetLayouts.local, buffers, textures: [] };
+    _localBuffer;
+    _node;
+    get node() {
+        return this._node;
+    }
+    constructor(subModels, node) {
+        zero.dirtyTransforms.set(node, node);
+        this._localBuffer = gfx.createBuffer();
+        this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: float32Array.byteLength });
+        const descriptorSet = gfx.createDescriptorSet();
+        if (descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local)) {
+            throw new Error("descriptorSet initialize failed");
+        }
+        descriptorSet.bindBuffer(shaders.builtinUniformBlocks.local.blocks.Local.binding, this._localBuffer);
+        this._descriptorSet = descriptorSet;
         this._subModels = subModels;
-        this._transform = transform;
+        this._node = node;
     }
     update() {
-        if (render.dirtyTransforms.has(this._transform)) {
-            this._transform.updateMatrix();
-            float32Array.set(this._transform.matrix);
-            this._descriptorSet.buffers[BuiltinUniformBlocks.local.blocks.Local.binding].update(float32Array);
+        if (zero.dirtyTransforms.has(this._node)) {
+            this._node.updateMatrix();
+            float32Array.set(this._node.matrix);
+            float32Array.set(mat4.inverseTranspose(mat4.create(), this._node.matrix), 16);
+            this._localBuffer.update(float32Array);
         }
     }
 }

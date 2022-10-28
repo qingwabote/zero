@@ -1,16 +1,23 @@
-import game from "../../core/game.js";
-import gfx from "../../core/gfx.js";
-import WebDevice from "./gfx/WebDevice.js";
-import WebInput from "./WebInput.js";
 import WebLoader from "./WebLoader.js";
+import WebPlatfrom from "./WebPlatform.js";
 const DEBUG_DT_THRESHOLD = 1;
 export default {
-    init(canvas) {
+    run(canvas, App) {
         const gl = canvas.getContext('webgl2');
-        gfx.init(new WebDevice(gl));
-        game.init(new WebInput(canvas), new WebLoader, canvas.width, canvas.height);
-    },
-    run() {
+        window.zero = new App();
+        zero.initialize(new WebLoader, new WebPlatfrom, canvas.width, canvas.height);
+        const input = zero.input;
+        canvas.addEventListener("mousedown", (mouseEvent) => {
+            input.emit("TOUCH_START", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] });
+        });
+        canvas.addEventListener("mousemove", (mouseEvent) => {
+            if (mouseEvent.buttons) {
+                input.emit("TOUCH_MOVE", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] });
+            }
+        });
+        canvas.addEventListener("mouseup", (mouseEvent) => {
+            input.emit("TOUCH_END", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] });
+        });
         let requestId;
         let time = performance.now();
         function mainLoop(now) {
@@ -19,7 +26,7 @@ export default {
                 dt = 1 / 60;
             }
             time = now;
-            game.tick(dt);
+            zero.tick(dt);
             requestId = window.requestAnimationFrame(mainLoop);
         }
         mainLoop(time);

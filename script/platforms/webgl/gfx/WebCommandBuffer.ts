@@ -1,23 +1,15 @@
-import { Format, FormatInfos } from "../../../core/gfx.js";
+import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import { InputAssembler } from "../../../core/gfx/InputAssembler.js";
-import Pipeline, { BlendFactor, DescriptorSet, DescriptorType } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, ClearFlagBit, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import RenderPass from "../../../core/gfx/RenderPass.js";
+import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
+import WebDescriptorSet from "./WebDescriptorSet.js";
+import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
+import WebPipeline from "./WebPipeline.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
-
-// https://webgl2fundamentals.org/webgl/lessons/webgl-data-textures.html
-function format2WebGL(format: Format): GLenum {
-    switch (format) {
-        case Format.R8UI: return WebGL2RenderingContext.UNSIGNED_BYTE;
-        case Format.R16UI: return WebGL2RenderingContext.UNSIGNED_SHORT;
-        case Format.R32UI: return WebGL2RenderingContext.UNSIGNED_INT;
-        case Format.RG32F: return WebGL2RenderingContext.FLOAT;
-        case Format.RGB32F: return WebGL2RenderingContext.FLOAT;
-        case Format.RGBA32F: return WebGL2RenderingContext.FLOAT;
-    }
-}
 
 function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
@@ -54,7 +46,7 @@ function bendFactor2WebGL(factor: BlendFactor): GLenum {
 //     return offset;
 // }
 
-const input2vao: Map<InputAssembler, WebGLVertexArrayObject> = new Map;
+const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
 
 
 export default class WebCommandBuffer implements CommandBuffer {
@@ -65,53 +57,81 @@ export default class WebCommandBuffer implements CommandBuffer {
         this._gl = gl;
     }
 
-    beginRenderPass(viewport: Rect) {
+    initialize(): boolean { return false; }
+
+    begin(): void { }
+
+    copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void {
+        dstBuffer.update(srcBuffer);
+    }
+
+    copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
+        const gl = this._gl;
+        gl.bindTexture(gl.TEXTURE_2D, (texture as WebTexture).texture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+
+    beginRenderPass(renderPass: RenderPass, viewport: Rect) {
         const gl = this._gl;
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-        gl.enable(gl.SCISSOR_TEST);
         gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
 
-        gl.clearColor(0, 0, 0, 1)
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+        gl.clearColor(0, 0, 0, 1);
+        let flag: number = 0;
+        const clearFlags = renderPass.info.clearFlags;
+        if (clearFlags & ClearFlagBit.COLOR) {
+            flag |= gl.COLOR_BUFFER_BIT;
+        }
+        if (clearFlags & ClearFlagBit.DEPTH) {
+            flag |= gl.DEPTH_BUFFER_BIT;
+        }
+        gl.clear(flag)
     }
 
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
+        const info = (pipeline as WebPipeline).info!;
 
-        gl.useProgram((pipeline.shader as WebShader).program);
+        gl.useProgram((info.shader as WebShader).program);
 
-        const dss = pipeline.depthStencilState;
-        if (dss.depthTest) {
-            gl.enable(gl.DEPTH_TEST);
-        } else {
-            gl.disable(gl.DEPTH_TEST);
-        }
+        gl.enable(gl.SCISSOR_TEST);
 
-        const blend = pipeline.blendState.blends[0];
-        if (blend.blend) {
-            gl.enable(gl.BLEND);
-        } else {
-            gl.disable(gl.BLEND);
-        }
+        gl.enable(gl.DEPTH_TEST);
 
-        gl.blendFuncSeparate(
-            bendFactor2WebGL(blend.srcRGB),
-            bendFactor2WebGL(blend.dstRGB),
-            bendFactor2WebGL(blend.srcAlpha),
-            bendFactor2WebGL(blend.dstAlpha),
-        );
+        // const blend = info.blendState.blends[0];
+        // if (blend.blend) {
+        //     gl.enable(gl.BLEND);
+        // } else {
+        //     gl.disable(gl.BLEND);
+        // }
+
+        // gl.blendFuncSeparate(
+        //     bendFactor2WebGL(blend.srcRGB),
+        //     bendFactor2WebGL(blend.dstRGB),
+        //     bendFactor2WebGL(blend.srcAlpha),
+        //     bendFactor2WebGL(blend.dstAlpha),
+        // );
     }
 
-    bindDescriptorSet(index: number, descriptorSet: DescriptorSet): void {
+    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {
         const gl = this._gl;
-        for (const layoutBinding of descriptorSet.layout.bindings) {
+
+        let dynamicIndex = 0;
+        for (const layoutBinding of ((descriptorSet as WebDescriptorSet).layout as WebDescriptorSetLayout).bindings) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
-                const buffer = descriptorSet.buffers[layoutBinding.binding] as WebBuffer;
+                const buffer = (descriptorSet as WebDescriptorSet).buffers[layoutBinding.binding] as WebBuffer;
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
+            } else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
+                const offset = dynamicOffsets![dynamicIndex++];
+                const buffer = (descriptorSet as WebDescriptorSet).buffers[layoutBinding.binding] as WebBuffer;
+                const range = (descriptorSet as WebDescriptorSet).bufferRanges[layoutBinding.binding];
+                gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer, offset, range);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
-                const texture = descriptorSet.textures[layoutBinding.binding] as WebTexture;
+                const texture = (descriptorSet as WebDescriptorSet).textures[layoutBinding.binding] as WebTexture;
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);
             }
         }
@@ -124,19 +144,32 @@ export default class WebCommandBuffer implements CommandBuffer {
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = inputAssembler.attributes;
+            const attributes = inputAssembler.vertexInputState.attributes;
             for (const attribute of attributes) {
+                const binding = inputAssembler.vertexInputState.bindings[attribute.binding];
                 const buffer = inputAssembler.vertexBuffers[attribute.binding] as WebBuffer;
+                const offset = inputAssembler.vertexOffsets[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
+                let type: GLenum
+                switch (attribute.format) {
+                    case Format.RG32F:
+                    case Format.RGB32F:
+                    case Format.RGBA32F:
+                        type = WebGL2RenderingContext.FLOAT;
+                        break;
+                    default:
+                        console.error('unsupported vertex type');
+                        return;
+                }
                 gl.vertexAttribPointer(
                     attribute.location,
                     formatInfo.count,
-                    format2WebGL(attribute.format),
+                    type,
                     false,
-                    buffer.info.stride || formatInfo.size,
-                    attribute.offset);
+                    binding.stride,
+                    offset + attribute.offset);
             }
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);
             input2vao.set(inputAssembler, vao);
@@ -151,13 +184,29 @@ export default class WebCommandBuffer implements CommandBuffer {
     }
 
     draw() {
-        if (!this._inputAssembler) return;
+        if (!this._inputAssembler) {
+            return
+        };
+
+        let type: GLenum;
+        switch (this._inputAssembler.indexType) {
+            case IndexType.UINT16:
+                type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                break;
+            case IndexType.UINT32:
+                type = WebGL2RenderingContext.UNSIGNED_INT;
+                break;
+            default:
+                console.error('unsupported index type');
+                return;
+        }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, format2WebGL(this._inputAssembler.indexType), this._inputAssembler.indexOffset);
+        gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, type, this._inputAssembler.indexOffset);
+        gl.bindVertexArray(null);
     }
 
-    endRenderPass() {
+    endRenderPass() { }
 
-    }
+    end(): void { }
 }

@@ -1,8 +1,7 @@
-import game from "./game.js";
 import mat4 from "./math/mat4.js";
 import quat from "./math/quat.js";
 import vec3 from "./math/vec3.js";
-import render from "./render.js";
+import VisibilityBit from "./render/VisibilityBit.js";
 import EventEmitter from "./utils/EventEmitter.js";
 export var TransformBit;
 (function (TransformBit) {
@@ -18,6 +17,7 @@ export default class Node {
     get name() {
         return this._name;
     }
+    visibility = VisibilityBit.DEFAULT;
     _dirtyFlag = TransformBit.TRS;
     _eventEmitter;
     get eventEmitter() {
@@ -72,7 +72,7 @@ export default class Node {
     }
     addComponent(constructor) {
         const component = new constructor(this);
-        game.componentScheduler.add(component);
+        zero.componentScheduler.add(component);
         this._components.push(component);
         return component;
     }
@@ -90,7 +90,7 @@ export default class Node {
     }
     dirty(flag) {
         this._dirtyFlag |= flag;
-        render.dirtyTransforms.set(this, this);
+        zero.dirtyTransforms.set(this, this);
         this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
         for (const child of this._children.keys()) {
             child.dirty(flag);

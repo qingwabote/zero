@@ -1,44 +1,51 @@
-export const BuiltinUniformBlocks = {
-    global: {
-        set: 0,
-        blocks: {
-            Camera: {
-                binding: 0,
-                // uniforms: {
-                //     matProj: {}
-                // }
-            }
-        }
-    },
-    local: {
-        set: 1,
-        blocks: {
-            Local: {
-                binding: 0,
-                // uniforms: {
-                //     matWorld: {}
-                // }
-            }
-        }
-    }
+// copy values from VkPipelineStageFlagBits in vulkan_core.h
+export var PipelineStageFlagBits;
+(function (PipelineStageFlagBits) {
+    PipelineStageFlagBits[PipelineStageFlagBits["PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT"] = 1024] = "PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT";
+})(PipelineStageFlagBits || (PipelineStageFlagBits = {}));
+// copy values from VkFormat in vulkan_core.h
+export var Format;
+(function (Format) {
+    Format[Format["R8UI"] = 13] = "R8UI";
+    Format[Format["R16UI"] = 74] = "R16UI";
+    Format[Format["R32UI"] = 98] = "R32UI";
+    Format[Format["RG32F"] = 103] = "RG32F";
+    Format[Format["RGB32F"] = 106] = "RGB32F";
+    Format[Format["RGBA32F"] = 109] = "RGBA32F";
+})(Format || (Format = {}));
+export const FormatInfos = {
+    [Format.R8UI]: { name: "R8UI", size: 1, count: 1 },
+    [Format.R16UI]: { name: "R16UI", size: 2, count: 1 },
+    [Format.R32UI]: { name: "R32UI", size: 4, count: 1 },
+    [Format.RG32F]: { name: "RG32F", size: 8, count: 2 },
+    [Format.RGB32F]: { name: "RGB32F", size: 12, count: 3 },
+    [Format.RGBA32F]: { name: "RGBA32F", size: 16, count: 4 },
 };
+// copy values from VkVertexInputRate in vulkan_core.h
+export var VertexInputRate;
+(function (VertexInputRate) {
+    VertexInputRate[VertexInputRate["VERTEX"] = 0] = "VERTEX";
+    VertexInputRate[VertexInputRate["INSTANCE"] = 1] = "INSTANCE";
+})(VertexInputRate || (VertexInputRate = {}));
+// copy values from VkIndexType in vulkan_core.h
+export var IndexType;
+(function (IndexType) {
+    IndexType[IndexType["UINT16"] = 0] = "UINT16";
+    IndexType[IndexType["UINT32"] = 1] = "UINT32";
+})(IndexType || (IndexType = {}));
+// copy values from VkDescriptorType in vulkan_core.h
 export var DescriptorType;
 (function (DescriptorType) {
-    DescriptorType[DescriptorType["UNIFORM_BUFFER"] = 1] = "UNIFORM_BUFFER";
-    DescriptorType[DescriptorType["SAMPLER_TEXTURE"] = 16] = "SAMPLER_TEXTURE";
+    DescriptorType[DescriptorType["SAMPLER_TEXTURE"] = 1] = "SAMPLER_TEXTURE";
+    DescriptorType[DescriptorType["UNIFORM_BUFFER"] = 6] = "UNIFORM_BUFFER";
+    DescriptorType[DescriptorType["UNIFORM_BUFFER_DYNAMIC"] = 8] = "UNIFORM_BUFFER_DYNAMIC";
 })(DescriptorType || (DescriptorType = {}));
-function buildDescriptorSetLayout(res) {
-    const bindings = [];
-    for (const name in res.blocks) {
-        const block = res.blocks[name];
-        bindings[block.binding] = { binding: block.binding, descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 };
-    }
-    return { bindings };
-}
-export const BuiltinDescriptorSetLayouts = {
-    global: buildDescriptorSetLayout(BuiltinUniformBlocks.global),
-    local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
-};
+export var ClearFlagBit;
+(function (ClearFlagBit) {
+    ClearFlagBit[ClearFlagBit["NONE"] = 0] = "NONE";
+    ClearFlagBit[ClearFlagBit["COLOR"] = 1] = "COLOR";
+    ClearFlagBit[ClearFlagBit["DEPTH"] = 2] = "DEPTH";
+})(ClearFlagBit || (ClearFlagBit = {}));
 export var BlendFactor;
 (function (BlendFactor) {
     BlendFactor[BlendFactor["ZERO"] = 0] = "ZERO";

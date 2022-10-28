@@ -3,6 +3,7 @@
   "include": [
     "../../../../../script/core",
     "../../../../../script/platforms/webgl",
+    "../../main",
     "."
   ],
   "compilerOptions": {

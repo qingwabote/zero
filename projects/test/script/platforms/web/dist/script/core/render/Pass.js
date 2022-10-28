@@ -9,7 +9,11 @@ export default class Pass {
     }
     constructor(shader) {
         this._shader = shader;
-        this._descriptorSet = { layout: this._shader.descriptorSetLayout, buffers: [], textures: [] };
+        const descriptorSet = gfx.createDescriptorSet();
+        if (descriptorSet.initialize(this._shader.info.meta.descriptorSetLayout)) {
+            throw new Error("descriptorSet initialize failed");
+        }
+        this._descriptorSet = descriptorSet;
     }
 }
 //# sourceMappingURL=Pass.js.map

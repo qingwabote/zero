@@ -1,39 +1,49 @@
-import Buffer, { BufferInfo, BufferUsageBit } from "../../../core/gfx/Buffer.js";
+import Buffer, { BufferInfo, BufferUsageFlagBits } from "../../../core/gfx/Buffer.js";
 
-function usage2target(usage: BufferUsageBit): GLenum {
-    if (usage & BufferUsageBit.VERTEX) {
+function usage2target(usage: BufferUsageFlagBits): GLenum {
+    if (usage & BufferUsageFlagBits.VERTEX) {
         return WebGL2RenderingContext.ARRAY_BUFFER;
-    } else if (usage & BufferUsageBit.INDEX) {
+    } else if (usage & BufferUsageFlagBits.INDEX) {
         return WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER;
-    } else if (usage & BufferUsageBit.UNIFORM) {
+    } else if (usage & BufferUsageFlagBits.UNIFORM) {
         return WebGL2RenderingContext.UNIFORM_BUFFER;
     }
     return -1;
 }
 
-export default class WebBuffer extends Buffer {
-    private _gl: WebGL2RenderingContext | null = null;
+export default class WebBuffer implements Buffer {
+    private _gl: WebGL2RenderingContext;
 
-    private _buffer: WebGLBuffer;
+    private _buffer!: WebGLBuffer;
     get buffer(): WebGLBuffer {
         return this._buffer;
     }
 
-    constructor(gl: WebGL2RenderingContext, info: BufferInfo) {
-        super(info);
+    private _info!: BufferInfo;
+    get info(): BufferInfo {
+        return this._info;
+    }
+
+    constructor(gl: WebGL2RenderingContext) {
+        this._gl = gl;
+    }
+
+    initialize(info: BufferInfo): boolean {
+        const gl = this._gl;
 
         this._buffer = gl.createBuffer()!
         const target = usage2target(info.usage);
         gl.bindBuffer(target, this._buffer);
         gl.bufferData(target, info.size, gl.STATIC_DRAW);
-
         gl.bindBuffer(target, null);
-        this._gl = gl;
+
+        this._info = info;
+
+        return false;
     }
 
-    public update(buffer: Readonly<BufferSource>): void {
+    update(buffer: ArrayBufferView): void {
         const gl = this._gl;
-        if (!gl) return;
 
         const target = usage2target(this._info.usage);
 
@@ -43,5 +53,11 @@ export default class WebBuffer extends Buffer {
         gl.bufferSubData(target, 0, buffer);
 
         gl.bindBuffer(target, null);
+    }
+
+    destroy(): void {
+        const gl = this._gl;
+
+        gl.deleteBuffer(this._buffer);
     }
 }

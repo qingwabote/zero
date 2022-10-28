@@ -1,82 +1,117 @@
 import Buffer from "./Buffer.js";
-import Shader from "./Shader.js";
+import RenderPass from "./RenderPass.js";
+import Shader, { ShaderStageFlagBits } from "./Shader.js";
 import Texture from "./Texture.js";
 
-export const BuiltinUniformBlocks = {
-    global: {
-        set: 0,
-        blocks: {
-            Camera: {
-                binding: 0,
-                // uniforms: {
-                //     matProj: {}
-                // }
-            }
-        }
-    },
-    local: {
-        set: 1,
-        blocks: {
-            Local: {
-                binding: 0,
-                // uniforms: {
-                //     matWorld: {}
-                // }
-            }
-        }
-    }
+// copy values from VkPipelineStageFlagBits in vulkan_core.h
+export enum PipelineStageFlagBits {
+    PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400
+}
+export type PipelineStageFlags = PipelineStageFlagBits;
+
+// copy values from VkFormat in vulkan_core.h
+export enum Format {
+    R8UI = 13,
+    R16UI = 74,
+    R32UI = 98,
+    RG32F = 103,
+    RGB32F = 106,
+    RGBA32F = 109
 }
 
+interface FormatInfo {
+    readonly name: string;
+    readonly size: number
+    readonly count: number;
+}
+
+export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
+    [Format.R8UI]: { name: "R8UI", size: 1, count: 1 },
+    [Format.R16UI]: { name: "R16UI", size: 2, count: 1 },
+    [Format.R32UI]: { name: "R32UI", size: 4, count: 1 },
+    [Format.RG32F]: { name: "RG32F", size: 8, count: 2 },
+    [Format.RGB32F]: { name: "RGB32F", size: 12, count: 3 },
+    [Format.RGBA32F]: { name: "RGBA32F", size: 16, count: 4 },
+}
+
+// copy values from VkVertexInputRate in vulkan_core.h
+export enum VertexInputRate {
+    VERTEX = 0,
+    INSTANCE = 1
+}
+
+export interface VertexInputBindingDescription {
+    readonly binding: number;
+    readonly stride: number;
+    readonly inputRate: VertexInputRate;
+}
+
+export interface VertexInputAttributeDescription {
+    readonly location: number;
+    readonly binding: number;
+    readonly format: Format;
+    readonly offset: number
+}
+
+export interface VertexInputState {
+    readonly attributes: VertexInputAttributeDescription[];
+    readonly bindings: VertexInputBindingDescription[];
+    readonly hash: string;
+}
+
+// copy values from VkIndexType in vulkan_core.h
+export enum IndexType {
+    UINT16 = 0,
+    UINT32 = 1,
+}
+
+/**
+ * InputAssembler is an immutable object, it correspond to a vao in WebGL.
+ */
+export interface InputAssembler {
+    vertexInputState: VertexInputState;
+    vertexBuffers: Buffer[];
+    vertexOffsets: number[];
+    indexBuffer: Buffer;
+    indexType: IndexType;
+    indexCount: number;
+    indexOffset: number
+}
+
+// copy values from VkDescriptorType in vulkan_core.h
 export enum DescriptorType {
-    UNIFORM_BUFFER = 0x1,
-    SAMPLER_TEXTURE = 0x10,
+    SAMPLER_TEXTURE = 1,
+    UNIFORM_BUFFER = 6,
+    UNIFORM_BUFFER_DYNAMIC = 8,
 }
 
 export interface DescriptorSetLayoutBinding {
     readonly binding: number;
     readonly descriptorType: DescriptorType;
-    readonly count: number;
-    // readonly stageFlags: ShaderStageFlags;
+    readonly descriptorCount: number;
+    readonly stageFlags: ShaderStageFlagBits;
 }
 
 export interface DescriptorSetLayout {
-    readonly bindings: DescriptorSetLayoutBinding[]
+    initialize(bindings: DescriptorSetLayoutBinding[]): boolean;
 }
 
 export interface DescriptorSet {
-    readonly layout: DescriptorSetLayout;
-    readonly buffers: Buffer[];
-    readonly textures: Texture[];
+    initialize(layout: DescriptorSetLayout): boolean;
+    bindBuffer(binding: number, buffer: Buffer, range?: number): void;
+    bindTexture(binding: number, texture: Texture): void;
 }
+
 
 export interface PipelineLayout {
-    readonly setLayouts: DescriptorSetLayout[];
+    initialize(setLayouts: DescriptorSetLayout[]): boolean;
 }
 
-function buildDescriptorSetLayout(res: {
-    set: number,
-    blocks: Record<string, { binding: number }>
-}): DescriptorSetLayout {
-    const bindings: DescriptorSetLayoutBinding[] = [];
-    for (const name in res.blocks) {
-        const block = res.blocks[name];
-        bindings[block.binding] = { binding: block.binding, descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 }
-    }
-    return { bindings }
+export enum ClearFlagBit {
+    NONE = 0,
+    COLOR = 0x1,
+    DEPTH = 0x2
 }
-
-export const BuiltinDescriptorSetLayouts = {
-    global: buildDescriptorSetLayout(BuiltinUniformBlocks.global),
-    local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
-}
-
-
-// export const pipelineLayout: PipelineLayout = {
-//     setLayouts: [
-//         globalDescriptorSetLayout,
-//         localDescriptorSetLayout
-//     ]
-// }
 
 export interface DepthStencilState {
     depthTest: boolean;
@@ -112,9 +147,13 @@ export interface BlendState {
     blends: Blend[];
 }
 
-export default interface Pipeline {
+export interface PipelineInfo {
     readonly shader: Shader;
-    readonly depthStencilState: Readonly<DepthStencilState>;
-    readonly blendState: Readonly<BlendState>;
-    // readonly layout: PipelineLayout;
+    readonly vertexInputState: VertexInputState;
+    readonly layout: PipelineLayout;
+    readonly renderPass: RenderPass;
+}
+
+export default interface Pipeline {
+    initialize(info: PipelineInfo): boolean;
 }

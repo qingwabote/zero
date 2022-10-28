@@ -1,24 +1,24 @@
-import Texture from "../../../core/gfx/Texture.js";
-export default class WebTexture extends Texture {
+export default class WebTexture {
     _gl;
     _texture;
     get texture() {
         return this._texture;
     }
+    _info;
+    get info() {
+        return this._info;
+    }
     constructor(gl) {
-        super();
         this._gl = gl;
     }
     initialize(info) {
         const gl = this._gl;
         this._texture = gl.createTexture();
-    }
-    update(imageBitmap) {
-        const gl = this._gl;
         gl.bindTexture(gl.TEXTURE_2D, this._texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, imageBitmap.width, imageBitmap.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA8, info.width, info.height);
         gl.bindTexture(gl.TEXTURE_2D, null);
+        this._info = info;
+        return false;
     }
 }
 //# sourceMappingURL=WebTexture.js.map

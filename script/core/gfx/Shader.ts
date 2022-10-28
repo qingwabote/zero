@@ -1,20 +1,14 @@
-import { DescriptorSetLayout, DescriptorType } from "./Pipeline.js";
+import { DescriptorSetLayout } from "./Pipeline.js";
 
-export enum ShaderStageFlags {
+// copy values from VkShaderStageFlagBits in vulkan_core.h
+export enum ShaderStageFlagBits {
     VERTEX = 0x1,
-    FRAGMENT = 0x10,
-    ALL = 0x3f
-}
-
-export interface ShaderInfo {
-    readonly name: string;
-    readonly stages: ShaderStage[];
-    readonly macros: Readonly<Record<string, number>>;
+    FRAGMENT = 0x10
 }
 
 export interface ShaderStage {
-    readonly type: ShaderStageFlags
-    readonly source: string
+    type: ShaderStageFlagBits
+    source: string
 }
 
 export interface Attribute {
@@ -26,53 +20,21 @@ export interface Uniform {
     binding: number;
 }
 
-export default abstract class Shader {
-    protected _info!: ShaderInfo;
-    get info(): ShaderInfo {
-        return this._info;
-    }
+export interface Meta {
+    attributes: Record<string, Attribute>;
+    samplerTextures: Record<string, Uniform>;
+    blocks: Record<string, Uniform>;
+    descriptorSetLayout: DescriptorSetLayout;
+}
 
-    protected _attributes: Record<string, Attribute> = {};
-    get attributes(): Readonly<Record<string, Attribute>> {
-        return this._attributes;
-    }
+export interface ShaderInfo {
+    readonly name: string;
+    readonly hash: string;
+    readonly stages: Readonly<ShaderStage[]>;
+    readonly meta: Meta;
+}
 
-    protected _descriptorSetLayout: DescriptorSetLayout = { bindings: [] };
-    get descriptorSetLayout(): DescriptorSetLayout {
-        return this._descriptorSetLayout;
-    }
-
-    protected _samplerTextures: Record<string, Uniform> = {};
-    protected _blocks: Record<string, Uniform> = {};
-
-    initialize(info: ShaderInfo): void {
-        this._info = info;
-
-        const vertexStage = info.stages.find(stage => stage.type == ShaderStageFlags.VERTEX)!;
-        const matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
-        for (const match of matches) {
-            this._attributes[match[2]] = { location: parseInt(match[1]) }
-        }
-
-        const compiled: ShaderStage[] = [];
-        for (const stage of info.stages) {
-            const src = stage.source.replace(/layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/g, this.compileUniform.bind(this))
-            compiled.push({ type: stage.type, source: src })
-        }
-
-        this.compileShader(compiled, this._blocks, this._samplerTextures);
-    }
-
-    protected compileUniform(content: string, set: string, binding: string, type: string, name: string): string {
-        if (!type) {
-            // this._descriptorSetLayout.bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 })
-            this._blocks[name] = { set: parseInt(set), binding: parseInt(binding) };
-        } else if (type == 'sampler2D') {
-            this._descriptorSetLayout.bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.SAMPLER_TEXTURE, count: 1 });
-            this._samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
-        }
-        return content;
-    }
-
-    protected abstract compileShader(stages: ShaderStage[], blocks: Record<string, Uniform>, samplerTextures: Record<string, Uniform>): void;
+export default interface Shader {
+    get info(): ShaderInfo;
+    initialize(info: ShaderInfo): void;
 }

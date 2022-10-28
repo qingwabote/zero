@@ -1,9 +1,9 @@
 import Component from "./Component.js";
-import game from "./game.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";
-import render, { TransformSource } from "./render.js";
+import { RenderNode } from "./render/RenderNode.js";
+import VisibilityBit from "./render/VisibilityBit.js";
 import EventEmitter from "./utils/EventEmitter.js";
 
 export enum TransformBit {
@@ -21,11 +21,13 @@ interface EventMap {
     TRANSFORM_CHANGED: (flag: TransformBit) => void;
 }
 
-export default class Node implements TransformSource {
+export default class Node implements RenderNode {
     private _name: string;
     get name(): string {
         return this._name;
     }
+
+    visibility: VisibilityBit = VisibilityBit.DEFAULT;
 
     private _dirtyFlag = TransformBit.TRS;
 
@@ -92,7 +94,7 @@ export default class Node implements TransformSource {
 
     addComponent<T extends Component>(constructor: ComponentConstructor<T>): T {
         const component = new constructor(this);
-        game.componentScheduler.add(component);
+        zero.componentScheduler.add(component);
         this._components.push(component);
         return component;
     }
@@ -113,7 +115,7 @@ export default class Node implements TransformSource {
 
     private dirty(flag: TransformBit): void {
         this._dirtyFlag |= flag;
-        render.dirtyTransforms.set(this, this);
+        zero.dirtyTransforms.set(this, this);
         this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
         for (const child of this._children.keys()) {
             child.dirty(flag);

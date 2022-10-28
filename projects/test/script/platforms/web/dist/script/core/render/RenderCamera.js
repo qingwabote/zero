@@ -1,7 +1,7 @@
-import gfx from "../gfx.js";
-import { BufferUsageBit } from "../gfx/Buffer.js";
+import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4 from "../math/mat4.js";
-import render from "../render.js";
+import vec3 from "../math/vec3.js";
+import VisibilityBit from "./VisibilityBit.js";
 export default class RenderCamera {
     _dirty = true;
     _orthoHeight = -1;
@@ -20,6 +20,8 @@ export default class RenderCamera {
         this._fov = value;
         this._dirty = true;
     }
+    visibilities = VisibilityBit.DEFAULT;
+    clearFlags = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
     _viewport = { x: 0, y: 0, width: 1, height: 1 };
     get viewport() {
         return this._viewport;
@@ -29,49 +31,46 @@ export default class RenderCamera {
         this._dirty = true;
     }
     _matView = mat4.create();
+    get matView() {
+        return this._matView;
+    }
     _matProj = mat4.create();
-    _uboSrc;
-    _ubo;
-    get ubo() {
-        return this._ubo;
+    get matProj() {
+        return this._matProj;
+    }
+    _position = vec3.create();
+    get position() {
+        return this._position;
     }
     _window;
-    _transform;
-    constructor(window, transform) {
-        render.dirtyTransforms.set(transform, transform);
-        this._uboSrc = new Float32Array(this._matView.length + this._matProj.length);
-        this._ubo = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: this._uboSrc.byteLength });
+    _node;
+    constructor(window, node) {
+        zero.dirtyTransforms.set(node, node);
         this._window = window;
-        this._transform = transform;
+        this._node = node;
     }
     update() {
-        let uboDirty = false;
-        let offset = 0;
-        if (render.dirtyTransforms.has(this._transform)) {
-            this._transform.updateMatrix();
-            const matView = mat4.create();
-            mat4.invert(matView, this._transform.matrix);
-            this._uboSrc.set(matView, offset);
-            uboDirty = true;
+        let dataDirty = false;
+        if (zero.dirtyTransforms.has(this._node)) {
+            this._node.updateMatrix();
+            mat4.invert(this._matView, this._node.matrix);
+            vec3.transformMat4(this._position, vec3.create(0, 0, 0), this._node.matrix);
+            dataDirty = true;
         }
-        offset += 16;
         if (this._dirty) {
             const aspect = (this._window.width * this._viewport.width) / (this._window.height * this._viewport.height);
             if (this.orthoHeight != -1) {
                 const x = this.orthoHeight * aspect;
                 const y = this.orthoHeight;
-                mat4.ortho(this._matProj, -x, x, -y, y, 1, 2000);
+                mat4.ortho(this._matProj, -x, x, -y, y, 1, 2000, gfx.capabilities.clipSpaceMinZ);
             }
             else if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, 1, 1000);
             }
-            this._uboSrc.set(this._matProj, offset);
-            uboDirty = true;
+            dataDirty = true;
             this._dirty = false;
         }
-        if (uboDirty) {
-            this._ubo.update(this._uboSrc);
-        }
+        return dataDirty;
     }
 }
 //# sourceMappingURL=RenderCamera.js.map

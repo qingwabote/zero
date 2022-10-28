@@ -1,0 +1,11 @@
+{
+  "extends": "../../../../../script/tsconfig.json",
+  "include": [
+    "../../../../../script/core",
+    "../../../../../script/platforms/webgl",
+    "../../main"
+  ],
+  "compilerOptions": {
+    "outDir": "dist"
+  }
+}

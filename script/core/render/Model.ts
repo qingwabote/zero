@@ -1,10 +1,11 @@
-import gfx from "../gfx.js";
-import Buffer, { BufferUsageBit } from "../gfx/Buffer.js";
-import { BuiltinDescriptorSetLayouts, BuiltinUniformBlocks, DescriptorSet } from "../gfx/Pipeline.js";
-import render, { TransformSource } from "../render.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
+import { DescriptorSet } from "../gfx/Pipeline.js";
+import mat4 from "../math/mat4.js";
+import shaders from "../shaders.js";
+import { RenderNode } from "./RenderNode.js";
 import SubModel from "./SubModel.js";
 
-const float32Array = new Float32Array(16);
+const float32Array = new Float32Array(shaders.builtinUniformBlocks.local.blocks.Local.size / Float32Array.BYTES_PER_ELEMENT);
 
 export default class Model {
     private _descriptorSet: DescriptorSet;
@@ -17,24 +18,36 @@ export default class Model {
         return this._subModels;
     }
 
-    private _transform: TransformSource;
+    private _localBuffer: Buffer;
 
-    constructor(subModels: SubModel[], transform: TransformSource) {
-        render.dirtyTransforms.set(transform, transform);
+    private _node: RenderNode;
+    get node(): RenderNode {
+        return this._node;
+    }
 
-        const buffers: Buffer[] = [];
-        buffers[BuiltinUniformBlocks.local.blocks.Local.binding] = gfx.device.createBuffer({ usage: BufferUsageBit.UNIFORM, size: float32Array.byteLength, stride: 1 });
-        this._descriptorSet = { layout: BuiltinDescriptorSetLayouts.local, buffers, textures: [] };
+    constructor(subModels: SubModel[], node: RenderNode) {
+        zero.dirtyTransforms.set(node, node);
+
+        this._localBuffer = gfx.createBuffer();
+        this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: float32Array.byteLength });
+
+        const descriptorSet = gfx.createDescriptorSet();
+        if (descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local)) {
+            throw new Error("descriptorSet initialize failed");
+        }
+        descriptorSet.bindBuffer(shaders.builtinUniformBlocks.local.blocks.Local.binding, this._localBuffer);
+        this._descriptorSet = descriptorSet;
 
         this._subModels = subModels;
-        this._transform = transform;
+        this._node = node;
     }
 
     update() {
-        if (render.dirtyTransforms.has(this._transform)) {
-            this._transform.updateMatrix();
-            float32Array.set(this._transform.matrix);
-            this._descriptorSet.buffers[BuiltinUniformBlocks.local.blocks.Local.binding].update(float32Array);
+        if (zero.dirtyTransforms.has(this._node)) {
+            this._node.updateMatrix();
+            float32Array.set(this._node.matrix);
+            float32Array.set(mat4.inverseTranspose(mat4.create(), this._node.matrix), 16);
+            this._localBuffer.update(float32Array);
         }
     }
 }
