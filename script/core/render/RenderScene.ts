@@ -46,15 +46,16 @@ export default class RenderScene {
 
         const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
         const camerasUboSize = CameraBlock.size * this._cameras.length;
-        this._camerasUbo.reset(camerasUboSize);
+        this._camerasUbo.resize(camerasUboSize);
 
         let camerasDataOffset = 0;
         let camerasDataDirty = false;
         for (let i = 0; i < this._cameras.length; i++) {
             const camera = this._cameras[i];
             if (camera.update()) {
-                this._camerasUbo.set(camera.matView, camerasDataOffset);
-                this._camerasUbo.set(camera.matProj, camerasDataOffset + camera.matView.length);
+                this._camerasUbo.set(camera.matView, camerasDataOffset + CameraBlock.uniforms.matView.offset);
+                this._camerasUbo.set(camera.matProj, camerasDataOffset + CameraBlock.uniforms.matProj.offset);
+                this._camerasUbo.set(camera.position, camerasDataOffset + CameraBlock.uniforms.cameraPos.offset);
                 camerasDataDirty = true;
             }
             camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;

@@ -23,10 +23,17 @@ const builtinUniformBlocks = {
             Camera: {
                 binding: 1,
                 uniforms: {
-                    matView: {},
-                    matProj: {}
+                    matView: {
+                        offset: 0
+                    },
+                    matProj: {
+                        offset: 16
+                    },
+                    cameraPos: {
+                        offset: 16 + 16
+                    }
                 },
-                size: align((16 + 16) * FLOAT32_BYTES),
+                size: align((16 + 16 + 4) * FLOAT32_BYTES),
                 dynamic: true
             }
         }

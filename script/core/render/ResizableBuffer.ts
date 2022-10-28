@@ -22,8 +22,16 @@ export default class ResizableBuffer {
         if (this._array.length >= length) {
             return;
         }
-
         this._array = new Float32Array(length);
+    }
+
+    resize(length: number) {
+        if (this._array.length >= length) {
+            return;
+        }
+        const array = new Float32Array(length);
+        array.set(this._array, 0);
+        this._array = array;
     }
 
     set(array: ArrayLike<number>, offset?: number) {

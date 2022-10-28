@@ -13,15 +13,23 @@ layout(location = 2) in vec3 v_position;
 layout(location = 0) out vec4 v_color;
 
 void main() {
-    vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 albedo = vec4(1.0, 1.0, 1.0, 1.0);
 
     #if USE_ALBEDO_MAP
-        baseColor *= texture(albedoMap, v_uv);
+        albedo *= texture(albedoMap, v_uv);
     #endif
 
     vec3 litColor = vec3(1.0, 1.0, 1.0);
-    vec3 diffuse = litColor * max(dot(v_normal, litDir), 0.0);
-    baseColor *= vec4(diffuse, 1.0);
 
-    v_color = baseColor;
+    vec3 diffuse = max(dot(v_normal, litDir), 0.0) * litColor;
+
+    float specularStrength = 0.5;
+    vec3 viewDir = normalize(cameraPos - v_position);
+    vec3 reflectDir = reflect(-litDir, v_normal);
+    vec3 specular = specularStrength * pow(max(dot(viewDir, reflectDir), 0.0), 32.0) * litColor;
+
+    float ambientStrength = 0.1;
+    vec3 ambient = ambientStrength * litColor;
+
+    v_color = albedo * vec4(diffuse + specular + ambient, 1.0);
 }

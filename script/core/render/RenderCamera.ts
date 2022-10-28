@@ -1,6 +1,7 @@
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
+import vec3, { Vec3 } from "../math/vec3.js";
 import { RenderNode } from "./RenderNode.js";
 import RenderWindow from "./RenderWindow.js";
 import VisibilityBit from "./VisibilityBit.js";
@@ -49,6 +50,11 @@ export default class RenderCamera {
         return this._matProj;
     }
 
+    private _position: Vec3 = vec3.create();
+    get position(): Vec3 {
+        return this._position;
+    }
+
     private _window: RenderWindow;
 
     private _node: RenderNode;
@@ -66,6 +72,7 @@ export default class RenderCamera {
         if (zero.dirtyTransforms.has(this._node)) {
             this._node.updateMatrix();
             mat4.invert(this._matView, this._node.matrix);
+            vec3.transformMat4(this._position, vec3.create(0, 0, 0), this._node.matrix);
 
             dataDirty = true;
         }
