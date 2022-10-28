@@ -1,60 +1,67 @@
-import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
-import { BuiltinUniformBlocks } from "../shaders.js";
+import { DescriptorSet } from "../gfx/Pipeline.js";
+import shaders from "../shaders.js";
 import Model from "./Model.js";
 import RenderCamera from "./RenderCamera.js";
+import RenderDirectionalLight from "./RenderDirectionalLight.js";
+import ResizableBuffer from "./ResizableBuffer.js";
 
 export default class RenderScene {
+    private _globalUbo: ResizableBuffer;
+    private _globalUboDirty: boolean = true;
+
+    private _directionalLight!: RenderDirectionalLight;
+    set directionalLight(value: RenderDirectionalLight) {
+        this._directionalLight = value;
+        this._globalUboDirty = true;
+    }
+
+    private _camerasUbo: ResizableBuffer;
+
     private _cameras: RenderCamera[] = [];
     get cameras(): RenderCamera[] {
         return this._cameras;
     }
-
-    private _camerasData: Float32Array | null = null;
-
-    private _camerasUbo: Buffer | null = null;
 
     private _models: Model[] = [];
     get models(): Model[] {
         return this._models;
     }
 
-    update(dt: number) {
-        const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
-        const CameraBlock = BuiltinUniformBlocks.global.blocks.Camera;
-        const cameraUboSize = Math.ceil(CameraBlock.size / alignment) * alignment;
-        const camerasUboSize = cameraUboSize * this._cameras.length;
-        const camerasDataLength = camerasUboSize / Float32Array.BYTES_PER_ELEMENT;
+    constructor(globalDescriptorSet: DescriptorSet) {
+        const GlobalBlock = shaders.builtinUniformBlocks.global.blocks.Global;
+        const globalUbo = new ResizableBuffer(globalDescriptorSet, GlobalBlock.binding);
+        globalUbo.reset(GlobalBlock.size);
+        this._globalUbo = globalUbo;
 
-        if (this._camerasData && this._camerasData.length < camerasDataLength) {
-            this._camerasData = null;
+        const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
+        this._camerasUbo = new ResizableBuffer(globalDescriptorSet, CameraBlock.binding, CameraBlock.size);
+    }
+
+    update(dt: number) {
+        if (this._globalUboDirty) {
+            this._globalUbo.set(this._directionalLight.direction, 0);
+            this._globalUbo.update();
+            this._globalUboDirty = false;
         }
-        if (!this._camerasData) {
-            this._camerasData = new Float32Array(camerasDataLength);
-        }
+
+        const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
+        const camerasUboSize = CameraBlock.size * this._cameras.length;
+        this._camerasUbo.reset(camerasUboSize);
 
         let camerasDataOffset = 0;
         let camerasDataDirty = false;
         for (let i = 0; i < this._cameras.length; i++) {
             const camera = this._cameras[i];
             if (camera.update()) {
-                this._camerasData.set(camera.matView, camerasDataOffset);
-                this._camerasData.set(camera.matProj, camerasDataOffset + camera.matView.length);
+                this._camerasUbo.set(camera.matView, camerasDataOffset);
+                this._camerasUbo.set(camera.matProj, camerasDataOffset + camera.matView.length);
                 camerasDataDirty = true;
             }
-            camerasDataOffset += cameraUboSize / Float32Array.BYTES_PER_ELEMENT;
+            camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;
         }
 
         if (camerasDataDirty) {
-            if (this._camerasUbo && this._camerasUbo.info.size < camerasUboSize) {
-                this._camerasUbo.destroy();
-                this._camerasUbo = null;
-            }
-            if (!this._camerasUbo) {
-                this._camerasUbo = gfx.createBuffer();
-                this._camerasUbo.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: camerasUboSize });
-                zero.globalDescriptorSet.bindBuffer(CameraBlock.binding, this._camerasUbo, cameraUboSize);
-            }
-            this._camerasUbo.update(this._camerasData);
+            this._camerasUbo.update();
         }
 
         for (let i = 0; i < this._models.length; i++) {

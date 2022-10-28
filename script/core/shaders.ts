@@ -2,26 +2,31 @@ import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType } from 
 import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
 
-interface BuiltinDescriptorSetLayouts {
-    global: DescriptorSetLayout,
-    local: DescriptorSetLayout
+function align(size: number) {
+    const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
+    return Math.ceil(size / alignment) * alignment;
 }
 
 const FLOAT32_BYTES = 4;
 
-export const BuiltinUniformBlocks = {
+const builtinUniformBlocks = {
     global: {
         set: 0,
         blocks: {
-            Camera: {
+            Global: {
                 binding: 0,
                 uniforms: {
-                    matView: {
-                    },
-                    matProj: {
-                    }
+                    litDir: {}
                 },
-                size: (16 + 16) * FLOAT32_BYTES,
+                size: 3 * FLOAT32_BYTES
+            },
+            Camera: {
+                binding: 1,
+                uniforms: {
+                    matView: {},
+                    matProj: {}
+                },
+                size: align((16 + 16) * FLOAT32_BYTES),
                 dynamic: true
             }
         }
@@ -32,9 +37,10 @@ export const BuiltinUniformBlocks = {
             Local: {
                 binding: 0,
                 uniforms: {
-                    matWorld: {
-                    }
-                }
+                    matWorld: {},
+                    matWorldIT: {}
+                },
+                size: (16 + 16) * FLOAT32_BYTES,
             }
         }
     },
@@ -54,7 +60,7 @@ function buildDescriptorSetLayout(res: {
             binding: block.binding,
             descriptorType: block.dynamic ? DescriptorType.UNIFORM_BUFFER_DYNAMIC : DescriptorType.UNIFORM_BUFFER,
             descriptorCount: 1,
-            stageFlags: ShaderStageFlagBits.VERTEX
+            stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
         }
     }
     const descriptorSetLayout = gfx.createDescriptorSetLayout();
@@ -62,22 +68,17 @@ function buildDescriptorSetLayout(res: {
     return descriptorSetLayout;
 }
 
-let _builtinDescriptorSetLayouts: BuiltinDescriptorSetLayouts;
-
 const name2source: Record<string, ShaderStage[]> = {};
 const name2macros: Record<string, Set<string>> = {};
 
 const shaders: Record<string, Shader> = {};
 
 export default {
-    get builtinDescriptorSetLayouts(): BuiltinDescriptorSetLayouts {
-        if (!_builtinDescriptorSetLayouts) {
-            _builtinDescriptorSetLayouts = {
-                global: buildDescriptorSetLayout(BuiltinUniformBlocks.global),
-                local: buildDescriptorSetLayout(BuiltinUniformBlocks.local)
-            }
-        }
-        return _builtinDescriptorSetLayouts;
+    builtinUniformBlocks,
+
+    builtinDescriptorSetLayouts: {
+        global: buildDescriptorSetLayout(builtinUniformBlocks.global),
+        local: buildDescriptorSetLayout(builtinUniformBlocks.local)
     },
 
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {

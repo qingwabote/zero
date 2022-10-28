@@ -1,4 +1,8 @@
-layout(set = 0, binding = 0) uniform Camera {
+layout(set = 0, binding = 0) uniform Global {
+    vec3 litDir;
+};
+
+layout(set = 0, binding = 1) uniform Camera {
     mat4 matView;
     mat4 matProj;
 };

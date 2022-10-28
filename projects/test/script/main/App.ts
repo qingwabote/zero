@@ -1,6 +1,7 @@
 import FNT from "../../../../script/core/assets/FNT.js";
 import GLTF from "../../../../script/core/assets/GLTF.js";
 import Camera from "../../../../script/core/components/Camera.js";
+import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
 import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
 import { ClearFlagBit } from "../../../../script/core/gfx/Pipeline.js";
@@ -21,17 +22,20 @@ export default class App extends Zero {
         let node: Node;
 
         node = new Node;
-        const cameraA = node.addComponent(Camera);
-        cameraA.fov = 45;
-        cameraA.viewport = { x: 0, y: 0, width: 0.5, height: 1 };
-        node.position = [0, 0, 10]
+        node.addComponent(DirectionalLight);
 
         node = new Node;
-        const cameraB = node.addComponent(Camera);
-        cameraB.fov = 45;
-        cameraB.viewport = { x: 0.5, y: 0, width: 0.5, height: 1 };
-        node.position = [0, 16, 0];
-        node.euler = [-90, 0, 0];
+        const cameraA = node.addComponent(Camera);
+        cameraA.fov = 45;
+        cameraA.viewport = { x: 0, y: 0, width: 1, height: 1 };
+        node.position = [0, 0, 10]
+
+        // node = new Node;
+        // const cameraB = node.addComponent(Camera);
+        // cameraB.fov = 45;
+        // cameraB.viewport = { x: 0.5, y: 0, width: 0.5, height: 1 };
+        // node.position = [0, 16, 0];
+        // node.euler = [-90, 0, 0];
 
         // FPS
         node = new Node;
@@ -59,6 +63,7 @@ export default class App extends Zero {
             await glTF.load('./asset/guardian_zelda_botw_fan-art/scene');
             const node = glTF.createScene("Sketchfab_Scene")!;
             node.addComponent(ZeroComponent);
+            node.position = [0, 0, 0];
         })();
 
         return false;

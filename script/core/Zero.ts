@@ -10,7 +10,7 @@ import Platfrom from "./Platfrom.js";
 import { RenderNode } from "./render/RenderNode.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
-import shaders, { BuiltinUniformBlocks } from "./shaders.js";
+import shaders from "./shaders.js";
 
 interface Frame {
     commandBuffer: CommandBuffer;
@@ -54,9 +54,6 @@ export default class Zero {
     }
 
     private _globalDescriptorSet!: DescriptorSet;
-    get globalDescriptorSet(): DescriptorSet {
-        return this._globalDescriptorSet;
-    }
 
     private _dirtyTransforms: Map<RenderNode, RenderNode> = new Map;
     get dirtyTransforms(): Map<RenderNode, RenderNode> {
@@ -75,10 +72,10 @@ export default class Zero {
 
         this._window = { width, height };
 
-        this._globalDescriptorSet = gfx.createDescriptorSet();
-        this._globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
-
-        this._renderScene = new RenderScene;
+        const globalDescriptorSet = gfx.createDescriptorSet();
+        globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
+        this._renderScene = new RenderScene(globalDescriptorSet);
+        this._globalDescriptorSet = globalDescriptorSet;
 
         for (let i = 0; i < 2; i++) {
             const commandBuffer = gfx.createCommandBuffer();
@@ -170,11 +167,10 @@ export default class Zero {
                         }
 
                         commandBuffer.bindPipeline(pipeline);
-                        const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
-                        const cameraUboSize = Math.ceil(BuiltinUniformBlocks.global.blocks.Camera.size / alignment) * alignment;
-                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.global.set, this._globalDescriptorSet, [cameraIndex * cameraUboSize]);
-                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.local.set, model.descriptorSet);
-                        commandBuffer.bindDescriptorSet(layout, BuiltinUniformBlocks.material.set, pass.descriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
+                            [cameraIndex * shaders.builtinUniformBlocks.global.blocks.Camera.size]);
+                        commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.local.set, model.descriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.material.set, pass.descriptorSet);
 
                         commandBuffer.draw();
                     }

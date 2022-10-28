@@ -32,3 +32,17 @@ export default interface Buffer {
     update(buffer: ArrayBufferView): void;
     destroy(): void;
 }
+
+export class EmptyBuffer implements Buffer {
+    get info(): BufferInfo {
+        return { usage: 0, mem_usage: 0, size: 0 };
+    }
+    initialize(info: BufferInfo): boolean {
+        return false;
+    }
+    update(buffer: ArrayBufferView): void {
+    }
+    destroy(): void {
+    }
+
+}

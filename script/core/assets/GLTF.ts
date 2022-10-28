@@ -19,7 +19,8 @@ import Texture from "./Texture.js";
 
 const builtinAttributes: Record<string, string> = {
     "POSITION": "a_position",
-    "TEXCOORD_0": "a_texCoord"
+    "TEXCOORD_0": "a_texCoord",
+    "NORMAL": "a_normal"
 }
 
 const formatPart1Names: Record<string, string> = {
@@ -69,7 +70,7 @@ export default class GLTF extends Asset {
         const textures = await Promise.all(json.images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
         this._materials = await Promise.all(json.materials.map(async (info: any) => {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-            const shader = await shaders.getShader('zero', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
+            const shader = await shaders.getShader('phong', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
             const pass = new Pass(shader);
             if (textureIdx != undefined) {
                 pass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
