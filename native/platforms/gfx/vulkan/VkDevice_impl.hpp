@@ -39,7 +39,7 @@ namespace binding
             VmaAllocation _depthImageAllocation;
             VkImageView _depthImageView;
 
-            RenderPass *_aRenderPass = nullptr;
+            RenderPass *_compatibleRenderPass = nullptr;
 
             std::vector<VkFramebuffer> _framebuffers;
 
@@ -66,6 +66,10 @@ namespace binding
             VkFormat swapchainImageFormat() { return _vkb_swapchain.image_format; }
 
             VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
+
+            uint32_t drawingBufferWidth() { return _vkb_swapchain.extent.width; }
+
+            uint32_t drawingBufferHeight() { return _vkb_swapchain.extent.height; }
 
             VmaAllocator allocator() { return _allocator; }
 

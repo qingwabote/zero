@@ -60,7 +60,7 @@ export default class RenderCamera {
     private _node: RenderNode;
 
     constructor(window: RenderWindow, node: RenderNode) {
-        zero.dirtyTransforms.set(node, node);
+        zero.renderScene.dirtyTransforms.set(node, node);
 
         this._window = window;
         this._node = node;
@@ -69,8 +69,8 @@ export default class RenderCamera {
     update(): boolean {
         let dataDirty = false;
 
-        if (zero.dirtyTransforms.has(this._node)) {
-            this._node.updateMatrix();
+        if (zero.renderScene.dirtyTransforms.has(this._node)) {
+            this._node.updateTransform();
             mat4.invert(this._matView, this._node.matrix);
             vec3.transformMat4(this._position, vec3.create(0, 0, 0), this._node.matrix);
 

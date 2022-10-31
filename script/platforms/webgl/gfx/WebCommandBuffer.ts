@@ -1,7 +1,7 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import Pipeline, { BlendFactor, ClearFlagBit, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
-import RenderPass from "../../../core/gfx/RenderPass.js";
+import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import RenderPass, { LOAD_OP } from "../../../core/gfx/RenderPass.js";
 import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
@@ -76,17 +76,21 @@ export default class WebCommandBuffer implements CommandBuffer {
     beginRenderPass(renderPass: RenderPass, viewport: Rect) {
         const gl = this._gl;
 
-        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        const x = gl.drawingBufferWidth * viewport.x;
+        const y = gl.drawingBufferHeight * viewport.y;
+        const width = gl.drawingBufferWidth * viewport.width;
+        const height = gl.drawingBufferHeight * viewport.height;
 
-        gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
+        gl.viewport(x, y, width, height);
+
+        gl.scissor(x, y, width, height);
 
         gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;
-        const clearFlags = renderPass.info.clearFlags;
-        if (clearFlags & ClearFlagBit.COLOR) {
+        if (renderPass.info.colorAttachments[0].loadOp == LOAD_OP.CLEAR) {
             flag |= gl.COLOR_BUFFER_BIT;
         }
-        if (clearFlags & ClearFlagBit.DEPTH) {
+        if (renderPass.info.depthStencilAttachment.loadOp == LOAD_OP.CLEAR) {
             flag |= gl.DEPTH_BUFFER_BIT;
         }
         gl.clear(flag)

@@ -23,19 +23,20 @@ export default class App extends Zero {
 
         node = new Node;
         node.addComponent(DirectionalLight);
+        node.position = [-1, 1, 1];
 
         node = new Node;
         const cameraA = node.addComponent(Camera);
         cameraA.fov = 45;
-        cameraA.viewport = { x: 0, y: 0, width: 1, height: 1 };
-        node.position = [0, 0, 10]
+        cameraA.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
+        node.position = [0, 0.5, 8]
 
-        // node = new Node;
-        // const cameraB = node.addComponent(Camera);
-        // cameraB.fov = 45;
-        // cameraB.viewport = { x: 0.5, y: 0, width: 0.5, height: 1 };
-        // node.position = [0, 16, 0];
-        // node.euler = [-90, 0, 0];
+        node = new Node;
+        const cameraB = node.addComponent(Camera);
+        cameraB.fov = 45;
+        cameraB.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
+        node.position = [0, 8, 0];
+        node.euler = [-90, 0, 0];
 
         // FPS
         node = new Node;
@@ -63,7 +64,6 @@ export default class App extends Zero {
             await glTF.load('./asset/guardian_zelda_botw_fan-art/scene');
             const node = glTF.createScene("Sketchfab_Scene")!;
             node.addComponent(ZeroComponent);
-            node.position = [0, 0, 0];
         })();
 
         return false;

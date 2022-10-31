@@ -14,7 +14,12 @@ namespace binding
 
         bool RenderPass::initialize(v8::Local<v8::Object> info)
         {
-            uint32_t clearFlags = sugar::v8::object_get(info, "clearFlags").As<v8::Number>()->Value();
+            v8::Isolate *isolate = v8::Isolate::GetCurrent();
+            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+            auto js_colorAttachments = sugar::v8::object_get(info, "colorAttachments").As<v8::Array>();
+            auto js_colorAttachment = js_colorAttachments->Get(context, 0).ToLocalChecked().As<v8::Object>();
+            auto js_depthStencilAttachment = sugar::v8::object_get(info, "depthStencilAttachment").As<v8::Object>();
 
             // subpass
             // we are going to create 1 subpass, which is the minimum you can do
@@ -42,45 +47,26 @@ namespace binding
             color_attachment.format = _impl->_device->swapchainImageFormat();
             // 1 sample, we won't be doing MSAA
             color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            // enum ClearFlagBit {
-            //     NONE = 0,
-            //     COLOR = 0x1,
-            //     DEPTH = 0x2
-            // }
-            if (clearFlags & 0x1)
-            {
-                color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-                color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            }
-            else
-            {
-                color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-                color_attachment.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            }
+            color_attachment.loadOp = static_cast<VkAttachmentLoadOp>(sugar::v8::object_get(js_colorAttachment, "loadOp").As<v8::Number>()->Value());
+            color_attachment.initialLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_colorAttachment, "initialLayout").As<v8::Number>()->Value());
+
             // we keep the attachment stored when the renderpass ends
             color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            color_attachment.finalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_colorAttachment, "finalLayout").As<v8::Number>()->Value());
             // depth attachment
             VkAttachmentDescription depth_attachment = {};
             depth_attachment.flags = 0;
             depth_attachment.format = _impl->_device->depthFormat();
             depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            if (clearFlags & 0x2)
-            {
-                depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-                depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            }
-            else
-            {
-                depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-                depth_attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            }
+            depth_attachment.loadOp = static_cast<VkAttachmentLoadOp>(sugar::v8::object_get(js_depthStencilAttachment, "loadOp").As<v8::Number>()->Value());
+            depth_attachment.initialLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_depthStencilAttachment, "initialLayout").As<v8::Number>()->Value());
+
             depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            depth_attachment.finalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_depthStencilAttachment, "finalLayout").As<v8::Number>()->Value());
             VkAttachmentDescription attachments[2] = {color_attachment, depth_attachment};
             render_pass_info.pAttachments = attachments;
             render_pass_info.attachmentCount = 2;

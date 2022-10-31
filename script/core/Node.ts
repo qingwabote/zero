@@ -57,6 +57,11 @@ export default class Node implements RenderNode {
         this.dirty(TransformBit.ROTATION);
     }
 
+    private _rotationWorld: Quat = quat.create()
+    get rotationWorld(): Readonly<Quat> {
+        return this._rotationWorld;
+    }
+
     get euler(): Readonly<Vec3> {
         return quat.toEuler(vec3.create(), this._rotation);
     }
@@ -115,14 +120,14 @@ export default class Node implements RenderNode {
 
     private dirty(flag: TransformBit): void {
         this._dirtyFlag |= flag;
-        zero.dirtyTransforms.set(this, this);
+        zero.renderScene.dirtyTransforms.set(this, this);
         this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
         for (const child of this._children.keys()) {
             child.dirty(flag);
         }
     }
 
-    public updateMatrix(): void {
+    public updateTransform(): void {
         if (this._dirtyFlag == TransformBit.NONE) return;
 
         if (!this._parent) {
@@ -130,16 +135,18 @@ export default class Node implements RenderNode {
             //     mat4.translate2(this._matrix, this._matrix, this._position);
             // }
             mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
+            quat.copy(this._rotationWorld, this._rotation);
             this._dirtyFlag = TransformBit.NONE;
             return;
         }
 
-        this._parent.updateMatrix();
+        this._parent.updateTransform();
         // if (this._dirtyFlag & TransformBit.POSITION) {
         // const worldPos = vec3.transformMat4(vec3.create(), this._position, this._parent.matrix)
         // mat4.translate2(this._matrix, this._matrix, worldPos);
         mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
+        quat.multiply(this._rotationWorld, this._parent.rotationWorld, this._rotation);
         this._dirtyFlag = TransformBit.NONE;
         // }
     }

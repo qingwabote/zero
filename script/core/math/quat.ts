@@ -136,5 +136,13 @@ export default {
         out[2] = -a[2] * invDot;
         out[3] = a[3] * invDot;
         return out;
+    },
+
+    copy(out: Quat, a: Readonly<Quat>) {
+        out[0] = a[0];
+        out[1] = a[1];
+        out[2] = a[2];
+        out[3] = a[3];
+        return out;
     }
 }

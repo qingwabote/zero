@@ -14,5 +14,5 @@ void main() {
     v_normal = normalize((matWorldIT * vec4(a_normal, 0.0)).xyz);
     v_position = (matWorld * a_position).xyz;
 
-    gl_Position = matProj * (matView * matWorld) * a_position;
+    gl_Position = matProj * matView * matWorld * a_position;
 }

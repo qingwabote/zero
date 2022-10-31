@@ -171,16 +171,27 @@ namespace binding
             // default framebuffers
             VkFramebufferCreateInfo fb_info = {};
             fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-
-            RenderPass *aRenderPass = createRenderPass();
-            v8::Local<v8::Object> renderPassInfo = v8::Object::New(v8::Isolate::GetCurrent());
-            sugar::v8::object_set(
-                renderPassInfo,
-                "clearFlags",
-                v8::Number::New(v8::Isolate::GetCurrent(), 0));
-            aRenderPass->initialize(renderPassInfo);
-            fb_info.renderPass = aRenderPass->impl(); // https://github.com/KhronosGroup/Vulkan-Docs/issues/1147
-            _impl->_aRenderPass = aRenderPass;
+            auto src = R"(
+                const renderPassInfo = {
+                    colorAttachments: [{
+                        loadOp: 0,
+                        initialLayout: 1,
+                        finalLayout: 1
+                    }],
+                    depthStencilAttachment: {
+                        loadOp: 0,
+                        initialLayout: 1,
+                        finalLayout: 1
+                    },
+                    hash: ""
+                };
+                renderPassInfo;
+            )";
+            auto renderPassInfo = sugar::v8::run(src).As<v8::Object>();
+            RenderPass *compatibleRenderPass = createRenderPass();
+            compatibleRenderPass->initialize(renderPassInfo);
+            fb_info.renderPass = compatibleRenderPass->impl(); // https://github.com/KhronosGroup/Vulkan-Docs/issues/1147
+            _impl->_compatibleRenderPass = compatibleRenderPass;
 
             fb_info.width = _impl->_vkb_swapchain.extent.width;
             fb_info.height = _impl->_vkb_swapchain.extent.height;
@@ -302,7 +313,7 @@ namespace binding
             vkDestroyDescriptorPool(vkb_device.device, _impl->_descriptorPool, nullptr);
             vkDestroyCommandPool(vkb_device.device, _impl->_commandPool, nullptr);
 
-            delete _impl->_aRenderPass;
+            delete _impl->_compatibleRenderPass;
 
             for (int i = 0; i < _impl->_framebuffers.size(); i++)
             {

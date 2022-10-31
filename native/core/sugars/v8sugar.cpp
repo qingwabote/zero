@@ -343,6 +343,28 @@ namespace sugar::v8
         gc->Call(context, context->Global(), 0, nullptr);
     }
 
+    _v8::Local<_v8::Value> run(const char *source)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        _v8::EscapableHandleScope scope(isolate);
+        _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
+
+        _v8::TryCatch try_catch(isolate);
+        _v8::Local<_v8::Script> script;
+        if (!_v8::Script::Compile(context, _v8::String::NewFromUtf8(isolate, source).ToLocalChecked()).ToLocal(&script))
+        {
+            tryCatch_print(try_catch);
+            return {};
+        }
+        _v8::Local<_v8::Value> result;
+        if (!script->Run(context).ToLocal(&result))
+        {
+            tryCatch_print(try_catch);
+            return {};
+        }
+        return scope.Escape(result);
+    }
+
     Class::Class(const char *name)
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();

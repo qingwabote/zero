@@ -4,6 +4,10 @@ import { Quat } from "./quat.js";
 export type Vec3 = [number, number, number];
 
 export default {
+    get zero(): Readonly<Vec3> {
+        return [0, 0, 0];
+    },
+
     create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
         return [x, y, z]
     },
