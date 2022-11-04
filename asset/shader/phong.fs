@@ -21,15 +21,15 @@ void main() {
 
     vec3 litColor = vec3(1.0, 1.0, 1.0);
 
-    vec3 diffuse = max(dot(v_normal, litDir), 0.0) * litColor;
+    vec3 diffuse = max(dot(v_normal, global.litDir), 0.0) * litColor;
 
     float specularStrength = 0.5;
-    vec3 viewDir = normalize(cameraPos - v_position);
+    vec3 viewDir = normalize(camera.position - v_position);
     #if BLINN_PHONG
-        vec3 halfwayDir = normalize(litDir + viewDir);
+        vec3 halfwayDir = normalize(global.litDir + viewDir);
         vec3 specular = specularStrength * pow(max(dot(v_normal, halfwayDir), 0.0), 16.0) * litColor;
     #else
-        vec3 reflectDir = reflect(-litDir, v_normal);
+        vec3 reflectDir = reflect(-global.litDir, v_normal);
         vec3 specular = specularStrength * pow(max(dot(viewDir, reflectDir), 0.0), 8.0) * litColor;
     #endif
 

@@ -11,8 +11,8 @@ layout(location = 2) out vec3 v_position;
 
 void main() {
     v_uv = a_texCoord;
-    v_normal = normalize((matWorldIT * vec4(a_normal, 0.0)).xyz);
-    v_position = (matWorld * a_position).xyz;
+    v_normal = normalize((local.modelIT * vec4(a_normal, 0.0)).xyz);
+    v_position = (local.model * a_position).xyz;
 
-    gl_Position = matProj * matView * matWorld * a_position;
+    gl_Position = camera.projection * camera.view * local.model * a_position;
 }

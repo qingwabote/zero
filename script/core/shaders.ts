@@ -10,6 +10,18 @@ function align(size: number) {
 const FLOAT32_BYTES = 4;
 
 const builtinUniformBlocks = {
+    shadowmap: {
+        set: 0,
+        blocks: {
+            Light: {
+                binding: 0,
+                uniforms: {
+                    view: {},
+                    projection: {}
+                },
+            }
+        }
+    },
     global: {
         set: 0,
         blocks: {
@@ -23,13 +35,13 @@ const builtinUniformBlocks = {
             Camera: {
                 binding: 1,
                 uniforms: {
-                    matView: {
+                    view: {
                         offset: 0
                     },
-                    matProj: {
+                    projection: {
                         offset: 16
                     },
-                    cameraPos: {
+                    position: {
                         offset: 16 + 16
                     }
                 },
@@ -44,8 +56,8 @@ const builtinUniformBlocks = {
             Local: {
                 binding: 0,
                 uniforms: {
-                    matWorld: {},
-                    matWorldIT: {}
+                    model: {},
+                    modelIT: {}
                 },
                 size: (16 + 16) * FLOAT32_BYTES,
             }
@@ -75,6 +87,14 @@ function buildDescriptorSetLayout(res: {
     return descriptorSetLayout;
 }
 
+const builtinDescriptorSetLayouts = {
+    global: buildDescriptorSetLayout(builtinUniformBlocks.global),
+    local: buildDescriptorSetLayout(builtinUniformBlocks.local)
+} as const
+
+const builtinPipelineLayout = gfx.createPipelineLayout();
+builtinPipelineLayout.initialize([builtinDescriptorSetLayouts.global, builtinDescriptorSetLayouts.local]);
+
 const name2source: Record<string, ShaderStage[]> = {};
 const name2macros: Record<string, Set<string>> = {};
 
@@ -83,10 +103,9 @@ const shaders: Record<string, Shader> = {};
 export default {
     builtinUniformBlocks,
 
-    builtinDescriptorSetLayouts: {
-        global: buildDescriptorSetLayout(builtinUniformBlocks.global),
-        local: buildDescriptorSetLayout(builtinUniformBlocks.local)
-    },
+    builtinDescriptorSetLayouts,
+
+    builtinPipelineLayout,
 
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = name2source[name];

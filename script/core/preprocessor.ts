@@ -99,7 +99,7 @@ export default {
                         });
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
-                    // remove unsupported layout qualifier for webgl, e.g. descriptor sets, no such concept in OpenGL
+                    // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
                     if (typeof window != 'undefined') {
                         return type ? `uniform ${type} ${name}` : `uniform ${name}`;
                     }

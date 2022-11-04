@@ -14,6 +14,7 @@ import WebCommandBuffer from "./WebCommandBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebFence from "./WebFence.js";
+import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
 import WebPipelineLayout from "./WebPipelineLayout.js";
 import WebRenderPass from "./WebRenderPass.js";
@@ -74,7 +75,7 @@ export default class WebDevice implements Device {
     }
 
     createFramebuffer(): Framebuffer {
-        throw new Error("Method not implemented.");
+        return new WebFramebuffer;
     }
 
     createSemaphore(): Semaphore {

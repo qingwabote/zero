@@ -5,6 +5,7 @@ set(SRC_FILES
     VkTexture.cpp
     VkShader.cpp
     VkRenderPass.cpp
+    VkFramebuffer.cpp
     VkPipelineLayout.cpp
     VkPipeline.cpp
     VkDescriptorSetLayout.cpp

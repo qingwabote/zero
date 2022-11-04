@@ -9,6 +9,7 @@
 #include "VkTexture_impl.hpp"
 #include "VkShader_impl.hpp"
 #include "VkRenderPass_impl.hpp"
+#include "VkFramebuffer_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "VkPipelineLayout_impl.hpp"
@@ -223,6 +224,8 @@ namespace binding
         Shader *Device::createShader() { return new Shader(std::make_unique<Shader_impl>(_impl)); }
 
         RenderPass *Device::createRenderPass() { return new RenderPass(std::make_unique<RenderPass_impl>(_impl)); }
+
+        Framebuffer *Device::createFramebuffer() { return new Framebuffer(std::make_unique<Framebuffer_impl>(_impl)); }
 
         DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl)); }
 

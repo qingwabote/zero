@@ -9,5 +9,5 @@ layout(location = 0) out vec2 v_uv;
 void main() {
     v_uv = a_texCoord;
 
-    gl_Position = matProj * (matView * matWorld) * a_position;
+    gl_Position = camera.projection * camera.view * local.model * a_position;
 }

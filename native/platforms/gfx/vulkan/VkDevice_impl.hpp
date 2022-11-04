@@ -75,6 +75,8 @@ namespace binding
 
             VkSampler defaultSampler() { return _defaultSampler; }
 
+            operator VkDevice() { return _vkb_device.device; }
+
             Device_impl(SDL_Window *window) : _window(window) {}
 
             ~Device_impl() {}

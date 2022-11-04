@@ -59,6 +59,14 @@ namespace binding
                 });
 
             cls.defineFunction(
+                "createFramebuffer",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<Device>(info.This());
+                    info.GetReturnValue().Set(c_obj->createFramebuffer()->js_obj());
+                });
+
+            cls.defineFunction(
                 "createDescriptorSet",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {

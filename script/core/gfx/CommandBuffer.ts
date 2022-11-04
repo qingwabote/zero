@@ -11,7 +11,7 @@ export default interface CommandBuffer {
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;
     beginRenderPass(renderPass: RenderPass, viewport: Rect): void;
     bindPipeline(pipeline: Pipeline): void;
-    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void;
+    bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
     draw(): void;
     endRenderPass(): void;

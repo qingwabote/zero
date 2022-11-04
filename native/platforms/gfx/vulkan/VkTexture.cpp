@@ -16,8 +16,15 @@ namespace binding
         {
             auto width = sugar::v8::object_get(info, "width").As<v8::Number>()->Value();
             auto height = sugar::v8::object_get(info, "height").As<v8::Number>()->Value();
+            uint32_t usage = sugar::v8::object_get(info, "usage").As<v8::Number>()->Value();
 
             auto format = VK_FORMAT_R8G8B8A8_SRGB;
+            auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+            {
+                format = VK_FORMAT_D32_SFLOAT;
+                aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+            }
 
             VkExtent3D extent{};
             extent.width = width;
@@ -26,13 +33,13 @@ namespace binding
             VkImageCreateInfo imageInfo = {};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
             imageInfo.imageType = VK_IMAGE_TYPE_2D;
-            imageInfo.format = format;
             imageInfo.extent = extent;
             imageInfo.mipLevels = 1;
             imageInfo.arrayLayers = 1;
             imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
             imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-            imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            imageInfo.usage = usage;
+            imageInfo.format = format;
             VmaAllocationCreateInfo allocationCreateInfo = {};
             allocationCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
             auto err = vmaCreateImage(_impl->_device->allocator(), &imageInfo, &allocationCreateInfo, &_impl->_image, &_impl->_allocation, &_impl->_allocationInfo);
@@ -50,7 +57,7 @@ namespace binding
             imageViewInfo.subresourceRange.levelCount = 1;
             imageViewInfo.subresourceRange.baseArrayLayer = 0;
             imageViewInfo.subresourceRange.layerCount = 1;
-            imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageViewInfo.subresourceRange.aspectMask = aspectMask;
             err = vkCreateImageView(_impl->_device->device(), &imageViewInfo, nullptr, &_impl->_imageView);
             if (err)
             {

@@ -25,6 +25,7 @@ namespace binding
             Texture_impl(Device_impl *device);
 
             operator VkImage() { return _image; }
+            operator VkImageView() { return _imageView; }
 
             ~Texture_impl();
         };

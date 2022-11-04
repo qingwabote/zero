@@ -40,14 +40,14 @@ export default class RenderCamera {
         this._dirty = true;
     }
 
-    private _matView = mat4.create();
-    get matView(): Mat4 {
-        return this._matView;
+    private _view = mat4.create();
+    get view(): Mat4 {
+        return this._view;
     }
 
-    private _matProj = mat4.create();
-    get matProj(): Mat4 {
-        return this._matProj;
+    private _projection = mat4.create();
+    get projection(): Mat4 {
+        return this._projection;
     }
 
     private _position: Vec3 = vec3.create();
@@ -71,8 +71,8 @@ export default class RenderCamera {
 
         if (zero.renderScene.dirtyTransforms.has(this._node)) {
             this._node.updateTransform();
-            mat4.invert(this._matView, this._node.matrix);
-            vec3.transformMat4(this._position, vec3.create(0, 0, 0), this._node.matrix);
+            mat4.invert(this._view, this._node.matrix);
+            vec3.transformMat4(this._position, vec3.zero, this._node.matrix);
 
             dataDirty = true;
         }
@@ -82,9 +82,9 @@ export default class RenderCamera {
             if (this.orthoHeight != -1) {
                 const x = this.orthoHeight * aspect;
                 const y = this.orthoHeight;
-                mat4.ortho(this._matProj, -x, x, -y, y, 1, 2000, gfx.capabilities.clipSpaceMinZ);
+                mat4.ortho(this._projection, -x, x, -y, y, 1, 2000, gfx.capabilities.clipSpaceMinZ);
             } else if (this.fov != -1) {
-                mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, 1, 1000);
+                mat4.perspective(this._projection, Math.PI / 180 * this.fov, aspect, 1, 1000);
             }
 
             dataDirty = true;

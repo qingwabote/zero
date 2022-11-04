@@ -1,6 +1,9 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
-import Pipeline, { ClearFlagBit, DescriptorSet, PipelineInfo, PipelineLayout } from "../gfx/Pipeline.js";
+import { Framebuffer } from "../gfx/Framebuffer.js";
+import Pipeline, { ClearFlagBit, DescriptorSet, PipelineLayout, VertexInputState } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP } from "../gfx/RenderPass.js";
+import Shader from "../gfx/Shader.js";
+import { TextureUsageBit } from "../gfx/Texture.js";
 import vec3 from "../math/vec3.js";
 import shaders from "../shaders.js";
 import Model from "./Model.js";
@@ -38,6 +41,9 @@ export default class RenderScene {
 
     private _globalDescriptorSet: DescriptorSet;
 
+    private _shadowMapRenderPass: RenderPass;
+    private _shadowMapFramebuffer: Framebuffer;
+
     private _clearFlag2renderPass: Record<number, RenderPass> = {};
 
     private _pipelineLayoutCache: Record<string, PipelineLayout> = {};
@@ -56,6 +62,29 @@ export default class RenderScene {
         this._camerasUbo = new ResizableBuffer(globalDescriptorSet, CameraBlock.binding, CameraBlock.size);
 
         this._globalDescriptorSet = globalDescriptorSet;
+
+        const shadowMapRenderPass = gfx.createRenderPass();
+        shadowMapRenderPass.initialize({
+            colorAttachments: [],
+            depthStencilAttachment: {
+                loadOp: LOAD_OP.CLEAR,
+                initialLayout: ImageLayout.UNDEFINED,
+                finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+            },
+            hash: "shadowMapRenderPass"
+        });
+        const depthStencilAttachment = gfx.createTexture();
+        depthStencilAttachment.initialize({
+            usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT,
+            width: zero.window.width, height: zero.window.height
+        });
+        const shadowMapFramebuffer = gfx.createFramebuffer();
+        shadowMapFramebuffer.initialize({
+            attachments: [depthStencilAttachment], renderPass: shadowMapRenderPass,
+            width: zero.window.width, height: zero.window.height
+        });
+        this._shadowMapFramebuffer = shadowMapFramebuffer;
+        this._shadowMapRenderPass = shadowMapRenderPass;
     }
 
     update(dt: number) {
@@ -79,9 +108,9 @@ export default class RenderScene {
         for (let i = 0; i < this._cameras.length; i++) {
             const camera = this._cameras[i];
             if (camera.update()) {
-                this._camerasUbo.set(camera.matView, camerasDataOffset + CameraBlock.uniforms.matView.offset);
-                this._camerasUbo.set(camera.matProj, camerasDataOffset + CameraBlock.uniforms.matProj.offset);
-                this._camerasUbo.set(camera.position, camerasDataOffset + CameraBlock.uniforms.cameraPos.offset);
+                this._camerasUbo.set(camera.view, camerasDataOffset + CameraBlock.uniforms.view.offset);
+                this._camerasUbo.set(camera.projection, camerasDataOffset + CameraBlock.uniforms.projection.offset);
+                this._camerasUbo.set(camera.position, camerasDataOffset + CameraBlock.uniforms.position.offset);
                 camerasDataDirty = true;
             }
             camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;
@@ -100,28 +129,14 @@ export default class RenderScene {
 
     record(commandBuffer: CommandBuffer) {
         commandBuffer.begin();
-
         const cameras = this._cameras;
         for (let cameraIndex = 0; cameraIndex < cameras.length; cameraIndex++) {
-            const camera = cameras[cameraIndex];
-            let renderPass = this._clearFlag2renderPass[camera.clearFlags];
-            if (!renderPass) {
-                renderPass = gfx.createRenderPass();
-                const colorAttachment: AttachmentDescription = {
-                    loadOp: camera.clearFlags & ClearFlagBit.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                    initialLayout: camera.clearFlags & ClearFlagBit.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
-                    finalLayout: ImageLayout.PRESENT_SRC
-                };
-                const depthStencilAttachment: AttachmentDescription = {
-                    loadOp: camera.clearFlags & ClearFlagBit.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                    initialLayout: camera.clearFlags & ClearFlagBit.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                    finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-                };
-                renderPass.initialize({ colorAttachments: [colorAttachment], depthStencilAttachment, hash: camera.clearFlags.toString() });
-                this._clearFlag2renderPass[camera.clearFlags] = renderPass;
-            }
-            commandBuffer.beginRenderPass(renderPass, camera.viewport);
+            commandBuffer.bindDescriptorSet(shaders.builtinPipelineLayout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
+                [cameraIndex * shaders.builtinUniformBlocks.global.blocks.Camera.size]);
 
+            const camera = cameras[cameraIndex];
+            const renderPass = this.getRenderPass(camera.clearFlags);
+            commandBuffer.beginRenderPass(renderPass, camera.viewport);
             for (const model of this._models) {
                 if ((camera.visibilities & model.node.visibility) == 0) {
                     continue;
@@ -133,46 +148,62 @@ export default class RenderScene {
                     commandBuffer.bindInputAssembler(subModel.inputAssembler);
                     for (const pass of subModel.passes) {
                         const shader = pass.shader;
-
-                        let layout = this._pipelineLayoutCache[shader.info.hash];
-                        if (!layout) {
-                            layout = gfx.createPipelineLayout();
-                            layout.initialize([
-                                shaders.builtinDescriptorSetLayouts.global,
-                                shaders.builtinDescriptorSetLayouts.local,
-                                shader.info.meta.descriptorSetLayout
-                            ])
-                            this._pipelineLayoutCache[shader.info.hash] = layout;
-                        }
-
-                        const pipelineInfo: PipelineInfo = {
-                            shader,
-                            vertexInputState: subModel.inputAssembler.vertexInputState,
-                            layout,
-                            renderPass
-                        }
-                        const pipelineHash = pipelineInfo.shader.info.hash + pipelineInfo.vertexInputState.hash + renderPass.info.hash;
-                        let pipeline = this._pipelineCache[pipelineHash];
-                        if (!pipeline) {
-                            pipeline = gfx.createPipeline();
-                            pipeline.initialize(pipelineInfo);
-                            this._pipelineCache[pipelineHash] = pipeline;
-                        }
-
-                        commandBuffer.bindPipeline(pipeline);
-                        commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
-                            [cameraIndex * shaders.builtinUniformBlocks.global.blocks.Camera.size]);
+                        const layout = this.getPipelineLayout(shader);
                         commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.local.set, model.descriptorSet);
                         commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.material.set, pass.descriptorSet);
-
+                        const pipeline = this.getPipeline(shader, subModel.inputAssembler.vertexInputState, renderPass, layout);
+                        commandBuffer.bindPipeline(pipeline);
                         commandBuffer.draw();
                     }
                 }
             }
-
             commandBuffer.endRenderPass()
         }
-
         commandBuffer.end();
+    }
+
+    private getRenderPass(clearFlags: ClearFlagBit): RenderPass {
+        let renderPass = this._clearFlag2renderPass[clearFlags];
+        if (!renderPass) {
+            renderPass = gfx.createRenderPass();
+            const colorAttachment: AttachmentDescription = {
+                loadOp: clearFlags & ClearFlagBit.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                initialLayout: clearFlags & ClearFlagBit.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
+                finalLayout: ImageLayout.PRESENT_SRC
+            };
+            const depthStencilAttachment: AttachmentDescription = {
+                loadOp: clearFlags & ClearFlagBit.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                initialLayout: clearFlags & ClearFlagBit.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+            };
+            renderPass.initialize({ colorAttachments: [colorAttachment], depthStencilAttachment, hash: clearFlags.toString() });
+            this._clearFlag2renderPass[clearFlags] = renderPass;
+        }
+        return renderPass;
+    }
+
+    private getPipelineLayout(shader: Shader): PipelineLayout {
+        let layout = this._pipelineLayoutCache[shader.info.hash];
+        if (!layout) {
+            layout = gfx.createPipelineLayout();
+            layout.initialize([
+                shaders.builtinDescriptorSetLayouts.global,
+                shaders.builtinDescriptorSetLayouts.local,
+                shader.info.meta.descriptorSetLayout
+            ])
+            this._pipelineLayoutCache[shader.info.hash] = layout;
+        }
+        return layout;
+    }
+
+    private getPipeline(shader: Shader, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
+        const pipelineHash = shader.info.hash + vertexInputState.hash + renderPass.info.hash;
+        let pipeline = this._pipelineCache[pipelineHash];
+        if (!pipeline) {
+            pipeline = gfx.createPipeline();
+            pipeline.initialize({ shader, vertexInputState, renderPass, layout });
+            this._pipelineCache[pipelineHash] = pipeline;
+        }
+        return pipeline;
     }
 }
