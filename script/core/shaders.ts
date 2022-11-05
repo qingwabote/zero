@@ -88,12 +88,13 @@ function buildDescriptorSetLayout(res: {
 }
 
 const builtinDescriptorSetLayouts = {
+    shadowmap: buildDescriptorSetLayout(builtinUniformBlocks.shadowmap),
     global: buildDescriptorSetLayout(builtinUniformBlocks.global),
     local: buildDescriptorSetLayout(builtinUniformBlocks.local)
 } as const
 
-const builtinPipelineLayout = gfx.createPipelineLayout();
-builtinPipelineLayout.initialize([builtinDescriptorSetLayouts.global, builtinDescriptorSetLayouts.local]);
+const builtinGlobalPipelineLayout = gfx.createPipelineLayout();
+builtinGlobalPipelineLayout.initialize([builtinDescriptorSetLayouts.global]);
 
 const name2source: Record<string, ShaderStage[]> = {};
 const name2macros: Record<string, Set<string>> = {};
@@ -105,7 +106,7 @@ export default {
 
     builtinDescriptorSetLayouts,
 
-    builtinPipelineLayout,
+    builtinGlobalPipelineLayout,
 
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = name2source[name];

@@ -101,7 +101,7 @@ export default class Label extends Component {
         const pass = new Pass(this._shader);
         pass.descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture);
 
-        const subModel: SubModel = { passes: [pass] };
+        const subModel: SubModel = { inputAssemblers: [], passes: [pass] };
         const model = new Model([subModel], this._node);
         zero.renderScene.models.push(model);
         this._subModel = subModel;
@@ -112,7 +112,7 @@ export default class Label extends Component {
             return;
         }
         if (this._text.length == 0) {
-            this._subModel.inputAssembler = undefined;
+            this._subModel.inputAssemblers.length = 0;
             return;
         }
         const indexCount = 6 * this._text.length;
@@ -188,14 +188,16 @@ export default class Label extends Component {
         this._positionBuffer.update(positionArray);
         this._indexBuffer.update(indexArray);
 
-        this._subModel.inputAssembler = {
+        this._subModel.inputAssemblers[0] = {
             vertexInputState: this._vertexInputState,
-            vertexBuffers: [this._texCoordBuffer, this._positionBuffer],
-            vertexOffsets: [0, 0],
-            indexBuffer: this._indexBuffer,
-            indexType: IndexType.UINT16,
-            indexCount,
-            indexOffset: 0
+            vertexInput: {
+                vertexBuffers: [this._texCoordBuffer, this._positionBuffer],
+                vertexOffsets: [0, 0],
+                indexBuffer: this._indexBuffer,
+                indexType: IndexType.UINT16,
+                indexCount,
+                indexOffset: 0
+            }
         }
 
         this._dirtyFlag = DirtyFlagBit.NONE;

@@ -87,8 +87,10 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;
-        if (renderPass.info.colorAttachments[0].loadOp == LOAD_OP.CLEAR) {
-            flag |= gl.COLOR_BUFFER_BIT;
+        for (const attachment of renderPass.info.colorAttachments) {
+            if (attachment.loadOp == LOAD_OP.CLEAR) {
+                flag |= gl.COLOR_BUFFER_BIT;
+            }
         }
         if (renderPass.info.depthStencilAttachment.loadOp == LOAD_OP.CLEAR) {
             flag |= gl.DEPTH_BUFFER_BIT;
@@ -151,8 +153,8 @@ export default class WebCommandBuffer implements CommandBuffer {
             const attributes = inputAssembler.vertexInputState.attributes;
             for (const attribute of attributes) {
                 const binding = inputAssembler.vertexInputState.bindings[attribute.binding];
-                const buffer = inputAssembler.vertexBuffers[attribute.binding] as WebBuffer;
-                const offset = inputAssembler.vertexOffsets[attribute.binding];
+                const buffer = inputAssembler.vertexInput.vertexBuffers[attribute.binding] as WebBuffer;
+                const offset = inputAssembler.vertexInput.vertexOffsets[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
@@ -175,7 +177,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                     binding.stride,
                     offset + attribute.offset);
             }
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.vertexInput.indexBuffer as WebBuffer).buffer);
             input2vao.set(inputAssembler, vao);
 
             gl.bindVertexArray(null);
@@ -193,7 +195,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         };
 
         let type: GLenum;
-        switch (this._inputAssembler.indexType) {
+        switch (this._inputAssembler.vertexInput.indexType) {
             case IndexType.UINT16:
                 type = WebGL2RenderingContext.UNSIGNED_SHORT;
                 break;
@@ -206,7 +208,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, type, this._inputAssembler.indexOffset);
+        gl.drawElements(gl.TRIANGLES, this._inputAssembler.vertexInput.indexCount, type, this._inputAssembler.vertexInput.indexOffset);
         gl.bindVertexArray(null);
     }
 

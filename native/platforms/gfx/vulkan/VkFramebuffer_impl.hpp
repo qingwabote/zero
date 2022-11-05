@@ -18,6 +18,8 @@ namespace binding
         public:
             Framebuffer_impl(Device_impl *device);
 
+            operator VkFramebuffer() { return _framebuffer; }
+
             ~Framebuffer_impl();
         };
 

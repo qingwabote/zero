@@ -70,7 +70,7 @@ export default class GLTF extends Asset {
         const textures = await Promise.all(json.images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
         this._materials = await Promise.all(json.materials.map(async (info: any) => {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-            const shader = await shaders.getShader('phong', { BLINN_PHONG: 1, USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
+            const shader = await shaders.getShader('phong', { USE_BLINN_PHONG: 1, USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
             const pass = new Pass(shader);
             if (textureIdx != undefined) {
                 pass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);

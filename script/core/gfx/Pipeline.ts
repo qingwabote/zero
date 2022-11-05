@@ -59,6 +59,15 @@ export interface VertexInputState {
     readonly hash: string;
 }
 
+export interface VertexInput {
+    vertexBuffers: Buffer[];
+    vertexOffsets: number[];
+    indexBuffer: Buffer;
+    indexType: IndexType;
+    indexCount: number;
+    indexOffset: number
+}
+
 // copy values from VkIndexType in vulkan_core.h
 export enum IndexType {
     UINT16 = 0,
@@ -70,12 +79,7 @@ export enum IndexType {
  */
 export interface InputAssembler {
     vertexInputState: VertexInputState;
-    vertexBuffers: Buffer[];
-    vertexOffsets: number[];
-    indexBuffer: Buffer;
-    indexType: IndexType;
-    indexCount: number;
-    indexOffset: number
+    vertexInput: VertexInput;
 }
 
 // copy values from VkDescriptorType in vulkan_core.h

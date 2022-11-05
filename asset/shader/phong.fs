@@ -25,7 +25,7 @@ void main() {
 
     float specularStrength = 0.5;
     vec3 viewDir = normalize(camera.position - v_position);
-    #if BLINN_PHONG
+    #if USE_BLINN_PHONG
         vec3 halfwayDir = normalize(global.litDir + viewDir);
         vec3 specular = specularStrength * pow(max(dot(v_normal, halfwayDir), 0.0), 16.0) * litColor;
     #else

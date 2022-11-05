@@ -41,8 +41,10 @@ export default class RenderScene {
 
     private _globalDescriptorSet: DescriptorSet;
 
-    private _shadowMapRenderPass: RenderPass;
-    private _shadowMapFramebuffer: Framebuffer;
+    private _shadowmap_renderPass: RenderPass;
+    private _shadowmap_framebuffer: Framebuffer;
+    private _shadowmap_descriptorSet: DescriptorSet;
+    // private _shadowmap_lightsUbo:ResizableBuffer;
 
     private _clearFlag2renderPass: Record<number, RenderPass> = {};
 
@@ -63,8 +65,8 @@ export default class RenderScene {
 
         this._globalDescriptorSet = globalDescriptorSet;
 
-        const shadowMapRenderPass = gfx.createRenderPass();
-        shadowMapRenderPass.initialize({
+        const shadowmap_renderPass = gfx.createRenderPass();
+        shadowmap_renderPass.initialize({
             colorAttachments: [],
             depthStencilAttachment: {
                 loadOp: LOAD_OP.CLEAR,
@@ -78,13 +80,15 @@ export default class RenderScene {
             usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT,
             width: zero.window.width, height: zero.window.height
         });
-        const shadowMapFramebuffer = gfx.createFramebuffer();
-        shadowMapFramebuffer.initialize({
-            attachments: [depthStencilAttachment], renderPass: shadowMapRenderPass,
+        const shadowmap_framebuffer = gfx.createFramebuffer();
+        shadowmap_framebuffer.initialize({
+            attachments: [depthStencilAttachment], renderPass: shadowmap_renderPass,
             width: zero.window.width, height: zero.window.height
         });
-        this._shadowMapFramebuffer = shadowMapFramebuffer;
-        this._shadowMapRenderPass = shadowMapRenderPass;
+        this._shadowmap_framebuffer = shadowmap_framebuffer;
+        this._shadowmap_renderPass = shadowmap_renderPass;
+        this._shadowmap_descriptorSet = gfx.createDescriptorSet();
+        this._shadowmap_descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.shadowmap);
     }
 
     update(dt: number) {
@@ -129,12 +133,16 @@ export default class RenderScene {
 
     record(commandBuffer: CommandBuffer) {
         commandBuffer.begin();
-        const cameras = this._cameras;
-        for (let cameraIndex = 0; cameraIndex < cameras.length; cameraIndex++) {
-            commandBuffer.bindDescriptorSet(shaders.builtinPipelineLayout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
+        for (let cameraIndex = 0; cameraIndex < this._cameras.length; cameraIndex++) {
+            const camera = this._cameras[cameraIndex];
+            if (camera.visibilities & this._directionalLight.node.visibility) {
+                commandBuffer.beginRenderPass(this._shadowmap_renderPass, camera.viewport, this._shadowmap_framebuffer);
+                commandBuffer.endRenderPass();
+            }
+
+            commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
                 [cameraIndex * shaders.builtinUniformBlocks.global.blocks.Camera.size]);
 
-            const camera = cameras[cameraIndex];
             const renderPass = this.getRenderPass(camera.clearFlags);
             commandBuffer.beginRenderPass(renderPass, camera.viewport);
             for (const model of this._models) {
@@ -142,16 +150,18 @@ export default class RenderScene {
                     continue;
                 }
                 for (const subModel of model.subModels) {
-                    if (!subModel.inputAssembler) {
+                    if (subModel.inputAssemblers.length == 0) {
                         continue;
                     }
-                    commandBuffer.bindInputAssembler(subModel.inputAssembler);
-                    for (const pass of subModel.passes) {
+                    for (let i = 0; i < subModel.passes.length; i++) {
+                        const inputAssembler = subModel.inputAssemblers[i];
+                        const pass = subModel.passes[i];
+                        commandBuffer.bindInputAssembler(inputAssembler);
                         const shader = pass.shader;
                         const layout = this.getPipelineLayout(shader);
                         commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.local.set, model.descriptorSet);
                         commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.material.set, pass.descriptorSet);
-                        const pipeline = this.getPipeline(shader, subModel.inputAssembler.vertexInputState, renderPass, layout);
+                        const pipeline = this.getPipeline(shader, inputAssembler.vertexInputState, renderPass, layout);
                         commandBuffer.bindPipeline(pipeline);
                         commandBuffer.draw();
                     }

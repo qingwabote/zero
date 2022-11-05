@@ -8,6 +8,7 @@
 #include "VkPipeline_impl.hpp"
 #include "VkTexture_impl.hpp"
 #include "VkRenderPass_impl.hpp"
+#include "VkFramebuffer_impl.hpp"
 
 // #include <chrono>
 
@@ -131,7 +132,7 @@ namespace binding
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
         }
 
-        void CommandBuffer::beginRenderPass(RenderPass *c_renderPass, v8::Local<v8::Object> area)
+        void CommandBuffer::beginRenderPass(RenderPass *c_renderPass, v8::Local<v8::Object> area, Framebuffer *c_framebuffer)
         {
             // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
             // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
@@ -163,7 +164,7 @@ namespace binding
             info.pClearValues = clearValues;
             info.clearValueCount = 2;
 
-            info.framebuffer = _impl->_device->curFramebuffer();
+            info.framebuffer = c_framebuffer ? c_framebuffer->impl() : _impl->_device->curFramebuffer();
 
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -208,7 +209,8 @@ namespace binding
             v8::Isolate *isolate = v8::Isolate::GetCurrent();
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-            v8::Local<v8::Array> js_vertexBuffers = sugar::v8::object_get(inputAssembler, "vertexBuffers").As<v8::Array>();
+            v8::Local<v8::Object> js_vertexInput = sugar::v8::object_get(inputAssembler, "vertexInput").As<v8::Object>();
+            v8::Local<v8::Array> js_vertexBuffers = sugar::v8::object_get(js_vertexInput, "vertexBuffers").As<v8::Array>();
             vertexBuffers.resize(js_vertexBuffers->Length());
             for (uint32_t i = 0; i < js_vertexBuffers->Length(); i++)
             {
@@ -216,7 +218,7 @@ namespace binding
                 vertexBuffers[i] = c_buffer->impl();
             }
 
-            v8::Local<v8::Array> js_vertexOffsets = sugar::v8::object_get(inputAssembler, "vertexOffsets").As<v8::Array>();
+            v8::Local<v8::Array> js_vertexOffsets = sugar::v8::object_get(js_vertexInput, "vertexOffsets").As<v8::Array>();
             vertexOffsets.resize(js_vertexOffsets->Length());
             for (uint32_t i = 0; i < js_vertexOffsets->Length(); i++)
             {
@@ -228,10 +230,10 @@ namespace binding
 
             vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), vertexOffsets.data());
 
-            v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(inputAssembler, "indexBuffer").As<v8::Object>();
+            v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(js_vertexInput, "indexBuffer").As<v8::Object>();
             Buffer *c_buffer = Binding::c_obj<Buffer>(js_indexBuffer);
-            uint32_t indexOffset = sugar::v8::object_get(inputAssembler, "indexOffset").As<v8::Number>()->Value();
-            VkIndexType indexType = static_cast<VkIndexType>(sugar::v8::object_get(inputAssembler, "indexType").As<v8::Number>()->Value());
+            uint32_t indexOffset = sugar::v8::object_get(js_vertexInput, "indexOffset").As<v8::Number>()->Value();
+            VkIndexType indexType = static_cast<VkIndexType>(sugar::v8::object_get(js_vertexInput, "indexType").As<v8::Number>()->Value());
             vkCmdBindIndexBuffer(_impl->_commandBuffer, c_buffer->impl(), indexOffset, indexType);
         }
 
@@ -243,7 +245,8 @@ namespace binding
         void CommandBuffer::draw()
         {
             v8::Local<v8::Object> inputAssembler = retrieve("lastInputAssembler");
-            uint32_t indexCount = sugar::v8::object_get(inputAssembler, "indexCount").As<v8::Number>()->Value();
+            v8::Local<v8::Object> js_vertexInput = sugar::v8::object_get(inputAssembler, "vertexInput").As<v8::Object>();
+            uint32_t indexCount = sugar::v8::object_get(js_vertexInput, "indexCount").As<v8::Number>()->Value();
             vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, 0, 0, 0);
         }
 
