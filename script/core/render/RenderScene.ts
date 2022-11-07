@@ -1,3 +1,4 @@
+import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
 import Pipeline, { ClearFlagBit, DescriptorSet, PipelineLayout, VertexInputState } from "../gfx/Pipeline.js";
@@ -6,14 +7,19 @@ import Shader from "../gfx/Shader.js";
 import { TextureUsageBit } from "../gfx/Texture.js";
 import vec3 from "../math/vec3.js";
 import shaders from "../shaders.js";
+import BufferViewResizable from "./BufferViewResizable.js";
 import Model from "./Model.js";
+import { PassPhase } from "./Pass.js";
 import RenderCamera from "./RenderCamera.js";
 import RenderDirectionalLight from "./RenderDirectionalLight.js";
 import { RenderNode } from "./RenderNode.js";
-import ResizableBuffer from "./ResizableBuffer.js";
+
+const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
+const GlobalBlock = shaders.builtinUniformBlocks.global.blocks.Global;
+const shadowmap_lightBlock = shaders.builtinUniformBlocks.shadowmap.blocks.Light;
 
 export default class RenderScene {
-    private _globalUbo: ResizableBuffer;
+    private _globalUbo: BufferViewResizable;
     private _globalUboDirty: boolean = true;
 
     private _directionalLight!: RenderDirectionalLight;
@@ -22,7 +28,7 @@ export default class RenderScene {
         this._globalUboDirty = true;
     }
 
-    private _camerasUbo: ResizableBuffer;
+    private _camerasUbo: BufferViewResizable;
 
     private _cameras: RenderCamera[] = [];
     get cameras(): RenderCamera[] {
@@ -44,7 +50,7 @@ export default class RenderScene {
     private _shadowmap_renderPass: RenderPass;
     private _shadowmap_framebuffer: Framebuffer;
     private _shadowmap_descriptorSet: DescriptorSet;
-    // private _shadowmap_lightsUbo:ResizableBuffer;
+    private _shadowmap_lightsUbo: BufferViewResizable;
 
     private _clearFlag2renderPass: Record<number, RenderPass> = {};
 
@@ -55,13 +61,11 @@ export default class RenderScene {
         const globalDescriptorSet = gfx.createDescriptorSet();
         globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
 
-        const GlobalBlock = shaders.builtinUniformBlocks.global.blocks.Global;
-        const globalUbo = new ResizableBuffer(globalDescriptorSet, GlobalBlock.binding);
+        const globalUbo = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { globalDescriptorSet.bindBuffer(GlobalBlock.binding, buffer); });
         globalUbo.reset(GlobalBlock.size);
         this._globalUbo = globalUbo;
 
-        const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
-        this._camerasUbo = new ResizableBuffer(globalDescriptorSet, CameraBlock.binding, CameraBlock.size);
+        this._camerasUbo = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { globalDescriptorSet.bindBuffer(CameraBlock.binding, buffer, CameraBlock.size); });
 
         this._globalDescriptorSet = globalDescriptorSet;
 
@@ -87,8 +91,10 @@ export default class RenderScene {
         });
         this._shadowmap_framebuffer = shadowmap_framebuffer;
         this._shadowmap_renderPass = shadowmap_renderPass;
-        this._shadowmap_descriptorSet = gfx.createDescriptorSet();
-        this._shadowmap_descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.shadowmap);
+        const shadowmap_descriptorSet = gfx.createDescriptorSet();
+        shadowmap_descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.shadowmap);
+        this._shadowmap_lightsUbo = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { shadowmap_descriptorSet.bindBuffer(shadowmap_lightBlock.binding, buffer, shadowmap_lightBlock.size); });
+        this._shadowmap_descriptorSet = shadowmap_descriptorSet;
     }
 
     update(dt: number) {
@@ -103,7 +109,6 @@ export default class RenderScene {
             this._globalUboDirty = false;
         }
 
-        const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
         const camerasUboSize = CameraBlock.size * this._cameras.length;
         this._camerasUbo.resize(camerasUboSize);
 
@@ -135,14 +140,36 @@ export default class RenderScene {
         commandBuffer.begin();
         for (let cameraIndex = 0; cameraIndex < this._cameras.length; cameraIndex++) {
             const camera = this._cameras[cameraIndex];
-            if (camera.visibilities & this._directionalLight.node.visibility) {
-                commandBuffer.beginRenderPass(this._shadowmap_renderPass, camera.viewport, this._shadowmap_framebuffer);
-                commandBuffer.endRenderPass();
-            }
+            // if (camera.visibilities & this._directionalLight.node.visibility) {
+            //     commandBuffer.beginRenderPass(this._shadowmap_renderPass, camera.viewport, this._shadowmap_framebuffer);
+            //     for (const model of this._models) {
+            //         if ((camera.visibilities & model.node.visibility) == 0) {
+            //             continue;
+            //         }
+            //         for (const subModel of model.subModels) {
+            //             if (subModel.inputAssemblers.length == 0) {
+            //                 continue;
+            //             }
+            //             for (let i = 0; i < subModel.passes.length; i++) {
+            //                 const pass = subModel.passes[i];
+            //                 if (pass.phase != PassPhase.SHADOWMAP) {
+            //                     continue;
+            //                 }
+            //                 const inputAssembler = subModel.inputAssemblers[i];
+            //                 commandBuffer.bindInputAssembler(inputAssembler);
+            //                 const layout = this.getPipelineLayout(pass.shader);
+            //                 commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.local.set, model.descriptorSet);
+            //                 const pipeline = this.getPipeline(pass.shader, inputAssembler.vertexInputState, this._shadowmap_renderPass, layout);
+            //                 commandBuffer.bindPipeline(pipeline);
+            //                 commandBuffer.draw();
+            //             }
+            //         }
+            //     }
+            //     commandBuffer.endRenderPass();
+            // }
 
             commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
                 [cameraIndex * shaders.builtinUniformBlocks.global.blocks.Camera.size]);
-
             const renderPass = this.getRenderPass(camera.clearFlags);
             commandBuffer.beginRenderPass(renderPass, camera.viewport);
             for (const model of this._models) {
@@ -154,14 +181,16 @@ export default class RenderScene {
                         continue;
                     }
                     for (let i = 0; i < subModel.passes.length; i++) {
-                        const inputAssembler = subModel.inputAssemblers[i];
                         const pass = subModel.passes[i];
+                        if (pass.phase != PassPhase.DEFAULT) {
+                            continue;
+                        }
+                        const inputAssembler = subModel.inputAssemblers[i];
                         commandBuffer.bindInputAssembler(inputAssembler);
-                        const shader = pass.shader;
-                        const layout = this.getPipelineLayout(shader);
+                        const layout = this.getPipelineLayout(pass.shader);
                         commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.local.set, model.descriptorSet);
                         commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.material.set, pass.descriptorSet);
-                        const pipeline = this.getPipeline(shader, inputAssembler.vertexInputState, renderPass, layout);
+                        const pipeline = this.getPipeline(pass.shader, inputAssembler.vertexInputState, renderPass, layout);
                         commandBuffer.bindPipeline(pipeline);
                         commandBuffer.draw();
                     }

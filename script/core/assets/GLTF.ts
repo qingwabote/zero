@@ -11,7 +11,7 @@ import { Vec3 } from "../math/vec3.js";
 import Node from "../Node.js";
 import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
-import Pass from "../render/Pass.js";
+import Pass, { PassPhase } from "../render/Pass.js";
 import SubMesh, { Attribute } from "../render/SubMesh.js";
 import shaders from "../shaders.js";
 import Asset from "./Asset.js";
@@ -70,12 +70,14 @@ export default class GLTF extends Asset {
         const textures = await Promise.all(json.images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
         this._materials = await Promise.all(json.materials.map(async (info: any) => {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-            const shader = await shaders.getShader('phong', { USE_BLINN_PHONG: 1, USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
-            const pass = new Pass(shader);
+            const shadowmapShader = await shaders.getShader('shadowmap');
+            const shadowmapPass = new Pass(shadowmapShader, PassPhase.SHADOWMAP);
+            const phongShader = await shaders.getShader('phong', { USE_BLINN_PHONG: 1, USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
+            const phongPass = new Pass(phongShader);
             if (textureIdx != undefined) {
-                pass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
+                phongPass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
             }
-            return new Material([pass]);
+            return new Material([shadowmapPass, phongPass]);
         }));
         this._textures = textures;
 

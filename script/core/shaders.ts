@@ -19,6 +19,8 @@ const builtinUniformBlocks = {
                     view: {},
                     projection: {}
                 },
+                size: align((16 + 16) * FLOAT32_BYTES),
+                dynamic: true
             }
         }
     },
