@@ -26,7 +26,7 @@ export default class Model {
     }
 
     constructor(subModels: SubModel[], node: RenderNode) {
-        zero.renderScene.dirtyTransforms.set(node, node);
+        zero.renderScene.dirtyObjects.set(node, node);
 
         this._localBuffer = gfx.createBuffer();
         this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: float32Array.byteLength });
@@ -43,7 +43,7 @@ export default class Model {
     }
 
     update() {
-        if (zero.renderScene.dirtyTransforms.has(this._node)) {
+        if (zero.renderScene.dirtyObjects.has(this._node)) {
             this._node.updateTransform();
             float32Array.set(this._node.matrix);
             float32Array.set(mat4.inverseTranspose(mat4.create(), this._node.matrix), 16);

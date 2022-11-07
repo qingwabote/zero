@@ -16,11 +16,14 @@ const builtinUniformBlocks = {
             Light: {
                 binding: 0,
                 uniforms: {
-                    view: {},
-                    projection: {}
+                    view: {
+                        offset: 0
+                    },
+                    projection: {
+                        offset: 16
+                    }
                 },
                 size: align((16 + 16) * FLOAT32_BYTES),
-                dynamic: true
             }
         }
     },
@@ -98,6 +101,9 @@ const builtinDescriptorSetLayouts = {
 const builtinGlobalPipelineLayout = gfx.createPipelineLayout();
 builtinGlobalPipelineLayout.initialize([builtinDescriptorSetLayouts.global]);
 
+const builtinShadowmapPipelineLayout = gfx.createPipelineLayout();
+builtinShadowmapPipelineLayout.initialize([builtinDescriptorSetLayouts.shadowmap, builtinDescriptorSetLayouts.local]);
+
 const name2source: Record<string, ShaderStage[]> = {};
 const name2macros: Record<string, Set<string>> = {};
 
@@ -109,6 +115,8 @@ export default {
     builtinDescriptorSetLayouts,
 
     builtinGlobalPipelineLayout,
+
+    builtinShadowmapPipelineLayout,
 
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = name2source[name];

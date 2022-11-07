@@ -120,7 +120,7 @@ export default class Node implements RenderNode {
 
     private dirty(flag: TransformBit): void {
         this._dirtyFlag |= flag;
-        zero.renderScene.dirtyTransforms.set(this, this);
+        zero.renderScene.dirtyObjects.set(this, this);
         this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
         for (const child of this._children.keys()) {
             child.dirty(flag);

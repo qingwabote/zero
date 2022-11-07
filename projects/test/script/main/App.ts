@@ -31,12 +31,12 @@ export default class App extends Zero {
         cameraA.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
         node.position = [0, 0.5, 8]
 
-        node = new Node;
-        const cameraB = node.addComponent(Camera);
-        cameraB.fov = 45;
-        cameraB.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
-        node.position = [0, 8, 0];
-        node.euler = [-90, 0, 0];
+        // node = new Node;
+        // const cameraB = node.addComponent(Camera);
+        // cameraB.fov = 45;
+        // cameraB.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
+        // node.position = [0, 8, 0];
+        // node.euler = [-90, 0, 0];
 
         // FPS
         node = new Node;
