@@ -57,7 +57,7 @@ export default class DefaultPhase {
                 this._camerasUbo.set(view, camerasDataOffset + CameraBlock.uniforms.view.offset);
 
                 const projection = mat4.create();
-                const aspect = (camera.window.width * camera.viewport.width) / (camera.window.height * camera.viewport.height);
+                const aspect = camera.viewport.width / camera.viewport.height;
                 if (camera.orthoHeight != -1) {
                     const x = camera.orthoHeight * aspect;
                     const y = camera.orthoHeight;

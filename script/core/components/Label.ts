@@ -3,7 +3,7 @@
 import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { Format, FormatInfos, IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
+import { FormatInfos, IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import BufferViewResizable from "../render/BufferViewResizable.js";
 import Model from "../render/Model.js";
@@ -63,8 +63,8 @@ export default class Label extends Component {
         let definition = this._shader.info.meta.attributes["a_texCoord"];
         let attribute: VertexInputAttributeDescription = {
             location: definition.location,
+            format: definition.format,
             binding: 0,
-            format: Format.RG32F,
             offset: 0
         };
         attributes.push(attribute);
@@ -77,8 +77,8 @@ export default class Label extends Component {
         definition = this._shader.info.meta.attributes["a_position"];
         attribute = {
             location: definition.location,
+            format: definition.format,
             binding: 1,
-            format: Format.RGBA32F,
             offset: 0
         };
         attributes.push(attribute);

@@ -1,4 +1,4 @@
-import { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
+import { DescriptorSetLayoutBinding, DescriptorType, Format } from "./gfx/Pipeline.js";
 import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "./gfx/Shader.js";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
@@ -57,9 +57,24 @@ export default {
         const fragmentStage = stages.find(stage => stage.type == ShaderStageFlagBits.FRAGMENT)!;
 
         const attributes: Record<string, Attribute> = {};
-        let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
+        let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
         for (const match of matches) {
-            attributes[match[2]] = { location: parseInt(match[1]) };
+            const [_, location, type, name] = match;
+            let format: Format;
+            switch (type) {
+                case "vec2":
+                    format = Format.RG32F
+                    break;
+                case "vec3":
+                    format = Format.RGB32F
+                    break;
+                case "vec4":
+                    format = Format.RGBA32F
+                    break;
+                default:
+                    throw new Error(`unsupported attribute type: ${type}`);
+            }
+            attributes[name] = { location: parseInt(location), format };
         }
 
         // remove unsupported layout qualifier for webgl

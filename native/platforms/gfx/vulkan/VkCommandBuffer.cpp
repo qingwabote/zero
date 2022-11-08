@@ -138,16 +138,11 @@ namespace binding
             // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
             // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
 
-            auto pct_x = sugar::v8::object_get(area, "x").As<v8::Number>()->Value();
-            auto pct_y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
-            auto pct_width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
-            auto pct_height = sugar::v8::object_get(area, "height").As<v8::Number>()->Value();
-            pct_y = 1 - pct_y - pct_height;
-
-            int32_t x = _impl->_device->drawingBufferWidth() * pct_x;
-            int32_t y = _impl->_device->drawingBufferHeight() * pct_y;
-            int32_t width = _impl->_device->drawingBufferWidth() * pct_width;
-            int32_t height = _impl->_device->drawingBufferHeight() * pct_height;
+            int32_t x = sugar::v8::object_get(area, "x").As<v8::Number>()->Value();
+            int32_t y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
+            int32_t width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
+            int32_t height = sugar::v8::object_get(area, "height").As<v8::Number>()->Value();
+            y = _impl->_device->drawingBufferHeight() - y - height;
 
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

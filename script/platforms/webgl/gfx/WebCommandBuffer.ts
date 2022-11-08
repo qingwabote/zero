@@ -76,14 +76,9 @@ export default class WebCommandBuffer implements CommandBuffer {
     beginRenderPass(renderPass: RenderPass, viewport: Rect) {
         const gl = this._gl;
 
-        const x = gl.drawingBufferWidth * viewport.x;
-        const y = gl.drawingBufferHeight * viewport.y;
-        const width = gl.drawingBufferWidth * viewport.width;
-        const height = gl.drawingBufferHeight * viewport.height;
+        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-        gl.viewport(x, y, width, height);
-
-        gl.scissor(x, y, width, height);
+        gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
 
         gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;

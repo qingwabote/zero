@@ -12,7 +12,7 @@ export default class Camera extends Component {
 
     clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 
-    viewport: Rect = { x: 0, y: 0, width: 1, height: 1 };
+    viewport: Rect = { x: 0, y: 0, width: 0, height: 0 };
 
     override start(): void {
         const camera = new RenderCamera(zero.window, this._node);

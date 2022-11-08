@@ -27,7 +27,7 @@ export default class RenderCamera {
 
     clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 
-    private _viewport: Rect = { x: 0, y: 0, width: 1, height: 1 };
+    private _viewport: Rect = { x: 0, y: 0, width: 0, height: 0 };
     get viewport(): Readonly<Rect> {
         return this._viewport
     }

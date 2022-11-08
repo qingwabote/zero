@@ -1,9 +1,11 @@
 import FNT from "../../../../script/core/assets/FNT.js";
 import GLTF from "../../../../script/core/assets/GLTF.js";
+import Texture from "../../../../script/core/assets/Texture.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
 import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
+import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import Node from "../../../../script/core/Node.js";
@@ -28,7 +30,7 @@ export default class App extends Zero {
         node = new Node;
         const cameraA = node.addComponent(Camera);
         cameraA.fov = 45;
-        cameraA.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
+        cameraA.viewport = { x: 0, y: height * 0.5, width, height: height * 0.5 };
         node.position = [0, 0.5, 8]
 
         // node = new Node;
@@ -44,13 +46,23 @@ export default class App extends Zero {
         camera.visibilities = VisibilityBit.UI;
         camera.clearFlags = ClearFlagBit.DEPTH;
         camera.orthoHeight = height / 2;
-        camera.viewport = { x: 0, y: 0, width: 1, height: 1 };
+        camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 1];
         (async () => {
             const shader = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
+
+            const texture = new Texture;
+            await texture.load('./asset/MaterialBaseColor.png');
+            let node = new Node;
+            // node.position = [-width / 2, height / 2, 0];
+            node.visibility = VisibilityBit.UI;
+            const sprite = node.addComponent(Sprite);
+            sprite.shader = shader;
+            sprite.texture = texture.gfx_texture;
+
             const fnt = new FNT;
             await fnt.load('./asset/zero');
-            const node = new Node;
+            node = new Node;
             const label = node.addComponent(Label);
             label.fnt = fnt;
             label.shader = shader;
