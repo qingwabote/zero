@@ -37,7 +37,7 @@ export default class DefaultPhase {
         const directionalLight = renderScene.directionalLight;
         if (dirtyObjects.has(directionalLight) || dirtyObjects.has(directionalLight.node)) {
             directionalLight.node.updateTransform();
-            const litDir = vec3.transformMat4(vec3.create(), vec3.zero, directionalLight.node.matrix);
+            const litDir = vec3.transformMat4(vec3.create(), vec3.Zero, directionalLight.node.matrix);
             vec3.normalize(litDir, litDir);
             this._globalUbo.set(litDir, 0);
             this._globalUbo.update();
@@ -67,7 +67,7 @@ export default class DefaultPhase {
                 }
                 this._camerasUbo.set(projection, camerasDataOffset + CameraBlock.uniforms.projection.offset);
 
-                const position = vec3.transformMat4(vec3.create(), vec3.zero, camera.node.matrix);
+                const position = vec3.transformMat4(vec3.create(), vec3.Zero, camera.node.matrix);
                 this._camerasUbo.set(position, camerasDataOffset + CameraBlock.uniforms.position.offset);
 
                 camerasDataDirty = true;

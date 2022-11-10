@@ -59,6 +59,7 @@ export default class Node implements RenderNode {
 
     private _rotationWorld: Quat = quat.create()
     get rotationWorld(): Readonly<Quat> {
+        this.updateTransform();
         return this._rotationWorld;
     }
 
@@ -70,13 +71,19 @@ export default class Node implements RenderNode {
         this.dirty(TransformBit.ROTATION);
     }
 
-    private _position: Readonly<Vec3> = vec3.create();
+    private _position: Vec3 = vec3.create();
     get position(): Readonly<Vec3> {
         return this._position;
     }
     set position(value: Readonly<Vec3>) {
-        this._position = value;
+        Object.assign(this._position, value);
         this.dirty(TransformBit.POSITION);
+    }
+
+    private _positionWorld: Vec3 = vec3.create();
+    get positionWorld(): Readonly<Vec3> {
+        this.updateTransform();
+        return this._positionWorld;
     }
 
     private _components: Component[] = [];
@@ -135,7 +142,8 @@ export default class Node implements RenderNode {
             //     mat4.translate2(this._matrix, this._matrix, this._position);
             // }
             mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
-            quat.copy(this._rotationWorld, this._rotation);
+            Object.assign(this._rotationWorld, this._rotation);
+            Object.assign(this._positionWorld, this._position);
             this._dirtyFlag = TransformBit.NONE;
             return;
         }
@@ -147,6 +155,7 @@ export default class Node implements RenderNode {
         mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
         quat.multiply(this._rotationWorld, this._parent.rotationWorld, this._rotation);
+        vec3.transformMat4(this._positionWorld, vec3.Zero, this._matrix);
         this._dirtyFlag = TransformBit.NONE;
         // }
     }

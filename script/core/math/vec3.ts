@@ -4,7 +4,7 @@ import { Quat } from "./quat.js";
 export type Vec3 = [number, number, number];
 
 export default {
-    get zero(): Readonly<Vec3> {
+    get Zero(): Readonly<Vec3> {
         return [0, 0, 0];
     },
 
@@ -12,7 +12,7 @@ export default {
         return [x, y, z]
     },
 
-    normalize(out: Vec3, a: Vec3) {
+    normalize(out: Vec3, a: Readonly<Vec3>) {
         const x = a[0];
         const y = a[1];
         const z = a[2];
@@ -64,5 +64,19 @@ export default {
         out[1] = a[2] * b[0] - a[0] * b[2];
         out[2] = a[0] * b[1] - a[1] * b[0];
         return out;
-    }
+    },
+
+    negate(out: Vec3, a: Readonly<Vec3>) {
+        out[0] = -a[0];
+        out[1] = -a[1];
+        out[2] = -a[2];
+        return out;
+    },
+
+    // copy(out: Vec3, a: Readonly<Vec3>) {
+    //     out[0] = a[0];
+    //     out[1] = a[1];
+    //     out[2] = a[2];
+    //     return out;
+    // },
 }

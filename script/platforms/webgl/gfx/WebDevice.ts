@@ -75,7 +75,7 @@ export default class WebDevice implements Device {
     }
 
     createFramebuffer(): Framebuffer {
-        return new WebFramebuffer;
+        return new WebFramebuffer(this._gl);
     }
 
     createSemaphore(): Semaphore {

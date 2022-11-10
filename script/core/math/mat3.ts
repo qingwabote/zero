@@ -1,3 +1,5 @@
+import vec3, { Vec3 } from "./vec3.js";
+
 export type Mat3 = [
     number, number, number,
     number, number, number,
@@ -19,5 +21,34 @@ export default {
         const a20 = a[6]; const a21 = a[7]; const a22 = a[8];
 
         return a00 * (a22 * a11 - a12 * a21) + a01 * (-a22 * a10 + a12 * a20) + a02 * (a21 * a10 - a11 * a20);
+    },
+
+    /**
+     * @param view The view direction, it`s must be normalized.
+     */
+    fromViewUp(out: Mat3, view: Vec3) {
+        // if (Vec3.lengthSqr(view) < EPSILON * EPSILON) {
+        //     Mat3.identity(out);
+        //     return out;
+        // }
+
+        const up = vec3.create(0, 1, 0);
+        const v3_1 = vec3.create();
+        vec3.normalize(v3_1, vec3.cross(v3_1, up, view));
+
+        // if (Vec3.lengthSqr(v3_1) < EPSILON * EPSILON) {
+        //     Mat3.identity(out);
+        //     return out;
+        // }
+        const v3_2 = vec3.create();
+        vec3.cross(v3_2, view, v3_1);
+
+        out = [
+            v3_1[0], v3_1[1], v3_1[2],
+            v3_2[0], v3_2[1], v3_2[2],
+            view[0], view[1], view[2],
+        ]
+
+        return out;
     }
 }

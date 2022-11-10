@@ -1,5 +1,6 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
+import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
 import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../core/gfx/RenderPass.js";
 import Texture from "../../../core/gfx/Texture.js";
@@ -7,6 +8,7 @@ import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
+import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
@@ -73,8 +75,10 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    beginRenderPass(renderPass: RenderPass, viewport: Rect) {
+    beginRenderPass(renderPass: RenderPass, viewport: Rect, framebuffer?: Framebuffer) {
         const gl = this._gl;
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer ? (framebuffer as WebFramebuffer).framebuffer : null);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 

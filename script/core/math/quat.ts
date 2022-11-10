@@ -138,11 +138,23 @@ export default {
         return out;
     },
 
-    copy(out: Quat, a: Readonly<Quat>) {
-        out[0] = a[0];
-        out[1] = a[1];
-        out[2] = a[2];
-        out[3] = a[3];
+    normalize(out: Quat, a: Readonly<Quat>) {
+        let len = a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
+        if (len > 0) {
+            len = 1 / Math.sqrt(len);
+            out[0] = a[0] * len;
+            out[1] = a[1] * len;
+            out[2] = a[2] * len;
+            out[3] = a[3] * len;
+        }
         return out;
-    }
+    },
+
+    // copy(out: Quat, a: Readonly<Quat>) {
+    //     out[0] = a[0];
+    //     out[1] = a[1];
+    //     out[2] = a[2];
+    //     out[3] = a[3];
+    //     return out;
+    // }
 }

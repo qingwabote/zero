@@ -37,6 +37,9 @@ export default class RenderScene {
 
     private _defaultPhase: DefaultPhase;
     private _shadowmapPhase: ShadowmapPhase;
+    get shadowmapPhase(): ShadowmapPhase {
+        return this._shadowmapPhase;
+    }
 
     constructor() {
         this._defaultPhase = new DefaultPhase;
@@ -58,9 +61,9 @@ export default class RenderScene {
         commandBuffer.begin();
         for (let cameraIndex = 0; cameraIndex < this._cameras.length; cameraIndex++) {
             const camera = this._cameras[cameraIndex];
-            // if (camera.visibilities & this._directionalLight.node.visibility) {
-            //     this._shadowmapPhase.record(commandBuffer, cameraIndex);
-            // }
+            if (camera.visibilities & this._directionalLight.node.visibility) {
+                this._shadowmapPhase.record(commandBuffer, cameraIndex);
+            }
 
             this._defaultPhase.record(commandBuffer, cameraIndex);
         }
