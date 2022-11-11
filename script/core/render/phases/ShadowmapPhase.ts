@@ -84,7 +84,7 @@ export default class ShadowmapPhase {
             const rotation = quat.fromMat3(quat.create(), mat3.fromViewUp(mat3.create(), vec3.normalize(vec3.create(), lightPos)));
             const model = mat4.fromRTS(mat4.create(), rotation, lightPos, vec3.create(1, 1, 1));
             this._lightUbo.set(mat4.invert(mat4.create(), model), LightBlock.uniforms.view.offset);
-            const lightProjection = mat4.ortho(mat4.create(), -4, 4, -4, 4, 1, 2000, gfx.capabilities.clipSpaceMinZ);
+            const lightProjection = mat4.ortho(mat4.create(), -4, 4, -4, 4, 1, 10, gfx.capabilities.clipSpaceMinZ);
             this._lightUbo.set(lightProjection, LightBlock.uniforms.projection.offset);
             this._lightUbo.update();
         }

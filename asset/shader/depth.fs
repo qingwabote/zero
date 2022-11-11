@@ -7,6 +7,11 @@ layout(set = 2, binding = 0) uniform sampler2D depthMap;
 layout(location = 0) out vec4 v_color;
 
 void main() {
-    v_color = vec4(texture(depthMap, v_uv).rrr, 1.0); // orthographic
-    // v_color = vec4(0.5,1.0,1.0,1.0);
+    float depth = texture(depthMap, v_uv).r;
+    // if (depth > 0.01) {
+    //     v_color = vec4(0.0,0.0,0.0,1.0);
+    // } else {
+    //     v_color = vec4(1.0,1.0,1.0,1.0);
+    // }
+    v_color = vec4(0.0, 0.0, depth, 1.0); // orthographic
 }

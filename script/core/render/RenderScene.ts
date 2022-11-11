@@ -7,6 +7,9 @@ import DefaultPhase from "./phases/DefaultPhase.js";
 import ShadowmapPhase from "./phases/ShadowmapPhase.js";
 import RenderCamera from "./RenderCamera.js";
 import RenderDirectionalLight from "./RenderDirectionalLight.js";
+import { RenderNode } from "./RenderNode.js";
+
+type RenderObject = RenderNode | RenderCamera | RenderDirectionalLight;
 
 export default class RenderScene {
     private _directionalLight!: RenderDirectionalLight;
@@ -28,8 +31,8 @@ export default class RenderScene {
         return this._models;
     }
 
-    private _dirtyObjects: Map<any, any> = new Map;
-    get dirtyObjects(): Map<any, any> {
+    private _dirtyObjects: Map<RenderObject, RenderObject> = new Map;
+    get dirtyObjects(): Map<RenderObject, RenderObject> {
         return this._dirtyObjects;
     }
 

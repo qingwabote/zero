@@ -11,7 +11,7 @@ export default class RenderCamera {
     }
     set orthoHeight(value: number) {
         this._orthoHeight = value;
-        zero.renderScene.dirtyObjects.set(value, value);
+        zero.renderScene.dirtyObjects.set(this, this);
     }
 
     private _fov = -1;
@@ -20,7 +20,25 @@ export default class RenderCamera {
     }
     set fov(value: number) {
         this._fov = value;
-        zero.renderScene.dirtyObjects.set(value, value);
+        zero.renderScene.dirtyObjects.set(this, this);
+    }
+
+    private _near: number = 1;
+    get near(): number {
+        return this._near;
+    }
+    set near(value: number) {
+        this._near = value;
+        zero.renderScene.dirtyObjects.set(this, this);
+    }
+
+    private _far: number = 1000;
+    get far(): number {
+        return this._far;
+    }
+    set far(value: number) {
+        this._far = value;
+        zero.renderScene.dirtyObjects.set(this, this);
     }
 
     visibilities: VisibilityBit = VisibilityBit.DEFAULT;
@@ -33,7 +51,7 @@ export default class RenderCamera {
     }
     set viewport(value: Readonly<Rect>) {
         this._viewport = value;
-        zero.renderScene.dirtyObjects.set(value, value);
+        zero.renderScene.dirtyObjects.set(this, this);
     }
 
     private _window: RenderWindow;

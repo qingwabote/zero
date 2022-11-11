@@ -71,7 +71,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         const gl = this._gl;
         gl.bindTexture(gl.TEXTURE_2D, (texture as WebTexture).texture);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        // gl.generateMipmap(gl.TEXTURE_2D);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 

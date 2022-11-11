@@ -31,9 +31,10 @@ export default class App extends Zero {
 
         const rotation = quat.fromMat3(quat.create(), mat3.fromViewUp(mat3.create(), vec3.normalize(vec3.create(), node.position)));
         node = new Node;
-        const cameraB = node.addComponent(Camera);
-        cameraB.orthoHeight = 4;
-        cameraB.viewport = { x: 0, y: 0, width, height: height * 0.5 };
+        const cameraLit = node.addComponent(Camera);
+        cameraLit.orthoHeight = 4;
+        cameraLit.far = 10
+        cameraLit.viewport = { x: 0, y: 0, width, height: height * 0.5 };
         node.position = [-4, 4, 4];
         node.rotation = rotation;
 
