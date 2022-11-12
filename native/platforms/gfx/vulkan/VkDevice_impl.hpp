@@ -65,11 +65,9 @@ namespace binding
 
             VkFormat swapchainImageFormat() { return _vkb_swapchain.image_format; }
 
+            VkExtent2D &swapchainImageExtent() { return _vkb_swapchain.extent; }
+
             VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
-
-            uint32_t drawingBufferWidth() { return _vkb_swapchain.extent.width; }
-
-            uint32_t drawingBufferHeight() { return _vkb_swapchain.extent.height; }
 
             VmaAllocator allocator() { return _allocator; }
 

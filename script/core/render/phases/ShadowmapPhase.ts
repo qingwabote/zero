@@ -35,7 +35,7 @@ export default class ShadowmapPhase {
             depthStencilAttachment: {
                 loadOp: LOAD_OP.CLEAR,
                 initialLayout: ImageLayout.UNDEFINED,
-                finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+                finalLayout: ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL
             },
             hash: "shadowMapRenderPass"
         });
@@ -56,7 +56,7 @@ export default class ShadowmapPhase {
 
         const depthStencilAttachment = gfx.createTexture();
         depthStencilAttachment.initialize({
-            usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT,
+            usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
         const framebuffer = gfx.createFramebuffer();

@@ -19,6 +19,8 @@ namespace binding
         public:
             Texture_impl &impl() { return *_impl.get(); }
 
+            v8::Local<v8::Object> info() { return retrieve("info"); }
+
             Texture(std::unique_ptr<Texture_impl> impl);
 
             bool initialize(v8::Local<v8::Object> info);

@@ -177,12 +177,12 @@ namespace binding
                     colorAttachments: [{
                         loadOp: 0,
                         initialLayout: 1,
-                        finalLayout: 1
+                        finalLayout: 1000001002
                     }],
                     depthStencilAttachment: {
                         loadOp: 0,
                         initialLayout: 1,
-                        finalLayout: 1
+                        finalLayout: 3
                     },
                     hash: ""
                 };

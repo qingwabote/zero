@@ -19,6 +19,8 @@ namespace binding
         public:
             Framebuffer_impl &impl() { return *_impl.get(); }
 
+            v8::Local<v8::Object> info() { return retrieve("info"); }
+
             Framebuffer(std::unique_ptr<Framebuffer_impl> impl);
 
             bool initialize(v8::Local<v8::Object> info);

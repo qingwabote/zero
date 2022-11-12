@@ -14,7 +14,7 @@ namespace binding
                 [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<RenderPass>(info.This());
-                    info.GetReturnValue().Set(c_obj->retrieve("info"));
+                    info.GetReturnValue().Set(c_obj->info());
                 });
             cls.defineFunction(
                 "initialize",

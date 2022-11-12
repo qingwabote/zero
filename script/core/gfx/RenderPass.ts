@@ -9,6 +9,7 @@ export enum LOAD_OP {
 export enum ImageLayout {
     UNDEFINED = 0,
     DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
+    DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
     PRESENT_SRC = 1000001002,
 }
 

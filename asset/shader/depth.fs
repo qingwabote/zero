@@ -8,7 +8,7 @@ layout(location = 0) out vec4 v_color;
 
 void main() {
     float depth = texture(depthMap, v_uv).r;
-    // if (depth > 0.01) {
+    // if (depth == 0.0) {
     //     v_color = vec4(0.0,0.0,0.0,1.0);
     // } else {
     //     v_color = vec4(1.0,1.0,1.0,1.0);
