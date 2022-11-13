@@ -16,8 +16,11 @@ namespace binding
         {
             VkSemaphoreCreateInfo semaphoreCreateInfo = {};
             semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            vkCreateSemaphore(_impl->_device->device(), &semaphoreCreateInfo, nullptr, &_impl->_semaphore);
-
+            auto res = vkCreateSemaphore(_impl->_device->device(), &semaphoreCreateInfo, nullptr, &_impl->_semaphore);
+            if (res)
+            {
+                return true;
+            }
             return false;
         }
 

@@ -94,8 +94,8 @@ export default class Zero {
 
         gfx.submit({
             commandBuffer,
-            waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             waitSemaphore: current.presentSemaphore,
+            waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             signalSemaphore: current.renderSemaphore
         }, current.renderFence);
         gfx.present(current.renderSemaphore);

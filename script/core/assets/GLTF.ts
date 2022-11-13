@@ -47,17 +47,6 @@ export default class GLTF extends Asset {
     private _textures: Texture[] = [];
     private _materials: Material[] = [];
 
-    private _commandBuffer: CommandBuffer;
-    private _fence: Fence;
-
-    constructor() {
-        super();
-        this._commandBuffer = gfx.createCommandBuffer();
-        this._commandBuffer.initialize();
-        this._fence = gfx.createFence();
-        this._fence.initialize();
-    }
-
     async load(url: string) {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
@@ -67,7 +56,8 @@ export default class GLTF extends Asset {
         const [, parent, name] = res;
         const json = JSON.parse(await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         this._bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
-        const textures = await Promise.all(json.images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
+        const json_images = json.images || [];
+        const textures = await Promise.all(json_images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
         this._materials = await Promise.all(json.materials.map(async (info: any) => {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
             const shadowmapShader = await shaders.getShader('shadowmap');

@@ -144,9 +144,8 @@ namespace binding
                 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
             VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
             descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            descriptorPoolCreateInfo.flags = 0;
             descriptorPoolCreateInfo.maxSets = 1000;
-            descriptorPoolCreateInfo.poolSizeCount = (uint32_t)descriptorPoolSizes.size();
+            descriptorPoolCreateInfo.poolSizeCount = descriptorPoolSizes.size();
             descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
             vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);
 
@@ -251,19 +250,19 @@ namespace binding
         {
             VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
 
-            auto js_waitDstStageMask = sugar::v8::object_get(info, "waitDstStageMask").As<v8::Number>();
-            if (!js_waitDstStageMask->IsUndefined())
-            {
-                VkPipelineStageFlags waitStage = js_waitDstStageMask->Value();
-                submitInfo.pWaitDstStageMask = &waitStage;
-            }
-
             auto js_waitSemaphore = sugar::v8::object_get(info, "waitSemaphore").As<v8::Object>();
             if (!js_waitSemaphore->IsUndefined())
             {
                 VkSemaphore waitSemaphore = Binding::c_obj<Semaphore>(js_waitSemaphore)->impl();
                 submitInfo.pWaitSemaphores = &waitSemaphore;
                 submitInfo.waitSemaphoreCount = 1;
+            }
+
+            auto js_waitDstStageMask = sugar::v8::object_get(info, "waitDstStageMask").As<v8::Number>();
+            if (!js_waitDstStageMask->IsUndefined())
+            {
+                VkPipelineStageFlags waitStage = js_waitDstStageMask->Value();
+                submitInfo.pWaitDstStageMask = &waitStage;
             }
 
             auto js_signalSemaphore = sugar::v8::object_get(info, "signalSemaphore").As<v8::Object>();

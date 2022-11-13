@@ -110,7 +110,7 @@ export default class Label extends Component {
         const indexCount = 6 * this._text.length;
 
         this._texCoordBuffer.reset(2 * 4 * this._text.length);
-        this._positionBuffer.reset(4 * 4 * this._text.length);
+        this._positionBuffer.reset(3 * 4 * this._text.length);
         this._indexBuffer.reset(indexCount)
 
         const tex = this._fnt.texture.gfx_texture.info;
@@ -126,31 +126,27 @@ export default class Label extends Component {
 
             this._texCoordBuffer.data[2 * 4 * i + 0] = l;
             this._texCoordBuffer.data[2 * 4 * i + 1] = t;
-            this._positionBuffer.data[4 * 4 * i + 0] = x;
-            this._positionBuffer.data[4 * 4 * i + 1] = -char.yoffset;
-            this._positionBuffer.data[4 * 4 * i + 2] = 0;
-            this._positionBuffer.data[4 * 4 * i + 3] = 1;
+            this._positionBuffer.data[3 * 4 * i + 0] = x;
+            this._positionBuffer.data[3 * 4 * i + 1] = -char.yoffset;
+            this._positionBuffer.data[3 * 4 * i + 2] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 2] = r;
             this._texCoordBuffer.data[2 * 4 * i + 3] = t;
-            this._positionBuffer.data[4 * 4 * i + 4] = x + char.width;
-            this._positionBuffer.data[4 * 4 * i + 5] = -char.yoffset;
-            this._positionBuffer.data[4 * 4 * i + 6] = 0;
-            this._positionBuffer.data[4 * 4 * i + 7] = 1;
+            this._positionBuffer.data[3 * 4 * i + 3] = x + char.width;
+            this._positionBuffer.data[3 * 4 * i + 4] = -char.yoffset;
+            this._positionBuffer.data[3 * 4 * i + 5] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 4] = r;
             this._texCoordBuffer.data[2 * 4 * i + 5] = b;
-            this._positionBuffer.data[4 * 4 * i + 8] = x + char.width;
-            this._positionBuffer.data[4 * 4 * i + 9] = -char.yoffset - char.height;
-            this._positionBuffer.data[4 * 4 * i + 10] = 0;
-            this._positionBuffer.data[4 * 4 * i + 11] = 1;
+            this._positionBuffer.data[3 * 4 * i + 6] = x + char.width;
+            this._positionBuffer.data[3 * 4 * i + 7] = -char.yoffset - char.height;
+            this._positionBuffer.data[3 * 4 * i + 8] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 6] = l;
             this._texCoordBuffer.data[2 * 4 * i + 7] = b;
-            this._positionBuffer.data[4 * 4 * i + 12] = x;
-            this._positionBuffer.data[4 * 4 * i + 13] = -char.yoffset - char.height;
-            this._positionBuffer.data[4 * 4 * i + 14] = 0;
-            this._positionBuffer.data[4 * 4 * i + 15] = 1;
+            this._positionBuffer.data[3 * 4 * i + 9] = x;
+            this._positionBuffer.data[3 * 4 * i + 10] = -char.yoffset - char.height;
+            this._positionBuffer.data[3 * 4 * i + 11] = 0;
 
             x += char.width;
 

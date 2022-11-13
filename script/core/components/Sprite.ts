@@ -59,7 +59,7 @@ export default class Sprite extends Component {
             });
 
             const texCoordBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX, 8);
-            const positionBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX, 16);
+            const positionBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX, 12);
 
             const l = 0;
             const r = 1;
@@ -71,28 +71,24 @@ export default class Sprite extends Component {
             positionBuffer.data[0] = 0;
             positionBuffer.data[1] = 0;
             positionBuffer.data[2] = 0;
-            positionBuffer.data[3] = 1;
 
             texCoordBuffer.data[2] = r;
             texCoordBuffer.data[3] = t;
-            positionBuffer.data[4] = this.width;
+            positionBuffer.data[3] = this.width;
+            positionBuffer.data[4] = 0;
             positionBuffer.data[5] = 0;
-            positionBuffer.data[6] = 0;
-            positionBuffer.data[7] = 1;
 
             texCoordBuffer.data[4] = r;
             texCoordBuffer.data[5] = b;
-            positionBuffer.data[8] = this.width;
-            positionBuffer.data[9] = - this.height;
-            positionBuffer.data[10] = 0;
-            positionBuffer.data[11] = 1;
+            positionBuffer.data[6] = this.width;
+            positionBuffer.data[7] = - this.height;
+            positionBuffer.data[8] = 0;
 
             texCoordBuffer.data[6] = l;
             texCoordBuffer.data[7] = b;
-            positionBuffer.data[12] = 0;
-            positionBuffer.data[13] = -this.height;
-            positionBuffer.data[14] = 0;
-            positionBuffer.data[15] = 1;
+            positionBuffer.data[9] = 0;
+            positionBuffer.data[10] = -this.height;
+            positionBuffer.data[11] = 0;
 
             const indexBuffer = new BufferView("Uint16", BufferUsageFlagBits.INDEX, 6);
             indexBuffer.set([0, 1, 2, 2, 3, 0]);

@@ -66,24 +66,24 @@ export default class App extends Zero {
         })();
 
         (async () => {
-            const glTF = new GLTF();
+            let glTF: GLTF;
+            let node: Node;
+            glTF = new GLTF();
             await glTF.load('./asset/guardian_zelda_botw_fan-art/scene');
-            let node = glTF.createScene("Sketchfab_Scene")!;
+            node = glTF.createScene("Sketchfab_Scene")!;
             node.addComponent(ZeroComponent);
 
-            // const shader = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
-            // const texture = new Texture;
-            // await texture.load('./asset/MaterialBaseColor.png');
+            glTF = new GLTF();
+            await glTF.load('./asset/plane');
+            node = glTF.createScene("Scene")!;
 
             const shader = await shaders.getShader('depth');
             node = new Node;
-            // node.visibility = VisibilityBit.UI;
             const sprite = node.addComponent(Sprite);
             sprite.shader = shader;
             sprite.width = 2;
             sprite.height = 2;
             sprite.texture = this.renderScene.shadowmapPhase.depthStencilAttachment;
-            // sprite.texture = texture.gfx_texture;
         })();
 
         return false;

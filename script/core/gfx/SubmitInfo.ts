@@ -4,7 +4,7 @@ import Semaphore from "./Semaphore.js";
 
 export interface SubmitInfo {
     commandBuffer: CommandBuffer;
-    waitDstStageMask?: PipelineStageFlags;
     waitSemaphore?: Semaphore;
+    waitDstStageMask?: PipelineStageFlags;
     signalSemaphore?: Semaphore;
 }

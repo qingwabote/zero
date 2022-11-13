@@ -48,8 +48,8 @@ export interface VertexInputBindingDescription {
 
 export interface VertexInputAttributeDescription {
     readonly location: number;
-    readonly binding: number;
     readonly format: Format;
+    readonly binding: number;
     readonly offset: number
 }
 
