@@ -1,13 +1,15 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
-import Pipeline, { PipelineLayout, VertexInputState } from "../gfx/Pipeline.js";
+import Pipeline, { DescriptorSet, PipelineLayout, VertexInputState } from "../gfx/Pipeline.js";
 import RenderPass from "../gfx/RenderPass.js";
 import Shader from "../gfx/Shader.js";
+import shaders from "../shaders.js";
 import Model from "./Model.js";
 import DefaultPhase from "./phases/DefaultPhase.js";
 import ShadowmapPhase from "./phases/ShadowmapPhase.js";
 import RenderCamera from "./RenderCamera.js";
 import RenderDirectionalLight from "./RenderDirectionalLight.js";
 import { RenderNode } from "./RenderNode.js";
+import UboGlobal from "./UboGlobal.js";
 
 type RenderObject = RenderNode | RenderCamera | RenderDirectionalLight;
 
@@ -36,7 +38,12 @@ export default class RenderScene {
         return this._dirtyObjects;
     }
 
+    private _pipelineLayoutCache: Record<string, PipelineLayout> = {};
     private _pipelineCache: Record<string, Pipeline> = {};
+
+    private _globalDescriptorSet: DescriptorSet;
+
+    private _uboGlobal: UboGlobal;
 
     private _defaultPhase: DefaultPhase;
     private _shadowmapPhase: ShadowmapPhase;
@@ -45,13 +52,19 @@ export default class RenderScene {
     }
 
     constructor() {
+        const globalDescriptorSet = gfx.createDescriptorSet();
+        globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
+
+        this._uboGlobal = new UboGlobal(globalDescriptorSet);
+
+        this._globalDescriptorSet = globalDescriptorSet;
+
         this._defaultPhase = new DefaultPhase;
         this._shadowmapPhase = new ShadowmapPhase;
     }
 
     update(dt: number) {
-        this._shadowmapPhase.update();
-        this._defaultPhase.update();
+        this._uboGlobal.update();
 
         for (let i = 0; i < this._models.length; i++) {
             this._models[i].update()
@@ -64,11 +77,12 @@ export default class RenderScene {
         commandBuffer.begin();
         for (let cameraIndex = 0; cameraIndex < this._cameras.length; cameraIndex++) {
             const camera = this._cameras[cameraIndex];
+            commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
+                [cameraIndex * shaders.builtinUniformBlocks.global.blocks.Camera.size]);
             if (camera.visibilities & this._directionalLight.node.visibility) {
-                this._shadowmapPhase.record(commandBuffer, cameraIndex);
+                this._shadowmapPhase.record(commandBuffer, camera);
             }
-
-            this._defaultPhase.record(commandBuffer, cameraIndex);
+            this._defaultPhase.record(commandBuffer, camera);
         }
         commandBuffer.end();
     }
@@ -82,5 +96,19 @@ export default class RenderScene {
             this._pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;
+    }
+
+    getPipelineLayout(shader: Shader): PipelineLayout {
+        let layout = this._pipelineLayoutCache[shader.info.hash];
+        if (!layout) {
+            layout = gfx.createPipelineLayout();
+            layout.initialize([
+                shaders.builtinDescriptorSetLayouts.global,
+                shaders.builtinDescriptorSetLayouts.local,
+                shader.info.meta.descriptorSetLayout
+            ])
+            this._pipelineLayoutCache[shader.info.hash] = layout;
+        }
+        return layout;
     }
 }

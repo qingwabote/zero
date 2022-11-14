@@ -76,6 +76,7 @@ export default class App extends Zero {
             glTF = new GLTF();
             await glTF.load('./asset/plane');
             node = glTF.createScene("Scene")!;
+            node.scale = [4, 4, 4];
 
             const shader = await shaders.getShader('depth');
             node = new Node;

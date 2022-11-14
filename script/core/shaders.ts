@@ -9,24 +9,10 @@ function align(size: number) {
 
 const FLOAT32_BYTES = 4;
 
+/**
+ * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
+ */
 const builtinUniformBlocks = {
-    shadowmap: {
-        set: 0,
-        blocks: {
-            Light: {
-                binding: 0,
-                uniforms: {
-                    view: {
-                        offset: 0
-                    },
-                    projection: {
-                        offset: 16
-                    }
-                },
-                size: align((16 + 16) * FLOAT32_BYTES),
-            }
-        }
-    },
     global: {
         set: 0,
         blocks: {
@@ -52,6 +38,18 @@ const builtinUniformBlocks = {
                 },
                 size: align((16 + 16 + 4) * FLOAT32_BYTES),
                 dynamic: true
+            },
+            Shadow: {
+                binding: 2,
+                uniforms: {
+                    view: {
+                        offset: 0
+                    },
+                    projection: {
+                        offset: 16
+                    }
+                },
+                size: (16 + 16) * FLOAT32_BYTES,
             }
         }
     },
@@ -93,16 +91,12 @@ function buildDescriptorSetLayout(res: {
 }
 
 const builtinDescriptorSetLayouts = {
-    shadowmap: buildDescriptorSetLayout(builtinUniformBlocks.shadowmap),
     global: buildDescriptorSetLayout(builtinUniformBlocks.global),
     local: buildDescriptorSetLayout(builtinUniformBlocks.local)
 } as const
 
 const builtinGlobalPipelineLayout = gfx.createPipelineLayout();
 builtinGlobalPipelineLayout.initialize([builtinDescriptorSetLayouts.global]);
-
-const builtinShadowmapPipelineLayout = gfx.createPipelineLayout();
-builtinShadowmapPipelineLayout.initialize([builtinDescriptorSetLayouts.shadowmap, builtinDescriptorSetLayouts.local]);
 
 const name2source: Record<string, ShaderStage[]> = {};
 const name2macros: Record<string, Set<string>> = {};
@@ -115,8 +109,6 @@ export default {
     builtinDescriptorSetLayouts,
 
     builtinGlobalPipelineLayout,
-
-    builtinShadowmapPipelineLayout,
 
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = name2source[name];
