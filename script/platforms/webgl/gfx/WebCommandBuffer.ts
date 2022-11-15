@@ -137,6 +137,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer, offset, range);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
                 const texture = (descriptorSet as WebDescriptorSet).textures[layoutBinding.binding] as WebTexture;
+                gl.activeTexture(gl.TEXTURE0 + layoutBinding.binding + index * 10);
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);
             }
         }

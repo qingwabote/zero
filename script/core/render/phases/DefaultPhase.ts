@@ -28,8 +28,8 @@ export default class DefaultPhase {
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = zero.renderScene.getPipelineLayout(pass.shader);
-                    commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.local.set, model.descriptorSet);
-                    commandBuffer.bindDescriptorSet(layout, shaders.builtinUniformBlocks.material.set, pass.descriptorSet);
+                    commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.local.set, model.descriptorSet);
+                    commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.material.set, pass.descriptorSet);
                     const pipeline = zero.renderScene.getPipeline(pass.shader, inputAssembler.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();

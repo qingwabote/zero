@@ -1,5 +1,6 @@
 import { DescriptorSet } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
+import shaders from "../shaders.js";
 
 export enum PassPhase {
     DEFAULT = 0,
@@ -26,7 +27,7 @@ export default class Pass {
         this._shader = shader;
         this._phase = phase;
         const descriptorSet = gfx.createDescriptorSet();
-        if (descriptorSet.initialize(this._shader.info.meta.descriptorSetLayout)) {
+        if (descriptorSet.initialize(shaders.getDescriptorSetLayout(shader))) {
             throw new Error("descriptorSet initialize failed");
         }
         this._descriptorSet = descriptorSet;

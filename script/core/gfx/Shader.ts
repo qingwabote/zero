@@ -1,4 +1,4 @@
-import { DescriptorSetLayout, Format } from "./Pipeline.js";
+import { Format } from "./Pipeline.js";
 
 // copy values from VkShaderStageFlagBits in vulkan_core.h
 export enum ShaderStageFlagBits {
@@ -25,7 +25,6 @@ export interface Meta {
     attributes: Record<string, Attribute>;
     samplerTextures: Record<string, Uniform>;
     blocks: Record<string, Uniform>;
-    descriptorSetLayout: DescriptorSetLayout;
 }
 
 export interface ShaderInfo {

@@ -62,7 +62,11 @@ export default class GLTF extends Asset {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
             const shadowmapShader = await shaders.getShader('shadowmap');
             const shadowmapPass = new Pass(shadowmapShader, PassPhase.SHADOWMAP);
-            const phongShader = await shaders.getShader('phong', { USE_BLINN_PHONG: 1, USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
+            const phongShader = await shaders.getShader('phong', {
+                USE_BLINN_PHONG: 1,
+                USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1,
+                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+            })
             const phongPass = new Pass(phongShader);
             if (textureIdx != undefined) {
                 phongPass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);

@@ -8,9 +8,9 @@ import shaders from "../shaders.js";
 import BufferView from "./BufferView.js";
 import BufferViewResizable from "./BufferViewResizable.js";
 
-const GlobalBlock = shaders.builtinUniformBlocks.global.blocks.Global;
-const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
-const ShadowBlock = shaders.builtinUniformBlocks.global.blocks.Shadow;
+const GlobalBlock = shaders.builtinUniforms.global.blocks.Global;
+const CameraBlock = shaders.builtinUniforms.global.blocks.Camera;
+const ShadowBlock = shaders.builtinUniforms.global.blocks.Shadow;
 
 export default class UboGlobal {
     private _globalUbo: BufferView;

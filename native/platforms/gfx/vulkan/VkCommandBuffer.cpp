@@ -134,28 +134,40 @@ namespace binding
 
         void CommandBuffer::beginRenderPass(RenderPass *c_renderPass, v8::Local<v8::Object> area, Framebuffer *c_framebuffer)
         {
+            int32_t x = sugar::v8::object_get(area, "x").As<v8::Number>()->Value();
+            int32_t width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
+            int32_t height = sugar::v8::object_get(area, "height").As<v8::Number>()->Value();
+            int32_t y;
+
+            VkViewport viewport;
+            viewport.x = x;
+            viewport.width = width;
+            viewport.minDepth = 0;
+            viewport.maxDepth = 1;
+
             VkFramebuffer framebuffer;
-            int32_t framebuffer_height;
+
             if (c_framebuffer)
             {
                 framebuffer = c_framebuffer->impl();
-                framebuffer_height = sugar::v8::object_get(c_framebuffer->info(), "height").As<v8::Number>()->Value();
+
+                y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
+
+                viewport.y = y;
+                viewport.height = height;
             }
             else
             {
                 framebuffer = _impl->_device->curFramebuffer();
-                framebuffer_height = _impl->_device->swapchainImageExtent().height;
+
+                // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
+                // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
+                // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
+                y = _impl->_device->swapchainImageExtent().height - sugar::v8::object_get(area, "y").As<v8::Number>()->Value() - height;
+
+                viewport.y = y + height;
+                viewport.height = -height;
             }
-
-            int32_t x = sugar::v8::object_get(area, "x").As<v8::Number>()->Value();
-            int32_t y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
-            int32_t width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
-            int32_t height = sugar::v8::object_get(area, "height").As<v8::Number>()->Value();
-
-            // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
-            // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
-            // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
-            y = framebuffer_height - y - height;
 
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -176,7 +188,6 @@ namespace binding
             info.clearValueCount = clearValues.size();
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
 
-            VkViewport viewport{x, y + height, width, -height, 0, 1};
             vkCmdSetViewport(_impl->_commandBuffer, 0, 1, &viewport);
 
             VkRect2D scissor = {{x, y}, {width, height}};

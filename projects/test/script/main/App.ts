@@ -9,7 +9,7 @@ import { ClearFlagBit } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import mat3 from "../../../../script/core/math/mat3.js";
 import quat from "../../../../script/core/math/quat.js";
-import vec3 from "../../../../script/core/math/vec3.js";
+import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import Platfrom from "../../../../script/core/Platfrom.js";
 import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
@@ -23,19 +23,21 @@ export default class App extends Zero {
             return true;
         }
 
+        const lit_position: Vec3 = [-4, 4, 4];
+
         let node: Node;
 
         node = new Node;
         node.addComponent(DirectionalLight);
-        node.position = [-4, 4, 4];
+        node.position = lit_position;
 
         const rotation = quat.fromMat3(quat.create(), mat3.fromViewUp(mat3.create(), vec3.normalize(vec3.create(), node.position)));
         node = new Node;
-        const cameraLit = node.addComponent(Camera);
-        cameraLit.orthoHeight = 4;
-        cameraLit.far = 10
-        cameraLit.viewport = { x: 0, y: 0, width, height: height * 0.5 };
-        node.position = [-4, 4, 4];
+        const lit_camera = node.addComponent(Camera);
+        lit_camera.orthoHeight = 4;
+        lit_camera.far = 10
+        lit_camera.viewport = { x: 0, y: 0, width, height: height * 0.5 };
+        node.position = lit_position;
         node.rotation = rotation;
 
         node = new Node;

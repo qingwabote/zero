@@ -1,4 +1,4 @@
-import { DescriptorSetLayoutBinding, DescriptorType, Format } from "./gfx/Pipeline.js";
+import { Format } from "./gfx/Pipeline.js";
 import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "./gfx/Shader.js";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
@@ -97,7 +97,6 @@ export default {
 
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
-        const bindings: DescriptorSetLayoutBinding[] = []
         for (const stage of stages) {
             stage.source = stage.source.replace(
                 /layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/g,
@@ -106,12 +105,6 @@ export default {
                         // bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 })
                         blocks[name] = { set: parseInt(set), binding: parseInt(binding) };
                     } else if (type == 'sampler2D') {
-                        bindings.push({
-                            binding: parseInt(binding),
-                            descriptorType: DescriptorType.SAMPLER_TEXTURE,
-                            descriptorCount: 1,
-                            stageFlags: ShaderStageFlagBits.FRAGMENT
-                        });
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
                     // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
@@ -121,16 +114,12 @@ export default {
                     return content;
                 })
         }
-        const descriptorSetLayout = gfx.createDescriptorSetLayout();
-        descriptorSetLayout.initialize(bindings);
-
         return {
             stages,
             meta: {
                 attributes,
                 blocks,
-                samplerTextures,
-                descriptorSetLayout
+                samplerTextures
             }
         }
     }

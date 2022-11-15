@@ -57,10 +57,10 @@ export default class RenderScene {
 
         this._uboGlobal = new UboGlobal(globalDescriptorSet);
 
-        this._globalDescriptorSet = globalDescriptorSet;
-
         this._defaultPhase = new DefaultPhase;
-        this._shadowmapPhase = new ShadowmapPhase;
+        this._shadowmapPhase = new ShadowmapPhase(globalDescriptorSet);
+
+        this._globalDescriptorSet = globalDescriptorSet;
     }
 
     update(dt: number) {
@@ -77,8 +77,8 @@ export default class RenderScene {
         commandBuffer.begin();
         for (let cameraIndex = 0; cameraIndex < this._cameras.length; cameraIndex++) {
             const camera = this._cameras[cameraIndex];
-            commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniformBlocks.global.set, this._globalDescriptorSet,
-                [cameraIndex * shaders.builtinUniformBlocks.global.blocks.Camera.size]);
+            commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniforms.global.set, this._globalDescriptorSet,
+                [cameraIndex * shaders.builtinUniforms.global.blocks.Camera.size]);
             if (camera.visibilities & this._directionalLight.node.visibility) {
                 this._shadowmapPhase.record(commandBuffer, camera);
             }
@@ -105,7 +105,7 @@ export default class RenderScene {
             layout.initialize([
                 shaders.builtinDescriptorSetLayouts.global,
                 shaders.builtinDescriptorSetLayouts.local,
-                shader.info.meta.descriptorSetLayout
+                shaders.getDescriptorSetLayout(shader)
             ])
             this._pipelineLayoutCache[shader.info.hash] = layout;
         }

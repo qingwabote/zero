@@ -12,7 +12,7 @@ const FLOAT32_BYTES = 4;
 /**
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
-const builtinUniformBlocks = {
+const builtinUniforms = {
     global: {
         set: 0,
         blocks: {
@@ -51,6 +51,11 @@ const builtinUniformBlocks = {
                 },
                 size: (16 + 16) * FLOAT32_BYTES,
             }
+        },
+        samplers: {
+            shadowMap: {
+                binding: 3,
+            }
         }
     },
     local: {
@@ -73,7 +78,8 @@ const builtinUniformBlocks = {
 
 function buildDescriptorSetLayout(res: {
     set: number,
-    blocks: Record<string, { binding: number, dynamic?: boolean }>
+    blocks: Record<string, { binding: number, dynamic?: boolean }>,
+    samplers?: Record<string, { binding: number }>
 }): DescriptorSetLayout {
     const bindings: DescriptorSetLayoutBinding[] = [];
     for (const name in res.blocks) {
@@ -85,14 +91,23 @@ function buildDescriptorSetLayout(res: {
             stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
         }
     }
+    for (const name in res.samplers) {
+        const sampler = res.samplers[name];
+        bindings[sampler.binding] = {
+            binding: sampler.binding,
+            descriptorType: DescriptorType.SAMPLER_TEXTURE,
+            descriptorCount: 1,
+            stageFlags: ShaderStageFlagBits.FRAGMENT
+        }
+    }
     const descriptorSetLayout = gfx.createDescriptorSetLayout();
     descriptorSetLayout.initialize(bindings);
     return descriptorSetLayout;
 }
 
 const builtinDescriptorSetLayouts = {
-    global: buildDescriptorSetLayout(builtinUniformBlocks.global),
-    local: buildDescriptorSetLayout(builtinUniformBlocks.local)
+    global: buildDescriptorSetLayout(builtinUniforms.global),
+    local: buildDescriptorSetLayout(builtinUniforms.local)
 } as const
 
 const builtinGlobalPipelineLayout = gfx.createPipelineLayout();
@@ -103,8 +118,10 @@ const name2macros: Record<string, Set<string>> = {};
 
 const shaders: Record<string, Shader> = {};
 
+const shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
+
 export default {
-    builtinUniformBlocks,
+    builtinUniforms,
 
     builtinDescriptorSetLayouts,
 
@@ -139,5 +156,31 @@ export default {
 
         }
         return shaders[key];
+    },
+
+    getDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
+        let descriptorSetLayout = shader2descriptorSetLayout[shader.info.hash];
+        if (!descriptorSetLayout) {
+            const global_samplers: Record<string, any> = builtinUniforms.global.samplers;
+            const bindings: DescriptorSetLayoutBinding[] = [];
+            const samplerTextures = shader.info.meta.samplerTextures;
+            for (const name in samplerTextures) {
+                if (global_samplers[name]) {
+                    continue;
+                }
+                bindings.push({
+                    binding: samplerTextures[name].binding,
+                    descriptorType: DescriptorType.SAMPLER_TEXTURE,
+                    descriptorCount: 1,
+                    stageFlags: ShaderStageFlagBits.FRAGMENT
+                });
+            };
+            descriptorSetLayout = gfx.createDescriptorSetLayout();
+            descriptorSetLayout.initialize(bindings);
+
+            shader2descriptorSetLayout[shader.info.hash] = descriptorSetLayout;
+        }
+
+        return descriptorSetLayout;
     }
 }
