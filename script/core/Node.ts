@@ -155,7 +155,7 @@ export default class Node implements RenderNode {
         mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
         quat.multiply(this._rotationWorld, this._parent.rotationWorld, this._rotation);
-        vec3.transformMat4(this._positionWorld, vec3.Zero, this._matrix);
+        vec3.transformMat4(this._positionWorld, vec3.ZERO, this._matrix);
         this._dirtyFlag = TransformBit.NONE;
         // }
     }

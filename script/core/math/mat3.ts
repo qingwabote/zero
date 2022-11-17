@@ -15,6 +15,19 @@ export default {
         ]
     },
 
+    identity(out: Mat3) {
+        out[0] = 1;
+        out[1] = 0;
+        out[2] = 0;
+        out[3] = 0;
+        out[4] = 1;
+        out[5] = 0;
+        out[6] = 0;
+        out[7] = 0;
+        out[8] = 1;
+        return out;
+    },
+
     determinant(a: Mat3) {
         const a00 = a[0]; const a01 = a[1]; const a02 = a[2];
         const a10 = a[3]; const a11 = a[4]; const a12 = a[5];
@@ -27,19 +40,22 @@ export default {
      * @param view The view direction, it`s must be normalized.
      */
     fromViewUp(out: Mat3, view: Vec3) {
-        // if (Vec3.lengthSqr(view) < EPSILON * EPSILON) {
-        //     Mat3.identity(out);
-        //     return out;
-        // }
+        const EPSILON = 0.000001;
+
+        if (vec3.lengthSqr(view) < EPSILON * EPSILON) {
+            this.identity(out);
+            return out;
+        }
 
         const up = vec3.create(0, 1, 0);
         const v3_1 = vec3.create();
         vec3.normalize(v3_1, vec3.cross(v3_1, up, view));
 
-        // if (Vec3.lengthSqr(v3_1) < EPSILON * EPSILON) {
-        //     Mat3.identity(out);
-        //     return out;
-        // }
+        if (vec3.lengthSqr(v3_1) < EPSILON * EPSILON) {
+            this.identity(out);
+            return out;
+        }
+
         const v3_2 = vec3.create();
         vec3.cross(v3_2, view, v3_1);
 

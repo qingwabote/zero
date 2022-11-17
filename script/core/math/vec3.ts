@@ -4,9 +4,10 @@ import { Quat } from "./quat.js";
 export type Vec3 = [number, number, number];
 
 export default {
-    get Zero(): Readonly<Vec3> {
-        return [0, 0, 0];
-    },
+    UNIT_X: [1, 0, 0],
+    UNIT_Y: [0, 1, 0],
+
+    ZERO: [0, 0, 0],
 
     create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
         return [x, y, z]
@@ -29,6 +30,10 @@ export default {
 
     length(v: Vec3) {
         return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    },
+
+    lengthSqr(v: Vec3) {
+        return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
     },
 
     transformMat4(out: Vec3, a: Readonly<Vec3>, m: Readonly<Mat4>): Vec3 {
@@ -59,7 +64,11 @@ export default {
         return out;
     },
 
-    cross(out: Vec3, a: Vec3, b: Vec3) {
+    dot(a: Readonly<Vec3>, b: Readonly<Vec3>): number {
+        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    },
+
+    cross(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
         out[0] = a[1] * b[2] - a[2] * b[1];
         out[1] = a[2] * b[0] - a[0] * b[2];
         out[2] = a[0] * b[1] - a[1] * b[0];
@@ -79,4 +88,4 @@ export default {
     //     out[2] = a[2];
     //     return out;
     // },
-}
+} as const

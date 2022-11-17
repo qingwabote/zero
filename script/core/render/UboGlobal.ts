@@ -1,6 +1,5 @@
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { DescriptorSet } from "../gfx/Pipeline.js";
-import mat3 from "../math/mat3.js";
 import mat4 from "../math/mat4.js";
 import quat from "../math/quat.js";
 import vec3 from "../math/vec3.js";
@@ -37,7 +36,7 @@ export default class UboGlobal {
         const directionalLight = renderScene.directionalLight;
         if (dirtyObjects.has(directionalLight) || dirtyObjects.has(directionalLight.node)) {
             directionalLight.node.updateTransform();
-            const litDir = vec3.transformMat4(vec3.create(), vec3.Zero, directionalLight.node.matrix);
+            const litDir = vec3.transformMat4(vec3.create(), vec3.ZERO, directionalLight.node.matrix);
             vec3.normalize(litDir, litDir);
             this._globalUbo.set(litDir, 0);
             this._globalUbo.update();
@@ -67,7 +66,7 @@ export default class UboGlobal {
                 }
                 this._camerasUbo.set(projection, camerasDataOffset + CameraBlock.uniforms.projection.offset);
 
-                const position = vec3.transformMat4(vec3.create(), vec3.Zero, camera.node.matrix);
+                const position = vec3.transformMat4(vec3.create(), vec3.ZERO, camera.node.matrix);
                 this._camerasUbo.set(position, camerasDataOffset + CameraBlock.uniforms.position.offset);
 
                 camerasDataDirty = true;
@@ -80,7 +79,8 @@ export default class UboGlobal {
 
         if (dirtyObjects.has(directionalLight) || dirtyObjects.has(directionalLight.node)) {
             const lightPos = directionalLight.node.position;
-            const rotation = quat.fromMat3(quat.create(), mat3.fromViewUp(mat3.create(), vec3.normalize(vec3.create(), lightPos)));
+            // const rotation = quat.fromMat3(quat.create(), mat3.fromViewUp(mat3.create(), vec3.normalize(vec3.create(), lightPos)));
+            const rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lightPos)));
             const model = mat4.fromRTS(mat4.create(), rotation, lightPos, vec3.create(1, 1, 1));
             this._shadowUbo.set(mat4.invert(mat4.create(), model), ShadowBlock.uniforms.view.offset);
             const lightProjection = mat4.ortho(mat4.create(), -4, 4, -4, 4, 1, 10, gfx.capabilities.clipSpaceMinZ);

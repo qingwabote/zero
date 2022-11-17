@@ -1,5 +1,5 @@
 import { Mat3 } from "./mat3.js";
-import { Vec3 } from "./vec3.js";
+import vec3, { Vec3 } from "./vec3.js";
 
 const halfToRad = 0.5 * Math.PI / 180.0;
 
@@ -149,6 +149,37 @@ export default {
         }
         return out;
     },
+
+    /**
+     * Sets the out quaternion with the shortest path orientation between two vectors, considering both vectors normalized
+     */
+    rotationTo(out: Quat, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+        const v3_1 = vec3.create();
+
+        const dot = vec3.dot(a, b);
+        if (dot < -0.999999) {
+            vec3.cross(v3_1, vec3.UNIT_X, a);
+            if (vec3.length(v3_1) < 0.000001) {
+                vec3.cross(v3_1, vec3.UNIT_Y, a);
+            }
+            vec3.normalize(v3_1, v3_1);
+            this.fromAxisAngle(out, v3_1, Math.PI);
+            return out;
+        } else if (dot > 0.999999) {
+            out[0] = 0;
+            out[1] = 0;
+            out[2] = 0;
+            out[3] = 1;
+            return out;
+        } else {
+            vec3.cross(v3_1, a, b);
+            out[0] = v3_1[0];
+            out[1] = v3_1[1];
+            out[2] = v3_1[2];
+            out[3] = 1 + dot;
+            return this.normalize(out, out);
+        }
+    }
 
     // copy(out: Quat, a: Readonly<Quat>) {
     //     out[0] = a[0];

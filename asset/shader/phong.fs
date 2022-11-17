@@ -47,5 +47,13 @@ void main() {
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * litColor;
 
-    v_color = albedo * vec4(diffuse + (specular + ambient) * (1.0 - shadowFactor(v_shadow_position)), 1.0);
+    v_color = albedo * vec4(ambient + (diffuse + specular) * (1.0 - shadowFactor(v_shadow_position)), 1.0);
+
+    // vec3 pos = v_shadow_position.xyz * 0.5 + 0.5;
+    // v_color = vec4(0.0,0.0,pos.z,1.0);
+    // if (shadowFactor(v_shadow_position) == 1.0) {
+    //     v_color = vec4(0.0,0.0,0.0,1.0);
+    // } else {
+    //     v_color = vec4(1.0,1.0,1.0,1.0);
+    // }
 }

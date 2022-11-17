@@ -7,7 +7,6 @@ import Label from "../../../../script/core/components/Label.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
-import mat3 from "../../../../script/core/math/mat3.js";
 import quat from "../../../../script/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
@@ -23,7 +22,7 @@ export default class App extends Zero {
             return true;
         }
 
-        const lit_position: Vec3 = [-4, 4, 4];
+        const lit_position: Vec3 = [4, 4, 4];
 
         let node: Node;
 
@@ -31,22 +30,24 @@ export default class App extends Zero {
         node.addComponent(DirectionalLight);
         node.position = lit_position;
 
-        const rotation = quat.fromMat3(quat.create(), mat3.fromViewUp(mat3.create(), vec3.normalize(vec3.create(), node.position)));
         node = new Node;
         const lit_camera = node.addComponent(Camera);
         lit_camera.orthoHeight = 4;
         lit_camera.far = 10
         lit_camera.viewport = { x: 0, y: 0, width, height: height * 0.5 };
         node.position = lit_position;
-        node.rotation = rotation;
+        node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
 
         node = new Node;
         const cameraA = node.addComponent(Camera);
         cameraA.fov = 45;
+        // cameraA.orthoHeight = 4;
+        // cameraA.far = 20
         cameraA.viewport = { x: 0, y: height * 0.5, width, height: height * 0.5 };
-        node.position = [0, 0.5, 8]
+        node.position = [0, 0.5, 8];
+        // node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), node.position)));
 
-        // FPS
+        // UI
         node = new Node;
         const camera = node.addComponent(Camera);
         camera.visibilities = VisibilityBit.UI;
@@ -65,6 +66,16 @@ export default class App extends Zero {
             node.addComponent(FPS);
             node.position = [-width / 2, height / 2, 0];
             node.visibility = VisibilityBit.UI;
+
+            const shader = await shaders.getShader('depth');
+            node = new Node;
+            node.position = [width / 2 - 200, -height / 2 + 200, 0];
+            node.visibility = VisibilityBit.UI;
+            const sprite = node.addComponent(Sprite);
+            sprite.shader = shader;
+            sprite.width = 200;
+            sprite.height = 200;
+            sprite.texture = this.renderScene.shadowmapPhase.depthStencilAttachment;
         })();
 
         (async () => {
@@ -79,14 +90,6 @@ export default class App extends Zero {
             await glTF.load('./asset/plane');
             node = glTF.createScene("Scene")!;
             node.scale = [4, 4, 4];
-
-            const shader = await shaders.getShader('depth');
-            node = new Node;
-            const sprite = node.addComponent(Sprite);
-            sprite.shader = shader;
-            sprite.width = 2;
-            sprite.height = 2;
-            sprite.texture = this.renderScene.shadowmapPhase.depthStencilAttachment;
         })();
 
         return false;
