@@ -82,7 +82,7 @@ export default class ShadowmapPhase {
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = zero.renderScene.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.local.set, model.descriptorSet);
-                    const pipeline = zero.renderScene.getPipeline(pass.shader, inputAssembler.vertexInputState, this._renderPass, layout);
+                    const pipeline = zero.renderScene.getPipeline(pass, inputAssembler.vertexInputState, this._renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
                 }

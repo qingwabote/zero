@@ -149,14 +149,14 @@ export default class Label extends Component {
             this._positionBuffer.data[3 * 4 * i + 11] = 0;
 
             x += char.width;
-
+            // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
             this._indexBuffer.set([
                 4 * i + 0,
+                4 * i + 2,
                 4 * i + 1,
                 4 * i + 2,
-                4 * i + 2,
-                4 * i + 3,
-                4 * i + 0
+                4 * i + 0,
+                4 * i + 3
             ], 6 * i)
         }
 

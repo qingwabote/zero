@@ -32,8 +32,7 @@ namespace binding
 
         bool Device::initialize()
         {
-            _impl->_version = VK_MAKE_API_VERSION(0, 1, 1, 0);
-
+            _impl->_version = VK_API_VERSION_1_3;
             // instance
             vkb::InstanceBuilder builder;
             auto system_info_ret = vkb::SystemInfo::get_system_info();
@@ -62,7 +61,7 @@ namespace binding
             // physical device
             vkb::PhysicalDeviceSelector selector{vkb_instance};
             vkb::PhysicalDevice physicalDevice = selector
-                                                     .set_minimum_version(1, 1)
+                                                     .set_minimum_version(1, 3)
                                                      .set_surface(surface)
                                                      .select()
                                                      .value();

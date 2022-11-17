@@ -4,6 +4,7 @@ import RenderPass from "../gfx/RenderPass.js";
 import Shader from "../gfx/Shader.js";
 import shaders from "../shaders.js";
 import Model from "./Model.js";
+import Pass from "./Pass.js";
 import DefaultPhase from "./phases/DefaultPhase.js";
 import ShadowmapPhase from "./phases/ShadowmapPhase.js";
 import RenderCamera from "./RenderCamera.js";
@@ -87,12 +88,12 @@ export default class RenderScene {
         commandBuffer.end();
     }
 
-    getPipeline(shader: Shader, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
-        const pipelineHash = shader.info.hash + vertexInputState.hash + renderPass.info.hash;
+    getPipeline(pass: Pass, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
+        const pipelineHash = pass.hash + vertexInputState.hash + renderPass.info.hash;
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             pipeline = gfx.createPipeline();
-            pipeline.initialize({ shader, vertexInputState, renderPass, layout });
+            pipeline.initialize({ shader: pass.shader, vertexInputState, renderPass, layout, rasterizationState: pass.rasterizationState });
             this._pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;

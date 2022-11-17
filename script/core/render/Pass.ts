@@ -1,4 +1,4 @@
-import { DescriptorSet } from "../gfx/Pipeline.js";
+import { CullMode, DescriptorSet, RasterizationState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import shaders from "../shaders.js";
 
@@ -13,6 +13,11 @@ export default class Pass {
         return this._shader;
     }
 
+    private _rasterizationState: RasterizationState;
+    get rasterizationState(): RasterizationState {
+        return this._rasterizationState;
+    }
+
     private _phase: PassPhase;
     get phase(): PassPhase {
         return this._phase;
@@ -23,8 +28,16 @@ export default class Pass {
         return this._descriptorSet;
     }
 
-    constructor(shader: Shader, phase: PassPhase = PassPhase.DEFAULT) {
+    private _hash: string;
+    get hash(): string {
+        return this._hash;
+    }
+
+    constructor(shader: Shader, rasterizationState: RasterizationState = { cullMode: CullMode.BACK, hash: CullMode.BACK.toString() }, phase: PassPhase = PassPhase.DEFAULT) {
+        this._hash = shader.info.hash + rasterizationState.hash;
+
         this._shader = shader;
+        this._rasterizationState = rasterizationState;
         this._phase = phase;
         const descriptorSet = gfx.createDescriptorSet();
         if (descriptorSet.initialize(shaders.getDescriptorSetLayout(shader))) {

@@ -91,7 +91,8 @@ export default class Sprite extends Component {
             positionBuffer.data[11] = 0;
 
             const indexBuffer = new BufferView("Uint16", BufferUsageFlagBits.INDEX, 6);
-            indexBuffer.set([0, 1, 2, 2, 3, 0]);
+            // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
+            indexBuffer.set([0, 2, 1, 2, 0, 3]);
 
             texCoordBuffer.update();
             positionBuffer.update();

@@ -30,7 +30,7 @@ export default class DefaultPhase {
                     const layout = zero.renderScene.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.local.set, model.descriptorSet);
                     commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.material.set, pass.descriptorSet);
-                    const pipeline = zero.renderScene.getPipeline(pass.shader, inputAssembler.vertexInputState, renderPass, layout);
+                    const pipeline = zero.renderScene.getPipeline(pass, inputAssembler.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
                 }

@@ -4,7 +4,7 @@ import MeshRenderer from "../components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import Fence from "../gfx/Fence.js";
-import { Format, IndexType } from "../gfx/Pipeline.js";
+import { CullMode, Format, IndexType } from "../gfx/Pipeline.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
@@ -61,7 +61,7 @@ export default class GLTF extends Asset {
         this._materials = await Promise.all(json.materials.map(async (info: any) => {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
             const shadowmapShader = await shaders.getShader('shadowmap');
-            const shadowmapPass = new Pass(shadowmapShader, PassPhase.SHADOWMAP);
+            const shadowmapPass = new Pass(shadowmapShader, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PassPhase.SHADOWMAP);
             const phongShader = await shaders.getShader('phong', {
                 USE_BLINN_PHONG: 1,
                 USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1,

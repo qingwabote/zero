@@ -155,6 +155,8 @@ namespace binding
 
                 viewport.y = y;
                 viewport.height = height;
+
+                vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_CLOCKWISE);
             }
             else
             {
@@ -167,6 +169,8 @@ namespace binding
 
                 viewport.y = y + height;
                 viewport.height = -height;
+
+                vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
             }
 
             VkRenderPassBeginInfo info = {};

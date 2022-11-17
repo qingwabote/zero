@@ -1,7 +1,7 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
-import Pipeline, { BlendFactor, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, CullMode, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../core/gfx/RenderPass.js";
 import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
@@ -102,6 +102,22 @@ export default class WebCommandBuffer implements CommandBuffer {
         const info = (pipeline as WebPipeline).info!;
 
         gl.useProgram((info.shader as WebShader).program);
+
+        switch (info.rasterizationState.cullMode) {
+            case CullMode.NONE:
+                gl.disable(gl.CULL_FACE);
+                break;
+            case CullMode.FRONT:
+                gl.cullFace(gl.FRONT);
+                gl.enable(gl.CULL_FACE);
+                break;
+            case CullMode.BACK:
+                gl.cullFace(gl.BACK);
+                gl.enable(gl.CULL_FACE);
+                break;
+            default:
+                throw new Error(`unsupported cullMode: ${info.rasterizationState.cullMode}`);
+        }
 
         gl.enable(gl.SCISSOR_TEST);
 

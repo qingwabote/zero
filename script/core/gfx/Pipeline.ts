@@ -117,6 +117,18 @@ export enum ClearFlagBit {
     DEPTH = 0x2
 }
 
+// copy values from VkCullModeFlagBits in vulkan_core.h
+export enum CullMode {
+    NONE = 0,
+    FRONT = 0x00000001,
+    BACK = 0x00000002,
+}
+
+export interface RasterizationState {
+    cullMode: CullMode;
+    hash: string;
+}
+
 export interface DepthStencilState {
     depthTest: boolean;
 }
@@ -156,6 +168,7 @@ export interface PipelineInfo {
     readonly vertexInputState: VertexInputState;
     readonly layout: PipelineLayout;
     readonly renderPass: RenderPass;
+    readonly rasterizationState: RasterizationState;
 }
 
 export default interface Pipeline {
