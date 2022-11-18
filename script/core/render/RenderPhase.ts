@@ -1,12 +1,25 @@
-import CommandBuffer from "../../gfx/CommandBuffer.js";
-import { ClearFlagBit } from "../../gfx/Pipeline.js";
-import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP } from "../../gfx/RenderPass.js";
-import shaders from "../../shaders.js";
-import { PassPhase } from "../Pass.js";
-import RenderCamera from "../RenderCamera.js";
+import CommandBuffer from "../gfx/CommandBuffer.js";
+import { ClearFlagBit } from "../gfx/Pipeline.js";
+import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP } from "../gfx/RenderPass.js";
+import shaders from "../shaders.js";
+import RenderCamera from "./RenderCamera.js";
 
-export default class DefaultPhase {
+export enum PhaseBit {
+    DEFAULT = 1 << 1,
+    SHADOWMAP = 1 << 2,
+}
+
+export default class RenderPhase {
     private _clearFlag2renderPass: Record<number, RenderPass> = {};
+
+    protected _phase: PhaseBit;
+    get phase(): PhaseBit {
+        return this._phase;
+    }
+
+    constructor(phase: PhaseBit) {
+        this._phase = phase;
+    }
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
         const models = zero.renderScene.models;
@@ -22,7 +35,7 @@ export default class DefaultPhase {
                 }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
-                    if (pass.phase != PassPhase.DEFAULT) {
+                    if (pass.phase != this._phase) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];

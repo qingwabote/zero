@@ -4,13 +4,13 @@ import { DescriptorSet } from "../../gfx/Pipeline.js";
 import RenderPass, { ImageLayout, LOAD_OP } from "../../gfx/RenderPass.js";
 import Texture, { TextureUsageBit } from "../../gfx/Texture.js";
 import shaders from "../../shaders.js";
-import { PassPhase } from "../Pass.js";
 import RenderCamera from "../RenderCamera.js";
+import RenderPhase, { PhaseBit } from "../RenderPhase.js";
 
 const SHADOWMAP_WIDTH = 1024;
 const SHADOWMAP_HEIGHT = 1024;
 
-export default class ShadowmapPhase {
+export default class ShadowmapPhase extends RenderPhase {
     private _renderPass: RenderPass;
     private _framebuffer: Framebuffer;
 
@@ -20,6 +20,7 @@ export default class ShadowmapPhase {
     }
 
     constructor(globalDescriptorSet: DescriptorSet) {
+        super(PhaseBit.SHADOWMAP);
         const renderPass = gfx.createRenderPass();
         renderPass.initialize({
             colorAttachments: [],
@@ -30,20 +31,6 @@ export default class ShadowmapPhase {
             },
             hash: "shadowMapRenderPass"
         });
-
-        // const renderPass = gfx.createRenderPass();
-        // const colorAttachment: AttachmentDescription = {
-        //     loadOp: LOAD_OP.CLEAR,
-        //     initialLayout: ImageLayout.UNDEFINED,
-        //     finalLayout: ImageLayout.PRESENT_SRC
-        // };
-        // renderPass.initialize({
-        //     colorAttachments: [colorAttachment], depthStencilAttachment: {
-        //         loadOp: LOAD_OP.CLEAR,
-        //         initialLayout: ImageLayout.UNDEFINED,
-        //         finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        //     }, hash: ""
-        // });
 
         const depthStencilAttachment = gfx.createTexture();
         depthStencilAttachment.initialize({
@@ -62,6 +49,10 @@ export default class ShadowmapPhase {
     }
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
+        if ((camera.visibilities & zero.renderScene.directionalLight.node.visibility) == 0) {
+            return;
+        }
+
         const models = zero.renderScene.models;
         commandBuffer.beginRenderPass(this._renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT }, this._framebuffer);
         // commandBuffer.beginRenderPass(this._renderPass, camera.viewport);
@@ -75,7 +66,7 @@ export default class ShadowmapPhase {
                 }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
-                    if (pass.phase != PassPhase.SHADOWMAP) {
+                    if (pass.phase != this._phase) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];

@@ -11,12 +11,27 @@ namespace binding
             v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
             sugar::v8::Class cls{"DescriptorSet"};
+            cls.defineAccessor(
+                "layout",
+                [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
+                    info.GetReturnValue().Set(c_obj->retrieve("layout"));
+                });
             cls.defineFunction(
                 "initialize",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
-                    info.GetReturnValue().Set(c_obj->initialize(c_obj->retain<DescriptorSetLayout>(info[0].As<v8::Object>())));
+                    info.GetReturnValue().Set(c_obj->initialize(c_obj->retain<DescriptorSetLayout>(info[0].As<v8::Object>(), "layout")));
+                });
+            cls.defineFunction(
+                "getBuffer",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
+                    uint32_t binding = info[0].As<v8::Number>()->Value();
+                    info.GetReturnValue().Set(c_obj->retrieve("buffer_" + std::to_string(binding)));
                 });
             cls.defineFunction(
                 "bindBuffer",
@@ -27,6 +42,14 @@ namespace binding
                     Buffer *c_buffer = c_obj->retain<Buffer>(info[1].As<v8::Object>(), "buffer_" + std::to_string(binding));
                     double range = (info.Length() > 2 && !info[2]->IsUndefined()) ? info[2].As<v8::Number>()->Value() : 0;
                     c_obj->bindBuffer(binding, c_buffer, range);
+                });
+            cls.defineFunction(
+                "getTexture",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
+                    uint32_t binding = info[0].As<v8::Number>()->Value();
+                    info.GetReturnValue().Set(c_obj->retrieve("texture_" + std::to_string(binding)));
                 });
             cls.defineFunction(
                 "bindTexture",

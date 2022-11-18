@@ -5,16 +5,21 @@ import DirectionalLight from "../../../../script/core/components/DirectionalLigh
 import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
-import { ClearFlagBit } from "../../../../script/core/gfx/Pipeline.js";
+import { ClearFlagBit, CullMode, DescriptorType } from "../../../../script/core/gfx/Pipeline.js";
 import Loader from "../../../../script/core/Loader.js";
 import quat from "../../../../script/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import Platfrom from "../../../../script/core/Platfrom.js";
+import Material from "../../../../script/core/render/Material.js";
+import Pass from "../../../../script/core/render/Pass.js";
+import RenderPhase, { PhaseBit } from "../../../../script/core/render/RenderPhase.js";
 import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
 import shaders from "../../../../script/core/shaders.js";
 import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
+
+const PhaseLightView = 1 << 10;
 
 export default class App extends Zero {
     initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
@@ -32,14 +37,18 @@ export default class App extends Zero {
 
         node = new Node;
         const lit_camera = node.addComponent(Camera);
+        lit_camera.phases = PhaseBit.SHADOWMAP | PhaseLightView;
         lit_camera.orthoHeight = 4;
         lit_camera.far = 10
         lit_camera.viewport = { x: 0, y: 0, width, height: height * 0.5 };
         node.position = lit_position;
         node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
 
+        this.renderScene.renderPhases.push(new RenderPhase(PhaseLightView));
+
         node = new Node;
         const cameraA = node.addComponent(Camera);
+        cameraA.phases = PhaseBit.SHADOWMAP | PhaseBit.DEFAULT;
         cameraA.fov = 45;
         // cameraA.orthoHeight = 4;
         // cameraA.far = 20
@@ -50,6 +59,7 @@ export default class App extends Zero {
         // UI
         node = new Node;
         const camera = node.addComponent(Camera);
+        camera.phases = PhaseBit.DEFAULT;
         camera.visibilities = VisibilityBit.UI;
         camera.clearFlags = ClearFlagBit.DEPTH;
         camera.orthoHeight = height / 2;
@@ -79,17 +89,40 @@ export default class App extends Zero {
         })();
 
         (async () => {
-            let glTF: GLTF;
             let node: Node;
-            glTF = new GLTF();
-            await glTF.load('./asset/guardian_zelda_botw_fan-art/scene');
-            node = glTF.createScene("Sketchfab_Scene")!;
+            const guardian = new GLTF();
+            await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
+            const plane = new GLTF();
+            await plane.load('./asset/plane');
+
+            const materials: Material[] = guardian.materials.concat(plane.materials);
+            for (const material of materials) {
+                const last = material.passes[material.passes.length - 1];
+                let albedoBinding = -1;
+                for (const layoutBinding of last.descriptorSet.layout.bindings) {
+                    if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
+                        albedoBinding = layoutBinding.binding;
+                        break;
+                    }
+                }
+                const USE_ALBEDO_MAP = albedoBinding == -1 ? 0 : 1;
+                const zero = await shaders.getShader('zero', { USE_ALBEDO_MAP });
+                const descriptorSet = gfx.createDescriptorSet();
+                descriptorSet.initialize(shaders.getDescriptorSetLayout(zero));
+                if (USE_ALBEDO_MAP) {
+                    descriptorSet.bindTexture(albedoBinding, last.descriptorSet.getTexture(albedoBinding));
+                }
+
+                material.passes.push(new Pass(descriptorSet, zero, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PhaseLightView))
+            }
+
+            node = guardian.createScene("Sketchfab_Scene")!;
             node.addComponent(ZeroComponent);
 
-            glTF = new GLTF();
-            await glTF.load('./asset/plane');
-            node = glTF.createScene("Scene")!;
+            node = plane.createScene("Scene")!;
             node.scale = [4, 4, 4];
+
+
         })();
 
         return false;

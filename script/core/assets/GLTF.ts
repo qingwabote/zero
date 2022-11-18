@@ -11,7 +11,8 @@ import { Vec3 } from "../math/vec3.js";
 import Node from "../Node.js";
 import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
-import Pass, { PassPhase } from "../render/Pass.js";
+import Pass from "../render/Pass.js";
+import { PhaseBit } from "../render/RenderPhase.js";
 import SubMesh, { Attribute } from "../render/SubMesh.js";
 import shaders from "../shaders.js";
 import Asset from "./Asset.js";
@@ -46,6 +47,9 @@ export default class GLTF extends Asset {
     private _buffers: Buffer[] = [];
     private _textures: Texture[] = [];
     private _materials: Material[] = [];
+    get materials(): Material[] {
+        return this._materials;
+    }
 
     async load(url: string) {
         const res = url.match(/(.+)\/(.+)$/);
@@ -61,16 +65,20 @@ export default class GLTF extends Asset {
         this._materials = await Promise.all(json.materials.map(async (info: any) => {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
             const shadowmapShader = await shaders.getShader('shadowmap');
-            const shadowmapPass = new Pass(shadowmapShader, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PassPhase.SHADOWMAP);
+            const shadowmapDescriptorSet = gfx.createDescriptorSet();
+            shadowmapDescriptorSet.initialize(shaders.getDescriptorSetLayout(shadowmapShader));
+            const shadowmapPass = new Pass(shadowmapDescriptorSet, shadowmapShader, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PhaseBit.SHADOWMAP);
             const phongShader = await shaders.getShader('phong', {
                 USE_BLINN_PHONG: 1,
                 USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1,
                 CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
             })
-            const phongPass = new Pass(phongShader);
+            const phoneDescriptorSet = gfx.createDescriptorSet();
+            phoneDescriptorSet.initialize(shaders.getDescriptorSetLayout(phongShader));
             if (textureIdx != undefined) {
-                phongPass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
+                phoneDescriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
             }
+            const phongPass = new Pass(phoneDescriptorSet, phongShader);
             return new Material([shadowmapPass, phongPass]);
         }));
         this._textures = textures;

@@ -97,12 +97,16 @@ export interface DescriptorSetLayoutBinding {
 }
 
 export interface DescriptorSetLayout {
+    get bindings(): readonly DescriptorSetLayoutBinding[];
     initialize(bindings: DescriptorSetLayoutBinding[]): boolean;
 }
 
 export interface DescriptorSet {
+    get layout(): DescriptorSetLayout;
     initialize(layout: DescriptorSetLayout): boolean;
+    getBuffer(binding: number): Buffer;
     bindBuffer(binding: number, buffer: Buffer, range?: number): void;
+    getTexture(binding: number): Texture;
     bindTexture(binding: number, texture: Texture): void;
 }
 

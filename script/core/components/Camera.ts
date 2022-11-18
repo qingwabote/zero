@@ -2,6 +2,7 @@ import Component from "../Component.js";
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import { Rect } from "../math/rect.js";
 import RenderCamera from "../render/RenderCamera.js";
+import { PhaseBit } from "../render/RenderPhase.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 
 export default class Camera extends Component {
@@ -11,6 +12,8 @@ export default class Camera extends Component {
     far = 1000;
 
     visibilities: VisibilityBit = VisibilityBit.DEFAULT;
+
+    phases: PhaseBit = PhaseBit.DEFAULT;
 
     clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 
@@ -23,6 +26,7 @@ export default class Camera extends Component {
         camera.near = this.near;
         camera.far = this.far;
         camera.visibilities = this.visibilities;
+        camera.phases = this.phases;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
         zero.renderScene.cameras.push(camera);

@@ -9,28 +9,31 @@ export default class WebDescriptorSet implements DescriptorSet {
     }
 
     private _buffers: Buffer[] = [];
-    get buffers(): readonly Buffer[] {
-        return this._buffers;
-    }
 
     private _bufferRanges: number[] = [];
-    get bufferRanges(): readonly number[] {
-        return this._bufferRanges;
-    }
 
     private _textures: Texture[] = [];
-    get textures(): readonly Texture[] {
-        return this._textures;
-    }
 
     initialize(layout: DescriptorSetLayout): boolean {
         this._layout = layout;
         return false;
     }
 
+    getBuffer(binding: number): Buffer {
+        return this._buffers[binding];
+    }
+
+    getBufferRange(binding: number): number {
+        return this._bufferRanges[binding];
+    }
+
     bindBuffer(binding: number, buffer: Buffer, range?: number): void {
         this._buffers[binding] = buffer;
         this._bufferRanges[binding] = range ? range : buffer.info.size;
+    }
+
+    getTexture(binding: number): Texture {
+        return this._textures[binding];
     }
 
     bindTexture(binding: number, texture: Texture): void {

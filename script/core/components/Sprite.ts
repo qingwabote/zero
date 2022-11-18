@@ -7,6 +7,7 @@ import BufferView from "../render/BufferView.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
 import SubModel from "../render/SubModel.js";
+import shaders from "../shaders.js";
 
 const inputAssemblerCache: Record<string, InputAssembler> = {};
 
@@ -110,8 +111,10 @@ export default class Sprite extends Component {
                 }
             }
         }
-        const pass = new Pass(this._shader);
-        pass.descriptorSet.bindTexture(0, this.texture);
+        const descriptorSet = gfx.createDescriptorSet();
+        descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));
+        descriptorSet.bindTexture(0, this.texture);
+        const pass = new Pass(descriptorSet, this._shader);
 
         const subModel: SubModel = { inputAssemblers: [inputAssembler], passes: [pass] };
         const model = new Model([subModel], this._node);

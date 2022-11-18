@@ -5,11 +5,11 @@ import Shader from "../gfx/Shader.js";
 import shaders from "../shaders.js";
 import Model from "./Model.js";
 import Pass from "./Pass.js";
-import DefaultPhase from "./phases/DefaultPhase.js";
 import ShadowmapPhase from "./phases/ShadowmapPhase.js";
 import RenderCamera from "./RenderCamera.js";
 import RenderDirectionalLight from "./RenderDirectionalLight.js";
 import { RenderNode } from "./RenderNode.js";
+import RenderPhase, { PhaseBit } from "./RenderPhase.js";
 import UboGlobal from "./UboGlobal.js";
 
 type RenderObject = RenderNode | RenderCamera | RenderDirectionalLight;
@@ -46,10 +46,14 @@ export default class RenderScene {
 
     private _uboGlobal: UboGlobal;
 
-    private _defaultPhase: DefaultPhase;
     private _shadowmapPhase: ShadowmapPhase;
     get shadowmapPhase(): ShadowmapPhase {
         return this._shadowmapPhase;
+    }
+
+    private _renderPhases: RenderPhase[] = [];
+    get renderPhases(): RenderPhase[] {
+        return this._renderPhases;
     }
 
     constructor() {
@@ -58,8 +62,10 @@ export default class RenderScene {
 
         this._uboGlobal = new UboGlobal(globalDescriptorSet);
 
-        this._defaultPhase = new DefaultPhase;
-        this._shadowmapPhase = new ShadowmapPhase(globalDescriptorSet);
+        const shadowmapPhase = new ShadowmapPhase(globalDescriptorSet);
+        this._renderPhases.push(shadowmapPhase);
+        this._shadowmapPhase = shadowmapPhase;
+        this._renderPhases.push(new RenderPhase(PhaseBit.DEFAULT));
 
         this._globalDescriptorSet = globalDescriptorSet;
     }
@@ -80,10 +86,12 @@ export default class RenderScene {
             const camera = this._cameras[cameraIndex];
             commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniforms.global.set, this._globalDescriptorSet,
                 [cameraIndex * shaders.builtinUniforms.global.blocks.Camera.size]);
-            if (camera.visibilities & this._directionalLight.node.visibility) {
-                this._shadowmapPhase.record(commandBuffer, camera);
+            for (const renderPhase of this._renderPhases) {
+                if ((renderPhase.phase & camera.phases) == 0) {
+                    continue;
+                }
+                renderPhase.record(commandBuffer, camera);
             }
-            this._defaultPhase.record(commandBuffer, camera);
         }
         commandBuffer.end();
     }

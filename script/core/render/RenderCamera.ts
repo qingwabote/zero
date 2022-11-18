@@ -1,6 +1,7 @@
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import { Rect } from "../math/rect.js";
 import { RenderNode } from "./RenderNode.js";
+import { PhaseBit } from "./RenderPhase.js";
 import RenderWindow from "./RenderWindow.js";
 import VisibilityBit from "./VisibilityBit.js";
 
@@ -42,6 +43,8 @@ export default class RenderCamera {
     }
 
     visibilities: VisibilityBit = VisibilityBit.DEFAULT;
+
+    phases: PhaseBit = PhaseBit.DEFAULT;
 
     clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 
