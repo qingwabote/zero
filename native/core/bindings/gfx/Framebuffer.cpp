@@ -21,7 +21,7 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<Framebuffer>(info.This());
-                    info.GetReturnValue().Set(c_obj->initialize(c_obj->retain(info[0].As<v8::Object>(), "info")));
+                    info.GetReturnValue().Set(c_obj->initialize(c_obj->retain(info[0], "info").As<v8::Object>()));
                 });
             return scope.Escape(cls.flush());
         }
