@@ -12,7 +12,7 @@ async function string_replace(value, pattern, replacer) {
     });
 }
 const chunks = {};
-const ifMacroExp = / *#if\s+(\w+)\r\n([\s\S]+?)#endif\r\n/g;
+const ifMacroExp = / *#if\s+(\w+)\r?\n([\s\S]+?)#endif\r?\n/g;
 async function includeExpand(source) {
     return string_replace(source, /#include\s+<(\w+)>/g, async function (_, name) {
         let chunk = chunks[name];
@@ -25,7 +25,7 @@ async function includeExpand(source) {
 }
 function macroExpand(macros, source) {
     return source.replace(ifMacroExp, function (_, macro, content) {
-        const matches = content.match(/([\s\S]+)#else\r\n([\s\S]+)/);
+        const matches = content.match(/([\s\S]+)#else\r?\n([\s\S]+)/);
         if (!matches) {
             return macros[macro] ? content : '';
         }
