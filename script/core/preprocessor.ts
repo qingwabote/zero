@@ -15,7 +15,7 @@ async function string_replace(value: string, pattern: RegExp, replacer: (...args
 
 const chunks: Record<string, string> = {};
 
-const ifMacroExp = / *#if\s+(\w+)\r\n([\s\S]+?)#endif\r\n/g;
+const ifMacroExp = / *#if\s+(\w+)\r?\n([\s\S]+?)#endif\r?\n/g;
 
 async function includeExpand(source: string): Promise<string> {
     return string_replace(source, /#include\s+<(\w+)>/g, async function (_: string, name: string): Promise<string> {
@@ -30,7 +30,7 @@ async function includeExpand(source: string): Promise<string> {
 
 function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
     return source.replace(ifMacroExp, function (_: string, macro: string, content: string) {
-        const matches = content.match(/([\s\S]+)#else\r\n([\s\S]+)/);
+        const matches = content.match(/([\s\S]+)#else\r?\n([\s\S]+)/);
         if (!matches) {
             return macros[macro] ? content : '';
         }
