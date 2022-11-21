@@ -57,6 +57,12 @@ export default class Node implements RenderNode {
         this.dirty(TransformBit.ROTATION);
     }
 
+    private _rotationWorld: Quat = quat.create()
+    get rotationWorld(): Readonly<Quat> {
+        this.updateTransform();
+        return this._rotationWorld;
+    }
+
     get euler(): Readonly<Vec3> {
         return quat.toEuler(vec3.create(), this._rotation);
     }
@@ -65,13 +71,19 @@ export default class Node implements RenderNode {
         this.dirty(TransformBit.ROTATION);
     }
 
-    private _position: Readonly<Vec3> = vec3.create();
+    private _position: Vec3 = vec3.create();
     get position(): Readonly<Vec3> {
         return this._position;
     }
     set position(value: Readonly<Vec3>) {
-        this._position = value;
+        Object.assign(this._position, value);
         this.dirty(TransformBit.POSITION);
+    }
+
+    private _positionWorld: Vec3 = vec3.create();
+    get positionWorld(): Readonly<Vec3> {
+        this.updateTransform();
+        return this._positionWorld;
     }
 
     private _components: Component[] = [];
@@ -115,14 +127,14 @@ export default class Node implements RenderNode {
 
     private dirty(flag: TransformBit): void {
         this._dirtyFlag |= flag;
-        zero.dirtyTransforms.set(this, this);
+        zero.renderScene.dirtyObjects.set(this, this);
         this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
         for (const child of this._children.keys()) {
             child.dirty(flag);
         }
     }
 
-    public updateMatrix(): void {
+    public updateTransform(): void {
         if (this._dirtyFlag == TransformBit.NONE) return;
 
         if (!this._parent) {
@@ -130,16 +142,20 @@ export default class Node implements RenderNode {
             //     mat4.translate2(this._matrix, this._matrix, this._position);
             // }
             mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
+            Object.assign(this._rotationWorld, this._rotation);
+            Object.assign(this._positionWorld, this._position);
             this._dirtyFlag = TransformBit.NONE;
             return;
         }
 
-        this._parent.updateMatrix();
+        this._parent.updateTransform();
         // if (this._dirtyFlag & TransformBit.POSITION) {
         // const worldPos = vec3.transformMat4(vec3.create(), this._position, this._parent.matrix)
         // mat4.translate2(this._matrix, this._matrix, worldPos);
         mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
+        quat.multiply(this._rotationWorld, this._parent.rotationWorld, this._rotation);
+        vec3.transformMat4(this._positionWorld, vec3.ZERO, this._matrix);
         this._dirtyFlag = TransformBit.NONE;
         // }
     }

@@ -4,7 +4,7 @@ import MeshRenderer from "../components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import Fence from "../gfx/Fence.js";
-import { Format, IndexType } from "../gfx/Pipeline.js";
+import { CullMode, Format, IndexType } from "../gfx/Pipeline.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
@@ -12,6 +12,7 @@ import Node from "../Node.js";
 import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
 import Pass from "../render/Pass.js";
+import { PhaseBit } from "../render/RenderPhase.js";
 import SubMesh, { Attribute } from "../render/SubMesh.js";
 import shaders from "../shaders.js";
 import Asset from "./Asset.js";
@@ -46,16 +47,8 @@ export default class GLTF extends Asset {
     private _buffers: Buffer[] = [];
     private _textures: Texture[] = [];
     private _materials: Material[] = [];
-
-    private _commandBuffer: CommandBuffer;
-    private _fence: Fence;
-
-    constructor() {
-        super();
-        this._commandBuffer = gfx.createCommandBuffer();
-        this._commandBuffer.initialize();
-        this._fence = gfx.createFence();
-        this._fence.initialize();
+    get materials(): Material[] {
+        return this._materials;
     }
 
     async load(url: string) {
@@ -67,15 +60,26 @@ export default class GLTF extends Asset {
         const [, parent, name] = res;
         const json = JSON.parse(await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         this._bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
-        const textures = await Promise.all(json.images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
+        const json_images = json.images || [];
+        const textures = await Promise.all(json_images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
         this._materials = await Promise.all(json.materials.map(async (info: any) => {
             const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-            const shader = await shaders.getShader('phong', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 })
-            const pass = new Pass(shader);
+            const shadowmapShader = await shaders.getShader('shadowmap');
+            const shadowmapDescriptorSet = gfx.createDescriptorSet();
+            shadowmapDescriptorSet.initialize(shaders.getDescriptorSetLayout(shadowmapShader));
+            const shadowmapPass = new Pass(shadowmapDescriptorSet, shadowmapShader, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PhaseBit.SHADOWMAP);
+            const phongShader = await shaders.getShader('phong', {
+                USE_BLINN_PHONG: 1,
+                USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1,
+                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+            })
+            const phoneDescriptorSet = gfx.createDescriptorSet();
+            phoneDescriptorSet.initialize(shaders.getDescriptorSetLayout(phongShader));
             if (textureIdx != undefined) {
-                pass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
+                phoneDescriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
             }
-            return new Material([pass]);
+            const phongPass = new Pass(phoneDescriptorSet, phongShader);
+            return new Material([shadowmapPass, phongPass]);
         }));
         this._textures = textures;
 

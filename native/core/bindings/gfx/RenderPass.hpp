@@ -19,6 +19,8 @@ namespace binding
         public:
             RenderPass_impl &impl() { return *_impl.get(); }
 
+            v8::Local<v8::Object> info() { return retrieve("info"); }
+
             RenderPass(std::unique_ptr<RenderPass_impl> impl);
 
             bool initialize(v8::Local<v8::Object> info);

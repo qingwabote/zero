@@ -1,5 +1,5 @@
-import { Vec3 } from "../math/vec3.js";
+import { RenderNode } from "./RenderNode.js";
 
 export default interface RenderDirectionalLight {
-    direction: Vec3
+    node: RenderNode;
 }

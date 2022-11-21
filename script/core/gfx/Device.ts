@@ -1,6 +1,7 @@
 import Buffer from "./Buffer.js";
 import CommandBuffer from "./CommandBuffer.js";
 import Fence from "./Fence.js";
+import { Framebuffer } from "./Framebuffer.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "./Pipeline.js";
 import RenderPass from "./RenderPass.js";
 import Semaphore from "./Semaphore.js";
@@ -31,6 +32,8 @@ export default interface Device {
     createBuffer(): Buffer;
 
     createTexture(): Texture;
+
+    createFramebuffer(): Framebuffer;
 
     createRenderPass(): RenderPass;
 

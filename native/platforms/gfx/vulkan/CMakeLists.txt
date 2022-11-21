@@ -5,6 +5,7 @@ set(SRC_FILES
     VkTexture.cpp
     VkShader.cpp
     VkRenderPass.cpp
+    VkFramebuffer.cpp
     VkPipelineLayout.cpp
     VkPipeline.cpp
     VkDescriptorSetLayout.cpp
@@ -22,6 +23,7 @@ target_link_libraries(gfx PRIVATE core)
 find_package(Vulkan REQUIRED COMPONENTS glslang SPIRV-Tools)
 target_link_libraries(gfx PRIVATE Vulkan::Vulkan Vulkan::glslang Vulkan::SPIRV-Tools)
 
+# https://github.com/KhronosGroup/glslang/issues/3026
 # add lib SPIRV-Tools-opt that doesn't in FindVulkan
 add_library(SPIRV-Tools-opt STATIC IMPORTED)
 set_target_properties(SPIRV-Tools-opt PROPERTIES

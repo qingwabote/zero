@@ -28,7 +28,7 @@ public:
         return c_obj<T>(js_obj);
     }
 
-    v8::Local<v8::Object> retain(v8::Local<v8::Object> js_obj, const std::string &key = "");
+    v8::Local<v8::Value> retain(v8::Local<v8::Value> val, const std::string &key = "");
 
     void release(v8::Local<v8::Object> js_obj);
 

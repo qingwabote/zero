@@ -48,8 +48,8 @@ export interface VertexInputBindingDescription {
 
 export interface VertexInputAttributeDescription {
     readonly location: number;
-    readonly binding: number;
     readonly format: Format;
+    readonly binding: number;
     readonly offset: number
 }
 
@@ -57,6 +57,15 @@ export interface VertexInputState {
     readonly attributes: VertexInputAttributeDescription[];
     readonly bindings: VertexInputBindingDescription[];
     readonly hash: string;
+}
+
+export interface VertexInput {
+    vertexBuffers: Buffer[];
+    vertexOffsets: number[];
+    indexBuffer: Buffer;
+    indexType: IndexType;
+    indexCount: number;
+    indexOffset: number
 }
 
 // copy values from VkIndexType in vulkan_core.h
@@ -70,12 +79,7 @@ export enum IndexType {
  */
 export interface InputAssembler {
     vertexInputState: VertexInputState;
-    vertexBuffers: Buffer[];
-    vertexOffsets: number[];
-    indexBuffer: Buffer;
-    indexType: IndexType;
-    indexCount: number;
-    indexOffset: number
+    vertexInput: VertexInput;
 }
 
 // copy values from VkDescriptorType in vulkan_core.h
@@ -93,12 +97,16 @@ export interface DescriptorSetLayoutBinding {
 }
 
 export interface DescriptorSetLayout {
+    get bindings(): readonly DescriptorSetLayoutBinding[];
     initialize(bindings: DescriptorSetLayoutBinding[]): boolean;
 }
 
 export interface DescriptorSet {
+    get layout(): DescriptorSetLayout;
     initialize(layout: DescriptorSetLayout): boolean;
+    getBuffer(binding: number): Buffer;
     bindBuffer(binding: number, buffer: Buffer, range?: number): void;
+    getTexture(binding: number): Texture;
     bindTexture(binding: number, texture: Texture): void;
 }
 
@@ -111,6 +119,18 @@ export enum ClearFlagBit {
     NONE = 0,
     COLOR = 0x1,
     DEPTH = 0x2
+}
+
+// copy values from VkCullModeFlagBits in vulkan_core.h
+export enum CullMode {
+    NONE = 0,
+    FRONT = 0x00000001,
+    BACK = 0x00000002,
+}
+
+export interface RasterizationState {
+    cullMode: CullMode;
+    hash: string;
 }
 
 export interface DepthStencilState {
@@ -152,6 +172,7 @@ export interface PipelineInfo {
     readonly vertexInputState: VertexInputState;
     readonly layout: PipelineLayout;
     readonly renderPass: RenderPass;
+    readonly rasterizationState: RasterizationState;
 }
 
 export default interface Pipeline {

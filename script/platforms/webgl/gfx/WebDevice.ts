@@ -2,6 +2,7 @@ import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import Device, { Capabilities } from "../../../core/gfx/Device.js";
 import Fence from "../../../core/gfx/Fence.js";
+import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import RenderPass from "../../../core/gfx/RenderPass.js";
 import Semaphore from "../../../core/gfx/Semaphore.js";
@@ -13,6 +14,7 @@ import WebCommandBuffer from "./WebCommandBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebFence from "./WebFence.js";
+import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
 import WebPipelineLayout from "./WebPipelineLayout.js";
 import WebRenderPass from "./WebRenderPass.js";
@@ -70,6 +72,10 @@ export default class WebDevice implements Device {
 
     createRenderPass(): RenderPass {
         return new WebRenderPass;
+    }
+
+    createFramebuffer(): Framebuffer {
+        return new WebFramebuffer(this._gl);
     }
 
     createSemaphore(): Semaphore {

@@ -7,6 +7,7 @@
 #include "Buffer.hpp"
 #include "Texture.hpp"
 #include "RenderPass.hpp"
+#include "Framebuffer.hpp"
 
 #include "bindings/ImageBitmap.hpp"
 
@@ -37,7 +38,7 @@ namespace binding
 
             void begin();
 
-            void beginRenderPass(RenderPass *c_renderPass, v8::Local<v8::Object> area);
+            void beginRenderPass(RenderPass *renderPass, v8::Local<v8::Object> area, Framebuffer *framebuffer);
 
             void bindDescriptorSet(PipelineLayout *pipelineLayout,
                                    uint32_t index,

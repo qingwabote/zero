@@ -30,7 +30,6 @@ namespace binding
 
             VkGraphicsPipelineCreateInfo pipelineInfo = {};
             pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-            pipelineInfo.pNext = nullptr;
 
             v8::Local<v8::Object> js_shader = sugar::v8::object_get(info, "shader").As<v8::Object>();
             Shader *c_shader = retain<Shader>(js_shader);
@@ -70,26 +69,27 @@ namespace binding
 
             VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
             inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-            inputAssemblyState.pNext = nullptr;
             inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
-            std::vector<VkDynamicState> dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR});
-
+            std::vector<VkDynamicState> dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_FRONT_FACE});
             VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
             dynamicState.dynamicStateCount = dynamicStates.size();
             dynamicState.pDynamicStates = dynamicStates.data();
             pipelineInfo.pDynamicState = &dynamicState;
+
             VkPipelineViewportStateCreateInfo viewportState{VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO};
             viewportState.viewportCount = 1;
             viewportState.scissorCount = 1;
             pipelineInfo.pViewportState = &viewportState;
 
+            v8::Local<v8::Object> js_rasterizationState = sugar::v8::object_get(info, "rasterizationState").As<v8::Object>();
+
             VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
             rasterizationState.rasterizerDiscardEnable = VK_FALSE;
             rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-            rasterizationState.cullMode = VK_CULL_MODE_NONE;
-            rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+            rasterizationState.cullMode = sugar::v8::object_get(js_rasterizationState, "cullMode").As<v8::Number>()->Value();
+            // rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
             rasterizationState.depthBiasEnable = VK_FALSE;
             rasterizationState.depthBiasConstantFactor = 0;
             rasterizationState.depthBiasClamp = 0;
@@ -101,7 +101,6 @@ namespace binding
             multisampleState.sampleShadingEnable = VK_FALSE;
             multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
             multisampleState.minSampleShading = 1.0f;
-            multisampleState.pSampleMask = nullptr;
             multisampleState.alphaToCoverageEnable = VK_FALSE;
             multisampleState.alphaToOneEnable = VK_FALSE;
             pipelineInfo.pMultisampleState = &multisampleState;
@@ -121,7 +120,7 @@ namespace binding
             VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
             depthStencilState.depthTestEnable = VK_TRUE;
             depthStencilState.depthWriteEnable = VK_TRUE;
-            depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+            depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
             depthStencilState.stencilTestEnable = VK_FALSE;
             pipelineInfo.pDepthStencilState = &depthStencilState;
 

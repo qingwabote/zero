@@ -55,10 +55,17 @@ namespace binding
 
         void DescriptorSet::bindTexture(uint32_t binding, Texture *texture)
         {
+            uint32_t usage = sugar::v8::object_get(texture->info(), "usage").As<v8::Number>()->Value();
+            VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+            {
+                imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            }
+
             VkDescriptorImageInfo imageBufferInfo = {};
             imageBufferInfo.sampler = _impl->_device->defaultSampler();
             imageBufferInfo.imageView = texture->impl().imageView();
-            imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageBufferInfo.imageLayout = imageLayout;
 
             VkWriteDescriptorSet write = {};
             write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

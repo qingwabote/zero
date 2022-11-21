@@ -31,22 +31,11 @@ namespace sugar::v8
 
     _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object);
 
-    // template <class S>
-    // void v8_object_set(_v8::Local<_v8::Context> context, _v8::Local<_v8::Object> object, const char *name, _v8::Local<S> value)
-    // {
-    //     _v8::HandleScope handleScope(context->GetIsolate());
-
-    //     _v8::Local<_v8::String> key = _v8::String::NewFromUtf8(context->GetIsolate(), name).ToLocalChecked();
-    //     _v8::Maybe<bool> ok = object->Set(context, key, value);
-    //     if (ok.IsNothing())
-    //     {
-    //         throw "v8_object_set failed";
-    //     }
-    // }
-
     void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb);
 
     void gc(_v8::Local<_v8::Context> context);
+
+    _v8::Local<_v8::Value> run(const char *source);
 
     class Class
     {

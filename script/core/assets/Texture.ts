@@ -1,6 +1,6 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import Fence from "../gfx/Fence.js";
-import { default as GFX_Texture } from "../gfx/Texture.js";
+import { default as GFX_Texture, TextureUsageBit } from "../gfx/Texture.js";
 import Asset from "./Asset.js";
 
 let _commandBuffer: CommandBuffer;
@@ -16,7 +16,7 @@ export default class Texture extends Asset {
         const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
         const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
         const texture = gfx.createTexture();
-        texture.initialize({ width: imageBitmap.width, height: imageBitmap.height });
+        texture.initialize({ usage: TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST, width: imageBitmap.width, height: imageBitmap.height });
 
         if (!_commandBuffer) {
             _commandBuffer = gfx.createCommandBuffer();

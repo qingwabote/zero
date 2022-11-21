@@ -9,6 +9,7 @@
 #include "VkTexture_impl.hpp"
 #include "VkShader_impl.hpp"
 #include "VkRenderPass_impl.hpp"
+#include "VkFramebuffer_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "VkPipelineLayout_impl.hpp"
@@ -31,8 +32,7 @@ namespace binding
 
         bool Device::initialize()
         {
-            _impl->_version = VK_MAKE_API_VERSION(0, 1, 1, 0);
-
+            _impl->_version = VK_API_VERSION_1_3;
             // instance
             vkb::InstanceBuilder builder;
             auto system_info_ret = vkb::SystemInfo::get_system_info();
@@ -61,7 +61,7 @@ namespace binding
             // physical device
             vkb::PhysicalDeviceSelector selector{vkb_instance};
             vkb::PhysicalDevice physicalDevice = selector
-                                                     .set_minimum_version(1, 1)
+                                                     .set_minimum_version(1, 3)
                                                      .set_surface(surface)
                                                      .select()
                                                      .value();
@@ -143,9 +143,8 @@ namespace binding
                 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
             VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
             descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            descriptorPoolCreateInfo.flags = 0;
             descriptorPoolCreateInfo.maxSets = 1000;
-            descriptorPoolCreateInfo.poolSizeCount = (uint32_t)descriptorPoolSizes.size();
+            descriptorPoolCreateInfo.poolSizeCount = descriptorPoolSizes.size();
             descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
             vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);
 
@@ -171,16 +170,27 @@ namespace binding
             // default framebuffers
             VkFramebufferCreateInfo fb_info = {};
             fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-
-            RenderPass *aRenderPass = createRenderPass();
-            v8::Local<v8::Object> renderPassInfo = v8::Object::New(v8::Isolate::GetCurrent());
-            sugar::v8::object_set(
-                renderPassInfo,
-                "clearFlags",
-                v8::Number::New(v8::Isolate::GetCurrent(), 0));
-            aRenderPass->initialize(renderPassInfo);
-            fb_info.renderPass = aRenderPass->impl(); // https://github.com/KhronosGroup/Vulkan-Docs/issues/1147
-            _impl->_aRenderPass = aRenderPass;
+            auto src = R"(
+                const renderPassInfo = {
+                    colorAttachments: [{
+                        loadOp: 0,
+                        initialLayout: 1,
+                        finalLayout: 1000001002
+                    }],
+                    depthStencilAttachment: {
+                        loadOp: 0,
+                        initialLayout: 1,
+                        finalLayout: 3
+                    },
+                    hash: ""
+                };
+                renderPassInfo;
+            )";
+            auto renderPassInfo = sugar::v8::run(src).As<v8::Object>();
+            RenderPass *compatibleRenderPass = createRenderPass();
+            compatibleRenderPass->initialize(renderPassInfo);
+            fb_info.renderPass = compatibleRenderPass->impl(); // https://github.com/KhronosGroup/Vulkan-Docs/issues/1147
+            _impl->_compatibleRenderPass = compatibleRenderPass;
 
             fb_info.width = _impl->_vkb_swapchain.extent.width;
             fb_info.height = _impl->_vkb_swapchain.extent.height;
@@ -213,6 +223,8 @@ namespace binding
 
         RenderPass *Device::createRenderPass() { return new RenderPass(std::make_unique<RenderPass_impl>(_impl)); }
 
+        Framebuffer *Device::createFramebuffer() { return new Framebuffer(std::make_unique<Framebuffer_impl>(_impl)); }
+
         DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl)); }
 
         DescriptorSet *Device::createDescriptorSet() { return new DescriptorSet(std::make_unique<DescriptorSet_impl>(_impl)); }
@@ -237,19 +249,19 @@ namespace binding
         {
             VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
 
-            auto js_waitDstStageMask = sugar::v8::object_get(info, "waitDstStageMask").As<v8::Number>();
-            if (!js_waitDstStageMask->IsUndefined())
-            {
-                VkPipelineStageFlags waitStage = js_waitDstStageMask->Value();
-                submitInfo.pWaitDstStageMask = &waitStage;
-            }
-
             auto js_waitSemaphore = sugar::v8::object_get(info, "waitSemaphore").As<v8::Object>();
             if (!js_waitSemaphore->IsUndefined())
             {
                 VkSemaphore waitSemaphore = Binding::c_obj<Semaphore>(js_waitSemaphore)->impl();
                 submitInfo.pWaitSemaphores = &waitSemaphore;
                 submitInfo.waitSemaphoreCount = 1;
+            }
+
+            auto js_waitDstStageMask = sugar::v8::object_get(info, "waitDstStageMask").As<v8::Number>();
+            if (!js_waitDstStageMask->IsUndefined())
+            {
+                VkPipelineStageFlags waitStage = js_waitDstStageMask->Value();
+                submitInfo.pWaitDstStageMask = &waitStage;
             }
 
             auto js_signalSemaphore = sugar::v8::object_get(info, "signalSemaphore").As<v8::Object>();
@@ -302,7 +314,7 @@ namespace binding
             vkDestroyDescriptorPool(vkb_device.device, _impl->_descriptorPool, nullptr);
             vkDestroyCommandPool(vkb_device.device, _impl->_commandPool, nullptr);
 
-            delete _impl->_aRenderPass;
+            delete _impl->_compatibleRenderPass;
 
             for (int i = 0; i < _impl->_framebuffers.size(); i++)
             {

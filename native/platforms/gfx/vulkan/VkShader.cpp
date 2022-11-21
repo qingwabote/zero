@@ -9,7 +9,7 @@
 
 namespace
 {
-    // https://github.com/KhronosGroup/glslang/blob/sdk-1.3.224/StandAlone/ResourceLimits.cpp
+    // https://github.com/KhronosGroup/glslang/blob/sdk-1.3.231.1/StandAlone/ResourceLimits.cpp
     const TBuiltInResource DefaultTBuiltInResource = {
         /* .MaxLights = */ 32,
         /* .MaxClipPlanes = */ 6,
@@ -103,6 +103,15 @@ namespace
         /* .maxTaskWorkGroupSizeY_NV = */ 1,
         /* .maxTaskWorkGroupSizeZ_NV = */ 1,
         /* .maxMeshViewCountNV = */ 4,
+        /* .maxMeshOutputVerticesEXT = */ 256,
+        /* .maxMeshOutputPrimitivesEXT = */ 256,
+        /* .maxMeshWorkGroupSizeX_EXT = */ 128,
+        /* .maxMeshWorkGroupSizeY_EXT = */ 128,
+        /* .maxMeshWorkGroupSizeZ_EXT = */ 128,
+        /* .maxTaskWorkGroupSizeX_EXT = */ 128,
+        /* .maxTaskWorkGroupSizeY_EXT = */ 128,
+        /* .maxTaskWorkGroupSizeZ_EXT = */ 128,
+        /* .maxMeshViewCountEXT = */ 4,
         /* .maxDualSourceDrawBuffersEXT = */ 1,
 
         /* .limits = */ {
@@ -163,12 +172,11 @@ namespace binding
                 glslang::EShTargetLanguageVersion version_spirv;
                 switch (_impl->_device->version())
                 {
-                case VK_MAKE_API_VERSION(0, 1, 1, 0):
+                case VK_API_VERSION_1_3:
                     version_spirv = glslang::EShTargetSpv_1_3;
                     break;
-
                 default:
-                    printf("Unsupported vulkan api version %d\n", _impl->_device->version());
+                    printf("GLSL Unsupported vulkan api version\n");
                     return true;
                 }
                 shader.setEnvTarget(glslang::EShTargetSpv, version_spirv);

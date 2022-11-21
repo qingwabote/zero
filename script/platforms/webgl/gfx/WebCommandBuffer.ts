@@ -1,12 +1,14 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import Pipeline, { BlendFactor, ClearFlagBit, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
-import RenderPass from "../../../core/gfx/RenderPass.js";
+import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
+import Pipeline, { BlendFactor, CullMode, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import RenderPass, { LOAD_OP } from "../../../core/gfx/RenderPass.js";
 import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
+import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
@@ -69,12 +71,14 @@ export default class WebCommandBuffer implements CommandBuffer {
         const gl = this._gl;
         gl.bindTexture(gl.TEXTURE_2D, (texture as WebTexture).texture);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        // gl.generateMipmap(gl.TEXTURE_2D);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    beginRenderPass(renderPass: RenderPass, viewport: Rect) {
+    beginRenderPass(renderPass: RenderPass, viewport: Rect, framebuffer?: Framebuffer) {
         const gl = this._gl;
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer ? (framebuffer as WebFramebuffer).framebuffer : null);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
@@ -82,11 +86,12 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;
-        const clearFlags = renderPass.info.clearFlags;
-        if (clearFlags & ClearFlagBit.COLOR) {
-            flag |= gl.COLOR_BUFFER_BIT;
+        for (const attachment of renderPass.info.colorAttachments) {
+            if (attachment.loadOp == LOAD_OP.CLEAR) {
+                flag |= gl.COLOR_BUFFER_BIT;
+            }
         }
-        if (clearFlags & ClearFlagBit.DEPTH) {
+        if (renderPass.info.depthStencilAttachment.loadOp == LOAD_OP.CLEAR) {
             flag |= gl.DEPTH_BUFFER_BIT;
         }
         gl.clear(flag)
@@ -97,6 +102,22 @@ export default class WebCommandBuffer implements CommandBuffer {
         const info = (pipeline as WebPipeline).info!;
 
         gl.useProgram((info.shader as WebShader).program);
+
+        switch (info.rasterizationState.cullMode) {
+            case CullMode.NONE:
+                gl.disable(gl.CULL_FACE);
+                break;
+            case CullMode.FRONT:
+                gl.cullFace(gl.FRONT);
+                gl.enable(gl.CULL_FACE);
+                break;
+            case CullMode.BACK:
+                gl.cullFace(gl.BACK);
+                gl.enable(gl.CULL_FACE);
+                break;
+            default:
+                throw new Error(`unsupported cullMode: ${info.rasterizationState.cullMode}`);
+        }
 
         gl.enable(gl.SCISSOR_TEST);
 
@@ -123,15 +144,16 @@ export default class WebCommandBuffer implements CommandBuffer {
         let dynamicIndex = 0;
         for (const layoutBinding of ((descriptorSet as WebDescriptorSet).layout as WebDescriptorSetLayout).bindings) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
-                const buffer = (descriptorSet as WebDescriptorSet).buffers[layoutBinding.binding] as WebBuffer;
+                const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
             } else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
                 const offset = dynamicOffsets![dynamicIndex++];
-                const buffer = (descriptorSet as WebDescriptorSet).buffers[layoutBinding.binding] as WebBuffer;
-                const range = (descriptorSet as WebDescriptorSet).bufferRanges[layoutBinding.binding];
+                const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
+                const range = (descriptorSet as WebDescriptorSet).getBufferRange(layoutBinding.binding);
                 gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer, offset, range);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
-                const texture = (descriptorSet as WebDescriptorSet).textures[layoutBinding.binding] as WebTexture;
+                const texture = (descriptorSet as WebDescriptorSet).getTexture(layoutBinding.binding) as WebTexture;
+                gl.activeTexture(gl.TEXTURE0 + layoutBinding.binding + index * 10);
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);
             }
         }
@@ -147,8 +169,8 @@ export default class WebCommandBuffer implements CommandBuffer {
             const attributes = inputAssembler.vertexInputState.attributes;
             for (const attribute of attributes) {
                 const binding = inputAssembler.vertexInputState.bindings[attribute.binding];
-                const buffer = inputAssembler.vertexBuffers[attribute.binding] as WebBuffer;
-                const offset = inputAssembler.vertexOffsets[attribute.binding];
+                const buffer = inputAssembler.vertexInput.vertexBuffers[attribute.binding] as WebBuffer;
+                const offset = inputAssembler.vertexInput.vertexOffsets[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
@@ -171,7 +193,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                     binding.stride,
                     offset + attribute.offset);
             }
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexBuffer as WebBuffer).buffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.vertexInput.indexBuffer as WebBuffer).buffer);
             input2vao.set(inputAssembler, vao);
 
             gl.bindVertexArray(null);
@@ -189,7 +211,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         };
 
         let type: GLenum;
-        switch (this._inputAssembler.indexType) {
+        switch (this._inputAssembler.vertexInput.indexType) {
             case IndexType.UINT16:
                 type = WebGL2RenderingContext.UNSIGNED_SHORT;
                 break;
@@ -202,7 +224,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, this._inputAssembler.indexCount, type, this._inputAssembler.indexOffset);
+        gl.drawElements(gl.TRIANGLES, this._inputAssembler.vertexInput.indexCount, type, this._inputAssembler.vertexInput.indexOffset);
         gl.bindVertexArray(null);
     }
 

@@ -39,7 +39,7 @@ namespace binding
             VmaAllocation _depthImageAllocation;
             VkImageView _depthImageView;
 
-            RenderPass *_aRenderPass = nullptr;
+            RenderPass *_compatibleRenderPass = nullptr;
 
             std::vector<VkFramebuffer> _framebuffers;
 
@@ -65,11 +65,15 @@ namespace binding
 
             VkFormat swapchainImageFormat() { return _vkb_swapchain.image_format; }
 
+            VkExtent2D &swapchainImageExtent() { return _vkb_swapchain.extent; }
+
             VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
 
             VmaAllocator allocator() { return _allocator; }
 
             VkSampler defaultSampler() { return _defaultSampler; }
+
+            operator VkDevice() { return _vkb_device.device; }
 
             Device_impl(SDL_Window *window) : _window(window) {}
 

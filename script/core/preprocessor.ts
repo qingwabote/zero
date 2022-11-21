@@ -1,4 +1,4 @@
-import { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
+import { Format } from "./gfx/Pipeline.js";
 import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "./gfx/Shader.js";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
@@ -15,7 +15,7 @@ async function string_replace(value: string, pattern: RegExp, replacer: (...args
 
 const chunks: Record<string, string> = {};
 
-const ifMacroExp = /#if\s+(\w+)\s+([\s\S]+?)[ \t]*#endif\s*?\n/g;
+const ifMacroExp = / *#if\s+(\w+)\r\n([\s\S]+?)#endif\r\n/g;
 
 async function includeExpand(source: string): Promise<string> {
     return string_replace(source, /#include\s+<(\w+)>/g, async function (_: string, name: string): Promise<string> {
@@ -30,7 +30,11 @@ async function includeExpand(source: string): Promise<string> {
 
 function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
     return source.replace(ifMacroExp, function (_: string, macro: string, content: string) {
-        return macros[macro] ? content : '';
+        const matches = content.match(/([\s\S]+)#else\r\n([\s\S]+)/);
+        if (!matches) {
+            return macros[macro] ? content : '';
+        }
+        return macros[macro] ? matches[1] : matches[2];
     });
 }
 
@@ -53,9 +57,24 @@ export default {
         const fragmentStage = stages.find(stage => stage.type == ShaderStageFlagBits.FRAGMENT)!;
 
         const attributes: Record<string, Attribute> = {};
-        let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*\w+\s*(\w+)/g)!;
+        let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
         for (const match of matches) {
-            attributes[match[2]] = { location: parseInt(match[1]) };
+            const [_, location, type, name] = match;
+            let format: Format;
+            switch (type) {
+                case "vec2":
+                    format = Format.RG32F
+                    break;
+                case "vec3":
+                    format = Format.RGB32F
+                    break;
+                case "vec4":
+                    format = Format.RGBA32F
+                    break;
+                default:
+                    throw new Error(`unsupported attribute type: ${type}`);
+            }
+            attributes[name] = { location: parseInt(location), format };
         }
 
         // remove unsupported layout qualifier for webgl
@@ -78,7 +97,6 @@ export default {
 
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
-        const bindings: DescriptorSetLayoutBinding[] = []
         for (const stage of stages) {
             stage.source = stage.source.replace(
                 /layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/g,
@@ -87,31 +105,21 @@ export default {
                         // bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 })
                         blocks[name] = { set: parseInt(set), binding: parseInt(binding) };
                     } else if (type == 'sampler2D') {
-                        bindings.push({
-                            binding: parseInt(binding),
-                            descriptorType: DescriptorType.SAMPLER_TEXTURE,
-                            descriptorCount: 1,
-                            stageFlags: ShaderStageFlagBits.FRAGMENT
-                        });
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
-                    // remove unsupported layout qualifier for webgl, e.g. descriptor sets, no such concept in OpenGL
+                    // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
                     if (typeof window != 'undefined') {
                         return type ? `uniform ${type} ${name}` : `uniform ${name}`;
                     }
                     return content;
                 })
         }
-        const descriptorSetLayout = gfx.createDescriptorSetLayout();
-        descriptorSetLayout.initialize(bindings);
-
         return {
             stages,
             meta: {
                 attributes,
                 blocks,
-                samplerTextures,
-                descriptorSetLayout
+                samplerTextures
             }
         }
     }

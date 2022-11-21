@@ -297,7 +297,7 @@ export default {
             b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
         if (!det) {
-            return null;
+            throw new Error("");
         }
         det = 1.0 / det;
 
