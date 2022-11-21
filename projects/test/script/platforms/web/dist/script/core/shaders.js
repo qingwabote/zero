@@ -6,7 +6,10 @@ function align(size) {
     return Math.ceil(size / alignment) * alignment;
 }
 const FLOAT32_BYTES = 4;
-const builtinUniformBlocks = {
+/**
+ * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
+ */
+const builtinUniforms = {
     global: {
         set: 0,
         blocks: {
@@ -20,18 +23,35 @@ const builtinUniformBlocks = {
             Camera: {
                 binding: 1,
                 uniforms: {
-                    matView: {
+                    view: {
                         offset: 0
                     },
-                    matProj: {
+                    projection: {
                         offset: 16
                     },
-                    cameraPos: {
+                    position: {
                         offset: 16 + 16
                     }
                 },
                 size: align((16 + 16 + 4) * FLOAT32_BYTES),
                 dynamic: true
+            },
+            Shadow: {
+                binding: 2,
+                uniforms: {
+                    view: {
+                        offset: 0
+                    },
+                    projection: {
+                        offset: 16
+                    }
+                },
+                size: (16 + 16) * FLOAT32_BYTES,
+            }
+        },
+        samplers: {
+            shadowMap: {
+                binding: 3,
             }
         }
     },
@@ -41,8 +61,8 @@ const builtinUniformBlocks = {
             Local: {
                 binding: 0,
                 uniforms: {
-                    matWorld: {},
-                    matWorldIT: {}
+                    model: {},
+                    modelIT: {}
                 },
                 size: (16 + 16) * FLOAT32_BYTES,
             }
@@ -63,19 +83,33 @@ function buildDescriptorSetLayout(res) {
             stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
         };
     }
+    for (const name in res.samplers) {
+        const sampler = res.samplers[name];
+        bindings[sampler.binding] = {
+            binding: sampler.binding,
+            descriptorType: DescriptorType.SAMPLER_TEXTURE,
+            descriptorCount: 1,
+            stageFlags: ShaderStageFlagBits.FRAGMENT
+        };
+    }
     const descriptorSetLayout = gfx.createDescriptorSetLayout();
     descriptorSetLayout.initialize(bindings);
     return descriptorSetLayout;
 }
+const builtinDescriptorSetLayouts = {
+    global: buildDescriptorSetLayout(builtinUniforms.global),
+    local: buildDescriptorSetLayout(builtinUniforms.local)
+};
+const builtinGlobalPipelineLayout = gfx.createPipelineLayout();
+builtinGlobalPipelineLayout.initialize([builtinDescriptorSetLayouts.global]);
 const name2source = {};
 const name2macros = {};
 const shaders = {};
+const shader2descriptorSetLayout = {};
 export default {
-    builtinUniformBlocks,
-    builtinDescriptorSetLayouts: {
-        global: buildDescriptorSetLayout(builtinUniformBlocks.global),
-        local: buildDescriptorSetLayout(builtinUniformBlocks.local)
-    },
+    builtinUniforms,
+    builtinDescriptorSetLayouts,
+    builtinGlobalPipelineLayout,
     async getShader(name, macros = {}) {
         let source = name2source[name];
         if (!source) {
@@ -102,6 +136,30 @@ export default {
             });
         }
         return shaders[key];
+    },
+    getDescriptorSetLayout(shader) {
+        let descriptorSetLayout = shader2descriptorSetLayout[shader.info.hash];
+        if (!descriptorSetLayout) {
+            const global_samplers = builtinUniforms.global.samplers;
+            const bindings = [];
+            const samplerTextures = shader.info.meta.samplerTextures;
+            for (const name in samplerTextures) {
+                if (global_samplers[name]) {
+                    continue;
+                }
+                bindings.push({
+                    binding: samplerTextures[name].binding,
+                    descriptorType: DescriptorType.SAMPLER_TEXTURE,
+                    descriptorCount: 1,
+                    stageFlags: ShaderStageFlagBits.FRAGMENT
+                });
+            }
+            ;
+            descriptorSetLayout = gfx.createDescriptorSetLayout();
+            descriptorSetLayout.initialize(bindings);
+            shader2descriptorSetLayout[shader.info.hash] = descriptorSetLayout;
+        }
+        return descriptorSetLayout;
     }
 };
 //# sourceMappingURL=shaders.js.map

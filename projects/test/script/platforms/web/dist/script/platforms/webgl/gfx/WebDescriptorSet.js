@@ -4,24 +4,24 @@ export default class WebDescriptorSet {
         return this._layout;
     }
     _buffers = [];
-    get buffers() {
-        return this._buffers;
-    }
     _bufferRanges = [];
-    get bufferRanges() {
-        return this._bufferRanges;
-    }
     _textures = [];
-    get textures() {
-        return this._textures;
-    }
     initialize(layout) {
         this._layout = layout;
         return false;
     }
+    getBuffer(binding) {
+        return this._buffers[binding];
+    }
+    getBufferRange(binding) {
+        return this._bufferRanges[binding];
+    }
     bindBuffer(binding, buffer, range) {
         this._buffers[binding] = buffer;
         this._bufferRanges[binding] = range ? range : buffer.info.size;
+    }
+    getTexture(binding) {
+        return this._textures[binding];
     }
     bindTexture(binding, texture) {
         this._textures[binding] = texture;

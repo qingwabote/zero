@@ -1,4 +1,7 @@
 export default {
+    UNIT_X: [1, 0, 0],
+    UNIT_Y: [0, 1, 0],
+    ZERO: [0, 0, 0],
     create(x = 0, y = 0, z = 0) {
         return [x, y, z];
     },
@@ -17,6 +20,9 @@ export default {
     },
     length(v) {
         return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    },
+    lengthSqr(v) {
+        return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
     },
     transformMat4(out, a, m) {
         const x = a[0];
@@ -42,11 +48,26 @@ export default {
         out[2] = iz * q[3] + iw * -q[2] + ix * -q[1] - iy * -q[0];
         return out;
     },
+    dot(a, b) {
+        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    },
     cross(out, a, b) {
         out[0] = a[1] * b[2] - a[2] * b[1];
         out[1] = a[2] * b[0] - a[0] * b[2];
         out[2] = a[0] * b[1] - a[1] * b[0];
         return out;
-    }
+    },
+    negate(out, a) {
+        out[0] = -a[0];
+        out[1] = -a[1];
+        out[2] = -a[2];
+        return out;
+    },
+    // copy(out: Vec3, a: Readonly<Vec3>) {
+    //     out[0] = a[0];
+    //     out[1] = a[1];
+    //     out[2] = a[2];
+    //     return out;
+    // },
 };
 //# sourceMappingURL=vec3.js.map

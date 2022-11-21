@@ -48,6 +48,15 @@ export default class WebShader {
             const index = gl.getUniformBlockIndex(program, name);
             gl.uniformBlockBinding(program, index, block.binding + block.set * 10);
         }
+        gl.useProgram(program);
+        for (const name in samplerTextures) {
+            const sampler = samplerTextures[name];
+            const loc = gl.getUniformLocation(program, name);
+            if (!loc)
+                continue;
+            gl.uniform1i(loc, sampler.binding + sampler.set * 10);
+        }
+        gl.useProgram(null);
         //After the link operation, applications are free to modify attached shader objects, compile attached shader objects, detach shader objects, delete shader objects, and attach additional shader objects. None of these operations affects the information log or the program that is part of the program object
         for (const shader of shaders) {
             gl.detachShader(program, shader);

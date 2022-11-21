@@ -1,14 +1,16 @@
 import shaders from "../shaders.js";
-import ResizableBuffer from "./ResizableBuffer.js";
+import ShadowmapPhase from "./phases/ShadowmapPhase.js";
+import RenderPhase, { PhaseBit } from "./RenderPhase.js";
+import UboGlobal from "./UboGlobal.js";
 export default class RenderScene {
-    _globalUbo;
-    _globalUboDirty = true;
     _directionalLight;
+    get directionalLight() {
+        return this._directionalLight;
+    }
     set directionalLight(value) {
         this._directionalLight = value;
-        this._globalUboDirty = true;
+        this._dirtyObjects.set(value, value);
     }
-    _camerasUbo;
     _cameras = [];
     get cameras() {
         return this._cameras;
@@ -17,41 +19,75 @@ export default class RenderScene {
     get models() {
         return this._models;
     }
-    constructor(globalDescriptorSet) {
-        const GlobalBlock = shaders.builtinUniformBlocks.global.blocks.Global;
-        const globalUbo = new ResizableBuffer(globalDescriptorSet, GlobalBlock.binding);
-        globalUbo.reset(GlobalBlock.size);
-        this._globalUbo = globalUbo;
-        const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
-        this._camerasUbo = new ResizableBuffer(globalDescriptorSet, CameraBlock.binding, CameraBlock.size);
+    _dirtyObjects = new Map;
+    get dirtyObjects() {
+        return this._dirtyObjects;
+    }
+    _pipelineLayoutCache = {};
+    _pipelineCache = {};
+    _globalDescriptorSet;
+    _uboGlobal;
+    _shadowmapPhase;
+    get shadowmapPhase() {
+        return this._shadowmapPhase;
+    }
+    _renderPhases = [];
+    get renderPhases() {
+        return this._renderPhases;
+    }
+    constructor() {
+        const globalDescriptorSet = gfx.createDescriptorSet();
+        globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
+        this._uboGlobal = new UboGlobal(globalDescriptorSet);
+        const shadowmapPhase = new ShadowmapPhase(globalDescriptorSet);
+        this._renderPhases.push(shadowmapPhase);
+        this._shadowmapPhase = shadowmapPhase;
+        this._renderPhases.push(new RenderPhase(PhaseBit.DEFAULT));
+        this._globalDescriptorSet = globalDescriptorSet;
     }
     update(dt) {
-        if (this._globalUboDirty) {
-            this._globalUbo.set(this._directionalLight.direction, 0);
-            this._globalUbo.update();
-            this._globalUboDirty = false;
-        }
-        const CameraBlock = shaders.builtinUniformBlocks.global.blocks.Camera;
-        const camerasUboSize = CameraBlock.size * this._cameras.length;
-        this._camerasUbo.resize(camerasUboSize);
-        let camerasDataOffset = 0;
-        let camerasDataDirty = false;
-        for (let i = 0; i < this._cameras.length; i++) {
-            const camera = this._cameras[i];
-            if (camera.update()) {
-                this._camerasUbo.set(camera.matView, camerasDataOffset + CameraBlock.uniforms.matView.offset);
-                this._camerasUbo.set(camera.matProj, camerasDataOffset + CameraBlock.uniforms.matProj.offset);
-                this._camerasUbo.set(camera.position, camerasDataOffset + CameraBlock.uniforms.cameraPos.offset);
-                camerasDataDirty = true;
-            }
-            camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;
-        }
-        if (camerasDataDirty) {
-            this._camerasUbo.update();
-        }
+        this._uboGlobal.update();
         for (let i = 0; i < this._models.length; i++) {
             this._models[i].update();
         }
+        this._dirtyObjects.clear();
+    }
+    record(commandBuffer) {
+        commandBuffer.begin();
+        for (let cameraIndex = 0; cameraIndex < this._cameras.length; cameraIndex++) {
+            const camera = this._cameras[cameraIndex];
+            commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniforms.global.set, this._globalDescriptorSet, [cameraIndex * shaders.builtinUniforms.global.blocks.Camera.size]);
+            for (const renderPhase of this._renderPhases) {
+                if ((renderPhase.phase & camera.phases) == 0) {
+                    continue;
+                }
+                renderPhase.record(commandBuffer, camera);
+            }
+        }
+        commandBuffer.end();
+    }
+    getPipeline(pass, vertexInputState, renderPass, layout) {
+        const pipelineHash = pass.hash + vertexInputState.hash + renderPass.info.hash;
+        let pipeline = this._pipelineCache[pipelineHash];
+        if (!pipeline) {
+            pipeline = gfx.createPipeline();
+            pipeline.initialize({ shader: pass.shader, vertexInputState, renderPass, layout, rasterizationState: pass.rasterizationState });
+            this._pipelineCache[pipelineHash] = pipeline;
+        }
+        return pipeline;
+    }
+    getPipelineLayout(shader) {
+        let layout = this._pipelineLayoutCache[shader.info.hash];
+        if (!layout) {
+            layout = gfx.createPipelineLayout();
+            layout.initialize([
+                shaders.builtinDescriptorSetLayouts.global,
+                shaders.builtinDescriptorSetLayouts.local,
+                shaders.getDescriptorSetLayout(shader)
+            ]);
+            this._pipelineLayoutCache[shader.info.hash] = layout;
+        }
+        return layout;
     }
 }
 //# sourceMappingURL=RenderScene.js.map

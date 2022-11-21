@@ -22,11 +22,11 @@ export default class ZeroComponent extends Component {
             const axis = vec3.create(dy, dx, 0); // rotate 90°
             vec3.normalize(axis, axis);
             const rad = Math.PI / 180 * Math.sqrt(dx * dx + dy * dy);
-            // get inv-axis (local to rot)
+            // axis world to local
             const rot = quat.create();
-            quat.invert(rot, this._node.rotation);
+            quat.invert(rot, this._node.rotationWorld);
             vec3.transformQuat(axis, axis, rot);
-            // rotate by inv-axis
+            // rotate by axis
             quat.fromAxisAngle(rot, axis, rad);
             quat.multiply(rot, this._node.rotation, rot);
             this._node.rotation = rot;

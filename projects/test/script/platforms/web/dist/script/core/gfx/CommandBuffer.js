@@ -8,7 +8,7 @@ export class EmptyCommandBuffer {
     }
     copyImageBitmapToTexture(imageBitmap, texture) {
     }
-    beginRenderPass(renderPass, viewport) {
+    beginRenderPass(renderPass, viewport, framebuffer) {
     }
     bindPipeline(pipeline) {
     }

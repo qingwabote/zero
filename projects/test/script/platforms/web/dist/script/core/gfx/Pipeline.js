@@ -46,6 +46,13 @@ export var ClearFlagBit;
     ClearFlagBit[ClearFlagBit["COLOR"] = 1] = "COLOR";
     ClearFlagBit[ClearFlagBit["DEPTH"] = 2] = "DEPTH";
 })(ClearFlagBit || (ClearFlagBit = {}));
+// copy values from VkCullModeFlagBits in vulkan_core.h
+export var CullMode;
+(function (CullMode) {
+    CullMode[CullMode["NONE"] = 0] = "NONE";
+    CullMode[CullMode["FRONT"] = 1] = "FRONT";
+    CullMode[CullMode["BACK"] = 2] = "BACK";
+})(CullMode || (CullMode = {}));
 export var BlendFactor;
 (function (BlendFactor) {
     BlendFactor[BlendFactor["ZERO"] = 0] = "ZERO";

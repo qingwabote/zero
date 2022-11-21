@@ -1,12 +1,13 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 import MeshRenderer from "../components/MeshRenderer.js";
 import { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
-import { Format, IndexType } from "../gfx/Pipeline.js";
+import { CullMode, Format, IndexType } from "../gfx/Pipeline.js";
 import mat4 from "../math/mat4.js";
 import Node from "../Node.js";
 import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
 import Pass from "../render/Pass.js";
+import { PhaseBit } from "../render/RenderPhase.js";
 import SubMesh from "../render/SubMesh.js";
 import shaders from "../shaders.js";
 import Asset from "./Asset.js";
@@ -35,14 +36,8 @@ export default class GLTF extends Asset {
     _buffers = [];
     _textures = [];
     _materials = [];
-    _commandBuffer;
-    _fence;
-    constructor() {
-        super();
-        this._commandBuffer = gfx.createCommandBuffer();
-        this._commandBuffer.initialize();
-        this._fence = gfx.createFence();
-        this._fence.initialize();
+    get materials() {
+        return this._materials;
     }
     async load(url) {
         const res = url.match(/(.+)\/(.+)$/);
@@ -52,15 +47,26 @@ export default class GLTF extends Asset {
         const [, parent, name] = res;
         const json = JSON.parse(await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         this._bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
-        const textures = await Promise.all(json.images.map((info) => (new Texture).load(`${parent}/${info.uri}`)));
+        const json_images = json.images || [];
+        const textures = await Promise.all(json_images.map((info) => (new Texture).load(`${parent}/${info.uri}`)));
         this._materials = await Promise.all(json.materials.map(async (info) => {
             const textureIdx = info.pbrMetallicRoughness.baseColorTexture?.index;
-            const shader = await shaders.getShader('phong', { USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1 });
-            const pass = new Pass(shader);
+            const shadowmapShader = await shaders.getShader('shadowmap');
+            const shadowmapDescriptorSet = gfx.createDescriptorSet();
+            shadowmapDescriptorSet.initialize(shaders.getDescriptorSetLayout(shadowmapShader));
+            const shadowmapPass = new Pass(shadowmapDescriptorSet, shadowmapShader, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PhaseBit.SHADOWMAP);
+            const phongShader = await shaders.getShader('phong', {
+                USE_BLINN_PHONG: 1,
+                USE_ALBEDO_MAP: textureIdx == undefined ? 0 : 1,
+                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+            });
+            const phoneDescriptorSet = gfx.createDescriptorSet();
+            phoneDescriptorSet.initialize(shaders.getDescriptorSetLayout(phongShader));
             if (textureIdx != undefined) {
-                pass.descriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
+                phoneDescriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture);
             }
-            return new Material([pass]);
+            const phongPass = new Pass(phoneDescriptorSet, phongShader);
+            return new Material([shadowmapPass, phongPass]);
         }));
         this._textures = textures;
         this._json = json;

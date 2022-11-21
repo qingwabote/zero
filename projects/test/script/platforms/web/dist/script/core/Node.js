@@ -42,6 +42,11 @@ export default class Node {
         Object.assign(this._rotation, value);
         this.dirty(TransformBit.ROTATION);
     }
+    _rotationWorld = quat.create();
+    get rotationWorld() {
+        this.updateTransform();
+        return this._rotationWorld;
+    }
     get euler() {
         return quat.toEuler(vec3.create(), this._rotation);
     }
@@ -54,8 +59,13 @@ export default class Node {
         return this._position;
     }
     set position(value) {
-        this._position = value;
+        Object.assign(this._position, value);
         this.dirty(TransformBit.POSITION);
+    }
+    _positionWorld = vec3.create();
+    get positionWorld() {
+        this.updateTransform();
+        return this._positionWorld;
     }
     _components = [];
     _children = new Map;
@@ -90,13 +100,13 @@ export default class Node {
     }
     dirty(flag) {
         this._dirtyFlag |= flag;
-        zero.dirtyTransforms.set(this, this);
+        zero.renderScene.dirtyObjects.set(this, this);
         this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
         for (const child of this._children.keys()) {
             child.dirty(flag);
         }
     }
-    updateMatrix() {
+    updateTransform() {
         if (this._dirtyFlag == TransformBit.NONE)
             return;
         if (!this._parent) {
@@ -104,15 +114,19 @@ export default class Node {
             //     mat4.translate2(this._matrix, this._matrix, this._position);
             // }
             mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
+            Object.assign(this._rotationWorld, this._rotation);
+            Object.assign(this._positionWorld, this._position);
             this._dirtyFlag = TransformBit.NONE;
             return;
         }
-        this._parent.updateMatrix();
+        this._parent.updateTransform();
         // if (this._dirtyFlag & TransformBit.POSITION) {
         // const worldPos = vec3.transformMat4(vec3.create(), this._position, this._parent.matrix)
         // mat4.translate2(this._matrix, this._matrix, worldPos);
         mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
+        quat.multiply(this._rotationWorld, this._parent.rotationWorld, this._rotation);
+        vec3.transformMat4(this._positionWorld, vec3.ZERO, this._matrix);
         this._dirtyFlag = TransformBit.NONE;
         // }
     }
