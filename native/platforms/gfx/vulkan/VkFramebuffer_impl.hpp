@@ -13,12 +13,14 @@ namespace binding
         private:
             Device_impl *_device = nullptr;
 
-            VkFramebuffer _framebuffer = nullptr;
+            std::vector<VkFramebuffer> _framebuffers;
 
         public:
             Framebuffer_impl(Device_impl *device);
 
-            operator VkFramebuffer() { return _framebuffer; }
+            bool isSwapchain() { return _framebuffers.size() > 1; }
+
+            operator VkFramebuffer() { return isSwapchain() ? _framebuffers[_device->swapchainImageIndex()] : _framebuffers[0]; }
 
             ~Framebuffer_impl();
         };

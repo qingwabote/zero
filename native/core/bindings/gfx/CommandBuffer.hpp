@@ -38,7 +38,7 @@ namespace binding
 
             void begin();
 
-            void beginRenderPass(RenderPass *renderPass, v8::Local<v8::Object> area, Framebuffer *framebuffer);
+            void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, v8::Local<v8::Object> area);
 
             void bindDescriptorSet(PipelineLayout *pipelineLayout,
                                    uint32_t index,

@@ -15,7 +15,15 @@ namespace binding
                 [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<Device>(info.This());
-                    info.GetReturnValue().Set(c_obj->capabilities());
+                    info.GetReturnValue().Set(c_obj->retrieve("capabilities"));
+                });
+
+            cls.defineAccessor(
+                "swapchain",
+                [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<Device>(info.This());
+                    info.GetReturnValue().Set(c_obj->retrieve("swapchain"));
                 });
 
             cls.defineFunction(

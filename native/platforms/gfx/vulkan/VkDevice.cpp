@@ -23,11 +23,6 @@ namespace binding
 {
     namespace gfx
     {
-        v8::Local<v8::Object> Device::capabilities()
-        {
-            return retrieve("capabilities");
-        }
-
         Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
 
         bool Device::initialize()
@@ -85,42 +80,19 @@ namespace binding
                                      .build()
                                      .value();
 
-            VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-            VkExtent3D depthImageExtent = {vkb_swapchain.extent.width, vkb_swapchain.extent.height, 1};
+            auto src_js_swapchain = R"(
+                const swapchain = {
+                    colorTexture: {
+                        isSwapchain: true
+                    }
+                };
+                swapchain;
+            )";
+            auto js_swapchain = sugar::v8::run(src_js_swapchain).As<v8::Object>();
+            retain(js_swapchain, "swapchain");
 
-            VkImageCreateInfo dimg_info = {};
-            dimg_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-            dimg_info.imageType = VK_IMAGE_TYPE_2D;
-            dimg_info.format = depthFormat;
-            dimg_info.extent = depthImageExtent;
-            dimg_info.mipLevels = 1;
-            dimg_info.arrayLayers = 1;
-            dimg_info.samples = VK_SAMPLE_COUNT_1_BIT;
-            dimg_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-            dimg_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-
-            VkImage depthImage = nullptr;
-            VmaAllocation depthImageAllocation = nullptr;
-            VmaAllocationCreateInfo dimg_allocinfo = {};
-            dimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-            dimg_allocinfo.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-            vmaCreateImage(_impl->_allocator, &dimg_info, &dimg_allocinfo, &depthImage, &depthImageAllocation, nullptr);
-            _impl->_depthImageAllocation = depthImageAllocation;
-
-            VkImageView depthImageView = nullptr;
-            VkImageViewCreateInfo dview_info = {};
-            dview_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            dview_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            dview_info.image = depthImage;
-            dview_info.format = depthFormat;
-            dview_info.subresourceRange.baseMipLevel = 0;
-            dview_info.subresourceRange.levelCount = 1;
-            dview_info.subresourceRange.baseArrayLayer = 0;
-            dview_info.subresourceRange.layerCount = 1;
-            dview_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-            vkCreateImageView(device, &dview_info, nullptr, &depthImageView);
-            _impl->_depthImage = depthImage;
-            _impl->_depthFormat = depthFormat;
+            _impl->_swapchainImageViews = vkb_swapchain.get_image_views().value();
+            _impl->_vkb_swapchain = std::move(vkb_swapchain);
 
             VkSamplerCreateInfo samplerInfo = {};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -162,53 +134,7 @@ namespace binding
             _impl->_graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
             _impl->_vkb_device = std::move(vkb_device);
             _impl->_vkb_instance = std::move(vkb_instance);
-            _impl->_vkb_swapchain = std::move(vkb_swapchain);
             _impl->_surface = surface;
-
-            // device initialization is done, we create some defaults below:
-
-            // default framebuffers
-            VkFramebufferCreateInfo fb_info = {};
-            fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            auto src = R"(
-                const renderPassInfo = {
-                    colorAttachments: [{
-                        loadOp: 0,
-                        initialLayout: 1,
-                        finalLayout: 1000001002
-                    }],
-                    depthStencilAttachment: {
-                        loadOp: 0,
-                        initialLayout: 1,
-                        finalLayout: 3
-                    },
-                    hash: ""
-                };
-                renderPassInfo;
-            )";
-            auto renderPassInfo = sugar::v8::run(src).As<v8::Object>();
-            RenderPass *compatibleRenderPass = createRenderPass();
-            compatibleRenderPass->initialize(renderPassInfo);
-            fb_info.renderPass = compatibleRenderPass->impl(); // https://github.com/KhronosGroup/Vulkan-Docs/issues/1147
-            _impl->_compatibleRenderPass = compatibleRenderPass;
-
-            fb_info.width = _impl->_vkb_swapchain.extent.width;
-            fb_info.height = _impl->_vkb_swapchain.extent.height;
-            fb_info.layers = 1;
-            std::vector<VkFramebuffer> framebuffers(_impl->_vkb_swapchain.image_count);
-            std::vector<VkImageView> swapchainImageViews = _impl->_vkb_swapchain.get_image_views().value();
-            for (int i = 0; i < _impl->_vkb_swapchain.image_count; i++)
-            {
-                VkImageView attachments[2];
-                attachments[0] = swapchainImageViews[i];
-                attachments[1] = depthImageView;
-                fb_info.pAttachments = attachments;
-                fb_info.attachmentCount = 2;
-                vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffers[i]);
-            }
-            _impl->_swapchainImageViews = std::move(swapchainImageViews);
-            _impl->_depthImageView = depthImageView;
-            _impl->_framebuffers = std::move(framebuffers);
 
             glslang::InitializeProcess();
 
@@ -314,24 +240,13 @@ namespace binding
             vkDestroyDescriptorPool(vkb_device.device, _impl->_descriptorPool, nullptr);
             vkDestroyCommandPool(vkb_device.device, _impl->_commandPool, nullptr);
 
-            delete _impl->_compatibleRenderPass;
-
-            for (int i = 0; i < _impl->_framebuffers.size(); i++)
-            {
-                vkDestroyFramebuffer(vkb_device.device, _impl->_framebuffers[i], nullptr);
-            }
-
-            vkDestroyImageView(vkb_device.device, _impl->_depthImageView, nullptr);
-
-            VmaAllocator allocator = _impl->_allocator;
-            vmaDestroyImage(allocator, _impl->_depthImage, _impl->_depthImageAllocation);
-            vmaDestroyAllocator(allocator);
-            _impl->_allocator = nullptr;
+            vmaDestroyAllocator(_impl->_allocator);
 
             for (int i = 0; i < _impl->_swapchainImageViews.size(); i++)
             {
                 vkDestroyImageView(vkb_device.device, _impl->_swapchainImageViews[i], nullptr);
             }
+
             vkb::destroy_swapchain(_impl->_vkb_swapchain);
             vkb::destroy_device(vkb_device);
 

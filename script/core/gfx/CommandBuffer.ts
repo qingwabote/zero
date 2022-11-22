@@ -10,7 +10,7 @@ export default interface CommandBuffer {
     begin(): void;
     copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void;
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;
-    beginRenderPass(renderPass: RenderPass, viewport: Rect, framebuffer?: Framebuffer): void;
+    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect): void;
     bindPipeline(pipeline: Pipeline): void;
     bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
@@ -29,7 +29,7 @@ export class EmptyCommandBuffer implements CommandBuffer {
     }
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
     }
-    beginRenderPass(renderPass: RenderPass, viewport: Rect, framebuffer?: Framebuffer): void {
+    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect): void {
     }
     bindPipeline(pipeline: Pipeline): void {
     }

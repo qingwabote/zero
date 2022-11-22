@@ -1,6 +1,4 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
-import { ClearFlagBit } from "../gfx/Pipeline.js";
-import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP } from "../gfx/RenderPass.js";
 import shaders from "../shaders.js";
 import RenderCamera from "./RenderCamera.js";
 
@@ -10,7 +8,6 @@ export enum PhaseBit {
 }
 
 export default class RenderPhase {
-    private _clearFlag2renderPass: Record<number, RenderPass> = {};
 
     protected _phase: PhaseBit;
     get phase(): PhaseBit {
@@ -23,8 +20,8 @@ export default class RenderPhase {
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
         const models = zero.renderScene.models;
-        const renderPass = this.getRenderPass(camera.clearFlags);
-        commandBuffer.beginRenderPass(renderPass, camera.viewport);
+        const renderPass = zero.renderScene.getRenderPass(camera.clearFlags);
+        commandBuffer.beginRenderPass(renderPass, zero.renderScene.framebuffer, camera.viewport);
         for (const model of models) {
             if ((camera.visibilities & model.node.visibility) == 0) {
                 continue;
@@ -50,25 +47,5 @@ export default class RenderPhase {
             }
         }
         commandBuffer.endRenderPass()
-    }
-
-    private getRenderPass(clearFlags: ClearFlagBit): RenderPass {
-        let renderPass = this._clearFlag2renderPass[clearFlags];
-        if (!renderPass) {
-            renderPass = gfx.createRenderPass();
-            const colorAttachment: AttachmentDescription = {
-                loadOp: clearFlags & ClearFlagBit.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                initialLayout: clearFlags & ClearFlagBit.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
-                finalLayout: ImageLayout.PRESENT_SRC
-            };
-            const depthStencilAttachment: AttachmentDescription = {
-                loadOp: clearFlags & ClearFlagBit.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                initialLayout: clearFlags & ClearFlagBit.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-            };
-            renderPass.initialize({ colorAttachments: [colorAttachment], depthStencilAttachment, hash: clearFlags.toString() });
-            this._clearFlag2renderPass[clearFlags] = renderPass;
-        }
-        return renderPass;
     }
 }

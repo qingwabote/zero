@@ -1,7 +1,9 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
-import Pipeline, { DescriptorSet, PipelineLayout, VertexInputState } from "../gfx/Pipeline.js";
-import RenderPass from "../gfx/RenderPass.js";
+import { Framebuffer } from "../gfx/Framebuffer.js";
+import Pipeline, { ClearFlagBit, DescriptorSet, PipelineLayout, VertexInputState } from "../gfx/Pipeline.js";
+import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP } from "../gfx/RenderPass.js";
 import Shader from "../gfx/Shader.js";
+import { TextureUsageBit } from "../gfx/Texture.js";
 import shaders from "../shaders.js";
 import Model from "./Model.js";
 import Pass from "./Pass.js";
@@ -39,12 +41,19 @@ export default class RenderScene {
         return this._dirtyObjects;
     }
 
+    private _clearFlag2renderPass: Record<number, RenderPass> = {};
+
     private _pipelineLayoutCache: Record<string, PipelineLayout> = {};
     private _pipelineCache: Record<string, Pipeline> = {};
 
     private _globalDescriptorSet: DescriptorSet;
 
     private _uboGlobal: UboGlobal;
+
+    private _framebuffer: Framebuffer;
+    get framebuffer(): Framebuffer {
+        return this._framebuffer;
+    }
 
     private _shadowmapPhase: ShadowmapPhase;
     get shadowmapPhase(): ShadowmapPhase {
@@ -61,6 +70,19 @@ export default class RenderScene {
         globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
 
         this._uboGlobal = new UboGlobal(globalDescriptorSet);
+
+        const depthStencilAttachment = gfx.createTexture();
+        depthStencilAttachment.initialize({
+            usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
+            width: zero.window.width, height: zero.window.height
+        });
+        const framebuffer = gfx.createFramebuffer();
+        framebuffer.initialize({
+            attachments: [gfx.swapchain.colorTexture, depthStencilAttachment],
+            renderPass: this.getRenderPass(ClearFlagBit.COLOR),
+            width: zero.window.width, height: zero.window.height
+        });
+        this._framebuffer = framebuffer;
 
         const shadowmapPhase = new ShadowmapPhase(globalDescriptorSet);
         this._renderPhases.push(shadowmapPhase);
@@ -94,6 +116,26 @@ export default class RenderScene {
             }
         }
         commandBuffer.end();
+    }
+
+    getRenderPass(clearFlags: ClearFlagBit): RenderPass {
+        let renderPass = this._clearFlag2renderPass[clearFlags];
+        if (!renderPass) {
+            renderPass = gfx.createRenderPass();
+            const colorAttachment: AttachmentDescription = {
+                loadOp: clearFlags & ClearFlagBit.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                initialLayout: clearFlags & ClearFlagBit.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
+                finalLayout: ImageLayout.PRESENT_SRC
+            };
+            const depthStencilAttachment: AttachmentDescription = {
+                loadOp: clearFlags & ClearFlagBit.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                initialLayout: clearFlags & ClearFlagBit.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+            };
+            renderPass.initialize({ colorAttachments: [colorAttachment], depthStencilAttachment, hash: clearFlags.toString() });
+            this._clearFlag2renderPass[clearFlags] = renderPass;
+        }
+        return renderPass;
     }
 
     getPipeline(pass: Pass, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {

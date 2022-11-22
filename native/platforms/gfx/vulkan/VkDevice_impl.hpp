@@ -29,19 +29,10 @@ namespace binding
             VkSurfaceKHR _surface = nullptr;
             vkb::Device _vkb_device;
 
-            vkb::Swapchain _vkb_swapchain;
-            std::vector<VkImageView> _swapchainImageViews;
-
             VmaAllocator _allocator;
 
-            VkFormat _depthFormat;
-            VkImage _depthImage;
-            VmaAllocation _depthImageAllocation;
-            VkImageView _depthImageView;
-
-            RenderPass *_compatibleRenderPass = nullptr;
-
-            std::vector<VkFramebuffer> _framebuffers;
+            vkb::Swapchain _vkb_swapchain;
+            std::vector<VkImageView> _swapchainImageViews;
 
             VkCommandPool _commandPool = nullptr;
             VkDescriptorPool _descriptorPool = nullptr;
@@ -61,15 +52,15 @@ namespace binding
 
             VkDescriptorPool descriptorPool() { return _descriptorPool; }
 
-            VkFormat depthFormat() { return _depthFormat; }
+            VmaAllocator allocator() { return _allocator; }
+
+            std::vector<VkImageView> &swapchainImageViews() { return _swapchainImageViews; }
 
             VkFormat swapchainImageFormat() { return _vkb_swapchain.image_format; }
 
             VkExtent2D &swapchainImageExtent() { return _vkb_swapchain.extent; }
 
-            VkFramebuffer curFramebuffer() { return _framebuffers[_swapchainImageIndex]; }
-
-            VmaAllocator allocator() { return _allocator; }
+            uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
 
             VkSampler defaultSampler() { return _defaultSampler; }
 

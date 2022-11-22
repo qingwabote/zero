@@ -14,8 +14,14 @@ export interface Capabilities {
     readonly clipSpaceMinZ: number
 }
 
+export interface Swapchain {
+    readonly colorTexture: Texture;
+}
+
 export default interface Device {
     get capabilities(): Capabilities;
+
+    get swapchain(): Swapchain;
 
     initialize(): boolean;
 

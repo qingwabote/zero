@@ -44,7 +44,7 @@ namespace binding
 
             uint32_t depthIndex = js_colorAttachments->Length();
             attachmentDescriptions[depthIndex].flags = 0;
-            attachmentDescriptions[depthIndex].format = _impl->_device->depthFormat();
+            attachmentDescriptions[depthIndex].format = VK_FORMAT_D32_SFLOAT;
             attachmentDescriptions[depthIndex].samples = VK_SAMPLE_COUNT_1_BIT;
             attachmentDescriptions[depthIndex].loadOp = static_cast<VkAttachmentLoadOp>(sugar::v8::object_get(js_depthStencilAttachment, "loadOp").As<v8::Number>()->Value());
             attachmentDescriptions[depthIndex].initialLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_depthStencilAttachment, "initialLayout").As<v8::Number>()->Value());

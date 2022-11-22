@@ -54,7 +54,7 @@ export default class ShadowmapPhase extends RenderPhase {
         }
 
         const models = zero.renderScene.models;
-        commandBuffer.beginRenderPass(this._renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT }, this._framebuffer);
+        commandBuffer.beginRenderPass(this._renderPass, this._framebuffer, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
         // commandBuffer.beginRenderPass(this._renderPass, camera.viewport);
         for (const model of models) {
             if ((camera.visibilities & model.node.visibility) == 0) {

@@ -132,7 +132,7 @@ namespace binding
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
         }
 
-        void CommandBuffer::beginRenderPass(RenderPass *c_renderPass, v8::Local<v8::Object> area, Framebuffer *c_framebuffer)
+        void CommandBuffer::beginRenderPass(RenderPass *c_renderPass, Framebuffer *c_framebuffer, v8::Local<v8::Object> area)
         {
             int32_t x = sugar::v8::object_get(area, "x").As<v8::Number>()->Value();
             int32_t width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
@@ -145,23 +145,8 @@ namespace binding
             viewport.minDepth = 0;
             viewport.maxDepth = 1;
 
-            VkFramebuffer framebuffer;
-
-            if (c_framebuffer)
+            if (c_framebuffer->impl().isSwapchain())
             {
-                framebuffer = c_framebuffer->impl();
-
-                y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
-
-                viewport.y = y;
-                viewport.height = height;
-
-                vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_CLOCKWISE);
-            }
-            else
-            {
-                framebuffer = _impl->_device->curFramebuffer();
-
                 // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
                 // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
                 // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
@@ -172,10 +157,19 @@ namespace binding
 
                 vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
             }
+            else
+            {
+                y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
+
+                viewport.y = y;
+                viewport.height = height;
+
+                vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_CLOCKWISE);
+            }
 
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            info.framebuffer = framebuffer;
+            info.framebuffer = c_framebuffer->impl();
             info.renderPass = c_renderPass->impl();
             info.renderArea.offset.x = x;
             info.renderArea.offset.y = y;
