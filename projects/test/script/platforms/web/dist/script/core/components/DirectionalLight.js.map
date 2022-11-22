@@ -1,1 +1,0 @@
-{"version":3,"file":"DirectionalLight.js","sourceRoot":"","sources":["../../../../../../../../../script/core/components/DirectionalLight.ts"],"names":[],"mappings":"AAAA,OAAO,SAAS,MAAM,iBAAiB,CAAC;AAExC,MAAM,CAAC,OAAO,OAAO,gBAAiB,SAAQ,SAAS;IAC1C,KAAK;QACV,IAAI,CAAC,WAAW,CAAC,gBAAgB,GAAG,EAAE,IAAI,EAAE,IAAI,CAAC,KAAK,EAAE,CAAC;IAC7D,CAAC;CACJ"}
