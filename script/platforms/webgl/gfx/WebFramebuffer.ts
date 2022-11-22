@@ -5,8 +5,8 @@ import WebTexture from "./WebTexture.js";
 export default class WebFramebuffer implements Framebuffer {
     private _gl: WebGL2RenderingContext;
 
-    private _framebuffer!: WebGLFramebuffer;
-    get framebuffer(): WebGLFramebuffer {
+    private _framebuffer: WebGLFramebuffer | null = null;
+    get framebuffer(): WebGLFramebuffer | null {
         return this._framebuffer;
     }
 
@@ -16,6 +16,13 @@ export default class WebFramebuffer implements Framebuffer {
 
     initialize(info: FramebufferInfo): boolean {
         const gl = this._gl;
+
+        for (let i = 0; i < info.attachments.length; i++) {
+            const attachment = info.attachments[i] as WebTexture;
+            if (attachment == gfx.swapchain.colorTexture) {
+                return false;
+            }
+        }
 
         const framebuffer = gl.createFramebuffer()!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);

@@ -1,6 +1,6 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
-import Device, { Capabilities } from "../../../core/gfx/Device.js";
+import Device, { Capabilities, Swapchain } from "../../../core/gfx/Device.js";
 import Fence from "../../../core/gfx/Fence.js";
 import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
 import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
@@ -28,6 +28,11 @@ export default class WebDevice implements Device {
     private _capabilities: Capabilities;
     get capabilities(): Capabilities {
         return this._capabilities;
+    }
+
+    private _swapchain: Swapchain = { colorTexture: {} as any };
+    get swapchain(): Swapchain {
+        return this._swapchain;
     }
 
     constructor(gl: WebGL2RenderingContext) {

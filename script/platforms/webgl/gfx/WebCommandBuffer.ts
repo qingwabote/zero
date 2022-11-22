@@ -75,10 +75,10 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    beginRenderPass(renderPass: RenderPass, viewport: Rect, framebuffer?: Framebuffer) {
+    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect) {
         const gl = this._gl;
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer ? (framebuffer as WebFramebuffer).framebuffer : null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, (framebuffer as WebFramebuffer).framebuffer);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
