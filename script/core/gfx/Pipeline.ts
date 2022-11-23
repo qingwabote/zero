@@ -3,12 +3,6 @@ import RenderPass from "./RenderPass.js";
 import Shader, { ShaderStageFlagBits } from "./Shader.js";
 import Texture from "./Texture.js";
 
-// copy values from VkPipelineStageFlagBits in vulkan_core.h
-export enum PipelineStageFlagBits {
-    PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400
-}
-export type PipelineStageFlags = PipelineStageFlagBits;
-
 // copy values from VkFormat in vulkan_core.h
 export enum Format {
     R8UI = 13,
@@ -32,6 +26,23 @@ export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
     [Format.RG32F]: { name: "RG32F", size: 8, count: 2 },
     [Format.RGB32F]: { name: "RGB32F", size: 12, count: 3 },
     [Format.RGBA32F]: { name: "RGBA32F", size: 16, count: 4 },
+}
+
+// copy values from VkPipelineStageFlagBits in vulkan_core.h
+export enum PipelineStageFlagBits {
+    PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400
+}
+export type PipelineStageFlags = PipelineStageFlagBits;
+
+// copy values from VkSampleCountFlagBits in vulkan_core.h
+export enum SampleCountFlagBits {
+    SAMPLE_COUNT_1 = 0x00000001,
+    SAMPLE_COUNT_2 = 0x00000002,
+    SAMPLE_COUNT_4 = 0x00000004,
+    SAMPLE_COUNT_8 = 0x00000008,
+    SAMPLE_COUNT_16 = 0x00000010,
+    SAMPLE_COUNT_32 = 0x00000020,
+    SAMPLE_COUNT_64 = 0x00000040,
 }
 
 // copy values from VkVertexInputRate in vulkan_core.h

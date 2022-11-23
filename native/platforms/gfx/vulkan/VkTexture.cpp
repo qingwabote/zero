@@ -14,21 +14,23 @@ namespace binding
 
         bool Texture::initialize(v8::Local<v8::Object> info)
         {
-            auto width = sugar::v8::object_get(info, "width").As<v8::Number>()->Value();
-            auto height = sugar::v8::object_get(info, "height").As<v8::Number>()->Value();
             uint32_t usage = sugar::v8::object_get(info, "usage").As<v8::Number>()->Value();
 
             auto format = VK_FORMAT_R8G8B8A8_SRGB;
             auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+            if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+            {
+                format = _impl->_device->swapchainImageFormat();
+            }
+            else if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
             {
                 format = VK_FORMAT_D32_SFLOAT;
                 aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
             }
 
             VkExtent3D extent{};
-            extent.width = width;
-            extent.height = height;
+            extent.width = sugar::v8::object_get(info, "width").As<v8::Number>()->Value();
+            extent.height = sugar::v8::object_get(info, "height").As<v8::Number>()->Value();
             extent.depth = 1;
             VkImageCreateInfo imageInfo = {};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -36,7 +38,7 @@ namespace binding
             imageInfo.extent = extent;
             imageInfo.mipLevels = 1;
             imageInfo.arrayLayers = 1;
-            imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+            imageInfo.samples = static_cast<VkSampleCountFlagBits>(sugar::v8::object_get(info, "samples").As<v8::Number>()->Value());
             imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
             imageInfo.usage = usage;
             imageInfo.format = format;

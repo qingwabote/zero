@@ -1,3 +1,5 @@
+import { SampleCountFlagBits } from "./Pipeline.js";
+
 // copy values from VkImageUsageFlagBits in vulkan_core.h
 export enum TextureUsageBit {
     TRANSFER_DST = 0x00000002,
@@ -7,6 +9,7 @@ export enum TextureUsageBit {
 }
 
 export interface TextureInfo {
+    samples: SampleCountFlagBits;
     usage: TextureUsageBit;
     width: number;
     height: number;

@@ -83,6 +83,9 @@ namespace binding
             auto src_js_swapchain = R"(
                 const swapchain = {
                     colorTexture: {
+                        info: {
+                            samples: 1
+                        },
                         isSwapchain: true
                     }
                 };

@@ -1,7 +1,7 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
 import { Framebuffer } from "../../gfx/Framebuffer.js";
-import { DescriptorSet } from "../../gfx/Pipeline.js";
-import RenderPass, { ImageLayout, LOAD_OP } from "../../gfx/RenderPass.js";
+import { DescriptorSet, SampleCountFlagBits } from "../../gfx/Pipeline.js";
+import RenderPass, { ImageLayout, LOAD_OP, RenderPassInfo } from "../../gfx/RenderPass.js";
 import Texture, { TextureUsageBit } from "../../gfx/Texture.js";
 import shaders from "../../shaders.js";
 import RenderCamera from "../RenderCamera.js";
@@ -22,25 +22,25 @@ export default class ShadowmapPhase extends RenderPhase {
     constructor(globalDescriptorSet: DescriptorSet) {
         super(PhaseBit.SHADOWMAP);
         const renderPass = gfx.createRenderPass();
-        renderPass.initialize({
-            colorAttachments: [],
-            depthStencilAttachment: {
-                loadOp: LOAD_OP.CLEAR,
-                initialLayout: ImageLayout.UNDEFINED,
-                finalLayout: ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL
-            },
-            hash: "shadowMapRenderPass"
-        });
+        renderPass.initialize(new RenderPassInfo([], {
+            loadOp: LOAD_OP.CLEAR,
+            initialLayout: ImageLayout.UNDEFINED,
+            finalLayout: ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL
+        }));
 
         const depthStencilAttachment = gfx.createTexture();
         depthStencilAttachment.initialize({
+            samples: SampleCountFlagBits.SAMPLE_COUNT_1,
             usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
         globalDescriptorSet.bindTexture(shaders.builtinUniforms.global.samplers.shadowMap.binding, depthStencilAttachment);
         const framebuffer = gfx.createFramebuffer();
         framebuffer.initialize({
-            attachments: [depthStencilAttachment], renderPass: renderPass,
+            colorAttachments: [],
+            depthStencilAttachment,
+            resolveAttachments: [],
+            renderPass: renderPass,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
         this._framebuffer = framebuffer;

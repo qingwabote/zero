@@ -167,6 +167,11 @@ namespace binding
                 vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_CLOCKWISE);
             }
 
+            vkCmdSetViewport(_impl->_commandBuffer, 0, 1, &viewport);
+
+            VkRect2D scissor = {{x, y}, {width, height}};
+            vkCmdSetScissor(_impl->_commandBuffer, 0, 1, &scissor);
+
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             info.framebuffer = c_framebuffer->impl();
@@ -185,11 +190,6 @@ namespace binding
             info.pClearValues = clearValues.data();
             info.clearValueCount = clearValues.size();
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
-
-            vkCmdSetViewport(_impl->_commandBuffer, 0, 1, &viewport);
-
-            VkRect2D scissor = {{x, y}, {width, height}};
-            vkCmdSetScissor(_impl->_commandBuffer, 0, 1, &scissor);
         }
 
         void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *gfx_descriptorSet, v8::Local<v8::Array> js_dynamicOffsets)

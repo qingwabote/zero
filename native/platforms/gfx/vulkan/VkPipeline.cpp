@@ -89,7 +89,6 @@ namespace binding
             rasterizationState.rasterizerDiscardEnable = VK_FALSE;
             rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
             rasterizationState.cullMode = sugar::v8::object_get(js_rasterizationState, "cullMode").As<v8::Number>()->Value();
-            // rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
             rasterizationState.depthBiasEnable = VK_FALSE;
             rasterizationState.depthBiasConstantFactor = 0;
             rasterizationState.depthBiasClamp = 0;
@@ -97,9 +96,14 @@ namespace binding
             rasterizationState.lineWidth = 1;
             pipelineInfo.pRasterizationState = &rasterizationState;
 
+            VkSampleCountFlagBits rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+            v8::Local<v8::Object> js_renderPass = sugar::v8::object_get(info, "renderPass").As<v8::Object>();
+            auto c_renderPass = retain<RenderPass>(js_renderPass);
+
             VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
             multisampleState.sampleShadingEnable = VK_FALSE;
-            multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+            multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(sugar::v8::object_get(c_renderPass->info(), "samples").As<v8::Number>()->Value());
             multisampleState.minSampleShading = 1.0f;
             multisampleState.alphaToCoverageEnable = VK_FALSE;
             multisampleState.alphaToOneEnable = VK_FALSE;
@@ -127,8 +131,7 @@ namespace binding
             v8::Local<v8::Object> js_layout = sugar::v8::object_get(info, "layout").As<v8::Object>();
             pipelineInfo.layout = retain<PipelineLayout>(js_layout)->impl();
 
-            v8::Local<v8::Object> js_renderPass = sugar::v8::object_get(info, "renderPass").As<v8::Object>();
-            pipelineInfo.renderPass = retain<RenderPass>(js_renderPass)->impl();
+            pipelineInfo.renderPass = c_renderPass->impl();
             pipelineInfo.subpass = 0;
 
             if (vkCreateGraphicsPipelines(_impl->_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))

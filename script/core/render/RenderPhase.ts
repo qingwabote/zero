@@ -20,8 +20,9 @@ export default class RenderPhase {
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
         const models = zero.renderScene.models;
-        const renderPass = zero.renderScene.getRenderPass(camera.clearFlags);
-        commandBuffer.beginRenderPass(renderPass, zero.renderScene.framebuffer, camera.viewport);
+        const framebuffer = zero.renderScene.framebuffer;
+        const renderPass = zero.renderScene.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
+        commandBuffer.beginRenderPass(renderPass, framebuffer, camera.viewport);
         for (const model of models) {
             if ((camera.visibilities & model.node.visibility) == 0) {
                 continue;
