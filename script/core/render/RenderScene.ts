@@ -71,7 +71,7 @@ export default class RenderScene {
 
         this._uboGlobal = new UboGlobal(globalDescriptorSet);
 
-        let samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1 as number;
+        let samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_4 as number;
 
         const colorAttachments: Texture[] = [];
         const resolveAttachments: Texture[] = [];

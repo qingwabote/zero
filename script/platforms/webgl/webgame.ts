@@ -6,7 +6,6 @@ const DEBUG_DT_THRESHOLD = 1;
 
 export default {
     run(canvas: HTMLCanvasElement, App: new () => Zero) {
-        const gl = canvas.getContext('webgl2')!;
         (window as any).zero = new App();
         zero.initialize(new WebLoader, new WebPlatfrom, canvas.width, canvas.height);
 

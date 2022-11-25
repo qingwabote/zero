@@ -34,7 +34,7 @@
   </script> -->
   <script type="module">
     import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
-    const gfx = new WebDevice(document.getElementById("ZeroCanvas").getContext('webgl2'));
+    const gfx = new WebDevice(document.getElementById("ZeroCanvas"));
     gfx.initialize()
     window.gfx = gfx;
   </script>

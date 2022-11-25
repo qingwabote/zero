@@ -30,12 +30,13 @@ export default class WebDevice implements Device {
         return this._capabilities;
     }
 
-    private _swapchain: Swapchain = { colorTexture: {} as any };
+    private _swapchain: Swapchain = { colorTexture: { info: { samples: 1 } } as any };
     get swapchain(): Swapchain {
         return this._swapchain;
     }
 
-    constructor(gl: WebGL2RenderingContext) {
+    constructor(canvas: HTMLCanvasElement) {
+        const gl = canvas.getContext('webgl2', { antialias: false })!;
         this._capabilities = {
             uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1

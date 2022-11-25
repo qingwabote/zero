@@ -54,6 +54,8 @@ const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
 export default class WebCommandBuffer implements CommandBuffer {
     private _gl: WebGL2RenderingContext;
     private _inputAssembler: InputAssembler | undefined;
+    private _framebuffer!: WebFramebuffer;
+    private _viewport!: Rect;
 
     constructor(gl: WebGL2RenderingContext) {
         this._gl = gl;
@@ -79,10 +81,11 @@ export default class WebCommandBuffer implements CommandBuffer {
         const gl = this._gl;
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, (framebuffer as WebFramebuffer).framebuffer);
+        this._framebuffer = framebuffer as WebFramebuffer;
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-
         gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
+        this._viewport = viewport;
 
         gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;
@@ -228,7 +231,21 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.bindVertexArray(null);
     }
 
-    endRenderPass() { }
+    endRenderPass() {
+        const gl = this._gl;
+
+        for (const attachment of this._framebuffer.info.resolveAttachments) {
+            if (attachment == gfx.swapchain.colorTexture) {
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.framebuffer);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+                gl.blitFramebuffer(
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.height,
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.height,
+                    gl.COLOR_BUFFER_BIT, gl.LINEAR);
+            }
+        }
+    }
 
     end(): void { }
 }
