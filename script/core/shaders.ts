@@ -130,22 +130,29 @@ export default {
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = name2source[name];
         if (!source) {
-            const vs = await zero.loader.load(`../../asset/shader/${name}.vs`, "text");
-            const fs = await zero.loader.load(`../../asset/shader/${name}.fs`, "text");
+            let vs = await zero.loader.load(`../../asset/shader/${name}.vs`, "text");
+            vs = await preprocessor.includeExpand(vs);
+
+            let fs = await zero.loader.load(`../../asset/shader/${name}.fs`, "text");
+            fs = await preprocessor.includeExpand(fs);
+
             name2source[name] = [
                 { type: ShaderStageFlagBits.VERTEX, source: vs },
                 { type: ShaderStageFlagBits.FRAGMENT, source: fs },
             ];
-            name2macros[name] = preprocessor.macrosExtract(fs);
+            name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
         }
 
+        const mac: Record<string, number> = {};
         let key = name;
         for (const macro of name2macros[name]) {
-            key += macros[macro] || 0
+            const val = macros[macro] || 0;
+            mac[macro] = val;
+            key += val
         }
 
         if (!shaders[key]) {
-            const res = await preprocessor.preprocess(name2source[name], macros);
+            const res = await preprocessor.preprocess(name2source[name], mac);
             shaders[key] = gfx.createShader();
             shaders[key].initialize({
                 name,

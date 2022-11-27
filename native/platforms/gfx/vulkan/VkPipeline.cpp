@@ -96,8 +96,6 @@ namespace binding
             rasterizationState.lineWidth = 1;
             pipelineInfo.pRasterizationState = &rasterizationState;
 
-            VkSampleCountFlagBits rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
             v8::Local<v8::Object> js_renderPass = sugar::v8::object_get(info, "renderPass").As<v8::Object>();
             auto c_renderPass = retain<RenderPass>(js_renderPass);
 

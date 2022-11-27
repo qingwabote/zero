@@ -7,11 +7,10 @@ import Texture, { TextureUsageBit } from "../gfx/Texture.js";
 import shaders from "../shaders.js";
 import Model from "./Model.js";
 import Pass from "./Pass.js";
-import ShadowmapPhase from "./phases/ShadowmapPhase.js";
 import RenderCamera from "./RenderCamera.js";
 import RenderDirectionalLight from "./RenderDirectionalLight.js";
 import { RenderNode } from "./RenderNode.js";
-import RenderPhase, { PhaseBit } from "./RenderPhase.js";
+import RenderPhase from "./RenderPhase.js";
 import UboGlobal from "./UboGlobal.js";
 
 type RenderObject = RenderNode | RenderCamera | RenderDirectionalLight;
@@ -47,17 +46,15 @@ export default class RenderScene {
     private _pipelineCache: Record<string, Pipeline> = {};
 
     private _globalDescriptorSet: DescriptorSet;
+    get globalDescriptorSet(): DescriptorSet {
+        return this._globalDescriptorSet;
+    }
 
     private _uboGlobal: UboGlobal;
 
     private _framebuffer: Framebuffer;
     get framebuffer(): Framebuffer {
         return this._framebuffer;
-    }
-
-    private _shadowmapPhase: ShadowmapPhase;
-    get shadowmapPhase(): ShadowmapPhase {
-        return this._shadowmapPhase;
     }
 
     private _renderPhases: RenderPhase[] = [];
@@ -103,11 +100,6 @@ export default class RenderScene {
             width: zero.window.width, height: zero.window.height
         });
         this._framebuffer = framebuffer;
-
-        const shadowmapPhase = new ShadowmapPhase(globalDescriptorSet);
-        this._renderPhases.push(shadowmapPhase);
-        this._shadowmapPhase = shadowmapPhase;
-        this._renderPhases.push(new RenderPhase(PhaseBit.DEFAULT));
 
         this._globalDescriptorSet = globalDescriptorSet;
     }

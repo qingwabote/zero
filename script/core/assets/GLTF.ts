@@ -42,14 +42,20 @@ let _fence: Fence;
 
 export default class GLTF extends Asset {
     private _json: any;
+    get json(): any {
+        return this._json;
+    }
+
     private _bin: ArrayBuffer | undefined;
 
     private _buffers: Buffer[] = [];
+
     private _textures: Texture[] = [];
-    private _materials: Material[] = [];
-    get materials(): Material[] {
-        return this._materials;
+    get textures(): Texture[] {
+        return this._textures;
     }
+
+    private _materials!: Material[];
 
     async load(url: string) {
         const res = url.match(/(.+)\/(.+)$/);
@@ -86,8 +92,10 @@ export default class GLTF extends Asset {
         this._json = json;
     }
 
-    createScene(name: string): Node | null {
+    createScene(name: string, materials: Material[]): Node | null {
         if (!this._json || !this._bin || !this._textures) return null;
+
+        this._materials = materials;
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);

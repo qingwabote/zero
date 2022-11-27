@@ -15,31 +15,80 @@ async function string_replace(value: string, pattern: RegExp, replacer: (...args
 
 const chunks: Record<string, string> = {};
 
-const ifMacroExp = / *#if\s+(\w+)\r?\n([\s\S]+?)#endif\r?\n/g;
+// const ifMacroExp = / *#if\s+(\w+)\r?\n([\s\S]+?)#endif\r?\n/g;
+// function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
+//     return source.replace(ifMacroExp, function (_: string, macro: string, content: string) {
+//         const matches = content.match(/([\s\S]+)#else\r?\n([\s\S]+)/);
+//         if (!matches) {
+//             return macros[macro] ? content : '';
+//         }
+//         return macros[macro] ? matches[1] : matches[2];
+//     });
+// }
 
-async function includeExpand(source: string): Promise<string> {
-    return string_replace(source, /#include\s+<(\w+)>/g, async function (_: string, name: string): Promise<string> {
-        let chunk = chunks[name];
-        if (!chunk) {
-            chunk = await zero.loader.load(`../../asset/shader/chunks/${name}.chunk`, "text");
-            chunks[name] = chunk;
-        }
-        return await includeExpand(chunk);
-    });
-}
+const ifMacroExp = / *#if\s+(\w+)\r?\n/g;
+
+// function macrosDefine(macros: Readonly<Record<string, number>>, source: string) {
+//     let defines = '';
+//     for (const name in macros) {
+//         defines += `#define ${name} ${macros[name]}\n`;
+//     }
+//     return defines + source;
+// }
 
 function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
-    return source.replace(ifMacroExp, function (_: string, macro: string, content: string) {
-        const matches = content.match(/([\s\S]+)#else\r?\n([\s\S]+)/);
-        if (!matches) {
-            return macros[macro] ? content : '';
+    let out = '';
+    const exp_lineByline = /(.+)\r?\n?/g;
+    const exp_if = /#if\s+(\w+)/;
+    const exp_else = /#else/;
+    const exp_endif = /#endif/;
+    const stack: { type: 'if' | 'else', name: string, content: string }[] = [];
+    while (true) {
+        let res = exp_lineByline.exec(source);
+        if (!res) {
+            break;
         }
-        return macros[macro] ? matches[1] : matches[2];
-    });
+
+        let line = res[0];
+        res = exp_if.exec(line);
+        if (res) {
+            stack.push({ type: 'if', name: res[1], content: '' });
+            continue;
+        }
+
+        res = exp_else.exec(line);
+        if (res) {
+            stack.push({ type: 'else', name: res[1], content: '' });
+            continue;
+        }
+
+        res = exp_endif.exec(line);
+        if (res) {
+            const item = stack.pop()!;
+            if (item.type != 'if') {
+                const item_if = stack.pop()!;
+                const item_else = item;
+                line = macros[item_if.name] ? item_if.content : item_else.content;
+            } else {
+                const item_if = item;
+                line = macros[item_if.name] ? item_if.content : '';
+            }
+        }
+
+        if (stack.length) {
+            const item = stack[stack.length - 1];
+            item.content += line;
+            continue;
+        }
+
+        out += line;
+    }
+    return out;
 }
 
+
 export default {
-    macrosExtract(src: string): Set<string> {
+    macroExtract(src: string): Set<string> {
         const macros: Set<string> = new Set;
         let matches = src.matchAll(ifMacroExp);
         for (const match of matches) {
@@ -48,9 +97,19 @@ export default {
         return macros;
     },
 
+    async includeExpand(source: string): Promise<string> {
+        return string_replace(source, /#include\s+<(\w+)>/g, async (_: string, name: string): Promise<string> => {
+            let chunk = chunks[name];
+            if (!chunk) {
+                chunk = await zero.loader.load(`../../asset/shader/chunks/${name}.chunk`, "text");
+                chunks[name] = chunk;
+            }
+            return await this.includeExpand(chunk);
+        });
+    },
+
     async preprocess(stages: Readonly<ShaderStage[]>, macros: Readonly<Record<string, number>>): Promise<{ stages: Readonly<ShaderStage[]>, meta: Meta }> {
 
-        stages = await Promise.all(stages.map(async stage => ({ type: stage.type, source: await includeExpand(stage.source) })));
         stages = stages.map(stage => ({ type: stage.type, source: macroExpand(macros, stage.source) }));
 
         const vertexStage = stages.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!;

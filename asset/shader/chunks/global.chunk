@@ -8,4 +8,6 @@ layout(set = 0, binding = 1) uniform Camera {
     vec3 position;
 } camera;
 
-layout(set = 0, binding = 3) uniform sampler2D shadowMap;
+#if USE_SHADOW_MAP
+    layout(set = 0, binding = 3) uniform sampler2D shadowMap;
+#endif
