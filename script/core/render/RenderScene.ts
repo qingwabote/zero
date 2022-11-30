@@ -1,16 +1,12 @@
-import CommandBuffer from "../gfx/CommandBuffer.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
-import Pipeline, { ClearFlagBit, DescriptorSet, PipelineLayout, SampleCountFlagBits, VertexInputState } from "../gfx/Pipeline.js";
+import Pipeline, { ClearFlagBit, PipelineLayout, SampleCountFlagBits, VertexInputState } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo } from "../gfx/RenderPass.js";
-import Shader from "../gfx/Shader.js";
 import Texture, { TextureUsageBit } from "../gfx/Texture.js";
-import shaders from "../shaders.js";
 import Model from "./Model.js";
 import Pass from "./Pass.js";
 import RenderCamera from "./RenderCamera.js";
 import RenderDirectionalLight from "./RenderDirectionalLight.js";
 import { RenderNode } from "./RenderNode.js";
-import RenderPhase from "./RenderPhase.js";
 import UboGlobal from "./UboGlobal.js";
 
 type RenderObject = RenderNode | RenderCamera | RenderDirectionalLight;
@@ -35,6 +31,8 @@ export default class RenderScene {
         return this._models;
     }
 
+    uboGlobal!: UboGlobal;
+
     private _dirtyObjects: Map<RenderObject, RenderObject> = new Map;
     get dirtyObjects(): Map<RenderObject, RenderObject> {
         return this._dirtyObjects;
@@ -42,32 +40,14 @@ export default class RenderScene {
 
     private _clearFlag2renderPass: Record<string, RenderPass> = {};
 
-    private _pipelineLayoutCache: Record<string, PipelineLayout> = {};
     private _pipelineCache: Record<string, Pipeline> = {};
-
-    private _globalDescriptorSet: DescriptorSet;
-    get globalDescriptorSet(): DescriptorSet {
-        return this._globalDescriptorSet;
-    }
-
-    private _uboGlobal: UboGlobal;
 
     private _framebuffer: Framebuffer;
     get framebuffer(): Framebuffer {
         return this._framebuffer;
     }
 
-    private _renderPhases: RenderPhase[] = [];
-    get renderPhases(): RenderPhase[] {
-        return this._renderPhases;
-    }
-
     constructor() {
-        const globalDescriptorSet = gfx.createDescriptorSet();
-        globalDescriptorSet.initialize(shaders.builtinDescriptorSetLayouts.global);
-
-        this._uboGlobal = new UboGlobal(globalDescriptorSet);
-
         let samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_4 as number;
 
         const colorAttachments: Texture[] = [];
@@ -100,34 +80,16 @@ export default class RenderScene {
             width: zero.window.width, height: zero.window.height
         });
         this._framebuffer = framebuffer;
-
-        this._globalDescriptorSet = globalDescriptorSet;
     }
 
     update(dt: number) {
-        this._uboGlobal.update();
+        this.uboGlobal.update();
 
         for (let i = 0; i < this._models.length; i++) {
             this._models[i].update()
         }
 
         this._dirtyObjects.clear();
-    }
-
-    record(commandBuffer: CommandBuffer) {
-        commandBuffer.begin();
-        for (let cameraIndex = 0; cameraIndex < this._cameras.length; cameraIndex++) {
-            const camera = this._cameras[cameraIndex];
-            commandBuffer.bindDescriptorSet(shaders.builtinGlobalPipelineLayout, shaders.builtinUniforms.global.set, this._globalDescriptorSet,
-                [cameraIndex * shaders.builtinUniforms.global.blocks.Camera.size]);
-            for (const renderPhase of this._renderPhases) {
-                if ((renderPhase.phase & camera.phases) == 0) {
-                    continue;
-                }
-                renderPhase.record(commandBuffer, camera);
-            }
-        }
-        commandBuffer.end();
     }
 
     getRenderPass(clearFlags: ClearFlagBit, samples = SampleCountFlagBits.SAMPLE_COUNT_1): RenderPass {
@@ -180,19 +142,5 @@ export default class RenderScene {
             this._pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;
-    }
-
-    getPipelineLayout(shader: Shader): PipelineLayout {
-        let layout = this._pipelineLayoutCache[shader.info.hash];
-        if (!layout) {
-            layout = gfx.createPipelineLayout();
-            layout.initialize([
-                shaders.builtinDescriptorSetLayouts.global,
-                shaders.builtinDescriptorSetLayouts.local,
-                shaders.getDescriptorSetLayout(shader)
-            ])
-            this._pipelineLayoutCache[shader.info.hash] = layout;
-        }
-        return layout;
     }
 }

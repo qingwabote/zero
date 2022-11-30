@@ -5,7 +5,7 @@ import shaders from "../shaders.js";
 import { RenderNode } from "./RenderNode.js";
 import SubModel from "./SubModel.js";
 
-const float32Array = new Float32Array(shaders.builtinUniforms.local.blocks.Local.size / Float32Array.BYTES_PER_ELEMENT);
+const float32Array = new Float32Array(shaders.sets.local.uniforms.Local.size / Float32Array.BYTES_PER_ELEMENT);
 
 export default class Model {
     private _descriptorSet: DescriptorSet;
@@ -35,7 +35,7 @@ export default class Model {
         if (descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local)) {
             throw new Error("descriptorSet initialize failed");
         }
-        descriptorSet.bindBuffer(shaders.builtinUniforms.local.blocks.Local.binding, this._localBuffer);
+        descriptorSet.bindBuffer(shaders.sets.local.uniforms.Local.binding, this._localBuffer);
         this._descriptorSet = descriptorSet;
 
         this._subModels = subModels;

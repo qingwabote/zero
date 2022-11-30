@@ -7,20 +7,20 @@ import shaders from "../shaders.js";
 import BufferView from "./BufferView.js";
 import BufferViewResizable from "./BufferViewResizable.js";
 
-const GlobalBlock = shaders.builtinUniforms.global.blocks.Global;
-const CameraBlock = shaders.builtinUniforms.global.blocks.Camera;
-const ShadowBlock = shaders.builtinUniforms.global.blocks.Shadow;
+const LightBlock = shaders.sets.global.uniforms.Light;
+const CameraBlock = shaders.sets.global.uniforms.Camera;
+const ShadowBlock = shaders.sets.global.uniforms.Shadow;
 
 export default class UboGlobal {
-    private _globalUbo: BufferView;
+    private _lightUbo: BufferView;
     private _camerasUbo: BufferViewResizable;
 
     private _shadowUbo: BufferView;
 
     constructor(globalDescriptorSet: DescriptorSet) {
-        const globalUbo = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, GlobalBlock.size);
-        globalDescriptorSet.bindBuffer(GlobalBlock.binding, globalUbo.buffer)
-        this._globalUbo = globalUbo;
+        const lightUbo = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
+        globalDescriptorSet.bindBuffer(LightBlock.binding, lightUbo.buffer)
+        this._lightUbo = lightUbo;
 
         this._camerasUbo = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { globalDescriptorSet.bindBuffer(CameraBlock.binding, buffer, CameraBlock.size); });
 
@@ -38,8 +38,8 @@ export default class UboGlobal {
             directionalLight.node.updateTransform();
             const litDir = vec3.transformMat4(vec3.create(), vec3.ZERO, directionalLight.node.matrix);
             vec3.normalize(litDir, litDir);
-            this._globalUbo.set(litDir, 0);
-            this._globalUbo.update();
+            this._lightUbo.set(litDir, 0);
+            this._lightUbo.update();
         }
 
         const cameras = zero.renderScene.cameras;

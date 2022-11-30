@@ -1,8 +1,8 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
 import { Framebuffer } from "../../gfx/Framebuffer.js";
-import { SampleCountFlagBits } from "../../gfx/Pipeline.js";
+import { DescriptorSet, SampleCountFlagBits } from "../../gfx/Pipeline.js";
 import RenderPass, { ImageLayout, LOAD_OP, RenderPassInfo } from "../../gfx/RenderPass.js";
-import Texture, { TextureUsageBit } from "../../gfx/Texture.js";
+import { TextureUsageBit } from "../../gfx/Texture.js";
 import shaders from "../../shaders.js";
 import RenderCamera from "../RenderCamera.js";
 import RenderPhase, { PhaseBit } from "../RenderPhase.js";
@@ -11,16 +11,21 @@ const SHADOWMAP_WIDTH = 1024;
 const SHADOWMAP_HEIGHT = 1024;
 
 export default class ShadowmapPhase extends RenderPhase {
-    private _renderPass: RenderPass;
-    private _framebuffer: Framebuffer;
-
-    private _depthStencilAttachment: Texture;
-    get depthStencilAttachment(): Texture {
-        return this._depthStencilAttachment;
-    }
+    private _renderPass!: RenderPass;
+    private _framebuffer!: Framebuffer;
 
     constructor() {
         super(PhaseBit.SHADOWMAP);
+    }
+
+    getRequestedUniforms(): Record<string, any> {
+        const global = shaders.sets.global;
+        return {
+            Shadow: global.uniforms.Shadow,
+        };
+    }
+
+    initialize(globalDescriptorSet: DescriptorSet) {
         const renderPass = gfx.createRenderPass();
         renderPass.initialize(new RenderPassInfo([], {
             loadOp: LOAD_OP.CLEAR,
@@ -34,7 +39,7 @@ export default class ShadowmapPhase extends RenderPhase {
             usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
-        zero.renderScene.globalDescriptorSet.bindTexture(shaders.builtinUniforms.global.samplers.shadowMap.binding, depthStencilAttachment);
+        globalDescriptorSet.bindTexture(shaders.sets.global.uniforms.shadowMap.binding, depthStencilAttachment);
         const framebuffer = gfx.createFramebuffer();
         framebuffer.initialize({
             colorAttachments: [],
@@ -45,7 +50,6 @@ export default class ShadowmapPhase extends RenderPhase {
         });
         this._framebuffer = framebuffer;
         this._renderPass = renderPass;
-        this._depthStencilAttachment = depthStencilAttachment;
     }
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
@@ -71,8 +75,8 @@ export default class ShadowmapPhase extends RenderPhase {
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
-                    const layout = zero.renderScene.getPipelineLayout(pass.shader);
-                    commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.local.set, model.descriptorSet);
+                    const layout = zero.renderFlow.getPipelineLayout(pass.shader);
+                    commandBuffer.bindDescriptorSet(layout, shaders.sets.local.set, model.descriptorSet);
                     const pipeline = zero.renderScene.getPipeline(pass, inputAssembler.vertexInputState, this._renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();

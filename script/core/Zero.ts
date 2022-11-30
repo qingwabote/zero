@@ -6,6 +6,7 @@ import Semaphore from "./gfx/Semaphore.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
 import Platfrom from "./Platfrom.js";
+import RenderFlow from "./render/RenderFlow.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 
@@ -16,7 +17,7 @@ interface Frame {
     renderFence: Fence;
 }
 
-export default class Zero {
+export default abstract class Zero {
     private _input: Input = new Input;
     get input(): Input {
         return this._input;
@@ -50,14 +51,17 @@ export default class Zero {
         return this._componentScheduler;
     }
 
+    private _renderFlow!: RenderFlow;
+    get renderFlow(): RenderFlow {
+        return this._renderFlow;
+    }
+
     initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
         this._loader = loader;
 
         this._platfrom = platfrom;
 
         this._window = { width, height };
-
-        this._renderScene = new RenderScene();
 
         for (let i = 0; i < 2; i++) {
             const commandBuffer = gfx.createCommandBuffer();
@@ -74,8 +78,14 @@ export default class Zero {
         }
         this._frameIndex = 1;
 
+        this._renderScene = new RenderScene();
+
+        this._renderFlow = this.start();
+
         return false;
     }
+
+    abstract start(): RenderFlow;
 
     tick(dt: number) {
         const current = this._frames[this._frameIndex];
@@ -87,7 +97,9 @@ export default class Zero {
         this._renderScene.update(dt);
 
         const commandBuffer = current.commandBuffer;
-        this._renderScene.record(commandBuffer);
+        commandBuffer.begin();
+        this._renderFlow.record(commandBuffer);
+        commandBuffer.end();
 
         const last = this._frames[this._frameIndex > 0 ? this._frameIndex - 1 : this._frames.length - 1];
         gfx.waitFence(last.renderFence);

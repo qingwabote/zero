@@ -1,6 +1,6 @@
-layout(set = 0, binding = 0) uniform Global {
-    vec3 litDir;
-} global;
+layout(set = 0, binding = 0) uniform Light {
+    vec3 direction;
+} light;
 
 layout(set = 0, binding = 1) uniform Camera {
     mat4 view;
@@ -9,5 +9,6 @@ layout(set = 0, binding = 1) uniform Camera {
 } camera;
 
 #if USE_SHADOW_MAP
+    #include <shadow>
     layout(set = 0, binding = 3) uniform sampler2D shadowMap;
 #endif

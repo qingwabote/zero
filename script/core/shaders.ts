@@ -12,18 +12,20 @@ const FLOAT32_BYTES = 4;
 /**
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
-const builtinUniforms = {
+const sets = {
     global: {
         set: 0,
-        blocks: {
-            Global: {
+        uniforms: {
+            Light: {
+                type: DescriptorType.UNIFORM_BUFFER,
                 binding: 0,
                 uniforms: {
-                    litDir: {}
+                    direction: {}
                 },
                 size: 3 * FLOAT32_BYTES
             },
             Camera: {
+                type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
                 binding: 1,
                 uniforms: {
                     view: {
@@ -37,9 +39,9 @@ const builtinUniforms = {
                     }
                 },
                 size: align((16 + 16 + 4) * FLOAT32_BYTES),
-                dynamic: true
             },
             Shadow: {
+                type: DescriptorType.UNIFORM_BUFFER,
                 binding: 2,
                 uniforms: {
                     view: {
@@ -50,18 +52,18 @@ const builtinUniforms = {
                     }
                 },
                 size: (16 + 16) * FLOAT32_BYTES,
-            }
-        },
-        samplers: {
+            },
             shadowMap: {
+                type: DescriptorType.SAMPLER_TEXTURE,
                 binding: 3,
             }
         }
     },
     local: {
         set: 1,
-        blocks: {
+        uniforms: {
             Local: {
+                type: DescriptorType.UNIFORM_BUFFER,
                 binding: 0,
                 uniforms: {
                     model: {},
@@ -76,28 +78,15 @@ const builtinUniforms = {
     }
 } as const
 
-function buildDescriptorSetLayout(res: {
-    set: number,
-    blocks: Record<string, { binding: number, dynamic?: boolean }>,
-    samplers?: Record<string, { binding: number }>
-}): DescriptorSetLayout {
+function buildDescriptorSetLayout(uniforms: Record<string, { type: DescriptorType, binding: number }>): DescriptorSetLayout {
     const bindings: DescriptorSetLayoutBinding[] = [];
-    for (const name in res.blocks) {
-        const block = res.blocks[name];
+    for (const name in uniforms) {
+        const block = uniforms[name];
         bindings[block.binding] = {
             binding: block.binding,
-            descriptorType: block.dynamic ? DescriptorType.UNIFORM_BUFFER_DYNAMIC : DescriptorType.UNIFORM_BUFFER,
+            descriptorType: block.type,
             descriptorCount: 1,
             stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
-        }
-    }
-    for (const name in res.samplers) {
-        const sampler = res.samplers[name];
-        bindings[sampler.binding] = {
-            binding: sampler.binding,
-            descriptorType: DescriptorType.SAMPLER_TEXTURE,
-            descriptorCount: 1,
-            stageFlags: ShaderStageFlagBits.FRAGMENT
         }
     }
     const descriptorSetLayout = gfx.createDescriptorSetLayout();
@@ -106,12 +95,8 @@ function buildDescriptorSetLayout(res: {
 }
 
 const builtinDescriptorSetLayouts = {
-    global: buildDescriptorSetLayout(builtinUniforms.global),
-    local: buildDescriptorSetLayout(builtinUniforms.local)
+    local: buildDescriptorSetLayout(sets.local.uniforms)
 } as const
-
-const builtinGlobalPipelineLayout = gfx.createPipelineLayout();
-builtinGlobalPipelineLayout.initialize([builtinDescriptorSetLayouts.global]);
 
 const name2source: Record<string, ShaderStage[]> = {};
 const name2macros: Record<string, Set<string>> = {};
@@ -121,11 +106,11 @@ const shaders: Record<string, Shader> = {};
 const shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
 export default {
-    builtinUniforms,
+    sets,
+
+    buildDescriptorSetLayout,
 
     builtinDescriptorSetLayouts,
-
-    builtinGlobalPipelineLayout,
 
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = name2source[name];
@@ -168,11 +153,10 @@ export default {
     getDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
         let descriptorSetLayout = shader2descriptorSetLayout[shader.info.hash];
         if (!descriptorSetLayout) {
-            const global_samplers: Record<string, any> = builtinUniforms.global.samplers;
             const bindings: DescriptorSetLayoutBinding[] = [];
             const samplerTextures = shader.info.meta.samplerTextures;
             for (const name in samplerTextures) {
-                if (global_samplers[name]) {
+                if ((sets.global.uniforms as any)[name]) {
                     continue;
                 }
                 bindings.push({
@@ -190,4 +174,4 @@ export default {
 
         return descriptorSetLayout;
     }
-}
+} as const;

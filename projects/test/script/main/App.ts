@@ -4,16 +4,14 @@ import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
 import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
-import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit, CullMode } from "../../../../script/core/gfx/Pipeline.js";
-import Loader from "../../../../script/core/Loader.js";
 import quat from "../../../../script/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
-import Platfrom from "../../../../script/core/Platfrom.js";
 import Material from "../../../../script/core/render/Material.js";
 import Pass from "../../../../script/core/render/Pass.js";
 import ShadowmapPhase from "../../../../script/core/render/phases/ShadowmapPhase.js";
+import RenderFlow from "../../../../script/core/render/RenderFlow.js";
 import RenderPhase, { PhaseBit } from "../../../../script/core/render/RenderPhase.js";
 import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
 import shaders from "../../../../script/core/shaders.js";
@@ -23,10 +21,8 @@ import ZeroComponent from "./ZeroComponent.js";
 const PhaseLightView = 1 << 10;
 
 export default class App extends Zero {
-    initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
-        if (super.initialize(loader, platfrom, width, height)) {
-            return true;
-        }
+    start(): RenderFlow {
+        const { width, height } = this.window;
 
         const lit_position: Vec3 = [4, 4, 4];
 
@@ -44,12 +40,6 @@ export default class App extends Zero {
         lit_camera.viewport = { x: 0, y: 0, width, height: height * 0.5 };
         node.position = lit_position;
         node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
-
-        let shadowmapPhase: ShadowmapPhase;
-        shadowmapPhase = new ShadowmapPhase();
-        this.renderScene.renderPhases.push(shadowmapPhase);
-        this.renderScene.renderPhases.push(new RenderPhase(PhaseBit.DEFAULT));
-        this.renderScene.renderPhases.push(new RenderPhase(PhaseLightView));
 
         node = new Node;
         const cameraA = node.addComponent(Camera);
@@ -82,17 +72,17 @@ export default class App extends Zero {
             node.position = [-width / 2, height / 2, 0];
             node.visibility = VisibilityBit.UI;
 
-            if (shadowmapPhase) {
-                const shader = await shaders.getShader('depth');
-                node = new Node;
-                node.position = [width / 2 - 200, -height / 2 + 200, 0];
-                node.visibility = VisibilityBit.UI;
-                const sprite = node.addComponent(Sprite);
-                sprite.shader = shader;
-                sprite.width = 200;
-                sprite.height = 200;
-                sprite.texture = shadowmapPhase.depthStencilAttachment;
-            }
+            // if (shadowmapPhase) {
+            //     const shader = await shaders.getShader('depth');
+            //     node = new Node;
+            //     node.position = [width / 2 - 200, -height / 2 + 200, 0];
+            //     node.visibility = VisibilityBit.UI;
+            //     const sprite = node.addComponent(Sprite);
+            //     sprite.shader = shader;
+            //     sprite.width = 200;
+            //     sprite.height = 200;
+            //     sprite.texture = shadowmapPhase.depthStencilAttachment;
+            // }
         })();
 
         (async () => {
@@ -146,7 +136,7 @@ export default class App extends Zero {
             node.scale = [4, 4, 4];
         })();
 
-        return false;
+        return new RenderFlow([new ShadowmapPhase(), new RenderPhase(PhaseBit.DEFAULT), new RenderPhase(PhaseLightView)])
     }
 }
 

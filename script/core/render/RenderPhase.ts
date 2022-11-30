@@ -1,4 +1,5 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
+import { DescriptorSet } from "../gfx/Pipeline.js";
 import shaders from "../shaders.js";
 import RenderCamera from "./RenderCamera.js";
 
@@ -17,6 +18,17 @@ export default class RenderPhase {
     constructor(phase: PhaseBit) {
         this._phase = phase;
     }
+
+    getRequestedUniforms(): Record<string, any> {
+        const global = shaders.sets.global;
+        return {
+            Light: global.uniforms.Light,
+            Camera: global.uniforms.Camera,
+            shadowMap: global.uniforms.shadowMap
+        } as const;
+    }
+
+    initialize(globalDescriptorSet: DescriptorSet) { }
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
         const models = zero.renderScene.models;
@@ -38,9 +50,9 @@ export default class RenderPhase {
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
-                    const layout = zero.renderScene.getPipelineLayout(pass.shader);
-                    commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.local.set, model.descriptorSet);
-                    commandBuffer.bindDescriptorSet(layout, shaders.builtinUniforms.material.set, pass.descriptorSet);
+                    const layout = zero.renderFlow.getPipelineLayout(pass.shader);
+                    commandBuffer.bindDescriptorSet(layout, shaders.sets.local.set, model.descriptorSet);
+                    commandBuffer.bindDescriptorSet(layout, shaders.sets.material.set, pass.descriptorSet);
                     const pipeline = zero.renderScene.getPipeline(pass, inputAssembler.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
