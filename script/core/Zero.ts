@@ -5,8 +5,8 @@ import { PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input from "./Input.js";
 import Loader from "./Loader.js";
+import RenderFlow from "./pipeline/RenderFlow.js";
 import Platfrom from "./Platfrom.js";
-import RenderFlow from "./render/RenderFlow.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 
@@ -95,6 +95,10 @@ export default abstract class Zero {
         this._componentScheduler.update(dt)
 
         this._renderScene.update(dt);
+
+        this._renderFlow.update();
+
+        this._renderScene.dirtyObjects.clear();
 
         const commandBuffer = current.commandBuffer;
         commandBuffer.begin();

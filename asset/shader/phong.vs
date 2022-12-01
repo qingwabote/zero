@@ -8,7 +8,9 @@ layout(location = 2) in vec3 a_normal;
 layout(location = 0) out vec2 v_uv;
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) out vec3 v_position;
-layout(location = 3) out vec4 v_shadow_position;
+#if USE_SHADOW_MAP
+    layout(location = 3) out vec4 v_shadow_position;
+#endif
 
 void main() {
     v_uv = a_texCoord;
@@ -17,7 +19,8 @@ void main() {
     vec4 pos = vec4(a_position, 1);
     vec4 posWorld = local.model * pos;
     v_position = posWorld.xyz;
-    v_shadow_position = shadow.projection * shadow.view * posWorld;
-
+    #if USE_SHADOW_MAP
+        v_shadow_position = shadow.projection * shadow.view * posWorld;
+    #endif
     gl_Position = camera.projection * camera.view * posWorld;
 }

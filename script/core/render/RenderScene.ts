@@ -7,7 +7,6 @@ import Pass from "./Pass.js";
 import RenderCamera from "./RenderCamera.js";
 import RenderDirectionalLight from "./RenderDirectionalLight.js";
 import { RenderNode } from "./RenderNode.js";
-import UboGlobal from "./UboGlobal.js";
 
 type RenderObject = RenderNode | RenderCamera | RenderDirectionalLight;
 
@@ -31,8 +30,6 @@ export default class RenderScene {
         return this._models;
     }
 
-    uboGlobal!: UboGlobal;
-
     private _dirtyObjects: Map<RenderObject, RenderObject> = new Map;
     get dirtyObjects(): Map<RenderObject, RenderObject> {
         return this._dirtyObjects;
@@ -48,7 +45,7 @@ export default class RenderScene {
     }
 
     constructor() {
-        let samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_4 as number;
+        let samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1 as number;
 
         const colorAttachments: Texture[] = [];
         const resolveAttachments: Texture[] = [];
@@ -83,13 +80,9 @@ export default class RenderScene {
     }
 
     update(dt: number) {
-        this.uboGlobal.update();
-
         for (let i = 0; i < this._models.length; i++) {
             this._models[i].update()
         }
-
-        this._dirtyObjects.clear();
     }
 
     getRenderPass(clearFlags: ClearFlagBit, samples = SampleCountFlagBits.SAMPLE_COUNT_1): RenderPass {

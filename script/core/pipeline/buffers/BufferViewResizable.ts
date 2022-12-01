@@ -1,4 +1,4 @@
-import Buffer, { BufferUsageFlagBits } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits } from "../../gfx/Buffer.js";
 import BufferView, { TypedArray, TypedArrayFormat } from "./BufferView.js";
 
 const noop = function () { };

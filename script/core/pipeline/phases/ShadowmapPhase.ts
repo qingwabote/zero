@@ -3,8 +3,8 @@ import { Framebuffer } from "../../gfx/Framebuffer.js";
 import { DescriptorSet, SampleCountFlagBits } from "../../gfx/Pipeline.js";
 import RenderPass, { ImageLayout, LOAD_OP, RenderPassInfo } from "../../gfx/RenderPass.js";
 import { TextureUsageBit } from "../../gfx/Texture.js";
+import RenderCamera from "../../render/RenderCamera.js";
 import shaders from "../../shaders.js";
-import RenderCamera from "../RenderCamera.js";
 import RenderPhase, { PhaseBit } from "../RenderPhase.js";
 
 const SHADOWMAP_WIDTH = 1024;
@@ -14,14 +14,11 @@ export default class ShadowmapPhase extends RenderPhase {
     private _renderPass!: RenderPass;
     private _framebuffer!: Framebuffer;
 
-    constructor() {
-        super(PhaseBit.SHADOWMAP);
-    }
-
     getRequestedUniforms(): Record<string, any> {
         const global = shaders.sets.global;
         return {
             Shadow: global.uniforms.Shadow,
+            shadowMap: global.uniforms.shadowMap
         };
     }
 
@@ -70,7 +67,7 @@ export default class ShadowmapPhase extends RenderPhase {
                 }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
-                    if (pass.phase != this._phase) {
+                    if (pass.phase != PhaseBit.SHADOWMAP) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];

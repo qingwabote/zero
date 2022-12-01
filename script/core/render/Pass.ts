@@ -1,6 +1,6 @@
 import { CullMode, DescriptorSet, RasterizationState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
-import { PhaseBit } from "./RenderPhase.js";
+import { PhaseBit } from "../pipeline/RenderPhase.js";
 
 export default class Pass {
     private _descriptorSet: DescriptorSet;

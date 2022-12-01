@@ -5,7 +5,7 @@ import Component from "../Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { FormatInfos, IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
-import BufferViewResizable from "../render/BufferViewResizable.js";
+import BufferViewResizable from "../pipeline/buffers/BufferViewResizable.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
 import SubModel from "../render/SubModel.js";

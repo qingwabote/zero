@@ -1,4 +1,4 @@
-import Buffer, { BufferUsageFlagBits, EmptyBuffer, MemoryUsage } from "../gfx/Buffer.js";
+import Buffer, { BufferUsageFlagBits, EmptyBuffer, MemoryUsage } from "../../gfx/Buffer.js";
 
 const emptyArray = new Float32Array(0);
 const emptyBuffer = new EmptyBuffer;

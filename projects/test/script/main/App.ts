@@ -4,21 +4,23 @@ import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
 import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
-import { ClearFlagBit, CullMode } from "../../../../script/core/gfx/Pipeline.js";
-import quat from "../../../../script/core/math/quat.js";
-import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
+import { CullMode } from "../../../../script/core/gfx/Pipeline.js";
+import { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
+import ForwardPhase from "../../../../script/core/pipeline/phases/ForwardPhase.js";
+import RenderFlow from "../../../../script/core/pipeline/RenderFlow.js";
+import { PhaseBit } from "../../../../script/core/pipeline/RenderPhase.js";
 import Material from "../../../../script/core/render/Material.js";
 import Pass from "../../../../script/core/render/Pass.js";
-import ShadowmapPhase from "../../../../script/core/render/phases/ShadowmapPhase.js";
-import RenderFlow from "../../../../script/core/render/RenderFlow.js";
-import RenderPhase, { PhaseBit } from "../../../../script/core/render/RenderPhase.js";
 import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
 import shaders from "../../../../script/core/shaders.js";
 import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 const PhaseLightView = 1 << 10;
+
+const Visibility_Up = 1 << 9;
+const Visibility_Down = 1 << 10;
 
 export default class App extends Zero {
     start(): RenderFlow {
@@ -31,19 +33,20 @@ export default class App extends Zero {
         node = new Node;
         node.addComponent(DirectionalLight);
         node.position = lit_position;
+        node.visibility = Visibility_Up;
 
-        node = new Node;
-        const lit_camera = node.addComponent(Camera);
-        lit_camera.phases = PhaseBit.SHADOWMAP | PhaseLightView;
-        lit_camera.orthoHeight = 4;
-        lit_camera.far = 10
-        lit_camera.viewport = { x: 0, y: 0, width, height: height * 0.5 };
-        node.position = lit_position;
-        node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
+        // node = new Node;
+        // const lit_camera = node.addComponent(Camera);
+        // lit_camera.visibilities = VisibilityBit.DEFAULT;
+        // lit_camera.orthoHeight = 4;
+        // lit_camera.far = 10
+        // lit_camera.viewport = { x: 0, y: 0, width, height: height * 0.5 };
+        // node.position = lit_position;
+        // node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
 
         node = new Node;
         const cameraA = node.addComponent(Camera);
-        cameraA.phases = PhaseBit.SHADOWMAP | PhaseBit.DEFAULT;
+        cameraA.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
         cameraA.fov = 45;
         // cameraA.orthoHeight = 4;
         // cameraA.far = 20
@@ -52,14 +55,13 @@ export default class App extends Zero {
         // node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), node.position)));
 
         // UI
-        node = new Node;
-        const camera = node.addComponent(Camera);
-        camera.phases = PhaseBit.DEFAULT;
-        camera.visibilities = VisibilityBit.UI;
-        camera.clearFlags = ClearFlagBit.DEPTH;
-        camera.orthoHeight = height / 2;
-        camera.viewport = { x: 0, y: 0, width, height };
-        node.position = [0, 0, 1];
+        // node = new Node;
+        // const camera = node.addComponent(Camera);
+        // camera.visibilities = VisibilityBit.UI;
+        // camera.clearFlags = ClearFlagBit.DEPTH;
+        // camera.orthoHeight = height / 2;
+        // camera.viewport = { x: 0, y: 0, width, height };
+        // node.position = [0, 0, 1];
         (async () => {
             const zero = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
             const fnt = new FNT;
@@ -100,7 +102,7 @@ export default class App extends Zero {
                     const phongShader = await shaders.getShader('phong', {
                         USE_BLINN_PHONG: 1,
                         USE_ALBEDO_MAP,
-                        USE_SHADOW_MAP: 1,
+                        USE_SHADOW_MAP: 0,
                         CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
                     })
                     const phoneDescriptorSet = gfx.createDescriptorSet();
@@ -136,7 +138,7 @@ export default class App extends Zero {
             node.scale = [4, 4, 4];
         })();
 
-        return new RenderFlow([new ShadowmapPhase(), new RenderPhase(PhaseBit.DEFAULT), new RenderPhase(PhaseLightView)])
+        return new RenderFlow([new ForwardPhase(PhaseBit.DEFAULT, VisibilityBit.UI | Visibility_Up), new ForwardPhase(PhaseLightView, Visibility_Down)])
     }
 }
 

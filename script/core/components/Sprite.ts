@@ -3,7 +3,7 @@ import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { FormatInfos, IndexType, InputAssembler, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import Texture from "../gfx/Texture.js";
-import BufferView from "../render/BufferView.js";
+import BufferView from "../pipeline/buffers/BufferView.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
 import SubModel from "../render/SubModel.js";

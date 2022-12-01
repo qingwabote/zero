@@ -1,21 +1,16 @@
-import CommandBuffer from "../gfx/CommandBuffer.js";
-import { DescriptorSet } from "../gfx/Pipeline.js";
-import shaders from "../shaders.js";
-import RenderCamera from "./RenderCamera.js";
+import CommandBuffer from "../../gfx/CommandBuffer.js";
+import { DescriptorSet } from "../../gfx/Pipeline.js";
+import RenderCamera from "../../render/RenderCamera.js";
+import VisibilityBit from "../../render/VisibilityBit.js";
+import shaders from "../../shaders.js";
+import RenderPhase, { PhaseBit } from "../RenderPhase.js";
 
-export enum PhaseBit {
-    DEFAULT = 1 << 1,
-    SHADOWMAP = 1 << 2,
-}
-
-export default class RenderPhase {
+export default class ForwardPhase extends RenderPhase {
 
     protected _phase: PhaseBit;
-    get phase(): PhaseBit {
-        return this._phase;
-    }
 
-    constructor(phase: PhaseBit) {
+    constructor(phase: PhaseBit, visibility: VisibilityBit = VisibilityBit.ALL) {
+        super(visibility);
         this._phase = phase;
     }
 
@@ -23,8 +18,7 @@ export default class RenderPhase {
         const global = shaders.sets.global;
         return {
             Light: global.uniforms.Light,
-            Camera: global.uniforms.Camera,
-            shadowMap: global.uniforms.shadowMap
+            Camera: global.uniforms.Camera
         } as const;
     }
 
