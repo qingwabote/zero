@@ -240,8 +240,8 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
                 gl.blitFramebuffer(
-                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.height,
-                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.height,
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
                     gl.COLOR_BUFFER_BIT, gl.LINEAR);
             }
         }

@@ -1,15 +1,16 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
 import { DescriptorSet } from "../../gfx/Pipeline.js";
+import PassPhase from "../../render/PassPhase.js";
 import RenderCamera from "../../render/RenderCamera.js";
 import VisibilityBit from "../../render/VisibilityBit.js";
 import shaders from "../../shaders.js";
-import RenderPhase, { PhaseBit } from "../RenderPhase.js";
+import RenderPhase from "../RenderPhase.js";
 
 export default class ForwardPhase extends RenderPhase {
 
-    protected _phase: PhaseBit;
+    protected _phase: PassPhase;
 
-    constructor(phase: PhaseBit, visibility: VisibilityBit = VisibilityBit.ALL) {
+    constructor(phase: PassPhase = PassPhase.DEFAULT, visibility: VisibilityBit = VisibilityBit.ALL) {
         super(visibility);
         this._phase = phase;
     }
@@ -26,8 +27,8 @@ export default class ForwardPhase extends RenderPhase {
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
         const models = zero.renderScene.models;
-        const framebuffer = zero.renderScene.framebuffer;
-        const renderPass = zero.renderScene.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
+        const framebuffer = zero.renderFlow.framebuffer;
+        const renderPass = zero.renderFlow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
         commandBuffer.beginRenderPass(renderPass, framebuffer, camera.viewport);
         for (const model of models) {
             if ((camera.visibilities & model.node.visibility) == 0) {
@@ -47,7 +48,7 @@ export default class ForwardPhase extends RenderPhase {
                     const layout = zero.renderFlow.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, shaders.sets.local.set, model.descriptorSet);
                     commandBuffer.bindDescriptorSet(layout, shaders.sets.material.set, pass.descriptorSet);
-                    const pipeline = zero.renderScene.getPipeline(pass, inputAssembler.vertexInputState, renderPass, layout);
+                    const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
                 }

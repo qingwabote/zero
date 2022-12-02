@@ -1,6 +1,6 @@
 import { CullMode, DescriptorSet, RasterizationState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
-import { PhaseBit } from "../pipeline/RenderPhase.js";
+import PassPhase from "./PassPhase.js";
 
 export default class Pass {
     private _descriptorSet: DescriptorSet;
@@ -18,8 +18,8 @@ export default class Pass {
         return this._rasterizationState;
     }
 
-    private _phase: PhaseBit;
-    get phase(): PhaseBit {
+    private _phase: PassPhase;
+    get phase(): PassPhase {
         return this._phase;
     }
 
@@ -28,7 +28,7 @@ export default class Pass {
         return this._hash;
     }
 
-    constructor(descriptorSet: DescriptorSet, shader: Shader, rasterizationState: RasterizationState = { cullMode: CullMode.BACK, hash: CullMode.BACK.toString() }, phase: PhaseBit = PhaseBit.DEFAULT) {
+    constructor(descriptorSet: DescriptorSet, shader: Shader, rasterizationState: RasterizationState = { cullMode: CullMode.BACK, hash: CullMode.BACK.toString() }, phase: PassPhase = PassPhase.DEFAULT) {
         this._descriptorSet = descriptorSet;
 
         this._hash = shader.info.hash + rasterizationState.hash;

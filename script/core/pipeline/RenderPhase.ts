@@ -3,11 +3,6 @@ import { DescriptorSet } from "../gfx/Pipeline.js";
 import RenderCamera from "../render/RenderCamera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 
-export enum PhaseBit {
-    DEFAULT = 1 << 1,
-    SHADOWMAP = 1 << 2,
-}
-
 export default abstract class RenderPhase {
     private _visibility: VisibilityBit;
     get visibility(): VisibilityBit {

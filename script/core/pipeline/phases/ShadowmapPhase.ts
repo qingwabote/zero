@@ -3,9 +3,10 @@ import { Framebuffer } from "../../gfx/Framebuffer.js";
 import { DescriptorSet, SampleCountFlagBits } from "../../gfx/Pipeline.js";
 import RenderPass, { ImageLayout, LOAD_OP, RenderPassInfo } from "../../gfx/RenderPass.js";
 import { TextureUsageBit } from "../../gfx/Texture.js";
+import PassPhase from "../../render/PassPhase.js";
 import RenderCamera from "../../render/RenderCamera.js";
 import shaders from "../../shaders.js";
-import RenderPhase, { PhaseBit } from "../RenderPhase.js";
+import RenderPhase from "../RenderPhase.js";
 
 const SHADOWMAP_WIDTH = 1024;
 const SHADOWMAP_HEIGHT = 1024;
@@ -67,14 +68,14 @@ export default class ShadowmapPhase extends RenderPhase {
                 }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
-                    if (pass.phase != PhaseBit.SHADOWMAP) {
+                    if (pass.phase != PassPhase.SHADOWMAP) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = zero.renderFlow.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, shaders.sets.local.set, model.descriptorSet);
-                    const pipeline = zero.renderScene.getPipeline(pass, inputAssembler.vertexInputState, this._renderPass, layout);
+                    const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.vertexInputState, this._renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
                 }
