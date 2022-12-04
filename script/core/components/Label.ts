@@ -2,6 +2,7 @@
 
 import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
+import defaults from "../defaults.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { FormatInfos, IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
@@ -93,7 +94,7 @@ export default class Label extends Component {
 
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));
-        descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture);
+        descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, defaults.sampler);
         const pass = new Pass(descriptorSet, this._shader);
         const subModel: SubModel = { inputAssemblers: [], passes: [pass] };
         const model = new Model([subModel], this._node);

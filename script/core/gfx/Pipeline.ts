@@ -1,7 +1,7 @@
 import Buffer from "./Buffer.js";
+import DescriptorSetLayout from "./DescriptorSetLayout.js";
 import RenderPass from "./RenderPass.js";
-import Shader, { ShaderStageFlagBits } from "./Shader.js";
-import Texture from "./Texture.js";
+import Shader from "./Shader.js";
 
 // copy values from VkFormat in vulkan_core.h
 export enum Format {
@@ -92,35 +92,6 @@ export interface InputAssembler {
     vertexInputState: VertexInputState;
     vertexInput: VertexInput;
 }
-
-// copy values from VkDescriptorType in vulkan_core.h
-export enum DescriptorType {
-    SAMPLER_TEXTURE = 1,
-    UNIFORM_BUFFER = 6,
-    UNIFORM_BUFFER_DYNAMIC = 8,
-}
-
-export interface DescriptorSetLayoutBinding {
-    readonly binding: number;
-    readonly descriptorType: DescriptorType;
-    readonly descriptorCount: number;
-    readonly stageFlags: ShaderStageFlagBits;
-}
-
-export interface DescriptorSetLayout {
-    get bindings(): readonly DescriptorSetLayoutBinding[];
-    initialize(bindings: DescriptorSetLayoutBinding[]): boolean;
-}
-
-export interface DescriptorSet {
-    get layout(): DescriptorSetLayout;
-    initialize(layout: DescriptorSetLayout): boolean;
-    getBuffer(binding: number): Buffer;
-    bindBuffer(binding: number, buffer: Buffer, range?: number): void;
-    getTexture(binding: number): Texture;
-    bindTexture(binding: number, texture: Texture): void;
-}
-
 
 export interface PipelineLayout {
     initialize(setLayouts: DescriptorSetLayout[]): boolean;

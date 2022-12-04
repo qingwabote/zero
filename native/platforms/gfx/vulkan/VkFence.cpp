@@ -20,7 +20,7 @@ namespace binding
             {
                 fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
             }
-            auto res = vkCreateFence(_impl->_device->device(), &fenceCreateInfo, nullptr, &_impl->_fence);
+            auto res = vkCreateFence(*_impl->_device, &fenceCreateInfo, nullptr, &_impl->_fence);
             if (res)
             {
                 return true;
@@ -30,7 +30,7 @@ namespace binding
 
         Fence::~Fence()
         {
-            vkDestroyFence(_impl->_device->device(), _impl->_fence, nullptr);
+            vkDestroyFence(*_impl->_device, _impl->_fence, nullptr);
         }
     }
 }

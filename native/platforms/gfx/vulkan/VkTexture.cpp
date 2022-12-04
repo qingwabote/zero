@@ -60,7 +60,7 @@ namespace binding
             imageViewInfo.subresourceRange.baseArrayLayer = 0;
             imageViewInfo.subresourceRange.layerCount = 1;
             imageViewInfo.subresourceRange.aspectMask = aspectMask;
-            err = vkCreateImageView(_impl->_device->device(), &imageViewInfo, nullptr, &_impl->_imageView);
+            err = vkCreateImageView(*_impl->_device, &imageViewInfo, nullptr, &_impl->_imageView);
             if (err)
             {
                 return true;
@@ -71,7 +71,7 @@ namespace binding
 
         Texture::~Texture()
         {
-            VkDevice device = _impl->_device->device();
+            VkDevice device = *_impl->_device;
             VkImageView imageView = _impl->_imageView;
 
             VmaAllocator allocator = _impl->_device->allocator();

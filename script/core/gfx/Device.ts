@@ -1,9 +1,12 @@
 import Buffer from "./Buffer.js";
 import CommandBuffer from "./CommandBuffer.js";
+import DescriptorSet from "./DescriptorSet.js";
+import DescriptorSetLayout from "./DescriptorSetLayout.js";
 import Fence from "./Fence.js";
 import { Framebuffer } from "./Framebuffer.js";
-import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "./Pipeline.js";
+import Pipeline, { PipelineLayout } from "./Pipeline.js";
 import RenderPass from "./RenderPass.js";
+import { Sampler } from "./Sampler.js";
 import Semaphore from "./Semaphore.js";
 import Shader from "./Shader.js";
 import { SubmitInfo } from "./SubmitInfo.js";
@@ -23,8 +26,6 @@ export default interface Device {
 
     get swapchain(): Swapchain;
 
-    initialize(): boolean;
-
     createDescriptorSetLayout(): DescriptorSetLayout;
 
     createDescriptorSet(): DescriptorSet;
@@ -38,6 +39,8 @@ export default interface Device {
     createBuffer(): Buffer;
 
     createTexture(): Texture;
+
+    createSampler(): Sampler;
 
     createFramebuffer(): Framebuffer;
 

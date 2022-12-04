@@ -1,5 +1,5 @@
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
-import { DescriptorSet } from "../gfx/Pipeline.js";
+import DescriptorSet from "../gfx/DescriptorSet.js";
 import mat4 from "../math/mat4.js";
 import shaders from "../shaders.js";
 import { RenderNode } from "./RenderNode.js";

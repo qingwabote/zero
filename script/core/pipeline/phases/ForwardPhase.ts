@@ -1,5 +1,5 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
-import { DescriptorSet } from "../../gfx/Pipeline.js";
+import DescriptorSet from "../../gfx/DescriptorSet.js";
 import PassPhase from "../../render/PassPhase.js";
 import RenderCamera from "../../render/RenderCamera.js";
 import VisibilityBit from "../../render/VisibilityBit.js";

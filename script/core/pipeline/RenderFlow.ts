@@ -1,6 +1,8 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
+import DescriptorSet from "../gfx/DescriptorSet.js";
+import DescriptorSetLayout from "../gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
-import Pipeline, { ClearFlagBit, DescriptorSet, DescriptorSetLayout, PipelineLayout, SampleCountFlagBits, VertexInputState } from "../gfx/Pipeline.js";
+import Pipeline, { ClearFlagBit, PipelineLayout, SampleCountFlagBits, VertexInputState } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo } from "../gfx/RenderPass.js";
 import Shader from "../gfx/Shader.js";
 import Texture, { TextureUsageBit } from "../gfx/Texture.js";
@@ -82,7 +84,7 @@ export default class RenderFlow {
             const colorAttachment = gfx.createTexture();
             colorAttachment.initialize({
                 samples,
-                usage: TextureUsageBit.COLOR_ATTACHMENT,
+                usage: TextureUsageBit.COLOR_ATTACHMENT | TextureUsageBit.TRANSIENT_ATTACHMENT,
                 width: zero.window.width, height: zero.window.height
             })
             colorAttachments.push(colorAttachment);

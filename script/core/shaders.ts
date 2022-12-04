@@ -1,4 +1,4 @@
-import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType } from "./gfx/Pipeline.js";
+import DescriptorSetLayout, { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/DescriptorSetLayout.js";
 import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
 

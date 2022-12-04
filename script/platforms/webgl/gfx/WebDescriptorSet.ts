@@ -1,5 +1,7 @@
 import Buffer from "../../../core/gfx/Buffer.js";
-import { DescriptorSet, DescriptorSetLayout } from "../../../core/gfx/Pipeline.js";
+import DescriptorSet from "../../../core/gfx/DescriptorSet.js";
+import DescriptorSetLayout from "../../../core/gfx/DescriptorSetLayout.js";
+import { Sampler } from "../../../core/gfx/Sampler.js";
 import Texture from "../../../core/gfx/Texture.js";
 
 export default class WebDescriptorSet implements DescriptorSet {
@@ -9,10 +11,10 @@ export default class WebDescriptorSet implements DescriptorSet {
     }
 
     private _buffers: Buffer[] = [];
-
     private _bufferRanges: number[] = [];
 
     private _textures: Texture[] = [];
+    private _textureSamplers: Sampler[] = [];
 
     initialize(layout: DescriptorSetLayout): boolean {
         this._layout = layout;
@@ -36,7 +38,12 @@ export default class WebDescriptorSet implements DescriptorSet {
         return this._textures[binding];
     }
 
-    bindTexture(binding: number, texture: Texture): void {
+    getSampler(binding: number): Sampler {
+        return this._textureSamplers[binding];
+    }
+
+    bindTexture(binding: number, texture: Texture, sampler: Sampler): void {
         this._textures[binding] = texture;
+        this._textureSamplers[binding] = sampler;
     }
 }

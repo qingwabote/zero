@@ -13,6 +13,7 @@ set(SRC_FILES
     bindings/gfx/CommandBuffer.cpp
     bindings/gfx/Buffer.cpp
     bindings/gfx/Texture.cpp
+    bindings/gfx/Sampler.cpp
     bindings/gfx/Shader.cpp
     bindings/gfx/RenderPass.cpp
     bindings/gfx/Framebuffer.cpp

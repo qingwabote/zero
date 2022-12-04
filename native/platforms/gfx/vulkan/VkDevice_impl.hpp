@@ -39,14 +39,10 @@ namespace binding
 
             VkQueue _graphicsQueue = nullptr;
 
-            VkSampler _defaultSampler = nullptr;
-
             uint32_t _swapchainImageIndex = 0;
 
         public:
             uint32_t version() { return _version; }
-
-            VkDevice device() { return _vkb_device.device; }
 
             VkCommandPool commandPool() { return _commandPool; }
 
@@ -61,8 +57,6 @@ namespace binding
             VkExtent2D &swapchainImageExtent() { return _vkb_swapchain.extent; }
 
             uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
-
-            VkSampler defaultSampler() { return _defaultSampler; }
 
             operator VkDevice() { return _vkb_device.device; }
 

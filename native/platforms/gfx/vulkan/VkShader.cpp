@@ -212,7 +212,7 @@ namespace binding
                 moduleCreateInfo.codeSize = spirv.size() * sizeof(uint32_t);
                 moduleCreateInfo.pCode = spirv.data();
                 VkShaderModule shaderModule;
-                if (vkCreateShaderModule(_impl->_device->device(), &moduleCreateInfo, nullptr, &shaderModule))
+                if (vkCreateShaderModule(*_impl->_device, &moduleCreateInfo, nullptr, &shaderModule))
                 {
                     return true;
                 }
@@ -234,7 +234,7 @@ namespace binding
         {
             for (size_t i = 0; i < _impl->_stageInfos.size(); i++)
             {
-                vkDestroyShaderModule(_impl->_device->device(), _impl->_stageInfos[i].module, nullptr);
+                vkDestroyShaderModule(*_impl->_device, _impl->_stageInfos[i].module, nullptr);
             }
         }
     }

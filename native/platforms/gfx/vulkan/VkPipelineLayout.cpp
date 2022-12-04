@@ -31,7 +31,7 @@ namespace binding
             VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
             pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
             pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
-            if (vkCreatePipelineLayout(_impl->_device->device(), &pipelineLayoutCreateInfo, nullptr, &_impl->_layout))
+            if (vkCreatePipelineLayout(*_impl->_device, &pipelineLayoutCreateInfo, nullptr, &_impl->_layout))
             {
                 return true;
             }
@@ -41,7 +41,7 @@ namespace binding
 
         PipelineLayout::~PipelineLayout()
         {
-            VkDevice device = _impl->_device->device();
+            VkDevice device = *_impl->_device;
             VkPipelineLayout layout = _impl->_layout;
             vkDestroyPipelineLayout(device, layout, nullptr);
         }

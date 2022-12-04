@@ -132,7 +132,7 @@ namespace binding
             pipelineInfo.renderPass = c_renderPass->impl();
             pipelineInfo.subpass = 0;
 
-            if (vkCreateGraphicsPipelines(_impl->_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))
+            if (vkCreateGraphicsPipelines(*_impl->_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))
             {
                 return true;
             }
@@ -142,7 +142,7 @@ namespace binding
 
         Pipeline::~Pipeline()
         {
-            VkDevice device = _impl->_device->device();
+            VkDevice device = *_impl->_device;
             VkPipeline pipeline = _impl->_pipeline;
             vkDestroyPipeline(device, pipeline, nullptr);
         }

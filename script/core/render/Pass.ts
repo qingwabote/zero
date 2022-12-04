@@ -1,4 +1,5 @@
-import { CullMode, DescriptorSet, RasterizationState } from "../gfx/Pipeline.js";
+import DescriptorSet from "../gfx/DescriptorSet.js";
+import { CullMode, RasterizationState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import PassPhase from "./PassPhase.js";
 

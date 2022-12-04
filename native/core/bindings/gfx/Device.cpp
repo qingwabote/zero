@@ -51,6 +51,14 @@ namespace binding
                 });
 
             cls.defineFunction(
+                "createSampler",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<Device>(info.This());
+                    info.GetReturnValue().Set(c_obj->createSampler()->js_obj());
+                });
+
+            cls.defineFunction(
                 "createShader",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {

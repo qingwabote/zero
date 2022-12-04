@@ -56,7 +56,7 @@ namespace binding
             cmdAllocInfo.commandBufferCount = 1;
             cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-            vkAllocateCommandBuffers(_impl->_device->device(), &cmdAllocInfo, &_impl->_commandBuffer);
+            vkAllocateCommandBuffers(*_impl->_device, &cmdAllocInfo, &_impl->_commandBuffer);
 
             return false;
         }

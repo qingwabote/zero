@@ -16,7 +16,7 @@ namespace binding
         {
             VkSemaphoreCreateInfo semaphoreCreateInfo = {};
             semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            auto res = vkCreateSemaphore(_impl->_device->device(), &semaphoreCreateInfo, nullptr, &_impl->_semaphore);
+            auto res = vkCreateSemaphore(*_impl->_device, &semaphoreCreateInfo, nullptr, &_impl->_semaphore);
             if (res)
             {
                 return true;
@@ -26,7 +26,7 @@ namespace binding
 
         Semaphore::~Semaphore()
         {
-            vkDestroySemaphore(_impl->_device->device(), _impl->_semaphore, nullptr);
+            vkDestroySemaphore(*_impl->_device, _impl->_semaphore, nullptr);
         }
     }
 }

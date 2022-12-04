@@ -1,5 +1,5 @@
 import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
-import { DescriptorSet } from "../../gfx/Pipeline.js";
+import DescriptorSet from "../../gfx/DescriptorSet.js";
 import mat4 from "../../math/mat4.js";
 import quat from "../../math/quat.js";
 import vec3 from "../../math/vec3.js";

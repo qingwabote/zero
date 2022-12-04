@@ -145,13 +145,13 @@ namespace binding
 
             renderPassInfo.pDependencies = dependencies.data();
             renderPassInfo.dependencyCount = dependencies.size();
-            vkCreateRenderPass(_impl->_device->device(), &renderPassInfo, nullptr, &_impl->_renderPass);
+            vkCreateRenderPass(*_impl->_device, &renderPassInfo, nullptr, &_impl->_renderPass);
             return false;
         }
 
         RenderPass::~RenderPass()
         {
-            vkDestroyRenderPass(_impl->_device->device(), _impl->_renderPass, nullptr);
+            vkDestroyRenderPass(*_impl->_device, _impl->_renderPass, nullptr);
         }
     }
 }

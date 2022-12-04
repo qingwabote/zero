@@ -1,10 +1,13 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
+import DescriptorSet from "../../../core/gfx/DescriptorSet.js";
+import DescriptorSetLayout from "../../../core/gfx/DescriptorSetLayout.js";
 import Device, { Capabilities, Swapchain } from "../../../core/gfx/Device.js";
 import Fence from "../../../core/gfx/Fence.js";
 import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
-import Pipeline, { DescriptorSet, DescriptorSetLayout, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import RenderPass from "../../../core/gfx/RenderPass.js";
+import { Sampler } from "../../../core/gfx/Sampler.js";
 import Semaphore from "../../../core/gfx/Semaphore.js";
 import Shader from "../../../core/gfx/Shader.js";
 import { SubmitInfo } from "../../../core/gfx/SubmitInfo.js";
@@ -18,6 +21,7 @@ import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
 import WebPipelineLayout from "./WebPipelineLayout.js";
 import WebRenderPass from "./WebRenderPass.js";
+import WebSampler from "./WebSampler.js";
 import WebSemaphore from "./WebSemaphore.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
@@ -90,6 +94,10 @@ export default class WebDevice implements Device {
 
     createTexture(): Texture {
         return new WebTexture(this._gl);
+    }
+
+    createSampler(): Sampler {
+        return new WebSampler(this._gl);
     }
 
     createFence(): Fence {

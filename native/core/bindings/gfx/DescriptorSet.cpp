@@ -58,7 +58,8 @@ namespace binding
                     auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
                     uint32_t binding = info[0].As<v8::Number>()->Value();
                     Texture *c_texture = c_obj->retain<Texture>(info[1].As<v8::Object>(), "texture_" + std::to_string(binding));
-                    c_obj->bindTexture(binding, c_texture);
+                    Sampler *c_sampler = c_obj->retain<Sampler>(info[2].As<v8::Object>(), "sampler_" + std::to_string(binding));
+                    c_obj->bindTexture(binding, c_texture, c_sampler);
                 });
             return scope.Escape(cls.flush());
         }

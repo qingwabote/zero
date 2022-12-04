@@ -4,6 +4,7 @@
 #include "bindings/gfx/DescriptorSetLayout.hpp"
 #include "bindings/gfx/Buffer.hpp"
 #include "bindings/gfx/Texture.hpp"
+#include "bindings/gfx/Sampler.hpp"
 
 namespace binding
 {
@@ -27,7 +28,7 @@ namespace binding
 
             void bindBuffer(uint32_t binding, Buffer *buffer, double range);
 
-            void bindTexture(uint32_t binding, Texture *texture);
+            void bindTexture(uint32_t binding, Texture *texture, Sampler *sampler);
 
             ~DescriptorSet();
         };

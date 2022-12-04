@@ -1,7 +1,9 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
+import DescriptorSet from "../../gfx/DescriptorSet.js";
 import { Framebuffer } from "../../gfx/Framebuffer.js";
-import { DescriptorSet, SampleCountFlagBits } from "../../gfx/Pipeline.js";
+import { SampleCountFlagBits } from "../../gfx/Pipeline.js";
 import RenderPass, { ImageLayout, LOAD_OP, RenderPassInfo } from "../../gfx/RenderPass.js";
+import { Filter } from "../../gfx/Sampler.js";
 import { TextureUsageBit } from "../../gfx/Texture.js";
 import PassPhase from "../../render/PassPhase.js";
 import RenderCamera from "../../render/RenderCamera.js";
@@ -10,6 +12,9 @@ import RenderPhase from "../RenderPhase.js";
 
 const SHADOWMAP_WIDTH = 1024;
 const SHADOWMAP_HEIGHT = 1024;
+
+const sampler = gfx.createSampler();
+sampler.initialize({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST });
 
 export default class ShadowmapPhase extends RenderPhase {
     private _renderPass!: RenderPass;
@@ -37,7 +42,7 @@ export default class ShadowmapPhase extends RenderPhase {
             usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
-        globalDescriptorSet.bindTexture(shaders.sets.global.uniforms.shadowMap.binding, depthStencilAttachment);
+        globalDescriptorSet.bindTexture(shaders.sets.global.uniforms.shadowMap.binding, depthStencilAttachment, sampler);
         const framebuffer = gfx.createFramebuffer();
         framebuffer.initialize({
             colorAttachments: [],

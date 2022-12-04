@@ -1,7 +1,8 @@
 import { Rect } from "../math/rect.js";
 import Buffer from "./Buffer.js";
+import DescriptorSet from "./DescriptorSet.js";
 import { Framebuffer } from "./Framebuffer.js";
-import Pipeline, { DescriptorSet, InputAssembler, PipelineLayout } from "./Pipeline.js";
+import Pipeline, { InputAssembler, PipelineLayout } from "./Pipeline.js";
 import RenderPass from "./RenderPass.js";
 import Texture from "./Texture.js";
 

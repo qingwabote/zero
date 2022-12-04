@@ -1,7 +1,9 @@
 import Buffer from "../../../core/gfx/Buffer.js";
 import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
+import DescriptorSet from "../../../core/gfx/DescriptorSet.js";
+import { DescriptorType } from "../../../core/gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
-import Pipeline, { BlendFactor, CullMode, DescriptorSet, DescriptorType, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, CullMode, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../core/gfx/RenderPass.js";
 import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
@@ -10,6 +12,7 @@ import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
+import WebSampler from "./WebSampler.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
@@ -156,8 +159,12 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer, offset, range);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
                 const texture = (descriptorSet as WebDescriptorSet).getTexture(layoutBinding.binding) as WebTexture;
-                gl.activeTexture(gl.TEXTURE0 + layoutBinding.binding + index * 10);
+                const unit = layoutBinding.binding + index * 10;
+                gl.activeTexture(gl.TEXTURE0 + unit);
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+
+                const sampler = (descriptorSet as WebDescriptorSet).getSampler(layoutBinding.binding) as WebSampler;
+                gl.bindSampler(unit, sampler.sampler);
             }
         }
     }

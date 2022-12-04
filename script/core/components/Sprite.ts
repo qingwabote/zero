@@ -1,4 +1,5 @@
 import Component from "../Component.js";
+import defaults from "../defaults.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { FormatInfos, IndexType, InputAssembler, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
@@ -113,7 +114,7 @@ export default class Sprite extends Component {
         }
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));
-        descriptorSet.bindTexture(0, this.texture);
+        descriptorSet.bindTexture(0, this.texture, defaults.sampler);
         const pass = new Pass(descriptorSet, this._shader);
 
         const subModel: SubModel = { inputAssemblers: [inputAssembler], passes: [pass] };

@@ -3,6 +3,7 @@ set(SRC_FILES
     VkCommandBuffer.cpp
     VkBuffer.cpp
     VkTexture.cpp
+    VkSampler.cpp
     VkShader.cpp
     VkRenderPass.cpp
     VkFramebuffer.cpp

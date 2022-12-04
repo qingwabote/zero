@@ -4,6 +4,7 @@
 #include "SDL_video.h"
 #include "Buffer.hpp"
 #include "Texture.hpp"
+#include "Sampler.hpp"
 #include "Shader.hpp"
 #include "RenderPass.hpp"
 #include "Framebuffer.hpp"
@@ -37,6 +38,8 @@ namespace binding
             Buffer *createBuffer();
 
             Texture *createTexture();
+
+            Sampler *createSampler();
 
             Shader *createShader();
 

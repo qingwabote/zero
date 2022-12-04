@@ -7,6 +7,7 @@
 #include "VkCommandBuffer_impl.hpp"
 #include "VkBuffer_impl.hpp"
 #include "VkTexture_impl.hpp"
+#include "VkSampler_impl.hpp"
 #include "VkShader_impl.hpp"
 #include "VkRenderPass_impl.hpp"
 #include "VkFramebuffer_impl.hpp"
@@ -97,15 +98,6 @@ namespace binding
             _impl->_swapchainImageViews = vkb_swapchain.get_image_views().value();
             _impl->_vkb_swapchain = std::move(vkb_swapchain);
 
-            VkSamplerCreateInfo samplerInfo = {};
-            samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-            samplerInfo.magFilter = VK_FILTER_NEAREST;
-            samplerInfo.minFilter = VK_FILTER_NEAREST;
-            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            vkCreateSampler(device, &samplerInfo, nullptr, &_impl->_defaultSampler);
-
             // command pool and a buffer
             VkCommandPoolCreateInfo commandPoolInfo = {};
             commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -147,6 +139,8 @@ namespace binding
         Buffer *Device::createBuffer() { return new Buffer(std::make_unique<Buffer_impl>(_impl)); }
 
         Texture *Device::createTexture() { return new Texture(std::make_unique<Texture_impl>(_impl)); }
+
+        Sampler *Device::createSampler() { return new Sampler(std::make_unique<Sampler_impl>(_impl)); }
 
         Shader *Device::createShader() { return new Shader(std::make_unique<Shader_impl>(_impl)); }
 
@@ -237,8 +231,6 @@ namespace binding
             glslang::FinalizeProcess();
 
             vkb::Device &vkb_device = _impl->_vkb_device;
-
-            vkDestroySampler(vkb_device.device, _impl->_defaultSampler, nullptr);
 
             vkDestroyDescriptorPool(vkb_device.device, _impl->_descriptorPool, nullptr);
             vkDestroyCommandPool(vkb_device.device, _impl->_commandPool, nullptr);

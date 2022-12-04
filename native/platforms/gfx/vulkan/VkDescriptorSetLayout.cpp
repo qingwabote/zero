@@ -38,7 +38,7 @@ namespace binding
             layoutInfo.pBindings = setLayoutBindings.data();
             layoutInfo.flags = 0;
 
-            if (vkCreateDescriptorSetLayout(_impl->_device->device(), &layoutInfo, nullptr, &_impl->_setLayout))
+            if (vkCreateDescriptorSetLayout(*_impl->_device, &layoutInfo, nullptr, &_impl->_setLayout))
             {
                 return true;
             }
@@ -48,7 +48,7 @@ namespace binding
 
         DescriptorSetLayout::~DescriptorSetLayout()
         {
-            vkDestroyDescriptorSetLayout(_impl->_device->device(), _impl->_setLayout, nullptr);
+            vkDestroyDescriptorSetLayout(*_impl->_device, _impl->_setLayout, nullptr);
         }
     }
 }
