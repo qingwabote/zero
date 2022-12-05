@@ -38,7 +38,7 @@ export default class CameraUniform implements PipelineUniform {
                     const y = camera.orthoHeight;
                     mat4.ortho(projection, -x, x, -y, y, camera.near, camera.far, gfx.capabilities.clipSpaceMinZ);
                 } else if (camera.fov != -1) {
-                    mat4.perspective(projection, Math.PI / 180 * camera.fov, aspect, camera.near, camera.far);
+                    mat4.perspective(projection, Math.PI / 180 * camera.fov, aspect, camera.near, camera.far, gfx.capabilities.clipSpaceMinZ);
                 }
                 this._buffer.set(projection, camerasDataOffset + CameraBlock.uniforms.projection.offset);
 

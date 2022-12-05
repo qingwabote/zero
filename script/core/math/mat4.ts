@@ -15,6 +15,13 @@ export type Mat4 = [
     number, number, number, number
 ]
 
+export const preTransforms = Object.freeze([
+    Object.freeze([1, 0, 0, 1]), // SurfaceTransform.IDENTITY
+    Object.freeze([0, 1, -1, 0]), // SurfaceTransform.ROTATE_90
+    Object.freeze([-1, 0, 0, -1]), // SurfaceTransform.ROTATE_180
+    Object.freeze([0, -1, 1, 0]), // SurfaceTransform.ROTATE_270
+]);
+
 export default {
     create(): Mat4 {
         return [
@@ -231,33 +238,34 @@ export default {
         return out;
     },
 
-    perspective(out: Mat4, fovy: number, aspect: number, near: number, far: number) {
-        var f = 1.0 / Math.tan(fovy / 2),
-            nf;
-        out[0] = f / aspect;
-        out[1] = 0;
+    perspective(out: Mat4, fov: number, aspect: number, near: number, far: number, minClipZ: number) {
+        const isFOVY = true;
+        const projectionSignY = 1;
+        const orientation = 0;
+
+        const f = 1.0 / Math.tan(fov / 2);
+        const nf = 1 / (near - far);
+
+        const x = isFOVY ? f / aspect : f;
+        const y = (isFOVY ? f : f * aspect) * projectionSignY;
+        const preTransform = preTransforms[orientation];
+
+        out[0] = x * preTransform[0];
+        out[1] = x * preTransform[1];
         out[2] = 0;
         out[3] = 0;
-        out[4] = 0;
-        out[5] = f;
+        out[4] = y * preTransform[2];
+        out[5] = y * preTransform[3];
         out[6] = 0;
         out[7] = 0;
         out[8] = 0;
         out[9] = 0;
+        out[10] = (far - minClipZ * near) * nf;
         out[11] = -1;
         out[12] = 0;
         out[13] = 0;
+        out[14] = far * near * nf * (1 - minClipZ);
         out[15] = 0;
-
-        if (far != null && far !== Infinity) {
-            nf = 1 / (near - far);
-            out[10] = (far + near) * nf;
-            out[14] = 2 * far * near * nf;
-        } else {
-            out[10] = -1;
-            out[14] = -2 * near;
-        }
-
         return out;
     },
 
