@@ -7,57 +7,12 @@ function align(size: number) {
     return Math.ceil(size / alignment) * alignment;
 }
 
-const FLOAT32_BYTES = 4;
-
 /**
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
 const sets = {
     global: {
-        set: 0,
-        uniforms: {
-            Light: {
-                type: DescriptorType.UNIFORM_BUFFER,
-                binding: 0,
-                uniforms: {
-                    direction: {}
-                },
-                size: 3 * FLOAT32_BYTES
-            },
-            Camera: {
-                type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
-                binding: 1,
-                uniforms: {
-                    view: {
-                        offset: 0
-                    },
-                    projection: {
-                        offset: 16
-                    },
-                    position: {
-                        offset: 16 + 16
-                    }
-                },
-                size: align((16 + 16 + 4) * FLOAT32_BYTES),
-            },
-            Shadow: {
-                type: DescriptorType.UNIFORM_BUFFER,
-                binding: 2,
-                uniforms: {
-                    view: {
-                        offset: 0
-                    },
-                    projection: {
-                        offset: 16
-                    }
-                },
-                size: (16 + 16) * FLOAT32_BYTES,
-            },
-            shadowMap: {
-                type: DescriptorType.SAMPLER_TEXTURE,
-                binding: 3,
-            }
-        }
+        set: 0
     },
     local: {
         set: 1,
@@ -69,7 +24,7 @@ const sets = {
                     model: {},
                     modelIT: {}
                 },
-                size: (16 + 16) * FLOAT32_BYTES,
+                size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
             }
         }
     },
@@ -78,16 +33,19 @@ const sets = {
     }
 } as const
 
+function createDescriptorSetLayoutBinding(uniform: { type: DescriptorType, binding: number }) {
+    return {
+        binding: uniform.binding,
+        descriptorType: uniform.type,
+        descriptorCount: 1,
+        stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
+    }
+}
+
 function buildDescriptorSetLayout(uniforms: Record<string, { type: DescriptorType, binding: number }>): DescriptorSetLayout {
     const bindings: DescriptorSetLayoutBinding[] = [];
     for (const name in uniforms) {
-        const block = uniforms[name];
-        bindings[block.binding] = {
-            binding: block.binding,
-            descriptorType: block.type,
-            descriptorCount: 1,
-            stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
-        }
+        bindings.push(createDescriptorSetLayoutBinding(uniforms[name]))
     }
     const descriptorSetLayout = gfx.createDescriptorSetLayout();
     descriptorSetLayout.initialize(bindings);
@@ -108,9 +66,11 @@ const shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 export default {
     sets,
 
-    buildDescriptorSetLayout,
+    align,
 
     builtinDescriptorSetLayouts,
+
+    createDescriptorSetLayoutBinding,
 
     async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = name2source[name];
@@ -156,7 +116,7 @@ export default {
             const bindings: DescriptorSetLayoutBinding[] = [];
             const samplerTextures = shader.info.meta.samplerTextures;
             for (const name in samplerTextures) {
-                if ((sets.global.uniforms as any)[name]) {
+                if (samplerTextures[name].set < sets.material.set) {
                     continue;
                 }
                 bindings.push({

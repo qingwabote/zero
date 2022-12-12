@@ -1,18 +1,43 @@
 import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
-import DescriptorSet from "../../gfx/DescriptorSet.js";
+import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
 import mat4 from "../../math/mat4.js";
 import vec3 from "../../math/vec3.js";
 import shaders from "../../shaders.js";
 import BufferViewResizable from "../buffers/BufferViewResizable.js";
 import PipelineUniform from "../PipelineUniform.js";
 
-const CameraBlock = shaders.sets.global.uniforms.Camera;
+const CameraBlock = {
+    type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
+    binding: 1,
+    uniforms: {
+        view: {
+            offset: 0
+        },
+        projection: {
+            offset: 16
+        },
+        position: {
+            offset: 16 + 16
+        }
+    },
+    size: shaders.align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
+}
+
+const descriptorSetLayoutBinding = shaders.createDescriptorSetLayoutBinding(CameraBlock);
 
 export default class CameraUniform implements PipelineUniform {
-    private _buffer: BufferViewResizable;
+    static getDynamicOffset(index: number): number {
+        return index * CameraBlock.size;
+    }
 
-    constructor(globalDescriptorSet: DescriptorSet) {
-        this._buffer = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { globalDescriptorSet.bindBuffer(CameraBlock.binding, buffer, CameraBlock.size); });
+    get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
+        return descriptorSetLayoutBinding;
+    }
+
+    private _buffer!: BufferViewResizable;
+
+    initialize(): void {
+        this._buffer = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { zero.renderFlow.globalDescriptorSet.bindBuffer(CameraBlock.binding, buffer, CameraBlock.size); });
     }
 
     update(): void {

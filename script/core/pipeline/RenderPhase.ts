@@ -1,7 +1,7 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
-import DescriptorSet from "../gfx/DescriptorSet.js";
 import RenderCamera from "../render/RenderCamera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
+import PipelineUniform from "./PipelineUniform.js";
 
 export default abstract class RenderPhase {
     private _visibility: VisibilityBit;
@@ -13,7 +13,6 @@ export default abstract class RenderPhase {
         this._visibility = visibility;
     }
 
-    abstract getRequestedUniforms(): Record<string, any>;
-    abstract initialize(globalDescriptorSet: DescriptorSet): void;
+    abstract getRequestedUniforms(): (new () => PipelineUniform)[];
     abstract record(commandBuffer: CommandBuffer, camera: RenderCamera): void;
 }

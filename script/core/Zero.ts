@@ -81,6 +81,7 @@ export default abstract class Zero {
         this._renderScene = new RenderScene();
 
         this._renderFlow = this.start();
+        this._renderFlow.initialize();
 
         return false;
     }

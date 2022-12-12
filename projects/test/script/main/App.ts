@@ -1,11 +1,15 @@
+import FNT from "../../../../script/core/assets/FNT.js";
 import GLTF from "../../../../script/core/assets/GLTF.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
+import FPS from "../../../../script/core/components/FPS.js";
+import Label from "../../../../script/core/components/Label.js";
 import defaults from "../../../../script/core/defaults.js";
-import { CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
+import { ClearFlagBit, CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
 import { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import ForwardPhase from "../../../../script/core/pipeline/phases/ForwardPhase.js";
+import ShadowmapPhase from "../../../../script/core/pipeline/phases/ShadowmapPhase.js";
 import RenderFlow from "../../../../script/core/pipeline/RenderFlow.js";
 import Material from "../../../../script/core/render/Material.js";
 import Pass from "../../../../script/core/render/Pass.js";
@@ -50,37 +54,37 @@ export default class App extends Zero {
         node.position = [0, 0.5, 4];
 
         // UI
-        // node = new Node;
-        // const camera = node.addComponent(Camera);
-        // camera.visibilities = VisibilityBit.UI;
-        // camera.clearFlags = ClearFlagBit.DEPTH;
-        // camera.orthoHeight = height / 2;
-        // camera.viewport = { x: 0, y: 0, width, height };
-        // node.position = [0, 0, 1];
-        // (async () => {
-        //     const zero = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
-        //     const fnt = new FNT;
-        //     await fnt.load('./asset/zero');
-        //     node = new Node;
-        //     const label = node.addComponent(Label);
-        //     label.fnt = fnt;
-        //     label.shader = zero;
-        //     node.addComponent(FPS);
-        //     node.position = [-width / 2, height / 2, 0];
-        //     node.visibility = VisibilityBit.UI;
+        node = new Node;
+        const camera = node.addComponent(Camera);
+        camera.visibilities = VisibilityBit.UI;
+        camera.clearFlags = ClearFlagBit.DEPTH;
+        camera.orthoHeight = height / 2;
+        camera.viewport = { x: 0, y: 0, width, height };
+        node.position = [0, 0, 1];
+        (async () => {
+            const zero = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
+            const fnt = new FNT;
+            await fnt.load('./asset/zero');
+            node = new Node;
+            const label = node.addComponent(Label);
+            label.fnt = fnt;
+            label.shader = zero;
+            node.addComponent(FPS);
+            node.position = [-width / 2, height / 2, 0];
+            node.visibility = VisibilityBit.UI;
 
-        //     // if (shadowmapPhase) {
-        //     //     const shader = await shaders.getShader('depth');
-        //     //     node = new Node;
-        //     //     node.position = [width / 2 - 200, -height / 2 + 200, 0];
-        //     //     node.visibility = VisibilityBit.UI;
-        //     //     const sprite = node.addComponent(Sprite);
-        //     //     sprite.shader = shader;
-        //     //     sprite.width = 200;
-        //     //     sprite.height = 200;
-        //     //     sprite.texture = shadowmapPhase.depthStencilAttachment;
-        //     // }
-        // })();
+            // if (shadowmapPhase) {
+            //     const shader = await shaders.getShader('depth');
+            //     node = new Node;
+            //     node.position = [width / 2 - 200, -height / 2 + 200, 0];
+            //     node.visibility = VisibilityBit.UI;
+            //     const sprite = node.addComponent(Sprite);
+            //     sprite.shader = shader;
+            //     sprite.width = 200;
+            //     sprite.height = 200;
+            //     sprite.texture = shadowmapPhase.depthStencilAttachment;
+            // }
+        })();
 
         (async () => {
             async function createMaterials(gltf: GLTF): Promise<Material[]> {
@@ -94,13 +98,13 @@ export default class App extends Zero {
 
                     const USE_ALBEDO_MAP = textureIdx == undefined ? 0 : 1;
 
-                    // const phongShader = await shaders.getShader('phong', {
-                    //     USE_BLINN_PHONG: 1,
-                    //     USE_ALBEDO_MAP,
-                    //     USE_SHADOW_MAP: 0,
-                    //     CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-                    // })
-                    const phongShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
+                    const phongShader = await shaders.getShader('phong', {
+                        USE_ALBEDO_MAP,
+                        USE_SHADOW_MAP: 1,
+                        SHADOW_MAP_PCF: 1,
+                        CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+                    })
+                    // const phongShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
 
                     const phoneDescriptorSet = gfx.createDescriptorSet();
                     phoneDescriptorSet.initialize(shaders.getDescriptorSetLayout(phongShader));
@@ -122,17 +126,17 @@ export default class App extends Zero {
             }
 
             let node: Node;
-            // const guardian = new GLTF();
-            // await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
-            // let materials: Material[] = await createMaterials(guardian);
-            // node = guardian.createScene("Sketchfab_Scene", materials)!;
-            // node.addComponent(ZeroComponent);
-
             const guardian = new GLTF();
-            await guardian.load('./asset/untitled');
+            await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
             let materials: Material[] = await createMaterials(guardian);
-            node = guardian.createScene("Scene", materials)!;
+            node = guardian.createScene("Sketchfab_Scene", materials)!;
             node.addComponent(ZeroComponent);
+
+            // const guardian = new GLTF();
+            // await guardian.load('./asset/untitled');
+            // let materials: Material[] = await createMaterials(guardian);
+            // node = guardian.createScene("Scene", materials)!;
+            // node.addComponent(ZeroComponent);
 
             const plane = new GLTF();
             await plane.load('./asset/plane');
@@ -142,7 +146,7 @@ export default class App extends Zero {
         })();
 
         return new RenderFlow(
-            [new ForwardPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)],
+            [new ShadowmapPhase(), new ForwardPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)],
             SampleCountFlagBits.SAMPLE_COUNT_4);
     }
 }

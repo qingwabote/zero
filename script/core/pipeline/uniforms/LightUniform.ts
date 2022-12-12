@@ -1,18 +1,31 @@
 import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
-import DescriptorSet from "../../gfx/DescriptorSet.js";
+import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
 import vec3 from "../../math/vec3.js";
 import shaders from "../../shaders.js";
 import BufferView from "../buffers/BufferView.js";
 import PipelineUniform from "../PipelineUniform.js";
 
-const LightBlock = shaders.sets.global.uniforms.Light;
+const LightBlock = {
+    type: DescriptorType.UNIFORM_BUFFER,
+    binding: 0,
+    uniforms: {
+        direction: {}
+    },
+    size: 3 * Float32Array.BYTES_PER_ELEMENT
+}
+
+const descriptorSetLayoutBinding = shaders.createDescriptorSetLayoutBinding(LightBlock);
 
 export default class LightUniform implements PipelineUniform {
-    private _buffer: BufferView;
+    get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
+        return descriptorSetLayoutBinding;
+    }
 
-    constructor(globalDescriptorSet: DescriptorSet) {
+    private _buffer!: BufferView;
+
+    initialize(): void {
         const buffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
-        globalDescriptorSet.bindBuffer(LightBlock.binding, buffer.buffer)
+        zero.renderFlow.globalDescriptorSet.bindBuffer(LightBlock.binding, buffer.buffer)
         this._buffer = buffer;
     }
 

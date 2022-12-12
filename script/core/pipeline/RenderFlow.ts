@@ -1,6 +1,6 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
-import DescriptorSetLayout from "../gfx/DescriptorSetLayout.js";
+import DescriptorSetLayout, { DescriptorSetLayoutBinding } from "../gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
 import Pipeline, { ClearFlagBit, PipelineLayout, SampleCountFlagBits, VertexInputState } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo } from "../gfx/RenderPass.js";
@@ -11,10 +11,6 @@ import shaders from "../shaders.js";
 import PipelineUniform from "./PipelineUniform.js";
 import RenderPhase from "./RenderPhase.js";
 import CameraUniform from "./uniforms/CameraUniform.js";
-import LightUniform from "./uniforms/LightUniform.js";
-import ShadowUniform from "./uniforms/ShadowUniform.js";
-
-const global_uniforms = shaders.sets.global.uniforms;
 
 export default class RenderFlow {
     private _framebuffer: Framebuffer;
@@ -23,6 +19,9 @@ export default class RenderFlow {
     }
 
     private _renderPhases: RenderPhase[];
+    get renderPhases(): RenderPhase[] {
+        return this._renderPhases;
+    }
 
     private _globalDescriptorSetLayout: DescriptorSetLayout;
 
@@ -39,42 +38,35 @@ export default class RenderFlow {
     private _pipelineCache: Record<string, Pipeline> = {};
 
     constructor(renderPhases: RenderPhase[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
-        const uniforms: Record<string, any> = {};
+        const uniforms: Set<new () => PipelineUniform> = new Set;
         for (const renderPhase of renderPhases) {
-            Object.assign(uniforms, renderPhase.getRequestedUniforms());
-        }
-
-        const globalDescriptorSetLayout = shaders.buildDescriptorSetLayout(uniforms);
-
-        const globalDescriptorSet = gfx.createDescriptorSet();
-        globalDescriptorSet.initialize(globalDescriptorSetLayout);
-
-        for (const key in uniforms) {
-            switch (uniforms[key]) {
-                case global_uniforms.Light:
-                    this._uniforms.push(new LightUniform(globalDescriptorSet));
-                    break;
-                case global_uniforms.Camera:
-                    this._uniforms.push(new CameraUniform(globalDescriptorSet));
-                    break;
-                case global_uniforms.Shadow:
-                    this._uniforms.push(new ShadowUniform(globalDescriptorSet));
-                    break;
+            for (const uniform of renderPhase.getRequestedUniforms()) {
+                uniforms.add(uniform);
             }
         }
 
-        for (const renderPhase of renderPhases) {
-            renderPhase.initialize(globalDescriptorSet);
+        const descriptorSetLayoutBindings: DescriptorSetLayoutBinding[] = [];
+        for (const uniform of uniforms) {
+            const instance = new uniform;
+            descriptorSetLayoutBindings.push(instance.descriptorSetLayoutBinding)
+            this._uniforms.push(instance);
         }
 
-        const globalPipelineLayout = gfx.createPipelineLayout();
-        globalPipelineLayout.initialize([globalDescriptorSetLayout]);
-        this._globalPipelineLayout = globalPipelineLayout;
+        const descriptorSetLayout = gfx.createDescriptorSetLayout();
+        descriptorSetLayout.initialize(descriptorSetLayoutBindings);
 
-        this._globalDescriptorSetLayout = globalDescriptorSetLayout;
+        const descriptorSet = gfx.createDescriptorSet();
+        descriptorSet.initialize(descriptorSetLayout);
 
-        this.globalDescriptorSet = globalDescriptorSet;
         this._renderPhases = renderPhases;
+
+        const pipelineLayout = gfx.createPipelineLayout();
+        pipelineLayout.initialize([descriptorSetLayout]);
+        this._globalPipelineLayout = pipelineLayout;
+
+        this._globalDescriptorSetLayout = descriptorSetLayout;
+
+        this.globalDescriptorSet = descriptorSet;
 
         const colorAttachments: Texture[] = [];
         const resolveAttachments: Texture[] = [];
@@ -108,6 +100,12 @@ export default class RenderFlow {
         this._framebuffer = framebuffer;
     }
 
+    initialize() {
+        for (const uniform of this._uniforms) {
+            uniform.initialize();
+        }
+    }
+
     update() {
         for (const uniform of this._uniforms) {
             uniform.update();
@@ -119,7 +117,7 @@ export default class RenderFlow {
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, shaders.sets.global.set, this.globalDescriptorSet,
-                [cameraIndex * shaders.sets.global.uniforms.Camera.size]);
+                [CameraUniform.getDynamicOffset(cameraIndex)]);
             for (const renderPhase of this._renderPhases) {
                 if ((camera.visibilities & renderPhase.visibility) == 0) {
                     continue;

@@ -1,34 +1,29 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
-import DescriptorSet from "../../gfx/DescriptorSet.js";
 import { Framebuffer } from "../../gfx/Framebuffer.js";
 import { SampleCountFlagBits } from "../../gfx/Pipeline.js";
 import RenderPass, { ImageLayout, LOAD_OP, RenderPassInfo } from "../../gfx/RenderPass.js";
-import { Filter } from "../../gfx/Sampler.js";
 import { TextureUsageBit } from "../../gfx/Texture.js";
 import PassPhase from "../../render/PassPhase.js";
 import RenderCamera from "../../render/RenderCamera.js";
+import VisibilityBit from "../../render/VisibilityBit.js";
 import shaders from "../../shaders.js";
+import PipelineUniform from "../PipelineUniform.js";
 import RenderPhase from "../RenderPhase.js";
+import ShadowMapUniform from "../uniforms/ShadowMapUniform.js";
+import ShadowUniform from "../uniforms/ShadowUniform.js";
 
 const SHADOWMAP_WIDTH = 1024;
 const SHADOWMAP_HEIGHT = 1024;
 
-const sampler = gfx.createSampler();
-sampler.initialize({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST });
-
 export default class ShadowmapPhase extends RenderPhase {
     private _renderPass!: RenderPass;
     private _framebuffer!: Framebuffer;
-
-    getRequestedUniforms(): Record<string, any> {
-        const global = shaders.sets.global;
-        return {
-            Shadow: global.uniforms.Shadow,
-            shadowMap: global.uniforms.shadowMap
-        };
+    get framebuffer(): Framebuffer {
+        return this._framebuffer;
     }
 
-    initialize(globalDescriptorSet: DescriptorSet) {
+    constructor(visibility?: VisibilityBit) {
+        super(visibility);
         const renderPass = gfx.createRenderPass();
         renderPass.initialize(new RenderPassInfo([], {
             loadOp: LOAD_OP.CLEAR,
@@ -42,7 +37,6 @@ export default class ShadowmapPhase extends RenderPhase {
             usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
-        globalDescriptorSet.bindTexture(shaders.sets.global.uniforms.shadowMap.binding, depthStencilAttachment, sampler);
         const framebuffer = gfx.createFramebuffer();
         framebuffer.initialize({
             colorAttachments: [],
@@ -53,6 +47,15 @@ export default class ShadowmapPhase extends RenderPhase {
         });
         this._framebuffer = framebuffer;
         this._renderPass = renderPass;
+    }
+
+    getRequestedUniforms(): (new () => PipelineUniform)[] {
+        // const global = shaders.sets.global;
+        // return {
+        //     Shadow: global.uniforms.Shadow,
+        //     shadowMap: global.uniforms.shadowMap
+        // };
+        return [ShadowUniform, ShadowMapUniform];
     }
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {

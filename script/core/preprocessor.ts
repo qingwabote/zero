@@ -15,33 +15,15 @@ async function string_replace(value: string, pattern: RegExp, replacer: (...args
 
 const chunks: Record<string, string> = {};
 
-// const ifMacroExp = / *#if\s+(\w+)\r?\n([\s\S]+?)#endif\r?\n/g;
-// function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
-//     return source.replace(ifMacroExp, function (_: string, macro: string, content: string) {
-//         const matches = content.match(/([\s\S]+)#else\r?\n([\s\S]+)/);
-//         if (!matches) {
-//             return macros[macro] ? content : '';
-//         }
-//         return macros[macro] ? matches[1] : matches[2];
-//     });
-// }
-
-const ifMacroExp = / *#if\s+(\w+)\r?\n/g;
-
-// function macrosDefine(macros: Readonly<Record<string, number>>, source: string) {
-//     let defines = '';
-//     for (const name in macros) {
-//         defines += `#define ${name} ${macros[name]}\n`;
-//     }
-//     return defines + source;
-// }
+// ^\s* excludes other symbols, like //
+const ifMacroExp = /^\s*#if\s+(\w+)\r?\n/gm;
 
 function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
     let out = '';
     const exp_lineByline = /(.+)\r?\n?/g;
-    const exp_if = /#if\s+(\w+)/;
-    const exp_else = /#else/;
-    const exp_endif = /#endif/;
+    const exp_if = /^\s*#if\s+(\w+)/;
+    const exp_else = /^\s*#else/;
+    const exp_endif = /^\s*#endif/;
     const stack: { type: 'if' | 'else', name: string, content: string }[] = [];
     while (true) {
         let res = exp_lineByline.exec(source);

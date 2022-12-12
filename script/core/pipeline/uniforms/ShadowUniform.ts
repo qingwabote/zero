@@ -1,5 +1,5 @@
 import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
-import DescriptorSet from "../../gfx/DescriptorSet.js";
+import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
 import mat4 from "../../math/mat4.js";
 import quat from "../../math/quat.js";
 import vec3 from "../../math/vec3.js";
@@ -7,14 +7,32 @@ import shaders from "../../shaders.js";
 import BufferView from "../buffers/BufferView.js";
 import PipelineUniform from "../PipelineUniform.js";
 
-const ShadowBlock = shaders.sets.global.uniforms.Shadow;
+const ShadowBlock = {
+    type: DescriptorType.UNIFORM_BUFFER,
+    binding: 2,
+    uniforms: {
+        view: {
+            offset: 0
+        },
+        projection: {
+            offset: 16
+        }
+    },
+    size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
+}
+
+const descriptorSetLayoutBinding = shaders.createDescriptorSetLayoutBinding(ShadowBlock);
 
 export default class ShadowUniform implements PipelineUniform {
-    private _buffer: BufferView;
+    get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
+        return descriptorSetLayoutBinding;
+    }
 
-    constructor(globalDescriptorSet: DescriptorSet) {
+    private _buffer!: BufferView;
+
+    initialize(): void {
         const buffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);
-        globalDescriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
+        zero.renderFlow.globalDescriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
         this._buffer = buffer;
     }
 

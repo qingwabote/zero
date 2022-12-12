@@ -1,10 +1,12 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
-import DescriptorSet from "../../gfx/DescriptorSet.js";
 import PassPhase from "../../render/PassPhase.js";
 import RenderCamera from "../../render/RenderCamera.js";
 import VisibilityBit from "../../render/VisibilityBit.js";
 import shaders from "../../shaders.js";
+import PipelineUniform from "../PipelineUniform.js";
 import RenderPhase from "../RenderPhase.js";
+import CameraUniform from "../uniforms/CameraUniform.js";
+import LightUniform from "../uniforms/LightUniform.js";
 
 export default class ForwardPhase extends RenderPhase {
 
@@ -15,15 +17,9 @@ export default class ForwardPhase extends RenderPhase {
         this._phase = phase;
     }
 
-    getRequestedUniforms(): Record<string, any> {
-        const global = shaders.sets.global;
-        return {
-            Light: global.uniforms.Light,
-            Camera: global.uniforms.Camera
-        } as const;
+    getRequestedUniforms(): (new () => PipelineUniform)[] {
+        return [LightUniform, CameraUniform];
     }
-
-    initialize(globalDescriptorSet: DescriptorSet) { }
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
         const models = zero.renderScene.models;
