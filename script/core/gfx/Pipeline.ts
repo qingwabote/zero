@@ -112,20 +112,20 @@ export enum CullMode {
 
 export interface RasterizationState {
     cullMode: CullMode;
-    hash: string;
 }
 
 export interface DepthStencilState {
     depthTest: boolean;
 }
 
+// copy values from VkBlendFactor in vulkan_core.h
 export enum BlendFactor {
-    ZERO,
-    ONE,
-    // SRC_ALPHA,
-    // DST_ALPHA,
-    // ONE_MINUS_SRC_ALPHA,
-    // ONE_MINUS_DST_ALPHA,
+    ZERO = 0,
+    ONE = 1,
+    SRC_ALPHA = 6,
+    ONE_MINUS_SRC_ALPHA = 7,
+    DST_ALPHA = 8,
+    ONE_MINUS_DST_ALPHA = 9,
     // SRC_COLOR,
     // DST_COLOR,
     // ONE_MINUS_SRC_COLOR,
@@ -137,16 +137,12 @@ export enum BlendFactor {
     // ONE_MINUS_CONSTANT_ALPHA,
 }
 
-export interface Blend {
-    blend: boolean;
+export interface BlendState {
+    enabled: boolean;
     srcRGB: BlendFactor;
     dstRGB: BlendFactor;
     srcAlpha: BlendFactor;
     dstAlpha: BlendFactor;
-}
-
-export interface BlendState {
-    blends: Blend[];
 }
 
 export interface PipelineInfo {
@@ -155,6 +151,7 @@ export interface PipelineInfo {
     readonly layout: PipelineLayout;
     readonly renderPass: RenderPass;
     readonly rasterizationState: RasterizationState;
+    readonly blendState: BlendState;
 }
 
 export default interface Pipeline {

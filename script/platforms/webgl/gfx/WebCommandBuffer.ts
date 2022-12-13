@@ -20,6 +20,10 @@ function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
         case BlendFactor.ZERO: return WebGL2RenderingContext.ZERO;
         case BlendFactor.ONE: return WebGL2RenderingContext.ONE;
+        case BlendFactor.SRC_ALPHA: return WebGL2RenderingContext.SRC_ALPHA;
+        case BlendFactor.DST_ALPHA: return WebGL2RenderingContext.DST_ALPHA;
+        case BlendFactor.ONE_MINUS_SRC_ALPHA: return WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA;
+        case BlendFactor.ONE_MINUS_DST_ALPHA: return WebGL2RenderingContext.ONE_MINUS_DST_ALPHA;
     }
 }
 
@@ -129,19 +133,21 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.enable(gl.DEPTH_TEST);
 
-        // const blend = info.blendState.blends[0];
-        // if (blend.blend) {
-        //     gl.enable(gl.BLEND);
-        // } else {
-        //     gl.disable(gl.BLEND);
-        // }
+        const blendState = info.blendState;
+        if (blendState.enabled) {
+            gl.enable(gl.BLEND);
+        } else {
+            gl.disable(gl.BLEND);
+        }
 
-        // gl.blendFuncSeparate(
-        //     bendFactor2WebGL(blend.srcRGB),
-        //     bendFactor2WebGL(blend.dstRGB),
-        //     bendFactor2WebGL(blend.srcAlpha),
-        //     bendFactor2WebGL(blend.dstAlpha),
-        // );
+        gl.blendFuncSeparate(
+            bendFactor2WebGL(blendState.srcRGB),
+            bendFactor2WebGL(blendState.dstRGB),
+            bendFactor2WebGL(blendState.srcAlpha),
+            bendFactor2WebGL(blendState.dstAlpha),
+        );
+        // gl.enable(gl.BLEND);
+        // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
 
     bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {

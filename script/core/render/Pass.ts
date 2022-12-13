@@ -1,5 +1,5 @@
 import DescriptorSet from "../gfx/DescriptorSet.js";
-import { CullMode, RasterizationState } from "../gfx/Pipeline.js";
+import { BlendFactor, BlendState, CullMode, RasterizationState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import PassPhase from "./PassPhase.js";
 
@@ -19,6 +19,11 @@ export default class Pass {
         return this._rasterizationState;
     }
 
+    private _blendState: BlendState;
+    get blendState(): BlendState {
+        return this._blendState;
+    }
+
     private _phase: PassPhase;
     get phase(): PassPhase {
         return this._phase;
@@ -29,13 +34,23 @@ export default class Pass {
         return this._hash;
     }
 
-    constructor(descriptorSet: DescriptorSet, shader: Shader, rasterizationState: RasterizationState = { cullMode: CullMode.BACK, hash: CullMode.BACK.toString() }, phase: PassPhase = PassPhase.DEFAULT) {
+    constructor(
+        descriptorSet: DescriptorSet,
+        shader: Shader,
+        rasterizationState: RasterizationState = { cullMode: CullMode.BACK },
+        blendState: BlendState = { enabled: true, srcRGB: BlendFactor.SRC_ALPHA, dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA, srcAlpha: BlendFactor.ONE, dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA },
+        phase: PassPhase = PassPhase.DEFAULT
+    ) {
+
         this._descriptorSet = descriptorSet;
 
-        this._hash = shader.info.hash + rasterizationState.hash;
+        this._hash = shader.info.hash;
+        this._hash += `${rasterizationState.cullMode}`;
+        this._hash += `${blendState.enabled}${blendState.srcRGB}${blendState.dstRGB}${blendState.srcAlpha}${blendState.dstAlpha}`;
 
         this._shader = shader;
         this._rasterizationState = rasterizationState;
+        this._blendState = blendState;
         this._phase = phase;
     }
 }

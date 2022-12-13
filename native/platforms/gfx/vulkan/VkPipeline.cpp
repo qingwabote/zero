@@ -107,10 +107,16 @@ namespace binding
             multisampleState.alphaToOneEnable = VK_FALSE;
             pipelineInfo.pMultisampleState = &multisampleState;
 
+            v8::Local<v8::Object> js_blendState = sugar::v8::object_get(info, "blendState").As<v8::Object>();
+
             VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+            colorBlendAttachment.blendEnable = sugar::v8::object_get(js_blendState, "enabled").As<v8::Boolean>()->Value();
+            colorBlendAttachment.srcColorBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "srcRGB").As<v8::Number>()->Value());
+            colorBlendAttachment.dstColorBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "dstRGB").As<v8::Number>()->Value());
+            colorBlendAttachment.srcAlphaBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "srcAlpha").As<v8::Number>()->Value());
+            colorBlendAttachment.dstAlphaBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "dstAlpha").As<v8::Number>()->Value());
             colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                                   VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-            colorBlendAttachment.blendEnable = VK_FALSE;
 
             VkPipelineColorBlendStateCreateInfo colorBlending = {VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO};
             colorBlending.logicOpEnable = VK_FALSE;

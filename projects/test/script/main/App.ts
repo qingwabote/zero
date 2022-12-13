@@ -94,7 +94,13 @@ export default class App extends Zero {
                     const shadowmapShader = await shaders.getShader('shadowmap');
                     const shadowmapDescriptorSet = gfx.createDescriptorSet();
                     shadowmapDescriptorSet.initialize(shaders.getDescriptorSetLayout(shadowmapShader));
-                    const shadowmapPass = new Pass(shadowmapDescriptorSet, shadowmapShader, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PassPhase.SHADOWMAP);
+                    const shadowmapPass = new Pass(
+                        shadowmapDescriptorSet,
+                        shadowmapShader,
+                        { cullMode: CullMode.FRONT },
+                        undefined,
+                        PassPhase.SHADOWMAP
+                    );
 
                     const USE_ALBEDO_MAP = textureIdx == undefined ? 0 : 1;
 
@@ -119,7 +125,13 @@ export default class App extends Zero {
                     if (USE_ALBEDO_MAP) {
                         zeroDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
                     }
-                    const zeroPass = new Pass(zeroDescriptorSet, zeroShader, { cullMode: CullMode.FRONT, hash: CullMode.FRONT.toString() }, PhaseLightView);
+                    const zeroPass = new Pass(
+                        zeroDescriptorSet,
+                        zeroShader,
+                        { cullMode: CullMode.FRONT },
+                        undefined,
+                        PhaseLightView
+                    );
                     materials.push(new Material([shadowmapPass, phongPass, zeroPass]));
                 }
                 return materials;
