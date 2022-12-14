@@ -110,7 +110,7 @@ namespace binding
                 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
             VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
             descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            descriptorPoolCreateInfo.maxSets = 1000;
+            descriptorPoolCreateInfo.maxSets = 2000;
             descriptorPoolCreateInfo.poolSizeCount = descriptorPoolSizes.size();
             descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
             vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);

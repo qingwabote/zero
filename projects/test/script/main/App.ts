@@ -6,7 +6,7 @@ import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
 import defaults from "../../../../script/core/defaults.js";
 import { ClearFlagBit, CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
-import { Vec3 } from "../../../../script/core/math/vec3.js";
+import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import ForwardPhase from "../../../../script/core/pipeline/phases/ForwardPhase.js";
 import ShadowmapPhase from "../../../../script/core/pipeline/phases/ShadowmapPhase.js";
@@ -32,6 +32,7 @@ export default class App extends Zero {
 
         let node: Node;
 
+        // light
         node = new Node;
         node.addComponent(DirectionalLight);
         node.position = lit_position;
@@ -47,19 +48,19 @@ export default class App extends Zero {
         // node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
 
         node = new Node;
-        const cameraA = node.addComponent(Camera);
-        cameraA.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
-        cameraA.fov = 45;
-        cameraA.viewport = { x: 0, y: height * 0.5, width, height: height * 0.5 };
+        const cameraUp = node.addComponent(Camera);
+        cameraUp.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
+        cameraUp.fov = 45;
+        cameraUp.viewport = { x: 0, y: height * 0.5, width, height: height * 0.5 };
         node.position = [0, 0.5, 4];
 
         // UI
         node = new Node;
-        const camera = node.addComponent(Camera);
-        camera.visibilities = VisibilityBit.UI;
-        camera.clearFlags = ClearFlagBit.DEPTH;
-        camera.orthoHeight = height / 2;
-        camera.viewport = { x: 0, y: 0, width, height };
+        const cameraUI = node.addComponent(Camera);
+        cameraUI.visibilities = VisibilityBit.UI;
+        cameraUI.clearFlags = ClearFlagBit.DEPTH;
+        cameraUI.orthoHeight = height / 2;
+        cameraUI.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 1];
         (async () => {
             const zero = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
@@ -143,6 +144,11 @@ export default class App extends Zero {
             let materials: Material[] = await createMaterials(guardian);
             node = guardian.createScene("Sketchfab_Scene", materials)!;
             node.addComponent(ZeroComponent);
+            const scale = Object.assign(vec3.create(), node.scale);
+            scale[0] *= 0.5;
+            scale[1] *= 0.5;
+            scale[2] *= 0.5;
+            node.scale = scale;
 
             // const guardian = new GLTF();
             // await guardian.load('./asset/untitled');

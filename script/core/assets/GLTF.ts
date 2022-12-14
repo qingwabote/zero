@@ -34,6 +34,10 @@ const formatPart2Names: Record<number, string> = {
     5126: "32F"
 }
 
+function uri2path(uri: string) {
+    return uri.replaceAll("%20", " ");
+}
+
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
@@ -62,9 +66,9 @@ export default class GLTF extends Asset {
 
         const [, parent, name] = res;
         const json = JSON.parse(await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
-        this._bin = await zero.loader.load(`${parent}/${json.buffers[0].uri}`, "arraybuffer", this.onProgress);
+        this._bin = await zero.loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
-        const textures = await Promise.all(json_images.map((info: any) => (new Texture).load(`${parent}/${info.uri}`)));
+        const textures = await Promise.all(json_images.map((info: any) => (new Texture).load(`${parent}/${uri2path(info.uri)}`)));
         this._textures = textures;
 
         this._json = json;
@@ -77,10 +81,14 @@ export default class GLTF extends Asset {
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);
-        return this.createNode(this._json.nodes[scene.nodes[0]]);
+        const node = new Node(name);
+        for (const index of scene.nodes) {
+            node.addChild(this.createNode(this._json.nodes[index]))
+        }
+        return node;
     }
 
-    private createNode(info: any, parent?: Node): Node {
+    private createNode(info: any): Node {
         const node = new Node(info.name);
         if (info.matrix) {
             mat4.toRTS(info.matrix, node.rotation as Quat, node.position as Vec3, node.scale as Vec3);
@@ -103,11 +111,9 @@ export default class GLTF extends Asset {
         if (info.children) {
             for (const idx of info.children) {
                 const info = this._json.nodes[idx];
-                node.addChild(this.createNode(info, node));
+                node.addChild(this.createNode(info));
             }
         }
-
-        parent?.addChild(node);
         return node;
     }
 
@@ -115,6 +121,17 @@ export default class GLTF extends Asset {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
         for (const primitive of info.primitives) {
+            if (primitive.material == undefined) {
+                console.log("primitive with no material");
+                continue;
+            }
+            if (this._json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined) {
+                if (primitive.attributes['TEXCOORD_0'] == undefined) {
+                    // throw new Error("not provided attribute: TEXCOORD_0");
+                    console.log("not provided attribute: TEXCOORD_0")
+                    continue;
+                }
+            }
             const vertexBuffers: Buffer[] = [];
             const vertexOffsets: number[] = [];
             const attributes: Attribute[] = [];
@@ -138,9 +155,7 @@ export default class GLTF extends Asset {
             const accessor = this._json.accessors[primitive.indices];
             const buffer = this.getBuffer(accessor.bufferView, BufferUsageFlagBits.INDEX);
 
-            if (primitive.material != undefined) {
-                materials.push(this._materials[primitive.material]);
-            }
+            materials.push(this._materials[primitive.material]);
 
             if (accessor.type != "SCALAR") {
                 throw new Error("unsupported index type");

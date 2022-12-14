@@ -2,6 +2,7 @@
 #include <windows.h>
 #include "Window.hpp"
 #include <thread>
+// #include <cstdlib>
 
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
@@ -10,6 +11,7 @@ int WINAPI WinMain(
     _In_ int nCmdShow)
 {
     AllocConsole();
+    // system("chcp 65001");
     FILE *stream = nullptr;
     // freopen_s(&stream, "conin$", "r+t", stdin);
     freopen_s(&stream, "conout$", "w+t", stdout);

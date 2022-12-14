@@ -1,8 +1,8 @@
 #include "Loader.hpp"
 #include "sugars/v8sugar.hpp"
-#include "sugars/sdlsugar.hpp"
 #include "Window.hpp"
 #include "ThreadPool.hpp"
+#include <fstream>
 
 namespace binding
 {
@@ -17,43 +17,33 @@ namespace binding
         v8::Global<v8::Promise::Resolver> g_resolver(isolate, l_resolver);
 
         std::filesystem::current_path(_currentPath);
-        std::string file = std::filesystem::absolute(path).string();
+        std::filesystem::path abs_path = std::filesystem::absolute(path);
 
         auto f = new auto(
-            [file, type, g_resolver = std::move(g_resolver)]() mutable
+            [abs_path, type, g_resolver = std::move(g_resolver)]() mutable
             {
-                SDL_RWops *rw = SDL_RWFromFile(file.c_str(), "r");
-                if (!rw)
+                std::error_code ec;
+                std::uintmax_t size = std::filesystem::file_size(abs_path, ec);
+                if (ec)
                 {
                     auto f = new auto(
-                        [file, g_resolver = std::move(g_resolver)]()
+                        [abs_path, ec, g_resolver = std::move(g_resolver)]()
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
                             v8::EscapableHandleScope scrop(isolate);
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-                            std::string msg("open file failed: ");
-                            msg += file;
+                            std::string msg = ec.message() + ": " + abs_path.string();
                             g_resolver.Get(isolate)->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
                         });
                     Window::instance().beforeTick(UniqueFunction::create<decltype(f)>(f));
                     return;
                 }
-                auto size = SDL_RWsize(rw);
-                // if (size == 0)
-                // {
-                //     std::string msg("file size is zero: ");
-                //     msg += s_path;
-                //     resolver->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
-                //     return scrop.Escape(resolver->GetPromise());
-                // }
 
                 char *res = (char *)malloc(size);
-                if (size && SDL_RWread(rw, res, size, 1) != 1)
-                {
-                    // https://gitlab.com/wikibooks-opengl/modern-tutorials/blob/master/common-sdl2/shader_utils.cpp
-                    throw "not implemented yet";
-                }
+                std::ifstream is;
+                is.open(abs_path.string(), std::ios::binary);
+                is.read(res, size);
 
                 if (type == "text")
                 {

@@ -2,7 +2,9 @@ precision highp float;
 
 #include <global>
 
-layout(location = 0) in vec2 v_uv;
+#if USE_ALBEDO_MAP
+    layout(location = 0) in vec2 v_uv;
+#endif
 layout(location = 1) in vec3 v_normal;
 layout(location = 2) in vec3 v_position;
 #if USE_SHADOW_MAP

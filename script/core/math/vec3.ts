@@ -80,12 +80,5 @@ export default {
         out[1] = -a[1];
         out[2] = -a[2];
         return out;
-    },
-
-    // copy(out: Vec3, a: Readonly<Vec3>) {
-    //     out[0] = a[0];
-    //     out[1] = a[1];
-    //     out[2] = a[2];
-    //     return out;
-    // },
+    }
 } as const
