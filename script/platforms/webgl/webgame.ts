@@ -22,6 +22,10 @@ export default {
             input.emit("TOUCH_END", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
         })
 
+        canvas.addEventListener("wheel", (wheelEvent) => {
+            input.emit("GESTURE_PINCH", wheelEvent.deltaY);
+        })
+
         let requestId: number;
         let time: number = performance.now();
 

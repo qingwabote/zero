@@ -48,7 +48,7 @@ export default {
         return out;
     },
 
-    transformQuat(out: Vec3, a: Vec3, q: Quat) {
+    transformQuat(out: Vec3, a: Readonly<Vec3>, q: Readonly<Quat>) {
         // benchmarks: http://jsperf.com/quaternion-transform-Vec3-implementations
 
         // calculate quat * vec
@@ -61,6 +61,13 @@ export default {
         out[0] = ix * q[3] + iw * -q[0] + iy * -q[2] - iz * -q[1];
         out[1] = iy * q[3] + iw * -q[1] + iz * -q[0] - ix * -q[2];
         out[2] = iz * q[3] + iw * -q[2] + ix * -q[1] - iy * -q[0];
+        return out;
+    },
+
+    add(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+        out[0] = a[0] + b[0];
+        out[1] = a[1] + b[1];
+        out[2] = a[2] + b[2];
         return out;
     },
 

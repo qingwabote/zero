@@ -52,6 +52,7 @@ export default class App extends Zero {
         cameraUp.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
         cameraUp.fov = 45;
         cameraUp.viewport = { x: 0, y: height * 0.5, width, height: height * 0.5 };
+        node.addComponent(ZeroComponent);
         node.position = [0, 0.5, 4];
 
         // UI
@@ -143,7 +144,6 @@ export default class App extends Zero {
             await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
             let materials: Material[] = await createMaterials(guardian);
             node = guardian.createScene("Sketchfab_Scene", materials)!;
-            node.addComponent(ZeroComponent);
             const scale = Object.assign(vec3.create(), node.scale);
             scale[0] *= 0.5;
             scale[1] *= 0.5;

@@ -5,16 +5,6 @@ import vec3 from "../../../../script/core/math/vec3.js";
 
 export default class ZeroComponent extends Component {
     override start(): void {
-        // const scale = Object.assign(vec3.create(), this._node.scale);
-        // scale[0] *= 0.8;
-        // scale[1] *= 0.8;
-        // scale[2] *= 0.8;
-        // this._node.scale = scale;
-        // this._node.position = [0, 0, -10]
-        // this._node.eulerX = 45;
-        // this._node.eulerY = 45;
-        // this._node.eulerZ = 45;
-
         let touch: Touch;
         zero.input.on("TOUCH_START", event => {
             touch = event.touches[0];
@@ -25,12 +15,12 @@ export default class ZeroComponent extends Component {
 
             const axis = vec3.create(dy, dx, 0);// rotate 90°
             vec3.normalize(axis, axis);
-            const rad = Math.PI / 180 * Math.sqrt(dx * dx + dy * dy);
+            const rad = -Math.PI / 180 * Math.sqrt(dx * dx + dy * dy);
 
             // axis world to local
             const rot = quat.create();
-            quat.invert(rot, this._node.rotationWorld);
-            vec3.transformQuat(axis, axis, rot);
+            // quat.invert(rot, this._node.rotationWorld);
+            // vec3.transformQuat(axis, axis, rot);
             // rotate by axis
             quat.fromAxisAngle(rot, axis, rad);
             quat.multiply(rot, this._node.rotation, rot);
@@ -38,6 +28,16 @@ export default class ZeroComponent extends Component {
             this._node.rotation = rot;
 
             touch = event.touches[0];
+        })
+        zero.input.on("GESTURE_PINCH", delta => {
+            // const position = Object.assign(vec3.create(), this._node.position);
+            // position[2] += delta / 1000;
+
+            // this._node.position = vec3.transformQuat(vec3.create(), position, this._node.rotation);
+
+            let delta_position = vec3.create(0, 0, delta / 1000);
+            delta_position = vec3.transformQuat(vec3.create(), delta_position, this._node.rotation);
+            this._node.position = vec3.add(vec3.create(), this._node.position, delta_position);
         })
     }
 
