@@ -1,15 +1,15 @@
 import Component from "../../../../script/core/Component.js";
-import { Touch } from "../../../../script/core/Input.js";
+import Input, { Touch } from "../../../../script/core/Input.js";
 import quat from "../../../../script/core/math/quat.js";
 import vec3 from "../../../../script/core/math/vec3.js";
 
 export default class ZeroComponent extends Component {
     override start(): void {
         let touch: Touch;
-        zero.input.on("TOUCH_START", event => {
+        zero.input.on(Input.Event.TOUCH_START, event => {
             touch = event.touches[0];
         })
-        zero.input.on("TOUCH_MOVE", event => {
+        zero.input.on(Input.Event.TOUCH_MOVE, event => {
             const dx = event.touches[0].x - touch.x;
             const dy = event.touches[0].y - touch.y;
 
@@ -29,7 +29,7 @@ export default class ZeroComponent extends Component {
 
             touch = event.touches[0];
         })
-        zero.input.on("GESTURE_PINCH", delta => {
+        zero.input.on(Input.Event.GESTURE_PINCH, delta => {
             // const position = Object.assign(vec3.create(), this._node.position);
             // position[2] += delta / 1000;
 

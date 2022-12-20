@@ -18,12 +18,13 @@ const chunks: Record<string, string> = {};
 // ^\s* excludes other symbols, like //
 const ifMacroExp = /^\s*#if\s+(\w+)\r?\n/gm;
 
+const exp_lineByline = /(.+)\r?\n?/g;
+const exp_if = /^\s*#if\s+(\w+)/;
+const exp_else = /^\s*#else/;
+const exp_endif = /^\s*#endif/;
+
 function macroExpand(macros: Readonly<Record<string, number>>, source: string): string {
     let out = '';
-    const exp_lineByline = /(.+)\r?\n?/g;
-    const exp_if = /^\s*#if\s+(\w+)/;
-    const exp_else = /^\s*#else/;
-    const exp_endif = /^\s*#endif/;
     const stack: { type: 'if' | 'else', name: string, content: string }[] = [];
     while (true) {
         let res = exp_lineByline.exec(source);
@@ -44,8 +45,7 @@ function macroExpand(macros: Readonly<Record<string, number>>, source: string): 
             continue;
         }
 
-        res = exp_endif.exec(line);
-        if (res) {
+        if (exp_endif.test(line)) {
             const item = stack.pop()!;
             if (item.type != 'if') {
                 const item_if = stack.pop()!;

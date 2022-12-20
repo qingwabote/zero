@@ -17,6 +17,8 @@ enum DirtyFlagBits {
     TEXT = (1 << 0),
 }
 
+const lineBreak = '\n'.charCodeAt(0);
+
 export default class Label extends Component {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
@@ -118,8 +120,18 @@ export default class Label extends Component {
 
         const tex = this._fnt.texture.gfx_texture.info;
         let x = 0;
-        for (let i = 0; i < this._text.length; i++) {
-            const char = this._fnt.chars[this._text.charCodeAt(i)];
+        let y = 0;
+        let i = 0;
+        while (i < this._text.length) {
+            const code = this._text.charCodeAt(i);
+            if (code == lineBreak) {
+                x = 0;
+                y -= this._fnt.common.lineHeight;
+                i++;
+                continue;
+            }
+
+            const char = this._fnt.chars[code];
             const l = char.x / tex.width;
             const r = (char.x + char.width) / tex.width;
             const t = char.y / tex.height;
@@ -130,25 +142,25 @@ export default class Label extends Component {
             this._texCoordBuffer.data[2 * 4 * i + 0] = l;
             this._texCoordBuffer.data[2 * 4 * i + 1] = t;
             this._positionBuffer.data[3 * 4 * i + 0] = x;
-            this._positionBuffer.data[3 * 4 * i + 1] = -char.yoffset;
+            this._positionBuffer.data[3 * 4 * i + 1] = y - char.yoffset;
             this._positionBuffer.data[3 * 4 * i + 2] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 2] = r;
             this._texCoordBuffer.data[2 * 4 * i + 3] = t;
             this._positionBuffer.data[3 * 4 * i + 3] = x + char.width;
-            this._positionBuffer.data[3 * 4 * i + 4] = -char.yoffset;
+            this._positionBuffer.data[3 * 4 * i + 4] = y - char.yoffset;
             this._positionBuffer.data[3 * 4 * i + 5] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 4] = r;
             this._texCoordBuffer.data[2 * 4 * i + 5] = b;
             this._positionBuffer.data[3 * 4 * i + 6] = x + char.width;
-            this._positionBuffer.data[3 * 4 * i + 7] = -char.yoffset - char.height;
+            this._positionBuffer.data[3 * 4 * i + 7] = y - char.yoffset - char.height;
             this._positionBuffer.data[3 * 4 * i + 8] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 6] = l;
             this._texCoordBuffer.data[2 * 4 * i + 7] = b;
             this._positionBuffer.data[3 * 4 * i + 9] = x;
-            this._positionBuffer.data[3 * 4 * i + 10] = -char.yoffset - char.height;
+            this._positionBuffer.data[3 * 4 * i + 10] = y - char.yoffset - char.height;
             this._positionBuffer.data[3 * 4 * i + 11] = 0;
 
             x += char.width;
@@ -161,6 +173,8 @@ export default class Label extends Component {
                 4 * i + 0,
                 4 * i + 3
             ], 6 * i)
+
+            i++;
         }
 
         this._texCoordBuffer.update();

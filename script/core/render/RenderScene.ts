@@ -30,7 +30,7 @@ export default class RenderScene {
         return this._dirtyObjects;
     }
 
-    update(dt: number) {
+    update() {
         for (let i = 0; i < this._models.length; i++) {
             this._models[i].update()
         }

@@ -1,3 +1,4 @@
+import Input from "../../core/Input.js";
 import Zero from "../../core/Zero.js";
 import WebLoader from "./WebLoader.js";
 import WebPlatfrom from "./WebPlatform.js";
@@ -11,19 +12,19 @@ export default {
 
         const input = zero.input;
         canvas.addEventListener("mousedown", (mouseEvent) => {
-            input.emit("TOUCH_START", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
+            input.emit(Input.Event.TOUCH_START, { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
         })
         canvas.addEventListener("mousemove", (mouseEvent) => {
             if (mouseEvent.buttons) {
-                input.emit("TOUCH_MOVE", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
+                input.emit(Input.Event.TOUCH_MOVE, { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
             }
         })
         canvas.addEventListener("mouseup", (mouseEvent) => {
-            input.emit("TOUCH_END", { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
+            input.emit(Input.Event.TOUCH_END, { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
         })
 
         canvas.addEventListener("wheel", (wheelEvent) => {
-            input.emit("GESTURE_PINCH", wheelEvent.deltaY);
+            input.emit(Input.Event.GESTURE_PINCH, wheelEvent.deltaY);
         })
 
         let requestId: number;

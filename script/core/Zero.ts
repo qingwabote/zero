@@ -9,6 +9,7 @@ import RenderFlow from "./pipeline/RenderFlow.js";
 import Platfrom from "./Platfrom.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
+import EventEmitter from "./utils/EventEmitter.js";
 
 interface Frame {
     commandBuffer: CommandBuffer;
@@ -17,7 +18,19 @@ interface Frame {
     renderFence: Fence;
 }
 
-export default abstract class Zero {
+enum Event {
+    RENDER_START = "RENDER_START",
+    RENDER_END = 'RENDER_END'
+}
+
+interface EventToListener {
+    [Event.RENDER_START]: () => void;
+    [Event.RENDER_END]: () => void;
+}
+
+export default abstract class Zero extends EventEmitter<EventToListener> {
+    static Event = Event;
+
     private _input: Input = new Input;
     get input(): Input {
         return this._input;
@@ -89,28 +102,25 @@ export default abstract class Zero {
     abstract start(): RenderFlow;
 
     tick(dt: number) {
-        const current = this._frames[this._frameIndex];
-
-        gfx.acquire(current.presentSemaphore);
-
         this._componentScheduler.update(dt)
 
-        this._renderScene.update(dt);
+        const current = this._frames[this._frameIndex];
+        gfx.acquire(current.presentSemaphore);
 
+        this.emit(Event.RENDER_START);
+        this._renderScene.update();
         this._renderFlow.update();
-
-        this._renderScene.dirtyObjects.clear();
-
-        const commandBuffer = current.commandBuffer;
-        commandBuffer.begin();
-        this._renderFlow.record(commandBuffer);
-        commandBuffer.end();
+        this._renderScene.dirtyObjects.clear()
+        current.commandBuffer.begin();
+        this._renderFlow.record(current.commandBuffer);
+        current.commandBuffer.end();
+        this.emit(Event.RENDER_END);
 
         const last = this._frames[this._frameIndex > 0 ? this._frameIndex - 1 : this._frames.length - 1];
         gfx.waitFence(last.renderFence);
 
         gfx.submit({
-            commandBuffer,
+            commandBuffer: current.commandBuffer,
             waitSemaphore: current.presentSemaphore,
             waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             signalSemaphore: current.renderSemaphore

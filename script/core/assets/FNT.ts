@@ -1,11 +1,27 @@
+// http://www.angelcode.com/products/bmfont/doc/render_text.html
+
 import Asset from "./Asset.js";
 import Texture from "./Texture.js";
+
+interface Common {
+    lineHeight: number
+}
 
 interface Char {
     id: number; x: number; y: number; width: number; height: number; xoffset: number; yoffset: number; xadvance: number; page: number; chnl: number;
 }
 
+const exp_lineByline = /(.+)\r?\n?/g;
+const exp_keyAndValue = /(\w+)=(\-?\d+)/g;
+const exp_common = /common\s+/;
+const exp_char = /char\s+/;
+
 export default class FNT extends Asset {
+    private _common!: Common;
+    get common() {
+        return this._common;
+    }
+
     private _chars: Record<number, Char> = {};
     get chars(): Record<string, Char> {
         return this._chars
@@ -24,21 +40,33 @@ export default class FNT extends Asset {
         const parent = res[1];
         const name = res[2];
         const text = await zero.loader.load(`${parent}/${name}.fnt`, "text");
-        const resAll = text.matchAll(/char\s+id=(\-?\d+)\s+x=(\-?\d+)\s+y=(\-?\d+)\s+width=(\-?\d+)\s+height=(\-?\d+)\s+xoffset=(\-?\d+)\s+yoffset=(\-?\d+)\s+xadvance=(\-?\d+)\s+page=(\-?\d+)\s+chnl=(\-?\d+)\s+/g);
-        for (const res of resAll) {
-            const char: Char = {
-                id: parseInt(res[1]),
-                x: parseInt(res[2]),
-                y: parseInt(res[3]),
-                width: parseInt(res[4]),
-                height: parseInt(res[5]),
-                xoffset: parseInt(res[6]),
-                yoffset: parseInt(res[7]),
-                xadvance: parseInt(res[8]),
-                page: parseInt(res[9]),
-                chnl: parseInt(res[10])
+
+        while (true) {
+            let res = exp_lineByline.exec(text);
+            if (!res) {
+                break;
             }
-            this._chars[char.id] = char;
+
+            let line = res[0];
+            if (exp_common.test(line)) {
+                const resAll = line.matchAll(exp_keyAndValue);
+                const common: any = {};
+                for (const res of resAll) {
+                    common[res[1]] = parseInt(res[2]);
+                }
+                this._common = common;
+                continue;
+            }
+
+            if (exp_char.test(line)) {
+                const resAll = line.matchAll(exp_keyAndValue);
+                const char: any = {};
+                for (const res of resAll) {
+                    char[res[1]] = parseInt(res[2]);
+                }
+                this._chars[char.id] = char;
+                continue;
+            }
         }
 
         res = text.match(/file="(.+)"/);

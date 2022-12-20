@@ -2,8 +2,8 @@ import FNT from "../../../../script/core/assets/FNT.js";
 import GLTF from "../../../../script/core/assets/GLTF.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
-import FPS from "../../../../script/core/components/FPS.js";
 import Label from "../../../../script/core/components/Label.js";
+import Profiler from "../../../../script/core/components/Profiler.js";
 import defaults from "../../../../script/core/defaults.js";
 import { ClearFlagBit, CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
 import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
@@ -71,7 +71,7 @@ export default class App extends Zero {
             const label = node.addComponent(Label);
             label.fnt = fnt;
             label.shader = zero;
-            node.addComponent(FPS);
+            node.addComponent(Profiler);
             node.position = [-width / 2, height / 2, 0];
             node.visibility = VisibilityBit.UI;
 
