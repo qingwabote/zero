@@ -34,8 +34,8 @@ export default class Texture extends Asset {
         _commandBuffer.begin();
         _commandBuffer.copyImageBitmapToTexture(imageBitmap, texture);
         _commandBuffer.end();
-        gfx.submit({ commandBuffer: _commandBuffer }, _fence);
-        gfx.waitFence(_fence);
+        gfx.queue.submit({ commandBuffer: _commandBuffer }, _fence);
+        gfx.queue.waitFence(_fence);
 
         this._gfx_texture = texture;
         return this;

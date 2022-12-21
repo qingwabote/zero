@@ -13,6 +13,7 @@ set(SRC_FILES
     VkDescriptorSet.cpp
     VkFence.cpp
     VkSemaphore.cpp
+    VkQueue.cpp
 )
 
 add_library(gfx STATIC ${SRC_FILES})

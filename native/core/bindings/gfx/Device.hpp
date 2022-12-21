@@ -15,63 +15,55 @@
 #include "CommandBuffer.hpp"
 #include "Fence.hpp"
 #include "Semaphore.hpp"
+#include "Queue.hpp"
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    class Device_impl;
+
+    class Device : public Binding
     {
-        class Device_impl;
+    private:
+        Device_impl *_impl = nullptr;
 
-        class Device : public Binding
-        {
-        private:
-            Device_impl *_impl = nullptr;
+    protected:
+        v8::Local<v8::FunctionTemplate> createTemplate() override;
 
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
+    public:
+        Device(SDL_Window *window);
 
-        public:
-            Device(SDL_Window *window);
+        bool initialize();
 
-            bool initialize();
+        Buffer *createBuffer();
 
-            Buffer *createBuffer();
+        Texture *createTexture();
 
-            Texture *createTexture();
+        Sampler *createSampler();
 
-            Sampler *createSampler();
+        Shader *createShader();
 
-            Shader *createShader();
+        RenderPass *createRenderPass();
 
-            RenderPass *createRenderPass();
+        Framebuffer *createFramebuffer();
 
-            Framebuffer *createFramebuffer();
+        DescriptorSetLayout *createDescriptorSetLayout();
 
-            DescriptorSetLayout *createDescriptorSetLayout();
+        DescriptorSet *createDescriptorSet();
 
-            DescriptorSet *createDescriptorSet();
+        PipelineLayout *createPipelineLayout();
 
-            PipelineLayout *createPipelineLayout();
+        Pipeline *createPipeline();
 
-            Pipeline *createPipeline();
+        CommandBuffer *createCommandBuffer();
 
-            CommandBuffer *createCommandBuffer();
+        Semaphore *createSemaphore();
 
-            Semaphore *createSemaphore();
+        Fence *createFence();
 
-            Fence *createFence();
+        void acquire(Semaphore *presentSemaphore);
 
-            void acquire(Semaphore *presentSemaphore);
+        void waitIdle();
 
-            void submit(v8::Local<v8::Object> info, Fence *fence);
-
-            void present(Semaphore *waitSemaphore);
-
-            void waitFence(Fence *fence);
-
-            void waitIdle();
-
-            ~Device();
-        };
-    }
+        ~Device();
+    };
 }

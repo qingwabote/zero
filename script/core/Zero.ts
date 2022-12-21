@@ -117,15 +117,15 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         this.emit(Event.RENDER_END);
 
         const last = this._frames[this._frameIndex > 0 ? this._frameIndex - 1 : this._frames.length - 1];
-        gfx.waitFence(last.renderFence);
+        gfx.queue.waitFence(last.renderFence);
 
-        gfx.submit({
+        gfx.queue.submit({
             commandBuffer: current.commandBuffer,
             waitSemaphore: current.presentSemaphore,
             waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             signalSemaphore: current.renderSemaphore
         }, current.renderFence);
-        gfx.present(current.renderSemaphore);
+        gfx.queue.present(current.renderSemaphore);
 
         this._frameIndex = this._frameIndex < this._frames.length - 1 ? this._frameIndex + 1 : 0;
     }

@@ -12,18 +12,15 @@ namespace binding
         Buffer::Buffer(std::unique_ptr<Buffer_impl> impl)
             : Binding(), _impl(std::move(impl)) {}
 
-        bool Buffer::initialize(v8::Local<v8::Object> info)
+        bool Buffer::initialize(BufferInfo &info)
         {
-            auto usage = sugar::v8::object_get(info, "usage").As<v8::Number>()->Value();
             VkBufferCreateInfo bufferInfo = {};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.usage = usage;
-            auto size = sugar::v8::object_get(info, "size").As<v8::Number>()->Value();
-            bufferInfo.size = size;
+            bufferInfo.usage = info.usage;
+            bufferInfo.size = info.size;
 
-            auto mem_usage = sugar::v8::object_get(info, "mem_usage").As<v8::Number>()->Value();
             VmaAllocationCreateInfo allocationCreateInfo = {};
-            allocationCreateInfo.usage = static_cast<VmaMemoryUsage>(mem_usage);
+            allocationCreateInfo.usage = static_cast<VmaMemoryUsage>(info.mem_usage);
             if (allocationCreateInfo.usage == VMA_MEMORY_USAGE_CPU_TO_GPU)
             {
                 allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;

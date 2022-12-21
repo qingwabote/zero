@@ -13,56 +13,57 @@
 #include "bindings/gfx/DescriptorSet.hpp"
 #include "bindings/gfx/Pipeline.hpp"
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    class Device_impl
     {
-        class Device_impl
-        {
-            friend class Device;
+        friend class Device;
 
-        private:
-            uint32_t _version;
+    private:
+        uint32_t _version;
 
-            SDL_Window *_window = nullptr;
-            vkb::Instance _vkb_instance;
-            VkSurfaceKHR _surface = nullptr;
-            vkb::Device _vkb_device;
+        SDL_Window *_window = nullptr;
+        vkb::Instance _vkb_instance;
+        VkSurfaceKHR _surface = nullptr;
+        vkb::Device _vkb_device;
 
-            VmaAllocator _allocator;
+        VmaAllocator _allocator;
 
-            vkb::Swapchain _vkb_swapchain;
-            std::vector<VkImageView> _swapchainImageViews;
+        VkCommandPool _commandPool = nullptr;
+        VkDescriptorPool _descriptorPool = nullptr;
 
-            VkCommandPool _commandPool = nullptr;
-            VkDescriptorPool _descriptorPool = nullptr;
+        vkb::Swapchain _vkb_swapchain;
+        std::vector<VkImageView> _swapchainImageViews;
 
-            VkQueue _graphicsQueue = nullptr;
+        uint32_t _swapchainImageIndex = 0;
 
-            uint32_t _swapchainImageIndex = 0;
+        VkQueue _graphicsQueue = nullptr;
 
-        public:
-            uint32_t version() { return _version; }
+    public:
+        uint32_t version() { return _version; }
 
-            VkCommandPool commandPool() { return _commandPool; }
+        VkCommandPool commandPool() { return _commandPool; }
 
-            VkDescriptorPool descriptorPool() { return _descriptorPool; }
+        VkDescriptorPool descriptorPool() { return _descriptorPool; }
 
-            VmaAllocator allocator() { return _allocator; }
+        VmaAllocator allocator() { return _allocator; }
 
-            std::vector<VkImageView> &swapchainImageViews() { return _swapchainImageViews; }
+        VkSwapchainKHR swapchain() { return _vkb_swapchain.swapchain; }
 
-            VkFormat swapchainImageFormat() { return _vkb_swapchain.image_format; }
+        std::vector<VkImageView> &swapchainImageViews() { return _swapchainImageViews; }
 
-            VkExtent2D &swapchainImageExtent() { return _vkb_swapchain.extent; }
+        VkFormat swapchainImageFormat() { return _vkb_swapchain.image_format; }
 
-            uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
+        VkExtent2D &swapchainImageExtent() { return _vkb_swapchain.extent; }
 
-            operator VkDevice() { return _vkb_device.device; }
+        uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
 
-            Device_impl(SDL_Window *window) : _window(window) {}
+        VkQueue graphicsQueue() { return _graphicsQueue; }
 
-            ~Device_impl() {}
-        };
-    }
+        operator VkDevice() { return _vkb_device.device; }
+
+        Device_impl(SDL_Window *window) : _window(window) {}
+
+        ~Device_impl() {}
+    };
 }

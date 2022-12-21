@@ -23,6 +23,7 @@ set(SRC_FILES
     bindings/gfx/DescriptorSet.cpp
     bindings/gfx/Fence.cpp
     bindings/gfx/Semaphore.cpp
+    bindings/gfx/Queue.cpp
 )
 
 add_library(core STATIC ${SRC_FILES})

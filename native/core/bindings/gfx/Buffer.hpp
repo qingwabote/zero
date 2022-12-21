@@ -2,30 +2,34 @@
 
 #include "Binding.hpp"
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    struct BufferInfo
     {
-        class Buffer_impl;
+        int32_t usage;
+        uint64_t size;
+        int32_t mem_usage;
+    };
 
-        class Buffer : public Binding
-        {
-        private:
-            std::unique_ptr<Buffer_impl> _impl;
+    class Buffer_impl;
 
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
+    class Buffer : public Binding
+    {
+    private:
+        std::unique_ptr<Buffer_impl> _impl;
 
-        public:
-            Buffer_impl &impl() { return *_impl.get(); }
+    protected:
+        v8::Local<v8::FunctionTemplate> createTemplate() override;
 
-            Buffer(std::unique_ptr<Buffer_impl> impl);
+    public:
+        Buffer_impl &impl() { return *_impl.get(); }
 
-            bool initialize(v8::Local<v8::Object> info);
+        Buffer(std::unique_ptr<Buffer_impl> impl);
 
-            void update(v8::Local<v8::ArrayBufferView> buffer);
+        bool initialize(BufferInfo &info);
 
-            ~Buffer();
-        };
-    }
+        void update(v8::Local<v8::ArrayBufferView> buffer);
+
+        ~Buffer();
+    };
 }

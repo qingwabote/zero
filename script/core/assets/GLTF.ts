@@ -209,8 +209,8 @@ export default class GLTF extends Asset {
                 _commandBuffer.begin();
                 _commandBuffer.copyBuffer(view, buffer);
                 _commandBuffer.end();
-                gfx.submit({ commandBuffer: _commandBuffer }, _fence);
-                gfx.waitFence(_fence);
+                gfx.queue.submit({ commandBuffer: _commandBuffer }, _fence);
+                gfx.queue.waitFence(_fence);
             } else {
                 buffer.initialize({
                     usage: usage,

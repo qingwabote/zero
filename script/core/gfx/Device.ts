@@ -5,11 +5,11 @@ import DescriptorSetLayout from "./DescriptorSetLayout.js";
 import Fence from "./Fence.js";
 import { Framebuffer } from "./Framebuffer.js";
 import Pipeline, { PipelineLayout } from "./Pipeline.js";
+import Queue from "./Queue.js";
 import RenderPass from "./RenderPass.js";
 import { Sampler } from "./Sampler.js";
 import Semaphore from "./Semaphore.js";
 import Shader from "./Shader.js";
-import { SubmitInfo } from "./SubmitInfo.js";
 import Texture from "./Texture.js";
 
 export interface Capabilities {
@@ -25,6 +25,8 @@ export default interface Device {
     get capabilities(): Capabilities;
 
     get swapchain(): Swapchain;
+
+    get queue(): Queue;
 
     createDescriptorSetLayout(): DescriptorSetLayout;
 
@@ -53,10 +55,4 @@ export default interface Device {
     createFence(): Fence;
 
     acquire(semaphore: Semaphore): void;
-
-    submit(info: SubmitInfo, fence: Fence): void;
-
-    present(waitSemaphore: Semaphore): void;
-
-    waitFence(fence: Fence): void;
 }
