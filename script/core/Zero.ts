@@ -11,13 +11,6 @@ import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 import EventEmitter from "./utils/EventEmitter.js";
 
-interface Frame {
-    commandBuffer: CommandBuffer;
-    presentSemaphore: Semaphore;
-    renderSemaphore: Semaphore;
-    renderFence: Fence;
-}
-
 enum Event {
     RENDER_START = "RENDER_START",
     RENDER_END = 'RENDER_END'
@@ -56,9 +49,6 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         return this._renderScene;
     }
 
-    private _frames: Frame[] = [];
-    private _frameIndex: number = 0;
-
     private _componentScheduler: ComponentScheduler = new ComponentScheduler;
     get componentScheduler(): ComponentScheduler {
         return this._componentScheduler;
@@ -69,6 +59,11 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         return this._renderFlow;
     }
 
+    private _commandBuffer!: CommandBuffer;
+    private _presentSemaphore!: Semaphore;
+    private _renderSemaphore!: Semaphore;
+    private _renderFence!: Fence;
+
     initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
         this._loader = loader;
 
@@ -76,20 +71,21 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
 
         this._window = { width, height };
 
-        for (let i = 0; i < 2; i++) {
-            const commandBuffer = gfx.createCommandBuffer();
-            commandBuffer.initialize();
-            const presentSemaphore = gfx.createSemaphore();
-            presentSemaphore.initialize();
-            const renderSemaphore = gfx.createSemaphore();
-            renderSemaphore.initialize();
-            const renderFence = gfx.createFence();
-            renderFence.initialize(i == 0);
-            this._frames.push({
-                commandBuffer, presentSemaphore, renderSemaphore, renderFence
-            })
-        }
-        this._frameIndex = 1;
+        const commandBuffer = gfx.createCommandBuffer();
+        commandBuffer.initialize();
+        this._commandBuffer = commandBuffer;
+
+        const presentSemaphore = gfx.createSemaphore();
+        presentSemaphore.initialize();
+        this._presentSemaphore = presentSemaphore;
+
+        const renderSemaphore = gfx.createSemaphore();
+        renderSemaphore.initialize();
+        this._renderSemaphore = renderSemaphore;
+
+        const renderFence = gfx.createFence();
+        renderFence.initialize(true);
+        this._renderFence = renderFence;
 
         this._renderScene = new RenderScene();
 
@@ -104,29 +100,25 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
     tick(dt: number) {
         this._componentScheduler.update(dt)
 
-        const current = this._frames[this._frameIndex];
-        gfx.acquire(current.presentSemaphore);
+        gfx.acquire(this._presentSemaphore);
+
+        gfx.queue.waitFence(this._renderFence);
 
         this.emit(Event.RENDER_START);
         this._renderScene.update();
         this._renderFlow.update();
         this._renderScene.dirtyObjects.clear()
-        current.commandBuffer.begin();
-        this._renderFlow.record(current.commandBuffer);
-        current.commandBuffer.end();
+        this._commandBuffer.begin();
+        this._renderFlow.record(this._commandBuffer);
+        this._commandBuffer.end();
         this.emit(Event.RENDER_END);
 
-        const last = this._frames[this._frameIndex > 0 ? this._frameIndex - 1 : this._frames.length - 1];
-        gfx.queue.waitFence(last.renderFence);
-
         gfx.queue.submit({
-            commandBuffer: current.commandBuffer,
-            waitSemaphore: current.presentSemaphore,
+            commandBuffer: this._commandBuffer,
+            waitSemaphore: this._presentSemaphore,
             waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            signalSemaphore: current.renderSemaphore
-        }, current.renderFence);
-        gfx.queue.present(current.renderSemaphore);
-
-        this._frameIndex = this._frameIndex < this._frames.length - 1 ? this._frameIndex + 1 : 0;
+            signalSemaphore: this._renderSemaphore
+        }, this._renderFence);
+        gfx.queue.present(this._renderSemaphore);
     }
 } 
