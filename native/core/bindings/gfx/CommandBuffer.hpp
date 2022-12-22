@@ -11,51 +11,71 @@
 
 #include "bindings/ImageBitmap.hpp"
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    struct RenderArea
     {
-        class CommandBuffer_impl;
+        int32_t x;
+        int32_t y;
+        int32_t width;
+        int32_t height;
+    };
 
-        class CommandBuffer : public Binding
-        {
-        private:
-            std::unique_ptr<CommandBuffer_impl> _impl;
+    struct VertexInput
+    {
+        std::vector<Buffer *> vertexBuffers;
+        std::vector<uint32_t> vertexOffsets;
+        Buffer *indexBuffer;
+        int32_t indexType;
+        uint32_t indexCount;
+        uint32_t indexOffset;
+    };
 
-        protected:
-            virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
+    struct InputAssembler
+    {
+        VertexInput vertexInput;
+    };
 
-        public:
-            CommandBuffer_impl &impl() { return *_impl.get(); }
+    class CommandBuffer_impl;
 
-            CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl);
+    class CommandBuffer : public Binding
+    {
+    private:
+        std::unique_ptr<CommandBuffer_impl> _impl;
 
-            bool initialize();
+    protected:
+        virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 
-            void copyBuffer(v8::Local<v8::ArrayBufferView> srcBuffer, Buffer *dstBuffer);
+    public:
+        CommandBuffer_impl &impl() { return *_impl.get(); }
 
-            void copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture);
+        CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl);
 
-            void begin();
+        bool initialize();
 
-            void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, v8::Local<v8::Object> area);
+        void copyBuffer(const void *src, Buffer *dstBuffer, size_t size);
 
-            void bindDescriptorSet(PipelineLayout *pipelineLayout,
-                                   uint32_t index,
-                                   DescriptorSet *descriptorSet,
-                                   v8::Local<v8::Array> dynamicOffsets);
+        void copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture);
 
-            void bindInputAssembler(v8::Local<v8::Object> inputAssembler);
+        void begin();
 
-            void bindPipeline(Pipeline *pipeline);
+        void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, RenderArea &area);
 
-            void draw();
+        void bindDescriptorSet(PipelineLayout *pipelineLayout,
+                               uint32_t index,
+                               DescriptorSet *descriptorSet,
+                               std::vector<uint32_t> &dynamicOffsets);
 
-            void endRenderPass();
+        void bindInputAssembler(InputAssembler &inputAssembler);
 
-            void end();
+        void bindPipeline(Pipeline *pipeline);
 
-            ~CommandBuffer();
-        };
-    }
+        void draw();
+
+        void endRenderPass();
+
+        void end();
+
+        ~CommandBuffer();
+    };
 }

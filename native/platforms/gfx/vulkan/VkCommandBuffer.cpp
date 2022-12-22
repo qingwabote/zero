@@ -76,15 +76,12 @@ namespace binding
             vkBeginCommandBuffer(_impl->_commandBuffer, &info);
         }
 
-        void CommandBuffer::copyBuffer(v8::Local<v8::ArrayBufferView> srcBuffer, Buffer *dstBuffer)
+        void CommandBuffer::copyBuffer(const void *src, Buffer *dstBuffer, size_t size)
         {
-            auto start = reinterpret_cast<const uint8_t *>(srcBuffer->Buffer()->Data()) + srcBuffer->ByteOffset();
-            VkBuffer buffer = _impl->createStagingBuffer(start, srcBuffer->ByteLength());
+            VkBuffer buffer = _impl->createStagingBuffer(src, size);
 
             VkBufferCopy copy = {};
-            copy.dstOffset = 0;
-            copy.srcOffset = 0;
-            copy.size = srcBuffer->ByteLength();
+            copy.size = size;
             vkCmdCopyBuffer(_impl->_commandBuffer, buffer, dstBuffer->impl(), 1, &copy);
         }
 
@@ -132,25 +129,25 @@ namespace binding
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
         }
 
-        void CommandBuffer::beginRenderPass(RenderPass *c_renderPass, Framebuffer *c_framebuffer, v8::Local<v8::Object> area)
+        void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, RenderArea &area)
         {
-            int32_t x = sugar::v8::object_get(area, "x").As<v8::Number>()->Value();
-            int32_t width = sugar::v8::object_get(area, "width").As<v8::Number>()->Value();
-            int32_t height = sugar::v8::object_get(area, "height").As<v8::Number>()->Value();
+            int32_t x = area.x;
+            int32_t width = area.width;
+            int32_t height = area.height;
             int32_t y;
 
-            VkViewport viewport;
+            VkViewport viewport{};
             viewport.x = x;
             viewport.width = width;
             viewport.minDepth = 0;
             viewport.maxDepth = 1;
 
-            if (c_framebuffer->impl().isSwapchain())
+            if (framebuffer->impl().isSwapchain())
             {
                 // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
                 // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
                 // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
-                y = _impl->_device->swapchainImageExtent().height - sugar::v8::object_get(area, "y").As<v8::Number>()->Value() - height;
+                y = _impl->_device->swapchainImageExtent().height - area.y - height;
 
                 viewport.y = y + height;
                 viewport.height = -height;
@@ -159,7 +156,7 @@ namespace binding
             }
             else
             {
-                y = sugar::v8::object_get(area, "y").As<v8::Number>()->Value();
+                y = area.y;
 
                 viewport.y = y;
                 viewport.height = height;
@@ -174,13 +171,13 @@ namespace binding
 
             VkRenderPassBeginInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            info.framebuffer = c_framebuffer->impl();
-            info.renderPass = c_renderPass->impl();
+            info.framebuffer = framebuffer->impl();
+            info.renderPass = renderPass->impl();
             info.renderArea.offset.x = x;
             info.renderArea.offset.y = y;
             info.renderArea.extent = {uint32_t(width), uint32_t(height)};
 
-            auto js_colorAttachments = sugar::v8::object_get(c_renderPass->info(), "colorAttachments").As<v8::Array>();
+            auto js_colorAttachments = sugar::v8::object_get(renderPass->info(), "colorAttachments").As<v8::Array>();
             std::vector<VkClearValue> clearValues(js_colorAttachments->Length() + 1);
             for (int32_t i = 0; i < js_colorAttachments->Length(); i++)
             {
@@ -192,66 +189,42 @@ namespace binding
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
         }
 
-        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *gfx_descriptorSet, v8::Local<v8::Array> js_dynamicOffsets)
+        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet, std::vector<uint32_t> &dynamicOffsets)
         {
-            static std::vector<uint32_t> dynamicOffsets;
-
-            v8::Isolate *isolate = v8::Isolate::GetCurrent();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
-            dynamicOffsets.resize(js_dynamicOffsets->Length());
-            for (uint32_t i = 0; i < js_dynamicOffsets->Length(); i++)
-            {
-                dynamicOffsets[i] = js_dynamicOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
-            }
-
-            VkDescriptorSet descriptorSet = gfx_descriptorSet->impl();
+            VkDescriptorSet descriptorSet0 = descriptorSet->impl();
             vkCmdBindDescriptorSets(_impl->_commandBuffer,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     pipelineLayout->impl(),
                                     index,
                                     1,
-                                    &descriptorSet,
+                                    &descriptorSet0,
                                     dynamicOffsets.size(),
                                     dynamicOffsets.data());
         }
 
-        void CommandBuffer::bindInputAssembler(v8::Local<v8::Object> inputAssembler)
+        void CommandBuffer::bindInputAssembler(InputAssembler &inputAssembler)
         {
-            // auto time = std::chrono::steady_clock::now();
-
             static std::vector<VkBuffer> vertexBuffers;
             static std::vector<VkDeviceSize> vertexOffsets;
 
-            v8::Isolate *isolate = v8::Isolate::GetCurrent();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+            VertexInput &vertexInput = inputAssembler.vertexInput;
 
-            v8::Local<v8::Object> js_vertexInput = sugar::v8::object_get(inputAssembler, "vertexInput").As<v8::Object>();
-            v8::Local<v8::Array> js_vertexBuffers = sugar::v8::object_get(js_vertexInput, "vertexBuffers").As<v8::Array>();
-            vertexBuffers.resize(js_vertexBuffers->Length());
-            for (uint32_t i = 0; i < js_vertexBuffers->Length(); i++)
+            vertexBuffers.resize(vertexInput.vertexBuffers.size());
+            for (uint32_t i = 0; i < vertexBuffers.size(); i++)
             {
-                Buffer *c_buffer = Binding::c_obj<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>());
-                vertexBuffers[i] = c_buffer->impl();
+                vertexBuffers[i] = vertexInput.vertexBuffers[i]->impl();
             }
 
-            v8::Local<v8::Array> js_vertexOffsets = sugar::v8::object_get(js_vertexInput, "vertexOffsets").As<v8::Array>();
-            vertexOffsets.resize(js_vertexOffsets->Length());
-            for (uint32_t i = 0; i < js_vertexOffsets->Length(); i++)
+            vertexOffsets.resize(vertexInput.vertexOffsets.size());
+            for (uint32_t i = 0; i < vertexOffsets.size(); i++)
             {
-                vertexOffsets[i] = js_vertexOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
+                vertexOffsets[i] = vertexInput.vertexOffsets[i];
             }
-
-            // auto dtNS = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - time).count());
-            // printf("vertexBuffers %f\n", dtNS * 0.001);
 
             vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), vertexOffsets.data());
+            vkCmdBindIndexBuffer(_impl->_commandBuffer, vertexInput.indexBuffer->impl(), vertexInput.indexOffset, static_cast<VkIndexType>(vertexInput.indexType));
 
-            v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(js_vertexInput, "indexBuffer").As<v8::Object>();
-            Buffer *c_buffer = Binding::c_obj<Buffer>(js_indexBuffer);
-            uint32_t indexOffset = sugar::v8::object_get(js_vertexInput, "indexOffset").As<v8::Number>()->Value();
-            VkIndexType indexType = static_cast<VkIndexType>(sugar::v8::object_get(js_vertexInput, "indexType").As<v8::Number>()->Value());
-            vkCmdBindIndexBuffer(_impl->_commandBuffer, c_buffer->impl(), indexOffset, indexType);
+            _impl->_indexCount = vertexInput.indexCount;
         }
 
         void CommandBuffer::bindPipeline(Pipeline *pipeline)
@@ -261,10 +234,7 @@ namespace binding
 
         void CommandBuffer::draw()
         {
-            v8::Local<v8::Object> inputAssembler = retrieve("lastInputAssembler");
-            v8::Local<v8::Object> js_vertexInput = sugar::v8::object_get(inputAssembler, "vertexInput").As<v8::Object>();
-            uint32_t indexCount = sugar::v8::object_get(js_vertexInput, "indexCount").As<v8::Number>()->Value();
-            vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, 0, 0, 0);
+            vkCmdDrawIndexed(_impl->_commandBuffer, _impl->_indexCount, 1, 0, 0, 0);
         }
 
         void CommandBuffer::endRenderPass()

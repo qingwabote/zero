@@ -33,14 +33,6 @@ namespace binding::gfx
             });
 
         cls.defineFunction(
-            "initialize",
-            [](const v8::FunctionCallbackInfo<v8::Value> &info)
-            {
-                auto c_obj = Binding::c_obj<Device>(info.This());
-                info.GetReturnValue().Set(c_obj->initialize());
-            });
-
-        cls.defineFunction(
             "createBuffer",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
