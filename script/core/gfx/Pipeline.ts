@@ -1,5 +1,5 @@
-import Buffer from "./Buffer.js";
 import DescriptorSetLayout from "./DescriptorSetLayout.js";
+import { VertexInputState } from "./InputAssembler.js";
 import RenderPass from "./RenderPass.js";
 import Shader from "./Shader.js";
 
@@ -43,54 +43,6 @@ export enum SampleCountFlagBits {
     SAMPLE_COUNT_16 = 0x00000010,
     SAMPLE_COUNT_32 = 0x00000020,
     SAMPLE_COUNT_64 = 0x00000040,
-}
-
-// copy values from VkVertexInputRate in vulkan_core.h
-export enum VertexInputRate {
-    VERTEX = 0,
-    INSTANCE = 1
-}
-
-export interface VertexInputBindingDescription {
-    readonly binding: number;
-    readonly stride: number;
-    readonly inputRate: VertexInputRate;
-}
-
-export interface VertexInputAttributeDescription {
-    readonly location: number;
-    readonly format: Format;
-    readonly binding: number;
-    readonly offset: number
-}
-
-export interface VertexInputState {
-    readonly attributes: VertexInputAttributeDescription[];
-    readonly bindings: VertexInputBindingDescription[];
-    readonly hash: string;
-}
-
-export interface VertexInput {
-    vertexBuffers: Buffer[];
-    vertexOffsets: number[];
-    indexBuffer: Buffer;
-    indexType: IndexType;
-    indexCount: number;
-    indexOffset: number
-}
-
-// copy values from VkIndexType in vulkan_core.h
-export enum IndexType {
-    UINT16 = 0,
-    UINT32 = 1,
-}
-
-/**
- * InputAssembler is an immutable object, it correspond to a vao in WebGL.
- */
-export interface InputAssembler {
-    vertexInputState: VertexInputState;
-    vertexInput: VertexInput;
 }
 
 export interface PipelineLayout {

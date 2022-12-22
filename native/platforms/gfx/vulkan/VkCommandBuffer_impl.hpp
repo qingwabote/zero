@@ -17,7 +17,7 @@ namespace binding
 
             std::queue<std::function<void()>> _destructionQueue;
 
-            uint32_t _indexCount;
+            uint32_t _indexCount{};
 
             VkBuffer createStagingBuffer(void const *src, size_t size);
 

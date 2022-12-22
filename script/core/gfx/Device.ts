@@ -4,6 +4,7 @@ import DescriptorSet from "./DescriptorSet.js";
 import DescriptorSetLayout from "./DescriptorSetLayout.js";
 import Fence from "./Fence.js";
 import { Framebuffer } from "./Framebuffer.js";
+import InputAssembler from "./InputAssembler.js";
 import Pipeline, { PipelineLayout } from "./Pipeline.js";
 import Queue from "./Queue.js";
 import RenderPass from "./RenderPass.js";
@@ -33,6 +34,8 @@ export default interface Device {
     createDescriptorSet(): DescriptorSet;
 
     createPipelineLayout(): PipelineLayout;
+
+    createInputAssembler(): InputAssembler;
 
     createPipeline(): Pipeline;
 

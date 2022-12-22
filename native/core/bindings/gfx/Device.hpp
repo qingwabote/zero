@@ -10,6 +10,7 @@
 #include "Framebuffer.hpp"
 #include "DescriptorSetLayout.hpp"
 #include "DescriptorSet.hpp"
+#include "InputAssembler.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
 #include "CommandBuffer.hpp"
@@ -49,6 +50,8 @@ namespace binding::gfx
         DescriptorSetLayout *createDescriptorSetLayout();
 
         DescriptorSet *createDescriptorSet();
+
+        InputAssembler *createInputAssembler();
 
         PipelineLayout *createPipelineLayout();
 

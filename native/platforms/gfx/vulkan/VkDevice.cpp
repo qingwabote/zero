@@ -12,6 +12,7 @@
 #include "VkFramebuffer_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
+#include "VkInputAssembler_impl.hpp"
 #include "VkPipelineLayout_impl.hpp"
 #include "VkPipeline_impl.hpp"
 #include "VkCommandBuffer_impl.hpp"
@@ -43,7 +44,7 @@ namespace binding::gfx
                             .require_api_version(_impl->_version)
                             .use_default_debug_messenger()
                             .build();
-        auto vkb_instance = inst_ret.value();
+        auto &vkb_instance = inst_ret.value();
 
         // surface
         VkSurfaceKHR surface = nullptr;
@@ -63,7 +64,8 @@ namespace binding::gfx
 
         // logical device
         vkb::DeviceBuilder deviceBuilder{physicalDevice};
-        auto vkb_device = deviceBuilder.build().value();
+        auto device_ret = deviceBuilder.build();
+        auto &vkb_device = device_ret.value();
         auto device = vkb_device.device;
 
         VmaAllocatorCreateInfo allocatorInfo = {};
@@ -74,11 +76,11 @@ namespace binding::gfx
 
         // swapchain
         vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, device, surface};
-        auto vkb_swapchain = swapchainBuilder
+        auto swapchain_ret = swapchainBuilder
                                  .use_default_format_selection()
                                  .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
-                                 .build()
-                                 .value();
+                                 .build();
+        auto &vkb_swapchain = swapchain_ret.value();
 
         auto src_js_swapchain = R"(
                 const swapchain = {
@@ -154,6 +156,8 @@ namespace binding::gfx
     DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl)); }
 
     DescriptorSet *Device::createDescriptorSet() { return new DescriptorSet(std::make_unique<DescriptorSet_impl>(_impl)); }
+
+    InputAssembler *Device::createInputAssembler() { return new InputAssembler(std::make_unique<InputAssembler_impl>(_impl)); }
 
     PipelineLayout *Device::createPipelineLayout() { return new PipelineLayout(std::make_unique<PipelineLayout_impl>(_impl)); }
 

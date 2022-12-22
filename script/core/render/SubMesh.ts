@@ -1,5 +1,6 @@
 import Buffer from "../gfx/Buffer.js";
-import { Format, IndexType } from "../gfx/Pipeline.js";
+import { IndexType } from "../gfx/InputAssembler.js";
+import { Format } from "../gfx/Pipeline.js";
 
 export interface Attribute {
     readonly name: string

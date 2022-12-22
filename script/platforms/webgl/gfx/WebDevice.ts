@@ -5,6 +5,7 @@ import DescriptorSetLayout from "../../../core/gfx/DescriptorSetLayout.js";
 import Device, { Capabilities, Swapchain } from "../../../core/gfx/Device.js";
 import Fence from "../../../core/gfx/Fence.js";
 import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
+import InputAssembler from "../../../core/gfx/InputAssembler.js";
 import Pipeline, { PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import Queue from "../../../core/gfx/Queue.js";
 import RenderPass from "../../../core/gfx/RenderPass.js";
@@ -18,6 +19,7 @@ import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebFence from "./WebFence.js";
 import WebFramebuffer from "./WebFramebuffer.js";
+import WebInputAssembler from "./WebInputAssembler.js";
 import WebPipeline from "./WebPipeline.js";
 import WebPipelineLayout from "./WebPipelineLayout.js";
 import WebQueue from "./WebQueue.js";
@@ -72,6 +74,10 @@ export default class WebDevice implements Device {
 
     createDescriptorSet(): DescriptorSet {
         return new WebDescriptorSet();
+    }
+
+    createInputAssembler(): InputAssembler {
+        return new WebInputAssembler;
     }
 
     createPipeline(): Pipeline {

@@ -83,7 +83,7 @@ export default class ShadowmapPhase extends RenderPhase {
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = zero.renderFlow.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, shaders.sets.local.set, model.descriptorSet);
-                    const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.vertexInputState, this._renderPass, layout);
+                    const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, this._renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
                 }

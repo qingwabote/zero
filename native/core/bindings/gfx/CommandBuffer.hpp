@@ -3,6 +3,7 @@
 #include "Binding.hpp"
 #include "DescriptorSet.hpp"
 #include "PipelineLayout.hpp"
+#include "InputAssembler.hpp"
 #include "Pipeline.hpp"
 #include "Buffer.hpp"
 #include "Texture.hpp"
@@ -17,23 +18,8 @@ namespace binding::gfx
     {
         int32_t x;
         int32_t y;
-        int32_t width;
-        int32_t height;
-    };
-
-    struct VertexInput
-    {
-        std::vector<Buffer *> vertexBuffers;
-        std::vector<uint32_t> vertexOffsets;
-        Buffer *indexBuffer;
-        int32_t indexType;
-        uint32_t indexCount;
-        uint32_t indexOffset;
-    };
-
-    struct InputAssembler
-    {
-        VertexInput vertexInput;
+        uint32_t width;
+        uint32_t height;
     };
 
     class CommandBuffer_impl;
@@ -66,7 +52,7 @@ namespace binding::gfx
                                DescriptorSet *descriptorSet,
                                std::vector<uint32_t> &dynamicOffsets);
 
-        void bindInputAssembler(InputAssembler &inputAssembler);
+        void bindInputAssembler(InputAssembler *inputAssembler);
 
         void bindPipeline(Pipeline *pipeline);
 

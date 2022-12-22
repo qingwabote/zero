@@ -15,7 +15,7 @@ namespace binding
 
             VkBuffer _buffer = nullptr;
             VmaAllocation _allocation = nullptr;
-            VmaAllocationInfo _allocationInfo;
+            VmaAllocationInfo _allocationInfo{};
 
         public:
             Buffer_impl(Device_impl *device);

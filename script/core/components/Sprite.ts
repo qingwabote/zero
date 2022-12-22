@@ -1,7 +1,8 @@
 import Component from "../Component.js";
 import defaults from "../defaults.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { FormatInfos, IndexType, InputAssembler, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate } from "../gfx/Pipeline.js";
+import InputAssembler, { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate } from "../gfx/InputAssembler.js";
+import { FormatInfos } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import Texture from "../gfx/Texture.js";
 import BufferView from "../pipeline/buffers/BufferView.js";
@@ -100,7 +101,8 @@ export default class Sprite extends Component {
             positionBuffer.update();
             indexBuffer.update();
 
-            inputAssembler = {
+            inputAssembler = gfx.createInputAssembler();
+            inputAssembler.initialize({
                 vertexInputState: { attributes, bindings, hash: "Sprite" },
                 vertexInput: {
                     vertexBuffers: [texCoordBuffer.buffer, positionBuffer.buffer],
@@ -110,7 +112,8 @@ export default class Sprite extends Component {
                     indexCount: indexBuffer.length,
                     indexOffset: 0
                 }
-            }
+            })
+            inputAssemblerCache[this._shader.info.hash] = inputAssembler;
         }
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));

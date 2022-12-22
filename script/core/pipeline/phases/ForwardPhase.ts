@@ -44,7 +44,7 @@ export default class ForwardPhase extends RenderPhase {
                     const layout = zero.renderFlow.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, shaders.sets.local.set, model.descriptorSet);
                     commandBuffer.bindDescriptorSet(layout, shaders.sets.material.set, pass.descriptorSet);
-                    const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.vertexInputState, renderPass, layout);
+                    const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
                 }

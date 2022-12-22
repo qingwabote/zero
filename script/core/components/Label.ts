@@ -4,7 +4,8 @@ import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
 import defaults from "../defaults.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { FormatInfos, IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
+import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
+import { FormatInfos } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import BufferViewResizable from "../pipeline/buffers/BufferViewResizable.js";
 import Model from "../render/Model.js";
@@ -181,7 +182,8 @@ export default class Label extends Component {
         this._positionBuffer.update();
         this._indexBuffer.update();
 
-        this._subModel.inputAssemblers[0] = {
+        const inputAssembler = gfx.createInputAssembler();
+        inputAssembler.initialize({
             vertexInputState: this._vertexInputState,
             vertexInput: {
                 vertexBuffers: [this._texCoordBuffer.buffer, this._positionBuffer.buffer],
@@ -191,7 +193,8 @@ export default class Label extends Component {
                 indexCount,
                 indexOffset: 0
             }
-        }
+        })
+        this._subModel.inputAssemblers[0] = inputAssembler;
 
         this._dirtyFlag = DirtyFlagBits.NONE;
     }

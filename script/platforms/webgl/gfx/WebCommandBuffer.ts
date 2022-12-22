@@ -3,7 +3,8 @@ import CommandBuffer from "../../../core/gfx/CommandBuffer.js";
 import DescriptorSet from "../../../core/gfx/DescriptorSet.js";
 import { DescriptorType } from "../../../core/gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
-import Pipeline, { BlendFactor, CullMode, Format, FormatInfos, IndexType, InputAssembler, PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import InputAssembler, { IndexType, InputAssemblerInfo } from "../../../core/gfx/InputAssembler.js";
+import Pipeline, { BlendFactor, CullMode, Format, FormatInfos, PipelineLayout } from "../../../core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../core/gfx/RenderPass.js";
 import Texture from "../../../core/gfx/Texture.js";
 import { Rect } from "../../../core/math/rect.js";
@@ -55,12 +56,12 @@ function bendFactor2WebGL(factor: BlendFactor): GLenum {
 //     return offset;
 // }
 
-const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
+const input2vao: WeakMap<InputAssemblerInfo, WebGLVertexArrayObject> = new WeakMap;
 
 
 export default class WebCommandBuffer implements CommandBuffer {
     private _gl: WebGL2RenderingContext;
-    private _inputAssembler: InputAssembler | undefined;
+    private _inputAssembler: InputAssemblerInfo | undefined;
     private _framebuffer!: WebFramebuffer;
     private _viewport!: Rect;
 
@@ -178,15 +179,16 @@ export default class WebCommandBuffer implements CommandBuffer {
     bindInputAssembler(inputAssembler: InputAssembler): void {
         const gl = this._gl;
 
-        let vao = input2vao.get(inputAssembler);
+        const inputAssemblerInfo = inputAssembler.info;
+        let vao = input2vao.get(inputAssemblerInfo);
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = inputAssembler.vertexInputState.attributes;
+            const attributes = inputAssemblerInfo.vertexInputState.attributes;
             for (const attribute of attributes) {
-                const binding = inputAssembler.vertexInputState.bindings[attribute.binding];
-                const buffer = inputAssembler.vertexInput.vertexBuffers[attribute.binding] as WebBuffer;
-                const offset = inputAssembler.vertexInput.vertexOffsets[attribute.binding];
+                const binding = inputAssemblerInfo.vertexInputState.bindings[attribute.binding];
+                const buffer = inputAssemblerInfo.vertexInput.vertexBuffers[attribute.binding] as WebBuffer;
+                const offset = inputAssemblerInfo.vertexInput.vertexOffsets[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
@@ -209,8 +211,8 @@ export default class WebCommandBuffer implements CommandBuffer {
                     binding.stride,
                     offset + attribute.offset);
             }
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.vertexInput.indexBuffer as WebBuffer).buffer);
-            input2vao.set(inputAssembler, vao);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.vertexInput.indexBuffer as WebBuffer).buffer);
+            input2vao.set(inputAssemblerInfo, vao);
 
             gl.bindVertexArray(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -218,7 +220,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
         gl.bindVertexArray(vao);
 
-        this._inputAssembler = inputAssembler;
+        this._inputAssembler = inputAssemblerInfo;
     }
 
     draw() {

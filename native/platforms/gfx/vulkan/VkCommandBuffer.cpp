@@ -5,6 +5,7 @@
 #include "VkPipelineLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "VkBuffer_impl.hpp"
+#include "VkInputAssembler_impl.hpp"
 #include "VkPipeline_impl.hpp"
 #include "VkTexture_impl.hpp"
 #include "VkRenderPass_impl.hpp"
@@ -87,7 +88,7 @@ namespace binding
 
         void CommandBuffer::copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture)
         {
-            VkDeviceSize size = imageBitmap->width() * imageBitmap->height() * 4;
+            VkDeviceSize size = static_cast<VkDeviceSize>(4) * imageBitmap->width() * imageBitmap->height();
 
             VkBuffer buffer = _impl->createStagingBuffer(imageBitmap->pixels(), size);
 
@@ -132,8 +133,8 @@ namespace binding
         void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, RenderArea &area)
         {
             int32_t x = area.x;
-            int32_t width = area.width;
-            int32_t height = area.height;
+            uint32_t width = area.width;
+            uint32_t height = area.height;
             int32_t y;
 
             VkViewport viewport{};
@@ -150,7 +151,7 @@ namespace binding
                 y = _impl->_device->swapchainImageExtent().height - area.y - height;
 
                 viewport.y = y + height;
-                viewport.height = -height;
+                viewport.height = height * -1.0;
 
                 vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
             }
@@ -175,15 +176,9 @@ namespace binding
             info.renderPass = renderPass->impl();
             info.renderArea.offset.x = x;
             info.renderArea.offset.y = y;
-            info.renderArea.extent = {uint32_t(width), uint32_t(height)};
+            info.renderArea.extent = {width, height};
 
-            auto js_colorAttachments = sugar::v8::object_get(renderPass->info(), "colorAttachments").As<v8::Array>();
-            std::vector<VkClearValue> clearValues(js_colorAttachments->Length() + 1);
-            for (int32_t i = 0; i < js_colorAttachments->Length(); i++)
-            {
-                clearValues[i].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-            }
-            clearValues[js_colorAttachments->Length()].depthStencil.depth = 1;
+            std::vector<VkClearValue> &clearValues = renderPass->impl().clearValues();
             info.pClearValues = clearValues.data();
             info.clearValueCount = clearValues.size();
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
@@ -202,27 +197,12 @@ namespace binding
                                     dynamicOffsets.data());
         }
 
-        void CommandBuffer::bindInputAssembler(InputAssembler &inputAssembler)
+        void CommandBuffer::bindInputAssembler(InputAssembler *inputAssembler)
         {
-            static std::vector<VkBuffer> vertexBuffers;
-            static std::vector<VkDeviceSize> vertexOffsets;
+            auto &vertexInput = inputAssembler->impl().vertexInput();
 
-            VertexInput &vertexInput = inputAssembler.vertexInput;
-
-            vertexBuffers.resize(vertexInput.vertexBuffers.size());
-            for (uint32_t i = 0; i < vertexBuffers.size(); i++)
-            {
-                vertexBuffers[i] = vertexInput.vertexBuffers[i]->impl();
-            }
-
-            vertexOffsets.resize(vertexInput.vertexOffsets.size());
-            for (uint32_t i = 0; i < vertexOffsets.size(); i++)
-            {
-                vertexOffsets[i] = vertexInput.vertexOffsets[i];
-            }
-
-            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), vertexOffsets.data());
-            vkCmdBindIndexBuffer(_impl->_commandBuffer, vertexInput.indexBuffer->impl(), vertexInput.indexOffset, static_cast<VkIndexType>(vertexInput.indexType));
+            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexInput.vertexBuffers.size(), vertexInput.vertexBuffers.data(), vertexInput.vertexOffsets.data());
+            vkCmdBindIndexBuffer(_impl->_commandBuffer, vertexInput.indexBuffer, vertexInput.indexOffset, vertexInput.indexType);
 
             _impl->_indexCount = vertexInput.indexCount;
         }

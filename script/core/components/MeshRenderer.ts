@@ -1,5 +1,6 @@
 import Component from "../Component.js";
-import { FormatInfos, InputAssembler, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate } from "../gfx/Pipeline.js";
+import InputAssembler, { VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate } from "../gfx/InputAssembler.js";
+import { FormatInfos } from "../gfx/Pipeline.js";
 import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
 import Model from "../render/Model.js";
@@ -63,14 +64,15 @@ export default class MeshRenderer extends Component {
                     })
                 }
 
-                const inputAssembler: InputAssembler = {
+                const inputAssembler = gfx.createInputAssembler();
+                inputAssembler.initialize({
                     vertexInputState: {
                         attributes,
                         bindings,
                         hash
                     },
                     vertexInput
-                };
+                })
                 inputAssemblers.push(inputAssembler);
             }
             subModels.push({ inputAssemblers, passes });

@@ -20,14 +20,14 @@ namespace binding::gfx
         friend class Device;
 
     private:
-        uint32_t _version;
+        uint32_t _version{};
 
         SDL_Window *_window = nullptr;
         vkb::Instance _vkb_instance;
         VkSurfaceKHR _surface = nullptr;
         vkb::Device _vkb_device;
 
-        VmaAllocator _allocator;
+        VmaAllocator _allocator{nullptr};
 
         VkCommandPool _commandPool = nullptr;
         VkDescriptorPool _descriptorPool = nullptr;

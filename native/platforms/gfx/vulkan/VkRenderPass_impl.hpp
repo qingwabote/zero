@@ -15,8 +15,12 @@ namespace binding
 
             VkRenderPass _renderPass = nullptr;
 
+            std::vector<VkClearValue> _clearValues;
+
         public:
             RenderPass_impl(Device_impl *device);
+
+            std::vector<VkClearValue> &clearValues() { return _clearValues; }
 
             operator VkRenderPass() { return _renderPass; }
 

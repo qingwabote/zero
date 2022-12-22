@@ -97,6 +97,14 @@ namespace binding::gfx
             });
 
         cls.defineFunction(
+            "createInputAssembler",
+            [](const v8::FunctionCallbackInfo<v8::Value> &info)
+            {
+                auto c_obj = Binding::c_obj<Device>(info.This());
+                info.GetReturnValue().Set(c_obj->createInputAssembler()->js_obj());
+            });
+
+        cls.defineFunction(
             "createPipelineLayout",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {

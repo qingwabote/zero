@@ -25,7 +25,10 @@ namespace binding
             VkRenderPassCreateInfo renderPassInfo = {};
             renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
             std::vector<VkAttachmentDescription> attachments(js_colorAttachments->Length() + 1 + js_resolveAttachments->Length());
+            _impl->_clearValues.resize(js_colorAttachments->Length() + static_cast<size_t>(1));
             uint32_t attachmentIdx = 0;
+
+            // color
             std::vector<VkAttachmentReference> colorAttachmentRefs(js_colorAttachments->Length());
             for (uint32_t i = 0; i < js_colorAttachments->Length(); i++)
             {
@@ -43,9 +46,12 @@ namespace binding
                 colorAttachmentRefs[i].attachment = attachmentIdx;
                 colorAttachmentRefs[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+                _impl->_clearValues[attachmentIdx].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+
                 attachmentIdx++;
             }
 
+            // depthStencil
             auto js_depthStencilAttachment = sugar::v8::object_get(info, "depthStencilAttachment").As<v8::Object>();
             VkImageLayout depthFinalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_depthStencilAttachment, "finalLayout").As<v8::Number>()->Value());
 
@@ -63,6 +69,8 @@ namespace binding
             VkAttachmentReference depthAttachmentRef = {};
             depthAttachmentRef.attachment = attachmentIdx;
             depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+            _impl->_clearValues[attachmentIdx].depthStencil.depth = 1;
 
             attachmentIdx++;
 

@@ -1,4 +1,4 @@
-import { InputAssembler } from "../gfx/Pipeline.js";
+import InputAssembler from "../gfx/InputAssembler.js";
 import Pass from "./Pass.js";
 
 export default interface SubModel {

@@ -2,26 +2,23 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    class Fence_impl
     {
-        class Fence_impl
-        {
-            friend class Fence;
+        friend class Fence;
 
-        private:
-            Device_impl *_device = nullptr;
+    private:
+        Device_impl *_device = nullptr;
 
-            VkFence _fence = nullptr;
+        VkFence _fence = nullptr;
 
-        public:
-            Fence_impl(Device_impl *device);
+    public:
+        Fence_impl(Device_impl *device);
 
-            operator VkFence() { return _fence; }
+        operator VkFence() { return _fence; }
 
-            ~Fence_impl();
-        };
+        ~Fence_impl();
+    };
 
-    }
 }
