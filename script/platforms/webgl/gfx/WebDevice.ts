@@ -6,11 +6,11 @@ import Device, { Capabilities, Swapchain } from "../../../core/gfx/Device.js";
 import Fence from "../../../core/gfx/Fence.js";
 import { Framebuffer } from "../../../core/gfx/Framebuffer.js";
 import Pipeline, { PipelineLayout } from "../../../core/gfx/Pipeline.js";
+import Queue from "../../../core/gfx/Queue.js";
 import RenderPass from "../../../core/gfx/RenderPass.js";
 import { Sampler } from "../../../core/gfx/Sampler.js";
 import Semaphore from "../../../core/gfx/Semaphore.js";
 import Shader from "../../../core/gfx/Shader.js";
-import { SubmitInfo } from "../../../core/gfx/SubmitInfo.js";
 import Texture from "../../../core/gfx/Texture.js";
 import WebBuffer from "./WebBuffer.js";
 import WebCommandBuffer from "./WebCommandBuffer.js";
@@ -20,6 +20,7 @@ import WebFence from "./WebFence.js";
 import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
 import WebPipelineLayout from "./WebPipelineLayout.js";
+import WebQueue from "./WebQueue.js";
 import WebRenderPass from "./WebRenderPass.js";
 import WebSampler from "./WebSampler.js";
 import WebSemaphore from "./WebSemaphore.js";
@@ -37,6 +38,11 @@ export default class WebDevice implements Device {
     private _swapchain: Swapchain = { colorTexture: { info: { samples: 1 } } as any };
     get swapchain(): Swapchain {
         return this._swapchain;
+    }
+
+    private _queue: Queue = new WebQueue;
+    get queue(): Queue {
+        return this._queue;
     }
 
     constructor(canvas: HTMLCanvasElement) {
@@ -105,11 +111,4 @@ export default class WebDevice implements Device {
     }
 
     acquire(semaphore: Semaphore): void { }
-
-    submit(info: SubmitInfo, fence: Fence): void { }
-
-    present(): void { }
-
-    waitFence(fence: Fence): void { }
-
 }
