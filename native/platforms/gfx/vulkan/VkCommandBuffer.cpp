@@ -130,7 +130,7 @@ namespace binding
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
         }
 
-        void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, RenderArea &area)
+        void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, const RenderArea &area)
         {
             int32_t x = area.x;
             uint32_t width = area.width;
@@ -184,7 +184,7 @@ namespace binding
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
         }
 
-        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet, std::vector<uint32_t> &dynamicOffsets)
+        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet, const std::vector<uint32_t> &dynamicOffsets)
         {
             VkDescriptorSet descriptorSet0 = descriptorSet->impl();
             vkCmdBindDescriptorSets(_impl->_commandBuffer,

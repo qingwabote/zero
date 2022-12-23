@@ -1,4 +1,6 @@
 #include "Queue.hpp"
+#include "DeviceThread.hpp"
+#include "base/threading/Semaphore.hpp"
 
 namespace binding::gfx
 {
@@ -15,7 +17,7 @@ namespace binding::gfx
                 auto c_obj = Binding::c_obj<Queue>(info.This());
 
                 auto js_submitInfo = info[0].As<v8::Object>();
-                SubmitInfo c_submitInfo = {};
+                SubmitInfo c_submitInfo{};
 
                 auto js_waitSemaphore = sugar::v8::object_get(js_submitInfo, "waitSemaphore").As<v8::Object>();
                 if (!js_waitSemaphore->IsUndefined())
@@ -39,8 +41,14 @@ namespace binding::gfx
                 c_submitInfo.commandBuffer = Binding::c_obj<CommandBuffer>(js_commandBuffer);
 
                 auto c_fence = c_obj->retain<Fence>(info[1].As<v8::Object>());
-                c_obj->submit(c_submitInfo, c_fence);
                 c_fence->retain(js_submitInfo, "submitInfo");
+
+                auto f = new auto(
+                    [=]()
+                    {
+                        c_obj->submit(c_submitInfo, c_fence);
+                    });
+                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
         cls.defineFunction(
@@ -49,7 +57,13 @@ namespace binding::gfx
             {
                 auto c_obj = Binding::c_obj<Queue>(info.This());
                 auto c_waitSemaphore = c_obj->retain<Semaphore>(info[0].As<v8::Object>(), "present_semaphore");
-                c_obj->present(c_waitSemaphore);
+
+                auto f = new auto(
+                    [=]()
+                    {
+                        c_obj->present(c_waitSemaphore);
+                    });
+                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
         cls.defineFunction(
@@ -58,7 +72,15 @@ namespace binding::gfx
             {
                 auto c_obj = Binding::c_obj<Queue>(info.This());
                 auto c_fence = Binding::c_obj<Fence>(info[0].As<v8::Object>());
-                c_obj->waitFence(c_fence);
+                logan::Semaphore semaphore;
+                auto f = new auto(
+                    [=, &semaphore]()
+                    {
+                        c_obj->waitFence(c_fence);
+                        semaphore.signal();
+                    });
+                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                semaphore.wait();
                 c_obj->release(c_fence->js_obj());
             });
 

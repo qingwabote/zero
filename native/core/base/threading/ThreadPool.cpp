@@ -1,9 +1,9 @@
 #include "ThreadPool.hpp"
 
-ThreadPool &ThreadPool::instance()
+ThreadPool &ThreadPool::shared()
 {
-    static ThreadPool instance(1);
-    return instance;
+    static ThreadPool shared{1};
+    return shared;
 }
 
 ThreadPool::ThreadPool(uint32_t size)
@@ -22,7 +22,7 @@ void ThreadPool::run(UniqueFunction &&func)
             _threads[i] = std::make_unique<std::thread>(
                 [this]()
                 {
-                    while (!_isTerminated)
+                    while (_running)
                     {
                         auto functionQueue = _functionQueue.flush(true);
                         for (auto &func : functionQueue)
@@ -36,12 +36,20 @@ void ThreadPool::run(UniqueFunction &&func)
     }
 }
 
-ThreadPool::~ThreadPool()
+void ThreadPool::join()
 {
-    _isTerminated = true;
+    _running = false;
     _functionQueue.unblock();
     for (size_t i = 0; i < _threads.size(); i++)
     {
         _threads[i]->join();
+    }
+}
+
+ThreadPool::~ThreadPool()
+{
+    if (_running)
+    {
+        join();
     }
 }

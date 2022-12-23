@@ -28,7 +28,7 @@ namespace binding::gfx
     public:
         Queue(std::unique_ptr<Queue_impl> impl);
 
-        void submit(SubmitInfo &info, Fence *fence);
+        void submit(const SubmitInfo &info, Fence *fence);
 
         void present(Semaphore *waitSemaphore);
 

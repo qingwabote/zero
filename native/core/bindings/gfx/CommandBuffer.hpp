@@ -45,12 +45,12 @@ namespace binding::gfx
 
         void begin();
 
-        void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, RenderArea &area);
+        void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, const RenderArea &area);
 
         void bindDescriptorSet(PipelineLayout *pipelineLayout,
                                uint32_t index,
                                DescriptorSet *descriptorSet,
-                               std::vector<uint32_t> &dynamicOffsets);
+                               const std::vector<uint32_t> &dynamicOffsets);
 
         void bindInputAssembler(InputAssembler *inputAssembler);
 

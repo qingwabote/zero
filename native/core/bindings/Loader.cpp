@@ -87,7 +87,7 @@ namespace binding
                     Window::instance().run(UniqueFunction::create<decltype(f)>(f));
                 }
             });
-        ThreadPool::instance().run(UniqueFunction::create<decltype(f)>(f));
+        ThreadPool::shared().run(UniqueFunction::create<decltype(f)>(f));
 
         return scrop.Escape(l_resolver->GetPromise());
     }

@@ -102,8 +102,6 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
 
         gfx.acquire(this._presentSemaphore);
 
-        gfx.queue.waitFence(this._renderFence);
-
         this.emit(Event.RENDER_START);
         this._renderScene.update();
         this._renderFlow.update();
@@ -120,5 +118,6 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
             signalSemaphore: this._renderSemaphore
         }, this._renderFence);
         gfx.queue.present(this._renderSemaphore);
+        gfx.queue.waitFence(this._renderFence);
     }
 } 

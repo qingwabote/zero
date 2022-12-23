@@ -13,7 +13,7 @@ namespace binding::gfx
     Queue::Queue(std::unique_ptr<Queue_impl> impl)
         : Binding(), _impl(std::move(impl)) {}
 
-    void Queue::submit(SubmitInfo &info, Fence *c_fence)
+    void Queue::submit(const SubmitInfo &info, Fence *c_fence)
     {
         VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
 

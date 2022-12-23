@@ -1,7 +1,14 @@
-#include "device.hpp"
+#include "Device.hpp"
+#include "DeviceThread.hpp"
 
 namespace binding::gfx
 {
+    ThreadPool &DeviceThread::instance()
+    {
+        static ThreadPool instance{1};
+        return instance;
+    }
+
     v8::Local<v8::FunctionTemplate> Device::createTemplate()
     {
         v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());

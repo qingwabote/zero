@@ -1,4 +1,5 @@
 #include "Window.hpp"
+#include "base/threading/ThreadPool.hpp"
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "bindings/Console.hpp"
@@ -6,8 +7,8 @@
 #include "bindings/Loader.hpp"
 #include "bindings/Platform.hpp"
 #include "bindings/gfx/Device.hpp"
+#include "bindings/gfx/DeviceThread.hpp"
 #include <chrono>
-#include <thread>
 
 #define NANOSECONDS_PER_SECOND 1000000000
 #define NANOSECONDS_60FPS 16666667L
@@ -255,7 +256,11 @@ int Window::loop()
         SDL_GL_SwapWindow(window.get());
     }
 
-    gfx->waitIdle();
+    ThreadPool::shared().join();
+
+    binding::gfx::DeviceThread::instance().join();
+
+    gfx->finish();
 
     return 0;
 }

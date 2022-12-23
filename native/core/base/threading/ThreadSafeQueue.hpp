@@ -15,15 +15,11 @@ private:
 public:
     void push(T &&val)
     {
-        std::unique_lock<std::mutex> lock(_mutex);
-        _queue.push_back(std::forward<T>(val));
+        {
+            std::unique_lock<std::mutex> lock(_mutex);
+            _queue.push_back(std::forward<T>(val));
+        }
         _cv.notify_one();
-    }
-
-    void unblock()
-    {
-        std::unique_lock<std::mutex> lock(_mutex);
-        _cv.notify_all();
     }
 
     std::vector<T> flush(bool blocked = false)
@@ -36,5 +32,11 @@ public:
         auto copy = std::move(_queue); // https://stackoverflow.com/questions/9168823/reusing-a-moved-container
         _queue.clear();
         return copy;
+    }
+
+    void unblock()
+    {
+        // std::unique_lock<std::mutex> lock(_mutex);
+        _cv.notify_all();
     }
 };

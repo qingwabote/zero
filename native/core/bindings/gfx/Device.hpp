@@ -65,7 +65,7 @@ namespace binding::gfx
 
         void acquire(Semaphore *presentSemaphore);
 
-        void waitIdle();
+        void finish();
 
         ~Device();
     };

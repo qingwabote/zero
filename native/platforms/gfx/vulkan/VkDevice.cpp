@@ -175,7 +175,7 @@ namespace binding::gfx
         vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, semaphore, nullptr, &_impl->_swapchainImageIndex);
     }
 
-    void Device::waitIdle()
+    void Device::finish()
     {
         vkDeviceWaitIdle(_impl->_vkb_device.device);
     }
