@@ -1,7 +1,5 @@
 #include "ThreadPool.hpp"
 
-ThreadSafeQueue<UniqueFunction> ThreadPool::_functionQueue;
-
 ThreadPool &ThreadPool::instance()
 {
     static ThreadPool instance(1);
@@ -10,6 +8,7 @@ ThreadPool &ThreadPool::instance()
 
 ThreadPool::ThreadPool(uint32_t size)
 {
+    _threads.resize(size);
 }
 
 void ThreadPool::run(UniqueFunction &&func)
@@ -18,23 +17,31 @@ void ThreadPool::run(UniqueFunction &&func)
 
     if (!_threadsCreated)
     {
-        auto t = std::thread(
-            []()
-            {
-                while (true)
+        for (size_t i = 0; i < _threads.size(); i++)
+        {
+            _threads[i] = std::make_unique<std::thread>(
+                [this]()
                 {
-                    auto functionQueue = _functionQueue.flush(true);
-                    for (auto &func : functionQueue)
+                    while (!_isTerminated)
                     {
-                        func();
+                        auto functionQueue = _functionQueue.flush(true);
+                        for (auto &func : functionQueue)
+                        {
+                            func();
+                        }
                     }
-                }
-            });
-        t.detach();
+                });
+        }
         _threadsCreated = true;
     }
 }
 
 ThreadPool::~ThreadPool()
 {
+    _isTerminated = true;
+    _functionQueue.unblock();
+    for (size_t i = 0; i < _threads.size(); i++)
+    {
+        _threads[i]->join();
+    }
 }

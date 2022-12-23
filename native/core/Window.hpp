@@ -17,7 +17,7 @@ public:
 
     int loop();
 
-    void beforeTick(UniqueFunction &&func)
+    void run(UniqueFunction &&func)
     {
         _beforeTickQueue.push(std::forward<UniqueFunction>(func));
     }

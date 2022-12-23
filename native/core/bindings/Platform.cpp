@@ -35,7 +35,7 @@ namespace binding
 
                         g_resolver.Get(isolate)->Resolve(context, (new ImageBitmap(pixels, x, y))->js_obj());
                     });
-                Window::instance().beforeTick(UniqueFunction::create<decltype(f)>(f));
+                Window::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
         ThreadPool::instance().run(UniqueFunction::create<decltype(f)>(f));
 

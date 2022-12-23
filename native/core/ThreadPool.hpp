@@ -6,9 +6,13 @@
 class ThreadPool
 {
 private:
-    static ThreadSafeQueue<UniqueFunction> _functionQueue;
-
     bool _threadsCreated = false;
+
+    std::atomic<bool> _isTerminated{false};
+
+    std::vector<std::unique_ptr<std::thread>> _threads;
+
+    ThreadSafeQueue<UniqueFunction> _functionQueue;
 
 public:
     static ThreadPool &instance();
