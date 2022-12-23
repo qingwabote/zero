@@ -2,8 +2,8 @@
 
 #include "Binding.hpp"
 #include <filesystem>
-#include "ThreadSafeQueue.hpp"
-#include "UniqueFunction.hpp"
+#include "base/threading/ThreadSafeQueue.hpp"
+#include "base/UniqueFunction.hpp"
 
 namespace binding
 {

@@ -1,6 +1,6 @@
 #include "Platform.hpp"
 #include "bindings/ImageBitmap.hpp"
-#include "ThreadPool.hpp"
+#include "base/threading/ThreadPool.hpp"
 #include "Window.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -22,7 +22,7 @@ namespace binding
         auto f = new auto(
             [store, g_resolver = std::move(g_resolver)]() mutable
             {
-                int x, y, channels;
+                int x{0}, y{0}, channels{0};
                 std::unique_ptr<void, void (*)(void *)> pixels(
                     stbi_load_from_memory(static_cast<stbi_uc *>(store->Data()), store->ByteLength(), &x, &y, &channels, STBI_rgb_alpha),
                     stbi_image_free);

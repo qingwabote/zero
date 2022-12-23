@@ -1,10 +1,10 @@
+import EventEmitter from "./base/EventEmitter.js";
 import Component from "./Component.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";
 import { RenderNode } from "./render/RenderNode.js";
 import VisibilityBit from "./render/VisibilityBit.js";
-import EventEmitter from "./utils/EventEmitter.js";
 
 export enum TransformBit {
     NONE = 0,

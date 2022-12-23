@@ -15,7 +15,7 @@ namespace binding
 
             VkImage _image = nullptr;
             VmaAllocation _allocation = nullptr;
-            VmaAllocationInfo _allocationInfo;
+            VmaAllocationInfo _allocationInfo{};
 
             VkImageView _imageView = nullptr;
 

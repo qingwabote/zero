@@ -1,3 +1,4 @@
+import EventEmitter from "./base/EventEmitter.js";
 import ComponentScheduler from "./ComponentScheduler.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
 import Fence from "./gfx/Fence.js";
@@ -9,7 +10,6 @@ import RenderFlow from "./pipeline/RenderFlow.js";
 import Platfrom from "./Platfrom.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
-import EventEmitter from "./utils/EventEmitter.js";
 
 enum Event {
     RENDER_START = "RENDER_START",
