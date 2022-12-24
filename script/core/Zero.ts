@@ -12,11 +12,17 @@ import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 
 enum Event {
+    UPDATE_START = "UPDATE_START",
+    UPDATE_END = "UPDATE_END",
+
     RENDER_START = "RENDER_START",
     RENDER_END = 'RENDER_END'
 }
 
 interface EventToListener {
+    [Event.UPDATE_START]: () => void;
+    [Event.UPDATE_END]: () => void;
+
     [Event.RENDER_START]: () => void;
     [Event.RENDER_END]: () => void;
 }
@@ -98,11 +104,12 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
     abstract start(): RenderFlow;
 
     tick(dt: number) {
+        this.emit(Event.UPDATE_START);
         this._componentScheduler.update(dt)
-
-        gfx.acquire(this._presentSemaphore);
+        this.emit(Event.UPDATE_END);
 
         this.emit(Event.RENDER_START);
+        gfx.acquire(this._presentSemaphore);
         this._renderScene.update();
         this._renderFlow.update();
         this._renderScene.dirtyObjects.clear()

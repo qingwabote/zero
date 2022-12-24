@@ -8,24 +8,13 @@ export default class Profiler extends Component {
 
     private _fps: number = 0;
 
+    private _gameLogic_time = 0
+
     private _render_time = 0;
 
     override start(): void {
-        let time = 0;
-        let delta = 0;
-        let count = 0;
-        zero.on(Zero.Event.RENDER_START, () => {
-            time = Date.now();
-        })
-        zero.on(Zero.Event.RENDER_END, () => {
-            delta += Date.now() - time;
-            count++;
-            if (count == 60) {
-                this._render_time = delta / count;
-                delta = 0;
-                count = 0;
-            }
-        })
+        this.profileGameLogic();
+        this.profileRender();
     }
 
     override update(dt: number): void {
@@ -41,6 +30,44 @@ export default class Profiler extends Component {
         }
         this._frames++;
 
-        label.text = `FPS: ${this._fps.toString().slice(0, 5)}\n Render(ms): ${this._render_time.toString().slice(0, 5)}`;
+        label.text = `FPS: ${this._fps.toString().slice(0, 5)}
+Render(ms): ${this._render_time.toString().slice(0, 5)}
+Game Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
+    }
+
+    private profileGameLogic() {
+        let time = 0;
+        let delta = 0;
+        let count = 0;
+        zero.on(Zero.Event.UPDATE_START, () => {
+            time = Date.now();
+        })
+        zero.on(Zero.Event.UPDATE_END, () => {
+            delta += Date.now() - time;
+            count++;
+            if (count == 60) {
+                this._gameLogic_time = delta / count;
+                delta = 0;
+                count = 0;
+            }
+        })
+    }
+
+    private profileRender() {
+        let time = 0;
+        let delta = 0;
+        let count = 0;
+        zero.on(Zero.Event.RENDER_START, () => {
+            time = Date.now();
+        })
+        zero.on(Zero.Event.RENDER_END, () => {
+            delta += Date.now() - time;
+            count++;
+            if (count == 60) {
+                this._render_time = delta / count;
+                delta = 0;
+                count = 0;
+            }
+        })
     }
 }
