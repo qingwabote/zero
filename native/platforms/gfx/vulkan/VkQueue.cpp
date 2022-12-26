@@ -19,27 +19,31 @@ namespace binding::gfx
 
         if (info.waitSemaphore)
         {
-            VkSemaphore waitSemaphore = info.waitSemaphore->impl();
-            submitInfo.pWaitSemaphores = &waitSemaphore;
-            submitInfo.waitSemaphoreCount = 1;
+            static std::vector<VkSemaphore> waitSemaphores(1);
+            waitSemaphores[0] = info.waitSemaphore->impl();
+            submitInfo.pWaitSemaphores = waitSemaphores.data();
+            submitInfo.waitSemaphoreCount = waitSemaphores.size();
         }
 
         if (info.waitDstStageMask)
         {
-            VkPipelineStageFlags waitStage = info.waitDstStageMask;
-            submitInfo.pWaitDstStageMask = &waitStage;
+            static std::vector<VkPipelineStageFlags> waitDstStageMask(1);
+            waitDstStageMask[0] = info.waitDstStageMask;
+            submitInfo.pWaitDstStageMask = waitDstStageMask.data();
         }
 
         if (info.signalSemaphore)
         {
-            VkSemaphore signalSemaphore = info.signalSemaphore->impl();
-            submitInfo.pSignalSemaphores = &signalSemaphore;
-            submitInfo.signalSemaphoreCount = 1;
+            static std::vector<VkSemaphore> signalSemaphores(1);
+            signalSemaphores[0] = info.signalSemaphore->impl();
+            submitInfo.pSignalSemaphores = signalSemaphores.data();
+            submitInfo.signalSemaphoreCount = signalSemaphores.size();
         }
 
-        VkCommandBuffer commandBuffer = info.commandBuffer->impl();
-        submitInfo.pCommandBuffers = &commandBuffer;
-        submitInfo.commandBufferCount = 1;
+        static std::vector<VkCommandBuffer> commandBuffers(1);
+        commandBuffers[0] = info.commandBuffer->impl();
+        submitInfo.pCommandBuffers = commandBuffers.data();
+        submitInfo.commandBufferCount = commandBuffers.size();
         vkQueueSubmit(*_impl, 1, &submitInfo, c_fence->impl());
     }
 
