@@ -24,11 +24,14 @@ void ThreadPool::run(UniqueFunction &&func)
                 {
                     while (_running)
                     {
-                        auto functionQueue = _functionQueue.flush(true);
-                        for (auto &func : functionQueue)
-                        {
-                            func();
-                        }
+                        // auto functionQueue = _functionQueue.flush(true);
+                        // for (auto &func : functionQueue)
+                        // {
+                        //     func();
+                        // }
+                        UniqueFunction f{};
+                        _functionQueue.pop(f, true);
+                        f();
                     }
                 });
         }
@@ -39,7 +42,15 @@ void ThreadPool::run(UniqueFunction &&func)
 void ThreadPool::join()
 {
     _running = false;
-    _functionQueue.unblock();
+    for (size_t i = 0; i < _threads.size(); i++)
+    {
+        auto f = new auto(
+            [=]()
+            {
+                // do nothing
+            });
+        _functionQueue.push(UniqueFunction::create<decltype(f)>(f)); // wake the blocked threads up
+    }
     for (size_t i = 0; i < _threads.size(); i++)
     {
         _threads[i]->join();

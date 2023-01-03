@@ -238,10 +238,16 @@ int Window::loop()
         }
         time = now;
 
-        auto functionQueue = _beforeTickQueue.flush();
-        for (auto &func : functionQueue)
+        // auto functionQueue = _beforeTickQueue.flush();
+        // for (auto &func : functionQueue)
+        // {
+        //     func();
+        // }
+
+        UniqueFunction f{};
+        while (_beforeTickQueue.pop(f))
         {
-            func();
+            f();
         }
 
         v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), dtNS / NANOSECONDS_PER_SECOND)};

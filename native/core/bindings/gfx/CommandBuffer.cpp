@@ -21,7 +21,13 @@ namespace binding::gfx
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
                 c_obj->releaseAll();
-                c_obj->begin();
+
+                auto f = new auto(
+                    [=]()
+                    {
+                        c_obj->begin();
+                    });
+                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
         cls.defineFunction(

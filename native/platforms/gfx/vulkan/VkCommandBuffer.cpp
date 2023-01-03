@@ -35,8 +35,8 @@ namespace binding
             VmaAllocation allocation;
             VmaAllocationInfo allocationInfo;
             vmaCreateBuffer(allocator, &bufferInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo);
-            _destructionQueue.push([allocator, buffer, allocation]()
-                                   { vmaDestroyBuffer(allocator, buffer, allocation); });
+            _destructionQueue.emplace([allocator, buffer, allocation]()
+                                      { vmaDestroyBuffer(allocator, buffer, allocation); });
 
             memcpy(allocationInfo.pMappedData, src, size);
 

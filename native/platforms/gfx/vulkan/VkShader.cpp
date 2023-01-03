@@ -224,7 +224,7 @@ namespace binding
                 stageCreateInfo.module = shaderModule;
                 // the entry point of the shader
                 stageCreateInfo.pName = "main";
-                _impl->_stageInfos.push_back(stageCreateInfo);
+                _impl->_stageInfos.emplace_back(stageCreateInfo);
             }
 
             return false;
