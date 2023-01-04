@@ -6,6 +6,9 @@ class Binding
 {
 private:
     v8::Global<v8::Object> _js_obj;
+    v8::Global<v8::Object> _js_props;
+
+    v8::Local<v8::Object> js_props();
 
 protected:
     virtual v8::Local<v8::FunctionTemplate> createTemplate() = 0;
@@ -42,5 +45,5 @@ public:
 
     v8::Local<v8::Object> retrieve(const std::string &key);
 
-    virtual ~Binding() {}
+    virtual ~Binding();
 };

@@ -41,19 +41,23 @@ v8::Local<v8::Object> Binding::js_obj()
     return scope.Escape(obj);
 }
 
+v8::Local<v8::Object> Binding::js_props()
+{
+    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    if (_js_props.IsEmpty())
+    {
+        _js_props.Reset(isolate, v8::Map::New(isolate));
+    }
+    return _js_props.Get(isolate);
+}
+
 v8::Local<v8::Value> Binding::retain(v8::Local<v8::Value> val, const std::string &key)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::HandleScope scope{isolate};
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-    v8::Local<v8::Object> self = js_obj();
-    v8::Local<v8::Map> map = sugar::v8::object_get(self, "_map_").As<v8::Map>();
-    if (map->IsUndefined())
-    {
-        map = v8::Map::New(isolate);
-        sugar::v8::object_set(self, "_map_", map);
-    }
+    v8::Local<v8::Map> map = js_props().As<v8::Map>();
     if (key.length())
     {
         map->Set(context, v8::String::NewFromUtf8(isolate, key.c_str()).ToLocalChecked(), val);
@@ -67,28 +71,25 @@ v8::Local<v8::Value> Binding::retain(v8::Local<v8::Value> val, const std::string
 
 void Binding::release(v8::Local<v8::Object> obj)
 {
-    v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
-    if (map->IsUndefined())
-    {
-        return;
-    }
+    v8::Local<v8::Map> map = js_props().As<v8::Map>();
     map->Delete(v8::Isolate::GetCurrent()->GetCurrentContext(), obj);
 }
 
 void Binding::releaseAll()
 {
-    v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
-    if (map->IsUndefined())
-    {
-        return;
-    }
+    v8::Local<v8::Map> map = js_props().As<v8::Map>();
     map->Clear();
 }
 
 v8::Local<v8::Object> Binding::retrieve(const std::string &key)
 {
-    v8::Local<v8::Map> map = sugar::v8::object_get(js_obj(), "_map_").As<v8::Map>();
+    v8::Local<v8::Map> map = js_props().As<v8::Map>();
     return map->Get(v8::Isolate::GetCurrent()->GetCurrentContext(), v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key.c_str()).ToLocalChecked())
         .ToLocalChecked()
         .As<v8::Object>();
+}
+
+Binding::~Binding()
+{
+    _js_props.Reset();
 }
