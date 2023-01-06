@@ -5,8 +5,9 @@
 class Binding
 {
 private:
-    v8::Global<v8::Object> _js_obj;
-    v8::Global<v8::Object> _js_props;
+    sugar::v8::Weak<v8::Object> _js_obj;
+
+    sugar::v8::Weak<v8::Object> _js_props;
 
     v8::Local<v8::Object> js_props();
 
@@ -15,7 +16,7 @@ protected:
 
 public:
     template <class T>
-    static T *c_obj(v8::Local<v8::Object> js_obj)
+    inline static T *c_obj(v8::Local<v8::Object> js_obj)
     {
         return static_cast<T *>(js_obj->GetAlignedPointerFromInternalField(0));
     }
@@ -25,25 +26,24 @@ public:
     v8::Local<v8::Object> js_obj();
 
     template <class T>
-    T *retain(v8::Local<v8::Object> js_obj, const std::string &key = "")
+    inline T *retain(v8::Local<v8::Value> js_obj, sugar::v8::Weak<v8::Object> &handle)
     {
-        retain(js_obj, key);
-        return c_obj<T>(js_obj);
+        return c_obj<T>(retain(js_obj, handle));
     }
 
-    v8::Local<v8::Value> retain(v8::Local<v8::Value> val, const std::string &key = "");
+    template <class T>
+    inline T *retain(v8::Local<v8::Value> js_obj)
+    {
+        return c_obj<T>(retain(js_obj));
+    }
+
+    v8::Local<v8::Object> retain(v8::Local<v8::Value> val, sugar::v8::Weak<v8::Object> &handle);
+
+    v8::Local<v8::Object> retain(v8::Local<v8::Value> val);
 
     void release(v8::Local<v8::Object> js_obj);
 
     void releaseAll();
-
-    template <class T>
-    T *retrieve(const std::string &key)
-    {
-        return c_obj<T>(retrieve(key));
-    }
-
-    v8::Local<v8::Object> retrieve(const std::string &key);
 
     virtual ~Binding();
 };

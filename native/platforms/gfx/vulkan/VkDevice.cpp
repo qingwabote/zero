@@ -94,7 +94,7 @@ namespace binding::gfx
                 swapchain;
             )";
         auto js_swapchain = sugar::v8::run(src_js_swapchain).As<v8::Object>();
-        retain(js_swapchain, "swapchain");
+        retain(js_swapchain, _swapchain);
 
         _impl->_swapchainImageViews = vkb_swapchain.get_image_views().value();
         _impl->_vkb_swapchain = std::move(vkb_swapchain);
@@ -125,12 +125,12 @@ namespace binding::gfx
             capabilities,
             "clipSpaceMinZ",
             v8::Number::New(v8::Isolate::GetCurrent(), 0));
-        retain(capabilities, "capabilities");
+        retain(capabilities, _capabilities);
 
         _impl->_graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
 
         auto queue = new Queue(std::make_unique<Queue_impl>(_impl));
-        retain(queue->js_obj(), "queue");
+        retain(queue->js_obj(), _queue);
 
         _impl->_vkb_device = std::move(vkb_device);
         _impl->_vkb_instance = std::move(vkb_instance);

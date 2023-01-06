@@ -43,7 +43,14 @@ export class RenderPassInfo {
         return this._samples;
     }
 
+    /**
+     * https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
+     */
+    readonly compatibleHash: string;
+
     constructor(colorAttachments: AttachmentDescription[], depthStencilAttachment: AttachmentDescription, resolveAttachments: AttachmentDescription[] = [], samples = SampleCountFlagBits.SAMPLE_COUNT_1) {
+        this.compatibleHash = `${colorAttachments.length}1${resolveAttachments.length}${samples}`
+
         this._colorAttachments = colorAttachments;
         this._depthStencilAttachment = depthStencilAttachment;
         this._resolveAttachments = resolveAttachments;

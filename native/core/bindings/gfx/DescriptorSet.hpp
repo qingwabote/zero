@@ -16,6 +16,10 @@ namespace binding
         private:
             std::unique_ptr<DescriptorSet_impl> _impl;
 
+            sugar::v8::Weak<v8::Object> _layout;
+
+            std::unordered_map<std::string, sugar::v8::Weak<_v8::Object>> _bindedResources;
+
         protected:
             virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 

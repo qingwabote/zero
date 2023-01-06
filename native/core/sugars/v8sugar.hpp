@@ -51,4 +51,33 @@ namespace sugar::v8
 
         _v8::Local<_v8::FunctionTemplate> flush();
     };
+
+    template <class T>
+    class Weak
+    {
+    private:
+        _v8::Global<T> _global;
+
+    public:
+        inline bool IsEmpty() const { return _global.IsEmpty(); }
+
+        Weak() {}
+
+        Weak(_v8::Isolate *isolate, _v8::Local<T> that)
+        {
+            _global.Reset(isolate, that);
+            _global.SetWeak();
+        }
+
+        inline _v8::Local<T> Get(_v8::Isolate *isolate)
+        {
+            return _global.Get(isolate);
+        }
+
+        inline void Reset(_v8::Isolate *isolate, const _v8::Local<T> &that)
+        {
+            _global.Reset(isolate, that);
+            _global.SetWeak();
+        }
+    };
 }

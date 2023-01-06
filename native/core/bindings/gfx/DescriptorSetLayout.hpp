@@ -12,6 +12,8 @@ namespace binding
         private:
             std::unique_ptr<DescriptorSetLayout_impl> _impl;
 
+            sugar::v8::Weak<v8::Object> _bindings;
+
         protected:
             virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 

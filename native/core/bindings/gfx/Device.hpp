@@ -27,6 +27,14 @@ namespace binding::gfx
     private:
         Device_impl *_impl = nullptr;
 
+        sugar::v8::Weak<v8::Object> _capabilities;
+
+        sugar::v8::Weak<v8::Object> _swapchain;
+
+        sugar::v8::Weak<v8::Object> _queue;
+
+        sugar::v8::Weak<v8::Object> _acquire_semaphore;
+
     protected:
         v8::Local<v8::FunctionTemplate> createTemplate() override;
 

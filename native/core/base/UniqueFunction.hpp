@@ -41,7 +41,7 @@ public:
     }
 
     UniqueFunction &operator=(UniqueFunction const &) = delete;
-    UniqueFunction &operator=(UniqueFunction &&val)
+    UniqueFunction &operator=(UniqueFunction &&val) noexcept
     {
         // if (_holder)
         // {

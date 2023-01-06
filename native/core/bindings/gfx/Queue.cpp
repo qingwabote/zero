@@ -40,8 +40,8 @@ namespace binding::gfx
                 auto js_commandBuffer = sugar::v8::object_get(js_submitInfo, "commandBuffer").As<v8::Object>();
                 c_submitInfo.commandBuffer = Binding::c_obj<CommandBuffer>(js_commandBuffer);
 
-                auto c_fence = c_obj->retain<Fence>(info[1].As<v8::Object>());
-                c_fence->retain(js_submitInfo, "submitInfo");
+                auto c_fence = c_obj->retain<Fence>(info[1]);
+                c_fence->retain(js_submitInfo, c_fence->submitInfo);
 
                 auto f = new auto(
                     [=]()
@@ -56,7 +56,7 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<Queue>(info.This());
-                auto c_waitSemaphore = c_obj->retain<Semaphore>(info[0].As<v8::Object>(), "present_semaphore");
+                auto c_waitSemaphore = c_obj->retain<Semaphore>(info[0], c_obj->_present_semaphore);
 
                 auto f = new auto(
                     [=]()

@@ -24,7 +24,7 @@ namespace
 
         std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> constructorCache;
 
-        std::unordered_map<std::filesystem::path, _v8::Global<_v8::Module>> moduleCache;
+        std::unordered_map<std::filesystem::path, sugar::v8::Weak<_v8::Module>> moduleCache;
 
         std::map<uint32_t, SetWeakCallback *> weakCallbacks;
 
@@ -76,10 +76,6 @@ namespace sugar::v8
     {
         IsolateData *data = IsolateData::getCurrent(isolate);
         for (auto &it : data->constructorCache)
-        {
-            it.second.Reset();
-        }
-        for (auto &it : data->moduleCache)
         {
             it.second.Reset();
         }
@@ -256,9 +252,7 @@ namespace sugar::v8
 
         auto module = maybeModule.ToLocalChecked();
         resolvedMap.emplace(module->GetIdentityHash(), path);
-        auto global = _v8::Global<_v8::Module>{isolate, module};
-        global.SetWeak();
-        moduleCache.emplace(path, std::move(global));
+        moduleCache.emplace(path, Weak<_v8::Module>{isolate, module});
 
         return handle_scope.EscapeMaybe(maybeModule);
     }

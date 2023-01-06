@@ -36,7 +36,7 @@ namespace binding
 
         void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer, double range)
         {
-            auto size = sugar::v8::object_get(c_buffer->retrieve("info"), "size").As<v8::Number>()->Value();
+            auto size = sugar::v8::object_get(c_buffer->info(), "size").As<v8::Number>()->Value();
 
             VkDescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = c_buffer->impl();

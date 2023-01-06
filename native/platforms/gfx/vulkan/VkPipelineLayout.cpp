@@ -23,8 +23,7 @@ namespace binding
             for (uint32_t i = 0; i < js_setLayouts->Length(); ++i)
             {
 
-                v8::Local<v8::Object> js_setLayout = js_setLayouts->Get(context, i).ToLocalChecked().As<v8::Object>();
-                DescriptorSetLayout *c_setLayout = retain<DescriptorSetLayout>(js_setLayout);
+                DescriptorSetLayout *c_setLayout = retain<DescriptorSetLayout>(js_setLayouts->Get(context, i).ToLocalChecked());
                 descriptorSetLayouts[i] = c_setLayout->impl()->setLayout();
             }
 

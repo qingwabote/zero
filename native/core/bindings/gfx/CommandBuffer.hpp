@@ -50,7 +50,7 @@ namespace binding::gfx
         void bindDescriptorSet(PipelineLayout *pipelineLayout,
                                uint32_t index,
                                DescriptorSet *descriptorSet,
-                               const std::vector<uint32_t> &dynamicOffsets);
+                               std::unique_ptr<std::vector<uint32_t>> dynamicOffsets);
 
         void bindInputAssembler(InputAssembler *inputAssembler);
 

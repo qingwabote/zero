@@ -180,11 +180,7 @@ export default class RenderFlow {
     }
 
     getPipeline(pass: Pass, vertexInputState: VertexInputState, compatibleRenderPass: RenderPass, layout: PipelineLayout): Pipeline {
-        // https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
-        const compatibleRenderPassHash = `${compatibleRenderPass.info.colorAttachments.length}1${compatibleRenderPass.info.resolveAttachments.length}${compatibleRenderPass.info.samples}`
-
-        const pipelineHash = pass.hash + vertexInputState.hash + compatibleRenderPassHash;
-
+        const pipelineHash = pass.hash + vertexInputState.hash + compatibleRenderPass.info.compatibleHash;
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             pipeline = gfx.createPipeline();

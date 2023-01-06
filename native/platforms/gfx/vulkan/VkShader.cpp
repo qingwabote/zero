@@ -138,15 +138,8 @@ namespace binding
         Shader::Shader(std::unique_ptr<Shader_impl> impl)
             : Binding(), _impl(std::move(impl)) {}
 
-        v8::Local<v8::Object> Shader::info()
-        {
-            return retrieve("info");
-        }
-
         bool Shader::initialize(v8::Local<v8::Object> info)
         {
-            retain(info, "info");
-
             v8::Isolate *isolate = info->GetIsolate();
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 

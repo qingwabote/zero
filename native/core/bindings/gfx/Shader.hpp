@@ -13,6 +13,8 @@ namespace binding
         private:
             std::unique_ptr<Shader_impl> _impl;
 
+            sugar::v8::Weak<v8::Object> _info;
+
         protected:
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
@@ -20,8 +22,6 @@ namespace binding
             Shader_impl *impl() { return _impl.get(); }
 
             Shader(std::unique_ptr<Shader_impl> impl);
-
-            v8::Local<v8::Object> info();
 
             bool initialize(v8::Local<v8::Object> info);
 

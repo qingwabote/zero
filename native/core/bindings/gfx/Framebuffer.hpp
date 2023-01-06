@@ -13,6 +13,8 @@ namespace binding
         private:
             std::unique_ptr<Framebuffer_impl> _impl;
 
+            sugar::v8::Weak<v8::Object> _info;
+
         protected:
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 

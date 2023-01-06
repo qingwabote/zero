@@ -40,7 +40,7 @@ namespace binding::gfx
                 auto backingStore = js_view->Buffer()->GetBackingStore();
                 auto offset = js_view->ByteOffset();
                 auto size = js_view->ByteLength();
-                auto c_buffer = c_obj->retain<Buffer>(info[1].As<v8::Object>());
+                auto c_buffer = c_obj->retain<Buffer>(info[1]);
 
                 auto f = new auto(
                     [=]()
@@ -55,8 +55,8 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                auto c_imageBitmap = c_obj->retain<ImageBitmap>(info[0].As<v8::Object>());
-                auto c_texture = c_obj->retain<Texture>(info[1].As<v8::Object>());
+                auto c_imageBitmap = c_obj->retain<ImageBitmap>(info[0]);
+                auto c_texture = c_obj->retain<Texture>(info[1]);
 
                 auto f = new auto(
                     [=]()
@@ -70,8 +70,8 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                auto c_renderPass = c_obj->retain<RenderPass>(info[0].As<v8::Object>());
-                auto c_framebuffer = c_obj->retain<Framebuffer>(info[1].As<v8::Object>());
+                auto c_renderPass = c_obj->retain<RenderPass>(info[0]);
+                auto c_framebuffer = c_obj->retain<Framebuffer>(info[1]);
                 auto js_area = info[2].As<v8::Object>();
                 RenderArea c_area{};
                 c_area.x = sugar::v8::object_get(js_area, "x").As<v8::Number>()->Value();
@@ -90,29 +90,26 @@ namespace binding::gfx
             "bindDescriptorSet",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
-                v8::Isolate *isolate = v8::Isolate::GetCurrent();
-                v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
 
-                PipelineLayout *c_pipelineLayout = c_obj->retain<PipelineLayout>(info[0].As<v8::Object>());
+                PipelineLayout *c_pipelineLayout = c_obj->retain<PipelineLayout>(info[0]);
                 uint32_t index = info[1].As<v8::Number>()->Value();
-                DescriptorSet *c_descriptorSet = c_obj->retain<DescriptorSet>(info[2].As<v8::Object>());
-                std::vector<uint32_t> c_dynamicOffsets{};
+                DescriptorSet *c_descriptorSet = c_obj->retain<DescriptorSet>(info[2]);
+                std::unique_ptr<std::vector<uint32_t>> c_dynamicOffsets;
                 if (info.Length() > 3)
                 {
                     v8::Local<v8::Array> js_dynamicOffsets = info[3].As<v8::Array>();
-                    c_dynamicOffsets.resize(js_dynamicOffsets->Length());
-                    for (uint32_t i = 0; i < js_dynamicOffsets->Length(); i++)
+                    c_dynamicOffsets = std::make_unique<std::vector<uint32_t>>(js_dynamicOffsets->Length());
+                    for (uint32_t i = 0; i < c_dynamicOffsets->size(); i++)
                     {
-                        c_dynamicOffsets[i] = js_dynamicOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
+                        (*c_dynamicOffsets)[i] = js_dynamicOffsets->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked().As<v8::Number>()->Value();
                     }
                 }
 
                 auto f = new auto(
-                    [=, c_dynamicOffsets = std::move(c_dynamicOffsets)]()
+                    [=, c_dynamicOffsets = std::move(c_dynamicOffsets)]() mutable
                     {
-                        c_obj->bindDescriptorSet(c_pipelineLayout, index, c_descriptorSet, c_dynamicOffsets);
+                        c_obj->bindDescriptorSet(c_pipelineLayout, index, c_descriptorSet, std::move(c_dynamicOffsets));
                     });
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
@@ -122,7 +119,7 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                auto c_inputAssembler = c_obj->retain<InputAssembler>(info[0].As<v8::Object>());
+                auto c_inputAssembler = c_obj->retain<InputAssembler>(info[0]);
 
                 auto f = new auto(
                     [=]()
@@ -137,7 +134,7 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                Pipeline *c_pipeline = c_obj->retain<Pipeline>(info[0].As<v8::Object>());
+                Pipeline *c_pipeline = c_obj->retain<Pipeline>(info[0]);
 
                 auto f = new auto(
                     [=]()

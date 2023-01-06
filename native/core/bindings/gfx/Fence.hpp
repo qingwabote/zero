@@ -17,6 +17,8 @@ namespace binding::gfx
     public:
         Fence_impl &impl() { return *_impl.get(); }
 
+        sugar::v8::Weak<v8::Object> submitInfo;
+
         Fence(std::unique_ptr<Fence_impl> impl);
 
         bool initialize(bool signaled);

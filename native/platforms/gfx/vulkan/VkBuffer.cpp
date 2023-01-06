@@ -37,7 +37,7 @@ namespace binding
 
         void Buffer::update(v8::Local<v8::ArrayBufferView> buffer)
         {
-            size_t size = sugar::v8::object_get(retrieve("info"), "size").As<v8::Number>()->Value();
+            size_t size = sugar::v8::object_get(_info.Get(v8::Isolate::GetCurrent()), "size").As<v8::Number>()->Value();
             auto start = reinterpret_cast<const uint8_t *>(buffer->Buffer()->Data()) + buffer->ByteOffset();
             memcpy(_impl->_allocationInfo.pMappedData, start, size);
         }

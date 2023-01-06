@@ -184,17 +184,20 @@ namespace binding
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
         }
 
-        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet, const std::vector<uint32_t> &dynamicOffsets)
+        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet, std::unique_ptr<std::vector<uint32_t>> dynamicOffsets)
         {
             VkDescriptorSet descriptorSet0 = descriptorSet->impl();
+            uint32_t dynamicOffsetCount = dynamicOffsets ? dynamicOffsets->size() : 0;
+            const uint32_t *pDynamicOffsets = dynamicOffsets ? dynamicOffsets->data() : nullptr;
+
             vkCmdBindDescriptorSets(_impl->_commandBuffer,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     pipelineLayout->impl(),
                                     index,
                                     1,
                                     &descriptorSet0,
-                                    dynamicOffsets.size(),
-                                    dynamicOffsets.data());
+                                    dynamicOffsetCount,
+                                    pDynamicOffsets);
         }
 
         void CommandBuffer::bindInputAssembler(InputAssembler *inputAssembler)

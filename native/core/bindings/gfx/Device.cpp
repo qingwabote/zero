@@ -20,7 +20,7 @@ namespace binding::gfx
             [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<Device>(info.This());
-                info.GetReturnValue().Set(c_obj->retrieve("capabilities"));
+                info.GetReturnValue().Set(c_obj->_capabilities.Get(info.GetIsolate()));
             });
 
         cls.defineAccessor(
@@ -28,7 +28,7 @@ namespace binding::gfx
             [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<Device>(info.This());
-                info.GetReturnValue().Set(c_obj->retrieve("swapchain"));
+                info.GetReturnValue().Set(c_obj->_swapchain.Get(info.GetIsolate()));
             });
 
         cls.defineAccessor(
@@ -36,7 +36,7 @@ namespace binding::gfx
             [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<Device>(info.This());
-                info.GetReturnValue().Set(c_obj->retrieve("queue"));
+                info.GetReturnValue().Set(c_obj->_queue.Get(info.GetIsolate()));
             });
 
         cls.defineFunction(
@@ -156,7 +156,7 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<Device>(info.This());
-                auto c_semaphore = c_obj->retain<Semaphore>(info[0].As<v8::Object>(), "acquire_semaphore");
+                auto c_semaphore = c_obj->retain<Semaphore>(info[0], c_obj->_acquire_semaphore);
                 c_obj->acquire(c_semaphore);
             });
 

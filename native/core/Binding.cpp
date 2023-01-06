@@ -1,9 +1,7 @@
 #include "Binding.hpp"
 #include <typeinfo>
 
-Binding::Binding()
-{
-}
+Binding::Binding() {}
 
 v8::Local<v8::Object> Binding::js_obj()
 {
@@ -36,7 +34,6 @@ v8::Local<v8::Object> Binding::js_obj()
                                { delete this; });
 
     _js_obj.Reset(isolate, obj);
-    _js_obj.SetWeak();
 
     return scope.Escape(obj);
 }
@@ -46,27 +43,40 @@ v8::Local<v8::Object> Binding::js_props()
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     if (_js_props.IsEmpty())
     {
-        _js_props.Reset(isolate, v8::Map::New(isolate));
+        v8::Local<v8::Object> props = v8::Map::New(isolate);
+        sugar::v8::object_set(js_obj(), "_props_", props);
+        _js_props.Reset(isolate, props);
     }
     return _js_props.Get(isolate);
 }
 
-v8::Local<v8::Value> Binding::retain(v8::Local<v8::Value> val, const std::string &key)
+v8::Local<v8::Object> Binding::retain(v8::Local<v8::Value> val, sugar::v8::Weak<v8::Object> &handle)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::HandleScope scope{isolate};
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::Map> map = js_props().As<v8::Map>();
-    if (key.length())
+    map->Set(context, val, val);
+
+    if (!handle.IsEmpty())
     {
-        map->Set(context, v8::String::NewFromUtf8(isolate, key.c_str()).ToLocalChecked(), val);
+        map->Delete(context, handle.Get(isolate));
     }
-    else
-    {
-        map->Set(context, val, val);
-    }
-    return val;
+    handle.Reset(isolate, val.As<v8::Object>());
+
+    return val.As<v8::Object>();
+}
+
+v8::Local<v8::Object> Binding::retain(v8::Local<v8::Value> val)
+{
+    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope scope{isolate};
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+    v8::Local<v8::Map> map = js_props().As<v8::Map>();
+    map->Set(context, val, val);
+    return val.As<v8::Object>();
 }
 
 void Binding::release(v8::Local<v8::Object> obj)
@@ -81,15 +91,4 @@ void Binding::releaseAll()
     map->Clear();
 }
 
-v8::Local<v8::Object> Binding::retrieve(const std::string &key)
-{
-    v8::Local<v8::Map> map = js_props().As<v8::Map>();
-    return map->Get(v8::Isolate::GetCurrent()->GetCurrentContext(), v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key.c_str()).ToLocalChecked())
-        .ToLocalChecked()
-        .As<v8::Object>();
-}
-
-Binding::~Binding()
-{
-    _js_props.Reset();
-}
+Binding::~Binding() {}

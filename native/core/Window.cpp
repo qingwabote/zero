@@ -3,7 +3,6 @@
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "bindings/Console.hpp"
-#include "bindings/Performance.hpp"
 #include "bindings/Loader.hpp"
 #include "bindings/Platform.hpp"
 #include "bindings/gfx/Device.hpp"
@@ -65,11 +64,6 @@ int Window::loop()
         context,
         v8::String::NewFromUtf8Literal(isolate.get(), "console"),
         (new binding::Console())->js_obj());
-
-    global->Set(
-        context,
-        v8::String::NewFromUtf8Literal(isolate.get(), "performance"),
-        (new binding::Performance())->js_obj());
 
     binding::gfx::Device *gfx = new binding::gfx::Device(window.get());
     gfx->initialize();
@@ -259,7 +253,7 @@ int Window::loop()
             return -1;
         }
 
-        SDL_GL_SwapWindow(window.get());
+        // SDL_GL_SwapWindow(window.get());
     }
 
     ThreadPool::shared().join();

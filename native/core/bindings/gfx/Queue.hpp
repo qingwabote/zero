@@ -22,6 +22,8 @@ namespace binding::gfx
     private:
         std::unique_ptr<Queue_impl> _impl;
 
+        sugar::v8::Weak<v8::Object> _present_semaphore;
+
     protected:
         v8::Local<v8::FunctionTemplate> createTemplate() override;
 

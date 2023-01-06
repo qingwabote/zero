@@ -13,13 +13,15 @@ namespace binding
         private:
             std::unique_ptr<RenderPass_impl> _impl;
 
+            sugar::v8::Weak<v8::Object> _info;
+
         protected:
             v8::Local<v8::FunctionTemplate> createTemplate() override;
 
         public:
             RenderPass_impl &impl() { return *_impl.get(); }
 
-            v8::Local<v8::Object> info() { return retrieve("info"); }
+            v8::Local<v8::Object> info() { return _info.Get(v8::Isolate::GetCurrent()); }
 
             RenderPass(std::unique_ptr<RenderPass_impl> impl);
 

@@ -31,8 +31,7 @@ namespace binding
             VkGraphicsPipelineCreateInfo pipelineInfo = {};
             pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
-            v8::Local<v8::Object> js_shader = sugar::v8::object_get(info, "shader").As<v8::Object>();
-            Shader *c_shader = retain<Shader>(js_shader);
+            Shader *c_shader = retain<Shader>(sugar::v8::object_get(info, "shader"));
             auto &stageInfos = c_shader->impl()->stageInfos();
             pipelineInfo.stageCount = stageInfos.size();
             pipelineInfo.pStages = stageInfos.data();
@@ -96,8 +95,7 @@ namespace binding
             rasterizationState.lineWidth = 1;
             pipelineInfo.pRasterizationState = &rasterizationState;
 
-            v8::Local<v8::Object> js_renderPass = sugar::v8::object_get(info, "renderPass").As<v8::Object>();
-            auto c_renderPass = retain<RenderPass>(js_renderPass);
+            auto c_renderPass = retain<RenderPass>(sugar::v8::object_get(info, "renderPass"));
 
             VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
             multisampleState.sampleShadingEnable = VK_FALSE;
@@ -132,8 +130,7 @@ namespace binding
             depthStencilState.stencilTestEnable = VK_FALSE;
             pipelineInfo.pDepthStencilState = &depthStencilState;
 
-            v8::Local<v8::Object> js_layout = sugar::v8::object_get(info, "layout").As<v8::Object>();
-            pipelineInfo.layout = retain<PipelineLayout>(js_layout)->impl();
+            pipelineInfo.layout = retain<PipelineLayout>(sugar::v8::object_get(info, "layout"))->impl();
 
             pipelineInfo.renderPass = c_renderPass->impl();
             pipelineInfo.subpass = 0;
