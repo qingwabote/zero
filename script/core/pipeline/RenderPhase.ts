@@ -9,6 +9,11 @@ export default abstract class RenderPhase {
         return this._visibility;
     }
 
+    protected _drawCalls: number = 0;
+    get drawCalls() {
+        return this._drawCalls;
+    }
+
     constructor(visibility: VisibilityBit = VisibilityBit.ALL) {
         this._visibility = visibility;
     }

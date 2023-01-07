@@ -63,6 +63,8 @@ export default class ShadowmapPhase extends RenderPhase {
             return;
         }
 
+        this._drawCalls = 0;
+
         const models = zero.renderScene.models;
         commandBuffer.beginRenderPass(this._renderPass, this._framebuffer, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
         // commandBuffer.beginRenderPass(this._renderPass, camera.viewport);
@@ -86,6 +88,7 @@ export default class ShadowmapPhase extends RenderPhase {
                     const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, this._renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
+                    this._drawCalls++;
                 }
             }
         }

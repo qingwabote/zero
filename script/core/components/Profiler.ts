@@ -31,6 +31,7 @@ export default class Profiler extends Component {
         this._frames++;
 
         label.text = `FPS: ${this._fps.toString().slice(0, 5)}
+Draw call: ${zero.renderFlow.drawCalls}
 Render(ms): ${this._render_time.toString().slice(0, 5)}
 Game Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
     }

@@ -24,6 +24,11 @@ export default class RenderFlow {
         return this._renderPhases;
     }
 
+    private _drawCalls: number = 0;
+    get drawCalls() {
+        return this._drawCalls;
+    }
+
     private _globalDescriptorSetLayout: DescriptorSetLayout;
 
     readonly globalDescriptorSet: DescriptorSet;
@@ -114,6 +119,8 @@ export default class RenderFlow {
     }
 
     record(commandBuffer: CommandBuffer) {
+        this._drawCalls = 0;
+
         const renderScene = zero.renderScene;
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
@@ -124,6 +131,7 @@ export default class RenderFlow {
                     continue;
                 }
                 renderPhase.record(commandBuffer, camera);
+                this._drawCalls += renderPhase.drawCalls;
             }
         }
     }

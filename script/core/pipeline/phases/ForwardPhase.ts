@@ -22,6 +22,8 @@ export default class ForwardPhase extends RenderPhase {
     }
 
     record(commandBuffer: CommandBuffer, camera: RenderCamera) {
+        this._drawCalls = 0;
+
         const models = zero.renderScene.models;
         const framebuffer = zero.renderFlow.framebuffer;
         const renderPass = zero.renderFlow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
@@ -47,6 +49,7 @@ export default class ForwardPhase extends RenderPhase {
                     const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.draw();
+                    this._drawCalls++;
                 }
             }
         }
