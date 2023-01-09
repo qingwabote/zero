@@ -22,7 +22,7 @@ export default class ShadowmapPhase extends RenderPhase {
         return this._framebuffer;
     }
 
-    constructor(visibility?: VisibilityBit) {
+    constructor(visibility: VisibilityBit = VisibilityBit.DEFAULT) {
         super(visibility);
         const renderPass = gfx.createRenderPass();
         renderPass.initialize(new RenderPassInfo([], {

@@ -9,7 +9,11 @@ export interface TouchEvent {
     touches: Touch[]
 }
 
-enum Event {
+export interface GestureEvent {
+    delta: number
+}
+
+export enum InputEvent {
     TOUCH_START = "TOUCH_START",
     TOUCH_MOVE = "TOUCH_MOVE",
     TOUCH_END = "TOUCH_END",
@@ -18,13 +22,11 @@ enum Event {
 }
 
 interface EventToListener {
-    [Event.TOUCH_START]: (event: TouchEvent) => void;
-    [Event.TOUCH_MOVE]: (event: TouchEvent) => void;
-    [Event.TOUCH_END]: (event: TouchEvent) => void;
-    [Event.GESTURE_PINCH]: (delta: number) => void;
-    [Event.GESTURE_ROTATE]: (delta: number) => void;
+    [InputEvent.TOUCH_START]: (event: TouchEvent) => void;
+    [InputEvent.TOUCH_MOVE]: (event: TouchEvent) => void;
+    [InputEvent.TOUCH_END]: (event: TouchEvent) => void;
+    [InputEvent.GESTURE_PINCH]: (event: GestureEvent) => void;
+    [InputEvent.GESTURE_ROTATE]: (event: GestureEvent) => void;
 }
 
-export default class Input extends EventEmitter<EventToListener> {
-    static Event = Event;
-}
+export default class Input extends EventEmitter<EventToListener> { }

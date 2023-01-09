@@ -4,14 +4,14 @@ import CommandBuffer from "./gfx/CommandBuffer.js";
 import Fence from "./gfx/Fence.js";
 import { PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import Semaphore from "./gfx/Semaphore.js";
-import Input from "./Input.js";
+import Input, { InputEvent } from "./Input.js";
 import Loader from "./Loader.js";
 import RenderFlow from "./pipeline/RenderFlow.js";
 import Platfrom from "./Platfrom.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
 
-enum Event {
+export enum ZeroEvent {
     UPDATE_START = "UPDATE_START",
     UPDATE_END = "UPDATE_END",
 
@@ -20,16 +20,14 @@ enum Event {
 }
 
 interface EventToListener {
-    [Event.UPDATE_START]: () => void;
-    [Event.UPDATE_END]: () => void;
+    [ZeroEvent.UPDATE_START]: () => void;
+    [ZeroEvent.UPDATE_END]: () => void;
 
-    [Event.RENDER_START]: () => void;
-    [Event.RENDER_END]: () => void;
+    [ZeroEvent.RENDER_START]: () => void;
+    [ZeroEvent.RENDER_END]: () => void;
 }
 
 export default abstract class Zero extends EventEmitter<EventToListener> {
-    static Event = Event;
-
     private _input: Input = new Input;
     get input(): Input {
         return this._input;
@@ -103,12 +101,15 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
 
     abstract start(): RenderFlow;
 
-    tick(dt: number) {
-        this.emit(Event.UPDATE_START);
-        this._componentScheduler.update(dt)
-        this.emit(Event.UPDATE_END);
+    tick(name2event: Map<InputEvent, any>) {
+        this.emit(ZeroEvent.UPDATE_START);
+        for (const [name, event] of name2event) {
+            this.input.emit(name, event);
+        }
+        this._componentScheduler.update()
+        this.emit(ZeroEvent.UPDATE_END);
 
-        this.emit(Event.RENDER_START);
+        this.emit(ZeroEvent.RENDER_START);
         gfx.acquire(this._presentSemaphore);
         this._renderScene.update();
         this._renderFlow.update();
@@ -116,7 +117,7 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         this._commandBuffer.begin();
         this._renderFlow.record(this._commandBuffer);
         this._commandBuffer.end();
-        this.emit(Event.RENDER_END);
+        this.emit(ZeroEvent.RENDER_END);
 
         gfx.queue.submit({
             commandBuffer: this._commandBuffer,

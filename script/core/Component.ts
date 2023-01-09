@@ -8,5 +8,5 @@ export default abstract class Component {
 
     start(): void { }
 
-    update(dt: number): void { }
+    update(): void { }
 }

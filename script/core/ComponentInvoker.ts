@@ -1,6 +1,6 @@
 import Component from "./Component.js";
 
-type InvokeFunc = (com: Component, dt: number) => void;
+type InvokeFunc = (com: Component) => void;
 
 export class ComponentInvoker {
     private _func: InvokeFunc;
@@ -24,9 +24,9 @@ export class ComponentInvoker {
         this._components.delete(com);
     }
 
-    invoke(dt: number): void {
+    invoke(): void {
         for (const com of this._components.keys()) {
-            this._func(com, dt)
+            this._func(com)
         }
         if (this._oneOff) {
             this._components.clear()

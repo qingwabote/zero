@@ -105,7 +105,7 @@ export default class Label extends Component {
         this._subModel = subModel;
     }
 
-    override update(dt: number): void {
+    override update(): void {
         if (this._dirtyFlag == DirtyFlagBits.NONE) {
             return;
         }

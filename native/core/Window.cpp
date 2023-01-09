@@ -164,10 +164,8 @@ int Window::loop()
         return -1;
     }
 
-    auto input = sugar::v8::object_get(app, "input").As<v8::Object>();
-    auto input_emit = sugar::v8::object_get(input, "emit").As<v8::Function>();
-
-    auto app_tick = sugar::v8::object_get(app, "tick").As<v8::Function>();
+    v8::Local<v8::Function> app_tick = sugar::v8::object_get(app, "tick").As<v8::Function>();
+    v8::Local<v8::Map> name2event = v8::Map::New(isolate.get());
 
     bool running = true;
     auto time = std::chrono::steady_clock::now();
@@ -212,8 +210,7 @@ int Window::loop()
                 touches->Set(context, 0, touch);
                 auto touchEvent = v8::Object::New(isolate.get());
                 touchEvent->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "touches"), touches);
-                v8::Local<v8::Value> args[] = {v8::String::NewFromUtf8(isolate.get(), name).ToLocalChecked(), touchEvent};
-                input_emit->Call(context, input, 2, args);
+                name2event->Set(context, v8::String::NewFromUtf8(isolate.get(), name).ToLocalChecked(), touchEvent);
                 break;
             }
             default:
@@ -227,16 +224,8 @@ int Window::loop()
         {
             std::this_thread::sleep_for(
                 std::chrono::nanoseconds(NANOSECONDS_60FPS - static_cast<int64_t>(dtNS)));
-            now = std::chrono::steady_clock::now();
-            dtNS = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count());
         }
         time = now;
-
-        // auto functionQueue = _beforeTickQueue.flush();
-        // for (auto &func : functionQueue)
-        // {
-        //     func();
-        // }
 
         UniqueFunction f{};
         while (_beforeTickQueue.pop(f))
@@ -244,7 +233,7 @@ int Window::loop()
             f();
         }
 
-        v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), dtNS / NANOSECONDS_PER_SECOND)};
+        v8::Local<v8::Value> args[] = {name2event};
         _v8::TryCatch try_catch(isolate.get());
         app_tick->Call(context, app, 1, args);
         if (try_catch.HasCaught())
@@ -252,6 +241,7 @@ int Window::loop()
             sugar::v8::tryCatch_print(try_catch);
             return -1;
         }
+        name2event->Clear();
 
         // SDL_GL_SwapWindow(window.get());
     }

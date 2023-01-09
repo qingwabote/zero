@@ -1,5 +1,5 @@
 import Component from "../Component.js";
-import Zero from "../Zero.js";
+import { ZeroEvent } from "../Zero.js";
 import Label from "./Label.js";
 
 export default class Profiler extends Component {
@@ -17,7 +17,7 @@ export default class Profiler extends Component {
         this.profileRender();
     }
 
-    override update(dt: number): void {
+    override update(): void {
         const label = this._node.getComponent(Label);
         if (!label) return;
 
@@ -33,17 +33,17 @@ export default class Profiler extends Component {
         label.text = `FPS: ${this._fps.toString().slice(0, 5)}
 Draw call: ${zero.renderFlow.drawCalls}
 Render(ms): ${this._render_time.toString().slice(0, 5)}
-Game Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
+Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
     }
 
     private profileGameLogic() {
         let time = 0;
         let delta = 0;
         let count = 0;
-        zero.on(Zero.Event.UPDATE_START, () => {
+        zero.on(ZeroEvent.UPDATE_START, () => {
             time = Date.now();
         })
-        zero.on(Zero.Event.UPDATE_END, () => {
+        zero.on(ZeroEvent.UPDATE_END, () => {
             delta += Date.now() - time;
             count++;
             if (count == 60) {
@@ -58,10 +58,10 @@ Game Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
         let time = 0;
         let delta = 0;
         let count = 0;
-        zero.on(Zero.Event.RENDER_START, () => {
+        zero.on(ZeroEvent.RENDER_START, () => {
             time = Date.now();
         })
-        zero.on(Zero.Event.RENDER_END, () => {
+        zero.on(ZeroEvent.RENDER_END, () => {
             delta += Date.now() - time;
             count++;
             if (count == 60) {
