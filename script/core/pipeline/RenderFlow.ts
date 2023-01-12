@@ -10,7 +10,7 @@ import Texture, { TextureUsageBit } from "../gfx/Texture.js";
 import Pass from "../render/Pass.js";
 import shaders from "../shaders.js";
 import PipelineUniform from "./PipelineUniform.js";
-import RenderPhase from "./RenderPhase.js";
+import RenderStage from "./RenderStage.js";
 import CameraUniform from "./uniforms/CameraUniform.js";
 
 export default class RenderFlow {
@@ -19,9 +19,9 @@ export default class RenderFlow {
         return this._framebuffer;
     }
 
-    private _renderPhases: RenderPhase[];
-    get renderPhases(): RenderPhase[] {
-        return this._renderPhases;
+    private _stages: RenderStage[];
+    get stages(): RenderStage[] {
+        return this._stages;
     }
 
     private _drawCalls: number = 0;
@@ -43,10 +43,10 @@ export default class RenderFlow {
 
     private _pipelineCache: Record<string, Pipeline> = {};
 
-    constructor(renderPhases: RenderPhase[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
+    constructor(stages: RenderStage[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
         const uniforms: Set<new () => PipelineUniform> = new Set;
-        for (const renderPhase of renderPhases) {
-            for (const uniform of renderPhase.getRequestedUniforms()) {
+        for (const stage of stages) {
+            for (const uniform of stage.getRequestedUniforms()) {
                 uniforms.add(uniform);
             }
         }
@@ -64,7 +64,7 @@ export default class RenderFlow {
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(descriptorSetLayout);
 
-        this._renderPhases = renderPhases;
+        this._stages = stages;
 
         const pipelineLayout = gfx.createPipelineLayout();
         pipelineLayout.initialize([descriptorSetLayout]);
@@ -126,12 +126,9 @@ export default class RenderFlow {
             const camera = renderScene.cameras[cameraIndex];
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, shaders.sets.global.set, this.globalDescriptorSet,
                 [CameraUniform.getDynamicOffset(cameraIndex)]);
-            for (const renderPhase of this._renderPhases) {
-                if ((camera.visibilities & renderPhase.visibility) == 0) {
-                    continue;
-                }
-                renderPhase.record(commandBuffer, camera);
-                this._drawCalls += renderPhase.drawCalls;
+            for (const stage of this._stages) {
+                stage.record(commandBuffer, camera);
+                this._drawCalls += stage.drawCalls;
             }
         }
     }

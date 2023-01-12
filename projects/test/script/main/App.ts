@@ -6,11 +6,12 @@ import Label from "../../../../script/core/components/Label.js";
 import Profiler from "../../../../script/core/components/Profiler.js";
 import defaults from "../../../../script/core/defaults.js";
 import { ClearFlagBit, CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
-import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
+import { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
-import ForwardPhase from "../../../../script/core/pipeline/phases/ForwardPhase.js";
-import ShadowmapPhase from "../../../../script/core/pipeline/phases/ShadowmapPhase.js";
+import NodePhase from "../../../../script/core/pipeline/phases/NodePhase.js";
 import RenderFlow from "../../../../script/core/pipeline/RenderFlow.js";
+import ForwardStage from "../../../../script/core/pipeline/stages/ForwardStage.js";
+import ShadowMapStage from "../../../../script/core/pipeline/stages/ShadowMapStage.js";
 import Material from "../../../../script/core/render/Material.js";
 import Pass from "../../../../script/core/render/Pass.js";
 import PassPhase from "../../../../script/core/render/PassPhase.js";
@@ -53,7 +54,7 @@ export default class App extends Zero {
         cameraUp.fov = 45;
         cameraUp.viewport = { x: 0, y: height * 0.5, width, height: height * 0.5 };
         node.addComponent(ZeroComponent);
-        node.position = [0, 0.5, 4];
+        node.position = [0, 0, 0];
 
         // UI
         node = new Node;
@@ -93,12 +94,10 @@ export default class App extends Zero {
                 const materials: Material[] = [];
                 for (const info of gltf.json.materials) {
                     const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-                    const shadowmapShader = await shaders.getShader('shadowmap');
-                    const shadowmapDescriptorSet = gfx.createDescriptorSet();
-                    shadowmapDescriptorSet.initialize(shaders.getDescriptorSetLayout(shadowmapShader));
-                    const shadowmapPass = new Pass(
-                        shadowmapDescriptorSet,
-                        shadowmapShader,
+                    const shadowMapShader = await shaders.getShader('shadowmap');
+                    const shadowMapPass = new Pass(
+                        shadowMapShader,
+                        undefined,
                         { cullMode: CullMode.FRONT },
                         undefined,
                         PassPhase.SHADOWMAP
@@ -112,43 +111,48 @@ export default class App extends Zero {
                         SHADOW_MAP_PCF: 1,
                         CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
                     })
-                    // const phongShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
 
                     const phoneDescriptorSet = gfx.createDescriptorSet();
                     phoneDescriptorSet.initialize(shaders.getDescriptorSetLayout(phongShader));
                     if (USE_ALBEDO_MAP) {
                         phoneDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
                     }
-                    const phongPass = new Pass(phoneDescriptorSet, phongShader);
+                    const phongPass = new Pass(phongShader, phoneDescriptorSet);
 
-                    const zeroShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
-                    const zeroDescriptorSet = gfx.createDescriptorSet();
-                    zeroDescriptorSet.initialize(shaders.getDescriptorSetLayout(zeroShader));
-                    if (USE_ALBEDO_MAP) {
-                        zeroDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
-                    }
-                    const zeroPass = new Pass(
-                        zeroDescriptorSet,
-                        zeroShader,
-                        { cullMode: CullMode.FRONT },
-                        undefined,
-                        PhaseLightView
-                    );
-                    materials.push(new Material([shadowmapPass, phongPass, zeroPass]));
+                    // const zeroShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
+                    // const zeroDescriptorSet = gfx.createDescriptorSet();
+                    // zeroDescriptorSet.initialize(shaders.getDescriptorSetLayout(zeroShader));
+                    // if (USE_ALBEDO_MAP) {
+                    //     zeroDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
+                    // }
+                    // const zeroPass = new Pass(
+                    //     zeroDescriptorSet,
+                    //     zeroShader,
+                    //     { cullMode: CullMode.FRONT },
+                    //     undefined,
+                    //     PhaseLightView
+                    // );
+                    materials.push(new Material([shadowMapPass, phongPass]));
                 }
                 return materials;
             }
 
             let node: Node;
-            const guardian = new GLTF();
-            await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
-            let materials: Material[] = await createMaterials(guardian);
-            node = guardian.createScene("Sketchfab_Scene", materials)!;
-            const scale = Object.assign(vec3.create(), node.scale);
-            scale[0] *= 0.5;
-            scale[1] *= 0.5;
-            scale[2] *= 0.5;
-            node.scale = scale;
+            const city = new GLTF();
+            await city.load('./asset/venice_city_scene_1dae08_aaron_ongena/scene');
+            let materials: Material[] = await createMaterials(city);
+            node = city.createScene("Sketchfab_Scene", materials)!;
+            // const scale = Object.assign(vec3.create(), node.scale);
+            // scale[0] *= 0.01;
+            // scale[1] *= 0.01;
+            // scale[2] *= 0.01;
+            // node.scale = scale;
+
+            // const guardian = new GLTF();
+            // await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
+            // let materials: Material[] = await createMaterials(guardian);
+            // node = guardian.createScene("Sketchfab_Scene", materials)!;
+            // node.addComponent(ZeroComponent);
 
             // const guardian = new GLTF();
             // await guardian.load('./asset/untitled');
@@ -156,16 +160,16 @@ export default class App extends Zero {
             // node = guardian.createScene("Scene", materials)!;
             // node.addComponent(ZeroComponent);
 
-            const plane = new GLTF();
-            await plane.load('./asset/plane');
-            materials = await createMaterials(plane);
-            node = plane.createScene("Scene", materials)!;
-            node.scale = [4, 4, 4];
+            // const plane = new GLTF();
+            // await plane.load('./asset/plane');
+            // materials = await createMaterials(plane);
+            // node = plane.createScene("Scene", materials)!;
+            // node.scale = [4, 4, 4];
         })();
 
         return new RenderFlow(
-            [new ShadowmapPhase(), new ForwardPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)],
-            SampleCountFlagBits.SAMPLE_COUNT_4);
+            [new ShadowMapStage, new ForwardStage([new NodePhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)])],
+            SampleCountFlagBits.SAMPLE_COUNT_1);
     }
 }
 

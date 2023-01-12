@@ -118,7 +118,7 @@ export default class Sprite extends Component {
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));
         descriptorSet.bindTexture(0, this.texture, defaults.sampler);
-        const pass = new Pass(descriptorSet, this._shader);
+        const pass = new Pass(this._shader, descriptorSet);
 
         const subModel: SubModel = { inputAssemblers: [inputAssembler], passes: [pass] };
         const model = new Model([subModel], this._node);
