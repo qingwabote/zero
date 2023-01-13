@@ -56,7 +56,7 @@ namespace binding::gfx
 
         void bindPipeline(Pipeline *pipeline);
 
-        void draw();
+        void draw(uint32_t count);
 
         void endRenderPass();
 

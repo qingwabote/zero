@@ -6,7 +6,7 @@ import VisibilityBit from "../../render/VisibilityBit.js";
 import shaders from "../../shaders.js";
 import RenderPhase from "../RenderPhase.js";
 
-export default class NodePhase extends RenderPhase {
+export default class ModelPhase extends RenderPhase {
     private _phase: PassPhase;
 
     constructor(phase: PassPhase = PassPhase.DEFAULT, visibility: VisibilityBit = VisibilityBit.ALL) {
@@ -39,7 +39,7 @@ export default class NodePhase extends RenderPhase {
                     }
                     const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
-                    commandBuffer.draw();
+                    commandBuffer.draw(inputAssembler.info.count);
                     this._drawCalls++;
                 }
             }

@@ -2,33 +2,44 @@
 
 #include "VkDevice_impl.hpp"
 
-struct VertexInput
-{
-    std::vector<VkBuffer> vertexBuffers;
-    std::vector<VkDeviceSize> vertexOffsets;
-    VkBuffer indexBuffer{nullptr};
-    VkIndexType indexType{};
-    uint32_t indexCount{};
-    VkDeviceSize indexOffset{};
-};
-
 namespace binding::gfx
 {
     class InputAssembler_impl
     {
         friend class InputAssembler;
 
+    public:
+        struct VkVertexInput
+        {
+            std::vector<VkBuffer> vertexBuffers;
+            std::vector<VkDeviceSize> vertexOffsets;
+        };
+
+        struct VkIndexInput
+        {
+            VkBuffer indexBuffer{nullptr};
+            VkDeviceSize indexOffset{};
+            VkIndexType indexType{};
+        };
+
     private:
         Device_impl *_device;
 
-        VertexInput _vertexInput;
+        std::unique_ptr<VkVertexInput> _vertexInput;
+
+        std::unique_ptr<VkIndexInput> _indexInput;
+
+        uint32_t _count{0};
 
     public:
         InputAssembler_impl(Device_impl *device);
 
-        VertexInput &vertexInput() { return _vertexInput; }
+        VkVertexInput *vertexInput() { return _vertexInput.get(); }
+
+        VkIndexInput *indexInput() { return _indexInput.get(); }
+
+        uint32_t count() { return _count; }
 
         ~InputAssembler_impl();
     };
-
 }

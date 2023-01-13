@@ -16,7 +16,7 @@ export default interface CommandBuffer {
     bindPipeline(pipeline: Pipeline): void;
     bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
-    draw(): void;
+    draw(count: number): void;
     endRenderPass(): void;
     end(): void;
 }

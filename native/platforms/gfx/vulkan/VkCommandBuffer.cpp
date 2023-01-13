@@ -202,12 +202,14 @@ namespace binding
 
         void CommandBuffer::bindInputAssembler(InputAssembler *inputAssembler)
         {
-            auto &vertexInput = inputAssembler->impl().vertexInput();
+            auto vertexInput = inputAssembler->impl().vertexInput();
+            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexInput->vertexBuffers.size(), vertexInput->vertexBuffers.data(), vertexInput->vertexOffsets.data());
 
-            vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexInput.vertexBuffers.size(), vertexInput.vertexBuffers.data(), vertexInput.vertexOffsets.data());
-            vkCmdBindIndexBuffer(_impl->_commandBuffer, vertexInput.indexBuffer, vertexInput.indexOffset, vertexInput.indexType);
-
-            _impl->_indexCount = vertexInput.indexCount;
+            auto indexInput = inputAssembler->impl().indexInput();
+            if (indexInput)
+            {
+                vkCmdBindIndexBuffer(_impl->_commandBuffer, indexInput->indexBuffer, indexInput->indexOffset, indexInput->indexType);
+            }
         }
 
         void CommandBuffer::bindPipeline(Pipeline *pipeline)
@@ -215,9 +217,9 @@ namespace binding
             vkCmdBindPipeline(_impl->_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->impl());
         }
 
-        void CommandBuffer::draw()
+        void CommandBuffer::draw(uint32_t count)
         {
-            vkCmdDrawIndexed(_impl->_commandBuffer, _impl->_indexCount, 1, 0, 0, 0);
+            vkCmdDrawIndexed(_impl->_commandBuffer, count, 1, 0, 0, 0);
         }
 
         void CommandBuffer::endRenderPass()

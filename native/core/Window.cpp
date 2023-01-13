@@ -153,16 +153,12 @@ int Window::loop()
             platform->js_obj(),
             v8::Number::New(isolate.get(), width),
             v8::Number::New(isolate.get(), height)};
-    v8::MaybeLocal<v8::Value> maybeRes = initialize->Call(context, app, 4, args);
-    if (maybeRes.IsEmpty())
+    v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 4, args);
+    if (maybe.IsEmpty())
     {
         return -1;
     }
-    auto res = maybeRes.ToLocalChecked();
-    if (res->BooleanValue(isolate.get()))
-    {
-        return -1;
-    }
+    v8::Local<v8::Promise> app_initialize_promise = maybe.ToLocalChecked().As<v8::Promise>();
 
     v8::Local<v8::Function> app_tick = sugar::v8::object_get(app, "tick").As<v8::Function>();
     v8::Local<v8::Map> name2event = v8::Map::New(isolate.get());
@@ -171,6 +167,21 @@ int Window::loop()
     auto time = std::chrono::steady_clock::now();
     while (running)
     {
+        UniqueFunction f{};
+        while (_beforeTickQueue.pop(f))
+        {
+            f();
+        }
+
+        if (app_initialize_promise->State() == v8::Promise::PromiseState::kRejected)
+        {
+            return -1;
+        }
+        if (app_initialize_promise->State() == v8::Promise::PromiseState::kPending)
+        {
+            continue;
+        }
+
         v8::HandleScope handle_scope(isolate.get());
 
         SDL_Event event;
@@ -227,14 +238,8 @@ int Window::loop()
         }
         time = now;
 
-        UniqueFunction f{};
-        while (_beforeTickQueue.pop(f))
-        {
-            f();
-        }
-
         v8::Local<v8::Value> args[] = {name2event};
-        _v8::TryCatch try_catch(isolate.get());
+        v8::TryCatch try_catch(isolate.get());
         app_tick->Call(context, app, 1, args);
         if (try_catch.HasCaught())
         {

@@ -3,7 +3,7 @@ import { ImageLayout, LOAD_OP, RenderPassInfo } from "../../gfx/RenderPass.js";
 import { TextureUsageBit } from "../../gfx/Texture.js";
 import PassPhase from "../../render/PassPhase.js";
 import VisibilityBit from "../../render/VisibilityBit.js";
-import NodePhase from "../phases/NodePhase.js";
+import ModelPhase from "../phases/ModelPhase.js";
 import PipelineUniform from "../PipelineUniform.js";
 import RenderStage from "../RenderStage.js";
 import ShadowMapUniform from "../uniforms/ShadowMapUniform.js";
@@ -12,7 +12,7 @@ import ShadowUniform from "../uniforms/ShadowUniform.js";
 const SHADOWMAP_WIDTH = 1024;
 const SHADOWMAP_HEIGHT = 1024;
 
-export default class ShadowMapStage extends RenderStage {
+export default class ShadowStage extends RenderStage {
 
     constructor(visibility: VisibilityBit = VisibilityBit.DEFAULT) {
         const renderPass = gfx.createRenderPass();
@@ -37,7 +37,7 @@ export default class ShadowMapStage extends RenderStage {
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
 
-        super([new NodePhase(PassPhase.SHADOWMAP, visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
+        super([new ModelPhase(PassPhase.SHADOWMAP, visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
     }
 
     getRequestedUniforms(): (new () => PipelineUniform)[] {

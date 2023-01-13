@@ -93,7 +93,7 @@ export default class Label extends Component {
             inputRate: VertexInputRate.VERTEX
         })
 
-        this._vertexInputState = { attributes, bindings, hash: "Label" };
+        this._vertexInputState = new VertexInputState(attributes, bindings);
 
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));
@@ -188,11 +188,13 @@ export default class Label extends Component {
             vertexInput: {
                 vertexBuffers: [this._texCoordBuffer.buffer, this._positionBuffer.buffer],
                 vertexOffsets: [0, 0],
+            },
+            indexInput: {
                 indexBuffer: this._indexBuffer.buffer,
+                indexOffset: 0,
                 indexType: IndexType.UINT16,
-                indexCount,
-                indexOffset: 0
-            }
+            },
+            count: indexCount,
         })
         this._subModel.inputAssemblers[0] = inputAssembler;
 

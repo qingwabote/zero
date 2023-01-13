@@ -1,4 +1,4 @@
-import Pass from "./Pass.js";
+import Pass from "../render/Pass.js";
 
 export default class Material {
     protected _passes: Pass[];

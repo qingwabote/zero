@@ -10,10 +10,10 @@ import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
 import Node from "../Node.js";
-import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
 import SubMesh, { Attribute } from "../render/SubMesh.js";
 import Asset from "./Asset.js";
+import Material from "./Material.js";
 import Texture from "./Texture.js";
 
 const builtinAttributes: Record<string, string> = {

@@ -2,7 +2,7 @@ import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/Descriptor
 import { Filter } from "../../gfx/Sampler.js";
 import shaders from "../../shaders.js";
 import PipelineUniform from "../PipelineUniform.js";
-import ShadowMapStage from "../stages/ShadowMapStage.js";
+import ShadowStage from "../stages/ShadowStage.js";
 
 const shadowMap = {
     type: DescriptorType.SAMPLER_TEXTURE,
@@ -20,8 +20,8 @@ export default class ShadowMapUniform implements PipelineUniform {
     }
 
     initialize(): void {
-        const shadowMapStage = zero.renderFlow.stages.find((stage) => { return stage instanceof ShadowMapStage }) as ShadowMapStage;
-        zero.renderFlow.globalDescriptorSet.bindTexture(shadowMap.binding, shadowMapStage.framebuffer.info.depthStencilAttachment, sampler);
+        const shadowStage = zero.renderFlow.stages.find((stage) => { return stage instanceof ShadowStage }) as ShadowStage;
+        zero.renderFlow.globalDescriptorSet.bindTexture(shadowMap.binding, shadowStage.framebuffer.info.depthStencilAttachment, sampler);
     }
 
     update(): void { }

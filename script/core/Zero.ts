@@ -68,7 +68,7 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
     private _renderSemaphore!: Semaphore;
     private _renderFence!: Fence;
 
-    initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): boolean {
+    async initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): Promise<void> {
         this._loader = loader;
 
         this._platfrom = platfrom;
@@ -93,13 +93,11 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
 
         this._renderScene = new RenderScene();
 
-        this._renderFlow = this.start();
+        this._renderFlow = await this.start();
         this._renderFlow.initialize();
-
-        return false;
     }
 
-    abstract start(): RenderFlow;
+    abstract start(): Promise<RenderFlow>;
 
     tick(name2event: Map<InputEvent, any>) {
         this.emit(ZeroEvent.UPDATE_START);

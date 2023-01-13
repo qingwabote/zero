@@ -1,7 +1,7 @@
+import Material from "../assets/Material.js";
 import Component from "../Component.js";
-import InputAssembler, { VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate } from "../gfx/InputAssembler.js";
+import InputAssembler, { IndexInput, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { FormatInfos } from "../gfx/Pipeline.js";
-import Material from "../render/Material.js";
 import Mesh from "../render/Mesh.js";
 import Model from "../render/Model.js";
 import SubModel from "../render/SubModel.js";
@@ -21,10 +21,11 @@ export default class MeshRenderer extends Component {
             const vertexInput: VertexInput = {
                 vertexBuffers: subMesh.vertexBuffers,
                 vertexOffsets: subMesh.vertexOffsets,
+            }
+            const indexInput: IndexInput = {
                 indexBuffer: subMesh.indexBuffer,
+                indexOffset: subMesh.indexOffset,
                 indexType: subMesh.indexType,
-                indexCount: subMesh.indexCount,
-                indexOffset: subMesh.indexOffset
             }
             const inputAssemblers: InputAssembler[] = [];
             const passes = this.materials[i].passes;
@@ -32,7 +33,6 @@ export default class MeshRenderer extends Component {
                 const pass = passes[j];
                 const attributes: VertexInputAttributeDescription[] = [];
                 const strides: number[] = [];
-                let hash = "attributes"
                 for (const attribute of subMesh.attributes) {
                     const definition = pass.shader.info.meta.attributes[attribute.name];
                     if (!definition) {
@@ -52,7 +52,6 @@ export default class MeshRenderer extends Component {
                         binding: attribute.buffer,
                         offset: attribute.offset
                     });
-                    hash += definition.location + definition.format + attribute.buffer + attribute.offset;
                 }
                 const bindings: VertexInputBindingDescription[] = [];
                 for (let binding = 0; binding < subMesh.vertexBuffers.length; binding++) {
@@ -66,12 +65,13 @@ export default class MeshRenderer extends Component {
 
                 const inputAssembler = gfx.createInputAssembler();
                 inputAssembler.initialize({
-                    vertexInputState: {
+                    vertexInputState: new VertexInputState(
                         attributes,
-                        bindings,
-                        hash
-                    },
-                    vertexInput
+                        bindings
+                    ),
+                    vertexInput,
+                    indexInput,
+                    count: subMesh.indexCount,
                 })
                 inputAssemblers.push(inputAssembler);
             }

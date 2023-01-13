@@ -119,7 +119,7 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                auto c_inputAssembler = c_obj->retain<InputAssembler>(info[0]);
+                auto c_inputAssembler = c_obj->retain<InputAssembler>(info[0]); // retain all inputAssemblers until the resetting of command buffer
 
                 auto f = new auto(
                     [=]()
@@ -149,11 +149,12 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                uint32_t count = info[0].As<v8::Number>()->Value();
 
                 auto f = new auto(
                     [=]()
                     {
-                        c_obj->draw();
+                        c_obj->draw(count);
                     });
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });

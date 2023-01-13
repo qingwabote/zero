@@ -20,19 +20,33 @@ export interface VertexInputAttributeDescription {
     readonly offset: number
 }
 
-export interface VertexInputState {
+export class VertexInputState {
     readonly attributes: readonly VertexInputAttributeDescription[];
     readonly bindings: readonly VertexInputBindingDescription[];
     readonly hash: string;
+
+    constructor(attributes: readonly VertexInputAttributeDescription[], bindings: readonly VertexInputBindingDescription[]) {
+        let hash = '';
+        for (const attribute of attributes) {
+            hash += attribute.location + attribute.format + attribute.binding + attribute.offset;
+        }
+        this.hash = hash;
+        this.attributes = attributes;
+        this.bindings = bindings;
+    }
 }
 
 export interface VertexInput {
     readonly vertexBuffers: readonly Buffer[];
     readonly vertexOffsets: readonly number[];
-    readonly indexBuffer: Buffer;
-    readonly indexType: IndexType;
-    readonly indexCount: number;
-    readonly indexOffset: number
+
+
+}
+
+export interface IndexInput {
+    readonly indexBuffer?: Buffer;
+    readonly indexOffset?: number;
+    readonly indexType?: IndexType;
 }
 
 // copy values from VkIndexType in vulkan_core.h
@@ -44,6 +58,11 @@ export enum IndexType {
 export interface InputAssemblerInfo {
     readonly vertexInputState: VertexInputState;
     readonly vertexInput: VertexInput;
+    readonly indexInput?: IndexInput;
+    /**
+     * vertex count or index count if indexInput is provided.
+     */
+    readonly count: number;
 }
 
 /**
