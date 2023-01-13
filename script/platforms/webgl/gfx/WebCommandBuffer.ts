@@ -211,7 +211,9 @@ export default class WebCommandBuffer implements CommandBuffer {
                     binding.stride,
                     offset + attribute.offset);
             }
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput?.indexBuffer as WebBuffer).buffer);
+            if (inputAssemblerInfo.indexInput) {
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput.indexBuffer as WebBuffer).buffer);
+            }
             input2vao.set(inputAssemblerInfo, vao);
 
             gl.bindVertexArray(null);
@@ -223,13 +225,16 @@ export default class WebCommandBuffer implements CommandBuffer {
         this._inputAssembler = inputAssemblerInfo;
     }
 
-    draw(count: number) {
-        if (!this._inputAssembler) {
-            return
-        };
+    draw(vertexCount: number): void {
+        const gl = this._gl;
+        gl.drawArrays(gl.LINES, 0, vertexCount);
+    }
+
+    drawIndexed(indexCount: number) {
+        const indexInput = this._inputAssembler!.indexInput!;
 
         let type: GLenum;
-        switch (this._inputAssembler.indexInput?.indexType) {
+        switch (indexInput.indexType) {
             case IndexType.UINT16:
                 type = WebGL2RenderingContext.UNSIGNED_SHORT;
                 break;
@@ -242,7 +247,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, count, type, this._inputAssembler.indexInput?.indexOffset!);
+        gl.drawElements(gl.TRIANGLES, indexCount, type, indexInput.indexOffset);
         gl.bindVertexArray(null);
     }
 

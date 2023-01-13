@@ -116,6 +116,9 @@ export default class RenderFlow {
         for (const uniform of this._uniforms) {
             uniform.update();
         }
+        for (const stage of this._stages) {
+            stage.update();
+        }
     }
 
     record(commandBuffer: CommandBuffer) {

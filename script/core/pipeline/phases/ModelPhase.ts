@@ -39,7 +39,7 @@ export default class ModelPhase extends RenderPhase {
                     }
                     const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
-                    commandBuffer.draw(inputAssembler.info.count);
+                    commandBuffer.drawIndexed(inputAssembler.info.count);
                     this._drawCalls++;
                 }
             }

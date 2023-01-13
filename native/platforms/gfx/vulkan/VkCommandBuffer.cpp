@@ -217,9 +217,14 @@ namespace binding
             vkCmdBindPipeline(_impl->_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->impl());
         }
 
-        void CommandBuffer::draw(uint32_t count)
+        void CommandBuffer::draw(uint32_t vertexCount)
         {
-            vkCmdDrawIndexed(_impl->_commandBuffer, count, 1, 0, 0, 0);
+            vkCmdDraw(_impl->_commandBuffer, vertexCount, 1, 0, 0);
+        }
+
+        void CommandBuffer::drawIndexed(uint32_t indexCount)
+        {
+            vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, 0, 0, 0);
         }
 
         void CommandBuffer::endRenderPass()

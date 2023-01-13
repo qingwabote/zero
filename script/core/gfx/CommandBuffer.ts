@@ -16,7 +16,8 @@ export default interface CommandBuffer {
     bindPipeline(pipeline: Pipeline): void;
     bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
-    draw(count: number): void;
+    draw(vertexCount: number): void;
+    drawIndexed(indexCount: number): void;
     endRenderPass(): void;
     end(): void;
 }
@@ -40,6 +41,8 @@ export class EmptyCommandBuffer implements CommandBuffer {
     bindInputAssembler(inputAssembler: InputAssembler): void {
     }
     draw(): void {
+    }
+    drawIndexed(): void {
     }
     endRenderPass(): void {
     }

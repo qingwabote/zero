@@ -29,16 +29,12 @@ namespace binding::gfx
 
         std::unique_ptr<VkIndexInput> _indexInput;
 
-        uint32_t _count{0};
-
     public:
         InputAssembler_impl(Device_impl *device);
 
         VkVertexInput *vertexInput() { return _vertexInput.get(); }
 
         VkIndexInput *indexInput() { return _indexInput.get(); }
-
-        uint32_t count() { return _count; }
 
         ~InputAssembler_impl();
     };

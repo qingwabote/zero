@@ -44,9 +44,9 @@ export interface VertexInput {
 }
 
 export interface IndexInput {
-    readonly indexBuffer?: Buffer;
-    readonly indexOffset?: number;
-    readonly indexType?: IndexType;
+    readonly indexBuffer: Buffer;
+    readonly indexOffset: number;
+    readonly indexType: IndexType;
 }
 
 // copy values from VkIndexType in vulkan_core.h

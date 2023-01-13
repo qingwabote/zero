@@ -58,6 +58,8 @@ namespace binding::gfx
 
         void draw(uint32_t count);
 
+        void drawIndexed(uint32_t indexCount);
+
         void endRenderPass();
 
         void end();

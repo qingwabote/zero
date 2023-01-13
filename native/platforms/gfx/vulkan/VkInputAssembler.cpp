@@ -41,8 +41,6 @@ namespace binding::gfx
         c_indexInput->indexType = static_cast<VkIndexType>(sugar::v8::object_get(js_indexInput, "indexType").As<v8::Number>()->Value());
         _impl->_indexInput = std::move(c_indexInput);
 
-        _impl->_count = sugar::v8::object_get(info, "count").As<v8::Number>()->Value();
-
         return false;
     }
 

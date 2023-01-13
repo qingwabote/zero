@@ -18,5 +18,7 @@ export default abstract class RenderPhase {
         this._visibility = visibility;
     }
 
+    update(): void { }
+
     abstract record(commandBuffer: CommandBuffer, camera: RenderCamera, renderPass: RenderPass): void;
 }

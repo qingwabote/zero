@@ -160,6 +160,21 @@ namespace binding::gfx
             });
 
         cls.defineFunction(
+            "drawIndexed",
+            [](const v8::FunctionCallbackInfo<v8::Value> &info)
+            {
+                auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
+                uint32_t count = info[0].As<v8::Number>()->Value();
+
+                auto f = new auto(
+                    [=]()
+                    {
+                        c_obj->drawIndexed(count);
+                    });
+                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+            });
+
+        cls.defineFunction(
             "endRenderPass",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
