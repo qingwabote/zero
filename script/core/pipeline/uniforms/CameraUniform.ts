@@ -45,9 +45,8 @@ export default class CameraUniform implements PipelineUniform {
         const dirtyObjects = renderScene.dirtyObjects;
         const cameras = renderScene.cameras;
         const camerasUboSize = CameraBlock.size * cameras.length;
-        this._buffer.resize(camerasUboSize);
+        this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);
         let camerasDataOffset = 0;
-        let camerasDataDirty = false;
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (dirtyObjects.has(camera) || dirtyObjects.has(camera.node)) {
@@ -70,13 +69,10 @@ export default class CameraUniform implements PipelineUniform {
                 const position = vec3.transformMat4(vec3.create(), vec3.ZERO, camera.node.matrix);
                 this._buffer.set(position, camerasDataOffset + CameraBlock.uniforms.position.offset);
 
-                camerasDataDirty = true;
             }
             camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;
         }
-        if (camerasDataDirty) {
-            this._buffer.update();
-        }
+        this._buffer.update();
     }
 
 }
