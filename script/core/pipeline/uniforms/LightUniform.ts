@@ -1,8 +1,8 @@
 import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
 import vec3 from "../../math/vec3.js";
+import BufferView from "../../render/buffers/BufferView.js";
 import ShaderLib from "../../ShaderLib.js";
-import BufferView from "../buffers/BufferView.js";
 import PipelineUniform from "../PipelineUniform.js";
 
 const LightBlock = {

@@ -7,6 +7,9 @@ export enum VertexInputRate {
     INSTANCE = 1
 }
 
+/**
+ * stride can't be zero even if vertex buffer is tightly packed. Unlike in OpenGL, the value must be explicit in Vulkan.
+ */
 export interface VertexInputBindingDescription {
     readonly binding: number;
     readonly stride: number;
@@ -20,6 +23,9 @@ export interface VertexInputAttributeDescription {
     readonly offset: number
 }
 
+/**
+ * Vulkan separates binding from attribute, because multi attributes will use the same binding if vertex buffer is interleaved, I guess.
+ */
 export class VertexInputState {
     readonly attributes: readonly VertexInputAttributeDescription[];
     readonly bindings: readonly VertexInputBindingDescription[];
@@ -39,8 +45,6 @@ export class VertexInputState {
 export interface VertexInput {
     readonly vertexBuffers: readonly Buffer[];
     readonly vertexOffsets: readonly number[];
-
-
 }
 
 export interface IndexInput {

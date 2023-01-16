@@ -32,7 +32,6 @@ export default class MeshRenderer extends Component {
             for (let j = 0; j < passes.length; j++) {
                 const pass = passes[j];
                 const attributes: VertexInputAttributeDescription[] = [];
-                const strides: number[] = [];
                 for (const attribute of subMesh.attributes) {
                     const definition = pass.shader.info.meta.attributes[attribute.name];
                     if (!definition) {
@@ -42,9 +41,6 @@ export default class MeshRenderer extends Component {
                     if (definition.format != attribute.format) {
                         throw new Error(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`);
                     }
-
-                    const formatInfo = FormatInfos[attribute.format];
-                    strides[attribute.buffer] = formatInfo.size;
 
                     attributes.push({
                         location: definition.location,
@@ -56,9 +52,14 @@ export default class MeshRenderer extends Component {
                 const bindings: VertexInputBindingDescription[] = [];
                 for (let binding = 0; binding < subMesh.vertexBuffers.length; binding++) {
                     const buffer = subMesh.vertexBuffers[binding];
+                    let stride = buffer.info.stride;
+                    if (!stride) {
+                        const attribute = subMesh.attributes.find(attribute => attribute.buffer == binding)!;
+                        stride = FormatInfos[attribute.format].size;
+                    }
                     bindings.push({
-                        binding: binding,
-                        stride: buffer.info.stride ? buffer.info.stride : strides[binding],
+                        binding,
+                        stride,
                         inputRate: VertexInputRate.VERTEX
                     })
                 }

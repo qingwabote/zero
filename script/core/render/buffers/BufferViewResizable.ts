@@ -43,23 +43,25 @@ export default class BufferViewResizable {
         })
     }
 
-    reset(length: number) {
+    reset(length: number): boolean {
         this._length = length;
         if (this._bufferView.length >= length) {
-            return;
+            return false;
         }
         this._bufferView = new BufferView(this._format, this._usage, length);
         this._onReallocate(this._bufferView.buffer);
+        return true;
     }
 
-    resize(length: number) {
+    resize(length: number): boolean {
         this._length = length;
         if (this._bufferView.length >= length) {
-            return;
+            return false;
         }
         this._bufferView = new BufferView(this._format, this._usage, length);
         this._bufferView.set(this._bufferView.data);
         this._onReallocate(this._bufferView.buffer);
+        return true;
     }
 
     shrink() {

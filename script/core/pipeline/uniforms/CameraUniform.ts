@@ -2,8 +2,8 @@ import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
 import mat4 from "../../math/mat4.js";
 import vec3 from "../../math/vec3.js";
+import BufferViewResizable from "../../render/buffers/BufferViewResizable.js";
 import ShaderLib from "../../ShaderLib.js";
-import BufferViewResizable from "../buffers/BufferViewResizable.js";
 import PipelineUniform from "../PipelineUniform.js";
 
 const CameraBlock = {

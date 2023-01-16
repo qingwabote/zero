@@ -1,5 +1,6 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
+import AssetCache from "../AssetCache.js";
 import MeshRenderer from "../components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
@@ -59,20 +60,21 @@ export default class GLTF extends Asset {
 
     private _materials!: Material[];
 
-    async load(url: string) {
+    async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
-            return;
+            return this;
         }
 
         const [, parent, name] = res;
         const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         this._bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
-        const textures = await Promise.all(json_images.map((info: any) => (new Texture).load(`${parent}/${uri2path(info.uri)}`)));
+        const textures = await Promise.all(json_images.map((info: any) => AssetCache.instance.load(`${parent}/${uri2path(info.uri)}`, Texture)));
         this._textures = textures;
 
         this._json = json;
+        return this;
     }
 
     createScene(name: string, materials: Material[]): Node | null {

@@ -1,18 +1,20 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
+import AssetCache from "../AssetCache.js";
 import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
 import defaults from "../defaults.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
+import InputAssembler, { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { FormatInfos } from "../gfx/Pipeline.js";
-import BufferViewResizable from "../pipeline/buffers/BufferViewResizable.js";
+import BufferViewResizable from "../render/buffers/BufferViewResizable.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
 import SubModel from "../render/SubModel.js";
 import ShaderLib from "../ShaderLib.js";
 
-ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } })
+ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
+AssetCache.preloadedAssets.push({ path: '../../asset/fnt/zero', type: FNT });
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -36,13 +38,7 @@ export default class Label extends Component {
         this._dirtyFlag |= DirtyFlagBits.TEXT;
     }
 
-    private _fnt!: FNT;
-    get fnt(): FNT {
-        return this._fnt;
-    }
-    set fnt(value: FNT) {
-        this._fnt = value;
-    }
+    private _fnt: FNT = AssetCache.instance.get('../../asset/fnt/zero', FNT);
 
     private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
 
@@ -52,7 +48,9 @@ export default class Label extends Component {
 
     private _vertexInputState!: VertexInputState;
 
-    private _subModel!: SubModel;
+    private _inputAssemblers: InputAssembler[] = [];
+
+    private _inputAssembler?: InputAssembler;
 
     override start(): void {
         const shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
@@ -94,10 +92,8 @@ export default class Label extends Component {
         descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
         descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, defaults.sampler);
         const pass = new Pass(shader, descriptorSet);
-        const subModel: SubModel = { inputAssemblers: [], passes: [pass] };
-        const model = new Model([subModel], this._node);
-        zero.renderScene.models.push(model);
-        this._subModel = subModel;
+        const subModel: SubModel = { inputAssemblers: this._inputAssemblers, passes: [pass] };
+        zero.renderScene.models.push(new Model([subModel], this._node));
     }
 
     override update(): void {
@@ -105,14 +101,15 @@ export default class Label extends Component {
             return;
         }
         if (this._text.length == 0) {
-            this._subModel.inputAssemblers.length = 0;
+            this._inputAssembler = this._inputAssemblers.pop();
             return;
         }
         const indexCount = 6 * this._text.length;
 
-        this._texCoordBuffer.reset(2 * 4 * this._text.length);
-        this._positionBuffer.reset(3 * 4 * this._text.length);
-        this._indexBuffer.reset(indexCount)
+        let reallocated = false;
+        reallocated = this._texCoordBuffer.reset(2 * 4 * this._text.length) || reallocated;
+        reallocated = this._positionBuffer.reset(3 * 4 * this._text.length) || reallocated;
+        reallocated = this._indexBuffer.reset(indexCount) || reallocated;
 
         const tex = this._fnt.texture.gfx_texture.info;
         let x = 0;
@@ -177,21 +174,25 @@ export default class Label extends Component {
         this._positionBuffer.update();
         this._indexBuffer.update();
 
-        const inputAssembler = gfx.createInputAssembler();
-        inputAssembler.initialize({
-            vertexInputState: this._vertexInputState,
-            vertexInput: {
-                vertexBuffers: [this._texCoordBuffer.buffer, this._positionBuffer.buffer],
-                vertexOffsets: [0, 0],
-            },
-            indexInput: {
-                indexBuffer: this._indexBuffer.buffer,
-                indexOffset: 0,
-                indexType: IndexType.UINT16,
-            },
-            count: indexCount,
-        })
-        this._subModel.inputAssemblers[0] = inputAssembler;
+        if (!this._inputAssembler || reallocated) {
+            const inputAssembler = gfx.createInputAssembler();
+            inputAssembler.initialize({
+                vertexInputState: this._vertexInputState,
+                vertexInput: {
+                    vertexBuffers: [this._texCoordBuffer.buffer, this._positionBuffer.buffer],
+                    vertexOffsets: [0, 0],
+                },
+                indexInput: {
+                    indexBuffer: this._indexBuffer.buffer,
+                    indexOffset: 0,
+                    indexType: IndexType.UINT16,
+                },
+                count: indexCount,
+            })
+            this._inputAssembler = inputAssembler;
+        }
+
+        this._inputAssemblers[0] = this._inputAssembler;
 
         this._dirtyFlag = DirtyFlagBits.NONE;
     }

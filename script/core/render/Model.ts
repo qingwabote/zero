@@ -1,11 +1,10 @@
-import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
+import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
 import mat4 from "../math/mat4.js";
 import ShaderLib from "../ShaderLib.js";
+import BufferView from "./buffers/BufferView.js";
 import { RenderNode } from "./RenderNode.js";
 import SubModel from "./SubModel.js";
-
-const float32Array = new Float32Array(ShaderLib.sets.local.uniforms.Local.size / Float32Array.BYTES_PER_ELEMENT);
 
 export default class Model {
     private _descriptorSet: DescriptorSet;
@@ -18,7 +17,7 @@ export default class Model {
         return this._subModels;
     }
 
-    private _localBuffer: Buffer;
+    private _localBuffer: BufferView;
 
     private _node: RenderNode;
     get node(): RenderNode {
@@ -28,15 +27,12 @@ export default class Model {
     constructor(subModels: SubModel[], node: RenderNode) {
         zero.renderScene.dirtyObjects.set(node, node);
 
-        this._localBuffer = gfx.createBuffer();
-        this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: float32Array.byteLength });
-
+        const bufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShaderLib.sets.local.uniforms.Local.length);
         const descriptorSet = gfx.createDescriptorSet();
-        if (descriptorSet.initialize(ShaderLib.builtinDescriptorSetLayouts.local)) {
-            throw new Error("descriptorSet initialize failed");
-        }
-        descriptorSet.bindBuffer(ShaderLib.sets.local.uniforms.Local.binding, this._localBuffer);
+        descriptorSet.initialize(ShaderLib.builtinDescriptorSetLayouts.local)
+        descriptorSet.bindBuffer(ShaderLib.sets.local.uniforms.Local.binding, bufferView.buffer);
         this._descriptorSet = descriptorSet;
+        this._localBuffer = bufferView;
 
         this._subModels = subModels;
         this._node = node;
@@ -45,9 +41,9 @@ export default class Model {
     update() {
         if (zero.renderScene.dirtyObjects.has(this._node)) {
             this._node.updateTransform();
-            float32Array.set(this._node.matrix);
-            float32Array.set(mat4.inverseTranspose(mat4.create(), this._node.matrix), 16);
-            this._localBuffer.update(float32Array);
+            this._localBuffer.set(this._node.matrix);
+            this._localBuffer.set(mat4.inverseTranspose(mat4.create(), this._node.matrix), 16);
+            this._localBuffer.update();
         }
     }
 }

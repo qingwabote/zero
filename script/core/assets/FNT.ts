@@ -1,5 +1,6 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
+import AssetCache from "../AssetCache.js";
 import Asset from "./Asset.js";
 import Texture from "./Texture.js";
 
@@ -32,10 +33,10 @@ export default class FNT extends Asset {
         return this._texture;
     }
 
-    async load(url: string): Promise<void> {
+    async load(url: string): Promise<this> {
         let res = url.match(/(.+)\/(.+)$/);
         if (!res) {
-            return;
+            return this;
         }
         const parent = res[1];
         const name = res[2];
@@ -71,10 +72,11 @@ export default class FNT extends Asset {
 
         res = text.match(/file="(.+)"/);
         if (!res) {
-            return;
+            return this;
         }
         const file = res[1];
-        this._texture = await (new Texture).load(`${parent}/${file}`);
+        this._texture = await AssetCache.instance.load(`${parent}/${file}`, Texture);
+        return this;
     }
 
 }

@@ -13,7 +13,7 @@ export default class Texture extends Asset {
         return this._gfx_texture;
     }
 
-    async load(url: string): Promise<Texture> {
+    async load(url: string): Promise<this> {
         const arraybuffer = await loader.load(url, "arraybuffer", this.onProgress);
         const imageBitmap = await platform.decodeImage(arraybuffer);
         const texture = gfx.createTexture();

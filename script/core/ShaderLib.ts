@@ -19,7 +19,7 @@ const sets = {
                     model: {},
                     modelIT: {}
                 },
-                size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
+                length: 16 + 16,
             }
         }
     },
@@ -60,7 +60,7 @@ export default class ShaderLib {
         return Math.ceil(size / alignment) * alignment;
     }
 
-    static preloadedShaders: { name: string, macros: Record<string, number> }[] = [];
+    static readonly preloadedShaders: { name: string, macros?: Record<string, number> }[] = [];
 
     static readonly instance = new ShaderLib;
 
@@ -72,10 +72,12 @@ export default class ShaderLib {
     async loadShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = this._name2source[name];
         if (!source) {
-            let vs = await loader.load(`../../asset/shader/${name}.vs`, "text");
+            const path = `../../asset/shader/${name}`; // hard code
+
+            let vs = await loader.load(`${path}.vs`, "text");
             vs = await preprocessor.includeExpand(vs);
 
-            let fs = await loader.load(`../../asset/shader/${name}.fs`, "text");
+            let fs = await loader.load(`${path}.fs`, "text");
             fs = await preprocessor.includeExpand(fs);
 
             this._name2source[name] = [

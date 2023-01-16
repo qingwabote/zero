@@ -1,9 +1,7 @@
-import FNT from "../../../../script/core/assets/FNT.js";
 import GLTF from "../../../../script/core/assets/GLTF.js";
 import Material from "../../../../script/core/assets/Material.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
-import Label from "../../../../script/core/components/Label.js";
 import Profiler from "../../../../script/core/components/Profiler.js";
 import defaults from "../../../../script/core/defaults.js";
 import { ClearFlagBit, CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
@@ -68,11 +66,7 @@ export default class App extends Zero {
         cameraUI.viewport = { x: 0, y: 0, width, height };
 
         node.position = [0, 0, 1];
-        const fnt = new FNT;
-        await fnt.load('./asset/zero');
         node = new Node;
-        const label = node.addComponent(Label);
-        label.fnt = fnt;
         node.addComponent(Profiler);
         node.position = [-width / 2, height / 2, 0];
         node.visibility = VisibilityBit.UI;

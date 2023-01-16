@@ -22,15 +22,15 @@ export default class ModelPhase extends RenderPhase {
                 continue;
             }
             for (const subModel of model.subModels) {
-                if (subModel.inputAssemblers.length == 0) {
-                    continue;
-                }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
                     if (pass.phase != this._phase) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
+                    if (!inputAssembler) {
+                        continue;
+                    }
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = zero.renderFlow.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.local.set, model.descriptorSet);

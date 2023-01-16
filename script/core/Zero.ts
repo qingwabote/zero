@@ -1,3 +1,4 @@
+import AssetCache from "./AssetCache.js";
 import EventEmitter from "./base/EventEmitter.js";
 import ComponentScheduler from "./ComponentScheduler.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
@@ -58,6 +59,8 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         this._window = { width, height };
 
         await Promise.all(ShaderLib.preloadedShaders.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
+
+        await Promise.all(AssetCache.preloadedAssets.map(info => AssetCache.instance.load(info.path, info.type)));
 
         const commandBuffer = gfx.createCommandBuffer();
         commandBuffer.initialize();

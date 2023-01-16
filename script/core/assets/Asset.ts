@@ -1,3 +1,3 @@
 export default abstract class Asset {
-    abstract load(url: string): Promise<any>;
+    abstract load(url: string): Promise<this>;
 }
