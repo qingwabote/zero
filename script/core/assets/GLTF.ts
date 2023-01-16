@@ -66,8 +66,8 @@ export default class GLTF extends Asset {
         }
 
         const [, parent, name] = res;
-        const json = JSON.parse(await zero.loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
-        this._bin = await zero.loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
+        const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
+        this._bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
         const textures = await Promise.all(json_images.map((info: any) => (new Texture).load(`${parent}/${uri2path(info.uri)}`)));
         this._textures = textures;

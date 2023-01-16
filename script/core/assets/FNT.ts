@@ -39,7 +39,7 @@ export default class FNT extends Asset {
         }
         const parent = res[1];
         const name = res[2];
-        const text = await zero.loader.load(`${parent}/${name}.fnt`, "text");
+        const text = await loader.load(`${parent}/${name}.fnt`, "text");
 
         while (true) {
             let res = exp_lineByline.exec(text);

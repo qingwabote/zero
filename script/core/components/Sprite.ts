@@ -9,7 +9,7 @@ import BufferView from "../pipeline/buffers/BufferView.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
 import SubModel from "../render/SubModel.js";
-import shaders from "../shaders.js";
+import ShaderLib from "../ShaderLib.js";
 
 const inputAssemblerCache: Record<string, InputAssembler> = {};
 
@@ -118,7 +118,7 @@ export default class Sprite extends Component {
             inputAssemblerCache[this._shader.info.hash] = inputAssembler;
         }
         const descriptorSet = gfx.createDescriptorSet();
-        descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));
+        descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(this._shader));
         descriptorSet.bindTexture(0, this.texture, defaults.sampler);
         const pass = new Pass(this._shader, descriptorSet);
 

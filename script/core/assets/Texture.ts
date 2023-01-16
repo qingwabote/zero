@@ -14,8 +14,8 @@ export default class Texture extends Asset {
     }
 
     async load(url: string): Promise<Texture> {
-        const arraybuffer = await zero.loader.load(url, "arraybuffer", this.onProgress);
-        const imageBitmap = await zero.platfrom.decodeImage(arraybuffer);
+        const arraybuffer = await loader.load(url, "arraybuffer", this.onProgress);
+        const imageBitmap = await platform.decodeImage(arraybuffer);
         const texture = gfx.createTexture();
         texture.initialize({
             samples: SampleCountFlagBits.SAMPLE_COUNT_1,

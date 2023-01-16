@@ -2,7 +2,7 @@ import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
 import mat4 from "../../math/mat4.js";
 import vec3 from "../../math/vec3.js";
-import shaders from "../../shaders.js";
+import ShaderLib from "../../ShaderLib.js";
 import BufferViewResizable from "../buffers/BufferViewResizable.js";
 import PipelineUniform from "../PipelineUniform.js";
 
@@ -20,10 +20,10 @@ const CameraBlock = {
             offset: 16 + 16
         }
     },
-    size: shaders.align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
+    size: ShaderLib.align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
 }
 
-const descriptorSetLayoutBinding = shaders.createDescriptorSetLayoutBinding(CameraBlock);
+const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(CameraBlock);
 
 export default class CameraUniform implements PipelineUniform {
     static getDynamicOffset(index: number): number {

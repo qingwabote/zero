@@ -6,12 +6,13 @@ import defaults from "../defaults.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { FormatInfos } from "../gfx/Pipeline.js";
-import Shader from "../gfx/Shader.js";
 import BufferViewResizable from "../pipeline/buffers/BufferViewResizable.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
 import SubModel from "../render/SubModel.js";
-import shaders from "../shaders.js";
+import ShaderLib from "../ShaderLib.js";
+
+ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } })
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -43,14 +44,6 @@ export default class Label extends Component {
         this._fnt = value;
     }
 
-    private _shader!: Shader;
-    get shader(): Shader {
-        return this._shader;
-    }
-    set shader(value: Shader) {
-        this._shader = value;
-    }
-
     private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
 
     private _positionBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
@@ -62,10 +55,12 @@ export default class Label extends Component {
     private _subModel!: SubModel;
 
     override start(): void {
+        const shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
+
         const attributes: VertexInputAttributeDescription[] = [];
         const bindings: VertexInputBindingDescription[] = [];
 
-        let definition = this._shader.info.meta.attributes["a_texCoord"];
+        let definition = shader.info.meta.attributes["a_texCoord"];
         let attribute: VertexInputAttributeDescription = {
             location: definition.location,
             format: definition.format,
@@ -79,7 +74,7 @@ export default class Label extends Component {
             inputRate: VertexInputRate.VERTEX
         })
 
-        definition = this._shader.info.meta.attributes["a_position"];
+        definition = shader.info.meta.attributes["a_position"];
         attribute = {
             location: definition.location,
             format: definition.format,
@@ -96,9 +91,9 @@ export default class Label extends Component {
         this._vertexInputState = new VertexInputState(attributes, bindings);
 
         const descriptorSet = gfx.createDescriptorSet();
-        descriptorSet.initialize(shaders.getDescriptorSetLayout(this._shader));
+        descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
         descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, defaults.sampler);
-        const pass = new Pass(this._shader, descriptorSet);
+        const pass = new Pass(shader, descriptorSet);
         const subModel: SubModel = { inputAssemblers: [], passes: [pass] };
         const model = new Model([subModel], this._node);
         zero.renderScene.models.push(model);

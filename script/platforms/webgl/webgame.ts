@@ -5,8 +5,10 @@ import WebPlatfrom from "./WebPlatform.js";
 
 export default {
     async run(canvas: HTMLCanvasElement, App: new () => Zero) {
-        (window as any).zero = new App();
-        await zero.initialize(new WebLoader, new WebPlatfrom, canvas.width, canvas.height);
+        (window as any).loader = new WebLoader;
+        (window as any).platform = new WebPlatfrom;
+        (window as any).zero = new App;
+        await zero.initialize(canvas.width, canvas.height);
 
         const name2event: Map<InputEvent, any> = new Map;
         canvas.addEventListener("mousedown", (mouseEvent) => {

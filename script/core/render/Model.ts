@@ -1,11 +1,11 @@
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
 import mat4 from "../math/mat4.js";
-import shaders from "../shaders.js";
+import ShaderLib from "../ShaderLib.js";
 import { RenderNode } from "./RenderNode.js";
 import SubModel from "./SubModel.js";
 
-const float32Array = new Float32Array(shaders.sets.local.uniforms.Local.size / Float32Array.BYTES_PER_ELEMENT);
+const float32Array = new Float32Array(ShaderLib.sets.local.uniforms.Local.size / Float32Array.BYTES_PER_ELEMENT);
 
 export default class Model {
     private _descriptorSet: DescriptorSet;
@@ -32,10 +32,10 @@ export default class Model {
         this._localBuffer.initialize({ usage: BufferUsageFlagBits.UNIFORM, mem_usage: MemoryUsage.CPU_TO_GPU, size: float32Array.byteLength });
 
         const descriptorSet = gfx.createDescriptorSet();
-        if (descriptorSet.initialize(shaders.builtinDescriptorSetLayouts.local)) {
+        if (descriptorSet.initialize(ShaderLib.builtinDescriptorSetLayouts.local)) {
             throw new Error("descriptorSet initialize failed");
         }
-        descriptorSet.bindBuffer(shaders.sets.local.uniforms.Local.binding, this._localBuffer);
+        descriptorSet.bindBuffer(ShaderLib.sets.local.uniforms.Local.binding, this._localBuffer);
         this._descriptorSet = descriptorSet;
 
         this._subModels = subModels;

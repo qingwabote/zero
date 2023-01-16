@@ -1,6 +1,6 @@
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
 import { Filter } from "../../gfx/Sampler.js";
-import shaders from "../../shaders.js";
+import ShaderLib from "../../ShaderLib.js";
 import PipelineUniform from "../PipelineUniform.js";
 import ShadowStage from "../stages/ShadowStage.js";
 
@@ -9,7 +9,7 @@ const shadowMap = {
     binding: 3,
 }
 
-const descriptorSetLayoutBinding = shaders.createDescriptorSetLayoutBinding(shadowMap);
+const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(shadowMap);
 
 const sampler = gfx.createSampler();
 sampler.initialize({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST });

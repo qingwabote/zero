@@ -17,7 +17,7 @@ import ShadowStage from "../../../../script/core/pipeline/stages/ShadowStage.js"
 import Pass from "../../../../script/core/render/Pass.js";
 import PassPhase from "../../../../script/core/render/PassPhase.js";
 import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
-import shaders from "../../../../script/core/shaders.js";
+import ShaderLib from "../../../../script/core/ShaderLib.js";
 import Zero from "../../../../script/core/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
@@ -68,13 +68,11 @@ export default class App extends Zero {
         cameraUI.viewport = { x: 0, y: 0, width, height };
 
         node.position = [0, 0, 1];
-        const zero = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
         const fnt = new FNT;
         await fnt.load('./asset/zero');
         node = new Node;
         const label = node.addComponent(Label);
         label.fnt = fnt;
-        label.shader = zero;
         node.addComponent(Profiler);
         node.position = [-width / 2, height / 2, 0];
         node.visibility = VisibilityBit.UI;
@@ -99,7 +97,7 @@ export default class App extends Zero {
                 const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
 
                 if (USE_SHADOW_MAP) {
-                    const shadowMapShader = await shaders.getShader('shadowmap');
+                    const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
                     const shadowMapPass = new Pass(
                         shadowMapShader,
                         undefined,
@@ -114,7 +112,7 @@ export default class App extends Zero {
 
                 const USE_ALBEDO_MAP = textureIdx == undefined ? 0 : 1;
 
-                const phongShader = await shaders.getShader('phong', {
+                const phongShader = await ShaderLib.instance.loadShader('phong', {
                     USE_ALBEDO_MAP,
                     USE_SHADOW_MAP,
                     SHADOW_MAP_PCF: 1,
@@ -122,7 +120,7 @@ export default class App extends Zero {
                 })
 
                 const phoneDescriptorSet = gfx.createDescriptorSet();
-                phoneDescriptorSet.initialize(shaders.getDescriptorSetLayout(phongShader));
+                phoneDescriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(phongShader));
                 if (USE_ALBEDO_MAP) {
                     phoneDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
                 }

@@ -103,6 +103,18 @@ int Window::loop()
         return -1;
     }
 
+    binding::Loader *loader = new binding::Loader(*v8::String::Utf8Value(isolate.get(), projectDir));
+    global->Set(
+        context,
+        v8::String::NewFromUtf8Literal(isolate.get(), "loader"),
+        loader->js_obj());
+
+    binding::Platform *platform = new binding::Platform();
+    global->Set(
+        context,
+        v8::String::NewFromUtf8Literal(isolate.get(), "platform"),
+        platform->js_obj());
+
     v8::Local<v8::Object> app;
     {
         v8::EscapableHandleScope handle_scope(isolate.get());
@@ -145,15 +157,11 @@ int Window::loop()
         printf("app: no initialize function found\n");
         return -1;
     }
-    binding::Platform *platform = new binding::Platform();
-    binding::Loader *loader = new binding::Loader(*v8::String::Utf8Value(isolate.get(), projectDir));
     v8::Local<v8::Value>
         args[] = {
-            loader->js_obj(),
-            platform->js_obj(),
             v8::Number::New(isolate.get(), width),
             v8::Number::New(isolate.get(), height)};
-    v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 4, args);
+    v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 2, args);
     if (maybe.IsEmpty())
     {
         return -1;

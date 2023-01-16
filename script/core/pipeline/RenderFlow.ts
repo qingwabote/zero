@@ -8,7 +8,7 @@ import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo
 import Shader from "../gfx/Shader.js";
 import Texture, { TextureUsageBit } from "../gfx/Texture.js";
 import Pass from "../render/Pass.js";
-import shaders from "../shaders.js";
+import ShaderLib from "../ShaderLib.js";
 import PipelineUniform from "./PipelineUniform.js";
 import RenderStage from "./RenderStage.js";
 import CameraUniform from "./uniforms/CameraUniform.js";
@@ -116,9 +116,6 @@ export default class RenderFlow {
         for (const uniform of this._uniforms) {
             uniform.update();
         }
-        for (const stage of this._stages) {
-            stage.update();
-        }
     }
 
     record(commandBuffer: CommandBuffer) {
@@ -127,7 +124,7 @@ export default class RenderFlow {
         const renderScene = zero.renderScene;
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
-            commandBuffer.bindDescriptorSet(this._globalPipelineLayout, shaders.sets.global.set, this.globalDescriptorSet,
+            commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.set, this.globalDescriptorSet,
                 [CameraUniform.getDynamicOffset(cameraIndex)]);
             for (const stage of this._stages) {
                 stage.record(commandBuffer, camera);
@@ -179,8 +176,8 @@ export default class RenderFlow {
             layout = gfx.createPipelineLayout();
             layout.initialize([
                 this._globalDescriptorSetLayout,
-                shaders.builtinDescriptorSetLayouts.local,
-                shaders.getDescriptorSetLayout(shader)
+                ShaderLib.builtinDescriptorSetLayouts.local,
+                ShaderLib.instance.getDescriptorSetLayout(shader)
             ])
             this._pipelineLayoutCache[shader.info.hash] = layout;
         }

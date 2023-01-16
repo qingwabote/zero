@@ -2,11 +2,6 @@ import DescriptorSetLayout, { DescriptorSetLayoutBinding, DescriptorType } from 
 import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
 import preprocessor from "./preprocessor.js";
 
-function align(size: number) {
-    const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
-    return Math.ceil(size / alignment) * alignment;
-}
-
 /**
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
@@ -52,66 +47,69 @@ function buildDescriptorSetLayout(uniforms: Record<string, { type: DescriptorTyp
     return descriptorSetLayout;
 }
 
-const builtinDescriptorSetLayouts = {
-    local: buildDescriptorSetLayout(sets.local.uniforms)
-} as const
+export default class ShaderLib {
 
-const name2source: Record<string, ShaderStage[]> = {};
-const name2macros: Record<string, Set<string>> = {};
+    static readonly sets = sets;
 
-const shaders: Record<string, Shader> = {};
+    static readonly builtinDescriptorSetLayouts = { local: buildDescriptorSetLayout(sets.local.uniforms) };
 
-const shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
+    static readonly createDescriptorSetLayoutBinding = createDescriptorSetLayoutBinding;
 
-export default {
-    sets,
+    static align(size: number) {
+        const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
+        return Math.ceil(size / alignment) * alignment;
+    }
 
-    align,
+    static preloadedShaders: { name: string, macros: Record<string, number> }[] = [];
 
-    builtinDescriptorSetLayouts,
+    static readonly instance = new ShaderLib;
 
-    createDescriptorSetLayoutBinding,
+    private _name2source: Record<string, ShaderStage[]> = {};
+    private _name2macros: Record<string, Set<string>> = {};
+    private _key2shader: Record<string, Shader> = {};
+    private _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
-    async getShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
-        let source = name2source[name];
+    async loadShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
+        let source = this._name2source[name];
         if (!source) {
-            let vs = await zero.loader.load(`../../asset/shader/${name}.vs`, "text");
+            let vs = await loader.load(`../../asset/shader/${name}.vs`, "text");
             vs = await preprocessor.includeExpand(vs);
 
-            let fs = await zero.loader.load(`../../asset/shader/${name}.fs`, "text");
+            let fs = await loader.load(`../../asset/shader/${name}.fs`, "text");
             fs = await preprocessor.includeExpand(fs);
 
-            name2source[name] = [
+            this._name2source[name] = [
                 { type: ShaderStageFlagBits.VERTEX, source: vs },
                 { type: ShaderStageFlagBits.FRAGMENT, source: fs },
             ];
-            name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
+            this._name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
         }
 
-        const mac: Record<string, number> = {};
-        let key = name;
-        for (const macro of name2macros[name]) {
-            const val = macros[macro] || 0;
-            mac[macro] = val;
-            key += val
-        }
-
-        if (!shaders[key]) {
-            const res = await preprocessor.preprocess(name2source[name], mac);
-            shaders[key] = gfx.createShader();
-            shaders[key].initialize({
+        const key = this.getShaderKey(name, macros);
+        if (!this._key2shader[key]) {
+            const mac: Record<string, number> = {};
+            for (const macro of this._name2macros[name]) {
+                mac[macro] = macros[macro] || 0;
+            }
+            const res = await preprocessor.preprocess(this._name2source[name], mac);
+            const shader = gfx.createShader();
+            shader.initialize({
                 name,
                 stages: res.stages,
                 meta: res.meta,
                 hash: key
             });
-
+            this._key2shader[key] = shader;
         }
-        return shaders[key];
-    },
+        return this._key2shader[key];
+    }
+
+    getShader(name: string, macros: Record<string, number> = {}): Shader {
+        return this._key2shader[this.getShaderKey(name, macros)];
+    }
 
     getDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
-        let descriptorSetLayout = shader2descriptorSetLayout[shader.info.hash];
+        let descriptorSetLayout = this._shader2descriptorSetLayout[shader.info.hash];
         if (!descriptorSetLayout) {
             const bindings: DescriptorSetLayoutBinding[] = [];
             const samplerTextures = shader.info.meta.samplerTextures;
@@ -129,9 +127,18 @@ export default {
             descriptorSetLayout = gfx.createDescriptorSetLayout();
             descriptorSetLayout.initialize(bindings);
 
-            shader2descriptorSetLayout[shader.info.hash] = descriptorSetLayout;
+            this._shader2descriptorSetLayout[shader.info.hash] = descriptorSetLayout;
         }
 
         return descriptorSetLayout;
     }
-} as const;
+
+    private getShaderKey(name: string, macros: Record<string, number> = {}): string {
+        let key = name;
+        for (const macro of this._name2macros[name]) {
+            const val = macros[macro] || 0;
+            key += val
+        }
+        return key;
+    }
+}

@@ -3,7 +3,7 @@ import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/Descriptor
 import mat4 from "../../math/mat4.js";
 import quat from "../../math/quat.js";
 import vec3 from "../../math/vec3.js";
-import shaders from "../../shaders.js";
+import ShaderLib from "../../ShaderLib.js";
 import BufferView from "../buffers/BufferView.js";
 import PipelineUniform from "../PipelineUniform.js";
 
@@ -21,7 +21,7 @@ const ShadowBlock = {
     size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
 }
 
-const descriptorSetLayoutBinding = shaders.createDescriptorSetLayoutBinding(ShadowBlock);
+const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(ShadowBlock);
 
 export default class ShadowUniform implements PipelineUniform {
     get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {

@@ -32,12 +32,6 @@ export default abstract class RenderStage {
 
     abstract getRequestedUniforms(): (new () => PipelineUniform)[];
 
-    update() {
-        for (const phase of this._phases) {
-            phase.update();
-        }
-    }
-
     record(commandBuffer: CommandBuffer, camera: RenderCamera): void {
         const framebuffer = this.framebuffer;
         const renderPass = this._renderPass || zero.renderFlow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);

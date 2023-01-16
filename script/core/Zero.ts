@@ -5,11 +5,10 @@ import Fence from "./gfx/Fence.js";
 import { PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input, { InputEvent } from "./Input.js";
-import Loader from "./Loader.js";
 import RenderFlow from "./pipeline/RenderFlow.js";
-import Platfrom from "./Platfrom.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
+import ShaderLib from "./ShaderLib.js";
 
 export enum ZeroEvent {
     UPDATE_START = "UPDATE_START",
@@ -28,20 +27,7 @@ interface EventToListener {
 }
 
 export default abstract class Zero extends EventEmitter<EventToListener> {
-    private _input: Input = new Input;
-    get input(): Input {
-        return this._input;
-    }
-
-    private _loader!: Loader;
-    get loader(): Loader {
-        return this._loader;
-    }
-
-    private _platfrom!: Platfrom;
-    get platfrom(): Platfrom {
-        return this._platfrom;
-    }
+    readonly input: Input = new Input;
 
     private _window!: RenderWindow;
     get window(): RenderWindow {
@@ -68,12 +54,10 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
     private _renderSemaphore!: Semaphore;
     private _renderFence!: Fence;
 
-    async initialize(loader: Loader, platfrom: Platfrom, width: number, height: number): Promise<void> {
-        this._loader = loader;
-
-        this._platfrom = platfrom;
-
+    async initialize(width: number, height: number): Promise<void> {
         this._window = { width, height };
+
+        await Promise.all(ShaderLib.preloadedShaders.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
 
         const commandBuffer = gfx.createCommandBuffer();
         commandBuffer.initialize();
