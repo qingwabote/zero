@@ -105,8 +105,15 @@ namespace binding
             multisampleState.alphaToOneEnable = VK_FALSE;
             pipelineInfo.pMultisampleState = &multisampleState;
 
-            v8::Local<v8::Object> js_blendState = sugar::v8::object_get(info, "blendState").As<v8::Object>();
+            v8::Local<v8::Object> js_depthStencilState = sugar::v8::object_get(info, "depthStencilState").As<v8::Object>();
+            VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
+            depthStencilState.depthTestEnable = sugar::v8::object_get(js_depthStencilState, "depthTestEnable").As<v8::Boolean>()->Value();
+            depthStencilState.depthWriteEnable = VK_TRUE;
+            depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+            depthStencilState.stencilTestEnable = VK_FALSE;
+            pipelineInfo.pDepthStencilState = &depthStencilState;
 
+            v8::Local<v8::Object> js_blendState = sugar::v8::object_get(info, "blendState").As<v8::Object>();
             VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
             colorBlendAttachment.blendEnable = sugar::v8::object_get(js_blendState, "enabled").As<v8::Boolean>()->Value();
             colorBlendAttachment.srcColorBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "srcRGB").As<v8::Number>()->Value());
@@ -122,13 +129,6 @@ namespace binding
             colorBlending.attachmentCount = 1;
             colorBlending.pAttachments = &colorBlendAttachment;
             pipelineInfo.pColorBlendState = &colorBlending;
-
-            VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
-            depthStencilState.depthTestEnable = VK_TRUE;
-            depthStencilState.depthWriteEnable = VK_TRUE;
-            depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
-            depthStencilState.stencilTestEnable = VK_FALSE;
-            pipelineInfo.pDepthStencilState = &depthStencilState;
 
             pipelineInfo.layout = retain<PipelineLayout>(sugar::v8::object_get(info, "layout"))->impl();
 

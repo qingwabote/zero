@@ -67,7 +67,7 @@ export interface RasterizationState {
 }
 
 export interface DepthStencilState {
-    depthTest: boolean;
+    depthTestEnable: boolean;
 }
 
 // copy values from VkBlendFactor in vulkan_core.h
@@ -100,10 +100,11 @@ export interface BlendState {
 export interface PipelineInfo {
     readonly shader: Shader;
     readonly vertexInputState: VertexInputState;
+    readonly rasterizationState: RasterizationState;
+    readonly depthStencilState: DepthStencilState;
+    readonly blendState: BlendState;
     readonly layout: PipelineLayout;
     readonly renderPass: RenderPass;
-    readonly rasterizationState: RasterizationState;
-    readonly blendState: BlendState;
 }
 
 export default interface Pipeline {

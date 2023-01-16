@@ -132,7 +132,11 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.enable(gl.SCISSOR_TEST);
 
-        gl.enable(gl.DEPTH_TEST);
+        if (info.depthStencilState.depthTestEnable) {
+            gl.enable(gl.DEPTH_TEST);
+        } else {
+            gl.disable(gl.DEPTH_TEST);
+        }
 
         const blendState = info.blendState;
         if (blendState.enabled) {
@@ -147,8 +151,6 @@ export default class WebCommandBuffer implements CommandBuffer {
             bendFactor2WebGL(blendState.srcAlpha),
             bendFactor2WebGL(blendState.dstAlpha),
         );
-        // gl.enable(gl.BLEND);
-        // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
 
     bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {

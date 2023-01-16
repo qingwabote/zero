@@ -192,7 +192,11 @@ export default class RenderFlow {
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             pipeline = gfx.createPipeline();
-            pipeline.initialize({ shader: pass.shader, vertexInputState, renderPass: compatibleRenderPass, layout, rasterizationState: pass.rasterizationState, blendState: pass.blendState });
+            pipeline.initialize({
+                shader: pass.shader,
+                vertexInputState, rasterizationState: pass.rasterizationState, depthStencilState: pass.depthStencilState, blendState: pass.blendState,
+                renderPass: compatibleRenderPass, layout,
+            });
             this._pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;

@@ -105,6 +105,7 @@ export default class App extends Zero {
                         undefined,
                         { cullMode: CullMode.FRONT },
                         undefined,
+                        undefined,
                         PassPhase.SHADOWMAP
                     );
                     passes.push(shadowMapPass);
