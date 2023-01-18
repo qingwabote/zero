@@ -3,13 +3,13 @@
 import AssetCache from "../AssetCache.js";
 import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
-import defaults from "../defaults.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import InputAssembler, { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
+import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { FormatInfos } from "../gfx/Pipeline.js";
 import BufferViewResizable from "../render/buffers/BufferViewResizable.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
+import samplers from "../render/samplers.js";
 import SubModel from "../render/SubModel.js";
 import ShaderLib from "../ShaderLib.js";
 
@@ -48,9 +48,7 @@ export default class Label extends Component {
 
     private _vertexInputState!: VertexInputState;
 
-    private _inputAssemblers: InputAssembler[] = [];
-
-    private _inputAssembler?: InputAssembler;
+    private _subModel!: SubModel;
 
     override start(): void {
         const shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
@@ -90,10 +88,11 @@ export default class Label extends Component {
 
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
-        descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, defaults.sampler);
+        descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, samplers.get());
         const pass = new Pass(shader, descriptorSet);
-        const subModel: SubModel = { inputAssemblers: this._inputAssemblers, passes: [pass] };
+        const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         zero.renderScene.models.push(new Model([subModel], this._node));
+        this._subModel = subModel;
     }
 
     override update(): void {
@@ -101,7 +100,7 @@ export default class Label extends Component {
             return;
         }
         if (this._text.length == 0) {
-            this._inputAssembler = this._inputAssemblers.pop();
+            this._subModel.vertexOrIndexCount = 0;
             return;
         }
         const indexCount = 6 * this._text.length;
@@ -174,7 +173,7 @@ export default class Label extends Component {
         this._positionBuffer.update();
         this._indexBuffer.update();
 
-        if (!this._inputAssembler || reallocated) {
+        if (!this._subModel.inputAssemblers[0] || reallocated) {
             const inputAssembler = gfx.createInputAssembler();
             inputAssembler.initialize({
                 vertexInputState: this._vertexInputState,
@@ -186,13 +185,12 @@ export default class Label extends Component {
                     indexBuffer: this._indexBuffer.buffer,
                     indexOffset: 0,
                     indexType: IndexType.UINT16,
-                },
-                count: indexCount,
+                }
             })
-            this._inputAssembler = inputAssembler;
+            this._subModel.inputAssemblers[0] = inputAssembler;
         }
 
-        this._inputAssemblers[0] = this._inputAssembler;
+        this._subModel.vertexOrIndexCount = indexCount
 
         this._dirtyFlag = DirtyFlagBits.NONE;
     }

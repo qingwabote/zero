@@ -127,6 +127,9 @@ export default class RenderFlow {
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.set, this.globalDescriptorSet,
                 [CameraUniform.getDynamicOffset(cameraIndex)]);
             for (const stage of this._stages) {
+                if ((camera.visibilities & stage.visibility) == 0) {
+                    continue;
+                }
                 stage.record(commandBuffer, camera);
                 this._drawCalls += stage.drawCalls;
             }

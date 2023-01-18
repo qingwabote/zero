@@ -22,15 +22,15 @@ export default class ModelPhase extends RenderPhase {
                 continue;
             }
             for (const subModel of model.subModels) {
+                if (subModel.vertexOrIndexCount == 0) {
+                    continue;
+                }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
                     if (pass.phase != this._phase) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
-                    if (!inputAssembler) {
-                        continue;
-                    }
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = zero.renderFlow.getPipelineLayout(pass.shader);
                     commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.local.set, model.descriptorSet);
@@ -39,7 +39,7 @@ export default class ModelPhase extends RenderPhase {
                     }
                     const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
-                    commandBuffer.drawIndexed(inputAssembler.info.count);
+                    commandBuffer.drawIndexed(subModel.vertexOrIndexCount);
                     this._drawCalls++;
                 }
             }

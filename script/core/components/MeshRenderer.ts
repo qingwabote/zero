@@ -18,6 +18,20 @@ export default class MeshRenderer extends Component {
         const subModels: SubModel[] = [];
         for (let i = 0; i < this.mesh.subMeshes.length; i++) {
             const subMesh = this.mesh.subMeshes[i];
+            const bindings: VertexInputBindingDescription[] = [];
+            for (let binding = 0; binding < subMesh.vertexBuffers.length; binding++) {
+                const buffer = subMesh.vertexBuffers[binding];
+                let stride = buffer.info.stride;
+                if (!stride) {
+                    const attribute = subMesh.attributes.find(attribute => attribute.buffer == binding)!;
+                    stride = FormatInfos[attribute.format].size;
+                }
+                bindings.push({
+                    binding,
+                    stride,
+                    inputRate: VertexInputRate.VERTEX
+                })
+            }
             const vertexInput: VertexInput = {
                 vertexBuffers: subMesh.vertexBuffers,
                 vertexOffsets: subMesh.vertexOffsets,
@@ -49,20 +63,6 @@ export default class MeshRenderer extends Component {
                         offset: attribute.offset
                     });
                 }
-                const bindings: VertexInputBindingDescription[] = [];
-                for (let binding = 0; binding < subMesh.vertexBuffers.length; binding++) {
-                    const buffer = subMesh.vertexBuffers[binding];
-                    let stride = buffer.info.stride;
-                    if (!stride) {
-                        const attribute = subMesh.attributes.find(attribute => attribute.buffer == binding)!;
-                        stride = FormatInfos[attribute.format].size;
-                    }
-                    bindings.push({
-                        binding,
-                        stride,
-                        inputRate: VertexInputRate.VERTEX
-                    })
-                }
 
                 const inputAssembler = gfx.createInputAssembler();
                 inputAssembler.initialize({
@@ -71,12 +71,11 @@ export default class MeshRenderer extends Component {
                         bindings
                     ),
                     vertexInput,
-                    indexInput,
-                    count: subMesh.indexCount,
+                    indexInput
                 })
                 inputAssemblers.push(inputAssembler);
             }
-            subModels.push({ inputAssemblers, passes });
+            subModels.push({ inputAssemblers, passes, vertexOrIndexCount: subMesh.indexCount });
         }
         const model = new Model(subModels, this._node);
         zero.renderScene.models.push(model);

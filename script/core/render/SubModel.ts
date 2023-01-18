@@ -3,5 +3,6 @@ import Pass from "./Pass.js";
 
 export default interface SubModel {
     inputAssemblers: InputAssembler[];
-    passes: Pass[]
+    passes: Pass[];
+    vertexOrIndexCount: number;
 }

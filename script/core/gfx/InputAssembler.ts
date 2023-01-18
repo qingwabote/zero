@@ -63,10 +63,6 @@ export interface InputAssemblerInfo {
     readonly vertexInputState: VertexInputState;
     readonly vertexInput: VertexInput;
     readonly indexInput?: IndexInput;
-    /**
-     * vertex count or index count if indexInput is provided.
-     */
-    readonly count: number;
 }
 
 /**

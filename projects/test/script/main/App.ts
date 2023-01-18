@@ -3,7 +3,7 @@ import Material from "../../../../script/core/assets/Material.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
 import Profiler from "../../../../script/core/components/Profiler.js";
-import defaults from "../../../../script/core/defaults.js";
+import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit, CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
 import { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
@@ -14,6 +14,7 @@ import ForwardStage from "../../../../script/core/pipeline/stages/ForwardStage.j
 import ShadowStage from "../../../../script/core/pipeline/stages/ShadowStage.js";
 import Pass from "../../../../script/core/render/Pass.js";
 import PassPhase from "../../../../script/core/render/PassPhase.js";
+import samplers from "../../../../script/core/render/samplers.js";
 import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
 import ShaderLib from "../../../../script/core/ShaderLib.js";
 import Zero from "../../../../script/core/Zero.js";
@@ -29,6 +30,13 @@ const USE_SHADOW_MAP = 1;
 export default class App extends Zero {
     async start(): Promise<RenderFlow> {
         const { width, height } = this.window;
+
+        const stages: RenderStage[] = [];
+        let shadowStage: ShadowStage;
+        if (USE_SHADOW_MAP) {
+            shadowStage = new ShadowStage;
+            stages.push(shadowStage);
+        }
 
         const lit_position: Vec3 = [4, 4, 4];
 
@@ -64,24 +72,22 @@ export default class App extends Zero {
         cameraUI.clearFlags = ClearFlagBit.DEPTH;
         cameraUI.orthoHeight = height / 2;
         cameraUI.viewport = { x: 0, y: 0, width, height };
-
         node.position = [0, 0, 1];
+
         node = new Node;
         node.addComponent(Profiler);
         node.position = [-width / 2, height / 2, 0];
         node.visibility = VisibilityBit.UI;
 
-        // if (shadowmapPhase) {
-        //     const shader = await shaders.getShader('depth');
-        //     node = new Node;
-        //     node.position = [width / 2 - 200, -height / 2 + 200, 0];
-        //     node.visibility = VisibilityBit.UI;
-        //     const sprite = node.addComponent(Sprite);
-        //     sprite.shader = shader;
-        //     sprite.width = 200;
-        //     sprite.height = 200;
-        //     sprite.texture = shadowmapPhase.depthStencilAttachment;
-        // }
+        if (USE_SHADOW_MAP) {
+            node = new Node;
+            node.position = [width / 2 - 200, -height / 2 + 200, 0];
+            node.visibility = VisibilityBit.UI;
+            const sprite = node.addComponent(Sprite);
+            sprite.width = 200;
+            sprite.height = 200;
+            sprite.texture = shadowStage!.framebuffer.info.depthStencilAttachment;
+        }
 
         async function createMaterials(gltf: GLTF): Promise<Material[]> {
             const materials: Material[] = [];
@@ -116,7 +122,7 @@ export default class App extends Zero {
                 const phoneDescriptorSet = gfx.createDescriptorSet();
                 phoneDescriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(phongShader));
                 if (USE_ALBEDO_MAP) {
-                    phoneDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
+                    phoneDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, samplers.get());
                 }
                 const phongPass = new Pass(phongShader, phoneDescriptorSet);
                 passes.push(phongPass);
@@ -139,38 +145,22 @@ export default class App extends Zero {
             return materials;
         }
 
-        const city = new GLTF();
-        await city.load('./asset/venice_city_scene_1dae08_aaron_ongena/scene');
-        let materials: Material[] = await createMaterials(city);
-        node = city.createScene("Sketchfab_Scene", materials)!;
-        // const scale = Object.assign(vec3.create(), node.scale);
-        // scale[0] *= 0.01;
-        // scale[1] *= 0.01;
-        // scale[2] *= 0.01;
-        // node.scale = scale;
+        // const city = new GLTF();
+        // await city.load('./asset/venice_city_scene_1dae08_aaron_ongena/scene');
+        // let materials: Material[] = await createMaterials(city);
+        // node = city.createScene("Sketchfab_Scene", materials)!;
 
-        // const guardian = new GLTF();
-        // await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
-        // let materials: Material[] = await createMaterials(guardian);
-        // node = guardian.createScene("Sketchfab_Scene", materials)!;
-        // node.addComponent(ZeroComponent);
+        const guardian = new GLTF();
+        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
+        let materials: Material[] = await createMaterials(guardian);
+        node = guardian.createScene("Sketchfab_Scene", materials)!;
 
-        // const guardian = new GLTF();
-        // await guardian.load('./asset/untitled');
-        // let materials: Material[] = await createMaterials(guardian);
-        // node = guardian.createScene("Scene", materials)!;
-        // node.addComponent(ZeroComponent);
+        const plane = new GLTF();
+        await plane.load('./asset/plane');
+        materials = await createMaterials(plane);
+        node = plane.createScene("Scene", materials)!;
+        node.scale = [4, 4, 4];
 
-        // const plane = new GLTF();
-        // await plane.load('./asset/plane');
-        // materials = await createMaterials(plane);
-        // node = plane.createScene("Scene", materials)!;
-        // node.scale = [4, 4, 4];
-
-        const stages: RenderStage[] = []
-        if (USE_SHADOW_MAP) {
-            stages.push(new ShadowStage);
-        }
         stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)]));
         return new RenderFlow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);
     }

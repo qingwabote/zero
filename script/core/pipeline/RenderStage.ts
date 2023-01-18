@@ -3,10 +3,14 @@ import { Framebuffer } from "../gfx/Framebuffer.js";
 import RenderPass from "../gfx/RenderPass.js";
 import { Rect } from "../math/rect.js";
 import RenderCamera from "../render/RenderCamera.js";
+import VisibilityBit from "../render/VisibilityBit.js";
 import PipelineUniform from "./PipelineUniform.js";
 import RenderPhase from "./RenderPhase.js";
 
 export default abstract class RenderStage {
+
+    readonly visibility: VisibilityBit;
+
     protected _phases: RenderPhase[];
 
     private _framebuffer?: Framebuffer;
@@ -24,7 +28,9 @@ export default abstract class RenderStage {
     }
 
     constructor(phases: RenderPhase[], framebuffer?: Framebuffer, renderPass?: RenderPass, viewport?: Rect) {
+        this.visibility = phases.reduce(function (val, phase) { return phase.visibility | val }, 0)
         this._phases = phases;
+
         this._framebuffer = framebuffer;
         this._renderPass = renderPass;
         this._viewport = viewport;
