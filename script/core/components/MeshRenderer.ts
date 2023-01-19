@@ -47,7 +47,7 @@ export default class MeshRenderer extends Component {
                 const pass = passes[j];
                 const attributes: VertexInputAttributeDescription[] = [];
                 for (const attribute of subMesh.attributes) {
-                    const definition = pass.shader.info.meta.attributes[attribute.name];
+                    const definition = pass.state.shader.info.meta.attributes[attribute.name];
                     if (!definition) {
                         // console.warn(`attribute ${attribute.name} has no definition in ${pass.shader.info.name}`)
                         continue;

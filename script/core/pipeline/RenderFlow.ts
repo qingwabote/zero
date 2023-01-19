@@ -3,11 +3,10 @@ import DescriptorSet from "../gfx/DescriptorSet.js";
 import DescriptorSetLayout, { DescriptorSetLayoutBinding } from "../gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
 import { VertexInputState } from "../gfx/InputAssembler.js";
-import Pipeline, { ClearFlagBit, PipelineLayout, SampleCountFlagBits } from "../gfx/Pipeline.js";
+import Pipeline, { ClearFlagBit, PassState, PipelineLayout, SampleCountFlagBits } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo } from "../gfx/RenderPass.js";
 import Shader from "../gfx/Shader.js";
 import Texture, { TextureUsageBit } from "../gfx/Texture.js";
-import Pass from "../render/Pass.js";
 import ShaderLib from "../ShaderLib.js";
 import PipelineUniform from "./PipelineUniform.js";
 import RenderStage from "./RenderStage.js";
@@ -187,16 +186,15 @@ export default class RenderFlow {
         return layout;
     }
 
-    getPipeline(pass: Pass, vertexInputState: VertexInputState, compatibleRenderPass: RenderPass, layout: PipelineLayout): Pipeline {
-        const pipelineHash = pass.hash + vertexInputState.hash + compatibleRenderPass.info.compatibleHash;
+    /**
+     * @param renderPass a compatible renderPass
+     */
+    getPipeline(passState: PassState, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
+        const pipelineHash = passState.hash + vertexInputState.hash + renderPass.info.compatibleHash;
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             pipeline = gfx.createPipeline();
-            pipeline.initialize({
-                shader: pass.shader,
-                vertexInputState, rasterizationState: pass.rasterizationState, depthStencilState: pass.depthStencilState, blendState: pass.blendState, primitive: pass.primitive,
-                renderPass: compatibleRenderPass, layout,
-            });
+            pipeline.initialize({ passState, vertexInputState, renderPass, layout, });
             this._pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;

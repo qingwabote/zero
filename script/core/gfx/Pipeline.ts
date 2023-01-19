@@ -102,13 +102,28 @@ export interface BlendState {
     dstAlpha: BlendFactor;
 }
 
+export class PassState {
+    readonly hash: string;
+
+    constructor(
+        readonly shader: Shader,
+        readonly primitive: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
+        readonly rasterizationState: RasterizationState = { cullMode: CullMode.BACK },
+        readonly depthStencilState: DepthStencilState = { depthTestEnable: true },
+        readonly blendState: BlendState = { enabled: true, srcRGB: BlendFactor.SRC_ALPHA, dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA, srcAlpha: BlendFactor.ONE, dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA },
+    ) {
+        let hash = shader.info.hash;
+        hash += `${rasterizationState.cullMode}`;
+        hash += `${depthStencilState.depthTestEnable}`;
+        hash += `${blendState.enabled}${blendState.srcRGB}${blendState.dstRGB}${blendState.srcAlpha}${blendState.dstAlpha}`;
+        hash += `${primitive}`;
+        this.hash = hash;
+    }
+}
+
 export interface PipelineInfo {
-    readonly shader: Shader;
-    readonly vertexInputState: VertexInputState;
-    readonly primitive: PrimitiveTopology;
-    readonly rasterizationState: RasterizationState;
-    readonly depthStencilState: DepthStencilState;
-    readonly blendState: BlendState;
+    readonly vertexInputState: VertexInputState,
+    readonly passState: PassState;
     readonly layout: PipelineLayout;
     readonly renderPass: RenderPass;
 }

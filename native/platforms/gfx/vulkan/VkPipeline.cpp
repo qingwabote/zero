@@ -31,15 +31,11 @@ namespace binding
             VkGraphicsPipelineCreateInfo pipelineInfo = {};
             pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
-            Shader *c_shader = retain<Shader>(sugar::v8::object_get(info, "shader"));
-            auto &stageInfos = c_shader->impl()->stageInfos();
-            pipelineInfo.stageCount = stageInfos.size();
-            pipelineInfo.pStages = stageInfos.data();
+            // vertexInputState
+            v8::Local<v8::Object> js_vertexInputState = sugar::v8::object_get(info, "vertexInputState").As<v8::Object>();
 
             VkPipelineVertexInputStateCreateInfo vertexInputState = {};
             vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-            v8::Local<v8::Object> js_vertexInputState = sugar::v8::object_get(info, "vertexInputState").As<v8::Object>();
             v8::Local<v8::Array> js_attributes = sugar::v8::object_get(js_vertexInputState, "attributes").As<v8::Array>();
             std::vector<VkVertexInputAttributeDescription> attributes{js_attributes->Length()};
             for (uint32_t i = 0; i < js_attributes->Length(); i++)
@@ -66,9 +62,17 @@ namespace binding
             vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();
             pipelineInfo.pVertexInputState = &vertexInputState;
 
+            // passState
+            v8::Local<v8::Object> js_passState = sugar::v8::object_get(info, "passState").As<v8::Object>();
+
+            Shader *c_shader = retain<Shader>(sugar::v8::object_get(js_passState, "shader"));
+            auto &stageInfos = c_shader->impl()->stageInfos();
+            pipelineInfo.stageCount = stageInfos.size();
+            pipelineInfo.pStages = stageInfos.data();
+
             VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
             inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-            inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(sugar::v8::object_get(info, "primitive").As<v8::Number>()->Value());
+            inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(sugar::v8::object_get(js_passState, "primitive").As<v8::Number>()->Value());
             pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
             std::vector<VkDynamicState> dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_FRONT_FACE});
@@ -82,8 +86,7 @@ namespace binding
             viewportState.scissorCount = 1;
             pipelineInfo.pViewportState = &viewportState;
 
-            v8::Local<v8::Object> js_rasterizationState = sugar::v8::object_get(info, "rasterizationState").As<v8::Object>();
-
+            v8::Local<v8::Object> js_rasterizationState = sugar::v8::object_get(js_passState, "rasterizationState").As<v8::Object>();
             VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
             rasterizationState.rasterizerDiscardEnable = VK_FALSE;
             rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
@@ -95,17 +98,7 @@ namespace binding
             rasterizationState.lineWidth = 1;
             pipelineInfo.pRasterizationState = &rasterizationState;
 
-            auto c_renderPass = retain<RenderPass>(sugar::v8::object_get(info, "renderPass"));
-
-            VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
-            multisampleState.sampleShadingEnable = VK_FALSE;
-            multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(sugar::v8::object_get(c_renderPass->info(), "samples").As<v8::Number>()->Value());
-            multisampleState.minSampleShading = 1.0f;
-            multisampleState.alphaToCoverageEnable = VK_FALSE;
-            multisampleState.alphaToOneEnable = VK_FALSE;
-            pipelineInfo.pMultisampleState = &multisampleState;
-
-            v8::Local<v8::Object> js_depthStencilState = sugar::v8::object_get(info, "depthStencilState").As<v8::Object>();
+            v8::Local<v8::Object> js_depthStencilState = sugar::v8::object_get(js_passState, "depthStencilState").As<v8::Object>();
             VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
             depthStencilState.depthTestEnable = sugar::v8::object_get(js_depthStencilState, "depthTestEnable").As<v8::Boolean>()->Value();
             depthStencilState.depthWriteEnable = VK_TRUE;
@@ -113,7 +106,7 @@ namespace binding
             depthStencilState.stencilTestEnable = VK_FALSE;
             pipelineInfo.pDepthStencilState = &depthStencilState;
 
-            v8::Local<v8::Object> js_blendState = sugar::v8::object_get(info, "blendState").As<v8::Object>();
+            v8::Local<v8::Object> js_blendState = sugar::v8::object_get(js_passState, "blendState").As<v8::Object>();
             VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
             colorBlendAttachment.blendEnable = sugar::v8::object_get(js_blendState, "enabled").As<v8::Boolean>()->Value();
             colorBlendAttachment.srcColorBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "srcRGB").As<v8::Number>()->Value());
@@ -130,10 +123,20 @@ namespace binding
             colorBlending.pAttachments = &colorBlendAttachment;
             pipelineInfo.pColorBlendState = &colorBlending;
 
-            pipelineInfo.layout = retain<PipelineLayout>(sugar::v8::object_get(info, "layout"))->impl();
-
+            // renderPass
+            auto c_renderPass = retain<RenderPass>(sugar::v8::object_get(info, "renderPass"));
+            VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
+            multisampleState.sampleShadingEnable = VK_FALSE;
+            multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(sugar::v8::object_get(c_renderPass->info(), "samples").As<v8::Number>()->Value());
+            multisampleState.minSampleShading = 1.0f;
+            multisampleState.alphaToCoverageEnable = VK_FALSE;
+            multisampleState.alphaToOneEnable = VK_FALSE;
+            pipelineInfo.pMultisampleState = &multisampleState;
             pipelineInfo.renderPass = c_renderPass->impl();
             pipelineInfo.subpass = 0;
+
+            // layout
+            pipelineInfo.layout = retain<PipelineLayout>(sugar::v8::object_get(info, "layout"))->impl();
 
             if (vkCreateGraphicsPipelines(*_impl->_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))
             {

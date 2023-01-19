@@ -1,8 +1,8 @@
 import Pipeline, { PipelineInfo } from "../../../core/gfx/Pipeline.js";
 
 export default class WebPipeline implements Pipeline {
-    private _info: PipelineInfo | undefined;
-    get info(): PipelineInfo | undefined {
+    private _info!: PipelineInfo;
+    get info(): PipelineInfo {
         return this._info;
     }
 

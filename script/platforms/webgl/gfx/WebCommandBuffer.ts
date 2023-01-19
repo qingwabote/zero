@@ -110,11 +110,11 @@ export default class WebCommandBuffer implements CommandBuffer {
 
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
-        const info = (pipeline as WebPipeline).info!;
+        const state = (pipeline as WebPipeline).info.passState;
 
-        gl.useProgram((info.shader as WebShader).program);
+        gl.useProgram((state.shader as WebShader).program);
 
-        switch (info.rasterizationState.cullMode) {
+        switch (state.rasterizationState.cullMode) {
             case CullMode.NONE:
                 gl.disable(gl.CULL_FACE);
                 break;
@@ -127,18 +127,18 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.enable(gl.CULL_FACE);
                 break;
             default:
-                throw new Error(`unsupported cullMode: ${info.rasterizationState.cullMode}`);
+                throw new Error(`unsupported cullMode: ${state.rasterizationState.cullMode}`);
         }
 
         gl.enable(gl.SCISSOR_TEST);
 
-        if (info.depthStencilState.depthTestEnable) {
+        if (state.depthStencilState.depthTestEnable) {
             gl.enable(gl.DEPTH_TEST);
         } else {
             gl.disable(gl.DEPTH_TEST);
         }
 
-        const blendState = info.blendState;
+        const blendState = state.blendState;
         if (blendState.enabled) {
             gl.enable(gl.BLEND);
         } else {

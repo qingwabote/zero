@@ -32,12 +32,12 @@ export default class ModelPhase extends RenderPhase {
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
-                    const layout = zero.renderFlow.getPipelineLayout(pass.shader);
+                    const layout = zero.renderFlow.getPipelineLayout(pass.state.shader);
                     commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.local.set, model.descriptorSet);
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.material.set, pass.descriptorSet);
                     }
-                    const pipeline = zero.renderFlow.getPipeline(pass, inputAssembler.info.vertexInputState, renderPass, layout);
+                    const pipeline = zero.renderFlow.getPipeline(pass.state, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     if (inputAssembler.info.indexInput) {
                         commandBuffer.drawIndexed(subModel.vertexOrIndexCount);

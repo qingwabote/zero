@@ -4,7 +4,7 @@ import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
 import Profiler from "../../../../script/core/components/Profiler.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
-import { ClearFlagBit, CullMode, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
+import { ClearFlagBit, CullMode, PassState, PrimitiveTopology, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
 import { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import ModelPhase from "../../../../script/core/pipeline/phases/ModelPhase.js";
@@ -99,11 +99,11 @@ export default class App extends Zero {
                 if (USE_SHADOW_MAP) {
                     const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
                     const shadowMapPass = new Pass(
-                        shadowMapShader,
-                        undefined,
-                        { cullMode: CullMode.FRONT },
-                        undefined,
-                        undefined,
+                        new PassState(
+                            shadowMapShader,
+                            PrimitiveTopology.TRIANGLE_LIST,
+                            { cullMode: CullMode.FRONT }
+                        ),
                         undefined,
                         PassPhase.SHADOWMAP
                     );
@@ -125,7 +125,7 @@ export default class App extends Zero {
                 if (USE_ALBEDO_MAP) {
                     phoneDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, samplers.get());
                 }
-                const phongPass = new Pass(phongShader, phoneDescriptorSet);
+                const phongPass = new Pass(new PassState(phongShader), phoneDescriptorSet);
                 passes.push(phongPass);
 
                 // const zeroShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });

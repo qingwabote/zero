@@ -1,7 +1,7 @@
 import Component from "../Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PrimitiveTopology } from "../gfx/Pipeline.js";
+import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
 import { Vec3 } from "../math/vec3.js";
 import { Vec4 } from "../math/vec4.js";
 import BufferViewResizable from "../render/buffers/BufferViewResizable.js";
@@ -61,7 +61,7 @@ export default class Primitive extends Component {
         })
         this._vertexInputState = new VertexInputState(attributes, bindings);
 
-        const pass = new Pass(shader, undefined, { cullMode: CullMode.NONE }, { depthTestEnable: false }, undefined, PrimitiveTopology.LINE_LIST);
+        const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         zero.renderScene.models.push(new Model([subModel], this._node));
         this._subModel = subModel;
