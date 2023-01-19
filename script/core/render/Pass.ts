@@ -1,5 +1,5 @@
 import DescriptorSet from "../gfx/DescriptorSet.js";
-import { BlendFactor, BlendState, CullMode, DepthStencilState, RasterizationState } from "../gfx/Pipeline.js";
+import { BlendFactor, BlendState, CullMode, DepthStencilState, PrimitiveTopology, RasterizationState } from "../gfx/Pipeline.js";
 import Shader from "../gfx/Shader.js";
 import PassPhase from "./PassPhase.js";
 
@@ -29,6 +29,7 @@ export default class Pass {
         return this._blendState;
     }
 
+    readonly primitive: PrimitiveTopology;
 
     private _phase: PassPhase;
     get phase(): PassPhase {
@@ -46,18 +47,21 @@ export default class Pass {
         rasterizationState: RasterizationState = { cullMode: CullMode.BACK },
         depthStencilState: DepthStencilState = { depthTestEnable: true },
         blendState: BlendState = { enabled: true, srcRGB: BlendFactor.SRC_ALPHA, dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA, srcAlpha: BlendFactor.ONE, dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA },
+        primitive: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
         phase: PassPhase = PassPhase.DEFAULT
     ) {
         this._hash = shader.info.hash;
         this._hash += `${rasterizationState.cullMode}`;
-        this._hash += `${blendState.enabled}${blendState.srcRGB}${blendState.dstRGB}${blendState.srcAlpha}${blendState.dstAlpha}`;
         this._hash += `${depthStencilState.depthTestEnable}`;
+        this._hash += `${blendState.enabled}${blendState.srcRGB}${blendState.dstRGB}${blendState.srcAlpha}${blendState.dstAlpha}`;
+        this._hash += `${primitive}`;
 
         this._shader = shader;
         this._descriptorSet = descriptorSet;
         this._rasterizationState = rasterizationState;
         this._depthStencilState = depthStencilState;
         this._blendState = blendState;
+        this.primitive = primitive;
         this._phase = phase;
     }
 }

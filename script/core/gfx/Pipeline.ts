@@ -55,6 +55,11 @@ export enum ClearFlagBit {
     DEPTH = 0x2
 }
 
+export enum PrimitiveTopology {
+    LINE_LIST = 1,
+    TRIANGLE_LIST = 3
+}
+
 // copy values from VkCullModeFlagBits in vulkan_core.h
 export enum CullMode {
     NONE = 0,
@@ -100,6 +105,7 @@ export interface BlendState {
 export interface PipelineInfo {
     readonly shader: Shader;
     readonly vertexInputState: VertexInputState;
+    readonly primitive: PrimitiveTopology;
     readonly rasterizationState: RasterizationState;
     readonly depthStencilState: DepthStencilState;
     readonly blendState: BlendState;

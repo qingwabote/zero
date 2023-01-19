@@ -75,14 +75,14 @@ export default class App extends Zero {
         node.position = [0, 0, 1];
 
         node = new Node;
+        node.visibility = VisibilityBit.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, height / 2, 0];
-        node.visibility = VisibilityBit.UI;
 
         if (USE_SHADOW_MAP) {
             node = new Node;
-            node.position = [width / 2 - 200, -height / 2 + 200, 0];
             node.visibility = VisibilityBit.UI;
+            node.position = [width / 2 - 200, -height / 2 + 200, 0];
             const sprite = node.addComponent(Sprite);
             sprite.width = 200;
             sprite.height = 200;
@@ -102,6 +102,7 @@ export default class App extends Zero {
                         shadowMapShader,
                         undefined,
                         { cullMode: CullMode.FRONT },
+                        undefined,
                         undefined,
                         undefined,
                         PassPhase.SHADOWMAP

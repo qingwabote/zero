@@ -68,7 +68,7 @@ namespace binding
 
             VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
             inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-            inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(sugar::v8::object_get(info, "primitive").As<v8::Number>()->Value());
             pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
             std::vector<VkDynamicState> dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_FRONT_FACE});

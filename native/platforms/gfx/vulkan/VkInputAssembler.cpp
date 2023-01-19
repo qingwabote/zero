@@ -33,13 +33,16 @@ namespace binding::gfx
         }
         _impl->_vertexInput = std::move(c_vertexInput);
 
-        auto c_indexInput = std::make_unique<InputAssembler_impl::VkIndexInput>();
         v8::Local<v8::Object> js_indexInput = sugar::v8::object_get(info, "indexInput").As<v8::Object>();
-        v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(js_indexInput, "indexBuffer").As<v8::Object>();
-        c_indexInput->indexBuffer = Binding::c_obj<Buffer>(js_indexBuffer)->impl();
-        c_indexInput->indexOffset = sugar::v8::object_get(js_indexInput, "indexOffset").As<v8::Number>()->Value();
-        c_indexInput->indexType = static_cast<VkIndexType>(sugar::v8::object_get(js_indexInput, "indexType").As<v8::Number>()->Value());
-        _impl->_indexInput = std::move(c_indexInput);
+        if (!js_indexInput->IsUndefined())
+        {
+            auto c_indexInput = std::make_unique<InputAssembler_impl::VkIndexInput>();
+            v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(js_indexInput, "indexBuffer").As<v8::Object>();
+            c_indexInput->indexBuffer = Binding::c_obj<Buffer>(js_indexBuffer)->impl();
+            c_indexInput->indexOffset = sugar::v8::object_get(js_indexInput, "indexOffset").As<v8::Number>()->Value();
+            c_indexInput->indexType = static_cast<VkIndexType>(sugar::v8::object_get(js_indexInput, "indexType").As<v8::Number>()->Value());
+            _impl->_indexInput = std::move(c_indexInput);
+        }
 
         return false;
     }
