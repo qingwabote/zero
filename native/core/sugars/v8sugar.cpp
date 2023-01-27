@@ -1,5 +1,4 @@
 #include "v8sugar.hpp"
-#include "libplatform/libplatform.h"
 #include "sdlsugar.hpp"
 #include <sstream>
 #include <unordered_map>
@@ -24,7 +23,9 @@ namespace
 
         std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> constructorCache;
 
-        std::unordered_map<std::filesystem::path, sugar::v8::Weak<_v8::Module>> moduleCache;
+        std::unordered_map<std::filesystem::path, sugar::v8::Weak<_v8::Module>> path2module;
+
+        std::unordered_map<int, std::filesystem::path> module2path;
 
         std::map<uint32_t, SetWeakCallback *> weakCallbacks;
 
@@ -86,18 +87,25 @@ namespace sugar::v8
         delete data;
 
         isolate->Dispose();
-        _v8::V8::Dispose();
-        _v8::V8::DisposePlatform();
     }
     unique_isolate initWithIsolate()
     {
-        _v8::V8::InitializePlatform(_v8::platform::NewDefaultPlatform().release());
-        _v8::V8::SetFlagsFromString("--expose-gc-as=__gc__");
-        _v8::V8::Initialize();
-
         _v8::Isolate::CreateParams create_params;
         create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
         _v8::Isolate *isolate = _v8::Isolate::New(create_params);
+
+        // isolate->SetHostInitializeImportMetaObjectCallback(
+        //     [](_v8::Local<_v8::Context> context,
+        //        _v8::Local<_v8::Module> module,
+        //        _v8::Local<_v8::Object> meta)
+        //     {
+        //         _v8::Isolate *isolate = context->GetIsolate();
+
+        //         auto &module2path = IsolateData::getCurrent(isolate)->module2path;
+        //         std::filesystem::path &path = module2path.find(module->GetIdentityHash())->second;
+        //         object_set(meta, "url", _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
+        //     });
+
         new IsolateData(isolate);
         return unique_isolate{isolate, isolateDeleter};
     }
@@ -217,23 +225,22 @@ namespace sugar::v8
         _v8::Local<_v8::FixedArray> import_assertions,
         _v8::Local<_v8::Module> referrer)
     {
-        static std::unordered_map<int, std::filesystem::path> resolvedMap;
-
         _v8::Isolate *isolate = context->GetIsolate();
         _v8::EscapableHandleScope handle_scope(isolate);
         _v8::Context::Scope context_scope(context);
 
+        auto &module2path = IsolateData::getCurrent(isolate)->module2path;
         std::filesystem::path path(*_v8::String::Utf8Value(isolate, specifier));
         if (path.is_relative())
         {
-            std::filesystem::path &ref = resolvedMap.find(referrer->GetIdentityHash())->second;
+            std::filesystem::path &ref = module2path.find(referrer->GetIdentityHash())->second;
             std::filesystem::current_path(ref.parent_path());
             path = std::filesystem::absolute(path);
         }
 
-        auto &moduleCache = IsolateData::getCurrent(isolate)->moduleCache;
-        auto it = moduleCache.find(path);
-        if (it != moduleCache.end())
+        auto &path2module = IsolateData::getCurrent(isolate)->path2module;
+        auto it = path2module.find(path);
+        if (it != path2module.end())
         {
             return handle_scope.EscapeMaybe(_v8::MaybeLocal<_v8::Module>{it->second.Get(isolate)});
         }
@@ -251,8 +258,8 @@ namespace sugar::v8
         auto maybeModule = _v8::ScriptCompiler::CompileModule(isolate, &source);
 
         auto module = maybeModule.ToLocalChecked();
-        resolvedMap.emplace(module->GetIdentityHash(), path);
-        moduleCache.emplace(path, Weak<_v8::Module>{isolate, module});
+        module2path.emplace(module->GetIdentityHash(), path);
+        path2module.emplace(path, Weak<_v8::Module>{isolate, module});
 
         return handle_scope.EscapeMaybe(maybeModule);
     }

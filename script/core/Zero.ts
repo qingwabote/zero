@@ -6,6 +6,7 @@ import Fence from "./gfx/Fence.js";
 import { PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input, { InputEvent } from "./Input.js";
+import PhysicsSystem from "./physics/PhysicsSystem.js";
 import RenderFlow from "./pipeline/RenderFlow.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
@@ -61,6 +62,8 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         await Promise.all(ShaderLib.preloadedShaders.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
 
         await Promise.all(AssetCache.preloadedAssets.map(info => AssetCache.instance.load(info.path, info.type)));
+
+        await PhysicsSystem.initialize();
 
         const commandBuffer = gfx.createCommandBuffer();
         commandBuffer.initialize();
