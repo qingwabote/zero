@@ -1,8 +1,6 @@
 import Component from "../Component.js";
-import vec3 from "../math/vec3.js";
 import { ZeroEvent } from "../Zero.js";
 import Label from "./Label.js";
-import Primitive from "./Primitive.js";
 
 export default class Profiler extends Component {
     private _time: number = 0;
@@ -16,8 +14,6 @@ export default class Profiler extends Component {
 
     override start(): void {
         this._node.addComponent(Label);
-        const primitive = this._node.addComponent(Primitive);
-        primitive.drawLine(vec3.create(1, 1, 0), vec3.create(100, -100, 0))
 
         this.profileGameLogic();
         this.profileRender();

@@ -43,18 +43,6 @@ export default class BufferView {
     private _dirty: boolean = false;
 
     constructor(format: TypedArrayFormat, usage: BufferUsageFlagBits, length: number) {
-        if (length == 0) {
-            return;
-        }
-
-        this._source = new format2array[format](length);
-        this._buffer = gfx.createBuffer();
-        this._buffer.initialize({
-            usage,
-            mem_usage: MemoryUsage.CPU_TO_GPU,
-            size: this._source.byteLength
-        });
-
         this._proxy = new Proxy(this, {
             get(target, p) {
                 return Reflect.get(target._source, p);
@@ -67,6 +55,18 @@ export default class BufferView {
                 return false;
             }
         })
+
+        if (length == 0) {
+            return;
+        }
+
+        this._source = new format2array[format](length);
+        this._buffer = gfx.createBuffer();
+        this._buffer.initialize({
+            usage,
+            mem_usage: MemoryUsage.CPU_TO_GPU,
+            size: this._source.byteLength
+        });
     }
 
     set(array: ArrayLike<number>, offset?: number) {

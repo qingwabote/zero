@@ -1,6 +1,5 @@
 import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
-import mat4 from "../../math/mat4.js";
 import vec3 from "../../math/vec3.js";
 import BufferViewResizable from "../../render/buffers/BufferViewResizable.js";
 import ShaderLib from "../../ShaderLib.js";
@@ -50,21 +49,9 @@ export default class CameraUniform implements PipelineUniform {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (dirtyObjects.has(camera) || dirtyObjects.has(camera.node)) {
-                camera.node.updateTransform();
+                this._buffer.set(camera.matView, camerasDataOffset + CameraBlock.uniforms.view.offset);
 
-                const view = mat4.invert(mat4.create(), camera.node.matrix)
-                this._buffer.set(view, camerasDataOffset + CameraBlock.uniforms.view.offset);
-
-                const projection = mat4.create();
-                const aspect = camera.viewport.width / camera.viewport.height;
-                if (camera.orthoHeight != -1) {
-                    const x = camera.orthoHeight * aspect;
-                    const y = camera.orthoHeight;
-                    mat4.ortho(projection, -x, x, -y, y, camera.near, camera.far, gfx.capabilities.clipSpaceMinZ);
-                } else if (camera.fov != -1) {
-                    mat4.perspective(projection, Math.PI / 180 * camera.fov, aspect, camera.near, camera.far, gfx.capabilities.clipSpaceMinZ);
-                }
-                this._buffer.set(projection, camerasDataOffset + CameraBlock.uniforms.projection.offset);
+                this._buffer.set(camera.matProj, camerasDataOffset + CameraBlock.uniforms.projection.offset);
 
                 const position = vec3.transformMat4(vec3.create(), vec3.ZERO, camera.node.matrix);
                 this._buffer.set(position, camerasDataOffset + CameraBlock.uniforms.position.offset);

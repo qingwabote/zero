@@ -12,7 +12,9 @@ import ShaderLib from "../ShaderLib.js";
 
 ShaderLib.preloadedShaders.push({ name: 'primitive' })
 
-const VERTEX_COMPONENTS = (3 + 4) * 2;
+// const VERTEX_COMPONENTS = 3 + 4;
+
+const VERTEX_COMPONENTS = 3;
 
 export default class Primitive extends Component {
     private _buffer: BufferViewResizable = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);

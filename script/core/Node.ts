@@ -97,6 +97,7 @@ export default class Node implements RenderNode {
 
     private _matrix: Mat4 = mat4.create();
     get matrix(): Readonly<Mat4> {
+        this.updateTransform();
         return this._matrix;
     }
 
@@ -134,7 +135,7 @@ export default class Node implements RenderNode {
         }
     }
 
-    public updateTransform(): void {
+    private updateTransform(): void {
         if (this._dirtyFlag == TransformBit.NONE) return;
 
         if (!this._parent) {
@@ -148,7 +149,6 @@ export default class Node implements RenderNode {
             return;
         }
 
-        this._parent.updateTransform();
         // if (this._dirtyFlag & TransformBit.POSITION) {
         // const worldPos = vec3.transformMat4(vec3.create(), this._position, this._parent.matrix)
         // mat4.translate2(this._matrix, this._matrix, worldPos);

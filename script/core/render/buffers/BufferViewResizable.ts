@@ -58,8 +58,9 @@ export default class BufferViewResizable {
         if (this._bufferView.length >= length) {
             return false;
         }
+        const data = this._bufferView.data;
         this._bufferView = new BufferView(this._format, this._usage, length);
-        this._bufferView.set(this._bufferView.data);
+        this._bufferView.set(data);
         this._onReallocate(this._bufferView.buffer);
         return true;
     }

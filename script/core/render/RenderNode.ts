@@ -6,5 +6,4 @@ export interface RenderNode {
     visibility: VisibilityBit;
     position: Readonly<Vec3>;
     matrix: Readonly<Mat4>;
-    updateTransform(): void;
 }

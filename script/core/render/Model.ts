@@ -40,7 +40,6 @@ export default class Model {
 
     update() {
         if (zero.renderScene.dirtyObjects.has(this._node)) {
-            this._node.updateTransform();
             this._localBuffer.set(this._node.matrix);
             this._localBuffer.set(mat4.inverseTranspose(mat4.create(), this._node.matrix), 16);
             this._localBuffer.update();
