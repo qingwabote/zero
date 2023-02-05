@@ -1,4 +1,5 @@
 import Ammo from "./impl/ammo.wasm.js";
+import PhysicsWorld from "./PhysicsWorld.js";
 
 export default class PhysicsSystem {
     private static _instance: PhysicsSystem;
@@ -22,17 +23,28 @@ export default class PhysicsSystem {
             (globalThis as any).window = undefined;
         }
         PhysicsSystem._instance = new PhysicsSystem(Module);
+        PhysicsSystem._instance.initialize();
     }
 
-    private _broadphase;
-    private _dispatcher;
-    private _solver;
-    private _world;
+    readonly bt_vec3_a: any;
+    // readonly bt_vec3_b:any;
+    readonly bt_transform_a: any;
+
+    readonly bt_quat_a: any;
+
+    private _world!: PhysicsWorld;
+    get world(): PhysicsWorld {
+        return this._world;
+    }
 
     constructor(readonly ammo: any) {
-        this._broadphase = new ammo.btDbvtBroadphase();
-        this._dispatcher = new ammo.btCollisionDispatcher(new ammo.btDefaultCollisionConfiguration());
-        this._solver = new ammo.btSequentialImpulseConstraintSolver();
-        this._world = new ammo.btDiscreteDynamicsWorld(this._broadphase, this._dispatcher, this._solver);
+        this.bt_vec3_a = new ammo.btVector3(0, 0, 0);
+        this.bt_transform_a = new ammo.btTransform();
+        this.bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
+
+    }
+
+    initialize() {
+        this._world = new PhysicsWorld();
     }
 }

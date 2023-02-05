@@ -13,14 +13,14 @@ export default class Profiler extends Component {
     private _render_time = 0;
 
     override start(): void {
-        this._node.addComponent(Label);
+        this.node.addComponent(Label);
 
         this.profileGameLogic();
         this.profileRender();
     }
 
     override update(): void {
-        const label = this._node.getComponent(Label);
+        const label = this.node.getComponent(Label);
         if (!label) return;
 
         const now = Date.now();

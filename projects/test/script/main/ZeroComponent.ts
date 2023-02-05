@@ -23,9 +23,9 @@ export default class ZeroComponent extends Component {
             // vec3.transformQuat(axis, axis, rot);
             // rotate by axis
             quat.fromAxisAngle(rot, axis, rad);
-            quat.multiply(rot, this._node.rotation, rot);
+            quat.multiply(rot, this.node.rotation, rot);
 
-            this._node.rotation = rot;
+            this.node.rotation = rot;
 
             touch = event.touches[0];
         })
@@ -36,8 +36,8 @@ export default class ZeroComponent extends Component {
             // this._node.position = vec3.transformQuat(vec3.create(), position, this._node.rotation);
 
             let delta_position = vec3.create(0, 0, event.delta / 1000);
-            delta_position = vec3.transformQuat(vec3.create(), delta_position, this._node.rotation);
-            this._node.position = vec3.add(vec3.create(), this._node.position, delta_position);
+            delta_position = vec3.transformQuat(vec3.create(), delta_position, this.node.rotation);
+            this.node.position = vec3.add(vec3.create(), this.node.position, delta_position);
         })
     }
 

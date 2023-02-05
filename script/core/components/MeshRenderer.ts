@@ -77,7 +77,7 @@ export default class MeshRenderer extends Component {
             }
             subModels.push({ inputAssemblers, passes, vertexOrIndexCount: subMesh.indexCount });
         }
-        const model = new Model(subModels, this._node);
+        const model = new Model(subModels, this.node);
         zero.renderScene.models.push(model);
     }
 }

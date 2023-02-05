@@ -112,7 +112,7 @@ export default class Sprite extends Component {
         descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
         descriptorSet.bindTexture(0, this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }));
         const subModel: SubModel = { inputAssemblers: [inputAssembler], passes: [new Pass(new PassState(shader), descriptorSet)], vertexOrIndexCount: indexBuffer.length };
-        const model = new Model([subModel], this._node);
+        const model = new Model([subModel], this.node);
         zero.renderScene.models.push(model);
     }
 }

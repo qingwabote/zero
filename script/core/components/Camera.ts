@@ -3,7 +3,7 @@ import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import vec2, { Vec2 } from "../math/vec2.js";
-import vec3 from "../math/vec3.js";
+import vec3, { Vec3 } from "../math/vec3.js";
 import RenderCamera from "../render/RenderCamera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 
@@ -38,9 +38,9 @@ export default class Camera extends Component {
     private _camera!: RenderCamera;
 
     override start(): void {
-        this._node.eventEmitter.on("TRANSFORM_CHANGED", () => this._matViewFlags = DirtyFlag.DIRTY);
+        this.node.eventEmitter.on("TRANSFORM_CHANGED", () => this._matViewFlags = DirtyFlag.DIRTY);
 
-        const camera = new RenderCamera(this._node);
+        const camera = new RenderCamera(this.node);
         camera.visibilities = this.visibilities;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
@@ -57,6 +57,10 @@ export default class Camera extends Component {
             this._camera.matProj = this.getMatProj();
             this._matProjFlags ^= DirtyFlag.COMMITTING;
         }
+    }
+
+    screenPointToRay(out_from: Vec3, out_to: Vec3, x: number, y: number, distance: number = 10000000) {
+
     }
 
     screenToWorld(out: Vec2, x: number, y: number): Vec2 {
@@ -86,7 +90,7 @@ export default class Camera extends Component {
 
     private getMatView(): Mat4 {
         if (this._matViewFlags & DirtyFlag.CALCULATING) {
-            mat4.invert(this._matView, this._node.matrix)
+            mat4.invert(this._matView, this.node.matrix)
             this._matViewFlags ^= DirtyFlag.CALCULATING;
         }
         return this._matView;

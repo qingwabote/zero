@@ -91,7 +91,7 @@ export default class Label extends Component {
         descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, samplers.get());
         const pass = new Pass(new PassState(shader), descriptorSet);
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
-        zero.renderScene.models.push(new Model([subModel], this._node));
+        zero.renderScene.models.push(new Model([subModel], this.node));
         this._subModel = subModel;
     }
 
@@ -129,33 +129,31 @@ export default class Label extends Component {
             const t = char.y / tex.height;
             const b = (char.y + char.height) / tex.height;
 
-            x += char.xoffset;
-
             this._texCoordBuffer.data[2 * 4 * i + 0] = l;
             this._texCoordBuffer.data[2 * 4 * i + 1] = t;
-            this._positionBuffer.data[3 * 4 * i + 0] = x;
+            this._positionBuffer.data[3 * 4 * i + 0] = x + char.xoffset;
             this._positionBuffer.data[3 * 4 * i + 1] = y - char.yoffset;
             this._positionBuffer.data[3 * 4 * i + 2] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 2] = r;
             this._texCoordBuffer.data[2 * 4 * i + 3] = t;
-            this._positionBuffer.data[3 * 4 * i + 3] = x + char.width;
+            this._positionBuffer.data[3 * 4 * i + 3] = x + char.xoffset + char.width;
             this._positionBuffer.data[3 * 4 * i + 4] = y - char.yoffset;
             this._positionBuffer.data[3 * 4 * i + 5] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 4] = r;
             this._texCoordBuffer.data[2 * 4 * i + 5] = b;
-            this._positionBuffer.data[3 * 4 * i + 6] = x + char.width;
+            this._positionBuffer.data[3 * 4 * i + 6] = x + char.xoffset + char.width;
             this._positionBuffer.data[3 * 4 * i + 7] = y - char.yoffset - char.height;
             this._positionBuffer.data[3 * 4 * i + 8] = 0;
 
             this._texCoordBuffer.data[2 * 4 * i + 6] = l;
             this._texCoordBuffer.data[2 * 4 * i + 7] = b;
-            this._positionBuffer.data[3 * 4 * i + 9] = x;
+            this._positionBuffer.data[3 * 4 * i + 9] = x + char.xoffset;
             this._positionBuffer.data[3 * 4 * i + 10] = y - char.yoffset - char.height;
             this._positionBuffer.data[3 * 4 * i + 11] = 0;
 
-            x += char.width;
+            x += char.xadvance;
             // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
             this._indexBuffer.set([
                 4 * i + 0,

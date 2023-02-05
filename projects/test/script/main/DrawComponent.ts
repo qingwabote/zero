@@ -9,7 +9,7 @@ export default class DrawComponent extends Component {
     camera!: Camera;
 
     override start(): void {
-        const primitive = this._node.addComponent(Primitive);
+        const primitive = this.node.addComponent(Primitive);
 
         let last: Vec2;
         zero.input.on(InputEvent.TOUCH_START, event => {

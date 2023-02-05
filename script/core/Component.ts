@@ -1,10 +1,7 @@
 import Node from "./Node.js";
 
 export default abstract class Component {
-    protected _node: Node;
-    constructor(node: Node) {
-        this._node = node;
-    }
+    constructor(readonly node: Node) { }
 
     start(): void { }
 
