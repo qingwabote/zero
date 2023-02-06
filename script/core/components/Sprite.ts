@@ -20,6 +20,8 @@ export default class Sprite extends Component {
 
     texture!: Texture;
 
+    private _model!: Model;
+
     override start(): void {
         const shader: Shader = ShaderLib.instance.getShader('depth');
 
@@ -112,7 +114,15 @@ export default class Sprite extends Component {
         descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
         descriptorSet.bindTexture(0, this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }));
         const subModel: SubModel = { inputAssemblers: [inputAssembler], passes: [new Pass(new PassState(shader), descriptorSet)], vertexOrIndexCount: indexBuffer.length };
-        const model = new Model([subModel], this.node);
+        const model = new Model([subModel]);
         zero.renderScene.models.push(model);
+        this._model = model;
+    }
+
+    commit(): void {
+        if (this.node.hasChanged) {
+            this._model.updateBuffer(this.node.matrix);
+        }
+        this._model.visibility = this.node.visibility;
     }
 }

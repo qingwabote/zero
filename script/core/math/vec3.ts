@@ -9,8 +9,17 @@ export default {
 
     ZERO: [0, 0, 0],
 
+    FORWARD: [0, 0, -1],
+
     create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
         return [x, y, z]
+    },
+
+    set(out: Vec3, x: number, y: number, z: number): Vec3 {
+        out[0] = x;
+        out[1] = y;
+        out[2] = z;
+        return out
     },
 
     normalize(out: Vec3, a: Readonly<Vec3>) {
@@ -76,9 +85,11 @@ export default {
     },
 
     cross(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
-        out[0] = a[1] * b[2] - a[2] * b[1];
-        out[1] = a[2] * b[0] - a[0] * b[2];
-        out[2] = a[0] * b[1] - a[1] * b[0];
+        const [ax, ay, az] = a;
+        const [bx, by, bz] = b;
+        out[0] = ay * bz - az * by;
+        out[1] = az * bx - ax * bz;
+        out[2] = ax * by - ay * bx;
         return out;
     },
 

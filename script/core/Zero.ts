@@ -6,10 +6,13 @@ import Fence from "./gfx/Fence.js";
 import { PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input, { InputEvent } from "./Input.js";
+import Node from "./Node.js";
 import PhysicsSystem from "./physics/PhysicsSystem.js";
 import RenderFlow from "./pipeline/RenderFlow.js";
+import RenderObject from "./render/RenderObject.js";
 import RenderScene from "./render/RenderScene.js";
 import RenderWindow from "./render/RenderWindow.js";
+import Scene from "./Scene.js";
 import ShaderLib from "./ShaderLib.js";
 
 export enum ZeroEvent {
@@ -30,6 +33,8 @@ interface EventToListener {
 
 export default abstract class Zero extends EventEmitter<EventToListener> {
     readonly input: Input = new Input;
+
+    readonly scene: Scene = new Scene;
 
     private _window!: RenderWindow;
     get window(): RenderWindow {
@@ -94,14 +99,15 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         for (const [name, event] of name2event) {
             this.input.emit(name, event);
         }
-        this._componentScheduler.update()
+        this._componentScheduler.update();
+        PhysicsSystem.instance.world.stepSimulation();
         this.emit(ZeroEvent.UPDATE_END);
 
         this.emit(ZeroEvent.RENDER_START);
         gfx.acquire(this._presentSemaphore);
-        this._renderScene.update();
         this._renderFlow.update();
-        this._renderScene.dirtyObjects.clear()
+        Node.frameId++;
+        RenderObject.frameId++;
         this._commandBuffer.begin();
         this._renderFlow.record(this._commandBuffer);
         this._commandBuffer.end();

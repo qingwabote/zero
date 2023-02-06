@@ -1,6 +1,5 @@
 import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
-import vec3 from "../../math/vec3.js";
 import BufferViewResizable from "../../render/buffers/BufferViewResizable.js";
 import ShaderLib from "../../ShaderLib.js";
 import PipelineUniform from "../PipelineUniform.js";
@@ -41,20 +40,18 @@ export default class CameraUniform implements PipelineUniform {
 
     update(): void {
         const renderScene = zero.renderScene;
-        const dirtyObjects = renderScene.dirtyObjects;
         const cameras = renderScene.cameras;
         const camerasUboSize = CameraBlock.size * cameras.length;
         this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);
         let camerasDataOffset = 0;
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            if (dirtyObjects.has(camera) || dirtyObjects.has(camera.node)) {
+            if (camera.hasChanged) {
                 this._buffer.set(camera.matView, camerasDataOffset + CameraBlock.uniforms.view.offset);
 
                 this._buffer.set(camera.matProj, camerasDataOffset + CameraBlock.uniforms.projection.offset);
 
-                const position = vec3.transformMat4(vec3.create(), vec3.ZERO, camera.node.matrix);
-                this._buffer.set(position, camerasDataOffset + CameraBlock.uniforms.position.offset);
+                this._buffer.set(camera.position, camerasDataOffset + CameraBlock.uniforms.position.offset);
 
             }
             camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;

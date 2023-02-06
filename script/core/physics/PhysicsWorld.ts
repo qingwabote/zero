@@ -21,7 +21,23 @@ export default class PhysicsWorld {
     }
 
     rayTest(from: Vec3, to: Vec3): void {
+        const ps = PhysicsSystem.instance;
+        const ammo = ps.ammo;
 
+        ps.bt_vec3_a.setValue(...from);
+        ps.bt_vec3_b.setValue(...to);
+
+        const allHitsRayResultCallback = new ammo.AllHitsRayResultCallback(ps.bt_vec3_a, ps.bt_vec3_b);
+        this.impl.rayTest(ps.bt_vec3_a, ps.bt_vec3_b, allHitsRayResultCallback);
+        console.log("hasHit", allHitsRayResultCallback.hasHit())
+
+        this.impl.debugDrawWorld();
+
+        ammo.destroy(allHitsRayResultCallback);
+    }
+
+    stepSimulation() {
+        // this.impl.stepSimulation(1 / 60, 10);
     }
 }
 

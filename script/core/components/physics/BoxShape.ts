@@ -14,10 +14,12 @@ export default class BoxShape extends Component {
             body = this.node.addComponent(RigidBody);
         }
 
-        const physicsSystem = PhysicsSystem.instance;
-        const ammo = physicsSystem.ammo;
+        const ps = PhysicsSystem.instance;
+        const ammo = ps.ammo;
 
-        physicsSystem.bt_vec3_a.setValue(this.size[0] / 2, this.size[1] / 2, this.size[2] / 2);
-        this._impl = new ammo.btBoxShape(physicsSystem.bt_vec3_a);
+        ps.bt_vec3_a.setValue(this.size[0] / 2, this.size[1] / 2, this.size[2] / 2);
+        this._impl = new ammo.btBoxShape(ps.bt_vec3_a);
+        ps.bt_transform_a.setIdentity()
+        ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape).addChildShape(ps.bt_transform_a, this._impl);
     }
 }

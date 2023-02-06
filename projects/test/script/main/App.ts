@@ -19,6 +19,7 @@ import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
 import ShaderLib from "../../../../script/core/ShaderLib.js";
 import Zero from "../../../../script/core/Zero.js";
 import CameraModePanel from "./CameraModePanel.js";
+import DrawComponent from "./DrawComponent.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 const PhaseLightView = 1 << 10;
@@ -84,6 +85,10 @@ export default class App extends Zero {
         node.visibility = VisibilityBit.UI;
         node.addComponent(CameraModePanel);
         node.position = [-width / 2, height / 2, 0];
+
+        node = new Node;
+        node.visibility = VisibilityBit.UI;
+        node.addComponent(DrawComponent);
 
         if (USE_SHADOW_MAP) {
             node = new Node;

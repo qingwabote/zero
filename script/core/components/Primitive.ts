@@ -24,7 +24,7 @@ export default class Primitive extends Component {
 
     private _vertexInputState!: VertexInputState;
 
-    private _subModel!: SubModel;
+    private _model!: Model;
 
     drawLine(from: Vec3, to: Vec3, color: Vec4 = [1, 1, 1, 1]) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
@@ -65,19 +65,21 @@ export default class Primitive extends Component {
 
         const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
-        zero.renderScene.models.push(new Model([subModel], this.node));
-        this._subModel = subModel;
+        const model = new Model([subModel])
+        zero.renderScene.models.push(model);
+        this._model = model;
     }
 
     update(): void {
+        const subModel = this._model.subModels[0];
         if (this._vertexCount == 0) {
-            this._subModel.vertexOrIndexCount = 0;
+            subModel.vertexOrIndexCount = 0;
             return;
         }
 
         this._buffer.update();
 
-        if (!this._subModel.inputAssemblers[0] || this._buffer_reallocated) {
+        if (!subModel.inputAssemblers[0] || this._buffer_reallocated) {
             const inputAssembler = gfx.createInputAssembler();
             inputAssembler.initialize({
                 vertexInputState: this._vertexInputState,
@@ -86,11 +88,18 @@ export default class Primitive extends Component {
                     vertexOffsets: [0],
                 }
             })
-            this._subModel.inputAssemblers[0] = inputAssembler;
+            subModel.inputAssemblers[0] = inputAssembler;
             this._buffer_reallocated = false;
         }
 
-        this._subModel.vertexOrIndexCount = this._vertexCount;
+        subModel.vertexOrIndexCount = this._vertexCount;
+    }
+
+    commit(): void {
+        if (this.node.hasChanged) {
+            this._model.updateBuffer(this.node.matrix);
+        }
+        this._model.visibility = this.node.visibility;
     }
 
     clear() {

@@ -6,4 +6,6 @@ export default abstract class Component {
     start(): void { }
 
     update(): void { }
+
+    commit(): void { }
 }

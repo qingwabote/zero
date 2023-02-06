@@ -2,7 +2,6 @@ import Component from "../Component.js";
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
-import vec2, { Vec2 } from "../math/vec2.js";
 import vec3, { Vec3 } from "../math/vec3.js";
 import RenderCamera from "../render/RenderCamera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
@@ -40,15 +39,17 @@ export default class Camera extends Component {
     override start(): void {
         this.node.eventEmitter.on("TRANSFORM_CHANGED", () => this._matViewFlags = DirtyFlag.DIRTY);
 
-        const camera = new RenderCamera(this.node);
+        const camera = new RenderCamera;
         camera.visibilities = this.visibilities;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
         zero.renderScene.cameras.push(camera);
         this._camera = camera;
+
+        zero.scene.cameras.push(this);
     }
 
-    override update(): void {
+    override commit(): void {
         if (this._matViewFlags & DirtyFlag.COMMITTING) {
             this._camera.matView = this.getMatView();
             this._matViewFlags ^= DirtyFlag.COMMITTING;
@@ -57,23 +58,13 @@ export default class Camera extends Component {
             this._camera.matProj = this.getMatProj();
             this._matProjFlags ^= DirtyFlag.COMMITTING;
         }
+        if (this.node.hasChanged) {
+            this._camera.position = this.node.world_position;
+        }
     }
 
-    screenPointToRay(out_from: Vec3, out_to: Vec3, x: number, y: number, distance: number = 10000000) {
-
-    }
-
-    screenToWorld(out: Vec2, x: number, y: number): Vec2 {
-        this.screenToNdc(out, x, y);
-
-        const matViewProj = mat4.multiply(mat4.create(), this._matProj, this._matView);
-        const matViewProjInv = mat4.invert(mat4.create(), matViewProj);
-        const world = vec3.transformMat4(vec3.create(), vec3.create(out[0], out[1], 1), matViewProjInv);
-        vec2.set(out, world[0], world[1]);
-        return out;
-    }
-
-    private screenToNdc(out: Vec2, x: number, y: number): Vec2 {
+    screenPointToRay(out_from: Vec3, out_to: Vec3, x: number, y: number) {
+        // screen to ndc
         y = zero.window.height - y;
 
         x -= this.viewport.x;
@@ -85,7 +76,49 @@ export default class Camera extends Component {
         x = x * 2 - 1;
         y = y * 2 - 1;
 
-        return vec2.set(out, x, y);
+        vec3.set(out_from, x, y, -1);
+        vec3.set(out_to, x, y, 1);
+
+        // ndc to world
+        const matViewProj = mat4.multiply(mat4.create(), this.getMatProj(), this.getMatView());
+        const matViewProjInv = mat4.invert(mat4.create(), matViewProj);
+        vec3.transformMat4(out_from, out_from, matViewProjInv);
+        vec3.transformMat4(out_to, out_to, matViewProjInv);
+    }
+
+    // screenToWorld(out: Vec2, x: number, y: number): Vec2 {
+    //     this.screenToNdc(out, x, y);
+
+    //     const matViewProj = mat4.multiply(mat4.create(), this.getMatProj(), this.getMatView());
+    //     const matViewProjInv = mat4.invert(mat4.create(), matViewProj);
+    //     const world = vec3.transformMat4(vec3.create(), vec3.create(out[0], out[1], 1), matViewProjInv);
+    //     vec2.set(out, world[0], world[1]);
+    //     return out;
+    // }
+
+    // private screenToNdc(out: Vec2, x: number, y: number): Vec2 {
+    //     y = zero.window.height - y;
+
+    //     x -= this.viewport.x;
+    //     y -= this.viewport.y;
+
+    //     x /= this.viewport.width;
+    //     y /= this.viewport.height;
+
+    //     x = x * 2 - 1;
+    //     y = y * 2 - 1;
+
+    //     return vec2.set(out, x, y);
+    // }
+
+    private isPerspective(): boolean {
+        if (this.fov != -1) {
+            return true;
+        }
+        if (this.orthoHeight != -1) {
+            return false;
+        }
+        throw new Error("can't recognize projection type");
     }
 
     private getMatView(): Mat4 {
@@ -99,12 +132,12 @@ export default class Camera extends Component {
     private getMatProj(): Mat4 {
         if (this._matProjFlags & DirtyFlag.CALCULATING) {
             const aspect = this.viewport.width / this.viewport.height;
-            if (this.orthoHeight != -1) {
+            if (this.isPerspective()) {
+                mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, this.near, this.far, gfx.capabilities.clipSpaceMinZ);
+            } else {
                 const x = this.orthoHeight * aspect;
                 const y = this.orthoHeight;
                 mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, gfx.capabilities.clipSpaceMinZ);
-            } else if (this.fov != -1) {
-                mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, this.near, this.far, gfx.capabilities.clipSpaceMinZ);
             }
 
             this._matProjFlags ^= DirtyFlag.CALCULATING;

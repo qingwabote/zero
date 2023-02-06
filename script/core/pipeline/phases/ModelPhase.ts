@@ -18,7 +18,7 @@ export default class ModelPhase extends RenderPhase {
         const models = zero.renderScene.models;
         this._drawCalls = 0;
         for (const model of models) {
-            if ((camera.visibilities & model.node.visibility) == 0) {
+            if ((camera.visibilities & model.visibility) == 0) {
                 continue;
             }
             for (const subModel of model.subModels) {

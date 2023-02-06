@@ -38,14 +38,11 @@ export default class ShadowUniform implements PipelineUniform {
 
     update(): void {
         const renderScene = zero.renderScene;
-        const dirtyObjects = renderScene.dirtyObjects;
-        const directionalLight = renderScene.directionalLight;
+        const light = renderScene.directionalLight;
 
-        if (dirtyObjects.has(directionalLight) || dirtyObjects.has(directionalLight.node)) {
-            const lightPos = directionalLight.node.position;
-            // const rotation = quat.fromMat3(quat.create(), mat3.fromViewUp(mat3.create(), vec3.normalize(vec3.create(), lightPos)));
-            const rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lightPos)));
-            const model = mat4.fromRTS(mat4.create(), rotation, lightPos, vec3.create(1, 1, 1));
+        if (light.hasChanged) {
+            const rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), light.position)));
+            const model = mat4.fromRTS(mat4.create(), rotation, light.position, vec3.create(1, 1, 1));
             this._buffer.set(mat4.invert(mat4.create(), model), ShadowBlock.uniforms.view.offset);
             const lightProjection = mat4.ortho(mat4.create(), -4, 4, -4, 4, 1, 10, gfx.capabilities.clipSpaceMinZ);
             this._buffer.set(lightProjection, ShadowBlock.uniforms.projection.offset);

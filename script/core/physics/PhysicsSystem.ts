@@ -27,7 +27,7 @@ export default class PhysicsSystem {
     }
 
     readonly bt_vec3_a: any;
-    // readonly bt_vec3_b:any;
+    readonly bt_vec3_b: any;
     readonly bt_transform_a: any;
 
     readonly bt_quat_a: any;
@@ -39,6 +39,8 @@ export default class PhysicsSystem {
 
     constructor(readonly ammo: any) {
         this.bt_vec3_a = new ammo.btVector3(0, 0, 0);
+        this.bt_vec3_b = new ammo.btVector3(0, 0, 0);
+
         this.bt_transform_a = new ammo.btTransform();
         this.bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
 

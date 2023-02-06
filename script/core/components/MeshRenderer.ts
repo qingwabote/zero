@@ -11,6 +11,8 @@ export default class MeshRenderer extends Component {
 
     materials: Material[] | undefined;
 
+    private _model!: Model;
+
     override start(): void {
         if (!this.mesh) return;
         if (!this.materials) return;
@@ -77,7 +79,15 @@ export default class MeshRenderer extends Component {
             }
             subModels.push({ inputAssemblers, passes, vertexOrIndexCount: subMesh.indexCount });
         }
-        const model = new Model(subModels, this.node);
+        const model = new Model(subModels);
         zero.renderScene.models.push(model);
+        this._model = model;
+    }
+
+    commit(): void {
+        if (this.node.hasChanged) {
+            this._model.updateBuffer(this.node.matrix);
+        }
+        this._model.visibility = this.node.visibility;
     }
 }

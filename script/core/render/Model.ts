@@ -1,12 +1,15 @@
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
-import mat4 from "../math/mat4.js";
+import mat4, { Mat4 } from "../math/mat4.js";
 import ShaderLib from "../ShaderLib.js";
 import BufferView from "./buffers/BufferView.js";
-import { RenderNode } from "./RenderNode.js";
 import SubModel from "./SubModel.js";
+import VisibilityBit from "./VisibilityBit.js";
 
 export default class Model {
+
+    visibility: VisibilityBit = VisibilityBit.DEFAULT;
+
     private _descriptorSet: DescriptorSet;
     get descriptorSet(): DescriptorSet {
         return this._descriptorSet;
@@ -19,14 +22,7 @@ export default class Model {
 
     private _localBuffer: BufferView;
 
-    private _node: RenderNode;
-    get node(): RenderNode {
-        return this._node;
-    }
-
-    constructor(subModels: SubModel[], node: RenderNode) {
-        zero.renderScene.dirtyObjects.set(node, node);
-
+    constructor(subModels: SubModel[]) {
         const bufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShaderLib.sets.local.uniforms.Local.length);
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(ShaderLib.builtinDescriptorSetLayouts.local)
@@ -35,14 +31,11 @@ export default class Model {
         this._localBuffer = bufferView;
 
         this._subModels = subModels;
-        this._node = node;
     }
 
-    update() {
-        if (zero.renderScene.dirtyObjects.has(this._node)) {
-            this._localBuffer.set(this._node.matrix);
-            this._localBuffer.set(mat4.inverseTranspose(mat4.create(), this._node.matrix), 16);
-            this._localBuffer.update();
-        }
+    updateBuffer(matrix: Readonly<Mat4>) {
+        this._localBuffer.set(matrix);
+        this._localBuffer.set(mat4.inverseTranspose(mat4.create(), matrix), 16);
+        this._localBuffer.update();
     }
 }

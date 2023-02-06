@@ -31,11 +31,9 @@ export default class LightUniform implements PipelineUniform {
 
     update(): void {
         const renderScene = zero.renderScene;
-        const dirtyObjects = renderScene.dirtyObjects;
         const directionalLight = renderScene.directionalLight;
-        if (dirtyObjects.has(directionalLight) || dirtyObjects.has(directionalLight.node)) {
-            const litDir = vec3.transformMat4(vec3.create(), vec3.ZERO, directionalLight.node.matrix);
-            vec3.normalize(litDir, litDir);
+        if (directionalLight.hasChanged) {
+            const litDir = vec3.normalize(vec3.create(), directionalLight.position);
             this._buffer.set(litDir, 0);
             this._buffer.update();
         }

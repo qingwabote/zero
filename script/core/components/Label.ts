@@ -48,7 +48,7 @@ export default class Label extends Component {
 
     private _vertexInputState!: VertexInputState;
 
-    private _subModel!: SubModel;
+    private _model!: Model;
 
     override start(): void {
         const shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
@@ -91,16 +91,20 @@ export default class Label extends Component {
         descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, samplers.get());
         const pass = new Pass(new PassState(shader), descriptorSet);
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
-        zero.renderScene.models.push(new Model([subModel], this.node));
-        this._subModel = subModel;
+        const model = new Model([subModel]);
+        zero.renderScene.models.push(model);
+        this._model = model;
     }
 
     override update(): void {
         if (this._dirtyFlag == DirtyFlagBits.NONE) {
             return;
         }
+
+        const subModel = this._model.subModels[0];
+
         if (this._text.length == 0) {
-            this._subModel.vertexOrIndexCount = 0;
+            subModel.vertexOrIndexCount = 0;
             return;
         }
         const indexCount = 6 * this._text.length;
@@ -171,7 +175,7 @@ export default class Label extends Component {
         this._positionBuffer.update();
         this._indexBuffer.update();
 
-        if (!this._subModel.inputAssemblers[0] || reallocated) {
+        if (!subModel.inputAssemblers[0] || reallocated) {
             const inputAssembler = gfx.createInputAssembler();
             inputAssembler.initialize({
                 vertexInputState: this._vertexInputState,
@@ -185,11 +189,18 @@ export default class Label extends Component {
                     indexType: IndexType.UINT16,
                 }
             })
-            this._subModel.inputAssemblers[0] = inputAssembler;
+            subModel.inputAssemblers[0] = inputAssembler;
         }
 
-        this._subModel.vertexOrIndexCount = indexCount
+        subModel.vertexOrIndexCount = indexCount
 
         this._dirtyFlag = DirtyFlagBits.NONE;
+    }
+
+    override commit(): void {
+        if (this.node.hasChanged) {
+            this._model.updateBuffer(this.node.matrix);
+        }
+        this._model.visibility = this.node.visibility;
     }
 }

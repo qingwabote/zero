@@ -3,7 +3,6 @@ import Component from "./Component.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";
-import { RenderNode } from "./render/RenderNode.js";
 import VisibilityBit from "./render/VisibilityBit.js";
 
 export enum TransformBit {
@@ -21,7 +20,9 @@ interface EventMap {
     TRANSFORM_CHANGED: (flag: TransformBit) => void;
 }
 
-export default class Node implements RenderNode {
+export default class Node {
+    static frameId = 0;
+
     private _name: string;
     get name(): string {
         return this._name;
@@ -29,7 +30,17 @@ export default class Node implements RenderNode {
 
     visibility: VisibilityBit = VisibilityBit.DEFAULT;
 
-    private _dirtyFlag = TransformBit.TRS;
+    private _frameId = 0;
+
+    private _changed = TransformBit.TRS;
+    private _hasChanged = TransformBit.TRS;
+    get hasChanged(): TransformBit {
+        return this._frameId == Node.frameId ? this._hasChanged : 0;
+    }
+    set hasChanged(flags: TransformBit) {
+        this._frameId = Node.frameId;
+        this._hasChanged = flags;
+    }
 
     private _eventEmitter: EventEmitter<EventMap> | undefined;
     get eventEmitter(): EventEmitter<EventMap> {
@@ -127,16 +138,16 @@ export default class Node implements RenderNode {
     }
 
     private dirty(flag: TransformBit): void {
-        this._dirtyFlag |= flag;
-        zero.renderScene.dirtyObjects.set(this, this);
-        this._eventEmitter?.emit("TRANSFORM_CHANGED", this._dirtyFlag);
+        this._changed |= flag;
+        this.hasChanged |= flag;
+        this._eventEmitter?.emit("TRANSFORM_CHANGED", this._changed);
         for (const child of this._children.keys()) {
             child.dirty(flag);
         }
     }
 
     private updateTransform(): void {
-        if (this._dirtyFlag == TransformBit.NONE) return;
+        if (this._changed == TransformBit.NONE) return;
 
         if (!this._parent) {
             // if (this._dirtyFlag & TransformBit.POSITION) {
@@ -145,7 +156,7 @@ export default class Node implements RenderNode {
             mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
             Object.assign(this._world_rotation, this._rotation);
             Object.assign(this._world_position, this._position);
-            this._dirtyFlag = TransformBit.NONE;
+            this._changed = TransformBit.NONE;
             return;
         }
 
@@ -156,7 +167,7 @@ export default class Node implements RenderNode {
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
         quat.multiply(this._world_rotation, this._parent.world_rotation, this._rotation);
         vec3.transformMat4(this._world_position, vec3.ZERO, this._matrix);
-        this._dirtyFlag = TransformBit.NONE;
+        this._changed = TransformBit.NONE;
         // }
     }
 }

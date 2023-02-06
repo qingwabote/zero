@@ -1,10 +1,11 @@
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
-import { RenderNode } from "./RenderNode.js";
+import vec3, { Vec3 } from "../math/vec3.js";
+import RenderObject from "./RenderObject.js";
 import VisibilityBit from "./VisibilityBit.js";
 
-export default class RenderCamera {
+export default class RenderCamera extends RenderObject {
 
     visibilities: VisibilityBit = VisibilityBit.DEFAULT;
 
@@ -18,7 +19,7 @@ export default class RenderCamera {
     }
     set matView(value: Mat4) {
         this._matView = value;
-        zero.renderScene.dirtyObjects.set(this, this);
+        this.hasChanged = 1;
     }
 
     private _matProj!: Mat4;
@@ -27,15 +28,15 @@ export default class RenderCamera {
     }
     set matProj(value: Mat4) {
         this._matProj = value;
-        zero.renderScene.dirtyObjects.set(this, this);
+        this.hasChanged = 1;
     }
 
-    private _node: RenderNode;
-    get node(): RenderNode {
-        return this._node;
+    private _position: Vec3 = vec3.create();
+    get position(): Readonly<Vec3> {
+        return this._position;
     }
-
-    constructor(node: RenderNode) {
-        this._node = node;
+    set position(value: Readonly<Vec3>) {
+        Object.assign(this._position, value);
+        this.hasChanged = 1;
     }
 }
