@@ -1,7 +1,7 @@
 import CommandBuffer from "../../gfx/CommandBuffer.js";
 import RenderPass from "../../gfx/RenderPass.js";
+import Camera from "../../render/Camera.js";
 import PassPhase from "../../render/PassPhase.js";
-import RenderCamera from "../../render/RenderCamera.js";
 import VisibilityBit from "../../render/VisibilityBit.js";
 import ShaderLib from "../../ShaderLib.js";
 import RenderPhase from "../RenderPhase.js";
@@ -14,8 +14,8 @@ export default class ModelPhase extends RenderPhase {
         this._phase = phase;
     }
 
-    record(commandBuffer: CommandBuffer, camera: RenderCamera, renderPass: RenderPass): void {
-        const models = zero.renderScene.models;
+    record(commandBuffer: CommandBuffer, camera: Camera, renderPass: RenderPass): void {
+        const models = zero.render_scene.models;
         this._drawCalls = 0;
         for (const model of models) {
             if ((camera.visibilities & model.visibility) == 0) {

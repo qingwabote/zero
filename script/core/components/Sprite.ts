@@ -115,7 +115,7 @@ export default class Sprite extends Component {
         descriptorSet.bindTexture(0, this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }));
         const subModel: SubModel = { inputAssemblers: [inputAssembler], passes: [new Pass(new PassState(shader), descriptorSet)], vertexOrIndexCount: indexBuffer.length };
         const model = new Model([subModel]);
-        zero.renderScene.models.push(model);
+        zero.render_scene.models.push(model);
         this._model = model;
     }
 

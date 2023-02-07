@@ -92,7 +92,7 @@ export default class Label extends Component {
         const pass = new Pass(new PassState(shader), descriptorSet);
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         const model = new Model([subModel]);
-        zero.renderScene.models.push(model);
+        zero.render_scene.models.push(model);
         this._model = model;
     }
 

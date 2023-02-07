@@ -1,4 +1,4 @@
-export default interface RenderWindow {
+export default interface Window {
     width: number;
     height: number;
 }

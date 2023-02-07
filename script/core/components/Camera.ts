@@ -3,7 +3,7 @@ import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import vec3, { Vec3 } from "../math/vec3.js";
-import RenderCamera from "../render/RenderCamera.js";
+import { default as render_Camera } from "../render/Camera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 
 enum DirtyFlag {
@@ -34,16 +34,16 @@ export default class Camera extends Component {
      */
     viewport: Rect = { x: 0, y: 0, width: 0, height: 0 };
 
-    private _camera!: RenderCamera;
+    private _camera!: render_Camera;
 
     override start(): void {
         this.node.eventEmitter.on("TRANSFORM_CHANGED", () => this._matViewFlags = DirtyFlag.DIRTY);
 
-        const camera = new RenderCamera;
+        const camera = new render_Camera;
         camera.visibilities = this.visibilities;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
-        zero.renderScene.cameras.push(camera);
+        zero.render_scene.cameras.push(camera);
         this._camera = camera;
 
         zero.scene.cameras.push(this);

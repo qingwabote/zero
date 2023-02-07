@@ -37,7 +37,7 @@ export default class ShadowUniform implements PipelineUniform {
     }
 
     update(): void {
-        const renderScene = zero.renderScene;
+        const renderScene = zero.render_scene;
         const light = renderScene.directionalLight;
 
         if (light.hasChanged) {

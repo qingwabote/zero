@@ -5,7 +5,7 @@ import vec3, { Vec3 } from "../math/vec3.js";
 import RenderObject from "./RenderObject.js";
 import VisibilityBit from "./VisibilityBit.js";
 
-export default class RenderCamera extends RenderObject {
+export default class Camera extends RenderObject {
 
     visibilities: VisibilityBit = VisibilityBit.DEFAULT;
 

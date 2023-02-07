@@ -12,9 +12,15 @@ export default class ComponentScheduler {
         this._commitInvoker.add(com);
     }
 
-    update() {
+    start() {
         this._startInvoker.invoke();
+    }
+
+    update() {
         this._updateInvoker.invoke();
+    }
+
+    commit() {
         this._commitInvoker.invoke();
     }
 }

@@ -42,10 +42,10 @@ Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
         let time = 0;
         let delta = 0;
         let count = 0;
-        zero.on(ZeroEvent.UPDATE_START, () => {
+        zero.on(ZeroEvent.LOGIC_START, () => {
             time = Date.now();
         })
-        zero.on(ZeroEvent.UPDATE_END, () => {
+        zero.on(ZeroEvent.LOGIC_END, () => {
             delta += Date.now() - time;
             count++;
             if (count == 60) {

@@ -120,7 +120,7 @@ export default class RenderFlow {
     record(commandBuffer: CommandBuffer) {
         this._drawCalls = 0;
 
-        const renderScene = zero.renderScene;
+        const renderScene = zero.render_scene;
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.set, this.globalDescriptorSet,

@@ -66,12 +66,18 @@ export default class Primitive extends Component {
         const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         const model = new Model([subModel])
-        zero.renderScene.models.push(model);
+        zero.render_scene.models.push(model);
         this._model = model;
     }
 
-    update(): void {
+    commit(): void {
+        this._model.visibility = this.node.visibility;
+        if (this.node.hasChanged) {
+            this._model.updateBuffer(this.node.matrix);
+        }
+
         const subModel = this._model.subModels[0];
+
         if (this._vertexCount == 0) {
             subModel.vertexOrIndexCount = 0;
             return;
@@ -93,13 +99,6 @@ export default class Primitive extends Component {
         }
 
         subModel.vertexOrIndexCount = this._vertexCount;
-    }
-
-    commit(): void {
-        if (this.node.hasChanged) {
-            this._model.updateBuffer(this.node.matrix);
-        }
-        this._model.visibility = this.node.visibility;
     }
 
     clear() {

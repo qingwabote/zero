@@ -39,7 +39,7 @@ export default class CameraUniform implements PipelineUniform {
     }
 
     update(): void {
-        const renderScene = zero.renderScene;
+        const renderScene = zero.render_scene;
         const cameras = renderScene.cameras;
         const camerasUboSize = CameraBlock.size * cameras.length;
         this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);

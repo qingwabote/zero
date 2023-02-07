@@ -1,6 +1,6 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import RenderPass from "../gfx/RenderPass.js";
-import RenderCamera from "../render/RenderCamera.js";
+import Camera from "../render/Camera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 
 export default abstract class RenderPhase {
@@ -18,5 +18,5 @@ export default abstract class RenderPhase {
         this._visibility = visibility;
     }
 
-    abstract record(commandBuffer: CommandBuffer, camera: RenderCamera, renderPass: RenderPass): void;
+    abstract record(commandBuffer: CommandBuffer, camera: Camera, renderPass: RenderPass): void;
 }

@@ -2,6 +2,7 @@ import GLTF from "../../../../script/core/assets/GLTF.js";
 import Material from "../../../../script/core/assets/Material.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
+import DebugDrawer from "../../../../script/core/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/core/components/Profiler.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit, CullMode, PassState, PrimitiveTopology, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
@@ -19,7 +20,6 @@ import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
 import ShaderLib from "../../../../script/core/ShaderLib.js";
 import Zero from "../../../../script/core/Zero.js";
 import CameraModePanel from "./CameraModePanel.js";
-import DrawComponent from "./DrawComponent.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 const PhaseLightView = 1 << 10;
@@ -78,17 +78,17 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
+        node.addComponent(DebugDrawer);
+
+        node = new Node;
+        node.visibility = VisibilityBit.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2 + 200, 0];
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
         node.addComponent(CameraModePanel);
-        node.position = [-width / 2, height / 2, 0];
-
-        node = new Node;
-        node.visibility = VisibilityBit.UI;
-        node.addComponent(DrawComponent);
+        // node.position = [-width / 2, height / 2, 0];
 
         if (USE_SHADOW_MAP) {
             node = new Node;

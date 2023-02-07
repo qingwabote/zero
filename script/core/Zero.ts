@@ -10,22 +10,22 @@ import Node from "./Node.js";
 import PhysicsSystem from "./physics/PhysicsSystem.js";
 import RenderFlow from "./pipeline/RenderFlow.js";
 import RenderObject from "./render/RenderObject.js";
-import RenderScene from "./render/RenderScene.js";
-import RenderWindow from "./render/RenderWindow.js";
+import { default as render_Scene } from "./render/Scene.js";
+import Window from "./render/Window.js";
 import Scene from "./Scene.js";
 import ShaderLib from "./ShaderLib.js";
 
 export enum ZeroEvent {
-    UPDATE_START = "UPDATE_START",
-    UPDATE_END = "UPDATE_END",
+    LOGIC_START = "LOGIC_START",
+    LOGIC_END = "LOGIC_END",
 
     RENDER_START = "RENDER_START",
     RENDER_END = 'RENDER_END'
 }
 
 interface EventToListener {
-    [ZeroEvent.UPDATE_START]: () => void;
-    [ZeroEvent.UPDATE_END]: () => void;
+    [ZeroEvent.LOGIC_START]: () => void;
+    [ZeroEvent.LOGIC_END]: () => void;
 
     [ZeroEvent.RENDER_START]: () => void;
     [ZeroEvent.RENDER_END]: () => void;
@@ -36,14 +36,14 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
 
     readonly scene: Scene = new Scene;
 
-    private _window!: RenderWindow;
-    get window(): RenderWindow {
+    private _window!: Window;
+    get window(): Window {
         return this._window;
     }
 
-    private _renderScene!: RenderScene;
-    get renderScene(): RenderScene {
-        return this._renderScene;
+    private _render_scene!: render_Scene;
+    get render_scene(): render_Scene {
+        return this._render_scene;
     }
 
     private _componentScheduler: ComponentScheduler = new ComponentScheduler;
@@ -86,7 +86,7 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         renderFence.initialize(true);
         this._renderFence = renderFence;
 
-        this._renderScene = new RenderScene();
+        this._render_scene = new render_Scene();
 
         this._renderFlow = await this.start();
         this._renderFlow.initialize();
@@ -95,13 +95,15 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
     abstract start(): Promise<RenderFlow>;
 
     tick(name2event: Map<InputEvent, any>) {
-        this.emit(ZeroEvent.UPDATE_START);
+        this.emit(ZeroEvent.LOGIC_START);
         for (const [name, event] of name2event) {
             this.input.emit(name, event);
         }
+        this._componentScheduler.start();
         this._componentScheduler.update();
         PhysicsSystem.instance.world.stepSimulation();
-        this.emit(ZeroEvent.UPDATE_END);
+        this._componentScheduler.commit();
+        this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);
         gfx.acquire(this._presentSemaphore);

@@ -31,12 +31,11 @@ export default class PhysicsWorld {
         this.impl.rayTest(ps.bt_vec3_a, ps.bt_vec3_b, allHitsRayResultCallback);
         console.log("hasHit", allHitsRayResultCallback.hasHit())
 
-        this.impl.debugDrawWorld();
-
         ammo.destroy(allHitsRayResultCallback);
     }
 
     stepSimulation() {
+        this.impl.debugDrawWorld();
         // this.impl.stepSimulation(1 / 60, 10);
     }
 }

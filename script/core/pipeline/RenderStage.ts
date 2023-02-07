@@ -2,7 +2,7 @@ import CommandBuffer from "../gfx/CommandBuffer.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
 import RenderPass from "../gfx/RenderPass.js";
 import { Rect } from "../math/rect.js";
-import RenderCamera from "../render/RenderCamera.js";
+import Camera from "../render/Camera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 import PipelineUniform from "./PipelineUniform.js";
 import RenderPhase from "./RenderPhase.js";
@@ -38,7 +38,7 @@ export default abstract class RenderStage {
 
     abstract getRequestedUniforms(): (new () => PipelineUniform)[];
 
-    record(commandBuffer: CommandBuffer, camera: RenderCamera): void {
+    record(commandBuffer: CommandBuffer, camera: Camera): void {
         const framebuffer = this.framebuffer;
         const renderPass = this._renderPass || zero.renderFlow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
         const viewport = this._viewport || camera.viewport;

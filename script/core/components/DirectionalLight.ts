@@ -1,8 +1,8 @@
 import Component from "../Component.js";
-import RenderDirectionalLight from "../render/RenderDirectionalLight.js";
+import { default as render_DirectionalLight } from "../render/DirectionalLight.js";
 
 export default class DirectionalLight extends Component {
-    private _light: RenderDirectionalLight = new RenderDirectionalLight;
+    private _light: render_DirectionalLight = new render_DirectionalLight;
 
     override start(): void {
         this.node.eventEmitter.on("TRANSFORM_CHANGED", (flags) => {
@@ -11,6 +11,6 @@ export default class DirectionalLight extends Component {
 
         this._light.position = this.node.world_position;
 
-        zero.renderScene.directionalLight = this._light;
+        zero.render_scene.directionalLight = this._light;
     }
 }
