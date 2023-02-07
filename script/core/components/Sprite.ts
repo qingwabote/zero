@@ -1,7 +1,7 @@
 import Component from "../Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
-import { FormatInfos, PassState } from "../gfx/Pipeline.js";
+import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
 import { Filter } from "../gfx/Sampler.js";
 import Shader from "../gfx/Shader.js";
 import Texture from "../gfx/Texture.js";
@@ -113,7 +113,10 @@ export default class Sprite extends Component {
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
         descriptorSet.bindTexture(0, this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }));
-        const subModel: SubModel = { inputAssemblers: [inputAssembler], passes: [new Pass(new PassState(shader), descriptorSet)], vertexOrIndexCount: indexBuffer.length };
+        const subModel: SubModel = {
+            inputAssemblers: [inputAssembler],
+            passes: [new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }), descriptorSet)], vertexOrIndexCount: indexBuffer.length
+        };
         const model = new Model([subModel]);
         zero.render_scene.models.push(model);
         this._model = model;

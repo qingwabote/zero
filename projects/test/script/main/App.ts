@@ -6,7 +6,8 @@ import DebugDrawer from "../../../../script/core/components/physics/DebugDrawer.
 import Profiler from "../../../../script/core/components/Profiler.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit, CullMode, PassState, PrimitiveTopology, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
-import { Vec3 } from "../../../../script/core/math/vec3.js";
+import quat from "../../../../script/core/math/quat.js";
+import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import ModelPhase from "../../../../script/core/pipeline/phases/ModelPhase.js";
 import RenderFlow from "../../../../script/core/pipeline/RenderFlow.js";
@@ -74,7 +75,17 @@ export default class App extends Zero {
         cameraUI.clearFlags = ClearFlagBit.DEPTH;
         cameraUI.orthoHeight = height / 2;
         cameraUI.viewport = { x: 0, y: 0, width, height };
-        node.position = [0, 0, 1];
+
+        let angle = 0;
+        const origin = vec3.create(0, 0, width / 2);
+        node.position = origin;
+        this.timeScheduler.setInterval(() => {
+            const node = cameraUI.node;
+            const rotation = quat.fromAxisAngle(quat.create(), vec3.UP, Math.PI / 180 * angle);
+            node.position = vec3.transformQuat(vec3.create(), origin, rotation);
+            node.rotation = rotation;
+            angle += 1;
+        })
 
         node = new Node;
         node.visibility = VisibilityBit.UI;

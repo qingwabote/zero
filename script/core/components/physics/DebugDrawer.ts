@@ -41,4 +41,8 @@ export default class DebugDrawer extends Component {
         // }
         ps.world.impl.setDebugDrawer(bt_debugDrawer);
     }
+
+    update(): void {
+        this.node.getComponent(Primitive)?.clear();
+    }
 }

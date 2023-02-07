@@ -103,7 +103,7 @@ export default {
         return out;
     },
 
-    fromAxisAngle(out: Quat, axis: Vec3, rad: number) {
+    fromAxisAngle(out: Quat, axis: Readonly<Vec3>, rad: number) {
         rad *= 0.5;
         const s = Math.sin(rad);
         out[0] = s * axis[0];

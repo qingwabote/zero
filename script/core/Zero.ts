@@ -14,6 +14,7 @@ import { default as render_Scene } from "./render/Scene.js";
 import Window from "./render/Window.js";
 import Scene from "./Scene.js";
 import ShaderLib from "./ShaderLib.js";
+import TimeScheduler from "./TimeScheduler.js";
 
 export enum ZeroEvent {
     LOGIC_START = "LOGIC_START",
@@ -46,10 +47,9 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         return this._render_scene;
     }
 
-    private _componentScheduler: ComponentScheduler = new ComponentScheduler;
-    get componentScheduler(): ComponentScheduler {
-        return this._componentScheduler;
-    }
+    readonly componentScheduler = new ComponentScheduler;
+
+    readonly timeScheduler = new TimeScheduler;
 
     private _renderFlow!: RenderFlow;
     get renderFlow(): RenderFlow {
@@ -99,10 +99,11 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         for (const [name, event] of name2event) {
             this.input.emit(name, event);
         }
-        this._componentScheduler.start();
-        this._componentScheduler.update();
+        this.componentScheduler.start();
+        this.componentScheduler.update();
+        this.timeScheduler.update();
         PhysicsSystem.instance.world.stepSimulation();
-        this._componentScheduler.commit();
+        this.componentScheduler.commit();
         this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);

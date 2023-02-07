@@ -9,6 +9,7 @@ export default {
 
     ZERO: [0, 0, 0],
 
+    UP: [0, 1, 0],
     FORWARD: [0, 0, -1],
 
     create(x: number = 0, y: number = 0, z: number = 0): Vec3 {

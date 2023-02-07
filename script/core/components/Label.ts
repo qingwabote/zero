@@ -5,7 +5,7 @@ import FNT from "../assets/FNT.js";
 import Component from "../Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
-import { FormatInfos, PassState } from "../gfx/Pipeline.js";
+import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
 import BufferViewResizable from "../render/buffers/BufferViewResizable.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
@@ -89,7 +89,7 @@ export default class Label extends Component {
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
         descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, samplers.get());
-        const pass = new Pass(new PassState(shader), descriptorSet);
+        const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }), descriptorSet);
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         const model = new Model([subModel]);
         zero.render_scene.models.push(model);
