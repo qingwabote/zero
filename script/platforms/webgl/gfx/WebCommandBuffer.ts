@@ -95,17 +95,19 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
         this._viewport = viewport;
 
-        gl.clearColor(0, 0, 0, 1);
         let flag: number = 0;
         for (const attachment of renderPass.info.colorAttachments) {
             if (attachment.loadOp == LOAD_OP.CLEAR) {
+                gl.clearColor(0, 0, 0, 1);
                 flag |= gl.COLOR_BUFFER_BIT;
             }
         }
         if (renderPass.info.depthStencilAttachment.loadOp == LOAD_OP.CLEAR) {
             flag |= gl.DEPTH_BUFFER_BIT;
         }
-        gl.clear(flag)
+        if (flag) {
+            gl.clear(flag);
+        }
     }
 
     bindPipeline(pipeline: Pipeline) {
