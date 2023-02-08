@@ -13,11 +13,11 @@ export default class DebugDrawer extends Component {
         bt_debugDrawer.drawLine = (ptr_from: any, ptr_to: any, ptr_color: any) => {
             const bt_from = ammo.wrapPointer(ptr_from, ammo.btVector3);
             const from = vec3.create(bt_from.x(), bt_from.y(), bt_from.z());
-            ammo.destroy(bt_from);
+            // ammo.destroy(bt_from); // FIXME
 
             const bt_to = ammo.wrapPointer(ptr_to, ammo.btVector3);
             const to = vec3.create(bt_to.x(), bt_to.y(), bt_to.z());
-            ammo.destroy(bt_to);
+            // ammo.destroy(bt_to);// FIXME
 
             primitive.drawLine(from, to);
         }

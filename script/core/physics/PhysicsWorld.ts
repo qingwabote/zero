@@ -1,4 +1,4 @@
-import { Vec3 } from "../math/vec3.js";
+import vec3, { Vec3 } from "../math/vec3.js";
 import PhysicsSystem from "./PhysicsSystem.js";
 
 export default class PhysicsWorld {
@@ -9,6 +9,7 @@ export default class PhysicsWorld {
 
     readonly impl;
 
+    private _rayTestFromTo: Readonly<Vec3>[] = [vec3.ZERO, vec3.ZERO];
 
     constructor() {
         const ammo = PhysicsSystem.instance.ammo;
@@ -27,16 +28,28 @@ export default class PhysicsWorld {
         ps.bt_vec3_a.setValue(...from);
         ps.bt_vec3_b.setValue(...to);
 
-        const allHitsRayResultCallback = new ammo.AllHitsRayResultCallback(ps.bt_vec3_a, ps.bt_vec3_b);
+        const allHitsRayResultCallback = new ammo.ClosestRayResultCallback(ps.bt_vec3_a, ps.bt_vec3_b);
         this.impl.rayTest(ps.bt_vec3_a, ps.bt_vec3_b, allHitsRayResultCallback);
         console.log("hasHit", allHitsRayResultCallback.hasHit())
 
         ammo.destroy(allHitsRayResultCallback);
+
+        this._rayTestFromTo = [from, to];
     }
 
     stepSimulation() {
-        this.impl.debugDrawWorld();
-        // this.impl.stepSimulation(1 / 60, 10);
+        this.impl.stepSimulation(1 / 60);
+
+        const drawer = this.impl.getDebugDrawer();
+        if (drawer) {
+            const ps = PhysicsSystem.instance;
+
+            ps.bt_vec3_a.setValue(...this._rayTestFromTo[0]);
+            ps.bt_vec3_b.setValue(...this._rayTestFromTo[1]);
+            drawer.drawLine(ps.bt_vec3_a, ps.bt_vec3_b);
+
+            this.impl.debugDrawWorld();
+        }
     }
 }
 

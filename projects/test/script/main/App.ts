@@ -78,14 +78,16 @@ export default class App extends Zero {
 
         let angle = 0;
         const origin = vec3.create(0, 0, width / 2);
-        node.position = origin;
-        this.timeScheduler.setInterval(() => {
+        const rotateCamera = () => {
             const node = cameraUI.node;
             const rotation = quat.fromAxisAngle(quat.create(), vec3.UP, Math.PI / 180 * angle);
             node.position = vec3.transformQuat(vec3.create(), origin, rotation);
             node.rotation = rotation;
             angle += 1;
-        })
+        }
+        node.position = origin;
+        rotateCamera();
+        this.timeScheduler.setInterval(rotateCamera);
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
