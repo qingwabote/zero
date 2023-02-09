@@ -30,9 +30,10 @@ export default class CameraModePanel extends Component {
             camera.screenPointToRay(from, to, touch.x, touch.y);
 
             const ps = PhysicsSystem.instance;
-            ps.world.rayTest(from, to);
-
-            this.fixed = !this.fixed;
+            ps.world.rayTest(from, to, ps.closestRayResultCallback);
+            if (ps.closestRayResultCallback.hasHit()) {
+                this.fixed = !this.fixed;
+            }
         })
     }
 

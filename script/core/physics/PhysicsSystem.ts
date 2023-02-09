@@ -1,3 +1,4 @@
+import ClosestRayResultCallback from "./ClosestRayResultCallback.js";
 import Ammo from "./impl/ammo.wasm.js";
 import PhysicsWorld from "./PhysicsWorld.js";
 
@@ -23,7 +24,6 @@ export default class PhysicsSystem {
             (globalThis as any).window = undefined;
         }
         PhysicsSystem._instance = new PhysicsSystem(Module);
-        PhysicsSystem._instance.initialize();
     }
 
     readonly bt_vec3_a: any;
@@ -32,10 +32,9 @@ export default class PhysicsSystem {
 
     readonly bt_quat_a: any;
 
-    private _world!: PhysicsWorld;
-    get world(): PhysicsWorld {
-        return this._world;
-    }
+    readonly world: PhysicsWorld;
+
+    readonly closestRayResultCallback: ClosestRayResultCallback;
 
     constructor(readonly ammo: any) {
         this.bt_vec3_a = new ammo.btVector3(0, 0, 0);
@@ -44,9 +43,7 @@ export default class PhysicsSystem {
         this.bt_transform_a = new ammo.btTransform();
         this.bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
 
-    }
-
-    initialize() {
-        this._world = new PhysicsWorld();
+        this.world = new PhysicsWorld(this);
+        this.closestRayResultCallback = new ClosestRayResultCallback(this);
     }
 }

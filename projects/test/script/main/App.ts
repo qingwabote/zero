@@ -101,7 +101,7 @@ export default class App extends Zero {
         node = new Node;
         node.visibility = VisibilityBit.UI;
         node.addComponent(CameraModePanel);
-        // node.position = [-width / 2, height / 2, 0];
+        node.position = [-width / 2, height / 2, 0];
 
         if (USE_SHADOW_MAP) {
             node = new Node;
