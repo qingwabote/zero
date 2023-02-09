@@ -6,12 +6,20 @@ import vec3 from "../../../../script/core/math/vec3.js";
 import PhysicsSystem from "../../../../script/core/physics/PhysicsSystem.js";
 
 export default class CameraModePanel extends Component {
+    private _dirty = true;
+
+    private _fixed: boolean = true;
+    private get fixed(): boolean {
+        return this._fixed;
+    }
+    private set fixed(value: boolean) {
+        this._fixed = value;
+        this._dirty = true;
+    }
+
     override start(): void {
-        const label = this.node.addComponent(Label);
-        label.text = "Fixed Camera";
-        const boxShape = this.node.addComponent(BoxShape);
-        boxShape.size = vec3.create(label.size[0], label.size[1], 300);
-        boxShape.origin = vec3.create(label.size[0] / 2, -label.size[1] / 2, 0);
+        this.node.addComponent(Label);
+        this.node.addComponent(BoxShape);
 
         const camera = zero.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
 
@@ -23,6 +31,21 @@ export default class CameraModePanel extends Component {
 
             const ps = PhysicsSystem.instance;
             ps.world.rayTest(from, to);
+
+            this.fixed = !this.fixed;
         })
+    }
+
+    override update(): void {
+        if (this._dirty) {
+            const label = this.node.getComponent(Label)!;
+            label.text = this.fixed ? "Fixed Camera" : "Wandering Camera";
+
+            const boxShape = this.node.getComponent(BoxShape)!;
+            boxShape.size = vec3.create(label.size[0], label.size[1], 100);
+            boxShape.origin = vec3.create(label.size[0] / 2, -label.size[1] / 2, 0);
+            this._dirty = false;
+        }
+
     }
 }
