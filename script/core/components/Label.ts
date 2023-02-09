@@ -6,6 +6,7 @@ import Component from "../Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
+import vec2, { Vec2 } from "../math/vec2.js";
 import BufferViewResizable from "../render/buffers/BufferViewResizable.js";
 import Model from "../render/Model.js";
 import Pass from "../render/Pass.js";
@@ -38,6 +39,12 @@ export default class Label extends Component {
         this._dirtyFlag |= DirtyFlagBits.TEXT;
     }
 
+    private _size: Vec2 = vec2.create(0, 0);
+    get size(): Readonly<Vec2> {
+        this.updateData();
+        return this._size;
+    }
+
     private _fnt: FNT = AssetCache.instance.get('../../asset/fnt/zero', FNT);
 
     private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
@@ -49,6 +56,10 @@ export default class Label extends Component {
     private _vertexInputState!: VertexInputState;
 
     private _model!: Model;
+
+    private _inputAssemblerInvalidated = true;
+
+    private _indexCount = 0;
 
     override start(): void {
         const shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
@@ -96,10 +107,13 @@ export default class Label extends Component {
         this._model = model;
     }
 
-    override update(): void {
-        if (this._dirtyFlag == DirtyFlagBits.NONE) {
-            return;
+    override commit(): void {
+        this.updateData();
+
+        if (this.node.hasChanged) {
+            this._model.updateBuffer(this.node.matrix);
         }
+        this._model.visibility = this.node.visibility;
 
         const subModel = this._model.subModels[0];
 
@@ -107,75 +121,12 @@ export default class Label extends Component {
             subModel.vertexOrIndexCount = 0;
             return;
         }
-        const indexCount = 6 * this._text.length;
-
-        let reallocated = false;
-        reallocated = this._texCoordBuffer.reset(2 * 4 * this._text.length) || reallocated;
-        reallocated = this._positionBuffer.reset(3 * 4 * this._text.length) || reallocated;
-        reallocated = this._indexBuffer.reset(indexCount) || reallocated;
-
-        const tex = this._fnt.texture.gfx_texture.info;
-        let x = 0;
-        let y = 0;
-        let i = 0;
-        while (i < this._text.length) {
-            const code = this._text.charCodeAt(i);
-            if (code == lineBreak) {
-                x = 0;
-                y -= this._fnt.common.lineHeight;
-                i++;
-                continue;
-            }
-
-            const char = this._fnt.chars[code];
-            const l = char.x / tex.width;
-            const r = (char.x + char.width) / tex.width;
-            const t = char.y / tex.height;
-            const b = (char.y + char.height) / tex.height;
-
-            this._texCoordBuffer.data[2 * 4 * i + 0] = l;
-            this._texCoordBuffer.data[2 * 4 * i + 1] = t;
-            this._positionBuffer.data[3 * 4 * i + 0] = x + char.xoffset;
-            this._positionBuffer.data[3 * 4 * i + 1] = y - char.yoffset;
-            this._positionBuffer.data[3 * 4 * i + 2] = 0;
-
-            this._texCoordBuffer.data[2 * 4 * i + 2] = r;
-            this._texCoordBuffer.data[2 * 4 * i + 3] = t;
-            this._positionBuffer.data[3 * 4 * i + 3] = x + char.xoffset + char.width;
-            this._positionBuffer.data[3 * 4 * i + 4] = y - char.yoffset;
-            this._positionBuffer.data[3 * 4 * i + 5] = 0;
-
-            this._texCoordBuffer.data[2 * 4 * i + 4] = r;
-            this._texCoordBuffer.data[2 * 4 * i + 5] = b;
-            this._positionBuffer.data[3 * 4 * i + 6] = x + char.xoffset + char.width;
-            this._positionBuffer.data[3 * 4 * i + 7] = y - char.yoffset - char.height;
-            this._positionBuffer.data[3 * 4 * i + 8] = 0;
-
-            this._texCoordBuffer.data[2 * 4 * i + 6] = l;
-            this._texCoordBuffer.data[2 * 4 * i + 7] = b;
-            this._positionBuffer.data[3 * 4 * i + 9] = x + char.xoffset;
-            this._positionBuffer.data[3 * 4 * i + 10] = y - char.yoffset - char.height;
-            this._positionBuffer.data[3 * 4 * i + 11] = 0;
-
-            x += char.xadvance;
-            // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
-            this._indexBuffer.set([
-                4 * i + 0,
-                4 * i + 2,
-                4 * i + 1,
-                4 * i + 2,
-                4 * i + 0,
-                4 * i + 3
-            ], 6 * i)
-
-            i++;
-        }
 
         this._texCoordBuffer.update();
         this._positionBuffer.update();
         this._indexBuffer.update();
 
-        if (!subModel.inputAssemblers[0] || reallocated) {
+        if (this._inputAssemblerInvalidated) {
             const inputAssembler = gfx.createInputAssembler();
             inputAssembler.initialize({
                 vertexInputState: this._vertexInputState,
@@ -190,17 +141,101 @@ export default class Label extends Component {
                 }
             })
             subModel.inputAssemblers[0] = inputAssembler;
+            this._inputAssemblerInvalidated = false;
         }
 
-        subModel.vertexOrIndexCount = indexCount
-
-        this._dirtyFlag = DirtyFlagBits.NONE;
+        subModel.vertexOrIndexCount = this._indexCount;
     }
 
-    override commit(): void {
-        if (this.node.hasChanged) {
-            this._model.updateBuffer(this.node.matrix);
+    private updateData(): void {
+        if (this._dirtyFlag == DirtyFlagBits.NONE) {
+            return;
         }
-        this._model.visibility = this.node.visibility;
+
+        if (this._text.length == 0) {
+            vec2.set(this._size, 0, 0);
+            this._dirtyFlag = DirtyFlagBits.NONE;
+            return;
+        }
+
+        const indexCount = 6 * this._text.length;
+
+        let reallocated = false;
+        reallocated = this._texCoordBuffer.reset(2 * 4 * this._text.length) || reallocated;
+        reallocated = this._positionBuffer.reset(3 * 4 * this._text.length) || reallocated;
+        reallocated = this._indexBuffer.reset(indexCount) || reallocated;
+
+        const tex = this._fnt.texture.gfx_texture.info;
+        let [x, y, l, r, t, b, i] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
+        while (i < this._text.length) {
+            const code = this._text.charCodeAt(i);
+            if (code == lineBreak) {
+                x = 0;
+                y -= this._fnt.common.lineHeight;
+                i++;
+                continue;
+            }
+
+            const char = this._fnt.chars[code];
+            const tex_l = char.x / tex.width;
+            const tex_r = (char.x + char.width) / tex.width;
+            const tex_t = char.y / tex.height;
+            const tex_b = (char.y + char.height) / tex.height;
+
+            const pos_l = x + char.xoffset;
+            const pos_r = x + char.xoffset + char.width;
+            const pos_t = y - char.yoffset;
+            const pos_b = y - char.yoffset - char.height;
+
+            this._texCoordBuffer.data[2 * 4 * i + 0] = tex_l;
+            this._texCoordBuffer.data[2 * 4 * i + 1] = tex_t;
+            this._positionBuffer.data[3 * 4 * i + 0] = pos_l;
+            this._positionBuffer.data[3 * 4 * i + 1] = pos_t;
+            this._positionBuffer.data[3 * 4 * i + 2] = 0;
+
+            this._texCoordBuffer.data[2 * 4 * i + 2] = tex_r;
+            this._texCoordBuffer.data[2 * 4 * i + 3] = tex_t;
+            this._positionBuffer.data[3 * 4 * i + 3] = pos_r;
+            this._positionBuffer.data[3 * 4 * i + 4] = pos_t;
+            this._positionBuffer.data[3 * 4 * i + 5] = 0;
+
+            this._texCoordBuffer.data[2 * 4 * i + 4] = tex_r;
+            this._texCoordBuffer.data[2 * 4 * i + 5] = tex_b;
+            this._positionBuffer.data[3 * 4 * i + 6] = pos_r;
+            this._positionBuffer.data[3 * 4 * i + 7] = pos_b;
+            this._positionBuffer.data[3 * 4 * i + 8] = 0;
+
+            this._texCoordBuffer.data[2 * 4 * i + 6] = tex_l;
+            this._texCoordBuffer.data[2 * 4 * i + 7] = tex_b;
+            this._positionBuffer.data[3 * 4 * i + 9] = pos_l;
+            this._positionBuffer.data[3 * 4 * i + 10] = pos_b;
+            this._positionBuffer.data[3 * 4 * i + 11] = 0;
+
+            // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
+            this._indexBuffer.set([
+                4 * i + 0,
+                4 * i + 2,
+                4 * i + 1,
+                4 * i + 2,
+                4 * i + 0,
+                4 * i + 3
+            ], 6 * i);
+
+            l = Math.min(l, pos_l);
+            r = Math.max(r, pos_r);
+            t = Math.max(t, pos_t);
+            b = Math.min(b, pos_b);
+
+            x += char.xadvance;
+            i++;
+        }
+
+        this._indexCount = indexCount;
+        vec2.set(this._size, r + l, -(b + t));
+        if (reallocated) {
+            this._inputAssemblerInvalidated = true;
+        }
+
+        this._dirtyFlag = DirtyFlagBits.NONE;
     }
 }

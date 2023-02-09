@@ -7,9 +7,11 @@ import PhysicsSystem from "../../../../script/core/physics/PhysicsSystem.js";
 
 export default class CameraModePanel extends Component {
     override start(): void {
-        this.node.addComponent(Label).text = "Fixed Camera";
+        const label = this.node.addComponent(Label);
+        label.text = "Fixed Camera";
         const boxShape = this.node.addComponent(BoxShape);
-        boxShape.size = vec3.create(300, 300, 300)
+        boxShape.size = vec3.create(label.size[0], label.size[1], 300);
+        boxShape.origin = vec3.create(label.size[0] / 2, -label.size[1] / 2, 0);
 
         const camera = zero.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
 

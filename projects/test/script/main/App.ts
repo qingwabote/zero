@@ -64,7 +64,7 @@ export default class App extends Zero {
         const cameraUp = node.addComponent(Camera);
         cameraUp.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
         cameraUp.fov = 45;
-        cameraUp.viewport = { x: 0, y: height * 0.5, width, height: height * 0.5 };
+        cameraUp.viewport = { x: 0, y: 0, width, height };
         node.addComponent(ZeroComponent);
         node.position = [0, 0, 0];
 
@@ -87,7 +87,7 @@ export default class App extends Zero {
         }
         node.position = origin;
         rotateCamera();
-        this.timeScheduler.setInterval(rotateCamera);
+        // this.timeScheduler.setInterval(rotateCamera);
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
