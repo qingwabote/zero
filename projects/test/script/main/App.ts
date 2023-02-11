@@ -1,11 +1,10 @@
 import GLTF from "../../../../script/core/assets/GLTF.js";
-import Material from "../../../../script/core/assets/Material.js";
 import Camera from "../../../../script/core/components/Camera.js";
 import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
 import DebugDrawer from "../../../../script/core/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/core/components/Profiler.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
-import { ClearFlagBit, CullMode, PassState, PrimitiveTopology, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
+import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
 import quat from "../../../../script/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
@@ -14,11 +13,8 @@ import RenderFlow from "../../../../script/core/pipeline/RenderFlow.js";
 import RenderStage from "../../../../script/core/pipeline/RenderStage.js";
 import ForwardStage from "../../../../script/core/pipeline/stages/ForwardStage.js";
 import ShadowStage from "../../../../script/core/pipeline/stages/ShadowStage.js";
-import Pass from "../../../../script/core/render/Pass.js";
 import PassPhase from "../../../../script/core/render/PassPhase.js";
-import samplers from "../../../../script/core/render/samplers.js";
 import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
-import ShaderLib from "../../../../script/core/ShaderLib.js";
 import Zero from "../../../../script/core/Zero.js";
 import CameraModePanel from "./CameraModePanel.js";
 
@@ -111,62 +107,20 @@ export default class App extends Zero {
             sprite.texture = shadowStage!.framebuffer.info.depthStencilAttachment;
         }
 
-        async function createMaterials(gltf: GLTF): Promise<Material[]> {
-            const materials: Material[] = [];
-            for (const info of gltf.json.materials) {
-                const passes: Pass[] = [];
+        // const zeroShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
+        // const zeroDescriptorSet = gfx.createDescriptorSet();
+        // zeroDescriptorSet.initialize(shaders.getDescriptorSetLayout(zeroShader));
+        // if (USE_ALBEDO_MAP) {
+        //     zeroDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
+        // }
+        // const zeroPass = new Pass(
+        //     zeroDescriptorSet,
+        //     zeroShader,
+        //     { cullMode: CullMode.FRONT },
+        //     undefined,
+        //     PhaseLightView
+        // );
 
-                const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-
-                if (USE_SHADOW_MAP) {
-                    const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
-                    const shadowMapPass = new Pass(
-                        new PassState(
-                            shadowMapShader,
-                            PrimitiveTopology.TRIANGLE_LIST,
-                            { cullMode: CullMode.FRONT }
-                        ),
-                        undefined,
-                        PassPhase.SHADOWMAP
-                    );
-                    passes.push(shadowMapPass);
-                }
-
-
-                const USE_ALBEDO_MAP = textureIdx == undefined ? 0 : 1;
-
-                const phongShader = await ShaderLib.instance.loadShader('phong', {
-                    USE_ALBEDO_MAP,
-                    USE_SHADOW_MAP,
-                    SHADOW_MAP_PCF: 1,
-                    CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-                })
-
-                const phoneDescriptorSet = gfx.createDescriptorSet();
-                phoneDescriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(phongShader));
-                if (USE_ALBEDO_MAP) {
-                    phoneDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, samplers.get());
-                }
-                const phongPass = new Pass(new PassState(phongShader), phoneDescriptorSet);
-                passes.push(phongPass);
-
-                // const zeroShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
-                // const zeroDescriptorSet = gfx.createDescriptorSet();
-                // zeroDescriptorSet.initialize(shaders.getDescriptorSetLayout(zeroShader));
-                // if (USE_ALBEDO_MAP) {
-                //     zeroDescriptorSet.bindTexture(0, gltf.textures[gltf.json.textures[textureIdx].source].gfx_texture, defaults.sampler);
-                // }
-                // const zeroPass = new Pass(
-                //     zeroDescriptorSet,
-                //     zeroShader,
-                //     { cullMode: CullMode.FRONT },
-                //     undefined,
-                //     PhaseLightView
-                // );
-                materials.push(new Material(passes));
-            }
-            return materials;
-        }
 
         // const city = new GLTF();
         // await city.load('./asset/venice_city_scene_1dae08_aaron_ongena/scene');
@@ -174,14 +128,12 @@ export default class App extends Zero {
         // node = city.createScene("Sketchfab_Scene", materials)!;
 
         const guardian = new GLTF();
-        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene');
-        let materials: Material[] = await createMaterials(guardian);
-        node = guardian.createScene("Sketchfab_Scene", materials)!;
+        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', 1);
+        node = guardian.createScene("Sketchfab_Scene")!;
 
         const plane = new GLTF();
-        await plane.load('./asset/plane');
-        materials = await createMaterials(plane);
-        node = plane.createScene("Scene", materials)!;
+        await plane.load('./asset/plane', 1);
+        node = plane.createScene("Scene")!;
         node.scale = [4, 4, 4];
 
         stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)]));

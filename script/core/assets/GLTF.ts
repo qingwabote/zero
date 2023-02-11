@@ -6,13 +6,17 @@ import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import Fence from "../gfx/Fence.js";
 import { IndexType } from "../gfx/InputAssembler.js";
-import { Format } from "../gfx/Pipeline.js";
+import { CullMode, Format, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
 import Node from "../Node.js";
 import Mesh from "../render/Mesh.js";
+import Pass from "../render/Pass.js";
+import PassPhase from "../render/PassPhase.js";
+import samplers from "../render/samplers.js";
 import SubMesh, { Attribute } from "../render/SubMesh.js";
+import ShaderLib from "../ShaderLib.js";
 import Asset from "./Asset.js";
 import Material from "./Material.js";
 import Texture from "./Texture.js";
@@ -60,7 +64,7 @@ export default class GLTF extends Asset {
 
     private _materials!: Material[];
 
-    async load(url: string): Promise<this> {
+    async load(url: string, USE_SHADOW_MAP = 0): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
             return this;
@@ -71,16 +75,55 @@ export default class GLTF extends Asset {
         this._bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
         const textures = await Promise.all(json_images.map((info: any) => AssetCache.instance.load(`${parent}/${uri2path(info.uri)}`, Texture)));
-        this._textures = textures;
 
+        const materials: Material[] = [];
+        for (const info of json.materials) {
+            const passes: Pass[] = [];
+
+            if (USE_SHADOW_MAP) {
+                const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
+                const shadowMapPass = new Pass(
+                    new PassState(
+                        shadowMapShader,
+                        PrimitiveTopology.TRIANGLE_LIST,
+                        { cullMode: CullMode.FRONT }
+                    ),
+                    undefined,
+                    PassPhase.SHADOWMAP
+                );
+                passes.push(shadowMapPass);
+            }
+
+            const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
+
+            const USE_ALBEDO_MAP = textureIdx == undefined ? 0 : 1;
+
+            const phongShader = await ShaderLib.instance.loadShader('phong', {
+                USE_ALBEDO_MAP,
+                USE_SHADOW_MAP,
+                SHADOW_MAP_PCF: 1,
+                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+            })
+
+            const phoneDescriptorSet = gfx.createDescriptorSet();
+            phoneDescriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(phongShader));
+            if (USE_ALBEDO_MAP) {
+                phoneDescriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture, samplers.get());
+            }
+            const phongPass = new Pass(new PassState(phongShader), phoneDescriptorSet);
+            passes.push(phongPass);
+
+            materials.push(new Material(passes));
+        }
+        this._materials = materials;
+
+        this._textures = textures;
         this._json = json;
         return this;
     }
 
-    createScene(name: string, materials: Material[]): Node | null {
+    createScene(name: string): Node | null {
         if (!this._json || !this._bin || !this._textures) return null;
-
-        this._materials = materials;
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);
