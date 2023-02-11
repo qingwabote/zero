@@ -15,10 +15,8 @@ async function string_replace(value: string, pattern: RegExp, replacer: (...args
 
 const chunks: Record<string, string> = {};
 
-// ^\s* excludes other symbols, like //
-const ifMacroExp = /^\s*#if\s+(\w+)\r?\n/gm;
-
 const exp_lineByline = /(.+)\r?\n?/g;
+// ^\s* excludes other symbols, like //
 const exp_if = /^\s*#if\s+(\w+)/;
 const exp_else = /^\s*#else/;
 const exp_endif = /^\s*#endif/;
@@ -72,7 +70,7 @@ function macroExpand(macros: Readonly<Record<string, number>>, source: string): 
 export default {
     macroExtract(src: string): Set<string> {
         const macros: Set<string> = new Set;
-        let matches = src.matchAll(ifMacroExp);
+        let matches = src.matchAll(/^\s*#if\s+(\w+)\r?\n/gm);
         for (const match of matches) {
             macros.add(match[1]);
         }
@@ -140,7 +138,7 @@ export default {
         const samplerTextures: Record<string, Uniform> = {};
         for (const stage of stages) {
             stage.source = stage.source.replace(
-                /layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/g,
+                /^\s*layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/gm,
                 function (content: string, set: string, binding: string, type: string, name: string): string {
                     if (!type) {
                         // bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 })

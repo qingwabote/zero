@@ -1,4 +1,3 @@
-import ClosestRayResultCallback from "./ClosestRayResultCallback.js";
 import Ammo from "./impl/ammo.wasm.js";
 import PhysicsWorld from "./PhysicsWorld.js";
 
@@ -34,8 +33,6 @@ export default class PhysicsSystem {
 
     readonly world: PhysicsWorld;
 
-    readonly closestRayResultCallback: ClosestRayResultCallback;
-
     constructor(readonly ammo: any) {
         this.bt_vec3_a = new ammo.btVector3(0, 0, 0);
         this.bt_vec3_b = new ammo.btVector3(0, 0, 0);
@@ -44,6 +41,5 @@ export default class PhysicsSystem {
         this.bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
 
         this.world = new PhysicsWorld(this);
-        this.closestRayResultCallback = new ClosestRayResultCallback(this);
     }
 }
