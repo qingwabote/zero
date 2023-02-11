@@ -16,7 +16,7 @@ namespace binding
         {
             uint32_t usage = sugar::v8::object_get(info, "usage").As<v8::Number>()->Value();
 
-            auto format = VK_FORMAT_R8G8B8A8_SRGB;
+            auto format = VK_FORMAT_R8G8B8A8_UNORM;
             auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
             {
