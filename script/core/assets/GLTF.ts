@@ -18,6 +18,7 @@ import Pass from "../render/Pass.js";
 import PassPhase from "../render/PassPhase.js";
 import samplers from "../render/samplers.js";
 import SubMesh, { Attribute } from "../render/SubMesh.js";
+import VisibilityBit from "../render/VisibilityBit.js";
 import ShaderLib from "../ShaderLib.js";
 import Asset from "./Asset.js";
 import Material from "./Material.js";
@@ -130,20 +131,22 @@ export default class GLTF extends Asset {
         return this;
     }
 
-    createScene(name: string): Node | null {
+    createScene(name: string, visibility = VisibilityBit.DEFAULT): Node | null {
         if (!this._json || !this._bin || !this._textures) return null;
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);
         const node = new Node(name);
+        node.visibility = visibility;
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(this._json.nodes[index]))
+            node.addChild(this.createNode(this._json.nodes[index], visibility))
         }
         return node;
     }
 
-    private createNode(info: any): Node {
+    private createNode(info: any, visibility: VisibilityBit): Node {
         const node = new Node(info.name);
+        node.visibility = visibility;
         if (info.matrix) {
             mat4.toRTS(info.matrix, node.rotation as Quat, node.position as Vec3, node.scale as Vec3);
         } else {
@@ -165,7 +168,7 @@ export default class GLTF extends Asset {
         if (info.children) {
             for (const idx of info.children) {
                 const info = this._json.nodes[idx];
-                node.addChild(this.createNode(info));
+                node.addChild(this.createNode(info, visibility));
             }
         }
         return node;

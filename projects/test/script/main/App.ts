@@ -5,6 +5,7 @@ import DebugDrawer from "../../../../script/core/components/physics/DebugDrawer.
 import Profiler from "../../../../script/core/components/Profiler.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
+import quat from "../../../../script/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import ModelPhase from "../../../../script/core/pipeline/phases/ModelPhase.js";
@@ -31,7 +32,7 @@ export default class App extends Zero {
         const stages: RenderStage[] = [];
         let shadowStage: ShadowStage;
         if (USE_SHADOW_MAP) {
-            shadowStage = new ShadowStage;
+            shadowStage = new ShadowStage(Visibility_Up);
             stages.push(shadowStage);
         }
 
@@ -43,23 +44,30 @@ export default class App extends Zero {
         node = new Node;
         node.addComponent(DirectionalLight);
         node.position = lit_position;
-        node.visibility = Visibility_Up;
-
-        // node = new Node;
-        // const lit_camera = node.addComponent(Camera);
-        // lit_camera.visibilities = VisibilityBit.DEFAULT | Visibility_Down;
-        // lit_camera.orthoHeight = 4;
-        // lit_camera.far = 10
-        // lit_camera.viewport = { x: 0, y: 0, width, height: height * 0.5 };
-        // node.position = lit_position;
-        // node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
+        // node.visibility = Visibility_Up;
 
         node = new Node;
-        const cameraUp = node.addComponent(Camera);
-        cameraUp.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
-        cameraUp.fov = 45;
-        cameraUp.viewport = { x: 0, y: 0, width, height };
+        const down_camera = node.addComponent(Camera);
+        down_camera.visibilities = VisibilityBit.DEFAULT | Visibility_Down;
+        down_camera.orthoHeight = 8;
+        down_camera.far = 20
+        down_camera.viewport = { x: 0, y: 0, width, height: height / 2 };
+        node.position = lit_position;
+        node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
+
+        node = new Node;
+        const up_camera = node.addComponent(Camera);
+        up_camera.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
+        up_camera.fov = 45;
+        up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
         node.position = [0, 0, 10];
+
+        const gltf_camera = new GLTF();
+        await gltf_camera.load('./asset/camera_from_poly_by_google/scene');
+        node = gltf_camera.createScene("Sketchfab_Scene", Visibility_Down)!;
+        node.scale = [0.01, 0.01, 0.01];
+        node.rotation = quat.fromAxisAngle(quat.create(), vec3.UP, Math.PI);
+        up_camera.node.addChild(node);
 
         // UI
         node = new Node;
@@ -81,7 +89,7 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
-        node.addComponent(CameraModePanel).camera = cameraUp;
+        node.addComponent(CameraModePanel).camera = up_camera;
         node.position = [-width / 2, height / 2, 0];
 
         if (USE_SHADOW_MAP) {
@@ -108,21 +116,16 @@ export default class App extends Zero {
         //     PhaseLightView
         // );
 
-        // const guardian = new GLTF();
-        // await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', 1);
-        // node = guardian.createScene("Sketchfab_Scene")!;
+        const guardian = new GLTF();
+        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', 1);
+        node = guardian.createScene("Sketchfab_Scene")!;
 
-        // const plane = new GLTF();
-        // await plane.load('./asset/plane', 1);
-        // node = plane.createScene("Scene")!;
-        // node.scale = [4, 4, 4];
+        const plane = new GLTF();
+        await plane.load('./asset/plane', 1);
+        node = plane.createScene("Scene")!;
+        node.scale = [4, 4, 4];
 
-        const gltf_camera = new GLTF();
-        await gltf_camera.load('./asset/camera_from_poly_by_google/scene');
-        node = gltf_camera.createScene("Sketchfab_Scene")!;
-        node.scale = [0.01, 0.01, 0.01];
-
-        stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)]));
+        stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up | Visibility_Down)]));
         return new RenderFlow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);
     }
 }

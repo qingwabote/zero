@@ -54,7 +54,6 @@ export default class CameraModePanel extends Component {
             if (Math.abs(dx) > Math.abs(dy)) {
                 const rad = -Math.PI / 180 * dx;
                 if (this.fixed) {
-                    // const up = vec3.transformQuat(vec3.create(), vec3.UP, this.camera.node.rotation);
                     const rotation = quat.fromAxisAngle(quat.create(), vec3.UP, rad);
                     this.camera.node.position = vec3.transformQuat(vec3.create(), this.camera.node.position, rotation);
                     this.camera.node.rotation = quat.multiply(quat.create(), this.camera.node.rotation, rotation);
@@ -89,9 +88,10 @@ export default class CameraModePanel extends Component {
             boxShape.origin = vec3.create(label.size[0] / 2, -label.size[1] / 2, 0);
 
             if (this.fixed) {
+                this.camera.node.position = vec3.create(this.camera.node.position[0], 0, this.camera.node.position[2]);
                 const to = vec3.negate(vec3.create(), this.camera.node.position);
-                const rotation = quat.rotationTo(quat.create(), vec3.FORWARD, vec3.normalize(vec3.create(), to))
-                this.camera.node.rotation = rotation;
+                const rot = quat.rotationTo(quat.create(), vec3.FORWARD, vec3.normalize(vec3.create(), to))
+                this.camera.node.rotation = rot;
             }
 
             this._dirty = false;
