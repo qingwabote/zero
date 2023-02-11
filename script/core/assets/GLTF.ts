@@ -10,7 +10,9 @@ import { CullMode, Format, PassState, PrimitiveTopology } from "../gfx/Pipeline.
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
+import vec4, { Vec4 } from "../math/vec4.js";
 import Node from "../Node.js";
+import BufferView from "../render/buffers/BufferView.js";
 import Mesh from "../render/Mesh.js";
 import Pass from "../render/Pass.js";
 import PassPhase from "../render/PassPhase.js";
@@ -110,6 +112,12 @@ export default class GLTF extends Asset {
             if (USE_ALBEDO_MAP) {
                 phoneDescriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture, samplers.get());
             }
+            const ubo_material = new BufferView('Float32', BufferUsageFlagBits.UNIFORM, 4);
+            const albedo: Vec4 = info.pbrMetallicRoughness.baseColorFactor || vec4.ONE;
+            ubo_material.set(albedo, 0);
+            ubo_material.update()
+            phoneDescriptorSet.bindBuffer(1, ubo_material.buffer);
+
             const phongPass = new Pass(new PassState(phongShader), phoneDescriptorSet);
             passes.push(phongPass);
 

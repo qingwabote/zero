@@ -126,6 +126,18 @@ export default class ShaderLib {
                     stageFlags: ShaderStageFlagBits.FRAGMENT
                 });
             };
+            const blocks = shader.info.meta.blocks;
+            for (const name in blocks) {
+                if (blocks[name].set < sets.material.set) {
+                    continue;
+                }
+                bindings.push({
+                    binding: blocks[name].binding,
+                    descriptorType: DescriptorType.UNIFORM_BUFFER,
+                    descriptorCount: 1,
+                    stageFlags: ShaderStageFlagBits.FRAGMENT
+                });
+            }
             descriptorSetLayout = gfx.createDescriptorSetLayout();
             descriptorSetLayout.initialize(bindings);
 

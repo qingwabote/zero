@@ -5,7 +5,6 @@ import DebugDrawer from "../../../../script/core/components/physics/DebugDrawer.
 import Profiler from "../../../../script/core/components/Profiler.js";
 import Sprite from "../../../../script/core/components/Sprite.js";
 import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
-import quat from "../../../../script/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
 import Node from "../../../../script/core/Node.js";
 import ModelPhase from "../../../../script/core/pipeline/phases/ModelPhase.js";
@@ -60,7 +59,7 @@ export default class App extends Zero {
         cameraUp.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
         cameraUp.fov = 45;
         cameraUp.viewport = { x: 0, y: 0, width, height };
-        node.position = [0, 0, 0];
+        node.position = [0, 0, 10];
 
         // UI
         node = new Node;
@@ -69,19 +68,7 @@ export default class App extends Zero {
         cameraUI.clearFlags = ClearFlagBit.DEPTH;
         cameraUI.orthoHeight = height / 2;
         cameraUI.viewport = { x: 0, y: 0, width, height };
-
-        let angle = 0;
-        const origin = vec3.create(0, 0, width / 2);
-        const rotateCamera = () => {
-            const node = cameraUI.node;
-            const rotation = quat.fromAxisAngle(quat.create(), vec3.UP, Math.PI / 180 * angle);
-            node.position = vec3.transformQuat(vec3.create(), origin, rotation);
-            node.rotation = rotation;
-            angle += 1;
-        }
-        node.position = origin;
-        rotateCamera();
-        // this.timeScheduler.setInterval(rotateCamera);
+        node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
@@ -121,20 +108,19 @@ export default class App extends Zero {
         //     PhaseLightView
         // );
 
+        // const guardian = new GLTF();
+        // await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', 1);
+        // node = guardian.createScene("Sketchfab_Scene")!;
 
-        // const city = new GLTF();
-        // await city.load('./asset/venice_city_scene_1dae08_aaron_ongena/scene');
-        // let materials: Material[] = await createMaterials(city);
-        // node = city.createScene("Sketchfab_Scene", materials)!;
+        // const plane = new GLTF();
+        // await plane.load('./asset/plane', 1);
+        // node = plane.createScene("Scene")!;
+        // node.scale = [4, 4, 4];
 
-        const guardian = new GLTF();
-        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', 1);
-        node = guardian.createScene("Sketchfab_Scene")!;
-
-        const plane = new GLTF();
-        await plane.load('./asset/plane', 1);
-        node = plane.createScene("Scene")!;
-        node.scale = [4, 4, 4];
+        const gltf_camera = new GLTF();
+        await gltf_camera.load('./asset/camera_from_poly_by_google/scene');
+        node = gltf_camera.createScene("Sketchfab_Scene")!;
+        node.scale = [0.01, 0.01, 0.01];
 
         stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up)]));
         return new RenderFlow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);

@@ -14,6 +14,10 @@ layout(location = 2) in vec3 v_position;
     layout(set = 2, binding = 0) uniform sampler2D albedoMap;
 #endif
 
+layout(set = 2, binding = 1) uniform Material  {
+    vec4 albedo;
+} material;
+
 layout(location = 0) out vec4 v_color;
 
 #if USE_SHADOW_MAP
@@ -44,7 +48,7 @@ layout(location = 0) out vec4 v_color;
 #endif
 
 void main() {
-    vec4 albedo = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 albedo = material.albedo;
 
     #if USE_ALBEDO_MAP
         albedo *= texture(albedoMap, v_uv);
