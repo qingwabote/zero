@@ -63,7 +63,7 @@ export default class App extends Zero {
         node.position = [0, 0, 10];
 
         const gltf_camera = new GLTF();
-        await gltf_camera.load('./asset/camera_from_poly_by_google/scene');
+        await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
         node = gltf_camera.createScene("Sketchfab_Scene", Visibility_Down)!;
         node.scale = [0.01, 0.01, 0.01];
         node.rotation = quat.fromAxisAngle(quat.create(), vec3.UP, Math.PI);
@@ -117,11 +117,11 @@ export default class App extends Zero {
         // );
 
         const guardian = new GLTF();
-        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', USE_SHADOW_MAP);
+        await guardian.load('./assets/guardian_zelda_botw_fan-art/scene', USE_SHADOW_MAP);
         node = guardian.createScene("Sketchfab_Scene")!;
 
         const plane = new GLTF();
-        await plane.load('./asset/plane', USE_SHADOW_MAP);
+        await plane.load('./assets/plane', USE_SHADOW_MAP);
         node = plane.createScene("Scene")!;
         node.scale = [4, 4, 4];
 

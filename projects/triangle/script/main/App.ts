@@ -93,7 +93,7 @@ export default class App extends Zero {
         (async () => {
             const shader = await shaders.getShader('zero', { USE_ALBEDO_MAP: 1 });
             const fnt = new FNT;
-            await fnt.load('./asset/zero');
+            await fnt.load('./assets/zero');
             const node = new Node;
             const label = node.addComponent(Label);
             label.fnt = fnt;

@@ -15,7 +15,7 @@ import SubModel from "../render/SubModel.js";
 import ShaderLib from "../ShaderLib.js";
 
 ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
-AssetCache.preloadedAssets.push({ path: '../../asset/fnt/zero', type: FNT });
+AssetCache.preloadedAssets.push({ path: '../../assets/fnt/zero', type: FNT });
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -45,7 +45,7 @@ export default class Label extends Component {
         return this._size;
     }
 
-    private _fnt: FNT = AssetCache.instance.get('../../asset/fnt/zero', FNT);
+    private _fnt: FNT = AssetCache.instance.get('../../assets/fnt/zero', FNT);
 
     private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
 

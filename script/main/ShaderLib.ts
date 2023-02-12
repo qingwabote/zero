@@ -72,7 +72,7 @@ export default class ShaderLib {
     async loadShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = this._name2source[name];
         if (!source) {
-            const path = `../../asset/shader/${name}`; // hard code
+            const path = `../../assets/shader/${name}`; // hard code
 
             let vs = await loader.load(`${path}.vs`, "text");
             vs = await preprocessor.includeExpand(vs);

@@ -10,7 +10,7 @@ export default class PhysicsSystem {
 
     static async initialize(): Promise<void> {
         const Module: any = {}
-        Module.wasmBinary = await loader.load('../../asset/physics/ammo.wasm.wasm', 'arraybuffer');
+        Module.wasmBinary = await loader.load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
         Module.printErr = console.log.bind(console);
         Module.locateFile = function () { return 'not care' };
 

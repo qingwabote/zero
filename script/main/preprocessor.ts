@@ -81,7 +81,7 @@ export default {
         return string_replace(source, /#include\s+<(\w+)>/g, async (_: string, name: string): Promise<string> => {
             let chunk = chunks[name];
             if (!chunk) {
-                chunk = await loader.load(`../../asset/shader/chunks/${name}.chunk`, "text");
+                chunk = await loader.load(`../../assets/shader/chunks/${name}.chunk`, "text");
                 chunks[name] = chunk;
             }
             return await this.includeExpand(chunk);
