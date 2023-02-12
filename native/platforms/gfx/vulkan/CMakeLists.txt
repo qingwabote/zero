@@ -19,8 +19,8 @@ set(SRC_FILES
 
 add_library(gfx STATIC ${SRC_FILES})
 
-# add_subdirectory(../../core ${CMAKE_CURRENT_BINARY_DIR}/core)
-target_link_libraries(gfx PRIVATE core)
+# add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
+target_link_libraries(gfx PRIVATE main)
 
 # use vulkan sdk
 find_package(Vulkan REQUIRED COMPONENTS glslang SPIRV-Tools)

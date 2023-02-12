@@ -1,4 +1,4 @@
-import Loader, { LoaderTypes } from "../../core/Loader.js";
+import Loader, { LoaderTypes } from "../../main/Loader.js";
 
 export default class WebLoader implements Loader {
     load<T extends keyof LoaderTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]> {

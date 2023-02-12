@@ -1,5 +1,5 @@
-import { SampleCountFlagBits } from "../../../core/gfx/Pipeline.js";
-import Texture, { TextureInfo, TextureUsageBit } from "../../../core/gfx/Texture.js";
+import { SampleCountFlagBits } from "../../../main/gfx/Pipeline.js";
+import Texture, { TextureInfo, TextureUsageBit } from "../../../main/gfx/Texture.js";
 
 export default class WebTexture implements Texture {
     private _gl: WebGL2RenderingContext;

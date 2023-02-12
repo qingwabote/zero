@@ -1,21 +1,21 @@
-import GLTF from "../../../../script/core/assets/GLTF.js";
-import Camera from "../../../../script/core/components/Camera.js";
-import DirectionalLight from "../../../../script/core/components/DirectionalLight.js";
-import DebugDrawer from "../../../../script/core/components/physics/DebugDrawer.js";
-import Profiler from "../../../../script/core/components/Profiler.js";
-import Sprite from "../../../../script/core/components/Sprite.js";
-import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/core/gfx/Pipeline.js";
-import quat from "../../../../script/core/math/quat.js";
-import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
-import Node from "../../../../script/core/Node.js";
-import ModelPhase from "../../../../script/core/pipeline/phases/ModelPhase.js";
-import RenderFlow from "../../../../script/core/pipeline/RenderFlow.js";
-import RenderStage from "../../../../script/core/pipeline/RenderStage.js";
-import ForwardStage from "../../../../script/core/pipeline/stages/ForwardStage.js";
-import ShadowStage from "../../../../script/core/pipeline/stages/ShadowStage.js";
-import PassPhase from "../../../../script/core/render/PassPhase.js";
-import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
-import Zero from "../../../../script/core/Zero.js";
+import GLTF from "../../../../script/main/assets/GLTF.js";
+import Camera from "../../../../script/main/components/Camera.js";
+import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
+import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
+import Profiler from "../../../../script/main/components/Profiler.js";
+import Sprite from "../../../../script/main/components/Sprite.js";
+import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/main/gfx/Pipeline.js";
+import quat from "../../../../script/main/math/quat.js";
+import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";
+import Node from "../../../../script/main/Node.js";
+import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
+import RenderFlow from "../../../../script/main/pipeline/RenderFlow.js";
+import RenderStage from "../../../../script/main/pipeline/RenderStage.js";
+import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
+import ShadowStage from "../../../../script/main/pipeline/stages/ShadowStage.js";
+import PassPhase from "../../../../script/main/render/PassPhase.js";
+import VisibilityBit from "../../../../script/main/render/VisibilityBit.js";
+import Zero from "../../../../script/main/Zero.js";
 import CameraModePanel from "./CameraModePanel.js";
 
 const PhaseLightView = 1 << 10;
@@ -117,11 +117,11 @@ export default class App extends Zero {
         // );
 
         const guardian = new GLTF();
-        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', 1);
+        await guardian.load('./asset/guardian_zelda_botw_fan-art/scene', USE_SHADOW_MAP);
         node = guardian.createScene("Sketchfab_Scene")!;
 
         const plane = new GLTF();
-        await plane.load('./asset/plane', 1);
+        await plane.load('./asset/plane', USE_SHADOW_MAP);
         node = plane.createScene("Scene")!;
         node.scale = [4, 4, 4];
 

@@ -27,13 +27,13 @@ set(SRC_FILES
     bindings/gfx/Queue.cpp
 )
 
-add_library(core STATIC ${SRC_FILES})
-target_include_directories(core PUBLIC ./)
+add_library(main STATIC ${SRC_FILES})
+target_include_directories(main PUBLIC ./)
 
 add_subdirectory(thirdparty/sdl2)
-target_link_libraries(core PUBLIC SDL2)
+target_link_libraries(main PUBLIC SDL2)
 
 add_subdirectory(thirdparty/v8)
-target_link_libraries(core PUBLIC v8)
+target_link_libraries(main PUBLIC v8)
 
 set(WIN32_DLLS ${WIN32_DLLS} PARENT_SCOPE)

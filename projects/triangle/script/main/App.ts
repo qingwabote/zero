@@ -1,20 +1,20 @@
-import FNT from "../../../../script/core/assets/FNT.js";
-import Camera from "../../../../script/core/components/Camera.js";
-import FPS from "../../../../script/core/components/FPS.js";
-import Label from "../../../../script/core/components/Label.js";
-import MeshRenderer from "../../../../script/core/components/MeshRenderer.js";
-import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../../../../script/core/gfx/Buffer.js";
-import { ClearFlagBit, Format, IndexType } from "../../../../script/core/gfx/Pipeline.js";
-import Loader from "../../../../script/core/Loader.js";
-import Node from "../../../../script/core/Node.js";
-import Platfrom from "../../../../script/core/Platfrom.js";
-import Material from "../../../../script/core/render/Material.js";
-import Mesh from "../../../../script/core/render/Mesh.js";
-import Pass from "../../../../script/core/render/Pass.js";
-import SubMesh, { Attribute } from "../../../../script/core/render/SubMesh.js";
-import VisibilityBit from "../../../../script/core/render/VisibilityBit.js";
-import shaders from "../../../../script/core/shaders.js";
-import Zero from "../../../../script/core/Zero.js";
+import FNT from "../../../../script/main/assets/FNT.js";
+import Camera from "../../../../script/main/components/Camera.js";
+import FPS from "../../../../script/main/components/FPS.js";
+import Label from "../../../../script/main/components/Label.js";
+import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../../../../script/main/gfx/Buffer.js";
+import { ClearFlagBit, Format, IndexType } from "../../../../script/main/gfx/Pipeline.js";
+import Loader from "../../../../script/main/Loader.js";
+import Node from "../../../../script/main/Node.js";
+import Platfrom from "../../../../script/main/Platfrom.js";
+import Material from "../../../../script/main/render/Material.js";
+import Mesh from "../../../../script/main/render/Mesh.js";
+import Pass from "../../../../script/main/render/Pass.js";
+import SubMesh, { Attribute } from "../../../../script/main/render/SubMesh.js";
+import VisibilityBit from "../../../../script/main/render/VisibilityBit.js";
+import shaders from "../../../../script/main/shaders.js";
+import Zero from "../../../../script/main/Zero.js";
 import ZeroComponent from "./ZeroComponent.js";
 
 export default class App extends Zero {

@@ -1,7 +1,7 @@
 {
   "extends": "../../../../../script/tsconfig.json",
   "include": [
-    "../../../../../script/core",
+    "../../../../../script/main",
     "../../../../../script/platforms/webgl",
     "../../main"
   ],

@@ -12,9 +12,9 @@ set(SRC_FILES
 
 add_executable(zero WIN32 ${SRC_FILES})
 
-add_subdirectory(../../core ${CMAKE_CURRENT_BINARY_DIR}/core)
+add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
 
-target_link_libraries(zero PRIVATE core)
+target_link_libraries(zero PRIVATE main)
 
 add_subdirectory(../gfx/vulkan gfx)
 target_link_libraries(zero PRIVATE gfx)

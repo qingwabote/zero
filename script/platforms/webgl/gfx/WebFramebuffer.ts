@@ -1,5 +1,5 @@
-import { Framebuffer, FramebufferInfo } from "../../../core/gfx/Framebuffer.js";
-import { SampleCountFlagBits } from "../../../core/gfx/Pipeline.js";
+import { Framebuffer, FramebufferInfo } from "../../../main/gfx/Framebuffer.js";
+import { SampleCountFlagBits } from "../../../main/gfx/Pipeline.js";
 import WebTexture from "./WebTexture.js";
 
 export default class WebFramebuffer implements Framebuffer {

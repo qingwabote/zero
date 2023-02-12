@@ -1,4 +1,4 @@
-import Pipeline, { PipelineInfo } from "../../../core/gfx/Pipeline.js";
+import Pipeline, { PipelineInfo } from "../../../main/gfx/Pipeline.js";
 
 export default class WebPipeline implements Pipeline {
     private _info!: PipelineInfo;

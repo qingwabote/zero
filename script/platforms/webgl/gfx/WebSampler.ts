@@ -1,4 +1,4 @@
-import { Filter, Sampler, SamplerInfo } from "../../../core/gfx/Sampler.js";
+import { Filter, Sampler, SamplerInfo } from "../../../main/gfx/Sampler.js";
 
 function getFilter(val: Filter): GLenum {
     switch (val) {

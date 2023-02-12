@@ -1,4 +1,4 @@
-import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits, Uniform } from "../../../core/gfx/Shader.js";
+import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits, Uniform } from "../../../main/gfx/Shader.js";
 
 export default class WebShader implements Shader {
     private _gl: WebGL2RenderingContext;

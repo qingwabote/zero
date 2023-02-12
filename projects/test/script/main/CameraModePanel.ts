@@ -1,12 +1,12 @@
-import Component from "../../../../script/core/Component.js";
-import Camera from "../../../../script/core/components/Camera.js";
-import Label from "../../../../script/core/components/Label.js";
-import BoxShape from "../../../../script/core/components/physics/BoxShape.js";
-import { InputEvent, Touch } from "../../../../script/core/Input.js";
-import quat from "../../../../script/core/math/quat.js";
-import vec3 from "../../../../script/core/math/vec3.js";
-import ClosestRayResultCallback from "../../../../script/core/physics/ClosestRayResultCallback.js";
-import PhysicsSystem from "../../../../script/core/physics/PhysicsSystem.js";
+import Component from "../../../../script/main/Component.js";
+import Camera from "../../../../script/main/components/Camera.js";
+import Label from "../../../../script/main/components/Label.js";
+import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
+import { InputEvent, Touch } from "../../../../script/main/Input.js";
+import quat from "../../../../script/main/math/quat.js";
+import vec3 from "../../../../script/main/math/vec3.js";
+import ClosestRayResultCallback from "../../../../script/main/physics/ClosestRayResultCallback.js";
+import PhysicsSystem from "../../../../script/main/physics/PhysicsSystem.js";
 
 export default class CameraModePanel extends Component {
     camera!: Camera;

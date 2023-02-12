@@ -1,7 +1,7 @@
-import Component from "../../../../script/core/Component.js";
-import Primitive from "../../../../script/core/components/Primitive.js";
-import { InputEvent } from "../../../../script/core/Input.js";
-import vec3, { Vec3 } from "../../../../script/core/math/vec3.js";
+import Component from "../../../../script/main/Component.js";
+import Primitive from "../../../../script/main/components/Primitive.js";
+import { InputEvent } from "../../../../script/main/Input.js";
+import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";
 
 export default class DrawComponent extends Component {
     override start(): void {

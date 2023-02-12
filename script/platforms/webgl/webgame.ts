@@ -1,5 +1,5 @@
-import { InputEvent } from "../../core/Input.js";
-import Zero from "../../core/Zero.js";
+import { InputEvent } from "../../main/Input.js";
+import Zero from "../../main/Zero.js";
 import WebLoader from "./WebLoader.js";
 import WebPlatfrom from "./WebPlatform.js";
 

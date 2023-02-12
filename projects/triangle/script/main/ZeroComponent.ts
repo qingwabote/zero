@@ -1,7 +1,7 @@
-import Component from "../../../../script/core/Component.js";
-import Input, { Touch } from "../../../../script/core/Input.js";
-import quat from "../../../../script/core/math/quat.js";
-import vec3 from "../../../../script/core/math/vec3.js";
+import Component from "../../../../script/main/Component.js";
+import Input, { Touch } from "../../../../script/main/Input.js";
+import quat from "../../../../script/main/math/quat.js";
+import vec3 from "../../../../script/main/math/vec3.js";
 
 export default class ZeroComponent extends Component {
     override start(): void {
