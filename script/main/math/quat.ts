@@ -56,6 +56,9 @@ export default {
         return out;
     },
 
+    /**
+     * Calculates the quaternion with the three-dimensional transform matrix, considering no scale included in the matrix
+     */
     fromMat3(out: Quat, m: Mat3) {
         const m00 = m[0];
         const m01 = m[3];

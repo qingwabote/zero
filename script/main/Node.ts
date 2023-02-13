@@ -60,18 +60,15 @@ export default class Node {
     }
 
     private _rotation: Quat = quat.create()
+    /**
+     * rotation is normalized.
+     */
     get rotation(): Readonly<Quat> {
         return this._rotation;
     }
     set rotation(value: Readonly<Quat>) {
         Object.assign(this._rotation, value);
         this.dirty(TransformBit.ROTATION);
-    }
-
-    private _world_rotation: Quat = quat.create()
-    get world_rotation(): Readonly<Quat> {
-        this.updateTransform();
-        return this._world_rotation;
     }
 
     get euler(): Readonly<Vec3> {
@@ -91,10 +88,19 @@ export default class Node {
         this.dirty(TransformBit.POSITION);
     }
 
+    private _world_rotation: Quat = quat.create()
+    get world_rotation(): Readonly<Quat> {
+        this.updateTransform();
+        return this._world_rotation;
+    }
+
     private _world_position: Vec3 = vec3.create();
     get world_position(): Readonly<Vec3> {
         this.updateTransform();
         return this._world_position;
+    }
+    set world_position(val: Readonly<Vec3>) {
+        this.position = this._parent ? vec3.transformMat4(vec3.create(), val, mat4.invert(mat4.create(), this._parent.matrix)) : val;
     }
 
     private _components: Component[] = [];
