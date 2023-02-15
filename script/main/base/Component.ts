@@ -1,4 +1,4 @@
-import Node from "./Node.js";
+import Node from "../Node.js";
 
 export default abstract class Component {
     constructor(readonly node: Node) { }

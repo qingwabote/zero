@@ -1,5 +1,5 @@
+import Component from "./base/Component.js";
 import EventEmitter from "./base/EventEmitter.js";
-import Component from "./Component.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";

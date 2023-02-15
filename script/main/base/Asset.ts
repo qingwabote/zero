@@ -1,11 +1,4 @@
-import Asset from "./assets/Asset.js";
-
-export default class AssetCache {
-
-    static readonly preloadedAssets: { path: string, type: new () => Asset }[] = [];
-
-    static readonly instance = new AssetCache;
-
+class AssetCache {
     private _path2asset: Map<string, Asset> = new Map;
 
     async load<T extends Asset>(path: string, type: new () => T): Promise<T> {
@@ -21,4 +14,12 @@ export default class AssetCache {
     get<T extends Asset>(path: string, type: new () => T): T {
         return this._path2asset.get(path) as T;
     }
+}
+
+export default abstract class Asset {
+    static readonly preloadedAssets: { path: string, type: new () => Asset }[] = [];
+
+    static readonly cache = new AssetCache;
+
+    abstract load(url: string): Promise<this>;
 }

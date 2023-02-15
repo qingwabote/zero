@@ -1,4 +1,4 @@
-import Component from "../../../../script/main/Component.js";
+import Component from "../../../../script/main/base/Component.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import Label from "../../../../script/main/components/Label.js";
 import BoxShape from "../../../../script/main/components/physics/BoxShape.js";

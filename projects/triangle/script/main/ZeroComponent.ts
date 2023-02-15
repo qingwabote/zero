@@ -1,4 +1,4 @@
-import Component from "../../../../script/main/Component.js";
+import Component from "../../../../script/main/base/Component.js";
 import Input, { Touch } from "../../../../script/main/Input.js";
 import quat from "../../../../script/main/math/quat.js";
 import vec3 from "../../../../script/main/math/vec3.js";

@@ -1,6 +1,6 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
-import AssetCache from "../AssetCache.js";
+import Asset from "../base/Asset.js";
 import MeshRenderer from "../components/MeshRenderer.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
@@ -17,10 +17,9 @@ import Mesh from "../render/Mesh.js";
 import Pass from "../render/Pass.js";
 import PassPhase from "../render/PassPhase.js";
 import samplers from "../render/samplers.js";
-import SubMesh, { Attribute } from "../render/SubMesh.js";
+import SubMesh, { VertexAttribute } from "../render/SubMesh.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 import ShaderLib from "../ShaderLib.js";
-import Asset from "./Asset.js";
 import Material from "./Material.js";
 import Texture from "./Texture.js";
 
@@ -77,7 +76,7 @@ export default class GLTF extends Asset {
         const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         this._bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
-        const textures = await Promise.all(json_images.map((info: any) => AssetCache.instance.load(`${parent}/${uri2path(info.uri)}`, Texture)));
+        const textures = await Promise.all(json_images.map((info: any) => Asset.cache.load(`${parent}/${uri2path(info.uri)}`, Texture)));
 
         const materials: Material[] = [];
         for (const info of json.materials) {
@@ -191,14 +190,14 @@ export default class GLTF extends Asset {
             }
             const vertexBuffers: Buffer[] = [];
             const vertexOffsets: number[] = [];
-            const attributes: Attribute[] = [];
+            const attributes: VertexAttribute[] = [];
             for (const name in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[name]];
                 const format: Format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`];
                 // if (format == undefined) {
                 //     console.error(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`)
                 // }
-                const attribute: Attribute = {
+                const attribute: VertexAttribute = {
                     name: builtinAttributes[name] || name,
                     format,
                     buffer: vertexBuffers.length,

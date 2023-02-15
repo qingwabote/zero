@@ -1,8 +1,8 @@
+import Asset from "../base/Asset.js";
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import Fence from "../gfx/Fence.js";
 import { SampleCountFlagBits } from "../gfx/Pipeline.js";
 import { default as GFX_Texture, TextureUsageBit } from "../gfx/Texture.js";
-import Asset from "./Asset.js";
 
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;

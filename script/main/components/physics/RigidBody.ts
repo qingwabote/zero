@@ -1,4 +1,4 @@
-import Component from "../../Component.js";
+import Component from "../../base/Component.js";
 import Node from "../../Node.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 

@@ -1,4 +1,4 @@
-import Component from "../Component.js";
+import Component from "../base/Component.js";
 import { ZeroEvent } from "../Zero.js";
 import Label from "./Label.js";
 

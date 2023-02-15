@@ -1,4 +1,4 @@
-import Component from "../../../../script/main/Component.js";
+import Component from "../../../../script/main/base/Component.js";
 import Primitive from "../../../../script/main/components/Primitive.js";
 import { InputEvent } from "../../../../script/main/Input.js";
 import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";

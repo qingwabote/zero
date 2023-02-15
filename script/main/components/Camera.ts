@@ -1,4 +1,4 @@
-import Component from "../Component.js";
+import Component from "../base/Component.js";
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";

@@ -1,5 +1,5 @@
 import Material from "../assets/Material.js";
-import Component from "../Component.js";
+import Component from "../base/Component.js";
 import InputAssembler, { IndexInput, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { FormatInfos } from "../gfx/Pipeline.js";
 import Mesh from "../render/Mesh.js";
@@ -25,7 +25,7 @@ export default class MeshRenderer extends Component {
                 const buffer = subMesh.vertexBuffers[binding];
                 let stride = buffer.info.stride;
                 if (!stride) {
-                    const attribute = subMesh.attributes.find(attribute => attribute.buffer == binding)!;
+                    const attribute = subMesh.vertexAttributes.find(attribute => attribute.buffer == binding)!;
                     stride = FormatInfos[attribute.format].size;
                 }
                 bindings.push({
@@ -48,7 +48,7 @@ export default class MeshRenderer extends Component {
             for (let j = 0; j < passes.length; j++) {
                 const pass = passes[j];
                 const attributes: VertexInputAttributeDescription[] = [];
-                for (const attribute of subMesh.attributes) {
+                for (const attribute of subMesh.vertexAttributes) {
                     const definition = pass.state.shader.info.meta.attributes[attribute.name];
                     if (!definition) {
                         // console.warn(`attribute ${attribute.name} has no definition in ${pass.shader.info.name}`)

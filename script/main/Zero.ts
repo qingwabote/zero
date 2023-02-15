@@ -1,4 +1,4 @@
-import AssetCache from "./AssetCache.js";
+import Asset from "./base/Asset.js";
 import EventEmitter from "./base/EventEmitter.js";
 import ComponentScheduler from "./ComponentScheduler.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
@@ -66,7 +66,7 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
 
         await Promise.all(ShaderLib.preloadedShaders.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
 
-        await Promise.all(AssetCache.preloadedAssets.map(info => AssetCache.instance.load(info.path, info.type)));
+        await Promise.all(Asset.preloadedAssets.map(info => Asset.cache.load(info.path, info.type)));
 
         await PhysicsSystem.initialize();
 

@@ -1,4 +1,4 @@
-import Component from "../Component.js";
+import Component from "../base/Component.js";
 import { default as render_DirectionalLight } from "../render/DirectionalLight.js";
 
 export default class DirectionalLight extends Component {

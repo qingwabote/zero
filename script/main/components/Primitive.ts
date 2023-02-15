@@ -1,4 +1,4 @@
-import Component from "../Component.js";
+import Component from "../base/Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";

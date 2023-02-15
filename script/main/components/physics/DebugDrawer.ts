@@ -1,4 +1,4 @@
-import Component from "../../Component.js";
+import Component from "../../base/Component.js";
 import vec3 from "../../math/vec3.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 import Primitive from "../Primitive.js";

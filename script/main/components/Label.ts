@@ -1,8 +1,8 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
-import AssetCache from "../AssetCache.js";
 import FNT from "../assets/FNT.js";
-import Component from "../Component.js";
+import Asset from "../base/Asset.js";
+import Component from "../base/Component.js";
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
 import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
@@ -15,7 +15,7 @@ import SubModel from "../render/SubModel.js";
 import ShaderLib from "../ShaderLib.js";
 
 ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
-AssetCache.preloadedAssets.push({ path: '../../assets/fnt/zero', type: FNT });
+Asset.preloadedAssets.push({ path: '../../assets/fnt/zero', type: FNT });
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -45,7 +45,7 @@ export default class Label extends Component {
         return this._size;
     }
 
-    private _fnt: FNT = AssetCache.instance.get('../../assets/fnt/zero', FNT);
+    private _fnt: FNT = Asset.cache.get('../../assets/fnt/zero', FNT);
 
     private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
 
