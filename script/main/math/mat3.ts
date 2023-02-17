@@ -37,7 +37,7 @@ export default {
     },
 
     /**
-     * @param view The view direction, it`s must be normalized.
+     * @param view The view direction, it's must be normalized.
      */
     fromViewUp(out: Mat3, view: Vec3) {
         const EPSILON = 0.000001;

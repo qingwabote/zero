@@ -1,14 +1,14 @@
-import Component from "../../../../script/main/base/Component.js";
-import Camera from "../../../../script/main/components/Camera.js";
-import Label from "../../../../script/main/components/Label.js";
-import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
-import { InputEvent, Touch } from "../../../../script/main/Input.js";
-import quat from "../../../../script/main/math/quat.js";
-import vec3 from "../../../../script/main/math/vec3.js";
-import ClosestRayResultCallback from "../../../../script/main/physics/ClosestRayResultCallback.js";
-import PhysicsSystem from "../../../../script/main/physics/PhysicsSystem.js";
+import Component from "../base/Component.js";
+import { InputEvent, Touch } from "../Input.js";
+import quat from "../math/quat.js";
+import vec3 from "../math/vec3.js";
+import ClosestRayResultCallback from "../physics/ClosestRayResultCallback.js";
+import PhysicsSystem from "../physics/PhysicsSystem.js";
+import Camera from "./Camera.js";
+import Label from "./Label.js";
+import BoxShape from "./physics/BoxShape.js";
 
-export default class CameraModePanel extends Component {
+export default class CameraControlPanel extends Component {
     camera!: Camera;
 
     private _dirty = true;
@@ -51,22 +51,23 @@ export default class CameraModePanel extends Component {
             const dx = event.touches[0].x - touch.x;
             const dy = event.touches[0].y - touch.y;
 
-            if (Math.abs(dx) > Math.abs(dy)) {
-                const rad = -Math.PI / 180 * dx;
-                if (this.fixed) {
-                    const rotation = quat.fromAxisAngle(quat.create(), vec3.UP, rad);
-                    this.camera.node.position = vec3.transformQuat(vec3.create(), this.camera.node.position, rotation);
-                    this.camera.node.rotation = quat.multiply(quat.create(), this.camera.node.rotation, rotation);
-                } else {
-                    const axis = vec3.UNIT_Y;
+            if (this.fixed) {
+                const rotation = quat.fromEuler(quat.create(), dy, dx, 0);
+                this.camera.node.position = vec3.transformQuat(vec3.create(), this.camera.node.position, rotation);
+
+                const view = vec3.normalize(vec3.create(), this.camera.node.position);
+                this.camera.node.rotation = quat.fromViewUp(quat.create(), view);
+            } else {
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    const rad = -Math.PI / 180 * dx;
                     const rot = quat.create();
-                    quat.fromAxisAngle(rot, axis, rad);
+                    quat.fromAxisAngle(rot, vec3.UNIT_Y, rad);
                     quat.multiply(rot, this.camera.node.rotation, rot);
                     this.camera.node.rotation = rot;
+                } else {
+                    let delta_position = vec3.create(0, dy / 100, 0);
+                    this.camera.node.position = vec3.add(vec3.create(), this.camera.node.position, delta_position);
                 }
-            } else {
-                let delta_position = vec3.create(0, dy / 100, 0);
-                this.camera.node.position = vec3.add(vec3.create(), this.camera.node.position, delta_position);
             }
 
             touch = event.touches[0];
@@ -87,11 +88,12 @@ export default class CameraModePanel extends Component {
             boxShape.size = vec3.create(label.size[0], label.size[1], 100);
             boxShape.origin = vec3.create(label.size[0] / 2, -label.size[1] / 2, 0);
 
+            const view = vec3.normalize(vec3.create(), this.camera.node.position);
             if (this.fixed) {
-                this.camera.node.position = vec3.create(this.camera.node.position[0], 0, this.camera.node.position[2]);
-                const to = vec3.negate(vec3.create(), this.camera.node.position);
-                const rot = quat.rotationTo(quat.create(), vec3.FORWARD, vec3.normalize(vec3.create(), to))
-                this.camera.node.rotation = rot;
+                this.camera.node.rotation = quat.fromViewUp(quat.create(), view);
+            } else {
+                view[1] = 0;
+                this.camera.node.rotation = quat.fromViewUp(quat.create(), view);
             }
 
             this._dirty = false;

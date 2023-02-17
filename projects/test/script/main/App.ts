@@ -1,5 +1,6 @@
 import GLTF from "../../../../script/main/assets/GLTF.js";
 import Camera from "../../../../script/main/components/Camera.js";
+import CameraControlPanel from "../../../../script/main/components/CameraControlPanel.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
@@ -16,7 +17,6 @@ import ShadowStage from "../../../../script/main/pipeline/stages/ShadowStage.js"
 import PassPhase from "../../../../script/main/render/PassPhase.js";
 import VisibilityBit from "../../../../script/main/render/VisibilityBit.js";
 import Zero from "../../../../script/main/Zero.js";
-import CameraModePanel from "./CameraModePanel.js";
 
 const PhaseLightView = 1 << 10;
 
@@ -65,7 +65,7 @@ export default class App extends Zero {
         const gltf_camera = new GLTF();
         await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
         node = gltf_camera.createScene("Sketchfab_Scene", Visibility_Down)!;
-        node.scale = [0.01, 0.01, 0.01];
+        node.scale = [0.005, 0.005, 0.005];
         node.rotation = quat.fromAxisAngle(quat.create(), vec3.UP, Math.PI);
         up_camera.node.addChild(node);
 
@@ -89,7 +89,7 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
-        node.addComponent(CameraModePanel).camera = up_camera;
+        node.addComponent(CameraControlPanel).camera = up_camera;
         node.position = [-width / 2, height / 2, 0];
 
         if (USE_SHADOW_MAP) {

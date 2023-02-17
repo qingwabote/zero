@@ -10,7 +10,7 @@ import { CullMode, Format, PassState, PrimitiveTopology } from "../gfx/Pipeline.
 import mat4 from "../math/mat4.js";
 import { Quat } from "../math/quat.js";
 import { Vec3 } from "../math/vec3.js";
-import vec4, { Vec4 } from "../math/vec4.js";
+import vec4 from "../math/vec4.js";
 import Node from "../Node.js";
 import BufferView from "../render/buffers/BufferView.js";
 import Mesh from "../render/Mesh.js";
@@ -64,7 +64,9 @@ export default class GLTF extends Asset {
         return this._textures;
     }
 
-    private _materials!: Material[];
+    private _default_material!: Material;
+
+    private _materials: Material[] = [];
 
     async load(url: string, USE_SHADOW_MAP = 0): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
@@ -76,56 +78,18 @@ export default class GLTF extends Asset {
         const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         this._bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
-        const textures = await Promise.all(json_images.map((info: any) => Asset.cache.load(`${parent}/${uri2path(info.uri)}`, Texture)));
+        this._textures = await Promise.all(json_images.map((info: any) => Asset.cache.load(`${parent}/${uri2path(info.uri)}`, Texture)));
 
-        const materials: Material[] = [];
-        for (const info of json.materials) {
-            const passes: Pass[] = [];
+        this._default_material = await this.createMaterial(USE_SHADOW_MAP);
 
-            if (USE_SHADOW_MAP) {
-                const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
-                const shadowMapPass = new Pass(
-                    new PassState(
-                        shadowMapShader,
-                        PrimitiveTopology.TRIANGLE_LIST,
-                        { cullMode: CullMode.FRONT }
-                    ),
-                    undefined,
-                    PassPhase.SHADOWMAP
-                );
-                passes.push(shadowMapPass);
+        for (const info of json.materials || []) {
+            let textureIdx = -1;
+            if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
+                textureIdx = json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
             }
-
-            const textureIdx: number = info.pbrMetallicRoughness.baseColorTexture?.index;
-
-            const USE_ALBEDO_MAP = textureIdx == undefined ? 0 : 1;
-
-            const phongShader = await ShaderLib.instance.loadShader('phong', {
-                USE_ALBEDO_MAP,
-                USE_SHADOW_MAP,
-                SHADOW_MAP_PCF: 1,
-                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-            })
-
-            const phoneDescriptorSet = gfx.createDescriptorSet();
-            phoneDescriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(phongShader));
-            if (USE_ALBEDO_MAP) {
-                phoneDescriptorSet.bindTexture(0, textures[json.textures[textureIdx].source].gfx_texture, samplers.get());
-            }
-            const ubo_material = new BufferView('Float32', BufferUsageFlagBits.UNIFORM, 4);
-            const albedo: Vec4 = info.pbrMetallicRoughness.baseColorFactor || vec4.ONE;
-            ubo_material.set(albedo, 0);
-            ubo_material.update()
-            phoneDescriptorSet.bindBuffer(1, ubo_material.buffer);
-
-            const phongPass = new Pass(new PassState(phongShader), phoneDescriptorSet);
-            passes.push(phongPass);
-
-            materials.push(new Material(passes));
+            this._materials.push(await this.createMaterial(USE_SHADOW_MAP, info.pbrMetallicRoughness.baseColorFactor, textureIdx));
         }
-        this._materials = materials;
 
-        this._textures = textures;
         this._json = json;
         return this;
     }
@@ -141,6 +105,48 @@ export default class GLTF extends Asset {
             node.addChild(this.createNode(this._json.nodes[index], visibility))
         }
         return node;
+    }
+
+    private async createMaterial(USE_SHADOW_MAP = 0, albedo = vec4.ONE, textureIdx = -1) {
+        const passes: Pass[] = [];
+
+        if (USE_SHADOW_MAP) {
+            const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
+            const shadowMapPass = new Pass(
+                new PassState(
+                    shadowMapShader,
+                    PrimitiveTopology.TRIANGLE_LIST,
+                    { cullMode: CullMode.FRONT }
+                ),
+                undefined,
+                PassPhase.SHADOWMAP
+            );
+            passes.push(shadowMapPass);
+        }
+
+        const USE_ALBEDO_MAP = textureIdx == -1 ? 0 : 1;
+
+        const phongShader = await ShaderLib.instance.loadShader('phong', {
+            USE_ALBEDO_MAP,
+            USE_SHADOW_MAP,
+            SHADOW_MAP_PCF: 1,
+            CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+        })
+
+        const phoneDescriptorSet = gfx.createDescriptorSet();
+        phoneDescriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(phongShader));
+        if (USE_ALBEDO_MAP) {
+            phoneDescriptorSet.bindTexture(0, this._textures[textureIdx].gfx_texture, samplers.get());
+        }
+        const ubo_material = new BufferView('Float32', BufferUsageFlagBits.UNIFORM, 4);
+        ubo_material.set(albedo, 0);
+        ubo_material.update()
+        phoneDescriptorSet.bindBuffer(1, ubo_material.buffer);
+
+        const phongPass = new Pass(new PassState(phongShader), phoneDescriptorSet);
+        passes.push(phongPass);
+
+        return new Material(passes);
     }
 
     private createNode(info: any, visibility: VisibilityBit): Node {
@@ -177,17 +183,17 @@ export default class GLTF extends Asset {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
         for (const primitive of info.primitives) {
-            if (primitive.material == undefined) {
-                console.log("primitive with no material");
-                continue;
-            }
-            if (this._json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined) {
-                if (primitive.attributes['TEXCOORD_0'] == undefined) {
-                    // throw new Error("not provided attribute: TEXCOORD_0");
-                    console.log("not provided attribute: TEXCOORD_0")
-                    continue;
+            const material = primitive.material == undefined ? this._default_material : this._materials[primitive.material];
+            // assert
+            if (primitive.attributes['TEXCOORD_0'] == undefined) {
+                for (const pass of material.passes) {
+                    if (pass.state.shader.info.meta.samplerTextures['albedoMap']) {
+                        console.log("not provided attribute: TEXCOORD_0")
+                        continue;
+                    }
                 }
             }
+
             const vertexBuffers: Buffer[] = [];
             const vertexOffsets: number[] = [];
             const attributes: VertexAttribute[] = [];
@@ -211,7 +217,7 @@ export default class GLTF extends Asset {
             const accessor = this._json.accessors[primitive.indices];
             const buffer = this.getBuffer(accessor.bufferView, BufferUsageFlagBits.INDEX);
 
-            materials.push(this._materials[primitive.material]);
+            materials.push(material);
 
             if (accessor.type != "SCALAR") {
                 throw new Error("unsupported index type");

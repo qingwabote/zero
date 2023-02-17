@@ -1,10 +1,10 @@
 import GLTF from "../../../../script/main/assets/GLTF.js";
 import Camera from "../../../../script/main/components/Camera.js";
-import CameraControlPanel from "../../../../script/main/components/CameraControlPanel.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/main/gfx/Pipeline.js";
+import quat from "../../../../script/main/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";
 import Node from "../../../../script/main/Node.js";
 import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
@@ -18,7 +18,7 @@ export default class App extends Zero {
     async start(): Promise<RenderFlow> {
         const { width, height } = this.window;
 
-        const lit_position: Vec3 = [4, 4, 4];
+        const lit_position: Vec3 = [0, 4, 4];
 
         let node: Node;
 
@@ -32,12 +32,34 @@ export default class App extends Zero {
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
         main_camera.viewport = { x: 0, y: 0, width, height };
-        node.position = [0, 0, 10];
+        node.position = [10, 10, 10];
+        const view = vec3.normalize(vec3.create(), node.position);
+        node.rotation = quat.fromViewUp(quat.create(), view);
 
         const plane = new GLTF();
-        await plane.load('../../assets/models/primitive');
+        await plane.load('../../assets/models/primitive/scene');
         node = plane.createScene("Cube")!;
-        // node.scale = [4, 4, 4];
+        node.scale = [0.5, 0.5, 0.5];
+
+        const gltf_cone = new GLTF();
+        await gltf_cone.load('../../assets/models/primitive/scene');
+        node = gltf_cone.createScene("Cone")!;
+        node.scale = [0.5, 0.5, 0.5];
+        node.rotation = quat.fromAxisAngle(quat.create(), vec3.UNIT_X, -Math.PI / 2);
+        const moon = new Node;
+        moon.addChild(node);
+        moon.position = [0, 0, 2];
+
+        // const axis = vec3.UNIT_Y;
+        // const speed = 0.01;
+        // const step = quat.fromAxisAngle(quat.create(), axis, speed);
+        const step = quat.fromEuler(quat.create(), 0.5, 0.5, 0);
+        zero.timeScheduler.setInterval(() => {
+            moon.position = vec3.transformQuat(vec3.create(), moon.position, step);
+
+            const view = vec3.normalize(vec3.create(), moon.position);
+            moon.rotation = quat.fromViewUp(quat.create(), view);
+        })
 
         // UI
         node = new Node;
@@ -56,11 +78,6 @@ export default class App extends Zero {
         node.visibility = VisibilityBit.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2 + 200, 0];
-
-        node = new Node;
-        node.visibility = VisibilityBit.UI;
-        node.addComponent(CameraControlPanel).camera = main_camera;
-        node.position = [-width / 2, height / 2, 0];
 
         const stages: RenderStage[] = [];
         stages.push(new ForwardStage([new ModelPhase]));

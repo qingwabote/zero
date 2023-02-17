@@ -1,4 +1,4 @@
-import { Mat3 } from "./mat3.js";
+import mat3, { Mat3 } from "./mat3.js";
 import vec3, { Vec3 } from "./vec3.js";
 
 const halfToRad = 0.5 * Math.PI / 180.0;
@@ -104,6 +104,14 @@ export default {
         }
 
         return out;
+    },
+
+    /**
+     * @param view The view direction, it's must be normalized.
+     */
+    fromViewUp(out: Quat, view: Vec3) {
+        const mat = mat3.fromViewUp(mat3.create(), view);
+        return this.normalize(out, this.fromMat3(out, mat));
     },
 
     fromAxisAngle(out: Quat, axis: Readonly<Vec3>, rad: number) {
