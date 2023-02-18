@@ -2,15 +2,15 @@ import GLTF from "../../../../script/main/assets/GLTF.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import CameraControlPanel from "../../../../script/main/components/CameraControlPanel.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
+import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
+import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
 import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
+import RigidBody from "../../../../script/main/components/physics/RigidBody.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
-import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/main/gfx/Pipeline.js";
+import { ClearFlagBit } from "../../../../script/main/gfx/Pipeline.js";
 import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";
 import Node from "../../../../script/main/Node.js";
-import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import RenderFlow from "../../../../script/main/pipeline/RenderFlow.js";
-import RenderStage from "../../../../script/main/pipeline/RenderStage.js";
-import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
 import VisibilityBit from "../../../../script/main/render/VisibilityBit.js";
 import Zero from "../../../../script/main/Zero.js";
 
@@ -34,10 +34,17 @@ export default class App extends Zero {
         main_camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 10];
 
-        const plane = new GLTF();
-        await plane.load('../../assets/models/primitive');
+        const plane = new GLTF;
+        await plane.load('../../assets/models/primitive/scene');
         node = plane.createScene("Cube")!;
+        const body = node.addComponent(RigidBody);
+        // body.mass = 1;
+        const shape = node.addComponent(BoxShape);
+        const meshRenderer = node.getComponent(MeshRenderer)!;
+        const subMesh = meshRenderer.mesh!.subMeshes[0];
+        shape.size = vec3.subtract(vec3.create(), subMesh.vertexPositionMax, subMesh.vertexPositionMin);
         // node.scale = [4, 4, 4];
+        node.position = [0, 2, 0]
 
         // UI
         node = new Node;
@@ -49,7 +56,7 @@ export default class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
-        node.visibility = VisibilityBit.UI;
+        // node.visibility = VisibilityBit.UI;
         node.addComponent(DebugDrawer);
 
         node = new Node;
@@ -62,9 +69,7 @@ export default class App extends Zero {
         node.addComponent(CameraControlPanel).camera = main_camera;
         node.position = [-width / 2, height / 2, 0];
 
-        const stages: RenderStage[] = [];
-        stages.push(new ForwardStage([new ModelPhase]));
-        return new RenderFlow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);
+        return new RenderFlow;
     }
 }
 

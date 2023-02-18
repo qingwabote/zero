@@ -99,6 +99,10 @@ export default class GLTF extends Asset {
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);
+        if (scene.nodes.length == 1) {
+            return this.createNode(this._json.nodes[scene.nodes[0]], visibility)
+        }
+
         const node = new Node(name);
         node.visibility = visibility;
         for (const index of scene.nodes) {
@@ -196,7 +200,7 @@ export default class GLTF extends Asset {
 
             const vertexBuffers: Buffer[] = [];
             const vertexOffsets: number[] = [];
-            const attributes: VertexAttribute[] = [];
+            const vertexAttributes: VertexAttribute[] = [];
             for (const name in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[name]];
                 const format: Format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`];
@@ -209,21 +213,21 @@ export default class GLTF extends Asset {
                     buffer: vertexBuffers.length,
                     offset: 0
                 }
-                attributes.push(attribute);
+                vertexAttributes.push(attribute);
                 vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX));
                 vertexOffsets.push(accessor.byteOffset || 0);
             }
 
-            const accessor = this._json.accessors[primitive.indices];
-            const buffer = this.getBuffer(accessor.bufferView, BufferUsageFlagBits.INDEX);
+            const indexAccessor = this._json.accessors[primitive.indices];
+            const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
 
             materials.push(material);
 
-            if (accessor.type != "SCALAR") {
+            if (indexAccessor.type != "SCALAR") {
                 throw new Error("unsupported index type");
             }
             let indexType: IndexType;
-            switch (accessor.componentType) {
+            switch (indexAccessor.componentType) {
                 case 5123:
                     indexType = IndexType.UINT16;
                     break;
@@ -233,7 +237,9 @@ export default class GLTF extends Asset {
                 default:
                     throw new Error("unsupported index type");
             }
-            subMeshes.push(new SubMesh(attributes, vertexBuffers, vertexOffsets, buffer, indexType, accessor.count, accessor.byteOffset || 0))
+
+            const posAccessor = this._json.accessors[primitive.attributes['POSITION']];
+            subMeshes.push(new SubMesh(vertexAttributes, vertexBuffers, vertexOffsets, posAccessor.min, posAccessor.max, indexBuffer, indexType, indexAccessor.count, indexAccessor.byteOffset || 0))
         }
 
         const renderer = node.addComponent(MeshRenderer);

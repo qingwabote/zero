@@ -6,6 +6,8 @@ const halfToRad = 0.5 * Math.PI / 180.0;
 export type Quat = [number, number, number, number]
 
 export default {
+    IDENTITY: [0, 0, 0, 1],
+
     create(): Quat {
         return [0, 0, 0, 1]
     },
@@ -30,7 +32,7 @@ export default {
         return out;
     },
 
-    toEuler(out: Vec3, q: Quat): Vec3 {
+    toEuler(out: Vec3, q: Readonly<Quat>): Vec3 {
         const [x, y, z, w] = q;
         let bank = 0;
         let heading = 0;
@@ -191,4 +193,4 @@ export default {
             return this.normalize(out, out);
         }
     }
-}
+} as const

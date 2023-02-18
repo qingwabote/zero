@@ -66,7 +66,8 @@ export default class App extends Zero {
         await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
         node = gltf_camera.createScene("Sketchfab_Scene", Visibility_Down)!;
         node.scale = [0.005, 0.005, 0.005];
-        node.rotation = quat.fromAxisAngle(quat.create(), vec3.UP, Math.PI);
+        // const euler = quat.toEuler(vec3.create(), node.rotation);
+        node.rotation = quat.multiply(quat.create(), node.rotation, quat.fromAxisAngle(quat.create(), vec3.UNIT_Z, Math.PI));
         up_camera.node.addChild(node);
 
         // UI

@@ -4,6 +4,7 @@ import RenderPass from "../gfx/RenderPass.js";
 import { Rect } from "../math/rect.js";
 import Camera from "../render/Camera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
+import ModelPhase from "./phases/ModelPhase.js";
 import PipelineUniform from "./PipelineUniform.js";
 import RenderPhase from "./RenderPhase.js";
 
@@ -27,7 +28,7 @@ export default abstract class RenderStage {
         return this._drawCalls;
     }
 
-    constructor(phases: RenderPhase[], framebuffer?: Framebuffer, renderPass?: RenderPass, viewport?: Rect) {
+    constructor(phases: RenderPhase[] = [new ModelPhase], framebuffer?: Framebuffer, renderPass?: RenderPass, viewport?: Rect) {
         this.visibility = phases.reduce(function (val, phase) { return phase.visibility | val }, 0)
         this._phases = phases;
 

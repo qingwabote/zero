@@ -10,6 +10,7 @@ import Texture, { TextureUsageBit } from "../gfx/Texture.js";
 import ShaderLib from "../ShaderLib.js";
 import PipelineUniform from "./PipelineUniform.js";
 import RenderStage from "./RenderStage.js";
+import ForwardStage from "./stages/ForwardStage.js";
 import CameraUniform from "./uniforms/CameraUniform.js";
 
 export default class RenderFlow {
@@ -42,7 +43,7 @@ export default class RenderFlow {
 
     private _pipelineCache: Record<string, Pipeline> = {};
 
-    constructor(stages: RenderStage[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
+    constructor(stages: RenderStage[] = [new ForwardStage], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
         const uniforms: Set<new () => PipelineUniform> = new Set;
         for (const stage of stages) {
             for (const uniform of stage.getRequestedUniforms()) {

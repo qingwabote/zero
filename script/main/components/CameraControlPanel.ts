@@ -2,11 +2,8 @@ import Component from "../base/Component.js";
 import { InputEvent, Touch } from "../Input.js";
 import quat from "../math/quat.js";
 import vec3 from "../math/vec3.js";
-import ClosestRayResultCallback from "../physics/ClosestRayResultCallback.js";
-import PhysicsSystem from "../physics/PhysicsSystem.js";
 import Camera from "./Camera.js";
 import Label from "./Label.js";
-import BoxShape from "./physics/BoxShape.js";
 
 export default class CameraControlPanel extends Component {
     camera!: Camera;
@@ -24,22 +21,10 @@ export default class CameraControlPanel extends Component {
 
     override start(): void {
         this.node.addComponent(Label);
-        this.node.addComponent(BoxShape);
 
         zero.input.on(InputEvent.TOUCH_START, event => {
             const camera = zero.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
-
             const touch = event.touches[0];
-            const from = vec3.create();
-            const to = vec3.create();
-            camera.screenPointToRay(from, to, touch.x, touch.y);
-
-            const ps = PhysicsSystem.instance;
-            const closestRayResultCallback = new ClosestRayResultCallback(ps);
-            ps.world.rayTest(from, to, closestRayResultCallback);
-            if (closestRayResultCallback.hasHit()) {
-                this.fixed = !this.fixed;
-            }
         })
 
 
@@ -83,10 +68,6 @@ export default class CameraControlPanel extends Component {
         if (this._dirty) {
             const label = this.node.getComponent(Label)!;
             label.text = this.fixed ? "Fixed Camera" : "Wandering Camera";
-
-            const boxShape = this.node.getComponent(BoxShape)!;
-            boxShape.size = vec3.create(label.size[0], label.size[1], 100);
-            boxShape.origin = vec3.create(label.size[0] / 2, -label.size[1] / 2, 0);
 
             const view = vec3.normalize(vec3.create(), this.camera.node.position);
             if (this.fixed) {

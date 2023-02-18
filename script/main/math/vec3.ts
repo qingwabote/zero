@@ -6,6 +6,7 @@ export type Vec3 = [number, number, number];
 export default {
     UNIT_X: [1, 0, 0],
     UNIT_Y: [0, 1, 0],
+    UNIT_Z: [0, 0, 1],
 
     ZERO: [0, 0, 0],
 
@@ -78,6 +79,20 @@ export default {
         out[0] = a[0] + b[0];
         out[1] = a[1] + b[1];
         out[2] = a[2] + b[2];
+        return out;
+    },
+
+    subtract(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+        out[0] = a[0] - b[0];
+        out[1] = a[1] - b[1];
+        out[2] = a[2] - b[2];
+        return out;
+    },
+
+    scale(out: Vec3, a: Readonly<Vec3>, scale: number) {
+        out[0] = a[0] * scale;
+        out[1] = a[1] * scale;
+        out[2] = a[2] * scale;
         return out;
     },
 
