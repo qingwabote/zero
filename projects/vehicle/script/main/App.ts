@@ -45,12 +45,12 @@ export default class App extends Zero {
         node.position = [0, 3, 0];
 
         node = primitive.createScene("Cube")!;
-        node.scale = [4, 0.1, 4]
+        node.scale = [4, 0.1, 4];
+        // node.euler = [20, 0, 0];
         meshRenderer = node.getComponent(MeshRenderer)!;
         subMesh = meshRenderer.mesh.subMeshes[0];
         shape = node.addComponent(BoxShape);
         shape.size = vec3.subtract(vec3.create(), subMesh.vertexPositionMax, subMesh.vertexPositionMin);
-        shape.scale = node.scale;
         node.position = [0, -1, 0];
 
         // UI

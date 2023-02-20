@@ -1,4 +1,5 @@
 import Component from "../../base/Component.js";
+import quat from "../../math/quat.js";
 import vec3 from "../../math/vec3.js";
 import Node from "../../Node.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
@@ -12,8 +13,12 @@ export default class RigidBody extends Component {
     }
     public set mass(value: number) {
         const context = PhysicsSystem.instance;
+        const ammo = context.ammo;
+
+        const shape = ammo.castObject(this.impl.getCollisionShape(), ammo.btCompoundShape)
 
         context.bt_vec3_a.setValue(0, 0, 0);
+        shape.calculateLocalInertia(value, context.bt_vec3_a);
         this.impl.setMassProps(value, context.bt_vec3_a);
 
         this._mass = value;
@@ -35,8 +40,12 @@ export default class RigidBody extends Component {
         }
         motionState.setWorldTransform = (ptr_bt_transform: number) => {
             const bt_transform = ammo.wrapPointer(ptr_bt_transform, ammo.btTransform);
+            // https://github.com/bulletphysics/bullet3/issues/1104#issuecomment-300428776
+            // const bt_transform = this.impl.getWorldTransform();
             const origin = bt_transform.getOrigin();
             node.world_position = vec3.create(origin.x(), origin.y(), origin.z());
+            const rotation = bt_transform.getRotation();
+            node.world_rotation = quat.create(rotation.x(), rotation.y(), rotation.z(), rotation.w());
         }
 
         const compoundShape = new ammo.btCompoundShape();

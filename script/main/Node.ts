@@ -1,5 +1,6 @@
 import Component from "./base/Component.js";
 import EventEmitter from "./base/EventEmitter.js";
+import mat3 from "./math/mat3.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";
@@ -19,6 +20,9 @@ type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Compon
 interface EventMap {
     TRANSFORM_CHANGED: (flag: TransformBit) => void;
 }
+
+const mat3_a = mat3.create();
+const quat_a = quat.create();
 
 export default class Node {
     static frameId = 0;
@@ -93,6 +97,16 @@ export default class Node {
         this.updateTransform();
         return this._world_rotation;
     }
+    set world_rotation(value: Readonly<Quat>) {
+        if (!this._parent) {
+            this.rotation = value;
+            return;
+        }
+
+        quat.conjugate(quat_a, this._parent.world_rotation);
+        quat.multiply(quat_a, quat_a, this.world_rotation);
+        this.rotation = quat_a;
+    }
 
     private _world_position: Vec3 = vec3.create();
     get world_position(): Readonly<Vec3> {
@@ -101,6 +115,11 @@ export default class Node {
     }
     set world_position(val: Readonly<Vec3>) {
         this.position = this._parent ? vec3.transformMat4(vec3.create(), val, mat4.invert(mat4.create(), this._parent.matrix)) : val;
+    }
+
+    private _world_scale: Vec3 = vec3.create(1, 1, 1);
+    public get world_scale(): Vec3 {
+        return this._world_scale;
     }
 
     private _components: Component[] = [];
@@ -162,6 +181,7 @@ export default class Node {
             mat4.fromRTS(this._matrix, this._rotation, this._position, this._scale);
             Object.assign(this._world_rotation, this._rotation);
             Object.assign(this._world_position, this._position);
+            Object.assign(this._world_scale, this._scale);
             this._changed = TransformBit.NONE;
             return;
         }
@@ -173,6 +193,12 @@ export default class Node {
         mat4.multiply(this._matrix, this._parent.matrix, this._matrix);
         quat.multiply(this._world_rotation, this._parent.world_rotation, this._rotation);
         vec3.transformMat4(this._world_position, vec3.ZERO, this._matrix);
+
+        quat.conjugate(quat_a, this._world_rotation);
+        mat3.fromQuat(mat3_a, quat_a);
+        mat3.multiplyMat4(mat3_a, mat3_a, this._matrix);
+        vec3.set(this._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
+
         this._changed = TransformBit.NONE;
         // }
     }

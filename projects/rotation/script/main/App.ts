@@ -36,30 +36,30 @@ export default class App extends Zero {
         const view = vec3.normalize(vec3.create(), node.position);
         node.rotation = quat.fromViewUp(quat.create(), view);
 
-        const plane = new GLTF();
-        await plane.load('../../assets/models/primitive/scene');
-        node = plane.createScene("Cube")!;
+        const primitive = new GLTF();
+        await primitive.load('../../assets/models/primitive/scene');
+        node = primitive.createScene("Cube")!;
         node.scale = [0.5, 0.5, 0.5];
 
-        const gltf_cone = new GLTF();
-        await gltf_cone.load('../../assets/models/primitive/scene');
-        node = gltf_cone.createScene("Cone")!;
+        node = primitive.createScene("Cone")!;
         node.scale = [0.5, 0.5, 0.5];
-        node.rotation = quat.fromAxisAngle(quat.create(), vec3.UNIT_X, -Math.PI / 2);
         const moon = new Node;
         moon.addChild(node);
+        moon.rotation = quat.fromAxisAngle(quat.create(), vec3.UNIT_X, -Math.PI / 2);
         moon.position = [0, 0, 2];
+
+        node.world_rotation = quat.fromAxisAngle(quat.create(), vec3.UNIT_X, -Math.PI / 2);
 
         // const axis = vec3.UNIT_Y;
         // const speed = 0.01;
         // const step = quat.fromAxisAngle(quat.create(), axis, speed);
-        const step = quat.fromEuler(quat.create(), 0.5, 0.5, 0);
-        zero.timeScheduler.setInterval(() => {
-            moon.position = vec3.transformQuat(vec3.create(), moon.position, step);
+        // const step = quat.fromEuler(quat.create(), 0.5, 0.5, 0);
+        // zero.timeScheduler.setInterval(() => {
+        //     moon.position = vec3.transformQuat(vec3.create(), moon.position, step);
 
-            const view = vec3.normalize(vec3.create(), moon.position);
-            moon.rotation = quat.fromViewUp(quat.create(), view);
-        })
+        //     const view = vec3.normalize(vec3.create(), moon.position);
+        //     moon.rotation = quat.fromViewUp(quat.create(), view);
+        // })
 
         // UI
         node = new Node;

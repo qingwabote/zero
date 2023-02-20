@@ -8,8 +8,8 @@ export type Quat = [number, number, number, number]
 export default {
     IDENTITY: [0, 0, 0, 1],
 
-    create(): Quat {
-        return [0, 0, 0, 1]
+    create(x = 0, y = 0, z = 0, w = 1): Quat {
+        return [x, y, z, w]
     },
 
     fromEuler(out: Quat, x: number, y: number, z: number): Quat {
@@ -148,6 +148,14 @@ export default {
         out[1] = -a[1] * invDot;
         out[2] = -a[2] * invDot;
         out[3] = a[3] * invDot;
+        return out;
+    },
+
+    conjugate(out: Quat, a: Readonly<Quat>) {
+        out[0] = -a[0];
+        out[1] = -a[1];
+        out[2] = -a[2];
+        out[3] = a[3];
         return out;
     },
 

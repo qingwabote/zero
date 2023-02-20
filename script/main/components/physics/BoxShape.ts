@@ -1,6 +1,6 @@
 import Component from "../../base/Component.js";
 import vec3, { Vec3 } from "../../math/vec3.js";
-import Node from "../../Node.js";
+import Node, { TransformBit } from "../../Node.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 import RigidBody from "./RigidBody.js";
 
@@ -13,15 +13,6 @@ enum DirtyFlagBits {
 
 export default class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;
-
-    private _scale: Readonly<Vec3> = vec3.create(1, 1, 1);
-    public get scale(): Readonly<Vec3> {
-        return this._scale;
-    }
-    public set scale(value: Readonly<Vec3>) {
-        this._scale = value;
-        this._dirtyFlags |= DirtyFlagBits.SCALE;
-    }
 
     private _size: Vec3 = vec3.create(0, 0, 0);
     public get size(): Vec3 {
@@ -69,11 +60,16 @@ export default class BoxShape extends Component {
         const ps = PhysicsSystem.instance;
         const ammo = ps.ammo;
 
+        if (this.node.hasChanged & TransformBit.SCALE) {
+            this._dirtyFlags |= DirtyFlagBits.SCALE;
+        }
+
         if (this._dirtyFlags & DirtyFlagBits.SCALE) {
-            const scale = vec3.multiply(vec3.create(), this._size, this._scale);
+            const scale = vec3.multiply(vec3.create(), this._size, this.node.world_scale);
             ps.bt_vec3_a.setValue(...scale);
             this._impl.setLocalScaling(ps.bt_vec3_a);
         }
+
         if (this._dirtyFlags & DirtyFlagBits.ORIGIN) {
             ps.bt_vec3_a.setValue(...this._origin);
             ps.bt_transform_a.setIdentity();
@@ -82,6 +78,7 @@ export default class BoxShape extends Component {
             const compound = ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape);
             compound.updateChildTransform(this.getIndex(), ps.bt_transform_a);
         }
+
         this._dirtyFlags = DirtyFlagBits.NONE;
     }
 
