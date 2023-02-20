@@ -89,6 +89,13 @@ export default {
         return out;
     },
 
+    multiply(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+        out[0] = a[0] * b[0];
+        out[1] = a[1] * b[1];
+        out[2] = a[2] * b[2];
+        return out;
+    },
+
     scale(out: Vec3, a: Readonly<Vec3>, scale: number) {
         out[0] = a[0] * scale;
         out[1] = a[1] * scale;

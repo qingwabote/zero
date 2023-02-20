@@ -1,11 +1,12 @@
 import Component from "../../base/Component.js";
 import vec3, { Vec3 } from "../../math/vec3.js";
+import Node from "../../Node.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 import RigidBody from "./RigidBody.js";
 
 enum DirtyFlagBits {
     NONE = 0,
-    SIZE = 1 << 0,
+    SCALE = 1 << 0,
     ORIGIN = 1 << 1,
     ALL = 0xffffffff
 }
@@ -13,13 +14,22 @@ enum DirtyFlagBits {
 export default class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;
 
-    private _size: Vec3 = vec3.create(100, 100, 100);
+    private _scale: Readonly<Vec3> = vec3.create(1, 1, 1);
+    public get scale(): Readonly<Vec3> {
+        return this._scale;
+    }
+    public set scale(value: Readonly<Vec3>) {
+        this._scale = value;
+        this._dirtyFlags |= DirtyFlagBits.SCALE;
+    }
+
+    private _size: Vec3 = vec3.create(0, 0, 0);
     public get size(): Vec3 {
         return this._size;
     }
     public set size(value: Vec3) {
         this._size = value;
-        this._dirtyFlags |= DirtyFlagBits.SIZE;
+        this._dirtyFlags |= DirtyFlagBits.SCALE;
     }
 
     private _origin: Vec3 = vec3.create(0, 0, 0);
@@ -31,9 +41,13 @@ export default class BoxShape extends Component {
         this._dirtyFlags |= DirtyFlagBits.ORIGIN;
     }
 
+    readonly body: RigidBody;
+
     private _impl: any;
 
-    override start(): void {
+    constructor(node: Node) {
+        super(node);
+
         let body = this.node.getComponent(RigidBody);
         if (!body) {
             body = this.node.addComponent(RigidBody);
@@ -47,14 +61,17 @@ export default class BoxShape extends Component {
         ps.bt_vec3_a.setValue(...this._origin);
         ps.bt_transform_a.setIdentity();
         ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape).addChildShape(ps.bt_transform_a, this._impl);
+
+        this.body = body;
     }
 
     override update(): void {
         const ps = PhysicsSystem.instance;
         const ammo = ps.ammo;
 
-        if (this._dirtyFlags & DirtyFlagBits.SIZE) {
-            ps.bt_vec3_a.setValue(...this._size);
+        if (this._dirtyFlags & DirtyFlagBits.SCALE) {
+            const scale = vec3.multiply(vec3.create(), this._size, this._scale);
+            ps.bt_vec3_a.setValue(...scale);
             this._impl.setLocalScaling(ps.bt_vec3_a);
         }
         if (this._dirtyFlags & DirtyFlagBits.ORIGIN) {

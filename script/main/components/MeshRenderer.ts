@@ -6,15 +6,16 @@ import Mesh from "../render/Mesh.js";
 import Model from "../render/Model.js";
 import SubModel from "../render/SubModel.js";
 
+const emptyMesh = { subMeshes: [] };
+
 export default class MeshRenderer extends Component {
-    mesh: Mesh | undefined;
+    mesh: Mesh = emptyMesh;
 
     materials: Material[] | undefined;
 
     private _model!: Model;
 
     override start(): void {
-        if (!this.mesh) return;
         if (!this.materials) return;
 
         const subModels: SubModel[] = [];

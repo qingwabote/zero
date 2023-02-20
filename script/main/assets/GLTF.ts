@@ -13,11 +13,10 @@ import { Vec3 } from "../math/vec3.js";
 import vec4 from "../math/vec4.js";
 import Node from "../Node.js";
 import BufferView from "../render/buffers/BufferView.js";
-import Mesh from "../render/Mesh.js";
+import { SubMesh, VertexAttribute } from "../render/Mesh.js";
 import Pass from "../render/Pass.js";
 import PassPhase from "../render/PassPhase.js";
 import samplers from "../render/samplers.js";
-import SubMesh, { VertexAttribute } from "../render/SubMesh.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 import ShaderLib from "../ShaderLib.js";
 import Material from "./Material.js";
@@ -239,11 +238,20 @@ export default class GLTF extends Asset {
             }
 
             const posAccessor = this._json.accessors[primitive.attributes['POSITION']];
-            subMeshes.push(new SubMesh(vertexAttributes, vertexBuffers, vertexOffsets, posAccessor.min, posAccessor.max, indexBuffer, indexType, indexAccessor.count, indexAccessor.byteOffset || 0))
+            subMeshes.push({
+                vertexAttributes,
+                vertexBuffers,
+                vertexOffsets,
+                vertexPositionMin: posAccessor.min,
+                vertexPositionMax: posAccessor.max,
+                indexBuffer, indexType, indexCount:
+                    indexAccessor.count,
+                indexOffset: indexAccessor.byteOffset || 0
+            })
         }
 
         const renderer = node.addComponent(MeshRenderer);
-        renderer.mesh = new Mesh(subMeshes);
+        renderer.mesh = { subMeshes }
         renderer.materials = materials;
     }
 

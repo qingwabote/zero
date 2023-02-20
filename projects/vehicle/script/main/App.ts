@@ -5,7 +5,6 @@ import DirectionalLight from "../../../../script/main/components/DirectionalLigh
 import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
 import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
 import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
-import RigidBody from "../../../../script/main/components/physics/RigidBody.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import { ClearFlagBit } from "../../../../script/main/gfx/Pipeline.js";
 import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";
@@ -34,17 +33,25 @@ export default class App extends Zero {
         main_camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 10];
 
-        const plane = new GLTF;
-        await plane.load('../../assets/models/primitive/scene');
-        node = plane.createScene("Cube")!;
-        const body = node.addComponent(RigidBody);
-        // body.mass = 1;
-        const shape = node.addComponent(BoxShape);
-        const meshRenderer = node.getComponent(MeshRenderer)!;
-        const subMesh = meshRenderer.mesh!.subMeshes[0];
+        const primitive = new GLTF;
+        await primitive.load('../../assets/models/primitive/scene');
+        node = primitive.createScene("Cube")!;
+        let meshRenderer = node.getComponent(MeshRenderer)!;
+        let subMesh = meshRenderer.mesh.subMeshes[0];
+        let shape = node.addComponent(BoxShape);
+        shape.body.mass = 1;
         shape.size = vec3.subtract(vec3.create(), subMesh.vertexPositionMax, subMesh.vertexPositionMin);
         // node.scale = [4, 4, 4];
-        node.position = [0, 2, 0]
+        node.position = [0, 3, 0];
+
+        node = primitive.createScene("Cube")!;
+        node.scale = [4, 0.1, 4]
+        meshRenderer = node.getComponent(MeshRenderer)!;
+        subMesh = meshRenderer.mesh.subMeshes[0];
+        shape = node.addComponent(BoxShape);
+        shape.size = vec3.subtract(vec3.create(), subMesh.vertexPositionMax, subMesh.vertexPositionMin);
+        shape.scale = node.scale;
+        node.position = [0, -1, 0];
 
         // UI
         node = new Node;
