@@ -12,9 +12,7 @@ import ShaderLib from "../ShaderLib.js";
 
 ShaderLib.preloadedShaders.push({ name: 'primitive' })
 
-// const VERTEX_COMPONENTS = 3 + 4;
-
-const VERTEX_COMPONENTS = 3;
+const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
 export default class Primitive extends Component {
     private _buffer: BufferViewResizable = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
@@ -35,11 +33,11 @@ export default class Primitive extends Component {
         let offset = this._vertexCount * VERTEX_COMPONENTS;
         this._buffer.set(from, offset);
         offset += 3
-        // this._buffer.set(color, offset)
-        // offset += 4
+        this._buffer.set(color, offset)
+        offset += 4
         this._buffer.set(to, offset);
-        // offset += 3
-        // this._buffer.set(color, offset);
+        offset += 3
+        this._buffer.set(color, offset);
 
         this._vertexCount += 2;
     }
@@ -47,18 +45,32 @@ export default class Primitive extends Component {
     start() {
         const shader = ShaderLib.instance.getShader('primitive');
         const attributes: VertexInputAttributeDescription[] = [];
-        const bindings: VertexInputBindingDescription[] = [];
-        let definition = shader.info.meta.attributes["a_position"];
-        let attribute: VertexInputAttributeDescription = {
-            location: definition.location,
-            format: definition.format,
+
+        let offset = 0;
+        const definition_position = shader.info.meta.attributes["a_position"];
+        const attribute_position: VertexInputAttributeDescription = {
+            location: definition_position.location,
+            format: definition_position.format,
             binding: 0,
-            offset: 0
+            offset
         };
-        attributes.push(attribute);
+        attributes.push(attribute_position);
+        offset += FormatInfos[attribute_position.format].size;
+
+        const definition_color = shader.info.meta.attributes["a_color"];
+        const attribute_color: VertexInputAttributeDescription = {
+            location: definition_color.location,
+            format: definition_color.format,
+            binding: 0,
+            offset
+        };
+        attributes.push(attribute_color);
+        offset += FormatInfos[attribute_color.format].size;
+
+        const bindings: VertexInputBindingDescription[] = [];
         bindings.push({
-            binding: attribute.binding,
-            stride: FormatInfos[attribute.format].size,
+            binding: attribute_position.binding,
+            stride: offset,
             inputRate: VertexInputRate.VERTEX
         })
         this._vertexInputState = new VertexInputState(attributes, bindings);

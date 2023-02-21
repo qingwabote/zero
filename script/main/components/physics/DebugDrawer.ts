@@ -1,5 +1,6 @@
 import Component from "../../base/Component.js";
 import vec3 from "../../math/vec3.js";
+import vec4 from "../../math/vec4.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 import Primitive from "../Primitive.js";
 
@@ -19,7 +20,10 @@ export default class DebugDrawer extends Component {
             const to = vec3.create(bt_to.x(), bt_to.y(), bt_to.z());
             // ammo.destroy(bt_to);// FIXME
 
-            primitive.drawLine(from, to);
+            const bt_color = ammo.wrapPointer(ptr_color, ammo.btVector3);
+            const color = vec4.create(bt_color.x(), bt_color.y(), bt_color.z(), 1);
+
+            primitive.drawLine(from, to, color);
         }
         bt_debugDrawer.drawContactPoint = (pointOnB: any, normalOnB: any, distance: any, lifeTime: any, color: any) => {
             console.log("drawContactPoint")
