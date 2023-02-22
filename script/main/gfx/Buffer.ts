@@ -30,7 +30,6 @@ export default interface Buffer {
     get info(): BufferInfo;
     initialize(info: BufferInfo): boolean;
     update(buffer: ArrayBufferView): void;
-    destroy(): void;
 }
 
 export class EmptyBuffer implements Buffer {
@@ -42,7 +41,4 @@ export class EmptyBuffer implements Buffer {
     }
     update(buffer: ArrayBufferView): void {
     }
-    destroy(): void {
-    }
-
 }

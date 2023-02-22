@@ -1,3 +1,4 @@
+import autorelease from "../../../main/base/autorelease.js";
 import { Framebuffer, FramebufferInfo } from "../../../main/gfx/Framebuffer.js";
 import { SampleCountFlagBits } from "../../../main/gfx/Pipeline.js";
 import WebTexture from "./WebTexture.js";
@@ -5,9 +6,9 @@ import WebTexture from "./WebTexture.js";
 export default class WebFramebuffer implements Framebuffer {
     private _gl: WebGL2RenderingContext;
 
-    private _framebuffer: WebGLFramebuffer | null = null;
-    get framebuffer(): WebGLFramebuffer | null {
-        return this._framebuffer;
+    private _impl!: WebGLFramebuffer;
+    get impl(): WebGLFramebuffer {
+        return this._impl;
     }
 
     private _info!: FramebufferInfo;
@@ -35,7 +36,7 @@ export default class WebFramebuffer implements Framebuffer {
         //     }
         // }
 
-        const framebuffer = gl.createFramebuffer()!;
+        const framebuffer = autorelease.add(this, gl.createFramebuffer()!, gl.deleteFramebuffer, gl);
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
         for (let i = 0; i < info.colorAttachments.length; i++) {
@@ -80,7 +81,7 @@ export default class WebFramebuffer implements Framebuffer {
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        this._framebuffer = framebuffer;
+        this._impl = framebuffer;
 
         return false;
     }

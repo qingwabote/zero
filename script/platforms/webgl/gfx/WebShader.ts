@@ -1,3 +1,4 @@
+import autorelease from "../../../main/base/autorelease.js";
 import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits, Uniform } from "../../../main/gfx/Shader.js";
 
 export default class WebShader implements Shader {
@@ -42,7 +43,7 @@ export default class WebShader implements Shader {
             shaders.push(shader);
         }
 
-        const program = gl.createProgram()!;
+        const program = autorelease.add(this, gl.createProgram()!, gl.deleteProgram, gl);
         for (const shader of shaders) {
             gl.attachShader(program, shader);
         }

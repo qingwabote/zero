@@ -1,3 +1,4 @@
+import autorelease from "../../../main/base/autorelease.js";
 import { SampleCountFlagBits } from "../../../main/gfx/Pipeline.js";
 import Texture, { TextureInfo, TextureUsageBit } from "../../../main/gfx/Texture.js";
 
@@ -32,7 +33,7 @@ export default class WebTexture implements Texture {
         }
 
         if (info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-            this._texture = gl.createTexture()!;
+            this._texture = autorelease.add(this, gl.createTexture()!, gl.deleteTexture, gl);
             gl.bindTexture(gl.TEXTURE_2D, this._texture);
             gl.texStorage2D(gl.TEXTURE_2D, 1, format, info.width, info.height);
 
@@ -46,7 +47,7 @@ export default class WebTexture implements Texture {
 
             gl.bindTexture(gl.TEXTURE_2D, null);
         } else {
-            this._renderbuffer = gl.createRenderbuffer()!;
+            this._renderbuffer = autorelease.add(this, gl.createRenderbuffer()!, gl.deleteRenderbuffer, gl);
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer);
             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, info.samples, format, info.width, info.height);
 

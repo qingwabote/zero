@@ -88,7 +88,7 @@ export default class WebCommandBuffer implements CommandBuffer {
     beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect) {
         const gl = this._gl;
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, (framebuffer as WebFramebuffer).framebuffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, (framebuffer as WebFramebuffer).impl);
         this._framebuffer = framebuffer as WebFramebuffer;
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
@@ -162,12 +162,12 @@ export default class WebCommandBuffer implements CommandBuffer {
         for (const layoutBinding of ((descriptorSet as WebDescriptorSet).layout as WebDescriptorSetLayout).bindings) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
                 const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
-                gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer);
+                gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl);
             } else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
                 const offset = dynamicOffsets![dynamicIndex++];
                 const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
                 const range = (descriptorSet as WebDescriptorSet).getBufferRange(layoutBinding.binding);
-                gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.buffer, offset, range);
+                gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl, offset, range);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
                 const texture = (descriptorSet as WebDescriptorSet).getTexture(layoutBinding.binding) as WebTexture;
                 const unit = layoutBinding.binding + index * 10;
@@ -175,7 +175,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);
 
                 const sampler = (descriptorSet as WebDescriptorSet).getSampler(layoutBinding.binding) as WebSampler;
-                gl.bindSampler(unit, sampler.sampler);
+                gl.bindSampler(unit, sampler.impl);
             }
         }
     }
@@ -193,7 +193,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                 const binding = inputAssemblerInfo.vertexInputState.bindings[attribute.binding];
                 const buffer = inputAssemblerInfo.vertexInput.vertexBuffers[attribute.binding] as WebBuffer;
                 const offset = inputAssemblerInfo.vertexInput.vertexOffsets[attribute.binding];
-                gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
                 let type: GLenum
@@ -216,7 +216,7 @@ export default class WebCommandBuffer implements CommandBuffer {
                     offset + attribute.offset);
             }
             if (inputAssemblerInfo.indexInput) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput.indexBuffer as WebBuffer).buffer);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput.indexBuffer as WebBuffer).impl);
             }
             input2vao.set(inputAssemblerInfo, vao);
 
@@ -260,7 +260,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         for (const attachment of this._framebuffer.info.resolveAttachments) {
             if (attachment == gfx.swapchain.colorTexture) {
-                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.framebuffer);
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
                 gl.blitFramebuffer(

@@ -1,3 +1,4 @@
+import autorelease from "../../../main/base/autorelease.js";
 import Buffer, { BufferInfo, BufferUsageFlagBits } from "../../../main/gfx/Buffer.js";
 
 function usage2target(usage: BufferUsageFlagBits): GLenum {
@@ -14,9 +15,9 @@ function usage2target(usage: BufferUsageFlagBits): GLenum {
 export default class WebBuffer implements Buffer {
     private _gl: WebGL2RenderingContext;
 
-    private _buffer!: WebGLBuffer;
-    get buffer(): WebGLBuffer {
-        return this._buffer;
+    private _impl!: WebGLBuffer;
+    get impl(): WebGLBuffer {
+        return this._impl;
     }
 
     private _info!: BufferInfo;
@@ -31,12 +32,13 @@ export default class WebBuffer implements Buffer {
     initialize(info: BufferInfo): boolean {
         const gl = this._gl;
 
-        this._buffer = gl.createBuffer()!
+        const impl = autorelease.add(this, gl.createBuffer()!, gl.deleteBuffer, gl);
         const target = usage2target(info.usage);
-        gl.bindBuffer(target, this._buffer);
+        gl.bindBuffer(target, impl);
         gl.bufferData(target, info.size, gl.STATIC_DRAW);
         gl.bindBuffer(target, null);
 
+        this._impl = impl;
         this._info = info;
 
         return false;
@@ -49,15 +51,9 @@ export default class WebBuffer implements Buffer {
 
         gl.bindVertexArray(null);
 
-        gl.bindBuffer(target, this._buffer);
+        gl.bindBuffer(target, this._impl);
         gl.bufferSubData(target, 0, buffer);
 
         gl.bindBuffer(target, null);
-    }
-
-    destroy(): void {
-        const gl = this._gl;
-
-        gl.deleteBuffer(this._buffer);
     }
 }
