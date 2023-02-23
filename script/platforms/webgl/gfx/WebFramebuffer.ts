@@ -1,4 +1,4 @@
-import autorelease from "../../../main/base/autorelease.js";
+import SmartRef from "../../../main/base/SmartRef.js";
 import { Framebuffer, FramebufferInfo } from "../../../main/gfx/Framebuffer.js";
 import { SampleCountFlagBits } from "../../../main/gfx/Pipeline.js";
 import WebTexture from "./WebTexture.js";
@@ -6,8 +6,8 @@ import WebTexture from "./WebTexture.js";
 export default class WebFramebuffer implements Framebuffer {
     private _gl: WebGL2RenderingContext;
 
-    private _impl!: WebGLFramebuffer;
-    get impl(): WebGLFramebuffer {
+    private _impl?: SmartRef<WebGLFramebuffer>;
+    get impl(): SmartRef<WebGLFramebuffer> | undefined {
         return this._impl;
     }
 
@@ -30,28 +30,23 @@ export default class WebFramebuffer implements Framebuffer {
                 return false;
             }
         }
-        // for (const attachment of info.resolveAttachments) {
-        //     if (attachment == gfx.swapchain.colorTexture) {
-        //         return false;
-        //     }
-        // }
 
-        const framebuffer = autorelease.add(this, gl.createFramebuffer()!, gl.deleteFramebuffer, gl);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        const framebuffer = new SmartRef(gl.createFramebuffer()!, gl.deleteFramebuffer, gl)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.deref());
 
         for (let i = 0; i < info.colorAttachments.length; i++) {
             const attachment = info.colorAttachments[i] as WebTexture;
             if (attachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, attachment.texture, 0);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, attachment.texture.deref(), 0);
             } else {
-                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, attachment.renderbuffer);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, attachment.renderbuffer.deref());
             }
         }
         const depthStencilAttachment = info.depthStencilAttachment as WebTexture;
         if (depthStencilAttachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthStencilAttachment.texture, 0);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthStencilAttachment.texture.deref(), 0);
         } else {
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilAttachment.renderbuffer);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilAttachment.renderbuffer.deref());
         }
 
         // gl.drawBuffers([gl.NONE]);

@@ -1,17 +1,17 @@
-import autorelease from "../../../main/base/autorelease.js";
+import SmartRef from "../../../main/base/SmartRef.js";
 import { SampleCountFlagBits } from "../../../main/gfx/Pipeline.js";
 import Texture, { TextureInfo, TextureUsageBit } from "../../../main/gfx/Texture.js";
 
 export default class WebTexture implements Texture {
     private _gl: WebGL2RenderingContext;
 
-    private _texture!: WebGLTexture;
-    get texture(): WebGLTexture {
+    private _texture!: SmartRef<WebGLTexture>;
+    get texture(): SmartRef<WebGLTexture> {
         return this._texture;
     }
 
-    private _renderbuffer!: WebGLRenderbuffer;
-    get renderbuffer(): WebGLRenderbuffer {
+    private _renderbuffer!: SmartRef<WebGLRenderbuffer>;
+    get renderbuffer(): SmartRef<WebGLRenderbuffer> {
         return this._renderbuffer;
     }
 
@@ -33,8 +33,8 @@ export default class WebTexture implements Texture {
         }
 
         if (info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-            this._texture = autorelease.add(this, gl.createTexture()!, gl.deleteTexture, gl);
-            gl.bindTexture(gl.TEXTURE_2D, this._texture);
+            this._texture = new SmartRef(gl.createTexture()!, gl.deleteTexture, gl)
+            gl.bindTexture(gl.TEXTURE_2D, this._texture.deref());
             gl.texStorage2D(gl.TEXTURE_2D, 1, format, info.width, info.height);
 
             // just for rendering depth map
@@ -47,8 +47,8 @@ export default class WebTexture implements Texture {
 
             gl.bindTexture(gl.TEXTURE_2D, null);
         } else {
-            this._renderbuffer = autorelease.add(this, gl.createRenderbuffer()!, gl.deleteRenderbuffer, gl);
-            gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer);
+            this._renderbuffer = new SmartRef(gl.createRenderbuffer()!, gl.deleteRenderbuffer, gl)
+            gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer.deref());
             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, info.samples, format, info.width, info.height);
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
