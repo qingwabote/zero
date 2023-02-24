@@ -1,26 +1,22 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
-import DescriptorSetLayout, { DescriptorSetLayoutBinding } from "../gfx/DescriptorSetLayout.js";
+import { DescriptorSetLayoutBinding } from "../gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
-import { VertexInputState } from "../gfx/InputAssembler.js";
-import Pipeline, { ClearFlagBit, PassState, PipelineLayout, SampleCountFlagBits } from "../gfx/Pipeline.js";
+import { ClearFlagBit, PipelineLayout, SampleCountFlagBits } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo } from "../gfx/RenderPass.js";
-import Shader from "../gfx/Shader.js";
 import Texture, { TextureUsageBit } from "../gfx/Texture.js";
 import ShaderLib from "../ShaderLib.js";
-import PipelineUniform from "./PipelineUniform.js";
-import RenderStage from "./RenderStage.js";
-import ForwardStage from "./stages/ForwardStage.js";
-import CameraUniform from "./uniforms/CameraUniform.js";
+import Stage from "./Stage.js";
+import Uniform from "./Uniform.js";
 
-export default class RenderFlow {
+export default class Flow {
     private _framebuffer: Framebuffer;
     get framebuffer(): Framebuffer {
         return this._framebuffer;
     }
 
-    private _stages: RenderStage[];
-    get stages(): RenderStage[] {
+    private _stages: Stage[];
+    get stages(): Stage[] {
         return this._stages;
     }
 
@@ -29,22 +25,16 @@ export default class RenderFlow {
         return this._drawCalls;
     }
 
-    private _globalDescriptorSetLayout: DescriptorSetLayout;
-
     readonly globalDescriptorSet: DescriptorSet;
 
-    private _uniforms: PipelineUniform[] = [];
+    private _uniforms: Uniform[] = [];
 
     private _globalPipelineLayout: PipelineLayout;
 
     private _clearFlag2renderPass: Record<string, RenderPass> = {};
 
-    private _pipelineLayoutCache: Record<string, PipelineLayout> = {};
-
-    private _pipelineCache: Record<string, Pipeline> = {};
-
-    constructor(stages: RenderStage[] = [new ForwardStage], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
-        const uniforms: Set<new () => PipelineUniform> = new Set;
+    constructor(stages: Stage[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
+        const uniforms: Set<new () => Uniform> = new Set;
         for (const stage of stages) {
             for (const uniform of stage.getRequestedUniforms()) {
                 uniforms.add(uniform);
@@ -69,8 +59,6 @@ export default class RenderFlow {
         const pipelineLayout = gfx.createPipelineLayout();
         pipelineLayout.initialize([descriptorSetLayout]);
         this._globalPipelineLayout = pipelineLayout;
-
-        this._globalDescriptorSetLayout = descriptorSetLayout;
 
         this.globalDescriptorSet = descriptorSet;
 
@@ -121,11 +109,11 @@ export default class RenderFlow {
     record(commandBuffer: CommandBuffer) {
         this._drawCalls = 0;
 
-        const renderScene = zero.render_scene;
+        const renderScene = zero.scene;
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.set, this.globalDescriptorSet,
-                [CameraUniform.getDynamicOffset(cameraIndex)]);
+                [ShaderLib.sets.global.uniforms.Camera.size * cameraIndex]);
             for (const stage of this._stages) {
                 if ((camera.visibilities & stage.visibility) == 0) {
                     continue;
@@ -171,33 +159,5 @@ export default class RenderFlow {
             this._clearFlag2renderPass[hash] = renderPass;
         }
         return renderPass;
-    }
-
-    getPipelineLayout(shader: Shader): PipelineLayout {
-        let layout = this._pipelineLayoutCache[shader.info.hash];
-        if (!layout) {
-            layout = gfx.createPipelineLayout();
-            layout.initialize([
-                this._globalDescriptorSetLayout,
-                ShaderLib.builtinDescriptorSetLayouts.local,
-                ShaderLib.instance.getDescriptorSetLayout(shader)
-            ])
-            this._pipelineLayoutCache[shader.info.hash] = layout;
-        }
-        return layout;
-    }
-
-    /**
-     * @param renderPass a compatible renderPass
-     */
-    getPipeline(passState: PassState, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
-        const pipelineHash = passState.hash + vertexInputState.hash + renderPass.info.compatibleHash;
-        let pipeline = this._pipelineCache[pipelineHash];
-        if (!pipeline) {
-            pipeline = gfx.createPipeline();
-            pipeline.initialize({ passState, vertexInputState, renderPass, layout, });
-            this._pipelineCache[pipelineHash] = pipeline;
-        }
-        return pipeline;
     }
 }

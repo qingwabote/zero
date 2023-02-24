@@ -3,7 +3,7 @@ import RenderPass from "../gfx/RenderPass.js";
 import Camera from "../render/Camera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
 
-export default abstract class RenderPhase {
+export default abstract class Phase {
     private _visibility: VisibilityBit;
     get visibility(): VisibilityBit {
         return this._visibility;

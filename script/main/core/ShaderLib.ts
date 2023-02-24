@@ -1,13 +1,36 @@
 import DescriptorSetLayout, { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/DescriptorSetLayout.js";
 import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
-import preprocessor from "./preprocessor.js";
+import preprocessor from "./internal/preprocessor.js";
+
+function align(size: number) {
+    const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
+    return Math.ceil(size / alignment) * alignment;
+}
 
 /**
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
 const sets = {
     global: {
-        set: 0
+        set: 0,
+        uniforms: {
+            Camera: {
+                type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
+                binding: 1,
+                uniforms: {
+                    view: {
+                        offset: 0
+                    },
+                    projection: {
+                        offset: 16
+                    },
+                    position: {
+                        offset: 16 + 16
+                    }
+                },
+                size: align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
+            }
+        }
     },
     local: {
         set: 1,
@@ -54,11 +77,6 @@ export default class ShaderLib {
     static readonly builtinDescriptorSetLayouts = { local: buildDescriptorSetLayout(sets.local.uniforms) };
 
     static readonly createDescriptorSetLayoutBinding = createDescriptorSetLayoutBinding;
-
-    static align(size: number) {
-        const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
-        return Math.ceil(size / alignment) * alignment;
-    }
 
     static readonly preloadedShaders: { name: string, macros?: Record<string, number> }[] = [];
 

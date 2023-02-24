@@ -2,21 +2,20 @@ import GLTF from "../../../../script/main/assets/GLTF.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import CameraControlPanel from "../../../../script/main/components/CameraControlPanel.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
-import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import Sprite from "../../../../script/main/components/Sprite.js";
-import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/main/gfx/Pipeline.js";
-import quat from "../../../../script/main/math/quat.js";
-import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";
-import Node from "../../../../script/main/Node.js";
+import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
+import quat from "../../../../script/main/core/math/quat.js";
+import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
+import Node from "../../../../script/main/core/Node.js";
+import Flow from "../../../../script/main/core/pipeline/Flow.js";
+import Stage from "../../../../script/main/core/pipeline/Stage.js";
+import PassPhase from "../../../../script/main/core/render/PassPhase.js";
+import VisibilityBit from "../../../../script/main/core/render/VisibilityBit.js";
+import Zero from "../../../../script/main/core/Zero.js";
 import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import RenderFlow from "../../../../script/main/pipeline/RenderFlow.js";
-import RenderStage from "../../../../script/main/pipeline/RenderStage.js";
 import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
 import ShadowStage from "../../../../script/main/pipeline/stages/ShadowStage.js";
-import PassPhase from "../../../../script/main/render/PassPhase.js";
-import VisibilityBit from "../../../../script/main/render/VisibilityBit.js";
-import Zero from "../../../../script/main/Zero.js";
 
 const PhaseLightView = 1 << 10;
 
@@ -26,10 +25,10 @@ const Visibility_Down = 1 << 10;
 const USE_SHADOW_MAP = 1;
 
 export default class App extends Zero {
-    async start(): Promise<RenderFlow> {
+    async start(): Promise<Flow> {
         const { width, height } = this.window;
 
-        const stages: RenderStage[] = [];
+        const stages: Stage[] = [];
         let shadowStage: ShadowStage;
         if (USE_SHADOW_MAP) {
             shadowStage = new ShadowStage(Visibility_Up);
@@ -81,10 +80,6 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibility = VisibilityBit.UI;
-        node.addComponent(DebugDrawer);
-
-        node = new Node;
-        node.visibility = VisibilityBit.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2 + 200, 0];
 
@@ -127,7 +122,7 @@ export default class App extends Zero {
         node.scale = [4, 4, 4];
 
         stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up | Visibility_Down)]));
-        return new RenderFlow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);
+        return new Flow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);
     }
 }
 

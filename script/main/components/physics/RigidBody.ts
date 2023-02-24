@@ -1,7 +1,7 @@
-import Component from "../../base/Component.js";
-import quat from "../../math/quat.js";
-import vec3 from "../../math/vec3.js";
-import Node from "../../Node.js";
+import Component from "../../core/Component.js";
+import quat from "../../core/math/quat.js";
+import vec3 from "../../core/math/vec3.js";
+import Node from "../../core/Node.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 
 export default class RigidBody extends Component {

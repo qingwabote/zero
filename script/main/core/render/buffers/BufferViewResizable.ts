@@ -4,7 +4,7 @@ import BufferView, { TypedArrayFormat } from "./BufferView.js";
 const noop = function () { };
 
 export default class BufferViewResizable {
-    private _bufferView: BufferView = BufferView.Empty;
+    private _bufferView: BufferView = BufferView.EMPTY;
 
     private _data: any;
     get data(): { [n: number]: number } {

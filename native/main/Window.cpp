@@ -149,7 +149,9 @@ int Window::loop()
                 printf("app: no default class found\n");
                 return -1;
             }
-            auto maybeApp = constructor->NewInstance(context);
+
+            v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), width), v8::Number::New(isolate.get(), height)};
+            auto maybeApp = constructor->NewInstance(context, 2, args);
             if (maybeApp.IsEmpty())
             {
                 return -1;
@@ -164,11 +166,7 @@ int Window::loop()
             printf("app: no initialize function found\n");
             return -1;
         }
-        v8::Local<v8::Value>
-            args[] = {
-                v8::Number::New(isolate.get(), width),
-                v8::Number::New(isolate.get(), height)};
-        v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 2, args);
+        v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 0, nullptr);
         if (maybe.IsEmpty())
         {
             return -1;

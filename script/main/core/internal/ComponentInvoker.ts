@@ -1,4 +1,4 @@
-import Component from "./base/Component.js";
+import Component from "../Component.js";
 
 type InvokeFunc = (com: Component) => void;
 

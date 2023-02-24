@@ -1,33 +1,14 @@
-import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
-import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
-import BufferViewResizable from "../../render/buffers/BufferViewResizable.js";
-import ShaderLib from "../../ShaderLib.js";
-import PipelineUniform from "../PipelineUniform.js";
+import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { DescriptorSetLayoutBinding } from "../../core/gfx/DescriptorSetLayout.js";
+import Uniform from "../../core/pipeline/Uniform.js";
+import BufferViewResizable from "../../core/render/buffers/BufferViewResizable.js";
+import ShaderLib from "../../core/ShaderLib.js";
 
-const CameraBlock = {
-    type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
-    binding: 1,
-    uniforms: {
-        view: {
-            offset: 0
-        },
-        projection: {
-            offset: 16
-        },
-        position: {
-            offset: 16 + 16
-        }
-    },
-    size: ShaderLib.align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
-}
+const CameraBlock = ShaderLib.sets.global.uniforms.Camera;
 
 const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(CameraBlock);
 
-export default class CameraUniform implements PipelineUniform {
-    static getDynamicOffset(index: number): number {
-        return index * CameraBlock.size;
-    }
-
+export default class CameraUniform implements Uniform {
     get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
         return descriptorSetLayoutBinding;
     }
@@ -35,11 +16,11 @@ export default class CameraUniform implements PipelineUniform {
     private _buffer!: BufferViewResizable;
 
     initialize(): void {
-        this._buffer = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { zero.renderFlow.globalDescriptorSet.bindBuffer(CameraBlock.binding, buffer, CameraBlock.size); });
+        this._buffer = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { zero.flow.globalDescriptorSet.bindBuffer(CameraBlock.binding, buffer, CameraBlock.size); });
     }
 
     update(): void {
-        const renderScene = zero.render_scene;
+        const renderScene = zero.scene;
         const cameras = renderScene.cameras;
         const camerasUboSize = CameraBlock.size * cameras.length;
         this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);

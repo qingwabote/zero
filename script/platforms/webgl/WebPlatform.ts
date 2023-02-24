@@ -1,4 +1,4 @@
-import Platfrom from "../../main/Platform.js";
+import Platfrom from "../../main/base/Platform.js";
 
 export default class WebPlatfrom implements Platfrom {
     decodeImage(buffer: ArrayBuffer): Promise<ImageBitmap> {

@@ -1,8 +1,8 @@
-import Buffer from "../../../main/gfx/Buffer.js";
-import DescriptorSet from "../../../main/gfx/DescriptorSet.js";
-import DescriptorSetLayout from "../../../main/gfx/DescriptorSetLayout.js";
-import { Sampler } from "../../../main/gfx/Sampler.js";
-import Texture from "../../../main/gfx/Texture.js";
+import Buffer from "../../../main/core/gfx/Buffer.js";
+import DescriptorSet from "../../../main/core/gfx/DescriptorSet.js";
+import DescriptorSetLayout from "../../../main/core/gfx/DescriptorSetLayout.js";
+import { Sampler } from "../../../main/core/gfx/Sampler.js";
+import Texture from "../../../main/core/gfx/Texture.js";
 
 export default class WebDescriptorSet implements DescriptorSet {
     private _layout!: DescriptorSetLayout;

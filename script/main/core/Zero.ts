@@ -1,20 +1,20 @@
-import Asset from "./base/Asset.js";
-import EventEmitter from "./base/EventEmitter.js";
-import ComponentScheduler from "./ComponentScheduler.js";
+import EventEmitter from "../base/EventEmitter.js";
+import Asset from "./Asset.js";
+import Component from "./Component.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
 import Fence from "./gfx/Fence.js";
 import { PipelineStageFlagBits } from "./gfx/Pipeline.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input, { InputEvent } from "./Input.js";
+import ComponentScheduler from "./internal/ComponentScheduler.js";
+import TimeScheduler from "./internal/TimeScheduler.js";
 import Node from "./Node.js";
-import PhysicsSystem from "./physics/PhysicsSystem.js";
-import RenderFlow from "./pipeline/RenderFlow.js";
+import Flow from "./pipeline/Flow.js";
 import RenderObject from "./render/RenderObject.js";
-import { default as render_Scene } from "./render/Scene.js";
+import Scene from "./render/Scene.js";
 import Window from "./render/Window.js";
-import Scene from "./Scene.js";
 import ShaderLib from "./ShaderLib.js";
-import TimeScheduler from "./TimeScheduler.js";
+import System from "./System.js";
 
 export enum ZeroEvent {
     LOGIC_START = "LOGIC_START",
@@ -33,27 +33,27 @@ interface EventToListener {
 }
 
 export default abstract class Zero extends EventEmitter<EventToListener> {
-    readonly input: Input = new Input;
+    private static readonly _system2priority: Map<System, number> = new Map;
 
-    readonly scene: Scene = new Scene;
-
-    private _window!: Window;
-    get window(): Window {
-        return this._window;
+    static registerSystem(system: System, priority: number) {
+        this._system2priority.set(system, priority);
     }
 
-    private _render_scene!: render_Scene;
-    get render_scene(): render_Scene {
-        return this._render_scene;
-    }
+    readonly window: Window;
 
-    readonly componentScheduler = new ComponentScheduler;
+    readonly input = new Input;
 
-    readonly timeScheduler = new TimeScheduler;
+    readonly scene = new Scene;
 
-    private _renderFlow!: RenderFlow;
-    get renderFlow(): RenderFlow {
-        return this._renderFlow;
+    private readonly _componentScheduler = new ComponentScheduler;
+
+    private readonly _timeScheduler = new TimeScheduler;
+
+    private readonly _systems: readonly System[];
+
+    private _flow!: Flow;
+    get flow(): Flow {
+        return this._flow;
     }
 
     private _commandBuffer!: CommandBuffer;
@@ -61,14 +61,26 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
     private _renderSemaphore!: Semaphore;
     private _renderFence!: Fence;
 
-    async initialize(width: number, height: number): Promise<void> {
-        this._window = { width, height };
+    constructor(width: number, height: number) {
+        super();
 
+        const systems: System[] = [...Zero._system2priority.keys()];
+        systems.sort(function (a, b) {
+            return Zero._system2priority.get(b)! - Zero._system2priority.get(a)!;
+        })
+        this._systems = systems;
+
+        this.window = { width, height };
+    }
+
+    async initialize(): Promise<void> {
         await Promise.all(ShaderLib.preloadedShaders.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
 
         await Promise.all(Asset.preloadedAssets.map(info => Asset.cache.load(info.path, info.type)));
 
-        await PhysicsSystem.initialize();
+        for (const system of this._systems) {
+            await system.initialize();
+        }
 
         const commandBuffer = gfx.createCommandBuffer();
         commandBuffer.initialize();
@@ -86,33 +98,45 @@ export default abstract class Zero extends EventEmitter<EventToListener> {
         renderFence.initialize(true);
         this._renderFence = renderFence;
 
-        this._render_scene = new render_Scene();
-
-        this._renderFlow = await this.start();
-        this._renderFlow.initialize();
+        this._flow = await this.start();
+        this._flow.initialize();
     }
 
-    abstract start(): Promise<RenderFlow>;
+    abstract start(): Promise<Flow>;
+
+    addComponent(com: Component): void {
+        this._componentScheduler.add(com);
+    }
+
+    setInterval(func: () => void, delay: number = 0) {
+        return this._timeScheduler.setInterval(func, delay);
+    }
+
+    clearInterval(func: () => void) {
+        this._timeScheduler.clearInterval(func);
+    }
 
     tick(name2event: Map<InputEvent, any>) {
         this.emit(ZeroEvent.LOGIC_START);
         for (const [name, event] of name2event) {
             this.input.emit(name, event);
         }
-        this.componentScheduler.start();
-        this.componentScheduler.update();
-        this.timeScheduler.update();
-        PhysicsSystem.instance.world.stepSimulation();
-        this.componentScheduler.commit();
+        this._componentScheduler.start();
+        this._componentScheduler.update();
+        this._timeScheduler.update();
+        for (const system of this._systems) {
+            system.update();
+        }
+        this._componentScheduler.commit();
         this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);
         gfx.acquire(this._presentSemaphore);
-        this._renderFlow.update();
+        this._flow.update();
         Node.frameId++;
         RenderObject.frameId++;
         this._commandBuffer.begin();
-        this._renderFlow.record(this._commandBuffer);
+        this._flow.record(this._commandBuffer);
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 

@@ -1,5 +1,5 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits, Uniform } from "../../../main/gfx/Shader.js";
+import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits, Uniform } from "../../../main/core/gfx/Shader.js";
 
 export default class WebShader implements Shader {
     private _gl: WebGL2RenderingContext;

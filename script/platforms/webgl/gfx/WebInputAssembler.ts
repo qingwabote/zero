@@ -1,4 +1,4 @@
-import InputAssembler, { InputAssemblerInfo } from "../../../main/gfx/InputAssembler.js";
+import InputAssembler, { InputAssemblerInfo } from "../../../main/core/gfx/InputAssembler.js";
 
 export default class WebInputAssembler implements InputAssembler {
     private _info!: InputAssemblerInfo;

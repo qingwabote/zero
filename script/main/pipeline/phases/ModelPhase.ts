@@ -1,12 +1,19 @@
-import CommandBuffer from "../../gfx/CommandBuffer.js";
-import RenderPass from "../../gfx/RenderPass.js";
-import Camera from "../../render/Camera.js";
-import PassPhase from "../../render/PassPhase.js";
-import VisibilityBit from "../../render/VisibilityBit.js";
-import ShaderLib from "../../ShaderLib.js";
-import RenderPhase from "../RenderPhase.js";
+import CommandBuffer from "../../core/gfx/CommandBuffer.js";
+import { VertexInputState } from "../../core/gfx/InputAssembler.js";
+import Pipeline, { PassState, PipelineLayout } from "../../core/gfx/Pipeline.js";
+import RenderPass from "../../core/gfx/RenderPass.js";
+import Shader from "../../core/gfx/Shader.js";
+import Phase from "../../core/pipeline/Phase.js";
+import Camera from "../../core/render/Camera.js";
+import PassPhase from "../../core/render/PassPhase.js";
+import VisibilityBit from "../../core/render/VisibilityBit.js";
+import ShaderLib from "../../core/ShaderLib.js";
 
-export default class ModelPhase extends RenderPhase {
+const pipelineLayoutCache: Record<string, PipelineLayout> = {};
+
+const pipelineCache: Record<string, Pipeline> = {};
+
+export default class ModelPhase extends Phase {
     private _phase: PassPhase;
 
     constructor(phase: PassPhase = PassPhase.DEFAULT, visibility: VisibilityBit = VisibilityBit.ALL) {
@@ -15,7 +22,7 @@ export default class ModelPhase extends RenderPhase {
     }
 
     record(commandBuffer: CommandBuffer, camera: Camera, renderPass: RenderPass): void {
-        const models = zero.render_scene.models;
+        const models = zero.scene.models;
         this._drawCalls = 0;
         for (const model of models) {
             if ((camera.visibilities & model.visibility) == 0) {
@@ -32,12 +39,12 @@ export default class ModelPhase extends RenderPhase {
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
-                    const layout = zero.renderFlow.getPipelineLayout(pass.state.shader);
+                    const layout = this.getPipelineLayout(pass.state.shader);
                     commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.local.set, model.descriptorSet);
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.material.set, pass.descriptorSet);
                     }
-                    const pipeline = zero.renderFlow.getPipeline(pass.state, inputAssembler.info.vertexInputState, renderPass, layout);
+                    const pipeline = this.getPipeline(pass.state, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     if (inputAssembler.info.indexInput) {
                         commandBuffer.drawIndexed(subModel.vertexOrIndexCount);
@@ -48,5 +55,33 @@ export default class ModelPhase extends RenderPhase {
                 }
             }
         }
+    }
+
+    private getPipelineLayout(shader: Shader): PipelineLayout {
+        let layout = pipelineLayoutCache[shader.info.hash];
+        if (!layout) {
+            layout = gfx.createPipelineLayout();
+            layout.initialize([
+                zero.flow.globalDescriptorSet.layout,
+                ShaderLib.builtinDescriptorSetLayouts.local,
+                ShaderLib.instance.getDescriptorSetLayout(shader)
+            ])
+            pipelineLayoutCache[shader.info.hash] = layout;
+        }
+        return layout;
+    }
+
+    /**
+     * @param renderPass a compatible renderPass
+     */
+    private getPipeline(passState: PassState, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
+        const pipelineHash = passState.hash + vertexInputState.hash + renderPass.info.compatibleHash;
+        let pipeline = pipelineCache[pipelineHash];
+        if (!pipeline) {
+            pipeline = gfx.createPipeline();
+            pipeline.initialize({ passState, vertexInputState, renderPass, layout, });
+            pipelineCache[pipelineHash] = pipeline;
+        }
+        return pipeline;
     }
 }

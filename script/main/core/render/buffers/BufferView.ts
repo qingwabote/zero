@@ -18,7 +18,7 @@ const format2array = {
 export type TypedArrayFormat = keyof typeof format2array;
 
 export default class BufferView {
-    static readonly Empty = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, 0);
+    static readonly EMPTY = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, 0);
 
     private _source: TypedArray = emptyArray;
 

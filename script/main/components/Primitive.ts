@@ -1,14 +1,14 @@
-import Component from "../base/Component.js";
-import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
-import { Vec3 } from "../math/vec3.js";
-import { Vec4 } from "../math/vec4.js";
-import BufferViewResizable from "../render/buffers/BufferViewResizable.js";
-import Model from "../render/Model.js";
-import Pass from "../render/Pass.js";
-import SubModel from "../render/SubModel.js";
-import ShaderLib from "../ShaderLib.js";
+import Component from "../core/Component.js";
+import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
+import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
+import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { Vec3 } from "../core/math/vec3.js";
+import { Vec4 } from "../core/math/vec4.js";
+import BufferViewResizable from "../core/render/buffers/BufferViewResizable.js";
+import Model from "../core/render/Model.js";
+import Pass from "../core/render/Pass.js";
+import SubModel from "../core/render/SubModel.js";
+import ShaderLib from "../core/ShaderLib.js";
 
 ShaderLib.preloadedShaders.push({ name: 'primitive' })
 
@@ -78,7 +78,7 @@ export default class Primitive extends Component {
         const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         const model = new Model([subModel])
-        zero.render_scene.models.push(model);
+        zero.scene.models.push(model);
         this._model = model;
     }
 

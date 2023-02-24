@@ -1,9 +1,9 @@
-import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
-import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
-import vec3 from "../../math/vec3.js";
-import BufferView from "../../render/buffers/BufferView.js";
-import ShaderLib from "../../ShaderLib.js";
-import PipelineUniform from "../PipelineUniform.js";
+import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { DescriptorSetLayoutBinding, DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
+import vec3 from "../../core/math/vec3.js";
+import Uniform from "../../core/pipeline/Uniform.js";
+import BufferView from "../../core/render/buffers/BufferView.js";
+import ShaderLib from "../../core/ShaderLib.js";
 
 const LightBlock = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -16,7 +16,7 @@ const LightBlock = {
 
 const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(LightBlock);
 
-export default class LightUniform implements PipelineUniform {
+export default class LightUniform implements Uniform {
     get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
         return descriptorSetLayoutBinding;
     }
@@ -25,12 +25,12 @@ export default class LightUniform implements PipelineUniform {
 
     initialize(): void {
         const buffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
-        zero.renderFlow.globalDescriptorSet.bindBuffer(LightBlock.binding, buffer.buffer)
+        zero.flow.globalDescriptorSet.bindBuffer(LightBlock.binding, buffer.buffer)
         this._buffer = buffer;
     }
 
     update(): void {
-        const renderScene = zero.render_scene;
+        const renderScene = zero.scene;
         const directionalLight = renderScene.directionalLight;
         if (directionalLight.hasChanged) {
             const litDir = vec3.normalize(vec3.create(), directionalLight.position);

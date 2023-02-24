@@ -1,6 +1,6 @@
-import Component from "../../base/Component.js";
-import vec3, { Vec3 } from "../../math/vec3.js";
-import Node, { TransformBit } from "../../Node.js";
+import Component from "../../core/Component.js";
+import vec3, { Vec3 } from "../../core/math/vec3.js";
+import Node, { TransformBit } from "../../core/Node.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 import RigidBody from "./RigidBody.js";
 

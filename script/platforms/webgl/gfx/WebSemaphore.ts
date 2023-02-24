@@ -1,4 +1,4 @@
-import Semaphore from "../../../main/gfx/Semaphore.js";
+import Semaphore from "../../../main/core/gfx/Semaphore.js";
 
 export default class WebSemaphore implements Semaphore {
     initialize(): boolean { return false }

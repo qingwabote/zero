@@ -1,5 +1,5 @@
-import Component from "./base/Component.js";
-import EventEmitter from "./base/EventEmitter.js";
+import EventEmitter from "../base/EventEmitter.js";
+import Component from "./Component.js";
 import mat3 from "./math/mat3.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
@@ -143,7 +143,7 @@ export default class Node {
 
     addComponent<T extends Component>(constructor: ComponentConstructor<T>): T {
         const component = new constructor(this);
-        zero.componentScheduler.add(component);
+        zero.addComponent(component);
         this._components.push(component);
         return component;
     }

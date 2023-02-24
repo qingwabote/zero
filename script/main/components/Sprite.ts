@@ -1,16 +1,16 @@
-import Component from "../base/Component.js";
-import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
-import { Filter } from "../gfx/Sampler.js";
-import Shader from "../gfx/Shader.js";
-import Texture from "../gfx/Texture.js";
-import BufferView from "../render/buffers/BufferView.js";
-import Model from "../render/Model.js";
-import Pass from "../render/Pass.js";
-import samplers from "../render/samplers.js";
-import SubModel from "../render/SubModel.js";
-import ShaderLib from "../ShaderLib.js";
+import Component from "../core/Component.js";
+import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
+import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
+import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { Filter } from "../core/gfx/Sampler.js";
+import Shader from "../core/gfx/Shader.js";
+import Texture from "../core/gfx/Texture.js";
+import BufferView from "../core/render/buffers/BufferView.js";
+import Model from "../core/render/Model.js";
+import Pass from "../core/render/Pass.js";
+import samplers from "../core/render/samplers.js";
+import SubModel from "../core/render/SubModel.js";
+import ShaderLib from "../core/ShaderLib.js";
 
 ShaderLib.preloadedShaders.push({ name: 'depth' });
 
@@ -118,7 +118,7 @@ export default class Sprite extends Component {
             passes: [new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }), descriptorSet)], vertexOrIndexCount: indexBuffer.length
         };
         const model = new Model([subModel]);
-        zero.render_scene.models.push(model);
+        zero.scene.models.push(model);
         this._model = model;
     }
 

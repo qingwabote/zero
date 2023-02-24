@@ -1,4 +1,4 @@
-import EventEmitter from "./base/EventEmitter.js";
+import EventEmitter from "../base/EventEmitter.js";
 
 export interface Touch {
     x: number,

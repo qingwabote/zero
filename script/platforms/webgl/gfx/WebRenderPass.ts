@@ -1,4 +1,4 @@
-import RenderPass, { RenderPassInfo } from "../../../main/gfx/RenderPass.js";
+import RenderPass, { RenderPassInfo } from "../../../main/core/gfx/RenderPass.js";
 
 export default class WebRenderPass implements RenderPass {
     private _info!: RenderPassInfo;

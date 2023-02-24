@@ -1,6 +1,6 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
-import Asset from "../base/Asset.js";
+import Asset from "../core/Asset.js";
 import Texture from "./Texture.js";
 
 interface Common {

@@ -1,5 +1,5 @@
-import Component from "../base/Component.js";
-import { ZeroEvent } from "../Zero.js";
+import Component from "../core/Component.js";
+import { ZeroEvent } from "../core/Zero.js";
 import Label from "./Label.js";
 
 export default class Profiler extends Component {
@@ -33,7 +33,7 @@ export default class Profiler extends Component {
         this._frames++;
 
         label.text = `FPS: ${this._fps.toString().slice(0, 5)}
-Draw call: ${zero.renderFlow.drawCalls}
+Draw call: ${zero.flow.drawCalls}
 Render(ms): ${this._render_time.toString().slice(0, 5)}
 Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
     }

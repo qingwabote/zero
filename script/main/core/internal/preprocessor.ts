@@ -1,5 +1,5 @@
-import { Format } from "./gfx/Pipeline.js";
-import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "./gfx/Shader.js";
+import { Format } from "../gfx/Pipeline.js";
+import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "../gfx/Shader.js";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
     const promises: Promise<string>[] = []

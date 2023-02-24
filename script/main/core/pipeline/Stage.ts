@@ -4,19 +4,18 @@ import RenderPass from "../gfx/RenderPass.js";
 import { Rect } from "../math/rect.js";
 import Camera from "../render/Camera.js";
 import VisibilityBit from "../render/VisibilityBit.js";
-import ModelPhase from "./phases/ModelPhase.js";
-import PipelineUniform from "./PipelineUniform.js";
-import RenderPhase from "./RenderPhase.js";
+import Phase from "./Phase.js";
+import Uniform from "./Uniform.js";
 
-export default abstract class RenderStage {
+export default abstract class Stage {
 
     readonly visibility: VisibilityBit;
 
-    protected _phases: RenderPhase[];
+    protected _phases: Phase[];
 
     private _framebuffer?: Framebuffer;
     get framebuffer(): Framebuffer {
-        return this._framebuffer || zero.renderFlow.framebuffer;
+        return this._framebuffer || zero.flow.framebuffer;
     }
 
     private _renderPass?: RenderPass;
@@ -28,7 +27,7 @@ export default abstract class RenderStage {
         return this._drawCalls;
     }
 
-    constructor(phases: RenderPhase[] = [new ModelPhase], framebuffer?: Framebuffer, renderPass?: RenderPass, viewport?: Rect) {
+    constructor(phases: Phase[], framebuffer?: Framebuffer, renderPass?: RenderPass, viewport?: Rect) {
         this.visibility = phases.reduce(function (val, phase) { return phase.visibility | val }, 0)
         this._phases = phases;
 
@@ -37,11 +36,11 @@ export default abstract class RenderStage {
         this._viewport = viewport;
     }
 
-    abstract getRequestedUniforms(): (new () => PipelineUniform)[];
+    abstract getRequestedUniforms(): (new () => Uniform)[];
 
     record(commandBuffer: CommandBuffer, camera: Camera): void {
         const framebuffer = this.framebuffer;
-        const renderPass = this._renderPass || zero.renderFlow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
+        const renderPass = this._renderPass || zero.flow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
         const viewport = this._viewport || camera.viewport;
 
         commandBuffer.beginRenderPass(renderPass, framebuffer, viewport);

@@ -1,10 +1,10 @@
 import Material from "../assets/Material.js";
-import Component from "../base/Component.js";
-import InputAssembler, { IndexInput, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/InputAssembler.js";
-import { FormatInfos } from "../gfx/Pipeline.js";
-import Mesh from "../render/Mesh.js";
-import Model from "../render/Model.js";
-import SubModel from "../render/SubModel.js";
+import Component from "../core/Component.js";
+import InputAssembler, { IndexInput, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
+import { FormatInfos } from "../core/gfx/Pipeline.js";
+import Mesh from "../core/render/Mesh.js";
+import Model from "../core/render/Model.js";
+import SubModel from "../core/render/SubModel.js";
 
 const emptyMesh = { subMeshes: [] };
 
@@ -81,7 +81,7 @@ export default class MeshRenderer extends Component {
             subModels.push({ inputAssemblers, passes, vertexOrIndexCount: subMesh.indexCount });
         }
         const model = new Model(subModels);
-        zero.render_scene.models.push(model);
+        zero.scene.models.push(model);
         this._model = model;
     }
 

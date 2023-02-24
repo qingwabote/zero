@@ -6,15 +6,16 @@ import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
 import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
 import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
-import { ClearFlagBit } from "../../../../script/main/gfx/Pipeline.js";
-import vec3, { Vec3 } from "../../../../script/main/math/vec3.js";
-import Node from "../../../../script/main/Node.js";
-import RenderFlow from "../../../../script/main/pipeline/RenderFlow.js";
-import VisibilityBit from "../../../../script/main/render/VisibilityBit.js";
-import Zero from "../../../../script/main/Zero.js";
+import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
+import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
+import Node from "../../../../script/main/core/Node.js";
+import Flow from "../../../../script/main/core/pipeline/Flow.js";
+import ForwardStage from "../../../../script/main/core/pipeline/stages/ForwardStage.js";
+import VisibilityBit from "../../../../script/main/core/render/VisibilityBit.js";
+import Zero from "../../../../script/main/core/Zero.js";
 
 export default class App extends Zero {
-    async start(): Promise<RenderFlow> {
+    async start(): Promise<Flow> {
         const { width, height } = this.window;
 
         const lit_position: Vec3 = [4, 4, 4];
@@ -76,7 +77,7 @@ export default class App extends Zero {
         node.addComponent(CameraControlPanel).camera = main_camera;
         node.position = [-width / 2, height / 2, 0];
 
-        return new RenderFlow;
+        return new Flow([new ForwardStage]);
     }
 }
 

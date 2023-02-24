@@ -1,4 +1,4 @@
-import vec3, { Vec3 } from "../math/vec3.js";
+import vec3, { Vec3 } from "../core/math/vec3.js";
 import PhysicsSystem from "./PhysicsSystem.js";
 import RayResultCallback from "./RayResultCallback.js";
 

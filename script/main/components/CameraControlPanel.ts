@@ -1,7 +1,7 @@
-import Component from "../base/Component.js";
-import { InputEvent, Touch } from "../Input.js";
-import quat from "../math/quat.js";
-import vec3 from "../math/vec3.js";
+import Component from "../core/Component.js";
+import { InputEvent, Touch } from "../core/Input.js";
+import quat from "../core/math/quat.js";
+import vec3 from "../core/math/vec3.js";
 import Camera from "./Camera.js";
 import Label from "./Label.js";
 
@@ -23,8 +23,8 @@ export default class CameraControlPanel extends Component {
         this.node.addComponent(Label);
 
         zero.input.on(InputEvent.TOUCH_START, event => {
-            const camera = zero.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
-            const touch = event.touches[0];
+            // const camera = zero.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
+            // const touch = event.touches[0];
         })
 
 

@@ -1,4 +1,4 @@
-import DescriptorSetLayout, { DescriptorSetLayoutBinding } from "../../../main/gfx/DescriptorSetLayout.js";
+import DescriptorSetLayout, { DescriptorSetLayoutBinding } from "../../../main/core/gfx/DescriptorSetLayout.js";
 
 export default class WebDescriptorSetLayout implements DescriptorSetLayout {
     private _bindings: DescriptorSetLayoutBinding[] = [];

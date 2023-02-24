@@ -1,4 +1,4 @@
-import Fence from "../../../main/gfx/Fence.js";
+import Fence from "../../../main/core/gfx/Fence.js";
 
 export default class WebFence implements Fence {
     initialize(): boolean { return false }

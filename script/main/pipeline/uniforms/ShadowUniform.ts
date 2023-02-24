@@ -1,11 +1,11 @@
-import { BufferUsageFlagBits } from "../../gfx/Buffer.js";
-import { DescriptorSetLayoutBinding, DescriptorType } from "../../gfx/DescriptorSetLayout.js";
-import mat4 from "../../math/mat4.js";
-import quat from "../../math/quat.js";
-import vec3 from "../../math/vec3.js";
-import BufferView from "../../render/buffers/BufferView.js";
-import ShaderLib from "../../ShaderLib.js";
-import PipelineUniform from "../PipelineUniform.js";
+import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { DescriptorSetLayoutBinding, DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
+import mat4 from "../../core/math/mat4.js";
+import quat from "../../core/math/quat.js";
+import vec3 from "../../core/math/vec3.js";
+import Uniform from "../../core/pipeline/Uniform.js";
+import BufferView from "../../core/render/buffers/BufferView.js";
+import ShaderLib from "../../core/ShaderLib.js";
 
 const ShadowBlock = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -23,7 +23,7 @@ const ShadowBlock = {
 
 const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(ShadowBlock);
 
-export default class ShadowUniform implements PipelineUniform {
+export default class ShadowUniform implements Uniform {
     get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
         return descriptorSetLayoutBinding;
     }
@@ -32,12 +32,12 @@ export default class ShadowUniform implements PipelineUniform {
 
     initialize(): void {
         const buffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);
-        zero.renderFlow.globalDescriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
+        zero.flow.globalDescriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
         this._buffer = buffer;
     }
 
     update(): void {
-        const renderScene = zero.render_scene;
+        const renderScene = zero.scene;
         const light = renderScene.directionalLight;
 
         if (light.hasChanged) {

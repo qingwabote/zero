@@ -1,24 +1,24 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
-import Asset from "../base/Asset.js";
 import MeshRenderer from "../components/MeshRenderer.js";
-import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../gfx/Buffer.js";
-import CommandBuffer from "../gfx/CommandBuffer.js";
-import Fence from "../gfx/Fence.js";
-import { IndexType } from "../gfx/InputAssembler.js";
-import { CullMode, Format, PassState, PrimitiveTopology } from "../gfx/Pipeline.js";
-import mat4 from "../math/mat4.js";
-import { Quat } from "../math/quat.js";
-import { Vec3 } from "../math/vec3.js";
-import vec4 from "../math/vec4.js";
-import Node from "../Node.js";
-import BufferView from "../render/buffers/BufferView.js";
-import { SubMesh, VertexAttribute } from "../render/Mesh.js";
-import Pass from "../render/Pass.js";
-import PassPhase from "../render/PassPhase.js";
-import samplers from "../render/samplers.js";
-import VisibilityBit from "../render/VisibilityBit.js";
-import ShaderLib from "../ShaderLib.js";
+import Asset from "../core/Asset.js";
+import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../core/gfx/Buffer.js";
+import CommandBuffer from "../core/gfx/CommandBuffer.js";
+import Fence from "../core/gfx/Fence.js";
+import { IndexType } from "../core/gfx/InputAssembler.js";
+import { CullMode, Format, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import mat4 from "../core/math/mat4.js";
+import { Quat } from "../core/math/quat.js";
+import { Vec3 } from "../core/math/vec3.js";
+import vec4 from "../core/math/vec4.js";
+import Node from "../core/Node.js";
+import BufferView from "../core/render/buffers/BufferView.js";
+import { SubMesh, VertexAttribute } from "../core/render/Mesh.js";
+import Pass from "../core/render/Pass.js";
+import PassPhase from "../core/render/PassPhase.js";
+import samplers from "../core/render/samplers.js";
+import VisibilityBit from "../core/render/VisibilityBit.js";
+import ShaderLib from "../core/ShaderLib.js";
 import Material from "./Material.js";
 import Texture from "./Texture.js";
 

@@ -1,6 +1,6 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import { SampleCountFlagBits } from "../../../main/gfx/Pipeline.js";
-import Texture, { TextureInfo, TextureUsageBit } from "../../../main/gfx/Texture.js";
+import { SampleCountFlagBits } from "../../../main/core/gfx/Pipeline.js";
+import Texture, { TextureInfo, TextureUsageBit } from "../../../main/core/gfx/Texture.js";
 
 export default class WebTexture implements Texture {
     private _gl: WebGL2RenderingContext;

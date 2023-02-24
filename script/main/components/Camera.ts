@@ -1,10 +1,10 @@
-import Component from "../base/Component.js";
-import { ClearFlagBit } from "../gfx/Pipeline.js";
-import mat4, { Mat4 } from "../math/mat4.js";
-import { Rect } from "../math/rect.js";
-import vec3, { Vec3 } from "../math/vec3.js";
-import { default as render_Camera } from "../render/Camera.js";
-import VisibilityBit from "../render/VisibilityBit.js";
+import Component from "../core/Component.js";
+import { ClearFlagBit } from "../core/gfx/Pipeline.js";
+import mat4, { Mat4 } from "../core/math/mat4.js";
+import { Rect } from "../core/math/rect.js";
+import vec3, { Vec3 } from "../core/math/vec3.js";
+import { default as render_Camera } from "../core/render/Camera.js";
+import VisibilityBit from "../core/render/VisibilityBit.js";
 
 enum DirtyFlag {
     NONE = 0,
@@ -43,10 +43,8 @@ export default class Camera extends Component {
         camera.visibilities = this.visibilities;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
-        zero.render_scene.cameras.push(camera);
+        zero.scene.cameras.push(camera);
         this._camera = camera;
-
-        zero.scene.cameras.push(this);
     }
 
     override commit(): void {
