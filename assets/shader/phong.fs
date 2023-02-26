@@ -1,6 +1,10 @@
 precision highp float;
 
-#include <global>
+#include <global/light>
+#include <global/camera>
+#if USE_SHADOW_MAP
+    #include <global/shadowMap>
+#endif
 
 #if USE_ALBEDO_MAP
     layout(location = 0) in vec2 v_uv;

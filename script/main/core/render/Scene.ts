@@ -3,7 +3,7 @@ import DirectionalLight from "./DirectionalLight.js";
 import Model from "./Model.js";
 
 export default class Scene {
-    directionalLight!: DirectionalLight;
+    directionalLight?: DirectionalLight;
 
     private _cameras: Camera[] = [];
     get cameras(): Camera[] {

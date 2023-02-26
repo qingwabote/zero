@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>test</title>
+  <link rel="icon" href="favicon.ico" />
+</head>
+
+<body style="display:flex;">
+  <div id="ZeroContainer">
+    <canvas id="ZeroCanvas" width="640" height="960"></canvas>
+  </div>
+  <div id="ControlContainer">
+    <div>
+      <input id="eulerXInput" type="range" min="-180" max="180" value="0" />
+      <label id="eulerXLabel"></label>
+    </div>
+    <div>
+      <input id="eulerYInput" type="range" min="-180" max="180" value="0" />
+      <label id="eulerYLabel"></label>
+    </div>
+    <div>
+      <input id="eulerZInput" type="range" min="-180" max="180" value="0" />
+      <label id="eulerZLabel"></label>
+    </div>
+  </div>
+  <!-- <script type="importmap">
+        {
+          "imports": {
+            "gl-matrix": "../../script/node_modules/gl-matrix/esm/index.js"
+          }
+        }
+  </script> -->
+  <script type="module">
+    import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
+    const gfx = new WebDevice(document.getElementById("ZeroCanvas"));
+    gfx.initialize()
+    window.gfx = gfx;
+  </script>
+  <script type="module">
+    import App from "./dist/projects/ui/script/main/App.js";
+    import webgame from "./dist/script/platforms/webgl/webgame.js";
+    webgame.run(document.getElementById("ZeroCanvas"), App);
+  </script>
+</body>
+
+</html>

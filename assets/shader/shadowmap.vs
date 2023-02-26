@@ -1,4 +1,4 @@
-#include <shadow>
+#include <global/shadow>
 #include <local>
 
 layout(location = 0) in vec3 a_position;

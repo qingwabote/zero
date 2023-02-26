@@ -1,4 +1,7 @@
-#include <global>
+#include <global/camera>
+#if USE_SHADOW_MAP
+    #include <global/shadow>
+#endif
 #include <local>
 
 layout(location = 0) in vec3 a_position;

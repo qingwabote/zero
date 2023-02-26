@@ -124,7 +124,11 @@ export default class Node {
 
     private _components: Component[] = [];
 
-    private _children: Map<Node, Node> = new Map;
+    private _children: Node[] = [];
+
+    get children(): readonly Node[] {
+        return this._children;
+    }
 
     private _parent: Node | undefined;
     get parent(): Node | undefined {
@@ -158,7 +162,7 @@ export default class Node {
     }
 
     addChild(child: Node): void {
-        this._children.set(child, child);
+        this._children.push(child);
         child._parent = this;
     }
 
@@ -166,7 +170,7 @@ export default class Node {
         this._changed |= flag;
         this.hasChanged |= flag;
         this._eventEmitter?.emit("TRANSFORM_CHANGED", this._changed);
-        for (const child of this._children.keys()) {
+        for (const child of this._children) {
             child.dirty(flag);
         }
     }

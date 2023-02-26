@@ -78,11 +78,11 @@ export default {
     },
 
     async includeExpand(source: string): Promise<string> {
-        return string_replace(source, /#include\s+<(\w+)>/g, async (_: string, name: string): Promise<string> => {
-            let chunk = chunks[name];
+        return string_replace(source, /#include\s+<(.+)>/g, async (_: string, path: string): Promise<string> => {
+            let chunk = chunks[path];
             if (!chunk) {
-                chunk = await loader.load(`../../assets/shader/chunks/${name}.chunk`, "text");
-                chunks[name] = chunk;
+                chunk = await loader.load(`../../assets/shader/chunks/${path}.chunk`, "text");
+                chunks[path] = chunk;
             }
             return await this.includeExpand(chunk);
         });

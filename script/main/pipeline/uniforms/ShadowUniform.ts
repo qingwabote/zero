@@ -38,7 +38,7 @@ export default class ShadowUniform implements Uniform {
 
     update(): void {
         const renderScene = zero.scene;
-        const light = renderScene.directionalLight;
+        const light = renderScene.directionalLight!;
 
         if (light.hasChanged) {
             const rotation = quat.rotationTo(quat.create(), vec3.FORWARD, vec3.normalize(vec3.create(), vec3.negate(vec3.create(), light.position)));
