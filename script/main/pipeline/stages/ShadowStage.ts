@@ -4,7 +4,7 @@ import { TextureUsageBit } from "../../core/gfx/Texture.js";
 import Stage from "../../core/pipeline/Stage.js";
 import Uniform from "../../core/pipeline/Uniform.js";
 import PassPhase from "../../core/render/PassPhase.js";
-import VisibilityBit from "../../core/render/VisibilityBit.js";
+import VisibilityBit from "../../VisibilityBit.js";
 import ModelPhase from "../phases/ModelPhase.js";
 import ShadowMapUniform from "../uniforms/ShadowMapUniform.js";
 import ShadowUniform from "../uniforms/ShadowUniform.js";

@@ -1,29 +1,37 @@
-import Component from "../core/Component.js";
-import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
-import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
-import { Filter } from "../core/gfx/Sampler.js";
-import Shader from "../core/gfx/Shader.js";
-import Texture from "../core/gfx/Texture.js";
-import BufferView from "../core/render/buffers/BufferView.js";
-import Model from "../core/render/Model.js";
-import Pass from "../core/render/Pass.js";
-import samplers from "../core/render/samplers.js";
-import SubModel from "../core/render/SubModel.js";
-import ShaderLib from "../core/ShaderLib.js";
+import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
+import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
+import { Filter } from "../../core/gfx/Sampler.js";
+import Shader from "../../core/gfx/Shader.js";
+import Texture from "../../core/gfx/Texture.js";
+import BufferView from "../../core/render/buffers/BufferView.js";
+import Model from "../../core/render/Model.js";
+import Pass from "../../core/render/Pass.js";
+import samplers from "../../core/render/samplers.js";
+import SubModel from "../../core/render/SubModel.js";
+import ShaderLib from "../../core/ShaderLib.js";
+import RectBoundsRenderer from "../internal/RectBoundsRenderer.js";
 
-ShaderLib.preloadedShaders.push({ name: 'depth' });
+ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
 
-export default class Sprite extends Component {
-    width: number = 200;
-    height: number = 200;
+export default class SpriteRenderer extends RectBoundsRenderer {
+    private _texture!: Texture;
+    public get texture(): Texture {
+        return this._texture;
+    }
+    public set texture(value: Texture) {
+        const { width, height } = value.info;
+        const w = width / RectBoundsRenderer.PIXELS_PER_UNIT;
+        const h = height / RectBoundsRenderer.PIXELS_PER_UNIT;
+        this.updateBounds(-w / 2, -h / 2, w, h);
 
-    texture!: Texture;
+        this._texture = value;
+    }
 
     private _model!: Model;
 
     override start(): void {
-        const shader: Shader = ShaderLib.instance.getShader('depth');
+        const shader: Shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
 
         const attributes: VertexInputAttributeDescription[] = [];
         const bindings: VertexInputBindingDescription[] = [];
@@ -59,38 +67,44 @@ export default class Sprite extends Component {
         const texCoordBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX, 8);
         const positionBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX, 12);
 
-        const l = 0;
-        const r = 1;
-        const t = 0;
-        const b = 1;
+        const uv_l = 0;
+        const uv_r = 1;
+        const uv_t = 0;
+        const uv_b = 1;
 
-        texCoordBuffer.data[0] = l;
-        texCoordBuffer.data[1] = t;
-        positionBuffer.data[0] = 0;
-        positionBuffer.data[1] = 0;
+        const { width, height } = this.bounds;
+        const pos_l = -width / 2;
+        const pos_r = width / 2;
+        const pos_t = height / 2;
+        const pos_b = -height / 2;
+
+        texCoordBuffer.data[0] = uv_l;
+        texCoordBuffer.data[1] = uv_t;
+        positionBuffer.data[0] = pos_l;
+        positionBuffer.data[1] = pos_t;
         positionBuffer.data[2] = 0;
 
-        texCoordBuffer.data[2] = r;
-        texCoordBuffer.data[3] = t;
-        positionBuffer.data[3] = this.width;
-        positionBuffer.data[4] = 0;
+        texCoordBuffer.data[2] = uv_l;
+        texCoordBuffer.data[3] = uv_b;
+        positionBuffer.data[3] = pos_l;
+        positionBuffer.data[4] = pos_b;
         positionBuffer.data[5] = 0;
 
-        texCoordBuffer.data[4] = r;
-        texCoordBuffer.data[5] = b;
-        positionBuffer.data[6] = this.width;
-        positionBuffer.data[7] = - this.height;
+        texCoordBuffer.data[4] = uv_r;
+        texCoordBuffer.data[5] = uv_b;
+        positionBuffer.data[6] = pos_r;
+        positionBuffer.data[7] = pos_b;
         positionBuffer.data[8] = 0;
 
-        texCoordBuffer.data[6] = l;
-        texCoordBuffer.data[7] = b;
-        positionBuffer.data[9] = 0;
-        positionBuffer.data[10] = -this.height;
+        texCoordBuffer.data[6] = uv_r;
+        texCoordBuffer.data[7] = uv_t;
+        positionBuffer.data[9] = pos_r;
+        positionBuffer.data[10] = pos_t;
         positionBuffer.data[11] = 0;
 
         const indexBuffer = new BufferView("Uint16", BufferUsageFlagBits.INDEX, 6);
         // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
-        indexBuffer.set([0, 2, 1, 2, 0, 3]);
+        indexBuffer.set([0, 1, 3, 3, 1, 2]);
 
         texCoordBuffer.update();
         positionBuffer.update();
@@ -126,6 +140,6 @@ export default class Sprite extends Component {
         if (this.node.hasChanged) {
             this._model.updateBuffer(this.node.matrix);
         }
-        this._model.visibility = this.node.visibility;
+        this._model.visibilityFlag = this.node.visibilityFlag;
     }
 }

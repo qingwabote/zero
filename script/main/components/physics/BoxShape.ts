@@ -49,7 +49,6 @@ export default class BoxShape extends Component {
 
         ps.bt_vec3_a.setValue(0.5, 0.5, 0.5); // using unit-scale shape https://pybullet.org/Bullet/phpBB3/viewtopic.php?p=20760#p20760
         this._impl = new ammo.btBoxShape(ps.bt_vec3_a);
-        ps.bt_vec3_a.setValue(...this._origin);
         ps.bt_transform_a.setIdentity();
         ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape).addChildShape(ps.bt_transform_a, this._impl);
 

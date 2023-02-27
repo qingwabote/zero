@@ -113,7 +113,7 @@ export default class Label extends Component {
         if (this.node.hasChanged) {
             this._model.updateBuffer(this.node.matrix);
         }
-        this._model.visibility = this.node.visibility;
+        this._model.visibilityFlag = this.node.visibilityFlag;
 
         const subModel = this._model.subModels[0];
 

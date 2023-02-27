@@ -83,7 +83,7 @@ export default class Primitive extends Component {
     }
 
     commit(): void {
-        this._model.visibility = this.node.visibility;
+        this._model.visibilityFlag = this.node.visibilityFlag;
         if (this.node.hasChanged) {
             this._model.updateBuffer(this.node.matrix);
         }

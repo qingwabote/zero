@@ -3,11 +3,10 @@ import { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import vec3, { Vec3 } from "../math/vec3.js";
 import RenderObject from "./RenderObject.js";
-import VisibilityBit from "./VisibilityBit.js";
 
 export default class Camera extends RenderObject {
 
-    visibilities: VisibilityBit = VisibilityBit.DEFAULT;
+    visibilityFlags = 0;
 
     clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 

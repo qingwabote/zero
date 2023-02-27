@@ -6,8 +6,8 @@ import Shader from "../../core/gfx/Shader.js";
 import Phase from "../../core/pipeline/Phase.js";
 import Camera from "../../core/render/Camera.js";
 import PassPhase from "../../core/render/PassPhase.js";
-import VisibilityBit from "../../core/render/VisibilityBit.js";
 import ShaderLib from "../../core/ShaderLib.js";
+import VisibilityBit from "../../VisibilityBit.js";
 
 const pipelineLayoutCache: Record<string, PipelineLayout> = {};
 
@@ -25,7 +25,7 @@ export default class ModelPhase extends Phase {
         const models = zero.scene.models;
         this._drawCalls = 0;
         for (const model of models) {
-            if ((camera.visibilities & model.visibility) == 0) {
+            if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
                 continue;
             }
             for (const subModel of model.subModels) {

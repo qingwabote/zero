@@ -11,11 +11,11 @@ import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Stage from "../../../../script/main/core/pipeline/Stage.js";
 import PassPhase from "../../../../script/main/core/render/PassPhase.js";
-import VisibilityBit from "../../../../script/main/core/render/VisibilityBit.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
 import ShadowStage from "../../../../script/main/pipeline/stages/ShadowStage.js";
+import VisibilityBit from "../../../../script/main/VisibilityBit.js";
 
 const PhaseLightView = 1 << 10;
 
@@ -47,7 +47,7 @@ export default class App extends Zero {
 
         node = new Node;
         const down_camera = node.addComponent(Camera);
-        down_camera.visibilities = VisibilityBit.DEFAULT | Visibility_Down;
+        down_camera.visibilityFlags = VisibilityBit.DEFAULT | Visibility_Down;
         down_camera.orthoHeight = 8;
         down_camera.far = 20
         down_camera.viewport = { x: 0, y: 0, width, height: height / 2 };
@@ -56,7 +56,7 @@ export default class App extends Zero {
 
         node = new Node;
         const up_camera = node.addComponent(Camera);
-        up_camera.visibilities = VisibilityBit.DEFAULT | Visibility_Up;
+        up_camera.visibilityFlags = VisibilityBit.DEFAULT | Visibility_Up;
         up_camera.fov = 45;
         up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
         node.position = [0, 0, 10];
@@ -72,25 +72,25 @@ export default class App extends Zero {
         // UI
         node = new Node;
         const cameraUI = node.addComponent(Camera);
-        cameraUI.visibilities = VisibilityBit.UI;
+        cameraUI.visibilityFlags = VisibilityBit.UI;
         cameraUI.clearFlags = ClearFlagBit.DEPTH;
         cameraUI.orthoHeight = height / 2;
         cameraUI.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
-        node.visibility = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityBit.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2 + 200, 0];
 
         node = new Node;
-        node.visibility = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityBit.UI;
         node.addComponent(CameraControlPanel).camera = up_camera;
         node.position = [-width / 2, height / 2, 0];
 
         if (USE_SHADOW_MAP) {
             node = new Node;
-            node.visibility = VisibilityBit.UI;
+            node.visibilityFlag = VisibilityBit.UI;
             node.position = [width / 2 - 200, -height / 2 + 200, 0];
             const sprite = node.addComponent(Sprite);
             sprite.width = 200;

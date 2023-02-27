@@ -1,10 +1,9 @@
-import EventEmitter from "../base/EventEmitter.js";
+import EventEmitterImpl from "../base/EventEmitterImpl.js";
 import Component from "./Component.js";
 import mat3 from "./math/mat3.js";
 import mat4, { Mat4 } from "./math/mat4.js";
 import quat, { Quat } from "./math/quat.js";
 import vec3, { Vec3 } from "./math/vec3.js";
-import VisibilityBit from "./render/VisibilityBit.js";
 
 export enum TransformBit {
     NONE = 0,
@@ -32,7 +31,7 @@ export default class Node {
         return this._name;
     }
 
-    visibility: VisibilityBit = VisibilityBit.DEFAULT;
+    visibilityFlag = 0;
 
     private _frameId = 0;
 
@@ -46,10 +45,10 @@ export default class Node {
         this._hasChanged = flags;
     }
 
-    private _eventEmitter: EventEmitter<EventMap> | undefined;
-    get eventEmitter(): EventEmitter<EventMap> {
+    private _eventEmitter: EventEmitterImpl<EventMap> | undefined;
+    get eventEmitter(): EventEmitterImpl<EventMap> {
         if (!this._eventEmitter) {
-            this._eventEmitter = new EventEmitter;
+            this._eventEmitter = new EventEmitterImpl;
         }
         return this._eventEmitter;
     }

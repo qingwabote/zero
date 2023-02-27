@@ -1,4 +1,4 @@
-import EventEmitter from "../base/EventEmitter.js";
+import EventEmitterImpl from "../base/EventEmitterImpl.js";
 import Asset from "./Asset.js";
 import Component from "./Component.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
@@ -32,7 +32,7 @@ interface EventToListener {
     [ZeroEvent.RENDER_END]: () => void;
 }
 
-export default abstract class Zero extends EventEmitter<EventToListener> {
+export default abstract class Zero extends EventEmitterImpl<EventToListener> {
     private static readonly _system2priority: Map<System, number> = new Map;
 
     static registerSystem(system: System, priority: number) {

@@ -5,6 +5,14 @@ export default {
         return { x, y, width, height };
     },
 
+    set(out: Rect, x: number, y: number, width: number, height: number): Rect {
+        out.x = x;
+        out.y = y;
+        out.width = width;
+        out.height = height;
+        return out;
+    },
+
     union(out: Rect, one: Readonly<Rect>, other: Readonly<Rect>) {
         const x = one.x;
         const y = one.y;

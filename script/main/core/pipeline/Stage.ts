@@ -3,13 +3,12 @@ import { Framebuffer } from "../gfx/Framebuffer.js";
 import RenderPass from "../gfx/RenderPass.js";
 import { Rect } from "../math/rect.js";
 import Camera from "../render/Camera.js";
-import VisibilityBit from "../render/VisibilityBit.js";
 import Phase from "./Phase.js";
 import Uniform from "./Uniform.js";
 
 export default abstract class Stage {
 
-    readonly visibility: VisibilityBit;
+    readonly visibility: number;
 
     protected _phases: Phase[];
 
@@ -47,7 +46,7 @@ export default abstract class Stage {
 
         this._drawCalls = 0;
         for (const phase of this._phases) {
-            if ((camera.visibilities & phase.visibility) == 0) {
+            if ((camera.visibilityFlags & phase.visibility) == 0) {
                 continue;
             }
             phase.record(commandBuffer, camera, renderPass);

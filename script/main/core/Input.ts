@@ -1,4 +1,4 @@
-import EventEmitter from "../base/EventEmitter.js";
+import EventEmitterImpl from "../base/EventEmitterImpl.js";
 
 export interface Touch {
     x: number,
@@ -29,4 +29,4 @@ interface EventToListener {
     [InputEvent.GESTURE_ROTATE]: (event: GestureEvent) => void;
 }
 
-export default class Input extends EventEmitter<EventToListener> { }
+export default class Input extends EventEmitterImpl<EventToListener> { }

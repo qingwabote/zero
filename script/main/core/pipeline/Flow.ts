@@ -115,7 +115,7 @@ export default class Flow {
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.set, this.globalDescriptorSet,
                 [ShaderLib.sets.global.uniforms.Camera.size * cameraIndex]);
             for (const stage of this._stages) {
-                if ((camera.visibilities & stage.visibility) == 0) {
+                if ((camera.visibilityFlags & stage.visibility) == 0) {
                     continue;
                 }
                 stage.record(commandBuffer, camera);

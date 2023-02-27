@@ -4,11 +4,10 @@ import mat4, { Mat4 } from "../math/mat4.js";
 import ShaderLib from "../ShaderLib.js";
 import BufferView from "./buffers/BufferView.js";
 import SubModel from "./SubModel.js";
-import VisibilityBit from "./VisibilityBit.js";
 
 export default class Model {
 
-    visibility: VisibilityBit = VisibilityBit.DEFAULT;
+    visibilityFlag = 0;
 
     private _bufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShaderLib.sets.local.uniforms.Local.length);
 

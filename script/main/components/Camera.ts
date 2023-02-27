@@ -4,7 +4,7 @@ import mat4, { Mat4 } from "../core/math/mat4.js";
 import { Rect } from "../core/math/rect.js";
 import vec3, { Vec3 } from "../core/math/vec3.js";
 import { default as render_Camera } from "../core/render/Camera.js";
-import VisibilityBit from "../core/render/VisibilityBit.js";
+import VisibilityBit from "../VisibilityBit.js";
 
 enum DirtyFlag {
     NONE = 0,
@@ -25,7 +25,7 @@ export default class Camera extends Component {
     near = 1;
     far = 1000;
 
-    visibilities: VisibilityBit = VisibilityBit.DEFAULT;
+    visibilityFlags: VisibilityBit = VisibilityBit.DEFAULT;
 
     clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
 
@@ -40,7 +40,7 @@ export default class Camera extends Component {
         this.node.eventEmitter.on("TRANSFORM_CHANGED", () => this._matViewFlags = DirtyFlag.DIRTY);
 
         const camera = new render_Camera;
-        camera.visibilities = this.visibilities;
+        camera.visibilityFlags = this.visibilityFlags;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
         zero.scene.cameras.push(camera);

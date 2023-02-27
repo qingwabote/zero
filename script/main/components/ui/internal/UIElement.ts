@@ -1,16 +1,39 @@
-import Component from "../../Component.js";
-import rect, { Rect } from "../../math/rect.js";
-import vec2 from "../../math/vec2.js";
+import Component from "../../../core/Component.js";
+import rect, { Rect } from "../../../core/math/rect.js";
+import vec2 from "../../../core/math/vec2.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 const vec2_c = vec2.create();
 const vec2_d = vec2.create();
 
-export default class VisualRectangle extends Component {
-    size = vec2.create();
-    anchor = vec2.create();
-    touchable = true;
+export enum DirtyFlag {
+    NONE = 0,
+    SIZE = 1 << 0,
+    ANCHOR = 1 << 1,
+    ALL = 0xffffffff
+}
+
+export default class UIElement extends Component {
+    protected _dirtyFlags = DirtyFlag.ALL;
+
+    protected _size = vec2.create();
+    public get size() {
+        return this._size;
+    }
+    public set size(value) {
+        this._size = value;
+        this._dirtyFlags |= DirtyFlag.SIZE;
+    }
+
+    protected _anchor = vec2.create();
+    public get anchor() {
+        return this._anchor;
+    }
+    public set anchor(value) {
+        this._anchor = value;
+        this._dirtyFlags |= DirtyFlag.ANCHOR;
+    }
 
     getAABB(): Rect {
         const [x, y, width, height] = [-this.size[0] * this.anchor[0], -this.size[1] * this.anchor[1], this.size[0], this.size[1]];
@@ -30,16 +53,6 @@ export default class VisualRectangle extends Component {
         const t = Math.min(lb[1], rb[1], rt[1], lt[1]);
         const b = Math.max(lb[1], rb[1], rt[1], lt[1]);
 
-        const aabb = rect.create(l, b, r - l, t - b);
-
-        for (const child of this.node.children) {
-            const vr = child.getComponent(VisualRectangle);
-            if (!vr) {
-                continue;
-            }
-            rect.union(aabb, aabb, vr.getAABB());
-        }
-
-        return aabb;
+        return rect.create(l, b, r - l, t - b);
     }
 }

@@ -17,8 +17,8 @@ import { SubMesh, VertexAttribute } from "../core/render/Mesh.js";
 import Pass from "../core/render/Pass.js";
 import PassPhase from "../core/render/PassPhase.js";
 import samplers from "../core/render/samplers.js";
-import VisibilityBit from "../core/render/VisibilityBit.js";
 import ShaderLib from "../core/ShaderLib.js";
+import VisibilityBit from "../VisibilityBit.js";
 import Material from "./Material.js";
 import Texture from "./Texture.js";
 
@@ -103,7 +103,7 @@ export default class GLTF extends Asset {
         }
 
         const node = new Node(name);
-        node.visibility = visibility;
+        node.visibilityFlag = visibility;
         for (const index of scene.nodes) {
             node.addChild(this.createNode(this._json.nodes[index], visibility))
         }
@@ -154,7 +154,7 @@ export default class GLTF extends Asset {
 
     private createNode(info: any, visibility: VisibilityBit): Node {
         const node = new Node(info.name);
-        node.visibility = visibility;
+        node.visibilityFlag = visibility;
         if (info.matrix) {
             mat4.toRTS(info.matrix, node.rotation as Quat, node.position as Vec3, node.scale as Vec3);
         } else {

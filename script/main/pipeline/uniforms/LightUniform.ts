@@ -31,7 +31,7 @@ export default class LightUniform implements Uniform {
 
     update(): void {
         const renderScene = zero.scene;
-        const directionalLight = renderScene.directionalLight;
+        const directionalLight = renderScene.directionalLight!;
         if (directionalLight.hasChanged) {
             const litDir = vec3.normalize(vec3.create(), directionalLight.position);
             this._buffer.set(litDir, 0);

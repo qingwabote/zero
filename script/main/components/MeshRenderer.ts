@@ -89,6 +89,6 @@ export default class MeshRenderer extends Component {
         if (this.node.hasChanged) {
             this._model.updateBuffer(this.node.matrix);
         }
-        this._model.visibility = this.node.visibility;
+        this._model.visibilityFlag = this.node.visibilityFlag;
     }
 }
