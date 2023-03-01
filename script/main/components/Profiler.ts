@@ -1,6 +1,8 @@
 import Component from "../core/Component.js";
+import vec2 from "../core/math/vec2.js";
 import { ZeroEvent } from "../core/Zero.js";
-import Label from "./Label.js";
+import TextRenderer from "./2d/TextRenderer.js";
+import UIRenderer from "./ui/UIRenderer.js";
 
 export default class Profiler extends Component {
     private _time: number = 0;
@@ -12,17 +14,20 @@ export default class Profiler extends Component {
 
     private _render_time = 0;
 
+    private _text!: UIRenderer<TextRenderer>;
+
     override start(): void {
-        this.node.addComponent(Label);
+        const text = UIRenderer.create(TextRenderer);
+        text.node.visibilityFlag = this.node.visibilityFlag;
+        text.anchor = vec2.create(0, 0)
+        this.node.addChild(text.node);
+        this._text = text;
 
         this.profileGameLogic();
         this.profileRender();
     }
 
     override update(): void {
-        const label = this.node.getComponent(Label);
-        if (!label) return;
-
         const now = Date.now();
         const duration = now - this._time;
         if (duration > 1000) {
@@ -32,7 +37,7 @@ export default class Profiler extends Component {
         }
         this._frames++;
 
-        label.text = `FPS: ${this._fps.toString().slice(0, 5)}
+        this._text.impl.text = `FPS: ${this._fps.toString().slice(0, 5)}
 Draw call: ${zero.flow.drawCalls}
 Render(ms): ${this._render_time.toString().slice(0, 5)}
 Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;

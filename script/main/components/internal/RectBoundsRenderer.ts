@@ -29,7 +29,7 @@ export default class RectBoundsRenderer extends Component implements EventEmitte
 
     protected updateBounds(x: number, y: number, width: number, height: number) {
         rect.set(this._bounds, x, y, width, height);
-        this.emit(BoundsEvent.BOUNDS_CHANGED)
+        this.__emitter?.emit(BoundsEvent.BOUNDS_CHANGED);
     }
 
     on<K extends BoundsEvent>(name: K, listener: BoundsEventToListener[K] extends (event: any) => void ? BoundsEventToListener[K] : (event: any) => void): void {

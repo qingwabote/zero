@@ -17,7 +17,7 @@ export enum DirtyFlag {
 export default class UIElement extends Component {
     protected _dirtyFlags = DirtyFlag.ALL;
 
-    protected _size = vec2.create();
+    private _size = vec2.create();
     public get size() {
         return this._size;
     }
@@ -26,7 +26,7 @@ export default class UIElement extends Component {
         this._dirtyFlags |= DirtyFlag.SIZE;
     }
 
-    protected _anchor = vec2.create();
+    protected _anchor = vec2.create(0.5, 0.5);
     public get anchor() {
         return this._anchor;
     }

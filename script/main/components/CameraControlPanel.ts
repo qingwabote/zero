@@ -2,8 +2,8 @@ import Component from "../core/Component.js";
 import { InputEvent, Touch } from "../core/Input.js";
 import quat from "../core/math/quat.js";
 import vec3 from "../core/math/vec3.js";
+import TextRenderer from "./2d/TextRenderer.js";
 import Camera from "./Camera.js";
-import Label from "./Label.js";
 
 export default class CameraControlPanel extends Component {
     camera!: Camera;
@@ -20,7 +20,7 @@ export default class CameraControlPanel extends Component {
     }
 
     override start(): void {
-        this.node.addComponent(Label);
+        this.node.addComponent(TextRenderer);
 
         zero.input.on(InputEvent.TOUCH_START, event => {
             // const camera = zero.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
@@ -66,7 +66,7 @@ export default class CameraControlPanel extends Component {
 
     override update(): void {
         if (this._dirty) {
-            const label = this.node.getComponent(Label)!;
+            const label = this.node.getComponent(TextRenderer)!;
             label.text = this.fixed ? "Fixed Camera" : "Wandering Camera";
 
             const view = vec3.normalize(vec3.create(), this.camera.node.position);

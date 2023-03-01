@@ -1,18 +1,18 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
-import FNT from "../assets/FNT.js";
-import Asset from "../core/Asset.js";
-import Component from "../core/Component.js";
-import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
-import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
-import vec2, { Vec2 } from "../core/math/vec2.js";
-import BufferViewResizable from "../core/render/buffers/BufferViewResizable.js";
-import Model from "../core/render/Model.js";
-import Pass from "../core/render/Pass.js";
-import samplers from "../core/render/samplers.js";
-import SubModel from "../core/render/SubModel.js";
-import ShaderLib from "../core/ShaderLib.js";
+import FNT from "../../assets/FNT.js";
+import Asset from "../../core/Asset.js";
+import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
+import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
+import { Rect } from "../../core/math/rect.js";
+import BufferViewResizable from "../../core/render/buffers/BufferViewResizable.js";
+import Model from "../../core/render/Model.js";
+import Pass from "../../core/render/Pass.js";
+import samplers from "../../core/render/samplers.js";
+import SubModel from "../../core/render/SubModel.js";
+import ShaderLib from "../../core/ShaderLib.js";
+import RectBoundsRenderer from "../internal/RectBoundsRenderer.js";
 
 ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
 Asset.preloadedAssets.push({ path: '../../assets/fnt/zero', type: FNT });
@@ -24,7 +24,7 @@ enum DirtyFlagBits {
 
 const lineBreak = '\n'.charCodeAt(0);
 
-export default class Label extends Component {
+export default class TextRenderer extends RectBoundsRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
     private _text: string = "";
@@ -39,10 +39,9 @@ export default class Label extends Component {
         this._dirtyFlag |= DirtyFlagBits.TEXT;
     }
 
-    private _size: Vec2 = vec2.create(0, 0);
-    get size(): Readonly<Vec2> {
+    override get bounds(): Readonly<Rect> {
         this.updateData();
-        return this._size;
+        return super.bounds;
     }
 
     private _fnt: FNT = Asset.cache.get('../../assets/fnt/zero', FNT);
@@ -153,7 +152,7 @@ export default class Label extends Component {
         }
 
         if (this._text.length == 0) {
-            vec2.set(this._size, 0, 0);
+            this.updateBounds(0, 0, 0, 0)
             this._dirtyFlag = DirtyFlagBits.NONE;
             return;
         }
@@ -171,7 +170,7 @@ export default class Label extends Component {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
-                y -= this._fnt.common.lineHeight;
+                y -= this._fnt.common.lineHeight / RectBoundsRenderer.PIXELS_PER_UNIT;
                 i++;
                 continue;
             }
@@ -182,10 +181,15 @@ export default class Label extends Component {
             const tex_t = char.y / tex.height;
             const tex_b = (char.y + char.height) / tex.height;
 
-            const pos_l = x + char.xoffset;
-            const pos_r = x + char.xoffset + char.width;
-            const pos_t = y - char.yoffset;
-            const pos_b = y - char.yoffset - char.height;
+            const xoffset = char.xoffset / RectBoundsRenderer.PIXELS_PER_UNIT;
+            const yoffset = char.yoffset / RectBoundsRenderer.PIXELS_PER_UNIT;
+            const width = char.width / RectBoundsRenderer.PIXELS_PER_UNIT;
+            const height = char.height / RectBoundsRenderer.PIXELS_PER_UNIT;
+
+            const pos_l = x + xoffset;
+            const pos_r = x + xoffset + width;
+            const pos_t = y - yoffset;
+            const pos_b = y - yoffset - height;
 
             this._texCoordBuffer.data[2 * 4 * i + 0] = tex_l;
             this._texCoordBuffer.data[2 * 4 * i + 1] = tex_t;
@@ -226,12 +230,12 @@ export default class Label extends Component {
             t = Math.max(t, pos_t);
             b = Math.min(b, pos_b);
 
-            x += char.xadvance;
+            x += char.xadvance / RectBoundsRenderer.PIXELS_PER_UNIT;
             i++;
         }
 
         this._indexCount = indexCount;
-        vec2.set(this._size, r + l, -(b + t));
+        this.updateBounds(0, b, r + l, t - b)
         if (reallocated) {
             this._inputAssemblerInvalidated = true;
         }
