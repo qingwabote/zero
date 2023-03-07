@@ -1,20 +1,32 @@
-import Component from "../core/Component.js";
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
 import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
-import { Vec3 } from "../core/math/vec3.js";
+import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
+import vec3, { Vec3 } from "../core/math/vec3.js";
 import { Vec4 } from "../core/math/vec4.js";
 import BufferViewResizable from "../core/render/buffers/BufferViewResizable.js";
 import Model from "../core/render/Model.js";
 import Pass from "../core/render/Pass.js";
 import SubModel from "../core/render/SubModel.js";
 import ShaderLib from "../core/ShaderLib.js";
+import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
+
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 
 ShaderLib.preloadedShaders.push({ name: 'primitive' })
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
-export default class Primitive extends Component {
+export default class Primitive extends BoundedRenderer {
+    private _vertexMin = vec3.create(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+    private _vertexMax = vec3.create(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+
+    private _bounds = aabb3d.create();
+    public get bounds(): Readonly<AABB3D> {
+        return this._bounds;
+    }
+
     private _buffer: BufferViewResizable = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
     private _buffer_reallocated: boolean = false;
 
@@ -38,6 +50,17 @@ export default class Primitive extends Component {
         this._buffer.set(to, offset);
         offset += 3
         this._buffer.set(color, offset);
+
+        vec3.min(vec3_a, this._vertexMin, from);
+        vec3.min(vec3_a, vec3_a, to);
+        vec3.max(vec3_b, this._vertexMax, from);
+        vec3.max(vec3_b, vec3_b, to);
+        if (!vec3.equals(vec3_a, this._vertexMin) || !vec3.equals(vec3_b, this._vertexMax)) {
+            aabb3d.fromPoints(this._bounds, vec3_a, vec3_b);
+            vec3.set(this._vertexMin, ...vec3_a);
+            vec3.set(this._vertexMax, ...vec3_b);
+            this.emit(BoundsEvent.BOUNDS_CHANGED);
+        }
 
         this._vertexCount += 2;
     }
@@ -114,6 +137,11 @@ export default class Primitive extends Component {
     }
 
     clear() {
+        // this._vertexMin = vec3.create(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+        // this._vertexMax = vec3.create(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+
+        // aabb3d.set(this._bounds, 0, 0, 0, 0, 0, 0);
+
         this._vertexCount = 0;
     }
 }

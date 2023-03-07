@@ -1,7 +1,7 @@
 import EventEmitter from "../../base/EventEmitter.js";
 import EventEmitterImpl from "../../base/EventEmitterImpl.js";
 import Component from "../../core/Component.js";
-import rect, { Rect } from "../../core/math/rect.js";
+import { AABB2D } from "../../core/math/aabb2d.js";
 
 export enum BoundsEvent {
     BOUNDS_CHANGED = "BOUNDS_CHANGED",
@@ -11,27 +11,16 @@ interface BoundsEventToListener {
     [BoundsEvent.BOUNDS_CHANGED]: () => void;
 }
 
-export default class RectBoundsRenderer extends Component implements EventEmitter<BoundsEventToListener> {
+export default abstract class BoundedRenderer extends Component implements EventEmitter<BoundsEventToListener> {
     static readonly PIXELS_PER_UNIT = 100;
 
     private __emitter?: EventEmitter<BoundsEventToListener>;
     private get _emitter() {
-        if (!this.__emitter) {
-            this.__emitter = new EventEmitterImpl;
-        }
-        return this.__emitter;
+        return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
     }
-
-    private _bounds = rect.create();
-    public get bounds(): Readonly<Rect> {
-        return this._bounds;
+    has<K extends BoundsEvent>(name: K): boolean {
+        return this.__emitter ? this.__emitter.has(name) : false;
     }
-
-    protected updateBounds(x: number, y: number, width: number, height: number) {
-        rect.set(this._bounds, x, y, width, height);
-        this.__emitter?.emit(BoundsEvent.BOUNDS_CHANGED);
-    }
-
     on<K extends BoundsEvent>(name: K, listener: BoundsEventToListener[K] extends (event: any) => void ? BoundsEventToListener[K] : (event: any) => void): void {
         this._emitter.on(name, listener);
     }
@@ -39,6 +28,8 @@ export default class RectBoundsRenderer extends Component implements EventEmitte
         this._emitter.off(name, listener);
     }
     emit<K extends BoundsEvent>(name: K, event?: Parameters<BoundsEventToListener[K] extends (event: any) => void ? BoundsEventToListener[K] : (event: any) => void>[0] | undefined): void {
-        this._emitter.emit(name, event);
+        this.__emitter?.emit(name, event);
     }
+
+    public abstract get bounds(): Readonly<AABB2D>;
 }

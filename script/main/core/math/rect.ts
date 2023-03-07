@@ -1,3 +1,5 @@
+import { Vec2 } from "./vec2.js";
+
 export type Rect = { x: number, y: number, width: number, height: number }
 
 export default {
@@ -11,6 +13,13 @@ export default {
         out.width = width;
         out.height = height;
         return out;
+    },
+
+    contains(rect: Rect, point: Vec2) {
+        return (rect.x <= point[0]
+            && rect.x + rect.width >= point[0]
+            && rect.y <= point[1]
+            && rect.y + rect.height >= point[1]);
     },
 
     union(out: Rect, one: Readonly<Rect>, other: Readonly<Rect>) {

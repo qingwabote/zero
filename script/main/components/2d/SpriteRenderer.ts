@@ -4,26 +4,36 @@ import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/
 import { Filter } from "../../core/gfx/Sampler.js";
 import Shader from "../../core/gfx/Shader.js";
 import Texture from "../../core/gfx/Texture.js";
+import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import BufferView from "../../core/render/buffers/BufferView.js";
 import Model from "../../core/render/Model.js";
 import Pass from "../../core/render/Pass.js";
 import samplers from "../../core/render/samplers.js";
 import SubModel from "../../core/render/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
-import RectBoundsRenderer from "../internal/RectBoundsRenderer.js";
+import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
 ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
 
-export default class SpriteRenderer extends RectBoundsRenderer {
+export default class SpriteRenderer extends BoundedRenderer {
+    private _bounds = aabb2d.create();
+    public get bounds(): Readonly<AABB2D> {
+        return this._bounds;
+    }
+
     private _texture!: Texture;
     public get texture(): Texture {
         return this._texture;
     }
     public set texture(value: Texture) {
         const { width, height } = value.info;
-        const w = width / RectBoundsRenderer.PIXELS_PER_UNIT;
-        const h = height / RectBoundsRenderer.PIXELS_PER_UNIT;
-        this.updateBounds(-w / 2, -h / 2, w, h);
+        const w = width / BoundedRenderer.PIXELS_PER_UNIT;
+        const h = height / BoundedRenderer.PIXELS_PER_UNIT;
+        this._bounds.originX = -w / 2;
+        this._bounds.originY = -h / 2;
+        this._bounds.extentX = w;
+        this._bounds.extentY = h;
+        this.emit(BoundsEvent.BOUNDS_CHANGED);
 
         this._texture = value;
     }
@@ -72,11 +82,11 @@ export default class SpriteRenderer extends RectBoundsRenderer {
         const uv_t = 0;
         const uv_b = 1;
 
-        const { width, height } = this.bounds;
-        const pos_l = -width / 2;
-        const pos_r = width / 2;
-        const pos_t = height / 2;
-        const pos_b = -height / 2;
+        const { extentX, extentY } = this.bounds;
+        const pos_l = -extentX / 2;
+        const pos_r = extentX / 2;
+        const pos_t = extentY / 2;
+        const pos_b = -extentY / 2;
 
         texCoordBuffer.data[0] = uv_l;
         texCoordBuffer.data[1] = uv_t;

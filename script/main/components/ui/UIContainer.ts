@@ -15,4 +15,8 @@ export default class UIContainer extends UIElement {
 
         return aabb;
     }
+
+    addElement(element: UIElement) {
+        this.node.addChild(element.node);
+    }
 }

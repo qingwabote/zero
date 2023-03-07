@@ -1,21 +1,52 @@
+import EventEmitter from "../../../base/EventEmitter.js";
+import EventEmitterImpl from "../../../base/EventEmitterImpl.js";
 import Component from "../../../core/Component.js";
 import rect, { Rect } from "../../../core/math/rect.js";
-import vec2 from "../../../core/math/vec2.js";
+import vec2, { Vec2 } from "../../../core/math/vec2.js";
 
-const vec2_a = vec2.create();
-const vec2_b = vec2.create();
-const vec2_c = vec2.create();
-const vec2_d = vec2.create();
-
-export enum DirtyFlag {
-    NONE = 0,
-    SIZE = 1 << 0,
-    ANCHOR = 1 << 1,
-    ALL = 0xffffffff
+export class UITouch {
+    world = vec2.create();
+    local = vec2.create();
+    constructor(world: Vec2, local: Vec2) {
+        vec2.set(this.world, ...world)
+        vec2.set(this.local, ...local)
+    }
 }
 
-export default class UIElement extends Component {
-    protected _dirtyFlags = DirtyFlag.ALL;
+export enum UITouchEventType {
+    TOUCH_START = "TOUCH_START",
+    TOUCH_MOVE = "TOUCH_MOVE",
+    TOUCH_END = "TOUCH_END",
+}
+
+export class UITouchEvent {
+    constructor(readonly touch: UITouch) { }
+}
+
+interface EventToListener {
+    [UITouchEventType.TOUCH_START]: (event: UITouchEvent) => void;
+    [UITouchEventType.TOUCH_MOVE]: (event: UITouchEvent) => void;
+    [UITouchEventType.TOUCH_END]: (event: UITouchEvent) => void;
+}
+
+export default class UIElement extends Component implements EventEmitter<EventToListener> {
+    private __emitter?: EventEmitter<EventToListener>;
+    private get _emitter() {
+        return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
+    }
+    has<K extends UITouchEventType>(name: K): boolean {
+        return this.__emitter ? this.__emitter.has(name) : false;
+    }
+    on<K extends UITouchEventType>(name: K, listener: EventToListener[K] extends (event: any) => void ? EventToListener[K] : (event: any) => void): void {
+        this._emitter.on(name, listener);
+    }
+    off<K extends UITouchEventType>(name: K, listener: EventToListener[K] extends (event: any) => void ? EventToListener[K] : (event: any) => void): void {
+        this._emitter.off(name, listener);
+    }
+    emit<K extends UITouchEventType>(name: K, event?: Parameters<EventToListener[K] extends (event: any) => void ? EventToListener[K] : (event: any) => void>[0] | undefined): void {
+        this.__emitter?.emit(name, event);
+    }
+
 
     private _size = vec2.create();
     public get size() {
@@ -23,36 +54,9 @@ export default class UIElement extends Component {
     }
     public set size(value) {
         this._size = value;
-        this._dirtyFlags |= DirtyFlag.SIZE;
-    }
-
-    protected _anchor = vec2.create(0.5, 0.5);
-    public get anchor() {
-        return this._anchor;
-    }
-    public set anchor(value) {
-        this._anchor = value;
-        this._dirtyFlags |= DirtyFlag.ANCHOR;
     }
 
     getAABB(): Rect {
-        const [x, y, width, height] = [-this.size[0] * this.anchor[0], -this.size[1] * this.anchor[1], this.size[0], this.size[1]];
-
-        const lb = vec2.set(vec2_a, x, y);
-        const rb = vec2.set(vec2_b, x + width, y)
-        const rt = vec2.set(vec2_c, x + width, y + height)
-        const lt = vec2.set(vec2_d, x, y + height)
-
-        vec2.transformMat4(lb, lb, this.node.matrix);
-        vec2.transformMat4(rb, rb, this.node.matrix);
-        vec2.transformMat4(rt, rt, this.node.matrix);
-        vec2.transformMat4(lt, lt, this.node.matrix);
-
-        const l = Math.min(lb[0], rb[0], rt[0], lt[0]);
-        const r = Math.max(lb[0], rb[0], rt[0], lt[0]);
-        const t = Math.min(lb[1], rb[1], rt[1], lt[1]);
-        const b = Math.max(lb[1], rb[1], rt[1], lt[1]);
-
-        return rect.create(l, b, r - l, t - b);
+        return rect.create(-this.size[0] / 2, -this.size[1] / 2, this.size[0], this.size[1]);
     }
 }

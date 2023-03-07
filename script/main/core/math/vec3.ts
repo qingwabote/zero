@@ -121,5 +121,32 @@ export default {
         out[1] = -a[1];
         out[2] = -a[2];
         return out;
+    },
+
+    min(out: Vec3, a: Vec3, b: Vec3) {
+        out[0] = Math.min(a[0], b[0]);
+        out[1] = Math.min(a[1], b[1]);
+        out[2] = Math.min(a[2], b[2]);
+        return out;
+    },
+
+    max(out: Vec3, a: Vec3, b: Vec3) {
+        out[0] = Math.max(a[0], b[0]);
+        out[1] = Math.max(a[1], b[1]);
+        out[2] = Math.max(a[2], b[2]);
+        return out;
+    },
+
+    equals(a: Vec3, b: Vec3, epsilon = 0.000001) {
+        const [a0, a1, a2] = a;
+        const [b0, b1, b2] = b;
+        return (
+            Math.abs(a0 - b0)
+            <= epsilon * Math.max(1.0, Math.abs(a0), Math.abs(b0))
+            && Math.abs(a1 - b1)
+            <= epsilon * Math.max(1.0, Math.abs(a1), Math.abs(b1))
+            && Math.abs(a2 - b2)
+            <= epsilon * Math.max(1.0, Math.abs(a2), Math.abs(b2))
+        );
     }
 } as const

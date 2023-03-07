@@ -5,14 +5,14 @@ import Asset from "../../core/Asset.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
 import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
-import { Rect } from "../../core/math/rect.js";
+import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import BufferViewResizable from "../../core/render/buffers/BufferViewResizable.js";
 import Model from "../../core/render/Model.js";
 import Pass from "../../core/render/Pass.js";
 import samplers from "../../core/render/samplers.js";
 import SubModel from "../../core/render/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
-import RectBoundsRenderer from "../internal/RectBoundsRenderer.js";
+import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
 ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
 Asset.preloadedAssets.push({ path: '../../assets/fnt/zero', type: FNT });
@@ -24,7 +24,7 @@ enum DirtyFlagBits {
 
 const lineBreak = '\n'.charCodeAt(0);
 
-export default class TextRenderer extends RectBoundsRenderer {
+export default class TextRenderer extends BoundedRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
     private _text: string = "";
@@ -39,9 +39,10 @@ export default class TextRenderer extends RectBoundsRenderer {
         this._dirtyFlag |= DirtyFlagBits.TEXT;
     }
 
-    override get bounds(): Readonly<Rect> {
+    private _bounds = aabb2d.create();
+    get bounds(): Readonly<AABB2D> {
         this.updateData();
-        return super.bounds;
+        return this._bounds;
     }
 
     private _fnt: FNT = Asset.cache.get('../../assets/fnt/zero', FNT);
@@ -152,7 +153,8 @@ export default class TextRenderer extends RectBoundsRenderer {
         }
 
         if (this._text.length == 0) {
-            this.updateBounds(0, 0, 0, 0)
+            aabb2d.set(this._bounds, 0, 0, 0, 0);
+            this.emit(BoundsEvent.BOUNDS_CHANGED);
             this._dirtyFlag = DirtyFlagBits.NONE;
             return;
         }
@@ -170,7 +172,7 @@ export default class TextRenderer extends RectBoundsRenderer {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
-                y -= this._fnt.common.lineHeight / RectBoundsRenderer.PIXELS_PER_UNIT;
+                y -= this._fnt.common.lineHeight / BoundedRenderer.PIXELS_PER_UNIT;
                 i++;
                 continue;
             }
@@ -181,10 +183,10 @@ export default class TextRenderer extends RectBoundsRenderer {
             const tex_t = char.y / tex.height;
             const tex_b = (char.y + char.height) / tex.height;
 
-            const xoffset = char.xoffset / RectBoundsRenderer.PIXELS_PER_UNIT;
-            const yoffset = char.yoffset / RectBoundsRenderer.PIXELS_PER_UNIT;
-            const width = char.width / RectBoundsRenderer.PIXELS_PER_UNIT;
-            const height = char.height / RectBoundsRenderer.PIXELS_PER_UNIT;
+            const xoffset = char.xoffset / BoundedRenderer.PIXELS_PER_UNIT;
+            const yoffset = char.yoffset / BoundedRenderer.PIXELS_PER_UNIT;
+            const width = char.width / BoundedRenderer.PIXELS_PER_UNIT;
+            const height = char.height / BoundedRenderer.PIXELS_PER_UNIT;
 
             const pos_l = x + xoffset;
             const pos_r = x + xoffset + width;
@@ -230,12 +232,13 @@ export default class TextRenderer extends RectBoundsRenderer {
             t = Math.max(t, pos_t);
             b = Math.min(b, pos_b);
 
-            x += char.xadvance / RectBoundsRenderer.PIXELS_PER_UNIT;
+            x += char.xadvance / BoundedRenderer.PIXELS_PER_UNIT;
             i++;
         }
 
         this._indexCount = indexCount;
-        this.updateBounds(0, b, r + l, t - b)
+        aabb2d.set(this._bounds, 0, b, r + l, t - b);
+        this.emit(BoundsEvent.BOUNDS_CHANGED);
         if (reallocated) {
             this._inputAssemblerInvalidated = true;
         }

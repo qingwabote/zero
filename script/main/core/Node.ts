@@ -15,6 +15,7 @@ export enum TransformBit {
 }
 
 type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Component>) => T;
+type AbstractConstructor<T> = abstract new (...args: ConstructorParameters<typeof Component>) => T;
 
 interface EventMap {
     TRANSFORM_CHANGED: (flag: TransformBit) => void;
@@ -31,7 +32,32 @@ export default class Node {
         return this._name;
     }
 
-    visibilityFlag = 0;
+    private _explicit_visibilityFlag?: number;
+    private _implicit_visibilityFlag?: number;
+    public get visibilityFlag(): number {
+        if (this._explicit_visibilityFlag != undefined) {
+            return this._explicit_visibilityFlag;
+        }
+        if (this._implicit_visibilityFlag != undefined) {
+            return this._implicit_visibilityFlag;
+        }
+        if (this._parent) {
+            return this._implicit_visibilityFlag = this._parent.visibilityFlag;
+        }
+        return 0;
+    }
+    public set visibilityFlag(value) {
+        const stack = [...this.children];
+        while (stack.length) {
+            const child = stack.pop()!;
+            if (child._explicit_visibilityFlag != undefined) {
+                continue;
+            }
+            child._implicit_visibilityFlag = value;
+            stack.push(...child.children);
+        }
+        this._explicit_visibilityFlag = value;
+    }
 
     private _frameId = 0;
 
@@ -151,7 +177,7 @@ export default class Node {
         return component;
     }
 
-    getComponent<T extends Component>(constructor: ComponentConstructor<T>): T | null {
+    getComponent<T extends Component>(constructor: AbstractConstructor<T>): T | null {
         for (const component of this._components) {
             if (component instanceof constructor) {
                 return component
@@ -161,8 +187,10 @@ export default class Node {
     }
 
     addChild(child: Node): void {
-        this._children.push(child);
+        child._implicit_visibilityFlag = undefined;
         child._parent = this;
+
+        this._children.push(child);
     }
 
     private dirty(flag: TransformBit): void {

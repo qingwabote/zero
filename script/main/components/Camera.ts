@@ -2,9 +2,13 @@ import Component from "../core/Component.js";
 import { ClearFlagBit } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4 } from "../core/math/mat4.js";
 import { Rect } from "../core/math/rect.js";
+import vec2, { Vec2 } from "../core/math/vec2.js";
 import vec3, { Vec3 } from "../core/math/vec3.js";
 import { default as render_Camera } from "../core/render/Camera.js";
 import VisibilityBit from "../VisibilityBit.js";
+
+const vec2_a = vec2.create();
+const vec3_a = vec3.create();
 
 enum DirtyFlag {
     NONE = 0,
@@ -14,6 +18,11 @@ enum DirtyFlag {
 }
 
 export default class Camera extends Component {
+    static _instances: Camera[] = [];
+    static get instances(): readonly Camera[] {
+        return this._instances;
+    }
+
     private _matView: Mat4 = mat4.create();
     private _matViewFlags: DirtyFlag = DirtyFlag.DIRTY;
 
@@ -45,6 +54,8 @@ export default class Camera extends Component {
         camera.viewport = this.viewport;
         zero.scene.cameras.push(camera);
         this._camera = camera;
+
+        Camera._instances.push(this);
     }
 
     override commit(): void {
@@ -62,7 +73,27 @@ export default class Camera extends Component {
     }
 
     screenPointToRay(out_from: Vec3, out_to: Vec3, x: number, y: number) {
-        // screen to ndc
+        this.screenToNdc(vec2_a, x, y);
+
+        vec3.set(out_from, vec2_a[0], vec2_a[1], -1);
+        vec3.set(out_to, vec2_a[0], vec2_a[1], 1);
+
+        // ndc to world
+        const matViewProj = mat4.multiply(mat4.create(), this.getMatProj(), this.getMatView());
+        const matViewProjInv = mat4.invert(mat4.create(), matViewProj);
+        vec3.transformMat4(out_from, out_from, matViewProjInv);
+        vec3.transformMat4(out_to, out_to, matViewProjInv);
+    }
+
+    screenToWorld(out: Vec2, x: number, y: number): Vec2 {
+        this.screenToNdc(vec2_a, x, y);
+
+        const matViewProj = mat4.multiply(mat4.create(), this.getMatProj(), this.getMatView());
+        const matViewProjInv = mat4.invert(mat4.create(), matViewProj);
+        return vec2.transformMat4(out, vec2_a, matViewProjInv);
+    }
+
+    private screenToNdc(out: Vec2, x: number, y: number): Vec2 {
         y = zero.window.height - y;
 
         x -= this.viewport.x;
@@ -74,40 +105,8 @@ export default class Camera extends Component {
         x = x * 2 - 1;
         y = y * 2 - 1;
 
-        vec3.set(out_from, x, y, -1);
-        vec3.set(out_to, x, y, 1);
-
-        // ndc to world
-        const matViewProj = mat4.multiply(mat4.create(), this.getMatProj(), this.getMatView());
-        const matViewProjInv = mat4.invert(mat4.create(), matViewProj);
-        vec3.transformMat4(out_from, out_from, matViewProjInv);
-        vec3.transformMat4(out_to, out_to, matViewProjInv);
+        return vec2.set(out, x, y);
     }
-
-    // screenToWorld(out: Vec2, x: number, y: number): Vec2 {
-    //     this.screenToNdc(out, x, y);
-
-    //     const matViewProj = mat4.multiply(mat4.create(), this.getMatProj(), this.getMatView());
-    //     const matViewProjInv = mat4.invert(mat4.create(), matViewProj);
-    //     const world = vec3.transformMat4(vec3.create(), vec3.create(out[0], out[1], 1), matViewProjInv);
-    //     vec2.set(out, world[0], world[1]);
-    //     return out;
-    // }
-
-    // private screenToNdc(out: Vec2, x: number, y: number): Vec2 {
-    //     y = zero.window.height - y;
-
-    //     x -= this.viewport.x;
-    //     y -= this.viewport.y;
-
-    //     x /= this.viewport.width;
-    //     y /= this.viewport.height;
-
-    //     x = x * 2 - 1;
-    //     y = y * 2 - 1;
-
-    //     return vec2.set(out, x, y);
-    // }
 
     private isPerspective(): boolean {
         if (this.fov != -1) {

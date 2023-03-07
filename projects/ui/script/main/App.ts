@@ -2,6 +2,7 @@ import Texture from "../../../../script/main/assets/Texture.js";
 import SpriteRenderer from "../../../../script/main/components/2d/SpriteRenderer.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
+import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import Asset from "../../../../script/main/core/Asset.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
@@ -24,9 +25,12 @@ export default class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
+        const doc = UIDocument.create();
+
         const sprite = UIRenderer.create(SpriteRenderer)
         sprite.node.visibilityFlag = VisibilityBit.DEFAULT;
         sprite.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).gfx_texture;
+        doc.addElement(sprite);
 
         node = new Node;
         node.visibilityFlag = VisibilityBit.DEFAULT
