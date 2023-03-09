@@ -2,31 +2,37 @@ import { AABB2D } from "./aabb2d.js";
 import vec3, { Vec3 } from "./vec3.js";
 
 const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 
 export interface AABB3D extends AABB2D {
-    originZ: number;
-    extentZ: number;
+    centerZ: number;
+    halfExtentZ: number;
 }
 
 export default {
     create(): AABB3D {
-        return { originX: 0, originY: 0, originZ: 0, extentX: 0, extentY: 0, extentZ: 0 };
+        return { centerX: 0, centerY: 0, centerZ: 0, halfExtentX: 0, halfExtentY: 0, halfExtentZ: 0 };
     },
 
     fromPoints(out: AABB3D, minPos: Vec3, maxPos: Vec3): AABB3D {
-        vec3.subtract(vec3_a, maxPos, minPos);
-        this.set(out, ...minPos, ...vec3_a);
+        vec3.add(vec3_a, maxPos, minPos);
+        vec3.scale(vec3_a, vec3_a, 0.5);
+
+        vec3.subtract(vec3_b, maxPos, minPos);
+        vec3.scale(vec3_b, vec3_b, 0.5);
+
+        this.set(out, ...vec3_a, ...vec3_b);
         return out;
     },
 
-    set(out: AABB3D, originX: number, originY: number, originZ: number, extentX: number, extentY: number, extentZ: number): AABB2D {
-        out.originX = originX;
-        out.originY = originY;
-        out.originZ = originZ;
+    set(out: AABB3D, centerX: number, centerY: number, centerZ: number, halfExtentX: number, halfExtentY: number, halfExtentZ: number): AABB2D {
+        out.centerX = centerX;
+        out.centerY = centerY;
+        out.centerZ = centerZ;
 
-        out.extentX = extentX;
-        out.extentY = extentY;
-        out.extentZ = extentZ;
+        out.halfExtentX = halfExtentX;
+        out.halfExtentY = halfExtentY;
+        out.halfExtentZ = halfExtentZ;
         return out;
     }
 }

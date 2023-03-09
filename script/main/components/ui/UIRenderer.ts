@@ -25,8 +25,8 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
             return this._explicit_size;
         }
 
-        const { extentX, extentY } = this.impl.bounds;
-        return vec2.create(extentX * BoundedRenderer.PIXELS_PER_UNIT, extentY * BoundedRenderer.PIXELS_PER_UNIT);
+        const { halfExtentX, halfExtentY } = this.impl.bounds;
+        return vec2.create(halfExtentX * 2 * BoundedRenderer.PIXELS_PER_UNIT, halfExtentY * 2 * BoundedRenderer.PIXELS_PER_UNIT);
     }
     public override set size(value: Vec2) {
         if (this._explicit_size) {
@@ -46,7 +46,7 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         this._transformDirty = true;
     }
 
-    getAABB(): Rect {
+    getBounds(): Rect {
         return rect.create(-this.size[0] * this._anchor[0], -this.size[1] * this._anchor[1], this.size[0], this.size[1]);
     }
 
@@ -58,13 +58,13 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         if (this._transformDirty) {
             const impl = this.impl;
 
-            if (impl.bounds.extentX && impl.bounds.extentY) {
-                const scaleX = this.size[0] / impl.bounds.extentX;
-                const scaleY = this.size[1] / impl.bounds.extentY;
+            if (impl.bounds.halfExtentX && impl.bounds.halfExtentY) {
+                const scaleX = this.size[0] / (impl.bounds.halfExtentX * 2);
+                const scaleY = this.size[1] / (impl.bounds.halfExtentY * 2);
                 impl.node.scale = vec3.create(scaleX, scaleY, 1);
                 impl.node.position = vec3.create(
-                    -this.size[0] * this.anchor[0] - impl.bounds.originX * scaleX,
-                    -this.size[1] * this.anchor[1] - impl.bounds.originY * scaleY,
+                    -this.size[0] * this.anchor[0] - (impl.bounds.centerX - impl.bounds.halfExtentX) * scaleX,
+                    -this.size[1] * this.anchor[1] - (impl.bounds.centerY - impl.bounds.halfExtentY) * scaleY,
                     0);
             }
 

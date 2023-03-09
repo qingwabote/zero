@@ -53,7 +53,7 @@ export default class UIDocument extends Component {
             const world_position = world_positions[i];
             mat4.invert(mat4_a, node.matrix);
             vec2.transformMat4(vec2_a, world_position, mat4_a);
-            const aabb = element.getAABB();
+            const aabb = element.getBounds();
             if (!rect.contains(aabb, vec2_a)) {
                 continue;
             }

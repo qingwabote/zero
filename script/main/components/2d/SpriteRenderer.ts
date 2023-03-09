@@ -29,10 +29,7 @@ export default class SpriteRenderer extends BoundedRenderer {
         const { width, height } = value.info;
         const w = width / BoundedRenderer.PIXELS_PER_UNIT;
         const h = height / BoundedRenderer.PIXELS_PER_UNIT;
-        this._bounds.originX = -w / 2;
-        this._bounds.originY = -h / 2;
-        this._bounds.extentX = w;
-        this._bounds.extentY = h;
+        aabb2d.set(this._bounds, 0, 0, w / 2, h / 2);
         this.emit(BoundsEvent.BOUNDS_CHANGED);
 
         this._texture = value;
@@ -82,11 +79,11 @@ export default class SpriteRenderer extends BoundedRenderer {
         const uv_t = 0;
         const uv_b = 1;
 
-        const { extentX, extentY } = this.bounds;
-        const pos_l = -extentX / 2;
-        const pos_r = extentX / 2;
-        const pos_t = extentY / 2;
-        const pos_b = -extentY / 2;
+        const { halfExtentX, halfExtentY } = this.bounds;
+        const pos_l = -halfExtentX;
+        const pos_r = halfExtentX;
+        const pos_t = halfExtentY;
+        const pos_b = -halfExtentY;
 
         texCoordBuffer.data[0] = uv_l;
         texCoordBuffer.data[1] = uv_t;

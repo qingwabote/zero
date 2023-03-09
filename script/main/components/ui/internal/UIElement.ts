@@ -56,7 +56,7 @@ export default class UIElement extends Component implements EventEmitter<EventTo
         this._size = value;
     }
 
-    getAABB(): Rect {
+    getBounds(): Rect {
         return rect.create(-this.size[0] / 2, -this.size[1] / 2, this.size[0], this.size[1]);
     }
 }

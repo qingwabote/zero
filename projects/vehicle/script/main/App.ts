@@ -1,6 +1,10 @@
+import GLTF from "../../../../script/main/assets/GLTF.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import CameraControlPanel from "../../../../script/main/components/CameraControlPanel.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
+import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
+import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
+import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
@@ -33,27 +37,27 @@ export default class App extends Zero {
         main_camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 10];
 
-        // const primitive = new GLTF;
-        // await primitive.load('../../assets/models/primitive/scene');
-        // node = primitive.createScene("Cube")!;
-        // let meshRenderer = node.getComponent(MeshRenderer)!;
-        // let subMesh = meshRenderer.mesh.subMeshes[0];
-        // let shape = node.addComponent(BoxShape);
-        // shape.body.mass = 1;
-        // shape.size = vec3.subtract(vec3.create(), subMesh.vertexPositionMax, subMesh.vertexPositionMin);
-        // node.position = [0, 3, 0];
+        const primitive = new GLTF;
+        await primitive.load('../../assets/models/primitive/scene');
+        node = primitive.createScene("Cube")!;
+        let meshRenderer = node.getComponent(MeshRenderer)!;
+        let shape = node.addComponent(BoxShape);
+        shape.body.mass = 1;
+        let aabb = meshRenderer.bounds;
+        shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
+        node.position = [0, 3, 0];
 
-        // node = primitive.createScene("Cube")!;
-        // node.scale = [4, 0.1, 4];
-        // meshRenderer = node.getComponent(MeshRenderer)!;
-        // subMesh = meshRenderer.mesh.subMeshes[0];
-        // shape = node.addComponent(BoxShape);
-        // shape.size = vec3.subtract(vec3.create(), subMesh.vertexPositionMax, subMesh.vertexPositionMin);
-        // node.position = [0, -1, 0];
+        node = primitive.createScene("Cube")!;
+        node.scale = [4, 0.1, 4];
+        meshRenderer = node.getComponent(MeshRenderer)!;
+        shape = node.addComponent(BoxShape);
+        aabb = meshRenderer.bounds;
+        shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
+        node.position = [0, -1, 0];
 
-        // node = new Node;
-        // node.visibilityFlag = VisibilityBit.DEFAULT;
-        // node.addComponent(DebugDrawer);
+        node = new Node;
+        node.visibilityFlag = VisibilityBit.DEFAULT;
+        node.addComponent(DebugDrawer);
 
         // UI
         node = new Node;
@@ -69,6 +73,8 @@ export default class App extends Zero {
         node = new Node;
         node.visibilityFlag = VisibilityBit.UI;
         const joystick = node.addComponent(Joystick);
+        const bounds = joystick.getBounds();
+        node.position = vec3.create(width / 2 - (bounds.x + bounds.width), -height / 2 - bounds.y, 0)
         doc.addElement(joystick);
 
         node = new Node;

@@ -6,6 +6,7 @@ import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
 import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
+import vec2 from "../../core/math/vec2.js";
 import BufferViewResizable from "../../core/render/buffers/BufferViewResizable.js";
 import Model from "../../core/render/Model.js";
 import Pass from "../../core/render/Pass.js";
@@ -13,6 +14,9 @@ import samplers from "../../core/render/samplers.js";
 import SubModel from "../../core/render/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
+
+const vec2_a = vec2.create();
+const vec2_b = vec2.create();
 
 ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
 Asset.preloadedAssets.push({ path: '../../assets/fnt/zero', type: FNT });
@@ -237,7 +241,11 @@ export default class TextRenderer extends BoundedRenderer {
         }
 
         this._indexCount = indexCount;
-        aabb2d.set(this._bounds, 0, b, r + l, t - b);
+        // aabb2d.set(this._bounds, 0, b, r + l, t - b);
+        vec2.set(vec2_a, l, b);
+        vec2.set(vec2_b, r, t);
+        aabb2d.fromPoints(this._bounds, vec2_a, vec2_b);
+
         this.emit(BoundsEvent.BOUNDS_CHANGED);
         if (reallocated) {
             this._inputAssemblerInvalidated = true;

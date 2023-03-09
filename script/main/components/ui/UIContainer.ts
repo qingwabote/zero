@@ -2,7 +2,7 @@ import rect, { Rect } from "../../core/math/rect.js";
 import UIElement from "./internal/UIElement.js";
 
 export default class UIContainer extends UIElement {
-    override getAABB(): Rect {
+    override getBounds(): Rect {
         const aabb = rect.create();
 
         for (const child of this.node.children) {
@@ -10,7 +10,7 @@ export default class UIContainer extends UIElement {
             if (!element) {
                 continue;
             }
-            rect.union(aabb, aabb, element.getAABB());
+            rect.union(aabb, aabb, element.getBounds());
         }
 
         return aabb;

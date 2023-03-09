@@ -1,34 +1,37 @@
-import vec3 from "./vec3.js";
+import vec2, { Vec2 } from "./vec2.js";
 
-const vec3_a = vec3.create();
-const vec3_b = vec3.create();
+const vec2_a = vec2.create();
+const vec2_b = vec2.create();
 
 export interface AABB2D {
-    originX: number;
-    originY: number;
+    centerX: number;
+    centerY: number;
 
-    extentX: number;
-    extentY: number;
+    halfExtentX: number;
+    halfExtentY: number;
 }
 
 export default {
     create(): AABB2D {
-        return { originX: 0, originY: 0, extentX: 0, extentY: 0 };
+        return { centerX: 0, centerY: 0, halfExtentX: 0, halfExtentY: 0 };
     },
 
-    set(out: AABB2D, originX: number, originY: number, extentX: number, extentY: number): AABB2D {
-        out.originX = originX;
-        out.originY = originY;
-        out.extentX = extentX;
-        out.extentY = extentY;
+    fromPoints(out: AABB2D, minPos: Vec2, maxPos: Vec2): AABB2D {
+        vec2.add(vec2_a, maxPos, minPos);
+        vec2.scale(vec2_a, vec2_a, 0.5);
+
+        vec2.subtract(vec2_b, maxPos, minPos);
+        vec2.scale(vec2_b, vec2_b, 0.5);
+
+        this.set(out, ...vec2_a, ...vec2_b);
+        return out;
+    },
+
+    set(out: AABB2D, centerX: number, centerY: number, halfExtentX: number, halfExtentY: number): AABB2D {
+        out.centerX = centerX;
+        out.centerY = centerY;
+        out.halfExtentX = halfExtentX;
+        out.halfExtentY = halfExtentY;
         return out;
     }
-
-    // fromPoints(out: AABB, minPos: Vec3, maxPos: Vec3): AABB {
-    //     vec3.add(vec3_a, maxPos, minPos);
-    //     vec3.subtract(vec3_b, maxPos, minPos);
-    //     vec3.scale(out.center, vec3_a, 0.5);
-    //     vec3.scale(out.halfExtents, vec3_b, 0.5);
-    //     return out;
-    // }
 }

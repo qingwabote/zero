@@ -1,14 +1,30 @@
 import Material from "../assets/Material.js";
-import Component from "../core/Component.js";
 import InputAssembler, { IndexInput, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
 import { FormatInfos } from "../core/gfx/Pipeline.js";
+import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
+import vec3 from "../core/math/vec3.js";
 import Mesh from "../core/render/Mesh.js";
 import Model from "../core/render/Model.js";
 import SubModel from "../core/render/SubModel.js";
+import BoundedRenderer from "./internal/BoundedRenderer.js";
+
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 
 const emptyMesh = { subMeshes: [] };
 
-export default class MeshRenderer extends Component {
+export default class MeshRenderer extends BoundedRenderer {
+    private _bounds = aabb3d.create();
+    public get bounds(): Readonly<AABB3D> {
+        vec3.set(vec3_a, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+        vec3.set(vec3_b, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER)
+        for (const subMesh of this.mesh.subMeshes) {
+            vec3.min(vec3_a, vec3_a, subMesh.vertexPositionMin);
+            vec3.max(vec3_b, vec3_b, subMesh.vertexPositionMax);
+        }
+        return aabb3d.fromPoints(this._bounds, vec3_a, vec3_b);
+    }
+
     mesh: Mesh = emptyMesh;
 
     materials: Material[] | undefined;

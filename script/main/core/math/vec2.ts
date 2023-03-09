@@ -21,6 +21,36 @@ export default {
         out[0] = m[0] * x + m[4] * y + m[12];
         out[1] = m[1] * x + m[5] * y + m[13];
         return out;
-    }
+    },
+
+    min(out: Vec2, a: Vec2, b: Vec2) {
+        out[0] = Math.min(a[0], b[0]);
+        out[1] = Math.min(a[1], b[1]);
+        return out;
+    },
+
+    max(out: Vec2, a: Vec2, b: Vec2) {
+        out[0] = Math.max(a[0], b[0]);
+        out[1] = Math.max(a[1], b[1]);
+        return out;
+    },
+
+    add(out: Vec2, a: Readonly<Vec2>, b: Readonly<Vec2>) {
+        out[0] = a[0] + b[0];
+        out[1] = a[1] + b[1];
+        return out;
+    },
+
+    subtract(out: Vec2, a: Readonly<Vec2>, b: Readonly<Vec2>) {
+        out[0] = a[0] - b[0];
+        out[1] = a[1] - b[1];
+        return out;
+    },
+
+    scale(out: Vec2, a: Readonly<Vec2>, scale: number) {
+        out[0] = a[0] * scale;
+        out[1] = a[1] * scale;
+        return out;
+    },
 
 } as const
