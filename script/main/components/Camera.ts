@@ -120,7 +120,7 @@ export default class Camera extends Component {
 
     private getMatView(): Mat4 {
         if (this._matViewFlags & DirtyFlag.CALCULATING) {
-            mat4.invert(this._matView, this.node.matrix)
+            mat4.invert(this._matView, this.node.world_matrix)
             this._matViewFlags ^= DirtyFlag.CALCULATING;
         }
         return this._matView;

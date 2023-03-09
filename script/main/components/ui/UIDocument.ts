@@ -35,8 +35,11 @@ export default class UIDocument extends Component {
             const camera = cameras[i];
             world_positions[i] = camera.screenToWorld(vec2.create(), touch.x, touch.y);
         }
-        for (const child of this.node.children) {
-            this.touchWalk(child, cameras, world_positions, event);
+        const children = this.node.children;
+        for (let i = children.length - 1; i > -1; i--) {
+            if (this.touchWalk(children[i], cameras, world_positions, event)) {
+                return;
+            }
         }
     }
 
@@ -51,21 +54,34 @@ export default class UIDocument extends Component {
                 continue;
             }
             const world_position = world_positions[i];
-            mat4.invert(mat4_a, node.matrix);
+            mat4.invert(mat4_a, node.world_matrix);
             vec2.transformMat4(vec2_a, world_position, mat4_a);
             const aabb = element.getBounds();
             if (!rect.contains(aabb, vec2_a)) {
                 continue;
             }
+            // capture
+            // if (element.has(event)) {
+            //     element.emit(event, new UITouchEvent(new UITouch(world_position, vec2_a)));
+            // }
+            if (element instanceof UIContainer) {
+                const children = node.children;
+                for (let j = children.length - 1; j > -1; j--) {
+                    if (this.touchWalk(children[j], cameras, world_positions, event)) {
+                        // bubbling
+                        if (element.has(event)) {
+                            element.emit(event, new UITouchEvent(new UITouch(world_position, vec2_a)));
+                        }
+                        return true;
+                    }
+                }
+            }
+            // target
             if (element.has(event)) {
                 element.emit(event, new UITouchEvent(new UITouch(world_position, vec2_a)));
             }
-            if (element instanceof UIContainer == false) {
-                continue;
-            }
-            for (const child of node.children) {
-                this.touchWalk(child, cameras, world_positions, event);
-            }
+            return true;
         }
+        return false;
     }
 }

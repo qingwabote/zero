@@ -29,11 +29,7 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         return vec2.create(halfExtentX * 2 * BoundedRenderer.PIXELS_PER_UNIT, halfExtentY * 2 * BoundedRenderer.PIXELS_PER_UNIT);
     }
     public override set size(value: Vec2) {
-        if (this._explicit_size) {
-            vec2.set(this._explicit_size, ...value);
-        } else {
-            this._explicit_size = vec2.create(...value);
-        }
+        this._explicit_size = vec2.set(this._explicit_size || vec2.create(), value[0], value[1]);
         this._transformDirty = true;
     }
 
@@ -46,7 +42,7 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         this._transformDirty = true;
     }
 
-    getBounds(): Rect {
+    override getBounds(): Rect {
         return rect.create(-this.size[0] * this._anchor[0], -this.size[1] * this._anchor[1], this.size[0], this.size[1]);
     }
 

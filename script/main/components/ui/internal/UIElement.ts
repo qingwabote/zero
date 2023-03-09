@@ -4,6 +4,11 @@ import Component from "../../../core/Component.js";
 import rect, { Rect } from "../../../core/math/rect.js";
 import vec2, { Vec2 } from "../../../core/math/vec2.js";
 
+const vec2_a = vec2.create();
+const vec2_b = vec2.create();
+const vec2_c = vec2.create();
+const vec2_d = vec2.create();
+
 export class UITouch {
     world = vec2.create();
     local = vec2.create();
@@ -29,7 +34,7 @@ interface EventToListener {
     [UITouchEventType.TOUCH_END]: (event: UITouchEvent) => void;
 }
 
-export default class UIElement extends Component implements EventEmitter<EventToListener> {
+export default abstract class UIElement extends Component implements EventEmitter<EventToListener> {
     private __emitter?: EventEmitter<EventToListener>;
     private get _emitter() {
         return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
@@ -48,15 +53,23 @@ export default class UIElement extends Component implements EventEmitter<EventTo
     }
 
 
-    private _size = vec2.create();
-    public get size() {
-        return this._size;
-    }
-    public set size(value) {
-        this._size = value;
-    }
+    public abstract get size(): Vec2;
+    public abstract set size(value: Vec2);
 
     getBounds(): Rect {
         return rect.create(-this.size[0] / 2, -this.size[1] / 2, this.size[0], this.size[1]);
+    }
+
+    getBoundsToParent(): Rect {
+        const bounds = this.getBounds();
+        const l = bounds.x;
+        const b = bounds.y;
+        const r = l + bounds.width;
+        const t = b + bounds.height;
+        vec2.transformMat4(vec2_a, vec2.set(vec2_a, l, b), this.node.matrix);
+        vec2.transformMat4(vec2_b, vec2.set(vec2_b, r, t), this.node.matrix);
+        vec2.min(vec2_c, vec2_a, vec2_b);
+        vec2.max(vec2_d, vec2_a, vec2_b);
+        return rect.set(bounds, vec2_c[0], vec2_c[1], vec2_d[0] - vec2_c[0], vec2_d[1] - vec2_c[1]);
     }
 }

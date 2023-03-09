@@ -115,7 +115,7 @@ export default class TextRenderer extends BoundedRenderer {
         this.updateData();
 
         if (this.node.hasChanged) {
-            this._model.updateBuffer(this.node.matrix);
+            this._model.updateBuffer(this.node.world_matrix);
         }
         this._model.visibilityFlag = this.node.visibilityFlag;
 

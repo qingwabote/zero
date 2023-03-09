@@ -4,11 +4,7 @@ import Ammo from "./impl/ammo.wasm.js";
 import PhysicsWorld from "./PhysicsWorld.js";
 
 export default class PhysicsSystem implements System {
-    private static _instance: PhysicsSystem;
-
-    static get instance(): PhysicsSystem {
-        return PhysicsSystem._instance;
-    }
+    static readonly instance = new PhysicsSystem()
 
     private _bt_vec3_a: any;
     public get bt_vec3_a(): any {
@@ -63,8 +59,6 @@ export default class PhysicsSystem implements System {
         this._ammo = Module;
 
         this._world = new PhysicsWorld(this);
-
-        PhysicsSystem._instance = this;
     }
 
     update(): void {
@@ -72,4 +66,4 @@ export default class PhysicsSystem implements System {
     }
 }
 
-Zero.registerSystem(new PhysicsSystem, 0)
+Zero.registerSystem(PhysicsSystem.instance, 0)

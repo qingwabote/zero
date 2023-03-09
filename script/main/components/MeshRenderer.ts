@@ -103,7 +103,7 @@ export default class MeshRenderer extends BoundedRenderer {
 
     commit(): void {
         if (this.node.hasChanged) {
-            this._model.updateBuffer(this.node.matrix);
+            this._model.updateBuffer(this.node.world_matrix);
         }
         this._model.visibilityFlag = this.node.visibilityFlag;
     }

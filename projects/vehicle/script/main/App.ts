@@ -8,10 +8,12 @@ import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
+import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
+import PhysicsSystem from "../../../../script/main/physics/PhysicsSystem.js";
 import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
 import VisibilityBit from "../../../../script/main/VisibilityBit.js";
@@ -29,7 +31,6 @@ export default class App extends Zero {
         node = new Node;
         node.addComponent(DirectionalLight);
         node.position = lit_position;
-        // node.visibility = Visibility_Up;
 
         node = new Node;
         const main_camera = node.addComponent(Camera);
@@ -39,7 +40,9 @@ export default class App extends Zero {
 
         const primitive = new GLTF;
         await primitive.load('../../assets/models/primitive/scene');
+
         node = primitive.createScene("Cube")!;
+        node.visibilityFlag = VisibilityBit.DEFAULT;
         let meshRenderer = node.getComponent(MeshRenderer)!;
         let shape = node.addComponent(BoxShape);
         shape.body.mass = 1;
@@ -47,7 +50,15 @@ export default class App extends Zero {
         shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
         node.position = [0, 3, 0];
 
+        const ps = PhysicsSystem.instance;
+        const ammo = PhysicsSystem.instance.ammo;
+        const tuning = new ammo.btVehicleTuning();
+        const rayCaster = new ammo.btDefaultVehicleRaycaster(ps.world.impl)
+        const vehicle = new ammo.btRaycastVehicle(tuning, shape.body.impl, rayCaster);
+        ps.world.impl.addAction(vehicle);
+
         node = primitive.createScene("Cube")!;
+        node.visibilityFlag = VisibilityBit.DEFAULT;
         node.scale = [4, 0.1, 4];
         meshRenderer = node.getComponent(MeshRenderer)!;
         shape = node.addComponent(BoxShape);
@@ -72,20 +83,22 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibilityFlag = VisibilityBit.UI;
-        const joystick = node.addComponent(Joystick);
-        const bounds = joystick.getBounds();
-        node.position = vec3.create(width / 2 - (bounds.x + bounds.width), -height / 2 - bounds.y, 0)
-        doc.addElement(joystick);
-
-        node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2, 0];
 
         node = new Node;
         node.visibilityFlag = VisibilityBit.UI;
-        node.addComponent(CameraControlPanel).camera = main_camera;
-        node.position = [-width / 2, height / 2, 0];
+        const cameraControlPanel = node.addComponent(CameraControlPanel);
+        cameraControlPanel.size = vec2.create(width, height);
+        cameraControlPanel.camera = main_camera;
+        doc.addElement(cameraControlPanel);
+
+        node = new Node;
+        node.visibilityFlag = VisibilityBit.UI;
+        const joystick = node.addComponent(Joystick);
+        const bounds = joystick.getBounds();
+        node.position = vec3.create(width / 2 - (bounds.x + bounds.width), -height / 2 - bounds.y, 0)
+        doc.addElement(joystick);
 
         return new Flow([new ForwardStage([new ModelPhase])]);
     }
