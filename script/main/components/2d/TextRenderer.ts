@@ -9,10 +9,10 @@ import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import vec2 from "../../core/math/vec2.js";
 import BufferViewResizable from "../../core/render/buffers/BufferViewResizable.js";
 import Model from "../../core/render/Model.js";
-import Pass from "../../core/render/Pass.js";
 import samplers from "../../core/render/samplers.js";
 import SubModel from "../../core/render/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
+import PassImpl from "../../PassImpl.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
 const vec2_a = vec2.create();
@@ -101,10 +101,8 @@ export default class TextRenderer extends BoundedRenderer {
 
         this._vertexInputState = new VertexInputState(attributes, bindings);
 
-        const descriptorSet = gfx.createDescriptorSet();
-        descriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(shader));
-        descriptorSet.bindTexture(0, this._fnt.texture.gfx_texture, samplers.get());
-        const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }), descriptorSet);
+        const pass = new PassImpl(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }));
+        pass.bindTexture(0, this._fnt.texture.gfx_texture, samplers.get());
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         const model = new Model([subModel]);
         zero.scene.models.push(model);

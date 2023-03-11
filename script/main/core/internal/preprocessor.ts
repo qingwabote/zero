@@ -1,5 +1,5 @@
 import { Format } from "../gfx/Pipeline.js";
-import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform } from "../gfx/Shader.js";
+import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform, UniformMember } from "../gfx/Shader.js";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
     const promises: Promise<string>[] = []
@@ -66,6 +66,23 @@ function macroExpand(macros: Readonly<Record<string, number>>, source: string): 
     return out;
 }
 
+function getFormat(type: string): Format {
+    let format: Format;
+    switch (type) {
+        case "vec2":
+            format = Format.RG32F
+            break;
+        case "vec3":
+            format = Format.RGB32F
+            break;
+        case "vec4":
+            format = Format.RGBA32F
+            break;
+        default:
+            throw new Error(`unsupported attribute type: ${type}`);
+    }
+    return format;
+}
 
 export default {
     macroExtract(src: string): Set<string> {
@@ -99,21 +116,7 @@ export default {
         let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
         for (const match of matches) {
             const [_, location, type, name] = match;
-            let format: Format;
-            switch (type) {
-                case "vec2":
-                    format = Format.RG32F
-                    break;
-                case "vec3":
-                    format = Format.RGB32F
-                    break;
-                case "vec4":
-                    format = Format.RGBA32F
-                    break;
-                default:
-                    throw new Error(`unsupported attribute type: ${type}`);
-            }
-            attributes[name] = { location: parseInt(location), format };
+            attributes[name] = { location: parseInt(location), format: getFormat(type) };
         }
 
         // remove unsupported layout qualifier for webgl
@@ -138,19 +141,24 @@ export default {
         const samplerTextures: Record<string, Uniform> = {};
         for (const stage of stages) {
             stage.source = stage.source.replace(
-                /^\s*layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)/gm,
-                function (content: string, set: string, binding: string, type: string, name: string): string {
+                /^\s*layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)\s*(?:\{([^\{\}]*)\})?/gm,// 非捕获括号 (?:x)
+                function (res: string, set: string, binding: string, type: string, name: string, content: string): string {
                     if (!type) {
-                        // bindings.push({ binding: parseInt(binding), descriptorType: DescriptorType.UNIFORM_BUFFER, count: 1 })
-                        blocks[name] = { set: parseInt(set), binding: parseInt(binding) };
+                        const members: UniformMember[] = [];
+                        const matches = content.matchAll(/(\w+)\s+(\w+)/g);
+                        for (const match of matches) {
+                            const [_, type, name] = match;
+                            members.push({ name, type });
+                        }
+                        blocks[name] = { set: parseInt(set), binding: parseInt(binding), members };
                     } else if (type == 'sampler2D') {
                         samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
                     }
                     // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
                     if (typeof window != 'undefined') {
-                        return type ? `uniform ${type} ${name}` : `uniform ${name}`;
+                        return res.replace(/layout\(.*\)/, '');
                     }
-                    return content;
+                    return res;
                 })
         }
         return {

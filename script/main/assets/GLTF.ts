@@ -12,12 +12,12 @@ import { Quat } from "../core/math/quat.js";
 import { Vec3 } from "../core/math/vec3.js";
 import vec4 from "../core/math/vec4.js";
 import Node from "../core/Node.js";
-import BufferView from "../core/render/buffers/BufferView.js";
 import { SubMesh, VertexAttribute } from "../core/render/Mesh.js";
 import Pass from "../core/render/Pass.js";
 import PassPhase from "../core/render/PassPhase.js";
 import samplers from "../core/render/samplers.js";
 import ShaderLib from "../core/ShaderLib.js";
+import PassImpl from "../PassImpl.js";
 import Material from "./Material.js";
 import Texture from "./Texture.js";
 
@@ -113,13 +113,12 @@ export default class GLTF extends Asset {
 
         if (USE_SHADOW_MAP) {
             const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
-            const shadowMapPass = new Pass(
+            const shadowMapPass = new PassImpl(
                 new PassState(
                     shadowMapShader,
                     PrimitiveTopology.TRIANGLE_LIST,
                     { cullMode: CullMode.FRONT }
                 ),
-                undefined,
                 PassPhase.SHADOWMAP
             );
             passes.push(shadowMapPass);
@@ -134,17 +133,12 @@ export default class GLTF extends Asset {
             CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
         })
 
-        const phoneDescriptorSet = gfx.createDescriptorSet();
-        phoneDescriptorSet.initialize(ShaderLib.instance.getDescriptorSetLayout(phongShader));
+        const phongPass = new PassImpl(new PassState(phongShader));
         if (USE_ALBEDO_MAP) {
-            phoneDescriptorSet.bindTexture(0, this._textures[textureIdx].gfx_texture, samplers.get());
+            phongPass.bindTexture(0, this._textures[textureIdx].gfx_texture, samplers.get());
         }
-        const ubo_material = new BufferView('Float32', BufferUsageFlagBits.UNIFORM, 4);
-        ubo_material.set(albedo, 0);
-        ubo_material.update()
-        phoneDescriptorSet.bindBuffer(1, ubo_material.buffer);
-
-        const phongPass = new Pass(new PassState(phongShader), phoneDescriptorSet);
+        phongPass.setUniform('Material', 'albedo', albedo)
+        phongPass.update();
         passes.push(phongPass);
 
         return new Material(passes);

@@ -3,7 +3,6 @@ import Camera from "../../../../script/main/components/Camera.js";
 import CameraControlPanel from "../../../../script/main/components/CameraControlPanel.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
-import Sprite from "../../../../script/main/components/Sprite.js";
 import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
@@ -63,7 +62,8 @@ export default class App extends Zero {
 
         const gltf_camera = new GLTF();
         await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
-        node = gltf_camera.createScene("Sketchfab_Scene", Visibility_Down)!;
+        node = gltf_camera.createScene("Sketchfab_Scene")!;
+        node.visibilityFlag = Visibility_Down;
         node.scale = [0.005, 0.005, 0.005];
         // const euler = quat.toEuler(vec3.create(), node.rotation);
         node.rotation = quat.multiply(quat.create(), node.rotation, quat.fromAxisAngle(quat.create(), vec3.UNIT_Z, Math.PI));
@@ -89,13 +89,13 @@ export default class App extends Zero {
         node.position = [-width / 2, height / 2, 0];
 
         if (USE_SHADOW_MAP) {
-            node = new Node;
-            node.visibilityFlag = VisibilityBit.UI;
-            node.position = [width / 2 - 200, -height / 2 + 200, 0];
-            const sprite = node.addComponent(Sprite);
-            sprite.width = 200;
-            sprite.height = 200;
-            sprite.texture = shadowStage!.framebuffer.info.depthStencilAttachment;
+            // node = new Node;
+            // node.visibilityFlag = VisibilityBit.UI;
+            // node.position = [width / 2 - 200, -height / 2 + 200, 0];
+            // const sprite = node.addComponent(Sprite);
+            // sprite.width = 200;
+            // sprite.height = 200;
+            // sprite.texture = shadowStage!.framebuffer.info.depthStencilAttachment;
         }
 
         // const zeroShader = await shaders.getShader('zero', { USE_ALBEDO_MAP });
@@ -115,10 +115,12 @@ export default class App extends Zero {
         const guardian = new GLTF();
         await guardian.load('./assets/guardian_zelda_botw_fan-art/scene', USE_SHADOW_MAP);
         node = guardian.createScene("Sketchfab_Scene")!;
+        node.visibilityFlag = VisibilityBit.DEFAULT
 
         const plane = new GLTF();
         await plane.load('./assets/plane', USE_SHADOW_MAP);
         node = plane.createScene("Scene")!;
+        node.visibilityFlag = VisibilityBit.DEFAULT
         node.scale = [4, 4, 4];
 
         stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up | Visibility_Down)]));

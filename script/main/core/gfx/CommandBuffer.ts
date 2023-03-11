@@ -1,6 +1,6 @@
 import { Rect } from "../math/rect.js";
 import Buffer from "./Buffer.js";
-import DescriptorSet from "./DescriptorSet.js";
+import { DescriptorSet_ReadOnly } from "./DescriptorSet.js";
 import { Framebuffer } from "./Framebuffer.js";
 import InputAssembler from "./InputAssembler.js";
 import Pipeline, { PipelineLayout } from "./Pipeline.js";
@@ -14,7 +14,7 @@ export default interface CommandBuffer {
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;
     beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect): void;
     bindPipeline(pipeline: Pipeline): void;
-    bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void;
+    bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet_ReadOnly, dynamicOffsets?: number[]): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
     draw(vertexCount: number): void;
     drawIndexed(indexCount: number): void;
@@ -36,7 +36,7 @@ export class EmptyCommandBuffer implements CommandBuffer {
     }
     bindPipeline(pipeline: Pipeline): void {
     }
-    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[] | undefined): void {
+    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet_ReadOnly, dynamicOffsets?: number[] | undefined): void {
     }
     bindInputAssembler(inputAssembler: InputAssembler): void {
     }

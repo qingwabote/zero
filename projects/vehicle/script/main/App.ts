@@ -9,7 +9,7 @@ import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
-import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
+import vec3 from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
@@ -23,31 +23,32 @@ export default class App extends Zero {
     async start(): Promise<Flow> {
         const { width, height } = this.window;
 
-        const lit_position: Vec3 = [4, 4, 4];
-
         let node: Node;
 
         // light
         node = new Node;
         node.addComponent(DirectionalLight);
-        node.position = lit_position;
+        node.position = [0, 4, 4];
 
         node = new Node;
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
         main_camera.viewport = { x: 0, y: 0, width, height };
-        node.position = [0, 0, 10];
+        node.position = [50, 50, 50];
 
         const primitive = new GLTF;
         await primitive.load('../../assets/models/primitive/scene');
 
+        const chassis_size = vec3.create(1.8, 0.6, 4);
+
         node = primitive.createScene("Cube")!;
         node.visibilityFlag = VisibilityBit.DEFAULT;
+        node.scale = chassis_size;
         let meshRenderer = node.getComponent(MeshRenderer)!;
         let shape = node.addComponent(BoxShape);
-        shape.body.mass = 1;
         let aabb = meshRenderer.bounds;
         shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
+        shape.body.mass = 1;
         node.position = [0, 3, 0];
 
         const ps = PhysicsSystem.instance;
@@ -59,7 +60,7 @@ export default class App extends Zero {
 
         node = primitive.createScene("Cube")!;
         node.visibilityFlag = VisibilityBit.DEFAULT;
-        node.scale = [4, 0.1, 4];
+        node.scale = [30, 0.1, 30];
         meshRenderer = node.getComponent(MeshRenderer)!;
         shape = node.addComponent(BoxShape);
         aabb = meshRenderer.bounds;

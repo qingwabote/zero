@@ -16,9 +16,15 @@ export interface Attribute {
     readonly format: Format
 }
 
+export interface UniformMember {
+    readonly name: string
+    readonly type: string
+}
+
 export interface Uniform {
-    set: number;
-    binding: number;
+    readonly set: number;
+    readonly binding: number;
+    readonly members?: readonly UniformMember[];
 }
 
 export interface Meta {

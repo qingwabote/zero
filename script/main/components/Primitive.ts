@@ -6,9 +6,9 @@ import vec3, { Vec3 } from "../core/math/vec3.js";
 import { Vec4 } from "../core/math/vec4.js";
 import BufferViewResizable from "../core/render/buffers/BufferViewResizable.js";
 import Model from "../core/render/Model.js";
-import Pass from "../core/render/Pass.js";
 import SubModel from "../core/render/SubModel.js";
 import ShaderLib from "../core/ShaderLib.js";
+import PassImpl from "../PassImpl.js";
 import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
 
 const vec3_a = vec3.create();
@@ -98,7 +98,7 @@ export default class Primitive extends BoundedRenderer {
         })
         this._vertexInputState = new VertexInputState(attributes, bindings);
 
-        const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
+        const pass = new PassImpl(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         const model = new Model([subModel])
         zero.scene.models.push(model);
