@@ -12,13 +12,12 @@ import { Quat } from "../core/math/quat.js";
 import { Vec3 } from "../core/math/vec3.js";
 import vec4 from "../core/math/vec4.js";
 import Node from "../core/Node.js";
-import { SubMesh, VertexAttribute } from "../core/render/Mesh.js";
-import Pass from "../core/render/Pass.js";
-import PassPhase from "../core/render/PassPhase.js";
-import samplers from "../core/render/samplers.js";
+import Pass from "../core/scene/Pass.js";
 import ShaderLib from "../core/ShaderLib.js";
-import PassImpl from "../PassImpl.js";
+import MaterialInstance from "../MaterialInstance.js";
+import PhaseFlag from "../render/PhaseFlag.js";
 import Material from "./Material.js";
+import { SubMesh, VertexAttribute } from "./Mesh.js";
 import Texture from "./Texture.js";
 
 const builtinAttributes: Record<string, string> = {
@@ -92,18 +91,18 @@ export default class GLTF extends Asset {
         return this;
     }
 
-    createScene(name: string): Node | null {
+    createScene(name: string, materialInstancing = false): Node | null {
         if (!this._json || !this._bin || !this._textures) return null;
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);
         if (scene.nodes.length == 1) {
-            return this.createNode(this._json.nodes[scene.nodes[0]])
+            return this.createNode(this._json.nodes[scene.nodes[0]], materialInstancing)
         }
 
         const node = new Node(name);
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(this._json.nodes[index]))
+            node.addChild(this.createNode(this._json.nodes[index], materialInstancing))
         }
         return node;
     }
@@ -113,14 +112,15 @@ export default class GLTF extends Asset {
 
         if (USE_SHADOW_MAP) {
             const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
-            const shadowMapPass = new PassImpl(
+            const shadowMapPass = new Pass(
                 new PassState(
                     shadowMapShader,
                     PrimitiveTopology.TRIANGLE_LIST,
                     { cullMode: CullMode.FRONT }
                 ),
-                PassPhase.SHADOWMAP
+                PhaseFlag.SHADOWMAP
             );
+            shadowMapPass.initialize();
             passes.push(shadowMapPass);
         }
 
@@ -133,18 +133,18 @@ export default class GLTF extends Asset {
             CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
         })
 
-        const phongPass = new PassImpl(new PassState(phongShader));
+        const phongPass = new Pass(new PassState(phongShader));
+        phongPass.initialize()
         if (USE_ALBEDO_MAP) {
-            phongPass.bindTexture(0, this._textures[textureIdx].gfx_texture, samplers.get());
+            phongPass.setTexture('albedoMap', this._textures[textureIdx].gfx_texture)
         }
         phongPass.setUniform('Material', 'albedo', albedo)
-        phongPass.update();
         passes.push(phongPass);
 
         return new Material(passes);
     }
 
-    private createNode(info: any): Node {
+    private createNode(info: any, materialInstancing: boolean): Node {
         const node = new Node(info.name);
         if (info.matrix) {
             mat4.toRTS(info.matrix, node.rotation as Quat, node.position as Vec3, node.scale as Vec3);
@@ -161,23 +161,26 @@ export default class GLTF extends Asset {
         }
 
         if (info.mesh != undefined) {
-            this.createMesh(node, this._json.meshes[info.mesh]);
+            this.createMesh(node, this._json.meshes[info.mesh], materialInstancing);
         }
 
         if (info.children) {
             for (const idx of info.children) {
                 const info = this._json.nodes[idx];
-                node.addChild(this.createNode(info));
+                node.addChild(this.createNode(info, materialInstancing));
             }
         }
         return node;
     }
 
-    private createMesh(node: Node, info: any) {
+    private createMesh(node: Node, info: any, materialInstancing: boolean) {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
         for (const primitive of info.primitives) {
-            const material = primitive.material == undefined ? this._default_material : this._materials[primitive.material];
+            let material = primitive.material == undefined ? this._default_material : this._materials[primitive.material];
+            if (materialInstancing) {
+                material = new MaterialInstance(material);
+            }
             // assert
             if (primitive.attributes['TEXCOORD_0'] == undefined) {
                 for (const pass of material.passes) {

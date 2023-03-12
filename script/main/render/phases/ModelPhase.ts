@@ -3,22 +3,22 @@ import { VertexInputState } from "../../core/gfx/InputAssembler.js";
 import Pipeline, { PassState, PipelineLayout } from "../../core/gfx/Pipeline.js";
 import RenderPass from "../../core/gfx/RenderPass.js";
 import Shader from "../../core/gfx/Shader.js";
-import Phase from "../../core/pipeline/Phase.js";
-import Camera from "../../core/render/Camera.js";
-import PassPhase from "../../core/render/PassPhase.js";
+import Phase from "../../core/render/Phase.js";
+import Camera from "../../core/scene/Camera.js";
 import ShaderLib from "../../core/ShaderLib.js";
 import VisibilityBit from "../../VisibilityBit.js";
+import PhaseFlag from "../PhaseFlag.js";
 
 const pipelineLayoutCache: Record<string, PipelineLayout> = {};
 
 const pipelineCache: Record<string, Pipeline> = {};
 
 export default class ModelPhase extends Phase {
-    private _phase: PassPhase;
+    private _flag: PhaseFlag;
 
-    constructor(phase: PassPhase = PassPhase.DEFAULT, visibility: VisibilityBit = VisibilityBit.ALL) {
+    constructor(flag: PhaseFlag = PhaseFlag.DEFAULT, visibility: VisibilityBit = VisibilityBit.ALL) {
         super(visibility);
-        this._phase = phase;
+        this._flag = flag;
     }
 
     record(commandBuffer: CommandBuffer, camera: Camera, renderPass: RenderPass): void {
@@ -34,7 +34,7 @@ export default class ModelPhase extends Phase {
                 }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
-                    if (pass.phase != this._phase) {
+                    if (pass.flag != this._flag) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];

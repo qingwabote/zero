@@ -5,12 +5,12 @@ import { Filter } from "../../core/gfx/Sampler.js";
 import Shader from "../../core/gfx/Shader.js";
 import Texture from "../../core/gfx/Texture.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
-import BufferView from "../../core/render/buffers/BufferView.js";
-import Model from "../../core/render/Model.js";
-import samplers from "../../core/render/samplers.js";
-import SubModel from "../../core/render/SubModel.js";
+import samplers from "../../core/samplers.js";
+import BufferView from "../../core/scene/buffers/BufferView.js";
+import Model from "../../core/scene/Model.js";
+import Pass from "../../core/scene/Pass.js";
+import SubModel from "../../core/scene/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
-import PassImpl from "../../PassImpl.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
 ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
@@ -131,8 +131,9 @@ export default class SpriteRenderer extends BoundedRenderer {
             }
         })
 
-        const pass = new PassImpl(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }))
-        pass.bindTexture(0, this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }));
+        const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }))
+        pass.initialize()
+        pass.setTexture('albedoMap', this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = {
             inputAssemblers: [inputAssembler],
             passes: [pass], vertexOrIndexCount: indexBuffer.length
@@ -144,7 +145,7 @@ export default class SpriteRenderer extends BoundedRenderer {
 
     commit(): void {
         if (this.node.hasChanged) {
-            this._model.updateBuffer(this.node.world_matrix);
+            this._model.matrix = this.node.world_matrix;
         }
         this._model.visibilityFlag = this.node.visibilityFlag;
     }

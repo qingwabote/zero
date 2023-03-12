@@ -23,6 +23,13 @@ export const preTransforms = Object.freeze([
 ]);
 
 export default {
+    IDENTITY: [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    ],
+
     create(): Mat4 {
         return [
             1, 0, 0, 0,
@@ -378,4 +385,4 @@ export default {
 
         return out;
     }
-}
+} as const

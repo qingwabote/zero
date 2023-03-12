@@ -1,11 +1,11 @@
 import Material from "../assets/Material.js";
+import Mesh from "../assets/Mesh.js";
 import InputAssembler, { IndexInput, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
 import { FormatInfos } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3 from "../core/math/vec3.js";
-import Mesh from "../core/render/Mesh.js";
-import Model from "../core/render/Model.js";
-import SubModel from "../core/render/SubModel.js";
+import Model from "../core/scene/Model.js";
+import SubModel from "../core/scene/SubModel.js";
 import BoundedRenderer from "./internal/BoundedRenderer.js";
 
 const vec3_a = vec3.create();
@@ -27,13 +27,11 @@ export default class MeshRenderer extends BoundedRenderer {
 
     mesh: Mesh = emptyMesh;
 
-    materials: Material[] | undefined;
+    materials: Material[] = [];
 
     private _model!: Model;
 
     override start(): void {
-        if (!this.materials) return;
-
         const subModels: SubModel[] = [];
         for (let i = 0; i < this.mesh.subMeshes.length; i++) {
             const subMesh = this.mesh.subMeshes[i];
@@ -103,7 +101,7 @@ export default class MeshRenderer extends BoundedRenderer {
 
     commit(): void {
         if (this.node.hasChanged) {
-            this._model.updateBuffer(this.node.world_matrix);
+            this._model.matrix = this.node.world_matrix;
         }
         this._model.visibilityFlag = this.node.visibilityFlag;
     }

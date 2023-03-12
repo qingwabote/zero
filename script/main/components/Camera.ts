@@ -4,7 +4,7 @@ import mat4, { Mat4 } from "../core/math/mat4.js";
 import { Rect } from "../core/math/rect.js";
 import vec2, { Vec2 } from "../core/math/vec2.js";
 import vec3, { Vec3 } from "../core/math/vec3.js";
-import { default as render_Camera } from "../core/render/Camera.js";
+import { default as render_Camera } from "../core/scene/Camera.js";
 import VisibilityBit from "../VisibilityBit.js";
 
 const vec2_a = vec2.create();

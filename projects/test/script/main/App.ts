@@ -7,13 +7,13 @@ import { ClearFlagBit, SampleCountFlagBits } from "../../../../script/main/core/
 import quat from "../../../../script/main/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
-import Flow from "../../../../script/main/core/pipeline/Flow.js";
-import Stage from "../../../../script/main/core/pipeline/Stage.js";
-import PassPhase from "../../../../script/main/core/render/PassPhase.js";
+import Flow from "../../../../script/main/core/render/Flow.js";
+import Stage from "../../../../script/main/core/render/Stage.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
-import ShadowStage from "../../../../script/main/pipeline/stages/ShadowStage.js";
+import PhaseFlag from "../../../../script/main/render/PhaseFlag.js";
+import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
+import ForwardStage from "../../../../script/main/render/stages/ForwardStage.js";
+import ShadowStage from "../../../../script/main/render/stages/ShadowStage.js";
 import VisibilityBit from "../../../../script/main/VisibilityBit.js";
 
 const PhaseLightView = 1 << 10;
@@ -123,7 +123,7 @@ export default class App extends Zero {
         node.visibilityFlag = VisibilityBit.DEFAULT
         node.scale = [4, 4, 4];
 
-        stages.push(new ForwardStage([new ModelPhase(PassPhase.DEFAULT, VisibilityBit.UI | Visibility_Up | Visibility_Down)]));
+        stages.push(new ForwardStage([new ModelPhase(PhaseFlag.DEFAULT, VisibilityBit.UI | Visibility_Up | Visibility_Down)]));
         return new Flow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);
     }
 }

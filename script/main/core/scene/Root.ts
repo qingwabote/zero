@@ -2,7 +2,7 @@ import Camera from "./Camera.js";
 import DirectionalLight from "./DirectionalLight.js";
 import Model from "./Model.js";
 
-export default class Scene {
+export default class Root {
     directionalLight?: DirectionalLight;
 
     private _cameras: Camera[] = [];

@@ -3,8 +3,8 @@ import { DescriptorSetLayoutBinding, DescriptorType } from "../../core/gfx/Descr
 import mat4 from "../../core/math/mat4.js";
 import quat from "../../core/math/quat.js";
 import vec3 from "../../core/math/vec3.js";
-import Uniform from "../../core/pipeline/Uniform.js";
-import BufferView from "../../core/render/buffers/BufferView.js";
+import Uniform from "../../core/render/Uniform.js";
+import BufferView from "../../core/scene/buffers/BufferView.js";
 import ShaderLib from "../../core/ShaderLib.js";
 
 const ShadowBlock = {

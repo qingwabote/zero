@@ -9,10 +9,9 @@ import Input, { InputEvent } from "./Input.js";
 import ComponentScheduler from "./internal/ComponentScheduler.js";
 import TimeScheduler from "./internal/TimeScheduler.js";
 import Node from "./Node.js";
-import Flow from "./pipeline/Flow.js";
-import RenderObject from "./render/RenderObject.js";
-import Scene from "./render/Scene.js";
-import Window from "./render/Window.js";
+import Flow from "./render/Flow.js";
+import FrameDirtyRecord from "./scene/FrameDirtyRecord.js";
+import Root from "./scene/Root.js";
 import ShaderLib from "./ShaderLib.js";
 import System from "./System.js";
 
@@ -39,11 +38,11 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._system2priority.set(system, priority);
     }
 
-    readonly window: Window;
+    readonly window: { readonly width: number, readonly height: number };
 
     readonly input = new Input;
 
-    readonly scene = new Scene;
+    readonly scene = new Root;
 
     private readonly _componentScheduler = new ComponentScheduler;
 
@@ -134,7 +133,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         gfx.acquire(this._presentSemaphore);
         this._flow.update();
         Node.frameId++;
-        RenderObject.frameId++;
+        FrameDirtyRecord.frameId++;
         this._commandBuffer.begin();
         this._flow.record(this._commandBuffer);
         this._commandBuffer.end();

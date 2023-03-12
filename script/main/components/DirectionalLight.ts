@@ -1,5 +1,5 @@
 import Component from "../core/Component.js";
-import { default as render_DirectionalLight } from "../core/render/DirectionalLight.js";
+import { default as render_DirectionalLight } from "../core/scene/DirectionalLight.js";
 
 export default class DirectionalLight extends Component {
     private _light: render_DirectionalLight = new render_DirectionalLight;

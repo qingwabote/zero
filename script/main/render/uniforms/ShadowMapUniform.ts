@@ -1,7 +1,7 @@
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
 import { Filter } from "../../core/gfx/Sampler.js";
-import Uniform from "../../core/pipeline/Uniform.js";
-import samplers from "../../core/render/samplers.js";
+import Uniform from "../../core/render/Uniform.js";
+import samplers from "../../core/samplers.js";
 import ShaderLib from "../../core/ShaderLib.js";
 import ShadowStage from "../stages/ShadowStage.js";
 

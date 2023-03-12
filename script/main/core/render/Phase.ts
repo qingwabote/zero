@@ -1,6 +1,6 @@
 import CommandBuffer from "../gfx/CommandBuffer.js";
 import RenderPass from "../gfx/RenderPass.js";
-import Camera from "../render/Camera.js";
+import Camera from "../scene/Camera.js";
 
 export default abstract class Phase {
     protected _drawCalls: number = 0;

@@ -2,7 +2,7 @@ import CommandBuffer from "../gfx/CommandBuffer.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
 import RenderPass from "../gfx/RenderPass.js";
 import { Rect } from "../math/rect.js";
-import Camera from "../render/Camera.js";
+import Camera from "../scene/Camera.js";
 import Phase from "./Phase.js";
 import Uniform from "./Uniform.js";
 

@@ -1,4 +1,4 @@
-import { Filter, Sampler, SamplerInfo } from "../gfx/Sampler.js";
+import { Filter, Sampler, SamplerInfo } from "./gfx/Sampler.js";
 
 const hash2sampler: Map<number, Sampler> = new Map;
 

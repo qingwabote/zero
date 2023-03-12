@@ -1,6 +1,6 @@
-import Phase from "../../core/pipeline/Phase.js";
-import Stage from "../../core/pipeline/Stage.js";
-import Uniform from "../../core/pipeline/Uniform.js";
+import Phase from "../../core/render/Phase.js";
+import Stage from "../../core/render/Stage.js";
+import Uniform from "../../core/render/Uniform.js";
 import CameraUniform from "../uniforms/CameraUniform.js";
 import LightUniform from "../uniforms/LightUniform.js";
 

@@ -10,12 +10,13 @@ import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
+import vec4 from "../../../../script/main/core/math/vec4.js";
 import Node from "../../../../script/main/core/Node.js";
-import Flow from "../../../../script/main/core/pipeline/Flow.js";
+import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import PhysicsSystem from "../../../../script/main/physics/PhysicsSystem.js";
-import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
+import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
+import ForwardStage from "../../../../script/main/render/stages/ForwardStage.js";
 import VisibilityBit from "../../../../script/main/VisibilityBit.js";
 import Joystick from "./Joystick.js";
 
@@ -41,10 +42,11 @@ export default class App extends Zero {
 
         const chassis_size = vec3.create(1.8, 0.6, 4);
 
-        node = primitive.createScene("Cube")!;
+        node = primitive.createScene("Cube", true)!;
         node.visibilityFlag = VisibilityBit.DEFAULT;
         node.scale = chassis_size;
         let meshRenderer = node.getComponent(MeshRenderer)!;
+        meshRenderer.materials[0].passes[0].setUniform('Material', 'albedo', vec4.create(1, 0, 0, 1))
         let shape = node.addComponent(BoxShape);
         let aabb = meshRenderer.bounds;
         shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
@@ -101,7 +103,7 @@ export default class App extends Zero {
         node.position = vec3.create(width / 2 - (bounds.x + bounds.width), -height / 2 - bounds.y, 0)
         doc.addElement(joystick);
 
-        return new Flow([new ForwardStage([new ModelPhase])]);
+        return new Flow([new ForwardStage([new ModelPhase])])
     }
 }
 

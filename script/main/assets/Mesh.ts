@@ -1,7 +1,7 @@
-import Buffer from "../gfx/Buffer.js";
-import { IndexType } from "../gfx/InputAssembler.js";
-import { Format } from "../gfx/Pipeline.js";
-import { Vec3 } from "../math/vec3.js";
+import Buffer from "../core/gfx/Buffer.js";
+import { IndexType } from "../core/gfx/InputAssembler.js";
+import { Format } from "../core/gfx/Pipeline.js";
+import { Vec3 } from "../core/math/vec3.js";
 
 export interface VertexAttribute {
     readonly name: string

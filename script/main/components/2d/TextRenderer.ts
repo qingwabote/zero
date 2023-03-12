@@ -7,12 +7,11 @@ import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescripti
 import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import vec2 from "../../core/math/vec2.js";
-import BufferViewResizable from "../../core/render/buffers/BufferViewResizable.js";
-import Model from "../../core/render/Model.js";
-import samplers from "../../core/render/samplers.js";
-import SubModel from "../../core/render/SubModel.js";
+import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";
+import Model from "../../core/scene/Model.js";
+import Pass from "../../core/scene/Pass.js";
+import SubModel from "../../core/scene/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
-import PassImpl from "../../PassImpl.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
 const vec2_a = vec2.create();
@@ -101,8 +100,9 @@ export default class TextRenderer extends BoundedRenderer {
 
         this._vertexInputState = new VertexInputState(attributes, bindings);
 
-        const pass = new PassImpl(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }));
-        pass.bindTexture(0, this._fnt.texture.gfx_texture, samplers.get());
+        const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }));
+        pass.initialize()
+        pass.setTexture('albedoMap', this._fnt.texture.gfx_texture)
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
         const model = new Model([subModel]);
         zero.scene.models.push(model);
@@ -113,7 +113,7 @@ export default class TextRenderer extends BoundedRenderer {
         this.updateData();
 
         if (this.node.hasChanged) {
-            this._model.updateBuffer(this.node.world_matrix);
+            this._model.matrix = this.node.world_matrix;
         }
         this._model.visibilityFlag = this.node.visibilityFlag;
 
