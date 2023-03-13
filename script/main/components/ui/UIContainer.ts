@@ -1,8 +1,8 @@
 import rect from "../../core/math/rect.js";
 import vec2, { Vec2 } from "../../core/math/vec2.js";
-import UIElement from "./internal/UIElement.js";
+import UIElement, { UIEventToListener } from "./internal/UIElement.js";
 
-export default class UIContainer extends UIElement {
+export default class UIContainer<EventToListener extends UIEventToListener = UIEventToListener> extends UIElement<EventToListener> {
     private _explicit_size?: Vec2;
     public get size(): Vec2 {
         if (this._explicit_size) {

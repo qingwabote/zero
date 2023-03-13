@@ -17,7 +17,7 @@ class AssetCache {
 }
 
 export default abstract class Asset {
-    static readonly preloadedAssets: { path: string, type: new () => Asset }[] = [];
+    static readonly preloaded: { path: string, type: new () => Asset }[] = [];
 
     static readonly cache = new AssetCache;
 

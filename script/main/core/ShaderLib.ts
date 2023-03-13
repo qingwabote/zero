@@ -78,7 +78,7 @@ export default class ShaderLib {
 
     static readonly createDescriptorSetLayoutBinding = createDescriptorSetLayoutBinding;
 
-    static readonly preloadedShaders: { name: string, macros?: Record<string, number> }[] = [];
+    static readonly preloaded: { name: string, macros?: Record<string, number> }[] = [];
 
     static readonly instance = new ShaderLib;
 

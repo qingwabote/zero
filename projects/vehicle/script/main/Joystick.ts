@@ -1,6 +1,6 @@
 import BoundedRenderer from "../../../../script/main/components/internal/BoundedRenderer.js";
 import Primitive from "../../../../script/main/components/Primitive.js";
-import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
+import { UIEventToListener, UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
 import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import vec2, { Vec2 } from "../../../../script/main/core/math/vec2.js";
@@ -12,7 +12,15 @@ const vec3_b = vec3.create()
 const vec3_c = vec3.create()
 const vec3_d = vec3.create()
 
-export default class Joystick extends UIContainer {
+export enum JoystickEventType {
+    CHANGED = 'CHANGED'
+}
+
+interface EventToListener extends UIEventToListener {
+    [JoystickEventType.CHANGED]: () => void;
+}
+
+export default class Joystick extends UIContainer<EventToListener> {
     private _point = vec2.create();
     get point(): Readonly<Vec2> {
         return this._point;
@@ -33,6 +41,7 @@ export default class Joystick extends UIContainer {
                 Math.max(Math.min(local[1] / BoundedRenderer.PIXELS_PER_UNIT, 1), -1)
             )
             this.draw(primitive, this._point)
+            this.emit(JoystickEventType.CHANGED);
         });
         this.on(UITouchEventType.TOUCH_MOVE, event => {
             const local = event.touch.local;
@@ -42,10 +51,12 @@ export default class Joystick extends UIContainer {
                 Math.max(Math.min(local[1] / BoundedRenderer.PIXELS_PER_UNIT, 1), -1)
             )
             this.draw(primitive, this._point)
+            this.emit(JoystickEventType.CHANGED);
         });
         this.on(UITouchEventType.TOUCH_END, event => {
             vec2.set(this._point, 0, 0);
             this.draw(primitive, this._point)
+            this.emit(JoystickEventType.CHANGED);
         });
     }
 

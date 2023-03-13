@@ -13,7 +13,7 @@ import SubModel from "../../core/scene/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
-ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
+ShaderLib.preloaded.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
 
 export default class SpriteRenderer extends BoundedRenderer {
     private _bounds = aabb2d.create();
@@ -138,15 +138,8 @@ export default class SpriteRenderer extends BoundedRenderer {
             inputAssemblers: [inputAssembler],
             passes: [pass], vertexOrIndexCount: indexBuffer.length
         };
-        const model = new Model([subModel]);
+        const model = new Model(this.node, [subModel]);
         zero.scene.models.push(model);
         this._model = model;
-    }
-
-    commit(): void {
-        if (this.node.hasChanged) {
-            this._model.matrix = this.node.world_matrix;
-        }
-        this._model.visibilityFlag = this.node.visibilityFlag;
     }
 }

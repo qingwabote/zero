@@ -1,6 +1,7 @@
 import Component from "../../core/Component.js";
 import vec3, { Vec3 } from "../../core/math/vec3.js";
-import Node, { TransformBit } from "../../core/Node.js";
+import Node from "../../core/Node.js";
+import { TransformBit } from "../../core/scene/Transform.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 import RigidBody from "./RigidBody.js";
 

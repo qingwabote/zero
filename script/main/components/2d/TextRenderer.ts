@@ -17,8 +17,8 @@ import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-ShaderLib.preloadedShaders.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
-Asset.preloadedAssets.push({ path: '../../assets/fnt/zero', type: FNT });
+ShaderLib.preloaded.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
+Asset.preloaded.push({ path: '../../assets/fnt/zero', type: FNT });
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -104,18 +104,13 @@ export default class TextRenderer extends BoundedRenderer {
         pass.initialize()
         pass.setTexture('albedoMap', this._fnt.texture.gfx_texture)
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
-        const model = new Model([subModel]);
+        const model = new Model(this.node, [subModel]);
         zero.scene.models.push(model);
         this._model = model;
     }
 
     override commit(): void {
         this.updateData();
-
-        if (this.node.hasChanged) {
-            this._model.matrix = this.node.world_matrix;
-        }
-        this._model.visibilityFlag = this.node.visibilityFlag;
 
         const subModel = this._model.subModels[0];
 

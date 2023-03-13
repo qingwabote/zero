@@ -3,7 +3,7 @@ export default class FrameDirtyRecord {
 
     private _frameId = 0;
 
-    private _hasChanged = 0;
+    private _hasChanged = 0xffffffff;
     get hasChanged(): number {
         return this._frameId == FrameDirtyRecord.frameId ? this._hasChanged : 0;
     }

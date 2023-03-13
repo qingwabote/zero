@@ -39,9 +39,9 @@ export default class RigidBody extends Component {
             // bt_transform.setRotation(ps.bt_quat_a);
         }
         motionState.setWorldTransform = (ptr_bt_transform: number) => {
-            const bt_transform = ammo.wrapPointer(ptr_bt_transform, ammo.btTransform);
+            // const bt_transform = ammo.wrapPointer(ptr_bt_transform, ammo.btTransform);
             // https://github.com/bulletphysics/bullet3/issues/1104#issuecomment-300428776
-            // const bt_transform = this.impl.getWorldTransform();
+            const bt_transform = this.impl.getWorldTransform();
             const origin = bt_transform.getOrigin();
             node.world_position = vec3.create(origin.x(), origin.y(), origin.z());
             const rotation = bt_transform.getRotation();

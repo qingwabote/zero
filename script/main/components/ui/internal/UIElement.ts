@@ -9,6 +9,8 @@ const vec2_b = vec2.create();
 const vec2_c = vec2.create();
 const vec2_d = vec2.create();
 
+type Listener = (event: any) => void;
+
 export class UITouch {
     world = vec2.create();
     local = vec2.create();
@@ -28,30 +30,29 @@ export class UITouchEvent {
     constructor(readonly touch: UITouch) { }
 }
 
-interface EventToListener {
+export interface UIEventToListener {
     [UITouchEventType.TOUCH_START]: (event: UITouchEvent) => void;
     [UITouchEventType.TOUCH_MOVE]: (event: UITouchEvent) => void;
     [UITouchEventType.TOUCH_END]: (event: UITouchEvent) => void;
 }
 
-export default abstract class UIElement extends Component implements EventEmitter<EventToListener> {
+export default abstract class UIElement<EventToListener extends UIEventToListener = UIEventToListener> extends Component implements EventEmitter<EventToListener> {
     private __emitter?: EventEmitter<EventToListener>;
     private get _emitter() {
         return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
     }
-    has<K extends UITouchEventType>(name: K): boolean {
+    has<K extends keyof EventToListener & string>(name: K): boolean {
         return this.__emitter ? this.__emitter.has(name) : false;
     }
-    on<K extends UITouchEventType>(name: K, listener: EventToListener[K] extends (event: any) => void ? EventToListener[K] : (event: any) => void): void {
+    on<K extends keyof EventToListener & string>(name: K, listener: EventToListener[K] extends Listener ? EventToListener[K] : Listener): void {
         this._emitter.on(name, listener);
     }
-    off<K extends UITouchEventType>(name: K, listener: EventToListener[K] extends (event: any) => void ? EventToListener[K] : (event: any) => void): void {
+    off<K extends keyof EventToListener & string>(name: K, listener: EventToListener[K] extends Listener ? EventToListener[K] : Listener): void {
         this._emitter.off(name, listener);
     }
-    emit<K extends UITouchEventType>(name: K, event?: Parameters<EventToListener[K] extends (event: any) => void ? EventToListener[K] : (event: any) => void>[0] | undefined): void {
+    emit<K extends keyof EventToListener & string>(name: K, event?: Parameters<EventToListener[K] extends Listener ? EventToListener[K] : Listener>[0]): void {
         this.__emitter?.emit(name, event);
     }
-
 
     public abstract get size(): Vec2;
     public abstract set size(value: Vec2);

@@ -8,7 +8,6 @@ import Semaphore from "./gfx/Semaphore.js";
 import Input, { InputEvent } from "./Input.js";
 import ComponentScheduler from "./internal/ComponentScheduler.js";
 import TimeScheduler from "./internal/TimeScheduler.js";
-import Node from "./Node.js";
 import Flow from "./render/Flow.js";
 import FrameDirtyRecord from "./scene/FrameDirtyRecord.js";
 import Root from "./scene/Root.js";
@@ -73,9 +72,9 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
     }
 
     async initialize(): Promise<void> {
-        await Promise.all(ShaderLib.preloadedShaders.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
+        await Promise.all(ShaderLib.preloaded.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
 
-        await Promise.all(Asset.preloadedAssets.map(info => Asset.cache.load(info.path, info.type)));
+        await Promise.all(Asset.preloaded.map(info => Asset.cache.load(info.path, info.type)));
 
         for (const system of this._systems) {
             await system.initialize();
@@ -132,7 +131,6 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this.emit(ZeroEvent.RENDER_START);
         gfx.acquire(this._presentSemaphore);
         this._flow.update();
-        Node.frameId++;
         FrameDirtyRecord.frameId++;
         this._commandBuffer.begin();
         this._flow.record(this._commandBuffer);

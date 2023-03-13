@@ -94,15 +94,8 @@ export default class MeshRenderer extends BoundedRenderer {
             }
             subModels.push({ inputAssemblers, passes, vertexOrIndexCount: subMesh.indexCount });
         }
-        const model = new Model(subModels);
+        const model = new Model(this.node, subModels);
         zero.scene.models.push(model);
         this._model = model;
-    }
-
-    commit(): void {
-        if (this.node.hasChanged) {
-            this._model.matrix = this.node.world_matrix;
-        }
-        this._model.visibilityFlag = this.node.visibilityFlag;
     }
 }

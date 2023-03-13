@@ -1,4 +1,3 @@
-import { PassState } from "./core/gfx/Pipeline.js";
 import BufferView from "./core/scene/buffers/BufferView.js";
 import Pass from "./core/scene/Pass.js";
 
@@ -6,8 +5,8 @@ export default class PassInstance extends Pass {
     private _overrides: Record<string, boolean> = {};
     private _raw: Pass;
 
-    constructor(raw: Pass, state?: PassState) {
-        super(state || raw.state);
+    constructor(raw: Pass) {
+        super(raw.state, raw.flag);
         for (const name in raw.textures) {
             this.setTexture(name, ...raw.textures[name]);
         }

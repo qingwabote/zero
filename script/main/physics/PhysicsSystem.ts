@@ -16,6 +16,11 @@ export default class PhysicsSystem implements System {
         return this._bt_vec3_b;
     }
 
+    private _bt_vec3_c: any;
+    public get bt_vec3_c(): any {
+        return this._bt_vec3_c;
+    }
+
     private _bt_transform_a: any;
     public get bt_transform_a(): any {
         return this._bt_transform_a;
@@ -53,6 +58,7 @@ export default class PhysicsSystem implements System {
 
         this._bt_vec3_a = new Module.btVector3(0, 0, 0);
         this._bt_vec3_b = new Module.btVector3(0, 0, 0);
+        this._bt_vec3_c = new Module.btVector3(0, 0, 0);
         this._bt_transform_a = new Module.btTransform();
         this._bt_quat_a = new Module.btQuaternion(0, 0, 0, 1);
 

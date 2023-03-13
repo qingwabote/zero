@@ -14,7 +14,7 @@ import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
-ShaderLib.preloadedShaders.push({ name: 'primitive' })
+ShaderLib.preloaded.push({ name: 'primitive' })
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
@@ -101,17 +101,12 @@ export default class Primitive extends BoundedRenderer {
         const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
         pass.initialize()
         const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
-        const model = new Model([subModel])
+        const model = new Model(this.node, [subModel])
         zero.scene.models.push(model);
         this._model = model;
     }
 
     commit(): void {
-        this._model.visibilityFlag = this.node.visibilityFlag;
-        if (this.node.hasChanged) {
-            this._model.matrix = this.node.world_matrix;
-        }
-
         const subModel = this._model.subModels[0];
 
         if (this._vertexCount == 0) {
