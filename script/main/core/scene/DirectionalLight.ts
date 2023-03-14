@@ -1,13 +1,23 @@
-import vec3, { Vec3 } from "../math/vec3.js";
+import { Vec3 } from "../math/vec3.js";
 import FrameDirtyRecord from "./FrameDirtyRecord.js";
+import Transform from "./Transform.js";
 
 export default class DirectionalLight extends FrameDirtyRecord {
-    private _position: Vec3 = vec3.create();
-    get position(): Readonly<Vec3> {
-        return this._position;
+    override get hasChanged(): number {
+        if (super.hasChanged || this._transform.hasChanged) {
+            return 1;
+        }
+        return 0;
     }
-    set position(value: Readonly<Vec3>) {
-        Object.assign(this._position, value);
-        this.hasChanged = 1;
+    override set hasChanged(flags: number) {
+        super.hasChanged = flags;
+    }
+
+    get position(): Readonly<Vec3> {
+        return this._transform.world_position;
+    }
+
+    constructor(private _transform: Transform) {
+        super();
     }
 }

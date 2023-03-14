@@ -4,12 +4,13 @@ import CameraControlPanel from "../../../../script/main/components/CameraControl
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
 import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
-import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
+import Asset from "../../../../script/main/core/Asset.js";
 import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
+import vec4 from "../../../../script/main/core/math/vec4.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
@@ -36,26 +37,54 @@ export default class App extends Zero {
         main_camera.viewport = { x: 0, y: 0, width, height };
         node.position = [20, 20, 20];
 
-        const primitive = new GLTF;
-        await primitive.load('../../assets/models/primitive/scene');
+        // node = new Node;
+        // node.visibilityFlag = VisibilityBit.DEFAULT;
+        // node.addComponent(DebugDrawer);
+
+        const primitive = await Asset.cache.load('../../assets/models/primitive/scene', GLTF);
+
+        const ground_size = vec3.create(30, 0.2, 30);
+
+        const ground = primitive.createScene("Cube")!;
+        ground.visibilityFlag = VisibilityBit.DEFAULT;
+        let shape = ground.addComponent(BoxShape);
+        let aabb = ground.getComponent(MeshRenderer)!.bounds;
+        shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
+        ground.scale = [ground_size[0] / (aabb.halfExtentX * 2), ground_size[1] / (aabb.halfExtentY * 2), ground_size[2] / (aabb.halfExtentZ * 2)]
+        ground.position = [0, -ground_size[1] / 2, 0];
+
+        const box_size = 1;
+        const wall_size = vec2.create(6, 6);
+        const wall_pos = vec3.create(0, 0, -8);
+
+        const wall_left = wall_pos[0] - wall_size[0] * box_size / 2;
+        const wall_bottom = wall_pos[1];
+        for (let i = 0; i < wall_size[0]; i++) {
+            let box_left = wall_left + box_size * i;
+            for (let j = 0; j < wall_size[1]; j++) {
+                let box_bottom = wall_bottom + box_size * j;
+
+                const box_x = box_left + box_size / 2;
+                const box_y = box_bottom + box_size / 2;
+                const box_z = wall_pos[2];
+
+                const box = primitive.createScene("Cube", true)!;
+                box.visibilityFlag = VisibilityBit.DEFAULT;
+                let meshRenderer = box.getComponent(MeshRenderer)!
+                meshRenderer.materials[0].passes[0].setUniform('Material', 'albedo', vec4.create(0, 0, 1, 1));
+                shape = box.addComponent(BoxShape);
+                shape.body.mass = 0.1;
+                aabb = meshRenderer.bounds;
+                shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
+                box.scale = [box_size / (aabb.halfExtentX * 2), box_size / (aabb.halfExtentY * 2), box_size / (aabb.halfExtentZ * 2)]
+                box.position = [box_x, box_y, box_z];
+            }
+        }
 
         node = new Node();
         const vehicle = node.addComponent(Vehicle);
         node.visibilityFlag = VisibilityBit.DEFAULT;
         node.position = [0, 3, 0];
-
-        node = primitive.createScene("Cube")!;
-        node.visibilityFlag = VisibilityBit.DEFAULT;
-        node.scale = [20, 0.1, 20];
-        let meshRenderer = node.getComponent(MeshRenderer)!;
-        let shape = node.addComponent(BoxShape);
-        let aabb = meshRenderer.bounds;
-        shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
-        node.position = [0, -1, 0];
-
-        node = new Node;
-        node.visibilityFlag = VisibilityBit.DEFAULT;
-        node.addComponent(DebugDrawer);
 
         // UI
         node = new Node;
@@ -88,14 +117,22 @@ export default class App extends Zero {
 
             // let breakingForce = 0;
             let engineForce = 0;
+            let steering = 0;
             if (joystick.point[1] > 0) {
-                engineForce = 3
+                engineForce = 2
             } else if (joystick.point[1] < 0) {
-                engineForce = -3
+                engineForce = -2
+            }
+            if (joystick.point[0] > 0) {
+                steering = 6;
+            } else if (joystick.point[0] < 0) {
+                steering = -6;
             }
 
             vehicle.setEngineForce(engineForce, 2);
             vehicle.setEngineForce(engineForce, 3);
+            vehicle.setSteeringValue(steering, 0);
+            vehicle.setSteeringValue(steering, 1);
         })
         const bounds = joystick.getBounds();
         node.position = vec3.create(width / 2 - (bounds.x + bounds.width), -height / 2 - bounds.y, 0)

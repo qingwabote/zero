@@ -25,7 +25,7 @@ export default class ModelPhase extends Phase {
         const models = zero.scene.models;
         this._drawCalls = 0;
         for (const model of models) {
-            if ((camera.visibilityFlags & model.transform.visibilityFlag) == 0) {
+            if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
                 continue;
             }
             for (const subModel of model.subModels) {

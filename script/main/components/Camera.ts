@@ -48,7 +48,7 @@ export default class Camera extends Component {
     override start(): void {
         this.node.eventEmitter.on("TRANSFORM_CHANGED", () => this._matViewFlags = DirtyFlag.DIRTY);
 
-        const camera = new render_Camera;
+        const camera = new render_Camera(this.node);
         camera.visibilityFlags = this.visibilityFlags;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
@@ -66,9 +66,6 @@ export default class Camera extends Component {
         if (this._matProjFlags & DirtyFlag.COMMITTING) {
             this._camera.matProj = this.getMatProj();
             this._matProjFlags ^= DirtyFlag.COMMITTING;
-        }
-        if (this.node.hasChanged) {
-            this._camera.position = this.node.world_position;
         }
     }
 

@@ -84,6 +84,10 @@ export default class Vehicle extends Component {
         this._impl.setBrake(value, wheel);
     }
 
+    public setSteeringValue(value: number, wheel: number) {
+        this._impl.setSteeringValue(value, wheel);
+    }
+
     override commit(): void {
         var n = this._impl.getNumWheels();
         for (let i = 0; i < n; i++) {
@@ -106,12 +110,17 @@ export default class Vehicle extends Component {
         const wheelInfo = impl.addWheel(ps.bt_vec3_a, ps.bt_vec3_b, ps.bt_vec3_c, suspension_restLength, wheel_radius, tuning, isFront)
         wheelInfo.set_m_suspensionStiffness(20);
 
-        const primitive = Asset.cache.get('../../assets/models/primitive/scene', GLTF);
-        const cylinder = primitive.createScene("Cylinder", true)!;
-        cylinder.scale = vec3.create(wheel_radius, wheel_width / 2, wheel_radius)
-        // cylinder.euler = vec3.create(0, 0, 90)
         const node = new Node;
+        const primitive = Asset.cache.get('../../assets/models/primitive/scene', GLTF);
+        const cylinder = primitive.createScene("Cylinder")!;
+        cylinder.scale = vec3.create(wheel_radius, wheel_width / 2, wheel_radius)
+        cylinder.euler = vec3.create(0, 0, 90)
         node.addChild(cylinder)
+        const cube = primitive.createScene("Cube", true)!;
+        cube.scale = vec3.create(wheel_width / 2 + 0.01, wheel_radius - 0.01, wheel_radius / 3)
+        let meshRenderer = cube.getComponent(MeshRenderer)!;
+        meshRenderer.materials[0].passes[0].setUniform('Material', 'albedo', vec4.create(1, 0, 0, 1));
+        node.addChild(cube)
         this.node.addChild(node);
         this._wheels.push(node);
     }

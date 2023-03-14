@@ -1,10 +1,21 @@
 import { ClearFlagBit } from "../gfx/Pipeline.js";
 import { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
-import vec3, { Vec3 } from "../math/vec3.js";
+import { Vec3 } from "../math/vec3.js";
 import FrameDirtyRecord from "./FrameDirtyRecord.js";
+import Transform from "./Transform.js";
 
 export default class Camera extends FrameDirtyRecord {
+
+    override get hasChanged(): number {
+        if (super.hasChanged || this._transform.hasChanged) {
+            return 1;
+        }
+        return 0;
+    }
+    override set hasChanged(flags: number) {
+        super.hasChanged = flags;
+    }
 
     visibilityFlags = 0;
 
@@ -30,12 +41,11 @@ export default class Camera extends FrameDirtyRecord {
         this.hasChanged = 1;
     }
 
-    private _position: Vec3 = vec3.create();
     get position(): Readonly<Vec3> {
-        return this._position;
+        return this._transform.world_position;
     }
-    set position(value: Readonly<Vec3>) {
-        Object.assign(this._position, value);
-        this.hasChanged = 1;
+
+    constructor(private _transform: Transform) {
+        super();
     }
 }

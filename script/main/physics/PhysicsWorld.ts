@@ -34,11 +34,12 @@ export default class PhysicsWorld {
     }
 
     stepSimulation() {
+        const ps = PhysicsSystem.instance;
+
         this.impl.stepSimulation(1 / 60);
 
         const drawer = this.impl.getDebugDrawer();
-        if (drawer) {
-            const ps = PhysicsSystem.instance;
+        if (!ps.ammo.compare(drawer, ps.ammo.NULL)) {
 
             ps.bt_vec3_a.setValue(...this._rayTestFromTo[0]);
             ps.bt_vec3_b.setValue(...this._rayTestFromTo[1]);
