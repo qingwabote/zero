@@ -7,10 +7,10 @@ import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
 import { CullMode, Format, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
-import mat4 from "../core/math/mat4.js";
+import mat4, { Mat4 } from "../core/math/mat4.js";
 import { Quat } from "../core/math/quat.js";
 import { Vec3 } from "../core/math/vec3.js";
-import vec4 from "../core/math/vec4.js";
+import vec4, { Vec4 } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
 import Pass from "../core/scene/Pass.js";
 import ShaderLib from "../core/ShaderLib.js";
@@ -18,7 +18,18 @@ import MaterialInstance from "../MaterialInstance.js";
 import PhaseFlag from "../render/PhaseFlag.js";
 import Material from "./Material.js";
 import { SubMesh, VertexAttribute } from "./Mesh.js";
+import Skin from "./Skin.js";
 import Texture from "./Texture.js";
+
+interface MaterialMacros {
+    USE_SHADOW_MAP?: 0 | 1;
+    USE_SKIN?: 0 | 1;
+}
+
+interface MaterialValues {
+    albedo?: Vec4;
+    texture?: Texture;
+}
 
 const builtinAttributes: Record<string, string> = {
     "POSITION": "a_position",
@@ -26,14 +37,15 @@ const builtinAttributes: Record<string, string> = {
     "NORMAL": "a_normal"
 }
 
-const formatPart1Names: Record<string, string> = {
+const format_part1: Record<string, string> = {
     "SCALAR": "R",
     "VEC2": "RG",
     "VEC3": "RGB",
     "VEC4": "RGBA"
 }
 
-const formatPart2Names: Record<number, string> = {
+const format_part2: Record<number, string> = {
+    5121: "8UI",
     5123: "16UI",
     5125: "32UI",
     5126: "32F"
@@ -65,7 +77,9 @@ export default class GLTF extends Asset {
 
     private _materials: Material[] = [];
 
-    async load(url: string, USE_SHADOW_MAP = 0): Promise<this> {
+    private _skins: Skin[] = [];
+
+    async load(url: string, USE_SHADOW_MAP: 0 | 1 = 0): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
             return this;
@@ -73,20 +87,32 @@ export default class GLTF extends Asset {
 
         const [, parent, name] = res;
         const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
-        this._bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
+        const bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
-        this._textures = await Promise.all(json_images.map((info: any) => Asset.cache.load(`${parent}/${uri2path(info.uri)}`, Texture)));
+        const textures = await Promise.all(json_images.map((info: any) => Asset.cache.load(`${parent}/${uri2path(info.uri)}`, Texture)));
 
-        this._default_material = await this.createMaterial(USE_SHADOW_MAP);
+        this._default_material = await this.createMaterial({ USE_SHADOW_MAP });
 
         for (const info of json.materials || []) {
             let textureIdx = -1;
             if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
                 textureIdx = json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
             }
-            this._materials.push(await this.createMaterial(USE_SHADOW_MAP, info.pbrMetallicRoughness.baseColorFactor, textureIdx));
+            this._materials.push(await this.createMaterial({ USE_SHADOW_MAP, USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
+        }
+        this._textures = textures;
+
+        for (const skin of json.skins || []) {
+            const inverseBindMatrices: Mat4[] = [];
+            const accessor = json.accessors[skin.inverseBindMatrices];
+            const bufferView = json.bufferViews[accessor.bufferView];
+            for (let i = 0; i < accessor.count; i++) {
+                inverseBindMatrices[i] = Array.from(new Float32Array(bin, bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16)) as Mat4;
+            }
+            this._skins.push({ inverseBindMatrices })
         }
 
+        this._bin = bin;
         this._json = json;
         return this;
     }
@@ -107,7 +133,11 @@ export default class GLTF extends Asset {
         return node;
     }
 
-    private async createMaterial(USE_SHADOW_MAP = 0, albedo = vec4.ONE, textureIdx = -1) {
+    private async createMaterial(macros: MaterialMacros, values: MaterialValues = {}) {
+        const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
+        const albedo = values.albedo || vec4.ONE;
+        const texture = values.texture;
+
         const passes: Pass[] = [];
 
         if (USE_SHADOW_MAP) {
@@ -124,10 +154,8 @@ export default class GLTF extends Asset {
             passes.push(shadowMapPass);
         }
 
-        const USE_ALBEDO_MAP = textureIdx == -1 ? 0 : 1;
-
         const phongShader = await ShaderLib.instance.loadShader('phong', {
-            USE_ALBEDO_MAP,
+            USE_ALBEDO_MAP: texture ? 1 : 0,
             USE_SHADOW_MAP,
             SHADOW_MAP_PCF: 1,
             CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
@@ -135,8 +163,8 @@ export default class GLTF extends Asset {
 
         const phongPass = new Pass(new PassState(phongShader));
         phongPass.initialize()
-        if (USE_ALBEDO_MAP) {
-            phongPass.setTexture('albedoMap', this._textures[textureIdx].gfx_texture)
+        if (texture) {
+            phongPass.setTexture('albedoMap', texture.gfx_texture)
         }
         phongPass.setUniform('Material', 'albedo', albedo)
         passes.push(phongPass);
@@ -196,10 +224,11 @@ export default class GLTF extends Asset {
             const vertexAttributes: VertexAttribute[] = [];
             for (const name in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[name]];
-                const format: Format = (Format as any)[`${formatPart1Names[accessor.type]}${formatPart2Names[accessor.componentType]}`];
-                // if (format == undefined) {
-                //     console.error(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`)
-                // }
+                const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
+                if (format == undefined) {
+                    console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
+                    continue;
+                }
                 const attribute: VertexAttribute = {
                     name: builtinAttributes[name] || name,
                     format,

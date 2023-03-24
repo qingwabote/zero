@@ -1,5 +1,4 @@
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import DescriptorSet from "../gfx/DescriptorSet.js";
 import mat4 from "../math/mat4.js";
 import ShaderLib from "../ShaderLib.js";
 import BufferView from "./buffers/BufferView.js";
@@ -10,17 +9,14 @@ export default class Model {
 
     private _bufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShaderLib.sets.local.uniforms.Local.length);
 
-    readonly descriptorSet: DescriptorSet;
-
     get visibilityFlag(): number {
         return this._transform.visibilityFlag
     }
 
     constructor(private _transform: Transform, readonly subModels: SubModel[]) {
-        const descriptorSet = gfx.createDescriptorSet();
-        descriptorSet.initialize(ShaderLib.builtinDescriptorSetLayouts.local)
-        descriptorSet.bindBuffer(ShaderLib.sets.local.uniforms.Local.binding, this._bufferView.buffer);
-        this.descriptorSet = descriptorSet;
+        for (const subModel of subModels) {
+            subModel.descriptorSet.bindBuffer(ShaderLib.sets.local.uniforms.Local.binding, this._bufferView.buffer)
+        }
     }
 
     update() {
@@ -31,9 +27,7 @@ export default class Model {
         }
 
         for (const subModel of this.subModels) {
-            for (const pass of subModel.passes) {
-                pass.update();
-            }
+            subModel.update()
         }
     }
 }

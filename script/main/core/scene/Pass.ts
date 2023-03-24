@@ -46,7 +46,7 @@ export default class Pass {
     constructor(private _state: PassState, private _flag = 0) { }
 
     initialize() {
-        const descriptorSetLayout = ShaderLib.instance.getDescriptorSetLayout(this._state.shader);
+        const descriptorSetLayout = ShaderLib.instance.getDescriptorSetLayout(this._state.shader, ShaderLib.sets.material.index);
         if (descriptorSetLayout.bindings.length) {
             const descriptorSet = gfx.createDescriptorSet();
             descriptorSet.initialize(descriptorSetLayout);
@@ -54,7 +54,7 @@ export default class Pass {
             const blocks = this._state.shader.info.meta.blocks;
             for (const name in blocks) {
                 const block = blocks[name];
-                if (block.set < ShaderLib.sets.material.set) {
+                if (block.set != ShaderLib.sets.material.index) {
                     continue;
                 }
                 const view = this.createUniform(name);

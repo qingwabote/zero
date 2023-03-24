@@ -150,9 +150,11 @@ export default {
                             const [_, type, name] = match;
                             members.push({ name, type });
                         }
-                        blocks[name] = { set: parseInt(set), binding: parseInt(binding), members };
+                        const block = blocks[name];
+                        blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, stageFlags: block ? stage.type | block.stageFlags : stage.type };
                     } else if (type == 'sampler2D') {
-                        samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding) };
+                        const samplerTexture = samplerTextures[name];
+                        samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding), stageFlags: samplerTexture ? stage.type | samplerTexture.stageFlags : stage.type };
                     }
                     // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
                     if (typeof window != 'undefined') {

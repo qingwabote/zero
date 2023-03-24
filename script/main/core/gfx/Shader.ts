@@ -25,6 +25,7 @@ export interface Uniform {
     readonly set: number;
     readonly binding: number;
     readonly members?: readonly UniformMember[];
+    readonly stageFlags: ShaderStageFlagBits;
 }
 
 export interface Meta {

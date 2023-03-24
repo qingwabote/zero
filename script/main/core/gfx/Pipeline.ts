@@ -6,6 +6,7 @@ import Shader from "./Shader.js";
 // copy values from VkFormat in vulkan_core.h
 export enum Format {
     R8UI = 13,
+    RGBA8UI = 27,
     R16UI = 74,
     R32UI = 98,
     RG32F = 103,
@@ -21,6 +22,7 @@ interface FormatInfo {
 
 export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
     [Format.R8UI]: { name: "R8UI", size: 1, count: 1 },
+    [Format.RGBA8UI]: { name: "R8UI", size: 4, count: 4 },
     [Format.R16UI]: { name: "R16UI", size: 2, count: 1 },
     [Format.R32UI]: { name: "R32UI", size: 4, count: 1 },
     [Format.RG32F]: { name: "RG32F", size: 8, count: 2 },

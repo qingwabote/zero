@@ -12,7 +12,7 @@ function align(size: number) {
  */
 const sets = {
     global: {
-        set: 0,
+        index: 0,
         uniforms: {
             Camera: {
                 type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -33,7 +33,7 @@ const sets = {
         }
     },
     local: {
-        set: 1,
+        index: 1,
         uniforms: {
             Local: {
                 type: DescriptorType.UNIFORM_BUFFER,
@@ -47,7 +47,7 @@ const sets = {
         }
     },
     material: {
-        set: 2
+        index: 2
     }
 } as const
 
@@ -60,21 +60,9 @@ function createDescriptorSetLayoutBinding(uniform: { type: DescriptorType, bindi
     }
 }
 
-function buildDescriptorSetLayout(uniforms: Record<string, { type: DescriptorType, binding: number }>): DescriptorSetLayout {
-    const bindings: DescriptorSetLayoutBinding[] = [];
-    for (const name in uniforms) {
-        bindings.push(createDescriptorSetLayoutBinding(uniforms[name]))
-    }
-    const descriptorSetLayout = gfx.createDescriptorSetLayout();
-    descriptorSetLayout.initialize(bindings);
-    return descriptorSetLayout;
-}
-
 export default class ShaderLib {
 
     static readonly sets = sets;
-
-    static readonly builtinDescriptorSetLayouts = { local: buildDescriptorSetLayout(sets.local.uniforms) };
 
     static readonly createDescriptorSetLayoutBinding = createDescriptorSetLayoutBinding;
 
@@ -128,38 +116,41 @@ export default class ShaderLib {
         return this._key2shader[this.getShaderKey(name, macros)];
     }
 
-    getDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
-        let descriptorSetLayout = this._shader2descriptorSetLayout[shader.info.hash];
+    getDescriptorSetLayout(shader: Shader, set: number): DescriptorSetLayout {
+        const key = `${set}:${shader.info.hash}`;
+        let descriptorSetLayout = this._shader2descriptorSetLayout[key];
         if (!descriptorSetLayout) {
             const bindings: DescriptorSetLayoutBinding[] = [];
             const samplerTextures = shader.info.meta.samplerTextures;
             for (const name in samplerTextures) {
-                if (samplerTextures[name].set < sets.material.set) {
+                const samplerTexture = samplerTextures[name];
+                if (samplerTexture.set != set) {
                     continue;
                 }
                 bindings.push({
-                    binding: samplerTextures[name].binding,
+                    binding: samplerTexture.binding,
                     descriptorType: DescriptorType.SAMPLER_TEXTURE,
                     descriptorCount: 1,
-                    stageFlags: ShaderStageFlagBits.FRAGMENT
+                    stageFlags: samplerTexture.stageFlags
                 });
             };
             const blocks = shader.info.meta.blocks;
             for (const name in blocks) {
-                if (blocks[name].set < sets.material.set) {
+                const block = blocks[name];
+                if (block.set != set) {
                     continue;
                 }
                 bindings.push({
-                    binding: blocks[name].binding,
+                    binding: block.binding,
                     descriptorType: DescriptorType.UNIFORM_BUFFER,
                     descriptorCount: 1,
-                    stageFlags: ShaderStageFlagBits.FRAGMENT
+                    stageFlags: block.stageFlags
                 });
             }
             descriptorSetLayout = gfx.createDescriptorSetLayout();
             descriptorSetLayout.initialize(bindings);
 
-            this._shader2descriptorSetLayout[shader.info.hash] = descriptorSetLayout;
+            this._shader2descriptorSetLayout[key] = descriptorSetLayout;
         }
 
         return descriptorSetLayout;

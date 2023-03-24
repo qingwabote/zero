@@ -92,7 +92,7 @@ export default class MeshRenderer extends BoundedRenderer {
                 })
                 inputAssemblers.push(inputAssembler);
             }
-            subModels.push({ inputAssemblers, passes, vertexOrIndexCount: subMesh.indexCount });
+            subModels.push(new SubModel(inputAssemblers, passes, subMesh.indexCount));
         }
         const model = new Model(this.node, subModels);
         zero.scene.models.push(model);

@@ -40,9 +40,9 @@ export default class ModelPhase extends Phase {
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = this.getPipelineLayout(pass.state.shader);
-                    commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.local.set, model.descriptorSet);
+                    commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.local.index, subModel.descriptorSet);
                     if (pass.descriptorSet) {
-                        commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.material.set, pass.descriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.material.index, pass.descriptorSet);
                     }
                     const pipeline = this.getPipeline(pass.state, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
@@ -63,8 +63,8 @@ export default class ModelPhase extends Phase {
             layout = gfx.createPipelineLayout();
             layout.initialize([
                 zero.flow.globalDescriptorSet.layout,
-                ShaderLib.builtinDescriptorSetLayouts.local,
-                ShaderLib.instance.getDescriptorSetLayout(shader)
+                ShaderLib.instance.getDescriptorSetLayout(shader, ShaderLib.sets.local.index),
+                ShaderLib.instance.getDescriptorSetLayout(shader, ShaderLib.sets.material.index)
             ])
             pipelineLayoutCache[shader.info.hash] = layout;
         }

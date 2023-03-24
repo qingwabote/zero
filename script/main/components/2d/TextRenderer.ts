@@ -103,7 +103,7 @@ export default class TextRenderer extends BoundedRenderer {
         const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }));
         pass.initialize()
         pass.setTexture('albedoMap', this._fnt.texture.gfx_texture)
-        const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
+        const subModel: SubModel = new SubModel([], [pass]);
         const model = new Model(this.node, [subModel]);
         zero.scene.models.push(model);
         this._model = model;

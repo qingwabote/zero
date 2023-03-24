@@ -134,10 +134,7 @@ export default class SpriteRenderer extends BoundedRenderer {
         const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }))
         pass.initialize()
         pass.setTexture('albedoMap', this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
-        const subModel: SubModel = {
-            inputAssemblers: [inputAssembler],
-            passes: [pass], vertexOrIndexCount: indexBuffer.length
-        };
+        const subModel: SubModel = new SubModel([inputAssembler], [pass], indexBuffer.length);
         const model = new Model(this.node, [subModel]);
         zero.scene.models.push(model);
         this._model = model;

@@ -100,7 +100,7 @@ export default class Primitive extends BoundedRenderer {
 
         const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
         pass.initialize()
-        const subModel: SubModel = { inputAssemblers: [], passes: [pass], vertexOrIndexCount: 0 };
+        const subModel: SubModel = new SubModel([], [pass]);
         const model = new Model(this.node, [subModel])
         zero.scene.models.push(model);
         this._model = model;

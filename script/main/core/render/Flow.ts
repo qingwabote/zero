@@ -116,7 +116,7 @@ export default class Flow {
         const renderScene = zero.scene;
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
-            commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.set, this.globalDescriptorSet,
+            commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.index, this.globalDescriptorSet,
                 [ShaderLib.sets.global.uniforms.Camera.size * cameraIndex]);
             for (const stage of this._stages) {
                 if ((camera.visibilityFlags & stage.visibility) == 0) {
