@@ -3,11 +3,9 @@ import DescriptorSetLayout from "./DescriptorSetLayout.js";
 import { Sampler } from "./Sampler.js";
 import Texture from "./Texture.js";
 
-export interface DescriptorSet_ReadOnly {
+export default interface DescriptorSet {
     get layout(): DescriptorSetLayout;
-}
 
-export default interface DescriptorSet extends DescriptorSet_ReadOnly {
     initialize(layout: DescriptorSetLayout): boolean;
     // getBuffer(binding: number): Buffer;
     bindBuffer(binding: number, buffer: Buffer, range?: number): void;

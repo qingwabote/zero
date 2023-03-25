@@ -1,10 +1,12 @@
 import CommandBuffer from "../../core/gfx/CommandBuffer.js";
+import DescriptorSetLayout from "../../core/gfx/DescriptorSetLayout.js";
 import { VertexInputState } from "../../core/gfx/InputAssembler.js";
 import Pipeline, { PassState, PipelineLayout } from "../../core/gfx/Pipeline.js";
 import RenderPass from "../../core/gfx/RenderPass.js";
-import Shader from "../../core/gfx/Shader.js";
 import Phase from "../../core/render/Phase.js";
 import Camera from "../../core/scene/Camera.js";
+import Model from "../../core/scene/Model.js";
+import Pass from "../../core/scene/Pass.js";
 import ShaderLib from "../../core/ShaderLib.js";
 import VisibilityBit from "../../VisibilityBit.js";
 import PhaseFlag from "../PhaseFlag.js";
@@ -28,6 +30,7 @@ export default class ModelPhase extends Phase {
             if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
                 continue;
             }
+            commandBuffer.bindDescriptorSet(model.pipelineLayout, ShaderLib.sets.local.index, model.descriptorSet);
             for (const subModel of model.subModels) {
                 if (subModel.vertexOrIndexCount == 0) {
                     continue;
@@ -39,8 +42,7 @@ export default class ModelPhase extends Phase {
                     }
                     const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
-                    const layout = this.getPipelineLayout(pass.state.shader);
-                    commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.local.index, subModel.descriptorSet);
+                    const layout = this.getPipelineLayout(model, pass);
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.material.index, pass.descriptorSet);
                     }
@@ -57,18 +59,21 @@ export default class ModelPhase extends Phase {
         }
     }
 
-    private getPipelineLayout(shader: Shader): PipelineLayout {
-        let layout = pipelineLayoutCache[shader.info.hash];
-        if (!layout) {
-            layout = gfx.createPipelineLayout();
-            layout.initialize([
-                zero.flow.globalDescriptorSet.layout,
-                ShaderLib.instance.getDescriptorSetLayout(shader, ShaderLib.sets.local.index),
-                ShaderLib.instance.getDescriptorSetLayout(shader, ShaderLib.sets.material.index)
-            ])
-            pipelineLayoutCache[shader.info.hash] = layout;
+    private getPipelineLayout(model: Model, pass: Pass): PipelineLayout {
+        const shader = pass.state.shader;
+        let pipelineLayout = pipelineLayoutCache[shader.info.hash];
+        if (!pipelineLayout) {
+            pipelineLayout = gfx.createPipelineLayout();
+            const layouts: DescriptorSetLayout[] = [];
+            layouts.push(zero.flow.globalDescriptorSet.layout);
+            layouts.push(model.descriptorSet.layout);
+            if (pass.descriptorSet) {
+                layouts.push(pass.descriptorSet.layout);
+            }
+            pipelineLayout.initialize(layouts)
+            pipelineLayoutCache[shader.info.hash] = pipelineLayout;
         }
-        return layout;
+        return pipelineLayout;
     }
 
     /**

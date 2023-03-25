@@ -1,5 +1,5 @@
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
-import DescriptorSet, { DescriptorSet_ReadOnly } from "../gfx/DescriptorSet.js";
+import DescriptorSet from "../gfx/DescriptorSet.js";
 import { PassState } from "../gfx/Pipeline.js";
 import { Sampler } from "../gfx/Sampler.js";
 import Texture from "../gfx/Texture.js";
@@ -25,7 +25,7 @@ export default class Pass {
     }
 
     protected _descriptorSet?: DescriptorSet;
-    get descriptorSet(): DescriptorSet_ReadOnly | undefined {
+    get descriptorSet(): DescriptorSet | undefined {
         return this._descriptorSet;
     }
 
@@ -46,7 +46,7 @@ export default class Pass {
     constructor(private _state: PassState, private _flag = 0) { }
 
     initialize() {
-        const descriptorSetLayout = ShaderLib.instance.getDescriptorSetLayout(this._state.shader, ShaderLib.sets.material.index);
+        const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this._state.shader);
         if (descriptorSetLayout.bindings.length) {
             const descriptorSet = gfx.createDescriptorSet();
             descriptorSet.initialize(descriptorSetLayout);

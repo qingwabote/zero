@@ -16,8 +16,9 @@ const sets = {
         uniforms: {
             Camera: {
                 type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
+                stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
                 binding: 1,
-                uniforms: {
+                members: {
                     view: {
                         offset: 0
                     },
@@ -37,12 +38,23 @@ const sets = {
         uniforms: {
             Local: {
                 type: DescriptorType.UNIFORM_BUFFER,
+                stageFlags: ShaderStageFlagBits.VERTEX,
                 binding: 0,
-                uniforms: {
+                members: {
                     model: {},
                     modelIT: {}
                 },
                 length: 16 + 16,
+                size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
+            },
+            Skin: {
+                type: DescriptorType.UNIFORM_BUFFER,
+                binding: 1,
+                members: {
+                    joints: {},
+                },
+                length: 16 * 10,
+                size: (16 * 10) * Float32Array.BYTES_PER_ELEMENT
             }
         }
     },
@@ -51,12 +63,18 @@ const sets = {
     }
 } as const
 
-function createDescriptorSetLayoutBinding(uniform: { type: DescriptorType, binding: number }) {
+interface Uniform {
+    type: DescriptorType,
+    stageFlags: ShaderStageFlagBits,
+    binding: number
+}
+
+function createDescriptorSetLayoutBinding(uniform: Uniform): DescriptorSetLayoutBinding {
     return {
-        binding: uniform.binding,
         descriptorType: uniform.type,
+        stageFlags: uniform.stageFlags,
+        binding: uniform.binding,
         descriptorCount: 1,
-        stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT
     }
 }
 
@@ -65,6 +83,21 @@ export default class ShaderLib {
     static readonly sets = sets;
 
     static readonly createDescriptorSetLayoutBinding = createDescriptorSetLayoutBinding;
+
+    private static _key2localDescriptorSetLayout: Record<string, DescriptorSetLayout> = {};
+
+    static getLocalDescriptorSetLayout(...uniforms: Uniform[]) {
+        uniforms.sort((a, b) => a.binding - b.binding);
+        const key = uniforms.reduce((str, uniform) => str + uniform.binding, '');
+        let layout = this._key2localDescriptorSetLayout[key];
+        if (!layout) {
+            const bindings = uniforms.map(uniform => createDescriptorSetLayoutBinding(uniform));
+            layout = gfx.createDescriptorSetLayout();
+            layout.initialize(bindings);
+            this._key2localDescriptorSetLayout[key] = layout;
+        }
+        return layout;
+    }
 
     static readonly preloaded: { name: string, macros?: Record<string, number> }[] = [];
 
@@ -116,7 +149,9 @@ export default class ShaderLib {
         return this._key2shader[this.getShaderKey(name, macros)];
     }
 
-    getDescriptorSetLayout(shader: Shader, set: number): DescriptorSetLayout {
+    getMaterialDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
+        const set = sets.material.index;
+
         const key = `${set}:${shader.info.hash}`;
         let descriptorSetLayout = this._shader2descriptorSetLayout[key];
         if (!descriptorSetLayout) {

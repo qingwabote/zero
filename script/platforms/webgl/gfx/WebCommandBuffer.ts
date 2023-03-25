@@ -1,6 +1,6 @@
 import Buffer from "../../../main/core/gfx/Buffer.js";
 import CommandBuffer from "../../../main/core/gfx/CommandBuffer.js";
-import { DescriptorSet_ReadOnly } from "../../../main/core/gfx/DescriptorSet.js";
+import DescriptorSet from "../../../main/core/gfx/DescriptorSet.js";
 import { DescriptorType } from "../../../main/core/gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../../../main/core/gfx/Framebuffer.js";
 import InputAssembler, { IndexType, InputAssemblerInfo } from "../../../main/core/gfx/InputAssembler.js";
@@ -10,7 +10,6 @@ import Texture from "../../../main/core/gfx/Texture.js";
 import { Rect } from "../../../main/core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
-import WebDescriptorSetLayout from "./WebDescriptorSetLayout.js";
 import WebFramebuffer from "./WebFramebuffer.js";
 import WebPipeline from "./WebPipeline.js";
 import WebSampler from "./WebSampler.js";
@@ -155,11 +154,11 @@ export default class WebCommandBuffer implements CommandBuffer {
         );
     }
 
-    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet_ReadOnly, dynamicOffsets?: number[]): void {
+    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {
         const gl = this._gl;
 
         let dynamicIndex = 0;
-        for (const layoutBinding of ((descriptorSet as WebDescriptorSet).layout as WebDescriptorSetLayout).bindings) {
+        for (const layoutBinding of descriptorSet.layout.bindings) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
                 const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl.deref());

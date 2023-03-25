@@ -28,11 +28,11 @@ export default class CameraUniform implements Uniform {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (camera.hasChanged) {
-                this._buffer.set(camera.matView, camerasDataOffset + CameraBlock.uniforms.view.offset);
+                this._buffer.set(camera.matView, camerasDataOffset + CameraBlock.members.view.offset);
 
-                this._buffer.set(camera.matProj, camerasDataOffset + CameraBlock.uniforms.projection.offset);
+                this._buffer.set(camera.matProj, camerasDataOffset + CameraBlock.members.projection.offset);
 
-                this._buffer.set(camera.position, camerasDataOffset + CameraBlock.uniforms.position.offset);
+                this._buffer.set(camera.position, camerasDataOffset + CameraBlock.members.position.offset);
 
             }
             camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;

@@ -1,5 +1,6 @@
 import { DescriptorSetLayoutBinding, DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
 import { Filter } from "../../core/gfx/Sampler.js";
+import { ShaderStageFlagBits } from "../../core/gfx/Shader.js";
 import Uniform from "../../core/render/Uniform.js";
 import samplers from "../../core/samplers.js";
 import ShaderLib from "../../core/ShaderLib.js";
@@ -7,6 +8,7 @@ import ShadowStage from "../stages/ShadowStage.js";
 
 const shadowMap = {
     type: DescriptorType.SAMPLER_TEXTURE,
+    stageFlags: ShaderStageFlagBits.FRAGMENT,
     binding: 3,
 }
 
