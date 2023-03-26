@@ -66,16 +66,16 @@ export default class MeshRenderer extends BoundedRenderer {
                 for (const attribute of subMesh.vertexAttributes) {
                     const definition = pass.state.shader.info.meta.attributes[attribute.name];
                     if (!definition) {
-                        // console.warn(`attribute ${attribute.name} has no definition in ${pass.shader.info.name}`)
                         continue;
                     }
                     if (definition.format != attribute.format) {
-                        throw new Error(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`);
+                        // throw new Error(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`);
+                        console.log(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`)
                     }
 
                     attributes.push({
                         location: definition.location,
-                        format: definition.format,
+                        format: attribute.format,
                         binding: attribute.buffer,
                         offset: attribute.offset
                     });
@@ -94,8 +94,12 @@ export default class MeshRenderer extends BoundedRenderer {
             }
             subModels.push(new SubModel(inputAssemblers, passes, subMesh.indexCount));
         }
-        const model = new Model(this.node, subModels);
+        const model = this.createModel(subModels);
         zero.scene.models.push(model);
         this._model = model;
+    }
+
+    protected createModel(subModels: SubModel[]) {
+        return new Model(this.node, subModels);
     }
 }

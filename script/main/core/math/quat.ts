@@ -200,5 +200,17 @@ export default {
             out[3] = 1 + dot;
             return this.normalize(out, out);
         }
+    },
+
+    rotateY(out: Quat, a: Readonly<Quat>, rad: number) {
+        const by = Math.sin(rad);
+        const bw = Math.cos(rad);
+        const [x, y, z, w] = a;
+
+        out[0] = x * bw - z * by;
+        out[1] = y * bw + w * by;
+        out[2] = z * bw + x * by;
+        out[3] = w * bw - y * by;
+        return out;
     }
 } as const

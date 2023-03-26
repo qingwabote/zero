@@ -16,8 +16,8 @@ export default class Node extends Transform {
         return super.parent as any;
     }
 
-    constructor(public name: string = '') {
-        super();
+    constructor(name: string = '') {
+        super(name);
     }
 
     addComponent<T extends Component>(constructor: ComponentConstructor<T>): T {

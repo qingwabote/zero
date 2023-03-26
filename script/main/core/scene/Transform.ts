@@ -150,11 +150,27 @@ export default class Transform extends FrameDirtyRecord {
         return this._world_matrix;
     }
 
+    constructor(public readonly name: string = '') {
+        super();
+    }
+
     addChild(child: Transform): void {
         child._implicit_visibilityFlag = undefined;
         child._parent = this;
 
         this._children.push(child);
+    }
+
+    getChildByPath(paths: string[]): Transform | undefined {
+        let current: Transform | undefined = this;
+        for (let i = 0; i < paths.length; i++) {
+            if (!current) {
+                break;
+            }
+            current = current.children.find(child => child.name == paths[i]);
+        }
+
+        return current;
     }
 
     private dirty(flag: TransformBit): void {

@@ -11,6 +11,8 @@ import ShaderLib from "../../core/ShaderLib.js";
 import VisibilityBit from "../../VisibilityBit.js";
 import PhaseFlag from "../PhaseFlag.js";
 
+const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
+
 const pipelineLayoutCache: Record<string, PipelineLayout> = {};
 
 const pipelineCache: Record<string, Pipeline> = {};
@@ -30,7 +32,7 @@ export default class ModelPhase extends Phase {
             if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
                 continue;
             }
-            commandBuffer.bindDescriptorSet(model.pipelineLayout, ShaderLib.sets.local.index, model.descriptorSet);
+            commandBuffer.bindDescriptorSet(this.getModelPipelineLayout(model), ShaderLib.sets.local.index, model.descriptorSet);
             for (const subModel of model.subModels) {
                 if (subModel.vertexOrIndexCount == 0) {
                     continue;
@@ -57,6 +59,16 @@ export default class ModelPhase extends Phase {
                 }
             }
         }
+    }
+
+    private getModelPipelineLayout(model: Model): PipelineLayout {
+        const ModelType = model.constructor as typeof Model;
+        let pipelineLayout = modelPipelineLayoutCache.get(ModelType);
+        if (!pipelineLayout) {
+            pipelineLayout = gfx.createPipelineLayout();
+            pipelineLayout.initialize([zero.flow.globalDescriptorSet.layout, ModelType.descriptorSetLayout]);
+        }
+        return pipelineLayout;
     }
 
     private getPipelineLayout(model: Model, pass: Pass): PipelineLayout {

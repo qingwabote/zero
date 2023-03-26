@@ -49,6 +49,7 @@ const sets = {
             },
             Skin: {
                 type: DescriptorType.UNIFORM_BUFFER,
+                stageFlags: ShaderStageFlagBits.VERTEX,
                 binding: 1,
                 members: {
                     joints: {},
@@ -63,39 +64,29 @@ const sets = {
     }
 } as const
 
-interface Uniform {
+export interface Uniform {
     type: DescriptorType,
     stageFlags: ShaderStageFlagBits,
     binding: number
-}
-
-function createDescriptorSetLayoutBinding(uniform: Uniform): DescriptorSetLayoutBinding {
-    return {
-        descriptorType: uniform.type,
-        stageFlags: uniform.stageFlags,
-        binding: uniform.binding,
-        descriptorCount: 1,
-    }
 }
 
 export default class ShaderLib {
 
     static readonly sets = sets;
 
-    static readonly createDescriptorSetLayoutBinding = createDescriptorSetLayoutBinding;
-
-    private static _key2localDescriptorSetLayout: Record<string, DescriptorSetLayout> = {};
-
-    static getLocalDescriptorSetLayout(...uniforms: Uniform[]) {
-        uniforms.sort((a, b) => a.binding - b.binding);
-        const key = uniforms.reduce((str, uniform) => str + uniform.binding, '');
-        let layout = this._key2localDescriptorSetLayout[key];
-        if (!layout) {
-            const bindings = uniforms.map(uniform => createDescriptorSetLayoutBinding(uniform));
-            layout = gfx.createDescriptorSetLayout();
-            layout.initialize(bindings);
-            this._key2localDescriptorSetLayout[key] = layout;
+    static createDescriptorSetLayoutBinding(uniform: Uniform): DescriptorSetLayoutBinding {
+        return {
+            descriptorType: uniform.type,
+            stageFlags: uniform.stageFlags,
+            binding: uniform.binding,
+            descriptorCount: 1,
         }
+    }
+
+    static createDescriptorSetLayout(uniforms: Uniform[]) {
+        const bindings = uniforms.map(uniform => this.createDescriptorSetLayoutBinding(uniform));
+        const layout = gfx.createDescriptorSetLayout();
+        layout.initialize(bindings);
         return layout;
     }
 

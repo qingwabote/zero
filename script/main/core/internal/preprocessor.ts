@@ -78,6 +78,9 @@ function getFormat(type: string): Format {
         case "vec4":
             format = Format.RGBA32F
             break;
+        case "uvec4":
+            format = Format.RGBA32UI
+            break;
         default:
             throw new Error(`unsupported attribute type: ${type}`);
     }

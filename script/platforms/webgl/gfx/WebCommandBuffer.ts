@@ -195,24 +195,43 @@ export default class WebCommandBuffer implements CommandBuffer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl.deref());
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
-                let type: GLenum
+                let type: GLenum;
+                let isInteger: boolean;
                 switch (attribute.format) {
                     case Format.RG32F:
                     case Format.RGB32F:
                     case Format.RGBA32F:
                         type = WebGL2RenderingContext.FLOAT;
+                        isInteger = false;
+                        break;
+                    case Format.RGBA8UI:
+                        type = WebGL2RenderingContext.UNSIGNED_BYTE;
+                        isInteger = true;
+                        break;
+                    case Format.RGBA32UI:
+                        type = WebGL2RenderingContext.UNSIGNED_INT;
+                        isInteger = true;
                         break;
                     default:
                         console.error('unsupported vertex type');
                         return;
                 }
-                gl.vertexAttribPointer(
-                    attribute.location,
-                    formatInfo.count,
-                    type,
-                    false,
-                    binding.stride,
-                    offset + attribute.offset);
+                if (isInteger) {
+                    gl.vertexAttribIPointer(
+                        attribute.location,
+                        formatInfo.count,
+                        type,
+                        binding.stride, offset + attribute.offset);
+                } else {
+                    gl.vertexAttribPointer(
+                        attribute.location,
+                        formatInfo.count,
+                        type,
+                        false,
+                        binding.stride,
+                        offset + attribute.offset);
+                }
+
             }
             if (inputAssemblerInfo.indexInput) {
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput.indexBuffer as WebBuffer).impl.deref());

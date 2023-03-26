@@ -6,6 +6,7 @@ import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import Asset from "../../../../script/main/core/Asset.js";
 import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
+import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
@@ -30,15 +31,17 @@ export default class App extends Zero {
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
         main_camera.viewport = { x: 0, y: 0, width, height };
-        node.position = [20, 20, 20];
-
-        // node = new Node;
-        // node.visibilityFlag = VisibilityBit.DEFAULT;
-        // node.addComponent(DebugDrawer);
+        node.position = [0, 0, 10];
 
         const skin = await Asset.cache.load('./assets/skin/scene', GLTF);
         node = skin.createScene('Scene')!;
         node.visibilityFlag = VisibilityBit.DEFAULT;
+
+        const joint = node.getChildByPath(['骨架', 'Bone', 'Bone.001'])!;
+        this.setInterval(() => {
+            // joint.position = vec3.create(joint.position[0] + 0.01, joint.position[1], joint.position[2])
+            joint.rotation = quat.rotateY(quat.create(), joint.rotation, 0.01);
+        })
 
         // UI
         node = new Node;

@@ -1,6 +1,7 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
 import MeshRenderer from "../components/MeshRenderer.js";
+import SkinnedMeshRenderer from "../components/SkinnedMeshRenderer.js";
 import Asset from "../core/Asset.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../core/gfx/Buffer.js";
 import CommandBuffer from "../core/gfx/CommandBuffer.js";
@@ -17,7 +18,7 @@ import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
 import PhaseFlag from "../render/PhaseFlag.js";
 import Material from "./Material.js";
-import { SubMesh, VertexAttribute } from "./Mesh.js";
+import Mesh, { SubMesh, VertexAttribute } from "./Mesh.js";
 import Skin from "./Skin.js";
 import Texture from "./Texture.js";
 
@@ -34,7 +35,9 @@ interface MaterialValues {
 const builtinAttributes: Record<string, string> = {
     "POSITION": "a_position",
     "TEXCOORD_0": "a_texCoord",
-    "NORMAL": "a_normal"
+    "NORMAL": "a_normal",
+    "JOINTS_0": "a_joints",
+    "WEIGHTS_0": "a_weights"
 }
 
 const format_part1: Record<string, string> = {
@@ -102,6 +105,16 @@ export default class GLTF extends Asset {
         }
         this._textures = textures;
 
+        const child2parent: Record<number, number> = {};
+        for (let i = 0; i < json.nodes.length; i++) {
+            const node = json.nodes[i];
+            if (!node.children) {
+                continue;
+            }
+            for (const child of node.children) {
+                child2parent[child] = i;
+            }
+        }
         for (const skin of json.skins || []) {
             const inverseBindMatrices: Mat4[] = [];
             const accessor = json.accessors[skin.inverseBindMatrices];
@@ -109,7 +122,16 @@ export default class GLTF extends Asset {
             for (let i = 0; i < accessor.count; i++) {
                 inverseBindMatrices[i] = Array.from(new Float32Array(bin, bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16)) as Mat4;
             }
-            this._skins.push({ inverseBindMatrices })
+            const joints: string[][] = (skin.joints as Array<number>).map(joint => {
+                let paths: string[] = [];
+                let index = joint;
+                do {
+                    paths.push(json.nodes[index].name);
+                    index = child2parent[index];
+                } while (index != undefined);
+                return paths.reverse()
+            })
+            this._skins.push({ inverseBindMatrices, joints })
         }
 
         this._bin = bin;
@@ -122,19 +144,16 @@ export default class GLTF extends Asset {
 
         const scenes: any[] = this._json.scenes;
         const scene = scenes.find(scene => scene.name == name);
-        if (scene.nodes.length == 1) {
-            return this.createNode(this._json.nodes[scene.nodes[0]], materialInstancing)
-        }
-
         const node = new Node(name);
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(this._json.nodes[index], materialInstancing))
+            node.addChild(this.createNode(this._json.nodes[index], materialInstancing, node))
         }
         return node;
     }
 
     private async createMaterial(macros: MaterialMacros, values: MaterialValues = {}) {
         const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
+        const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
         const albedo = values.albedo || vec4.ONE;
         const texture = values.texture;
 
@@ -158,6 +177,7 @@ export default class GLTF extends Asset {
             USE_ALBEDO_MAP: texture ? 1 : 0,
             USE_SHADOW_MAP,
             SHADOW_MAP_PCF: 1,
+            USE_SKIN,
             CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
         })
 
@@ -172,8 +192,11 @@ export default class GLTF extends Asset {
         return new Material(passes);
     }
 
-    private createNode(info: any, materialInstancing: boolean): Node {
+    private createNode(info: any, materialInstancing: boolean, root?: Node): Node {
         const node = new Node(info.name);
+        if (!root) {
+            root = node;
+        }
         if (info.matrix) {
             mat4.toRTS(info.matrix, node.rotation as Quat, node.position as Vec3, node.scale as Vec3);
         } else {
@@ -189,19 +212,26 @@ export default class GLTF extends Asset {
         }
 
         if (info.mesh != undefined) {
-            this.createMesh(node, this._json.meshes[info.mesh], materialInstancing);
+            const [mesh, materials] = this.createMesh(this._json.meshes[info.mesh], materialInstancing);
+            const renderer = node.addComponent(info.skin != undefined ? SkinnedMeshRenderer : MeshRenderer);
+            renderer.mesh = mesh
+            renderer.materials = materials;
+            if (renderer instanceof SkinnedMeshRenderer) {
+                renderer.skin = this._skins[info.skin];
+                renderer.transform = root;
+            }
         }
 
         if (info.children) {
             for (const idx of info.children) {
                 const info = this._json.nodes[idx];
-                node.addChild(this.createNode(info, materialInstancing));
+                node.addChild(this.createNode(info, materialInstancing, root));
             }
         }
         return node;
     }
 
-    private createMesh(node: Node, info: any, materialInstancing: boolean) {
+    private createMesh(info: any, materialInstancing: boolean): [Mesh, Material[]] {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
         for (const primitive of info.primitives) {
@@ -210,27 +240,30 @@ export default class GLTF extends Asset {
                 material = new MaterialInstance(material);
             }
             // assert
-            if (primitive.attributes['TEXCOORD_0'] == undefined) {
-                for (const pass of material.passes) {
-                    if (pass.state.shader.info.meta.samplerTextures['albedoMap']) {
-                        console.log("not provided attribute: TEXCOORD_0")
-                        continue;
-                    }
-                }
+            if (primitive.material != undefined &&
+                this._json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined &&
+                primitive.attributes['TEXCOORD_0'] == undefined) {
+                console.log("not provided attribute: TEXCOORD_0")
+                continue;
             }
 
             const vertexBuffers: Buffer[] = [];
             const vertexOffsets: number[] = [];
             const vertexAttributes: VertexAttribute[] = [];
-            for (const name in primitive.attributes) {
-                const accessor = this._json.accessors[primitive.attributes[name]];
+            for (const key in primitive.attributes) {
+                const accessor = this._json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
                 if (format == undefined) {
                     console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
                     continue;
                 }
+                const name = builtinAttributes[key];
+                if (!name) {
+                    // console.log(`unknown attribute: ${key}`);
+                    continue;
+                }
                 const attribute: VertexAttribute = {
-                    name: builtinAttributes[name] || name,
+                    name,
                     format,
                     buffer: vertexBuffers.length,
                     offset: 0
@@ -272,21 +305,13 @@ export default class GLTF extends Asset {
                 indexOffset: indexAccessor.byteOffset || 0
             })
         }
-
-        const renderer = node.addComponent(MeshRenderer);
-        renderer.mesh = { subMeshes }
-        renderer.materials = materials;
+        return [{ subMeshes }, materials];
     }
 
     private getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
         let buffer = this._buffers[index];
         if (!this._buffers[index]) {
             const viewInfo = this._json.bufferViews[index];
-            // if (usage & BufferUsageBit.VERTEX) {
-            //     console.assert(viewInfo.target == 34962)
-            // } else {
-            //     console.assert(viewInfo.target == 34963)
-            // }
             const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
             buffer = gfx.createBuffer();
 
