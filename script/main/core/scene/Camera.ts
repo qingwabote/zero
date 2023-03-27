@@ -2,10 +2,10 @@ import { ClearFlagBit } from "../gfx/Pipeline.js";
 import { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import { Vec3 } from "../math/vec3.js";
-import FrameDirtyRecord from "./FrameDirtyRecord.js";
+import FrameChangeRecord from "./FrameDirtyRecord.js";
 import Transform from "./Transform.js";
 
-export default class Camera extends FrameDirtyRecord {
+export default class Camera extends FrameChangeRecord {
 
     override get hasChanged(): number {
         if (super.hasChanged || this._transform.hasChanged) {

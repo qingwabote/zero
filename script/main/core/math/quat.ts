@@ -202,7 +202,23 @@ export default {
         }
     },
 
+    rotateX(out: Quat, a: Readonly<Quat>, rad: number) {
+        rad *= 0.5;
+
+        const bx = Math.sin(rad);
+        const bw = Math.cos(rad);
+        const [x, y, z, w] = a;
+
+        out[0] = x * bw + w * bx;
+        out[1] = y * bw + z * bx;
+        out[2] = z * bw - y * bx;
+        out[3] = w * bw - x * bx;
+        return out;
+    },
+
     rotateY(out: Quat, a: Readonly<Quat>, rad: number) {
+        rad *= 0.5;
+
         const by = Math.sin(rad);
         const bw = Math.cos(rad);
         const [x, y, z, w] = a;

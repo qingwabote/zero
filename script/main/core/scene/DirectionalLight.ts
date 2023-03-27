@@ -1,8 +1,8 @@
 import { Vec3 } from "../math/vec3.js";
-import FrameDirtyRecord from "./FrameDirtyRecord.js";
+import FrameChangeRecord from "./FrameDirtyRecord.js";
 import Transform from "./Transform.js";
 
-export default class DirectionalLight extends FrameDirtyRecord {
+export default class DirectionalLight extends FrameChangeRecord {
     override get hasChanged(): number {
         if (super.hasChanged || this._transform.hasChanged) {
             return 1;

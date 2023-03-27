@@ -1,14 +1,15 @@
-export default class FrameDirtyRecord {
+export default class FrameChangeRecord {
     static frameId = 0;
 
     private _frameId = 0;
 
-    private _hasChanged = 0xffffffff;
     get hasChanged(): number {
-        return this._frameId == FrameDirtyRecord.frameId ? this._hasChanged : 0;
+        return this._frameId == FrameChangeRecord.frameId ? this._hasChanged : 0;
     }
     set hasChanged(flags: number) {
-        this._frameId = FrameDirtyRecord.frameId;
+        this._frameId = FrameChangeRecord.frameId;
         this._hasChanged = flags;
     }
+
+    constructor(private _hasChanged = 0) { }
 }

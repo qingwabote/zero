@@ -2,13 +2,13 @@ import Skin from "../../assets/Skin.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import mat4, { Mat4 } from "../../core/math/mat4.js";
 import BufferView from "../../core/scene/buffers/BufferView.js";
-import FrameDirtyRecord from "../../core/scene/FrameDirtyRecord.js";
+import FrameChangeRecord from "../../core/scene/FrameDirtyRecord.js";
 import Model from "../../core/scene/Model.js";
 import SubModel from "../../core/scene/SubModel.js";
 import Transform from "../../core/scene/Transform.js";
 import ShaderLib from "../../core/ShaderLib.js";
 
-class ModelSpaceTransform extends FrameDirtyRecord {
+class ModelSpaceTransform extends FrameChangeRecord {
     matrix: Mat4 = mat4.create();
 }
 
@@ -36,24 +36,28 @@ export default class SkinnedModel extends Model {
         super.update();
         for (let i = 0; i < this._joints.length; i++) {
             const joint = this._joints[i];
-            this.updateTransform(joint);
+            this.updateModelSpace(joint);
             this._skinBuffer.set(mat4.multiply(mat4_a, joint2modelSpace.get(joint)!.matrix, this._skin.inverseBindMatrices[i]), 16 * i);
         }
         this._skinBuffer.update()
     }
 
-    private updateTransform(joint: Transform) {
+    private updateModelSpace(joint: Transform) {
         let modelSpace = joint2modelSpace.get(joint);
         if (!modelSpace) {
             modelSpace = new ModelSpaceTransform;
             joint2modelSpace.set(joint, modelSpace);
         }
+        if (modelSpace.hasChanged) {
+            return;
+        }
         const parent = joint.parent!;
         if (parent == this._transform) {
             Object.assign(modelSpace.matrix, joint.matrix);
         } else {
-            this.updateTransform(parent);
+            this.updateModelSpace(parent);
             mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent)!.matrix, joint.matrix)
         }
+        modelSpace.hasChanged = 1;
     }
 }

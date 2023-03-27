@@ -9,7 +9,7 @@ import Input, { InputEvent } from "./Input.js";
 import ComponentScheduler from "./internal/ComponentScheduler.js";
 import TimeScheduler from "./internal/TimeScheduler.js";
 import Flow from "./render/Flow.js";
-import FrameDirtyRecord from "./scene/FrameDirtyRecord.js";
+import FrameChangeRecord from "./scene/FrameDirtyRecord.js";
 import Root from "./scene/Root.js";
 import ShaderLib from "./ShaderLib.js";
 import System from "./System.js";
@@ -131,7 +131,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this.emit(ZeroEvent.RENDER_START);
         gfx.acquire(this._presentSemaphore);
         this._flow.update();
-        FrameDirtyRecord.frameId++;
+        FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
         this._flow.record(this._commandBuffer);
         this._commandBuffer.end();

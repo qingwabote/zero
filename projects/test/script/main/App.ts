@@ -67,8 +67,8 @@ export default class App extends Zero {
         node = gltf_camera.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = Visibility_Down;
         node.scale = [0.005, 0.005, 0.005];
-        // const euler = quat.toEuler(vec3.create(), node.rotation);
-        node.rotation = quat.multiply(quat.create(), node.rotation, quat.fromAxisAngle(quat.create(), vec3.UNIT_Z, Math.PI));
+        // node.rotation = quat.fromAxisAngle(quat.create(), vec3.UNIT_X, Math.PI);
+        node.euler = vec3.create(180, 0, 180)
         up_camera.node.addChild(node);
 
         // UI

@@ -3,7 +3,7 @@ import mat3 from "../math/mat3.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import quat, { Quat } from "../math/quat.js";
 import vec3, { Vec3 } from "../math/vec3.js";
-import FrameDirtyRecord from "./FrameDirtyRecord.js";
+import FrameChangeRecord from "./FrameDirtyRecord.js";
 
 export enum TransformBit {
     NONE = 0,
@@ -21,7 +21,7 @@ interface EventMap {
 const mat3_a = mat3.create();
 const quat_a = quat.create();
 
-export default class Transform extends FrameDirtyRecord {
+export default class Transform extends FrameChangeRecord {
     private _explicit_visibilityFlag?: number;
     private _implicit_visibilityFlag?: number;
     public get visibilityFlag(): number {
@@ -151,7 +151,7 @@ export default class Transform extends FrameDirtyRecord {
     }
 
     constructor(public readonly name: string = '') {
-        super();
+        super(0xffffffff);
     }
 
     addChild(child: Transform): void {
