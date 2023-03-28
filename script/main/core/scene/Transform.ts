@@ -3,7 +3,7 @@ import mat3 from "../math/mat3.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import quat, { Quat } from "../math/quat.js";
 import vec3, { Vec3 } from "../math/vec3.js";
-import FrameChangeRecord from "./FrameDirtyRecord.js";
+import FrameChangeRecord from "./FrameChangeRecord.js";
 
 export enum TransformBit {
     NONE = 0,
@@ -127,9 +127,9 @@ export default class Transform extends FrameChangeRecord {
         return this._world_scale;
     }
 
-    private _children: Transform[] = [];
+    private _children: this[] = [];
 
-    get children(): readonly Transform[] {
+    get children(): readonly this[] {
         return this._children;
     }
 
@@ -154,7 +154,7 @@ export default class Transform extends FrameChangeRecord {
         super(0xffffffff);
     }
 
-    addChild(child: Transform): void {
+    addChild(child: this): void {
         child._implicit_visibilityFlag = undefined;
         child._parent = this;
 

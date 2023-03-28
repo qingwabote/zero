@@ -8,14 +8,6 @@ export default class Node extends Transform {
 
     private _components: Component[] = [];
 
-    override get children(): readonly Node[] {
-        return super.children as any
-    }
-
-    override get parent(): Node | undefined {
-        return super.parent as any;
-    }
-
     constructor(name: string = '') {
         super(name);
     }

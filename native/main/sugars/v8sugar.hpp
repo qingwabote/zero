@@ -69,7 +69,7 @@ namespace sugar::v8
             _global.SetWeak();
         }
 
-        inline _v8::Local<T> Get(_v8::Isolate *isolate)
+        inline _v8::Local<T> Get(_v8::Isolate *isolate) const
         {
             return _global.Get(isolate);
         }
@@ -78,6 +78,11 @@ namespace sugar::v8
         {
             _global.Reset(isolate, that);
             _global.SetWeak();
+        }
+
+        inline bool operator==(const Weak<T> &that) const
+        {
+            return _global == that._global;
         }
     };
 }

@@ -1,5 +1,5 @@
 import { Vec3 } from "../math/vec3.js";
-import FrameChangeRecord from "./FrameDirtyRecord.js";
+import FrameChangeRecord from "./FrameChangeRecord.js";
 import Transform from "./Transform.js";
 
 export default class DirectionalLight extends FrameChangeRecord {

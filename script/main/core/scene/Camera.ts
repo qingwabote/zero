@@ -2,7 +2,7 @@ import { ClearFlagBit } from "../gfx/Pipeline.js";
 import { Mat4 } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import { Vec3 } from "../math/vec3.js";
-import FrameChangeRecord from "./FrameDirtyRecord.js";
+import FrameChangeRecord from "./FrameChangeRecord.js";
 import Transform from "./Transform.js";
 
 export default class Camera extends FrameChangeRecord {

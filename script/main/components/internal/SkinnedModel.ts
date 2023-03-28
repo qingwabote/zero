@@ -2,7 +2,7 @@ import Skin from "../../assets/Skin.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import mat4, { Mat4 } from "../../core/math/mat4.js";
 import BufferView from "../../core/scene/buffers/BufferView.js";
-import FrameChangeRecord from "../../core/scene/FrameDirtyRecord.js";
+import FrameChangeRecord from "../../core/scene/FrameChangeRecord.js";
 import Model from "../../core/scene/Model.js";
 import SubModel from "../../core/scene/SubModel.js";
 import Transform from "../../core/scene/Transform.js";

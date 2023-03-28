@@ -25,11 +25,25 @@ namespace
 
         std::unordered_map<std::filesystem::path, sugar::v8::Weak<_v8::Module>> path2module;
 
-        std::unordered_map<int, std::filesystem::path> module2path;
+        struct module_hash
+        {
+            size_t operator()(const sugar::v8::Weak<_v8::Module> &module) const
+            {
+                return module.Get(_v8::Isolate::GetCurrent())->GetIdentityHash();
+            }
+        };
+        std::unordered_map<sugar::v8::Weak<_v8::Module>, std::filesystem::path, module_hash> module2path;
 
         std::map<uint32_t, SetWeakCallback *> weakCallbacks;
 
-        std::unordered_map<int, _v8::Global<_v8::Value>> promiseRejectMessages;
+        struct promise_hash
+        {
+            size_t operator()(const sugar::v8::Weak<_v8::Promise> &promise) const
+            {
+                return promise.Get(_v8::Isolate::GetCurrent())->GetIdentityHash();
+            }
+        };
+        std::unordered_map<sugar::v8::Weak<_v8::Promise>, _v8::Global<_v8::Value>, promise_hash> promiseRejectMessages;
     };
 
     struct SetWeakCallback
@@ -182,12 +196,12 @@ namespace sugar::v8
         {
         case _v8::kPromiseRejectWithNoHandler:
         {
-            promiseRejectMessages.emplace(rejectMessage.GetPromise()->GetIdentityHash(),
+            promiseRejectMessages.emplace(Weak<_v8::Promise>{isolate, rejectMessage.GetPromise()},
                                           _v8::Global<_v8::Value>(isolate, rejectMessage.GetValue()));
             break;
         }
         case _v8::kPromiseHandlerAddedAfterReject:
-            promiseRejectMessages.erase(rejectMessage.GetPromise()->GetIdentityHash());
+            promiseRejectMessages.erase(Weak<_v8::Promise>{isolate, rejectMessage.GetPromise()});
             break;
         case _v8::kPromiseRejectAfterResolved:
         {
@@ -233,7 +247,7 @@ namespace sugar::v8
         std::filesystem::path path(*_v8::String::Utf8Value(isolate, specifier));
         if (path.is_relative())
         {
-            std::filesystem::path &ref = module2path.find(referrer->GetIdentityHash())->second;
+            std::filesystem::path &ref = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;
             std::filesystem::current_path(ref.parent_path());
             path = std::filesystem::absolute(path);
         }
@@ -258,7 +272,7 @@ namespace sugar::v8
         auto maybeModule = _v8::ScriptCompiler::CompileModule(isolate, &source);
 
         auto module = maybeModule.ToLocalChecked();
-        module2path.emplace(module->GetIdentityHash(), path);
+        module2path.emplace(Weak<_v8::Module>{isolate, module}, path);
         path2module.emplace(path, Weak<_v8::Module>{isolate, module});
 
         return handle_scope.EscapeMaybe(maybeModule);

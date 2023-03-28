@@ -9,7 +9,7 @@ import Input, { InputEvent } from "./Input.js";
 import ComponentScheduler from "./internal/ComponentScheduler.js";
 import TimeScheduler from "./internal/TimeScheduler.js";
 import Flow from "./render/Flow.js";
-import FrameChangeRecord from "./scene/FrameDirtyRecord.js";
+import FrameChangeRecord from "./scene/FrameChangeRecord.js";
 import Root from "./scene/Root.js";
 import ShaderLib from "./ShaderLib.js";
 import System from "./System.js";
