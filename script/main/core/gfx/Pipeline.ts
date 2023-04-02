@@ -3,35 +3,6 @@ import { VertexInputState } from "./InputAssembler.js";
 import RenderPass from "./RenderPass.js";
 import Shader from "./Shader.js";
 
-// copy values from VkFormat in vulkan_core.h
-export enum Format {
-    R8UI = 13,
-    RGBA8UI = 41,
-    R16UI = 74,
-    R32UI = 98,
-    RG32F = 103,
-    RGB32F = 106,
-    RGBA32UI = 107,
-    RGBA32F = 109,
-}
-
-interface FormatInfo {
-    readonly name: string;
-    readonly size: number
-    readonly count: number;
-}
-
-export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
-    [Format.R8UI]: { name: "R8UI", size: 1, count: 1 },
-    [Format.RGBA8UI]: { name: "R8UI", size: 4, count: 4 },
-    [Format.R16UI]: { name: "R16UI", size: 2, count: 1 },
-    [Format.R32UI]: { name: "R32UI", size: 4, count: 1 },
-    [Format.RG32F]: { name: "RG32F", size: 8, count: 2 },
-    [Format.RGB32F]: { name: "RGB32F", size: 12, count: 3 },
-    [Format.RGBA32UI]: { name: "RGBA32UI", size: 16, count: 4 },
-    [Format.RGBA32F]: { name: "RGBA32F", size: 16, count: 4 },
-}
-
 // copy values from VkPipelineStageFlagBits in vulkan_core.h
 export enum PipelineStageFlagBits {
     PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400

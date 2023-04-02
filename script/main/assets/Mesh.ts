@@ -1,6 +1,6 @@
 import Buffer from "../core/gfx/Buffer.js";
+import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
-import { Format } from "../core/gfx/Pipeline.js";
 import { Vec3 } from "../core/math/vec3.js";
 
 export interface VertexAttribute {

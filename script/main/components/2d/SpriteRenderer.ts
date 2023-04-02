@@ -1,6 +1,7 @@
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { FormatInfos } from "../../core/gfx/Format.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
+import { CullMode, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
 import { Filter } from "../../core/gfx/Sampler.js";
 import Shader from "../../core/gfx/Shader.js";
 import Texture from "../../core/gfx/Texture.js";

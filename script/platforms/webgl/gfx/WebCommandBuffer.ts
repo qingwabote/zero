@@ -2,9 +2,10 @@ import Buffer from "../../../main/core/gfx/Buffer.js";
 import CommandBuffer from "../../../main/core/gfx/CommandBuffer.js";
 import DescriptorSet from "../../../main/core/gfx/DescriptorSet.js";
 import { DescriptorType } from "../../../main/core/gfx/DescriptorSetLayout.js";
+import Format, { FormatInfos } from "../../../main/core/gfx/Format.js";
 import { Framebuffer } from "../../../main/core/gfx/Framebuffer.js";
 import InputAssembler, { IndexType, InputAssemblerInfo } from "../../../main/core/gfx/InputAssembler.js";
-import Pipeline, { BlendFactor, CullMode, Format, FormatInfos, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, CullMode, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../main/core/gfx/RenderPass.js";
 import Texture from "../../../main/core/gfx/Texture.js";
 import { Rect } from "../../../main/core/math/rect.js";
@@ -198,17 +199,17 @@ export default class WebCommandBuffer implements CommandBuffer {
                 let type: GLenum;
                 let isInteger: boolean;
                 switch (attribute.format) {
-                    case Format.RG32F:
-                    case Format.RGB32F:
-                    case Format.RGBA32F:
+                    case Format.RG32_SFLOAT:
+                    case Format.RGB32_SFLOAT:
+                    case Format.RGBA32_SFLOAT:
                         type = WebGL2RenderingContext.FLOAT;
                         isInteger = false;
                         break;
-                    case Format.RGBA8UI:
+                    case Format.RGBA8_UINT:
                         type = WebGL2RenderingContext.UNSIGNED_BYTE;
                         isInteger = true;
                         break;
-                    case Format.RGBA32UI:
+                    case Format.RGBA32_UINT:
                         type = WebGL2RenderingContext.UNSIGNED_INT;
                         isInteger = true;
                         break;

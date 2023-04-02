@@ -1,6 +1,7 @@
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
+import { FormatInfos } from "../core/gfx/Format.js";
 import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { CullMode, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3, { Vec3 } from "../core/math/vec3.js";
 import { Vec4 } from "../core/math/vec4.js";

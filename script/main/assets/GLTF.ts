@@ -6,8 +6,9 @@ import Asset from "../core/Asset.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../core/gfx/Buffer.js";
 import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
+import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
-import { CullMode, Format, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { CullMode, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4 } from "../core/math/mat4.js";
 import { Quat } from "../core/math/quat.js";
 import { Vec3 } from "../core/math/vec3.js";
@@ -48,10 +49,10 @@ const format_part1: Record<string, string> = {
 }
 
 const format_part2: Record<number, string> = {
-    5121: "8UI",
-    5123: "16UI",
-    5125: "32UI",
-    5126: "32F"
+    5121: "8_UINT",
+    5123: "16_UINT",
+    5125: "32_UINT",
+    5126: "32_SFLOAT"
 }
 
 function uri2path(uri: string) {

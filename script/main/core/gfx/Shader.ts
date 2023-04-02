@@ -1,4 +1,4 @@
-import { Format } from "./Pipeline.js";
+import Format from "./Format.js"
 
 // copy values from VkShaderStageFlagBits in vulkan_core.h
 export enum ShaderStageFlagBits {

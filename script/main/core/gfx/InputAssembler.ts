@@ -1,5 +1,5 @@
 import Buffer from "./Buffer.js";
-import { Format } from "./Pipeline.js";
+import Format from "./Format.js";
 
 // copy values from VkVertexInputRate in vulkan_core.h
 export enum VertexInputRate {

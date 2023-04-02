@@ -3,8 +3,9 @@
 import FNT from "../../assets/FNT.js";
 import Asset from "../../core/Asset.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { FormatInfos } from "../../core/gfx/Format.js";
 import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
-import { CullMode, FormatInfos, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
+import { CullMode, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import vec2 from "../../core/math/vec2.js";
 import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";

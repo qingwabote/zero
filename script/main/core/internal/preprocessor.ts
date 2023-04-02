@@ -1,4 +1,4 @@
-import { Format } from "../gfx/Pipeline.js";
+import Format from "../gfx/Format.js";
 import { Attribute, Meta, ShaderStage, ShaderStageFlagBits, Uniform, UniformMember } from "../gfx/Shader.js";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
@@ -70,16 +70,16 @@ function getFormat(type: string): Format {
     let format: Format;
     switch (type) {
         case "vec2":
-            format = Format.RG32F
+            format = Format.RG32_SFLOAT
             break;
         case "vec3":
-            format = Format.RGB32F
+            format = Format.RGB32_SFLOAT
             break;
         case "vec4":
-            format = Format.RGBA32F
+            format = Format.RGBA32_SFLOAT
             break;
         case "uvec4":
-            format = Format.RGBA32UI
+            format = Format.RGBA32_UINT
             break;
         default:
             throw new Error(`unsupported attribute type: ${type}`);

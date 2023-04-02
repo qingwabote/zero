@@ -67,6 +67,7 @@ export default class ModelPhase extends Phase {
         if (!pipelineLayout) {
             pipelineLayout = gfx.createPipelineLayout();
             pipelineLayout.initialize([zero.flow.globalDescriptorSet.layout, ModelType.descriptorSetLayout]);
+            modelPipelineLayoutCache.set(ModelType, pipelineLayout);
         }
         return pipelineLayout;
     }
