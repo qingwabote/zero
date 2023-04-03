@@ -23,13 +23,12 @@ export default class WebFramebuffer implements Framebuffer {
     initialize(info: FramebufferInfo): boolean {
         this._info = info;
 
-        const gl = this._gl;
-
-        for (const attachment of info.colorAttachments) {
-            if (attachment == gfx.swapchain.colorTexture) {
-                return false;
-            }
+        const isDefaultFramebuffer = info.colorAttachments.includes(gfx.swapchain.colorTexture);
+        if (isDefaultFramebuffer) {
+            return false;
         }
+
+        const gl = this._gl;
 
         const framebuffer = new SmartRef(gl.createFramebuffer()!, gl.deleteFramebuffer, gl)
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.deref());

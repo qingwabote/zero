@@ -1,0 +1,9 @@
+// pow(gamma, vec3(2.2))
+vec4 SRGBToLinear (vec4 gamma) {
+  return vec4(gamma.rgb * gamma.rgb, gamma.a);
+}
+
+// pow(linear, vec3(0.454545))
+vec4 LinearToSRGB(vec4 linear) {
+  return vec4(sqrt(linear.rgb), linear.a);
+}

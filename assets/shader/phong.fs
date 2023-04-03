@@ -1,5 +1,7 @@
 precision highp float;
 
+#include <gamma>
+
 #include <global/light>
 #include <global/camera>
 #if USE_SHADOW_MAP
@@ -55,7 +57,7 @@ void main() {
     vec4 albedo = material.albedo;
 
     #if USE_ALBEDO_MAP
-        albedo *= texture(albedoMap, v_uv);
+        albedo *= SRGBToLinear(texture(albedoMap, v_uv));
     #endif
 
     vec3 litColor = vec3(1.0, 1.0, 1.0);
@@ -64,13 +66,8 @@ void main() {
 
     float specularStrength = 0.5;
     vec3 viewDir = normalize(camera.position - v_position);
-    // #if USE_BLINN_PHONG
-        vec3 halfwayDir = normalize(light.direction + viewDir);
-        vec3 specular = specularStrength * pow(max(dot(v_normal, halfwayDir), 0.0), 16.0) * litColor;
-    // #else
-    //     vec3 reflectDir = reflect(-light.direction, v_normal);
-    //     vec3 specular = specularStrength * pow(max(dot(viewDir, reflectDir), 0.0), 8.0) * litColor;
-    // #endif
+    vec3 halfwayDir = normalize(light.direction + viewDir);
+    vec3 specular = specularStrength * pow(max(dot(v_normal, halfwayDir), 0.0), 16.0) * litColor;
 
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * litColor;
@@ -80,5 +77,5 @@ void main() {
         shadow = shadowFactor(v_shadow_position);
     #endif
     
-    v_color = albedo * vec4(ambient + (diffuse + specular) * (1.0 - shadow), 1.0);
+    v_color = LinearToSRGB(albedo * vec4(ambient + (diffuse + specular) * (1.0 - shadow), 1.0));
 }
