@@ -161,7 +161,7 @@ export default class Transform extends FrameChangeRecord {
         this._children.push(child);
     }
 
-    getChildByPath(paths: string[]): Transform | undefined {
+    getChildByPath(paths: readonly string[]): Transform | undefined {
         let current: Transform | undefined = this;
         for (let i = 0; i < paths.length; i++) {
             if (!current) {

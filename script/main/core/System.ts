@@ -1,4 +1,5 @@
 export default interface System {
-    initialize(): Promise<void>;
+    load(): Promise<void>;
+    start(): void;
     update(): void;
 }

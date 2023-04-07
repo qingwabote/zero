@@ -8,12 +8,13 @@ function vec3_length(x: number, y: number, z: number) {
     return Math.sqrt(x * x + y * y + z * z);
 }
 
-export type Mat4 = [
-    number, number, number, number,
-    number, number, number, number,
-    number, number, number, number,
-    number, number, number, number
-]
+export type Mat4 = {
+    0: number; 1: number; 2: number; 3: number;
+    4: number; 5: number; 6: number; 7: number;
+    8: number; 9: number; 10: number; 11: number;
+    12: number; 13: number; 14: number; 15: number;
+    readonly length: 16;
+}
 
 export const preTransforms = Object.freeze([
     Object.freeze([1, 0, 0, 1]), // SurfaceTransform.IDENTITY

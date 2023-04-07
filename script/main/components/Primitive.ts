@@ -58,8 +58,8 @@ export default class Primitive extends BoundedRenderer {
         vec3.max(vec3_b, vec3_b, to);
         if (!vec3.equals(vec3_a, this._vertexMin) || !vec3.equals(vec3_b, this._vertexMax)) {
             aabb3d.fromPoints(this._bounds, vec3_a, vec3_b);
-            vec3.set(this._vertexMin, ...vec3_a);
-            vec3.set(this._vertexMax, ...vec3_b);
+            vec3.set(this._vertexMin, ...vec3_a as [number, number, number]);
+            vec3.set(this._vertexMax, ...vec3_b as [number, number, number]);
             this.emit(BoundsEvent.BOUNDS_CHANGED);
         }
 

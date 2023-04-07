@@ -18,6 +18,7 @@ import Pass from "../core/scene/Pass.js";
 import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
 import PhaseFlag from "../render/PhaseFlag.js";
+import Animation, { Channel } from "./Animation.js";
 import Material from "./Material.js";
 import Mesh, { SubMesh, VertexAttribute } from "./Mesh.js";
 import Skin from "./Skin.js";
@@ -83,6 +84,11 @@ export default class GLTF extends Asset {
 
     private _skins: Skin[] = [];
 
+    private _animations: Animation[] = [];
+    get animations(): readonly Animation[] {
+        return this._animations;
+    }
+
     async load(url: string, USE_SHADOW_MAP: 0 | 1 = 0): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
@@ -116,23 +122,46 @@ export default class GLTF extends Asset {
                 child2parent[child] = i;
             }
         }
+
+        function node2path(idx: number) {
+            const paths: string[] = [];
+            do {
+                paths.push(json.nodes[idx].name);
+                idx = child2parent[idx];
+            } while (idx != undefined);
+            return paths.reverse();
+        }
+
+        // skin
         for (const skin of json.skins || []) {
             const inverseBindMatrices: Mat4[] = [];
             const accessor = json.accessors[skin.inverseBindMatrices];
             const bufferView = json.bufferViews[accessor.bufferView];
             for (let i = 0; i < accessor.count; i++) {
-                inverseBindMatrices[i] = Array.from(new Float32Array(bin, bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16)) as Mat4;
+                inverseBindMatrices[i] = new Float32Array(bin, bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as unknown as Mat4;
             }
-            const joints: string[][] = (skin.joints as Array<number>).map(joint => {
-                let paths: string[] = [];
-                let index = joint;
-                do {
-                    paths.push(json.nodes[index].name);
-                    index = child2parent[index];
-                } while (index != undefined);
-                return paths.reverse()
-            })
-            this._skins.push({ inverseBindMatrices, joints })
+            const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
+            this._skins.push({ inverseBindMatrices, joints });
+        }
+
+        // animation
+        for (const animation of json.animations || []) {
+            const channels: Channel[] = []
+            for (const channel of animation.channels) {
+                const sampler = animation.samplers[channel.sampler];
+                // the input/output pair: 
+                // a set of floating-point scalar values representing linear time in seconds; 
+                // and a set of vectors or scalars representing the animated property. 
+                let accessor = json.accessors[sampler.input];
+                let bufferView = json.bufferViews[accessor.bufferView];
+                const input = new Float32Array(bin, bufferView.byteOffset, bufferView.byteLength / Float32Array.BYTES_PER_ELEMENT);
+                accessor = json.accessors[sampler.output];
+                bufferView = json.bufferViews[accessor.bufferView];
+                const output = new Float32Array(bin, bufferView.byteOffset, bufferView.byteLength / Float32Array.BYTES_PER_ELEMENT);
+                const interpolation = sampler.interpolation;
+                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation } })
+            }
+            this._animations.push(new Animation(animation.name, channels));
         }
 
         this._bin = bin;
@@ -140,11 +169,10 @@ export default class GLTF extends Asset {
         return this;
     }
 
-    createScene(name: string, materialInstancing = false): Node | null {
+    createScene(name?: string, materialInstancing = false): Node | null {
         if (!this._json || !this._bin || !this._textures) return null;
 
-        const scenes: any[] = this._json.scenes;
-        const scene = scenes.find(scene => scene.name == name);
+        const scene = (this._json.scenes as any[]).find(scene => scene.name == name || name == undefined);
         const node = new Node(name);
         for (const index of scene.nodes) {
             node.addChild(this.createNode(this._json.nodes[index], materialInstancing, node))

@@ -77,7 +77,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         await Promise.all(Asset.preloaded.map(info => Asset.cache.load(info.path, info.type)));
 
         for (const system of this._systems) {
-            await system.initialize();
+            await system.load();
         }
 
         const commandBuffer = gfx.createCommandBuffer();
@@ -98,6 +98,10 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
 
         this._flow = await this.start();
         this._flow.initialize();
+
+        for (const system of this._systems) {
+            system.start();
+        }
     }
 
     abstract start(): Promise<Flow>;

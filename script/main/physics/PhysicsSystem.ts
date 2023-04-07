@@ -41,7 +41,7 @@ export default class PhysicsSystem implements System {
         return this._world;
     }
 
-    async initialize(): Promise<void> {
+    async load(): Promise<void> {
         const Module: any = {}
         Module.wasmBinary = await loader.load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
         Module.printErr = console.log.bind(console);
@@ -67,9 +67,11 @@ export default class PhysicsSystem implements System {
         this._world = new PhysicsWorld(this);
     }
 
+    start(): void { }
+
     update(): void {
         this.world.stepSimulation()
     }
 }
 
-Zero.registerSystem(PhysicsSystem.instance, 0)
+Zero.registerSystem(PhysicsSystem.instance, 1)

@@ -2,11 +2,12 @@ import { Mat4 } from "./mat4.js";
 import { Quat } from "./quat.js";
 import vec3, { Vec3 } from "./vec3.js";
 
-export type Mat3 = [
-    number, number, number,
-    number, number, number,
-    number, number, number
-]
+export type Mat3 = {
+    0: number; 1: number; 2: number;
+    3: number; 4: number; 5: number;
+    6: number; 7: number; 8: number;
+    readonly length: 9;
+}
 
 export default {
     create(): Mat3 {

@@ -23,7 +23,7 @@ export default {
         vec2.subtract(vec2_b, maxPos, minPos);
         vec2.scale(vec2_b, vec2_b, 0.5);
 
-        this.set(out, ...vec2_a, ...vec2_b);
+        this.set(out, ...vec2_a as [number, number], ...vec2_b as [number, number]);
         return out;
     },
 

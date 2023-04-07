@@ -1,6 +1,10 @@
 import { Mat4 } from "./mat4.js";
 
-export type Vec2 = [number, number];
+export type Vec2 = {
+    0: number; 1: number;
+    readonly length: 2;
+    [Symbol.iterator](): IterableIterator<number>;
+}
 
 export default {
     ZERO: [0, 0],

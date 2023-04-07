@@ -15,8 +15,8 @@ export class UITouch {
     world = vec2.create();
     local = vec2.create();
     constructor(world: Vec2, local: Vec2) {
-        vec2.set(this.world, ...world)
-        vec2.set(this.local, ...local)
+        vec2.set(this.world, ...world as [number, number])
+        vec2.set(this.local, ...local as [number, number])
     }
 }
 

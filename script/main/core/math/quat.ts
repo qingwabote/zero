@@ -3,13 +3,25 @@ import vec3, { Vec3 } from "./vec3.js";
 
 const halfToRad = 0.5 * Math.PI / 180.0;
 
-export type Quat = [number, number, number, number]
+export type Quat = {
+    0: number; 1: number; 2: number; 3: number;
+    readonly length: 4;
+    [Symbol.iterator](): IterableIterator<number>;
+}
 
 export default {
     IDENTITY: [0, 0, 0, 1],
 
     create(x = 0, y = 0, z = 0, w = 1): Quat {
         return [x, y, z, w]
+    },
+
+    set(out: Quat, x: number, y: number, z: number, w: number): Quat {
+        out[0] = x;
+        out[1] = y;
+        out[2] = z;
+        out[3] = w;
+        return out;
     },
 
     fromEuler(out: Quat, x: number, y: number, z: number): Quat {
@@ -227,6 +239,57 @@ export default {
         out[1] = y * bw + w * by;
         out[2] = z * bw + x * by;
         out[3] = w * bw - y * by;
+        return out;
+    },
+
+    lerp(out: Quat, a: Readonly<Quat>, b: Readonly<Quat>, t: number) {
+        out[0] = a[0] + t * (b[0] - a[0]);
+        out[1] = a[1] + t * (b[1] - a[1]);
+        out[2] = a[2] + t * (b[2] - a[2]);
+        out[3] = a[3] + t * (b[3] - a[3]);
+        return out;
+    },
+
+    slerp(out: Quat, a: Readonly<Quat>, b: Readonly<Quat>, t: number) {
+        // benchmarks:
+        //    http://jsperf.com/quaternion-slerp-implementations
+
+        let scale0 = 0;
+        let scale1 = 0;
+        let bx = b[0];
+        let by = b[1];
+        let bz = b[2];
+        let bw = b[3];
+
+        // calc cosine
+        let cosom = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+        // adjust signs (if necessary)
+        if (cosom < 0.0) {
+            cosom = -cosom;
+            bx = -bx;
+            by = -by;
+            bz = -bz;
+            bw = -bw;
+        }
+        // calculate coefficients
+        if ((1.0 - cosom) > 0.000001) {
+            // standard case (slerp)
+            const omega = Math.acos(cosom);
+            const sinom = Math.sin(omega);
+            scale0 = Math.sin((1.0 - t) * omega) / sinom;
+            scale1 = Math.sin(t * omega) / sinom;
+        } else {
+            // "from" and "to" quaternions are very close
+            //  ... so we can do a linear interpolation
+            scale0 = 1.0 - t;
+            scale1 = t;
+        }
+        // calculate final values
+        out[0] = scale0 * a[0] + scale1 * bx;
+        out[1] = scale0 * a[1] + scale1 * by;
+        out[2] = scale0 * a[2] + scale1 * bz;
+        out[3] = scale0 * a[3] + scale1 * bw;
+
         return out;
     }
 } as const

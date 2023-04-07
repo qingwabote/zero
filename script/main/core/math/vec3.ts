@@ -1,7 +1,11 @@
 import { Mat4 } from "./mat4.js";
 import { Quat } from "./quat.js";
 
-export type Vec3 = [number, number, number];
+export type Vec3 = {
+    0: number; 1: number; 2: number;
+    readonly length: 3;
+    [Symbol.iterator](): IterableIterator<number>;
+}
 
 export default {
     UNIT_X: [1, 0, 0],

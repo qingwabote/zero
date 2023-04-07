@@ -21,7 +21,7 @@ export default {
         vec3.subtract(vec3_b, maxPos, minPos);
         vec3.scale(vec3_b, vec3_b, 0.5);
 
-        this.set(out, ...vec3_a, ...vec3_b);
+        this.set(out, ...vec3_a as [number, number, number], ...vec3_b as [number, number, number]);
         return out;
     },
 
