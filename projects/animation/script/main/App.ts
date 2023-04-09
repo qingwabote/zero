@@ -1,6 +1,5 @@
-import AnimationState from "../../../../script/main/animation/AnimationState.js";
-import AnimationSystem from "../../../../script/main/animation/AnimationSystem.js";
 import GLTF from "../../../../script/main/assets/GLTF.js";
+import AnimationController from "../../../../script/main/components/AnimationController.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import CameraControlPanel from "../../../../script/main/components/CameraControlPanel.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
@@ -33,18 +32,19 @@ export default class App extends Zero {
         main_camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 24];
 
-        // const guardian = new GLTF();
-        // await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
-        // node = guardian.createScene("Sketchfab_Scene")!;
-        // node.visibilityFlag = VisibilityBit.DEFAULT
+        // const animatedCube = new GLTF();
+        // await animatedCube.load('./assets/AnimatedCube/AnimatedCube')
+        // node = animatedCube.createScene()!;
+        // const ac = node.addComponent(AnimationController);
+        // ac.animations = animatedCube.animations
+        // node.visibilityFlag = VisibilityBit.DEFAULT;
 
-        const animatedCube = new GLTF();
-        await animatedCube.load('./assets/AnimatedCube/AnimatedCube')
-        node = animatedCube.createScene()!;
+        const boxAnimated = new GLTF();
+        await boxAnimated.load('./assets/BoxAnimated/BoxAnimated')
+        node = boxAnimated.createScene()!;
+        const ac = node.addComponent(AnimationController);
+        ac.animations = boxAnimated.animations
         node.visibilityFlag = VisibilityBit.DEFAULT;
-
-        const animationState = new AnimationState(node, animatedCube.animations[0]);
-        AnimationSystem.instance.addState(animationState);
 
         // UI
         node = new Node;

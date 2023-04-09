@@ -1,4 +1,5 @@
 import EventEmitterImpl from "../../base/EventEmitterImpl.js";
+import TRS from "../math/TRS.js";
 import mat3 from "../math/mat3.js";
 import mat4, { Mat4 } from "../math/mat4.js";
 import quat, { Quat } from "../math/quat.js";
@@ -21,7 +22,7 @@ interface EventMap {
 const mat3_a = mat3.create();
 const quat_a = quat.create();
 
-export default class Transform extends FrameChangeRecord {
+export default class Transform extends FrameChangeRecord implements TRS {
     private _explicit_visibilityFlag?: number;
     private _implicit_visibilityFlag?: number;
     public get visibilityFlag(): number {

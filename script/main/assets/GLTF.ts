@@ -60,6 +60,10 @@ function uri2path(uri: string) {
     return uri.replaceAll("%20", " ");
 }
 
+function node2name(node: any, index: number): string {
+    return node.name == undefined ? `${index}` : node.name;
+}
+
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
@@ -126,7 +130,7 @@ export default class GLTF extends Asset {
         function node2path(idx: number) {
             const paths: string[] = [];
             do {
-                paths.push(json.nodes[idx].name);
+                paths.push(node2name(json.nodes[idx], idx));
                 idx = child2parent[idx];
             } while (idx != undefined);
             return paths.reverse();
@@ -138,7 +142,7 @@ export default class GLTF extends Asset {
             const accessor = json.accessors[skin.inverseBindMatrices];
             const bufferView = json.bufferViews[accessor.bufferView];
             for (let i = 0; i < accessor.count; i++) {
-                inverseBindMatrices[i] = new Float32Array(bin, bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as unknown as Mat4;
+                inverseBindMatrices[i] = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as unknown as Mat4;
             }
             const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
             this._skins.push({ inverseBindMatrices, joints });
@@ -154,10 +158,10 @@ export default class GLTF extends Asset {
                 // and a set of vectors or scalars representing the animated property. 
                 let accessor = json.accessors[sampler.input];
                 let bufferView = json.bufferViews[accessor.bufferView];
-                const input = new Float32Array(bin, bufferView.byteOffset, bufferView.byteLength / Float32Array.BYTES_PER_ELEMENT);
+                const input = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
                 accessor = json.accessors[sampler.output];
                 bufferView = json.bufferViews[accessor.bufferView];
-                const output = new Float32Array(bin, bufferView.byteOffset, bufferView.byteLength / Float32Array.BYTES_PER_ELEMENT);
+                const output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, bufferView.byteLength / Float32Array.BYTES_PER_ELEMENT);
                 const interpolation = sampler.interpolation;
                 channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation } })
             }
@@ -175,7 +179,7 @@ export default class GLTF extends Asset {
         const scene = (this._json.scenes as any[]).find(scene => scene.name == name || name == undefined);
         const node = new Node(name);
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(this._json.nodes[index], materialInstancing, node))
+            node.addChild(this.createNode(index, materialInstancing, node))
         }
         return node;
     }
@@ -221,8 +225,9 @@ export default class GLTF extends Asset {
         return new Material(passes);
     }
 
-    private createNode(info: any, materialInstancing: boolean, root?: Node): Node {
-        const node = new Node(info.name);
+    private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
+        const info = this._json.nodes[index];
+        const node = new Node(node2name(info, index));
         if (!root) {
             root = node;
         }
@@ -253,8 +258,7 @@ export default class GLTF extends Asset {
 
         if (info.children) {
             for (const idx of info.children) {
-                const info = this._json.nodes[idx];
-                node.addChild(this.createNode(info, materialInstancing, root));
+                node.addChild(this.createNode(idx, materialInstancing, root));
             }
         }
         return node;

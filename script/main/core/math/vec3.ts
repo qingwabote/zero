@@ -152,5 +152,12 @@ export default {
             && Math.abs(a2 - b2)
             <= epsilon * Math.max(1.0, Math.abs(a2), Math.abs(b2))
         );
+    },
+
+    lerp(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>, t: number) {
+        out[0] = a[0] + t * (b[0] - a[0]);
+        out[1] = a[1] + t * (b[1] - a[1]);
+        out[2] = a[2] + t * (b[2] - a[2]);
+        return out;
     }
 } as const
