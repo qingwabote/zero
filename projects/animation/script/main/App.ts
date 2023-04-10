@@ -32,19 +32,19 @@ export default class App extends Zero {
         main_camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 24];
 
-        // const animatedCube = new GLTF();
-        // await animatedCube.load('./assets/AnimatedCube/AnimatedCube')
-        // node = animatedCube.createScene()!;
-        // const ac = node.addComponent(AnimationController);
-        // ac.animations = animatedCube.animations
-        // node.visibilityFlag = VisibilityBit.DEFAULT;
-
-        const boxAnimated = new GLTF();
-        await boxAnimated.load('./assets/BoxAnimated/BoxAnimated')
-        node = boxAnimated.createScene()!;
+        const guardian = new GLTF();
+        await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
+        node = guardian.createScene("Sketchfab_Scene")!;
         const ac = node.addComponent(AnimationController);
-        ac.animations = boxAnimated.animations
-        node.visibilityFlag = VisibilityBit.DEFAULT;
+        ac.animations = guardian.animations
+        node.visibilityFlag = VisibilityBit.DEFAULT
+
+        // const boxAnimated = new GLTF();
+        // await boxAnimated.load('./assets/BoxAnimated/BoxAnimated')
+        // node = boxAnimated.createScene()!;
+        // const ac = node.addComponent(AnimationController);
+        // ac.animations = boxAnimated.animations
+        // node.visibilityFlag = VisibilityBit.DEFAULT;
 
         // UI
         node = new Node;

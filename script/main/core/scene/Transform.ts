@@ -65,7 +65,7 @@ export default class Transform extends FrameChangeRecord implements TRS {
         return this._scale
     }
     set scale(value: Readonly<Vec3>) {
-        this._scale = value;
+        Object.assign(this._scale, value);
         this.dirty(TransformBit.SCALE);
     }
 

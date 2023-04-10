@@ -2,9 +2,9 @@ import AnimationState, { ChannelBinding, ChannelBindingValue } from "../animatio
 import AnimationSystem from "../animation/AnimationSystem.js";
 import Animation, { Sampler } from "../assets/Animation.js";
 import Component from "../core/Component.js";
-import { Rotation, Translation } from "../core/math/TRS.js";
-import quat from "../core/math/quat.js";
-import vec3 from "../core/math/vec3.js";
+import TRS from "../core/math/TRS.js";
+import quat, { Quat } from "../core/math/quat.js";
+import vec3, { Vec3 } from "../core/math/vec3.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
@@ -14,14 +14,17 @@ const quat_a = quat.create();
 const quat_b = quat.create();
 const quat_c = quat.create();
 
-class PositionBindingValue implements ChannelBindingValue {
-    constructor(private _transform: Translation) { }
+type FilteredKeys<T, U> = { [P in keyof T]: T[P] extends U ? P : never }[keyof T];
+
+class ChannelBindingVec3 implements ChannelBindingValue {
+    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Vec3>) { }
 
     update(sampler: Sampler, index: number, time: number): void {
         const values = sampler.output;
+        let value: Vec3;
         if (index >= 0) {
             const start = index * 3;
-            this._transform.position = vec3.set(vec3_a, values[start], values[start + 1], values[start + 2])
+            value = vec3.set(vec3_a, values[start], values[start + 1], values[start + 2])
         } else {
             const next = ~index;
             const prev = next - 1;
@@ -34,19 +37,21 @@ class PositionBindingValue implements ChannelBindingValue {
 
             const times = sampler.input;
             const t = (time - times[prev]) / (times[next] - times[prev]);
-            this._transform.position = vec3.lerp(vec3_c, vec3_a, vec3_b, t);
+            value = vec3.lerp(vec3_c, vec3_a, vec3_b, t);
         }
+        this._transform[this._property] = value;
     }
 }
 
-class RotationBindingValue implements ChannelBindingValue {
-    constructor(private _transform: Rotation) { }
+class ChannelBindingQuat implements ChannelBindingValue {
+    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Quat>) { }
 
     update(sampler: Sampler, index: number, time: number): void {
         const values = sampler.output;
+        let value: Quat;
         if (index >= 0) {
             const start = index * 4;
-            this._transform.rotation = quat.set(quat_a, values[start], values[start + 1], values[start + 2], values[start + 3])
+            value = quat.set(quat_a, values[start], values[start + 1], values[start + 2], values[start + 3])
         } else {
             const next = ~index;
             const prev = next - 1;
@@ -59,10 +64,9 @@ class RotationBindingValue implements ChannelBindingValue {
 
             const times = sampler.input;
             const t = (time - times[prev]) / (times[next] - times[prev]);
-            quat.slerp(quat_c, quat_a, quat_b, t);
-            // quat.normalize(quat_c, quat_c);
-            this._transform.rotation = quat_c;
+            value = quat.slerp(quat_c, quat_a, quat_b, t);
         }
+        this._transform[this._property] = value;
     }
 }
 
@@ -80,10 +84,13 @@ export default class AnimationController extends Component {
             let property: ChannelBindingValue;
             switch (channel.path) {
                 case 'translation':
-                    property = new PositionBindingValue(node);
+                    property = new ChannelBindingVec3(node, 'position');
                     break;
                 case 'rotation':
-                    property = new RotationBindingValue(node);
+                    property = new ChannelBindingQuat(node, 'rotation');
+                    break;
+                case 'scale':
+                    property = new ChannelBindingVec3(node, 'scale');
                     break;
                 default:
                     throw new Error(`unsupported path: ${channel.path}`);

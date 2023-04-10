@@ -158,11 +158,28 @@ export default class GLTF extends Asset {
                 // and a set of vectors or scalars representing the animated property. 
                 let accessor = json.accessors[sampler.input];
                 let bufferView = json.bufferViews[accessor.bufferView];
+                if (bufferView.byteStride != undefined) {
+                    throw new Error;
+                }
                 const input = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
                 accessor = json.accessors[sampler.output];
                 bufferView = json.bufferViews[accessor.bufferView];
-                const output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, bufferView.byteLength / Float32Array.BYTES_PER_ELEMENT);
+                let components: number;
+                switch (accessor.type) {
+                    case 'VEC3':
+                        components = 3;
+                        break;
+                    case 'VEC4':
+                        components = 4;
+                        break;
+                    default:
+                        throw new Error(`unsupported accessor type: ${accessor.type}`);
+                }
+                const output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
                 const interpolation = sampler.interpolation;
+                if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
+                    throw new Error;
+                }
                 channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation } })
             }
             this._animations.push(new Animation(animation.name, channels));
