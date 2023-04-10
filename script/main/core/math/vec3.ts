@@ -1,7 +1,9 @@
-import { Mat4 } from "./mat4.js";
-import { Quat } from "./quat.js";
+import { Mat4Like } from "./mat4.js";
+import { QuatLike } from "./quat.js";
 
-export type Vec3 = {
+export type Vec3 = [number, number, number];
+
+export type Vec3Like = {
     0: number; 1: number; 2: number;
     readonly length: 3;
     [Symbol.iterator](): IterableIterator<number>;
@@ -21,14 +23,14 @@ export default {
         return [x, y, z]
     },
 
-    set(out: Vec3, x: number, y: number, z: number): Vec3 {
+    set<Out extends Vec3Like>(out: Out, x: number, y: number, z: number) {
         out[0] = x;
         out[1] = y;
         out[2] = z;
         return out
     },
 
-    normalize(out: Vec3, a: Readonly<Vec3>) {
+    normalize<Out extends Vec3Like>(out: Vec3Like, a: Readonly<Vec3Like>) {
         const x = a[0];
         const y = a[1];
         const z = a[2];
@@ -43,15 +45,15 @@ export default {
         return out;
     },
 
-    length(v: Vec3) {
+    length(v: Vec3Like) {
         return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     },
 
-    lengthSqr(v: Vec3) {
+    lengthSqr(v: Vec3Like) {
         return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
     },
 
-    transformMat4(out: Vec3, a: Readonly<Vec3>, m: Readonly<Mat4>): Vec3 {
+    transformMat4<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, m: Readonly<Mat4Like>) {
         const x = a[0];
         const y = a[1];
         const z = a[2];
@@ -63,7 +65,7 @@ export default {
         return out;
     },
 
-    transformQuat(out: Vec3, a: Readonly<Vec3>, q: Readonly<Quat>) {
+    transformQuat<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, q: Readonly<QuatLike>) {
         // benchmarks: http://jsperf.com/quaternion-transform-Vec3-implementations
 
         // calculate quat * vec
@@ -79,39 +81,39 @@ export default {
         return out;
     },
 
-    add(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+    add<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
         out[0] = a[0] + b[0];
         out[1] = a[1] + b[1];
         out[2] = a[2] + b[2];
         return out;
     },
 
-    subtract(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+    subtract<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
         out[0] = a[0] - b[0];
         out[1] = a[1] - b[1];
         out[2] = a[2] - b[2];
         return out;
     },
 
-    multiply(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+    multiply<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
         out[0] = a[0] * b[0];
         out[1] = a[1] * b[1];
         out[2] = a[2] * b[2];
         return out;
     },
 
-    scale(out: Vec3, a: Readonly<Vec3>, scale: number) {
+    scale<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, scale: number) {
         out[0] = a[0] * scale;
         out[1] = a[1] * scale;
         out[2] = a[2] * scale;
         return out;
     },
 
-    dot(a: Readonly<Vec3>, b: Readonly<Vec3>): number {
+    dot<Out extends Vec3Like>(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>): number {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },
 
-    cross(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+    cross<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
         const [ax, ay, az] = a;
         const [bx, by, bz] = b;
         out[0] = ay * bz - az * by;
@@ -120,28 +122,28 @@ export default {
         return out;
     },
 
-    negate(out: Vec3, a: Readonly<Vec3>) {
+    negate<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>) {
         out[0] = -a[0];
         out[1] = -a[1];
         out[2] = -a[2];
         return out;
     },
 
-    min(out: Vec3, a: Vec3, b: Vec3) {
+    min<Out extends Vec3Like>(out: Out, a: Vec3Like, b: Vec3Like) {
         out[0] = Math.min(a[0], b[0]);
         out[1] = Math.min(a[1], b[1]);
         out[2] = Math.min(a[2], b[2]);
         return out;
     },
 
-    max(out: Vec3, a: Vec3, b: Vec3) {
+    max<Out extends Vec3Like>(out: Out, a: Vec3Like, b: Vec3Like) {
         out[0] = Math.max(a[0], b[0]);
         out[1] = Math.max(a[1], b[1]);
         out[2] = Math.max(a[2], b[2]);
         return out;
     },
 
-    equals(a: Vec3, b: Vec3, epsilon = 0.000001) {
+    equals(a: Vec3Like, b: Vec3Like, epsilon = 0.000001) {
         const [a0, a1, a2] = a;
         const [b0, b1, b2] = b;
         return (
@@ -154,7 +156,7 @@ export default {
         );
     },
 
-    lerp(out: Vec3, a: Readonly<Vec3>, b: Readonly<Vec3>, t: number) {
+    lerp<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>, t: number) {
         out[0] = a[0] + t * (b[0] - a[0]);
         out[1] = a[1] + t * (b[1] - a[1]);
         out[2] = a[2] + t * (b[2] - a[2]);

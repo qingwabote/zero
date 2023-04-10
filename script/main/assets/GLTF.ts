@@ -9,10 +9,10 @@ import Fence from "../core/gfx/Fence.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
 import { CullMode, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
-import mat4, { Mat4 } from "../core/math/mat4.js";
-import { Quat } from "../core/math/quat.js";
-import { Vec3 } from "../core/math/vec3.js";
-import vec4, { Vec4 } from "../core/math/vec4.js";
+import mat4, { Mat4Like } from "../core/math/mat4.js";
+import { QuatLike } from "../core/math/quat.js";
+import { Vec3Like } from "../core/math/vec3.js";
+import vec4, { Vec4Like } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
 import Pass from "../core/scene/Pass.js";
 import ShaderLib from "../core/ShaderLib.js";
@@ -30,7 +30,7 @@ interface MaterialMacros {
 }
 
 interface MaterialValues {
-    albedo?: Vec4;
+    albedo?: Vec4Like;
     texture?: Texture;
 }
 
@@ -138,11 +138,11 @@ export default class GLTF extends Asset {
 
         // skin
         for (const skin of json.skins || []) {
-            const inverseBindMatrices: Mat4[] = [];
+            const inverseBindMatrices: Mat4Like[] = [];
             const accessor = json.accessors[skin.inverseBindMatrices];
             const bufferView = json.bufferViews[accessor.bufferView];
             for (let i = 0; i < accessor.count; i++) {
-                inverseBindMatrices[i] = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as unknown as Mat4;
+                inverseBindMatrices[i] = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as unknown as Mat4Like;
             }
             const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
             this._skins.push({ inverseBindMatrices, joints });
@@ -249,7 +249,7 @@ export default class GLTF extends Asset {
             root = node;
         }
         if (info.matrix) {
-            mat4.toRTS(info.matrix, node.rotation as Quat, node.position as Vec3, node.scale as Vec3);
+            mat4.toRTS(info.matrix, node.rotation as QuatLike, node.position as Vec3Like, node.scale as Vec3Like);
         } else {
             if (info.translation) {
                 node.position = info.translation;

@@ -1,8 +1,14 @@
-import { Mat4 } from "./mat4.js";
-import { Quat } from "./quat.js";
-import vec3, { Vec3 } from "./vec3.js";
+import { Mat4Like } from "./mat4.js";
+import { QuatLike } from "./quat.js";
+import vec3, { Vec3Like } from "./vec3.js";
 
-export type Mat3 = {
+export type Mat3 = [
+    number, number, number,
+    number, number, number,
+    number, number, number
+]
+
+export type Mat3Like = {
     0: number; 1: number; 2: number;
     3: number; 4: number; 5: number;
     6: number; 7: number; 8: number;
@@ -18,7 +24,7 @@ export default {
         ]
     },
 
-    identity(out: Mat3) {
+    identity<Out extends Mat3Like>(out: Out) {
         out[0] = 1;
         out[1] = 0;
         out[2] = 0;
@@ -31,7 +37,7 @@ export default {
         return out;
     },
 
-    determinant(a: Mat3) {
+    determinant(a: Mat3Like) {
         const a00 = a[0]; const a01 = a[1]; const a02 = a[2];
         const a10 = a[3]; const a11 = a[4]; const a12 = a[5];
         const a20 = a[6]; const a21 = a[7]; const a22 = a[8];
@@ -42,7 +48,7 @@ export default {
     /**
      * @param view The view direction, it's must be normalized.
      */
-    fromViewUp(out: Mat3, view: Vec3) {
+    fromViewUp<Out extends Mat3Like>(out: Out, view: Vec3Like) {
         const EPSILON = 0.000001;
 
         if (vec3.lengthSqr(view) < EPSILON * EPSILON) {
@@ -62,16 +68,20 @@ export default {
         const v3_2 = vec3.create();
         vec3.cross(v3_2, view, v3_1);
 
-        out = [
-            v3_1[0], v3_1[1], v3_1[2],
-            v3_2[0], v3_2[1], v3_2[2],
-            view[0], view[1], view[2],
-        ]
+        out[0] = v3_1[0];
+        out[1] = v3_1[1];
+        out[2] = v3_1[2];
+        out[3] = v3_2[0];
+        out[4] = v3_2[1];
+        out[5] = v3_2[2];
+        out[6] = view[0];
+        out[7] = view[1];
+        out[8] = view[2];
 
         return out;
     },
 
-    fromQuat(out: Mat3, q: Quat) {
+    fromQuat<Out extends Mat3Like>(out: Out, q: QuatLike) {
         const x = q[0]; const y = q[1]; const z = q[2]; const w = q[3];
         const x2 = x + x;
         const y2 = y + y;
@@ -102,7 +112,7 @@ export default {
         return out;
     },
 
-    multiplyMat4(out: Mat3, a: Mat3, b: Mat4) {
+    multiplyMat4<Out extends Mat3Like>(out: Out, a: Mat3Like, b: Mat4Like) {
         const a00 = a[0]; const a01 = a[1]; const a02 = a[2];
         const a10 = a[3]; const a11 = a[4]; const a12 = a[5];
         const a20 = a[6]; const a21 = a[7]; const a22 = a[8];

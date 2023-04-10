@@ -3,8 +3,8 @@ import { FormatInfos } from "../core/gfx/Format.js";
 import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
 import { CullMode, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
-import vec3, { Vec3 } from "../core/math/vec3.js";
-import { Vec4 } from "../core/math/vec4.js";
+import vec3, { Vec3Like } from "../core/math/vec3.js";
+import { Vec4Like } from "../core/math/vec4.js";
 import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
@@ -37,7 +37,7 @@ export default class Primitive extends BoundedRenderer {
 
     private _model!: Model;
 
-    drawLine(from: Vec3, to: Vec3, color: Vec4 = [1, 1, 1, 1]) {
+    drawLine(from: Vec3Like, to: Vec3Like, color: Vec4Like = [1, 1, 1, 1]) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
         if (this._buffer.resize(length)) {
             this._buffer_reallocated = true;
@@ -58,8 +58,8 @@ export default class Primitive extends BoundedRenderer {
         vec3.max(vec3_b, vec3_b, to);
         if (!vec3.equals(vec3_a, this._vertexMin) || !vec3.equals(vec3_b, this._vertexMax)) {
             aabb3d.fromPoints(this._bounds, vec3_a, vec3_b);
-            vec3.set(this._vertexMin, ...vec3_a as [number, number, number]);
-            vec3.set(this._vertexMax, ...vec3_b as [number, number, number]);
+            vec3.set(this._vertexMin, ...vec3_a);
+            vec3.set(this._vertexMax, ...vec3_b);
             this.emit(BoundsEvent.BOUNDS_CHANGED);
         }
 

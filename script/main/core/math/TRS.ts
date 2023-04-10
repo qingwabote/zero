@@ -1,16 +1,16 @@
-import { Quat } from "./quat.js";
-import { Vec3 } from "./vec3.js";
+import { QuatLike } from "./quat.js";
+import { Vec3Like } from "./vec3.js";
 
 export interface Translation {
-    position: Readonly<Vec3>;
+    position: Readonly<Vec3Like>;
 }
 
 export interface Rotation {
-    rotation: Readonly<Quat>;
+    rotation: Readonly<QuatLike>;
 }
 
 export interface Scale {
-    scale: Readonly<Vec3>;
+    scale: Readonly<Vec3Like>;
 }
 
 export default interface TRS extends Translation, Rotation, Scale { } 

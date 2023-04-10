@@ -1,20 +1,20 @@
 import { Sampler } from "../assets/Animation.js";
 
-function binarySearchEpsilon(array: ArrayLike<number>, value: number, EPSILON = 1e-6) {
-    let low = 0;
-    let high = array.length - 1;
-    let middle = high >>> 1;
-    for (; low <= high; middle = (low + high) >>> 1) {
-        const test = array[middle];
-        if (test > (value + EPSILON)) {
-            high = middle - 1;
-        } else if (test < (value - EPSILON)) {
-            low = middle + 1;
+function binarySearch(source: ArrayLike<number>, value: number, EPSILON = 1e-6): number {
+    let head = 0;
+    let tail = source.length - 1;
+    while (head <= tail) {
+        const mid = (head + tail) >>> 1;
+        const res = source[mid];
+        if ((value + EPSILON) < res) {
+            tail = mid - 1;
+        } else if ((value - EPSILON) > res) {
+            head = mid + 1;
         } else {
-            return middle;
+            return mid;
         }
     }
-    return ~low;
+    return ~head;
 }
 
 export interface ChannelBindingValue {
@@ -33,7 +33,7 @@ export class ChannelBinding {
         } else if (time > times[times.length - 1]) {
             index = times.length - 1;
         } else {
-            index = binarySearchEpsilon(times, time);
+            index = binarySearch(times, time);
         }
 
         this._value.update(this._sampler, index, time);

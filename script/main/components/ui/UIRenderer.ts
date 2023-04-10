@@ -1,5 +1,5 @@
 import rect, { Rect } from "../../core/math/rect.js";
-import vec2, { Vec2 } from "../../core/math/vec2.js";
+import vec2, { Vec2Like } from "../../core/math/vec2.js";
 import vec3 from "../../core/math/vec3.js";
 import Node from "../../core/Node.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
@@ -19,8 +19,8 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
 
     private _transformDirty = true;
 
-    private _explicit_size?: Vec2;
-    public override get size(): Vec2 {
+    private _explicit_size?: Vec2Like;
+    public override get size(): Vec2Like {
         if (this._explicit_size) {
             return this._explicit_size;
         }
@@ -28,7 +28,7 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         const { halfExtentX, halfExtentY } = this.impl.bounds;
         return vec2.create(halfExtentX * 2 * BoundedRenderer.PIXELS_PER_UNIT, halfExtentY * 2 * BoundedRenderer.PIXELS_PER_UNIT);
     }
-    public override set size(value: Vec2) {
+    public override set size(value: Vec2Like) {
         this._explicit_size = vec2.set(this._explicit_size || vec2.create(), value[0], value[1]);
         this._transformDirty = true;
     }

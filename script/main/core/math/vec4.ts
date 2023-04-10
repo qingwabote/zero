@@ -1,4 +1,6 @@
-export type Vec4 = {
+export type Vec4 = [number, number, number, number];
+
+export type Vec4Like = {
     0: number; 1: number; 2: number; 3: number;
     readonly length: 4;
     [Symbol.iterator](): IterableIterator<number>;

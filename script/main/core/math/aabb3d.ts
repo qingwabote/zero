@@ -1,5 +1,5 @@
 import { AABB2D } from "./aabb2d.js";
-import vec3, { Vec3 } from "./vec3.js";
+import vec3, { Vec3Like } from "./vec3.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
@@ -14,14 +14,14 @@ export default {
         return { centerX: 0, centerY: 0, centerZ: 0, halfExtentX: 0, halfExtentY: 0, halfExtentZ: 0 };
     },
 
-    fromPoints(out: AABB3D, minPos: Vec3, maxPos: Vec3): AABB3D {
+    fromPoints(out: AABB3D, minPos: Vec3Like, maxPos: Vec3Like): AABB3D {
         vec3.add(vec3_a, maxPos, minPos);
         vec3.scale(vec3_a, vec3_a, 0.5);
 
         vec3.subtract(vec3_b, maxPos, minPos);
         vec3.scale(vec3_b, vec3_b, 0.5);
 
-        this.set(out, ...vec3_a as [number, number, number], ...vec3_b as [number, number, number]);
+        this.set(out, ...vec3_a, ...vec3_b);
         return out;
     },
 

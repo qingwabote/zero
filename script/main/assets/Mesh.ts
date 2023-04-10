@@ -1,7 +1,7 @@
 import Buffer from "../core/gfx/Buffer.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
-import { Vec3 } from "../core/math/vec3.js";
+import { Vec3Like } from "../core/math/vec3.js";
 
 export interface VertexAttribute {
     readonly name: string
@@ -14,8 +14,8 @@ export interface SubMesh {
     readonly vertexAttributes: VertexAttribute[],
     readonly vertexBuffers: Buffer[],
     readonly vertexOffsets: number[],
-    readonly vertexPositionMin: Vec3,
-    readonly vertexPositionMax: Vec3,
+    readonly vertexPositionMin: Vec3Like,
+    readonly vertexPositionMax: Vec3Like,
 
     readonly indexBuffer: Buffer,
     readonly indexType: IndexType,

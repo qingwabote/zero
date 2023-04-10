@@ -1,9 +1,9 @@
 import Component from "../core/Component.js";
 import { ClearFlagBit } from "../core/gfx/Pipeline.js";
-import mat4, { Mat4 } from "../core/math/mat4.js";
+import mat4, { Mat4Like } from "../core/math/mat4.js";
 import { Rect } from "../core/math/rect.js";
-import vec2, { Vec2 } from "../core/math/vec2.js";
-import vec3, { Vec3 } from "../core/math/vec3.js";
+import vec2, { Vec2Like } from "../core/math/vec2.js";
+import vec3, { Vec3Like } from "../core/math/vec3.js";
 import { default as render_Camera } from "../core/scene/Camera.js";
 import VisibilityBit from "../VisibilityBit.js";
 
@@ -23,10 +23,10 @@ export default class Camera extends Component {
         return this._instances;
     }
 
-    private _matView: Mat4 = mat4.create();
+    private _matView: Mat4Like = mat4.create();
     private _matViewFlags: DirtyFlag = DirtyFlag.DIRTY;
 
-    private _matProj: Mat4 = mat4.create();
+    private _matProj: Mat4Like = mat4.create();
     private _matProjFlags: DirtyFlag = DirtyFlag.DIRTY;
 
     orthoHeight = -1;
@@ -69,7 +69,7 @@ export default class Camera extends Component {
         }
     }
 
-    screenPointToRay(out_from: Vec3, out_to: Vec3, x: number, y: number) {
+    screenPointToRay(out_from: Vec3Like, out_to: Vec3Like, x: number, y: number) {
         this.screenToNdc(vec2_a, x, y);
 
         vec3.set(out_from, vec2_a[0], vec2_a[1], -1);
@@ -82,7 +82,7 @@ export default class Camera extends Component {
         vec3.transformMat4(out_to, out_to, matViewProjInv);
     }
 
-    screenToWorld(out: Vec2, x: number, y: number): Vec2 {
+    screenToWorld<Out extends Vec2Like>(out: Out, x: number, y: number): Out {
         this.screenToNdc(vec2_a, x, y);
 
         const matViewProj = mat4.multiply(mat4.create(), this.getMatProj(), this.getMatView());
@@ -90,7 +90,7 @@ export default class Camera extends Component {
         return vec2.transformMat4(out, vec2_a, matViewProjInv);
     }
 
-    private screenToNdc(out: Vec2, x: number, y: number): Vec2 {
+    private screenToNdc(out: Vec2Like, x: number, y: number): Vec2Like {
         y = zero.window.height - y;
 
         x -= this.viewport.x;
@@ -115,7 +115,7 @@ export default class Camera extends Component {
         throw new Error("can't recognize projection type");
     }
 
-    private getMatView(): Mat4 {
+    private getMatView(): Mat4Like {
         if (this._matViewFlags & DirtyFlag.CALCULATING) {
             mat4.invert(this._matView, this.node.world_matrix)
             this._matViewFlags ^= DirtyFlag.CALCULATING;
@@ -123,7 +123,7 @@ export default class Camera extends Component {
         return this._matView;
     }
 
-    private getMatProj(): Mat4 {
+    private getMatProj(): Mat4Like {
         if (this._matProjFlags & DirtyFlag.CALCULATING) {
             const aspect = this.viewport.width / this.viewport.height;
             if (this.isPerspective()) {

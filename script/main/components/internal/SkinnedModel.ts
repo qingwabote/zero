@@ -1,6 +1,6 @@
 import Skin from "../../assets/Skin.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import mat4, { Mat4 } from "../../core/math/mat4.js";
+import mat4, { Mat4Like } from "../../core/math/mat4.js";
 import BufferView from "../../core/scene/buffers/BufferView.js";
 import FrameChangeRecord from "../../core/scene/FrameChangeRecord.js";
 import Model from "../../core/scene/Model.js";
@@ -9,7 +9,7 @@ import Transform from "../../core/scene/Transform.js";
 import ShaderLib from "../../core/ShaderLib.js";
 
 class ModelSpaceTransform extends FrameChangeRecord {
-    matrix: Mat4 = mat4.create();
+    matrix: Mat4Like = mat4.create();
 }
 
 const mat4_a = mat4.create();

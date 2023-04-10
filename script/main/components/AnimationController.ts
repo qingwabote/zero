@@ -3,8 +3,8 @@ import AnimationSystem from "../animation/AnimationSystem.js";
 import Animation, { Sampler } from "../assets/Animation.js";
 import Component from "../core/Component.js";
 import TRS from "../core/math/TRS.js";
-import quat, { Quat } from "../core/math/quat.js";
-import vec3, { Vec3 } from "../core/math/vec3.js";
+import quat, { QuatLike } from "../core/math/quat.js";
+import vec3, { Vec3Like } from "../core/math/vec3.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
@@ -17,11 +17,11 @@ const quat_c = quat.create();
 type FilteredKeys<T, U> = { [P in keyof T]: T[P] extends U ? P : never }[keyof T];
 
 class ChannelBindingVec3 implements ChannelBindingValue {
-    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Vec3>) { }
+    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Vec3Like>) { }
 
     update(sampler: Sampler, index: number, time: number): void {
         const values = sampler.output;
-        let value: Vec3;
+        let value: Vec3Like;
         if (index >= 0) {
             const start = index * 3;
             value = vec3.set(vec3_a, values[start], values[start + 1], values[start + 2])
@@ -44,11 +44,11 @@ class ChannelBindingVec3 implements ChannelBindingValue {
 }
 
 class ChannelBindingQuat implements ChannelBindingValue {
-    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Quat>) { }
+    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, QuatLike>) { }
 
     update(sampler: Sampler, index: number, time: number): void {
         const values = sampler.output;
-        let value: Quat;
+        let value: QuatLike;
         if (index >= 0) {
             const start = index * 4;
             value = quat.set(quat_a, values[start], values[start + 1], values[start + 2], values[start + 3])

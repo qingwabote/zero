@@ -1,4 +1,4 @@
-import { Vec3 } from "../math/vec3.js";
+import { Vec3Like } from "../math/vec3.js";
 import FrameChangeRecord from "./FrameChangeRecord.js";
 import Transform from "./Transform.js";
 
@@ -13,7 +13,7 @@ export default class DirectionalLight extends FrameChangeRecord {
         super.hasChanged = flags;
     }
 
-    get position(): Readonly<Vec3> {
+    get position(): Readonly<Vec3Like> {
         return this._transform.world_position;
     }
 

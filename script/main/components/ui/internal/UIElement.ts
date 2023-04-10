@@ -2,7 +2,7 @@ import EventEmitter from "../../../base/EventEmitter.js";
 import EventEmitterImpl from "../../../base/EventEmitterImpl.js";
 import Component from "../../../core/Component.js";
 import rect, { Rect } from "../../../core/math/rect.js";
-import vec2, { Vec2 } from "../../../core/math/vec2.js";
+import vec2, { Vec2, Vec2Like } from "../../../core/math/vec2.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
@@ -15,8 +15,8 @@ export class UITouch {
     world = vec2.create();
     local = vec2.create();
     constructor(world: Vec2, local: Vec2) {
-        vec2.set(this.world, ...world as [number, number])
-        vec2.set(this.local, ...local as [number, number])
+        vec2.set(this.world, ...world)
+        vec2.set(this.local, ...local)
     }
 }
 
@@ -54,8 +54,8 @@ export default abstract class UIElement<EventToListener extends UIEventToListene
         this.__emitter?.emit(name, event);
     }
 
-    public abstract get size(): Vec2;
-    public abstract set size(value: Vec2);
+    public abstract get size(): Vec2Like;
+    public abstract set size(value: Vec2Like);
 
     getBounds(): Rect {
         return rect.create(-this.size[0] / 2, -this.size[1] / 2, this.size[0], this.size[1]);

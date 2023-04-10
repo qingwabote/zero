@@ -1,9 +1,9 @@
 import EventEmitterImpl from "../../base/EventEmitterImpl.js";
 import TRS from "../math/TRS.js";
 import mat3 from "../math/mat3.js";
-import mat4, { Mat4 } from "../math/mat4.js";
-import quat, { Quat } from "../math/quat.js";
-import vec3, { Vec3 } from "../math/vec3.js";
+import mat4, { Mat4Like } from "../math/mat4.js";
+import quat, { QuatLike } from "../math/quat.js";
+import vec3, { Vec3Like } from "../math/vec3.js";
 import FrameChangeRecord from "./FrameChangeRecord.js";
 
 export enum TransformBit {
@@ -60,50 +60,50 @@ export default class Transform extends FrameChangeRecord implements TRS {
         return this._eventEmitter;
     }
 
-    private _scale: Readonly<Vec3> = [1, 1, 1];
-    get scale(): Readonly<Vec3> {
+    private _scale: Readonly<Vec3Like> = [1, 1, 1];
+    get scale(): Readonly<Vec3Like> {
         return this._scale
     }
-    set scale(value: Readonly<Vec3>) {
+    set scale(value: Readonly<Vec3Like>) {
         Object.assign(this._scale, value);
         this.dirty(TransformBit.SCALE);
     }
 
-    private _rotation: Quat = quat.create()
+    private _rotation: QuatLike = quat.create()
     /**
      * rotation is normalized.
      */
-    get rotation(): Readonly<Quat> {
+    get rotation(): Readonly<QuatLike> {
         return this._rotation;
     }
-    set rotation(value: Readonly<Quat>) {
+    set rotation(value: Readonly<QuatLike>) {
         Object.assign(this._rotation, value);
         this.dirty(TransformBit.ROTATION);
     }
 
-    get euler(): Readonly<Vec3> {
+    get euler(): Readonly<Vec3Like> {
         return quat.toEuler(vec3.create(), this._rotation);
     }
-    set euler(value: Readonly<Vec3>) {
+    set euler(value: Readonly<Vec3Like>) {
         quat.fromEuler(this._rotation, value[0], value[1], value[2]);
         this.dirty(TransformBit.ROTATION);
     }
 
-    private _position: Vec3 = vec3.create();
-    get position(): Readonly<Vec3> {
+    private _position: Vec3Like = vec3.create();
+    get position(): Readonly<Vec3Like> {
         return this._position;
     }
-    set position(value: Readonly<Vec3>) {
+    set position(value: Readonly<Vec3Like>) {
         Object.assign(this._position, value);
         this.dirty(TransformBit.POSITION);
     }
 
-    private _world_rotation: Quat = quat.create()
-    get world_rotation(): Readonly<Quat> {
+    private _world_rotation: QuatLike = quat.create()
+    get world_rotation(): Readonly<QuatLike> {
         this.updateTransform();
         return this._world_rotation;
     }
-    set world_rotation(value: Readonly<Quat>) {
+    set world_rotation(value: Readonly<QuatLike>) {
         if (!this._parent) {
             this.rotation = value;
             return;
@@ -114,17 +114,17 @@ export default class Transform extends FrameChangeRecord implements TRS {
         this.rotation = quat_a;
     }
 
-    private _world_position: Vec3 = vec3.create();
-    get world_position(): Readonly<Vec3> {
+    private _world_position: Vec3Like = vec3.create();
+    get world_position(): Readonly<Vec3Like> {
         this.updateTransform();
         return this._world_position;
     }
-    set world_position(val: Readonly<Vec3>) {
+    set world_position(val: Readonly<Vec3Like>) {
         this.position = this._parent ? vec3.transformMat4(vec3.create(), val, mat4.invert(mat4.create(), this._parent.world_matrix)) : val;
     }
 
-    private _world_scale: Vec3 = vec3.create(1, 1, 1);
-    public get world_scale(): Vec3 {
+    private _world_scale: Vec3Like = vec3.create(1, 1, 1);
+    public get world_scale(): Vec3Like {
         return this._world_scale;
     }
 
@@ -145,8 +145,8 @@ export default class Transform extends FrameChangeRecord implements TRS {
         return this._matrix;
     }
 
-    private _world_matrix: Mat4 = mat4.create();
-    get world_matrix(): Readonly<Mat4> {
+    private _world_matrix: Mat4Like = mat4.create();
+    get world_matrix(): Readonly<Mat4Like> {
         this.updateTransform();
         return this._world_matrix;
     }

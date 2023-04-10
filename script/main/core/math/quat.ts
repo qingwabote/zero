@@ -1,9 +1,13 @@
-import mat3, { Mat3 } from "./mat3.js";
-import vec3, { Vec3 } from "./vec3.js";
+import mat3, { Mat3Like } from "./mat3.js";
+import vec3, { Vec3Like } from "./vec3.js";
 
 const halfToRad = 0.5 * Math.PI / 180.0;
 
-export type Quat = {
+export type Quat = [
+    number, number, number, number
+]
+
+export type QuatLike = {
     0: number; 1: number; 2: number; 3: number;
     readonly length: 4;
     [Symbol.iterator](): IterableIterator<number>;
@@ -16,7 +20,7 @@ export default {
         return [x, y, z, w]
     },
 
-    set(out: Quat, x: number, y: number, z: number, w: number): Quat {
+    set<Out extends QuatLike>(out: Out, x: number, y: number, z: number, w: number) {
         out[0] = x;
         out[1] = y;
         out[2] = z;
@@ -24,7 +28,7 @@ export default {
         return out;
     },
 
-    fromEuler(out: Quat, x: number, y: number, z: number): Quat {
+    fromEuler<Out extends QuatLike>(out: Out, x: number, y: number, z: number) {
         x *= halfToRad;
         y *= halfToRad;
         z *= halfToRad;
@@ -44,7 +48,7 @@ export default {
         return out;
     },
 
-    toEuler(out: Vec3, q: Readonly<Quat>): Vec3 {
+    toEuler<Out extends Vec3Like>(out: Out, q: Readonly<QuatLike>) {
         const [x, y, z, w] = q;
         let bank = 0;
         let heading = 0;
@@ -73,7 +77,7 @@ export default {
     /**
      * Calculates the quaternion with the three-dimensional transform matrix, considering no scale included in the matrix
      */
-    fromMat3(out: Quat, m: Mat3) {
+    fromMat3<Out extends QuatLike>(out: Out, m: Mat3Like) {
         const m00 = m[0];
         const m01 = m[3];
         const m02 = m[6];
@@ -123,12 +127,12 @@ export default {
     /**
      * @param view The view direction, it's must be normalized.
      */
-    fromViewUp(out: Quat, view: Vec3) {
+    fromViewUp<Out extends QuatLike>(out: Out, view: Vec3Like) {
         const mat = mat3.fromViewUp(mat3.create(), view);
         return this.normalize(out, this.fromMat3(out, mat));
     },
 
-    fromAxisAngle(out: Quat, axis: Readonly<Vec3>, rad: number) {
+    fromAxisAngle<Out extends QuatLike>(out: Out, axis: Readonly<Vec3Like>, rad: number) {
         rad *= 0.5;
         const s = Math.sin(rad);
         out[0] = s * axis[0];
@@ -138,7 +142,7 @@ export default {
         return out;
     },
 
-    multiply(out: Quat, a: Readonly<Quat>, b: Readonly<Quat>) {
+    multiply<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>, b: Readonly<QuatLike>) {
         const x = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1];
         const y = a[1] * b[3] + a[3] * b[1] + a[2] * b[0] - a[0] * b[2];
         const z = a[2] * b[3] + a[3] * b[2] + a[0] * b[1] - a[1] * b[0];
@@ -150,7 +154,7 @@ export default {
         return out;
     },
 
-    invert(out: Quat, a: Readonly<Quat>) {
+    invert<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>) {
         const dot = a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
         const invDot = dot ? 1.0 / dot : 0;
 
@@ -163,7 +167,7 @@ export default {
         return out;
     },
 
-    conjugate(out: Quat, a: Readonly<Quat>) {
+    conjugate<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>) {
         out[0] = -a[0];
         out[1] = -a[1];
         out[2] = -a[2];
@@ -171,7 +175,7 @@ export default {
         return out;
     },
 
-    normalize(out: Quat, a: Readonly<Quat>) {
+    normalize<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>) {
         let len = a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
         if (len > 0) {
             len = 1 / Math.sqrt(len);
@@ -186,7 +190,7 @@ export default {
     /**
      * Sets the out quaternion with the shortest path orientation between two vectors, considering both vectors normalized
      */
-    rotationTo(out: Quat, a: Readonly<Vec3>, b: Readonly<Vec3>) {
+    rotationTo<Out extends QuatLike>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
         const v3_1 = vec3.create();
 
         const dot = vec3.dot(a, b);
@@ -214,7 +218,7 @@ export default {
         }
     },
 
-    rotateX(out: Quat, a: Readonly<Quat>, rad: number) {
+    rotateX<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>, rad: number) {
         rad *= 0.5;
 
         const bx = Math.sin(rad);
@@ -228,7 +232,7 @@ export default {
         return out;
     },
 
-    rotateY(out: Quat, a: Readonly<Quat>, rad: number) {
+    rotateY<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>, rad: number) {
         rad *= 0.5;
 
         const by = Math.sin(rad);
@@ -242,7 +246,7 @@ export default {
         return out;
     },
 
-    lerp(out: Quat, a: Readonly<Quat>, b: Readonly<Quat>, t: number) {
+    lerp<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>, b: Readonly<QuatLike>, t: number) {
         out[0] = a[0] + t * (b[0] - a[0]);
         out[1] = a[1] + t * (b[1] - a[1]);
         out[2] = a[2] + t * (b[2] - a[2]);
@@ -250,7 +254,7 @@ export default {
         return out;
     },
 
-    slerp(out: Quat, a: Readonly<Quat>, b: Readonly<Quat>, t: number) {
+    slerp<Out extends QuatLike>(out: Out, a: Readonly<QuatLike>, b: Readonly<QuatLike>, t: number) {
         // benchmarks:
         //    http://jsperf.com/quaternion-slerp-implementations
 

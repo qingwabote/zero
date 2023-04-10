@@ -1,14 +1,21 @@
 //right-handed
 
 import mat3 from "./mat3.js";
-import quat, { Quat } from "./quat.js";
-import { Vec3 } from "./vec3.js";
+import quat, { QuatLike } from "./quat.js";
+import { Vec3Like } from "./vec3.js";
 
 function vec3_length(x: number, y: number, z: number) {
     return Math.sqrt(x * x + y * y + z * z);
 }
 
-export type Mat4 = {
+export type Mat4 = [
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number
+]
+
+export type Mat4Like = {
     0: number; 1: number; 2: number; 3: number;
     4: number; 5: number; 6: number; 7: number;
     8: number; 9: number; 10: number; 11: number;
@@ -40,7 +47,7 @@ export default {
         ]
     },
 
-    fromRTS(out: Mat4, r: Readonly<Quat>, t: Readonly<Vec3>, s: Readonly<Vec3>) {
+    fromRTS<Out extends Mat4Like>(out: Out, r: Readonly<QuatLike>, t: Readonly<Vec3Like>, s: Readonly<Vec3Like>) {
         const x = r[0]; const y = r[1]; const z = r[2]; const w = r[3];
         const x2 = x + x;
         const y2 = y + y;
@@ -79,7 +86,7 @@ export default {
         return out;
     },
 
-    toRTS(m: Mat4, q: Quat, v: Vec3, s: Vec3) {
+    toRTS<Out extends Mat4Like>(m: Out, q: QuatLike, v: Vec3Like, s: Vec3Like) {
         s[0] = vec3_length(m[0], m[1], m[2])
 
         const m3_1 = mat3.create();
@@ -147,7 +154,7 @@ export default {
         ]
     },
 
-    translate(out: Mat4, a: Mat4, v: Readonly<Vec3>): Mat4 {
+    translate<Out extends Mat4Like>(out: Out, a: Mat4Like, v: Readonly<Vec3Like>) {
         if (out != a) {
             out[0] = a[0];
             out[1] = a[1];
@@ -171,7 +178,7 @@ export default {
         return out;
     },
 
-    translate2(out: Mat4, a: Mat4, v: Readonly<Vec3>): Mat4 {
+    translate2<Out extends Mat4Like>(out: Out, a: Mat4Like, v: Readonly<Vec3Like>) {
         if (out != a) {
             out[0] = a[0];
             out[1] = a[1];
@@ -195,7 +202,7 @@ export default {
         return out;
     },
 
-    multiply(out: Mat4, a: Readonly<Mat4>, b: Readonly<Mat4>): Mat4 {
+    multiply<Out extends Mat4Like>(out: Out, a: Readonly<Mat4Like>, b: Readonly<Mat4Like>) {
         let [x, y, z, w] = [b[0], b[1], b[2], b[3]];
         out[0] = x * a[0] + y * a[4] + z * a[8] + w * a[12];
         out[1] = x * a[1] + y * a[5] + z * a[9] + w * a[13];
@@ -223,7 +230,7 @@ export default {
         return out;
     },
 
-    ortho(out: Mat4, left: number, right: number, bottom: number, top: number, near: number, far: number, minClipZ: number) {
+    ortho<Out extends Mat4Like>(out: Out, left: number, right: number, bottom: number, top: number, near: number, far: number, minClipZ: number) {
         var lr = 1 / (left - right);
         var bt = 1 / (bottom - top);
         var nf = 1 / (near - far);
@@ -246,7 +253,7 @@ export default {
         return out;
     },
 
-    perspective(out: Mat4, fov: number, aspect: number, near: number, far: number, minClipZ: number) {
+    perspective<Out extends Mat4Like>(out: Out, fov: number, aspect: number, near: number, far: number, minClipZ: number) {
         const isFOVY = true;
         const projectionSignY = 1;
         const orientation = 0;
@@ -277,7 +284,7 @@ export default {
         return out;
     },
 
-    invert(out: Mat4, a: Readonly<Mat4>) {
+    invert<Out extends Mat4Like>(out: Out, a: Readonly<Mat4Like>) {
         let a00 = a[0],
             a01 = a[1],
             a02 = a[2],
@@ -337,7 +344,7 @@ export default {
         return out;
     },
 
-    inverseTranspose(out: Mat4, a: Readonly<Mat4>): Mat4 {
+    inverseTranspose<Out extends Mat4Like>(out: Out, a: Readonly<Mat4Like>) {
         const a00 = a[0]; const a01 = a[1]; const a02 = a[2]; const a03 = a[3];
         const a10 = a[4]; const a11 = a[5]; const a12 = a[6]; const a13 = a[7];
         const a20 = a[8]; const a21 = a[9]; const a22 = a[10]; const a23 = a[11];

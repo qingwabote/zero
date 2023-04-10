@@ -1,7 +1,7 @@
 import { ClearFlagBit } from "../gfx/Pipeline.js";
-import { Mat4 } from "../math/mat4.js";
+import { Mat4Like } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
-import { Vec3 } from "../math/vec3.js";
+import { Vec3Like } from "../math/vec3.js";
 import FrameChangeRecord from "./FrameChangeRecord.js";
 import Transform from "./Transform.js";
 
@@ -23,25 +23,25 @@ export default class Camera extends FrameChangeRecord {
 
     viewport: Rect = { x: 0, y: 0, width: 0, height: 0 };
 
-    private _matView!: Mat4;
-    get matView(): Mat4 {
+    private _matView!: Mat4Like;
+    get matView(): Mat4Like {
         return this._matView;
     }
-    set matView(value: Mat4) {
+    set matView(value: Mat4Like) {
         this._matView = value;
         this.hasChanged = 1;
     }
 
-    private _matProj!: Mat4;
-    get matProj(): Mat4 {
+    private _matProj!: Mat4Like;
+    get matProj(): Mat4Like {
         return this._matProj;
     }
-    set matProj(value: Mat4) {
+    set matProj(value: Mat4Like) {
         this._matProj = value;
         this.hasChanged = 1;
     }
 
-    get position(): Readonly<Vec3> {
+    get position(): Readonly<Vec3Like> {
         return this._transform.world_position;
     }
 
