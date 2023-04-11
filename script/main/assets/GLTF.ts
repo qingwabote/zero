@@ -17,7 +17,7 @@ import Node from "../core/Node.js";
 import Pass from "../core/scene/Pass.js";
 import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
-import PhaseFlag from "../render/PhaseFlag.js";
+import PassFlag from "../render/PassFlag.js";
 import Animation, { Channel } from "./Animation.js";
 import Material from "./Material.js";
 import Mesh, { SubMesh, VertexAttribute } from "./Mesh.js";
@@ -84,7 +84,7 @@ export default class GLTF extends Asset {
 
     private _default_material!: Material;
 
-    private _materials: Material[] = [];
+    materials: Material[] = [];
 
     private _skins: Skin[] = [];
 
@@ -112,7 +112,7 @@ export default class GLTF extends Asset {
             if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
                 textureIdx = json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
             }
-            this._materials.push(await this.createMaterial({ USE_SHADOW_MAP, USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
+            this.materials.push(await this.createMaterial({ USE_SHADOW_MAP, USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
         }
         this._textures = textures;
 
@@ -217,7 +217,7 @@ export default class GLTF extends Asset {
                     PrimitiveTopology.TRIANGLE_LIST,
                     { cullMode: CullMode.FRONT }
                 ),
-                PhaseFlag.SHADOWMAP
+                PassFlag.SHADOWMAP
             );
             shadowMapPass.initialize();
             passes.push(shadowMapPass);
@@ -234,7 +234,7 @@ export default class GLTF extends Asset {
         const phongPass = new Pass(new PassState(phongShader));
         phongPass.initialize()
         if (texture) {
-            phongPass.setTexture('albedoMap', texture.gfx_texture)
+            phongPass.setTexture('albedoMap', texture.impl)
         }
         phongPass.setUniform('Material', 'albedo', albedo)
         passes.push(phongPass);
@@ -285,7 +285,7 @@ export default class GLTF extends Asset {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
         for (const primitive of info.primitives) {
-            let material = primitive.material == undefined ? this._default_material : this._materials[primitive.material];
+            let material = primitive.material == undefined ? this._default_material : this.materials[primitive.material];
             if (materialInstancing) {
                 material = new MaterialInstance(material);
             }

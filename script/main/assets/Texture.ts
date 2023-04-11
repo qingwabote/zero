@@ -8,9 +8,9 @@ let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
 export default class Texture extends Asset {
-    private _gfx_texture!: GFX_Texture;
-    get gfx_texture() {
-        return this._gfx_texture;
+    private _impl!: GFX_Texture;
+    get impl() {
+        return this._impl;
     }
 
     async load(url: string): Promise<this> {
@@ -37,7 +37,7 @@ export default class Texture extends Asset {
         gfx.queue.submit({ commandBuffer: _commandBuffer }, _fence);
         gfx.queue.waitFence(_fence);
 
-        this._gfx_texture = texture;
+        this._impl = texture;
         return this;
     }
     private onProgress(loaded: number, total: number, url: string) {

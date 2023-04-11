@@ -4,7 +4,7 @@ import { TextureUsageBit } from "../../core/gfx/Texture.js";
 import Stage from "../../core/render/Stage.js";
 import Uniform from "../../core/render/Uniform.js";
 import VisibilityBit from "../../VisibilityBit.js";
-import PhaseFlag from "../PhaseFlag.js";
+import PassFlag from "../PassFlag.js";
 import ModelPhase from "../phases/ModelPhase.js";
 import ShadowMapUniform from "../uniforms/ShadowMapUniform.js";
 import ShadowUniform from "../uniforms/ShadowUniform.js";
@@ -37,7 +37,7 @@ export default class ShadowStage extends Stage {
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
 
-        super([new ModelPhase(PhaseFlag.SHADOWMAP, visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
+        super([new ModelPhase(PassFlag.SHADOWMAP, visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
     }
 
     getRequestedUniforms(): (new () => Uniform)[] {

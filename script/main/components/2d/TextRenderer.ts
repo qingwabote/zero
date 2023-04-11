@@ -103,7 +103,7 @@ export default class TextRenderer extends BoundedRenderer {
 
         const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }));
         pass.initialize()
-        pass.setTexture('albedoMap', this._fnt.texture.gfx_texture)
+        pass.setTexture('albedoMap', this._fnt.texture.impl)
         const subModel: SubModel = new SubModel([], [pass]);
         const model = new Model(this.node, [subModel]);
         zero.scene.models.push(model);
@@ -164,7 +164,7 @@ export default class TextRenderer extends BoundedRenderer {
         reallocated = this._positionBuffer.reset(3 * 4 * this._text.length) || reallocated;
         reallocated = this._indexBuffer.reset(indexCount) || reallocated;
 
-        const tex = this._fnt.texture.gfx_texture.info;
+        const tex = this._fnt.texture.impl.info;
         let [x, y, l, r, t, b, i] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
         while (i < this._text.length) {
             const code = this._text.charCodeAt(i);
