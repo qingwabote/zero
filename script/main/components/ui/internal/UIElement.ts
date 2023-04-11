@@ -14,7 +14,7 @@ type Listener = (event: any) => void;
 export class UITouch {
     world = vec2.create();
     local = vec2.create();
-    constructor(world: Vec2, local: Vec2) {
+    constructor(world: Readonly<Vec2>, local: Readonly<Vec2>) {
         vec2.set(this.world, ...world)
         vec2.set(this.local, ...local)
     }

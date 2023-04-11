@@ -7,8 +7,8 @@ export default class PassInstance extends Pass {
 
     constructor(raw: Pass) {
         super(raw.state, raw.flag);
-        for (const name in raw.textures) {
-            this.setTexture(name, ...raw.textures[name]);
+        for (const name in raw.samplerTextures) {
+            this.setTexture(name, ...raw.samplerTextures[name]);
         }
         this._raw = raw;
     }
@@ -16,15 +16,15 @@ export default class PassInstance extends Pass {
     setUniform(name: string, member: string, value: ArrayLike<number>): void {
         if (!this._overrides[name]) {
             const block = this.state.shader.info.meta.blocks[name];
-            const view = super.createUniform(name);
-            view.set(this._raw.uniforms[name].data);
+            const view = super.createUniformBuffer(name);
+            view.set(this._raw.uniformBuffers[name].data);
             this._descriptorSet?.bindBuffer(block.binding, view.buffer);
-            this._uniforms[name] = view;
+            this._uniformBuffers[name] = view;
         }
         super.setUniform(name, member, value);
     }
 
-    protected override createUniform(name: string): BufferView {
-        return this._raw.uniforms[name];
+    protected override createUniformBuffer(name: string): BufferView {
+        return this._raw.uniformBuffers[name];
     }
 }

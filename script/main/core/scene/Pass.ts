@@ -33,14 +33,14 @@ export default class Pass {
         return this._flag;
     }
 
-    protected _uniforms: Record<string, BufferView> = {};
-    get uniforms(): Readonly<Record<string, BufferView>> {
-        return this._uniforms;
+    protected _uniformBuffers: Record<string, BufferView> = {};
+    get uniformBuffers(): Readonly<Record<string, BufferView>> {
+        return this._uniformBuffers;
     }
 
-    private _textures: Record<string, [Texture, Sampler]> = {};
-    public get textures(): Readonly<Record<string, [Texture, Sampler]>> {
-        return this._textures;
+    private _samplerTextures: Record<string, [Texture, Sampler]> = {};
+    public get samplerTextures(): Readonly<Record<string, [Texture, Sampler]>> {
+        return this._samplerTextures;
     }
 
     constructor(private _state: PassState, private _flag = 0) { }
@@ -57,9 +57,9 @@ export default class Pass {
                 if (block.set != ShaderLib.sets.material.index) {
                     continue;
                 }
-                const view = this.createUniform(name);
+                const view = this.createUniformBuffer(name);
                 descriptorSet.bindBuffer(block.binding, view.buffer);
-                this._uniforms[name] = view;
+                this._uniformBuffers[name] = view;
             }
             this._descriptorSet = descriptorSet;
         }
@@ -74,23 +74,23 @@ export default class Pass {
             }
             offset += type2Length(mem.type);
         }
-        let view = this._uniforms[name]
+        let view = this._uniformBuffers[name]
         view.set(value, offset);
     }
 
     setTexture(name: string, texture: Texture, sampler: Sampler = samplers.get()): void {
         const binding = this._state.shader.info.meta.samplerTextures[name].binding;
         this._descriptorSet?.bindTexture(binding, texture, sampler);
-        this._textures[name] = [texture, sampler];
+        this._samplerTextures[name] = [texture, sampler];
     }
 
     update() {
-        for (const name in this._uniforms) {
-            this._uniforms[name].update();
+        for (const name in this._uniformBuffers) {
+            this._uniformBuffers[name].update();
         }
     }
 
-    protected createUniform(name: string): BufferView {
+    protected createUniformBuffer(name: string): BufferView {
         const block = this._state.shader.info.meta.blocks[name];
         let length = block.members!.reduce((acc, mem) => acc + type2Length(mem.type), 0);
         return new BufferView('Float32', BufferUsageFlagBits.UNIFORM, length);

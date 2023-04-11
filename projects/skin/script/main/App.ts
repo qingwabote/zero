@@ -40,19 +40,19 @@ export default class App extends Zero {
         node.euler = vec3.create(-30, -80, 0)
 
         const joint1 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001'])!;
-        const joint1_rotation = Object.assign(quat.create(), joint1.rotation);
+        const joint1_rotation = quat.create(...joint1.rotation)
 
         const joint2 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001', 'Bone.002'])!;
-        const joint2_rotation = Object.assign(quat.create(), joint2.rotation);
+        const joint2_rotation = quat.create(...joint2.rotation)
 
         const joint5 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001', 'Bone.002', 'Bone.005'])!;
-        const joint5_rotation = Object.assign(quat.create(), joint5.rotation);
+        const joint5_rotation = quat.create(...joint5.rotation)
 
         const joint3 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.003'])!;
-        const joint3_rotation = Object.assign(quat.create(), joint3.rotation);
+        const joint3_rotation = quat.create(...joint3.rotation)
 
         const joint4 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.003'])!;
-        const joint4_rotation = Object.assign(quat.create(), joint4.rotation);
+        const joint4_rotation = quat.create(...joint4.rotation)
 
         let frames = 0
         this.setInterval(() => {

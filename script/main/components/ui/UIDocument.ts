@@ -8,7 +8,6 @@ import Camera from "../Camera.js";
 import UIElement, { UITouch, UITouchEvent, UITouchEventType } from "./internal/UIElement.js";
 import UIContainer from "./UIContainer.js";
 
-const vec2_a = vec2.create();
 const mat4_a = mat4.create();
 
 export default class UIDocument extends Component {
@@ -17,9 +16,14 @@ export default class UIDocument extends Component {
         return node.addComponent(UIDocument);
     }
 
+    private _touchClaimed: Map<UIElement, UIElement> = new Map;
+
     constructor(node: Node) {
         super(node);
-        zero.input.on(InputEvent.TOUCH_START, event => this.touchHandler(event.touches[0], UITouchEventType.TOUCH_START));
+        zero.input.on(InputEvent.TOUCH_START, event => {
+            this._touchClaimed.clear();
+            this.touchHandler(event.touches[0], UITouchEventType.TOUCH_START);
+        });
         zero.input.on(InputEvent.TOUCH_MOVE, event => this.touchHandler(event.touches[0], UITouchEventType.TOUCH_MOVE));
         zero.input.on(InputEvent.TOUCH_END, event => this.touchHandler(event.touches[0], UITouchEventType.TOUCH_END));
     }
@@ -32,8 +36,7 @@ export default class UIDocument extends Component {
         const cameras = Camera.instances;
         const world_positions: Vec2[] = [];
         for (let i = 0; i < cameras.length; i++) {
-            const camera = cameras[i];
-            world_positions[i] = camera.screenToWorld(vec2.create(), touch.x, touch.y);
+            world_positions[i] = cameras[i].screenToWorld(vec2.create(), touch.x, touch.y);
         }
         const children = this.node.children;
         for (let i = children.length - 1; i > -1; i--) {
@@ -43,7 +46,7 @@ export default class UIDocument extends Component {
         }
     }
 
-    private touchWalk(node: Node, cameras: readonly Camera[], world_positions: readonly Vec2[], event: UITouchEventType) {
+    private touchWalk(node: Node, cameras: readonly Camera[], world_positions: readonly Readonly<Vec2>[], event: UITouchEventType) {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (!(node.visibilityFlag & camera.visibilityFlags)) {
@@ -53,16 +56,21 @@ export default class UIDocument extends Component {
             if (!element) {
                 continue;
             }
+            if (event != UITouchEventType.TOUCH_START) {
+                if (!this._touchClaimed.has(element)) {
+                    continue;
+                }
+            }
+
             const world_position = world_positions[i];
             mat4.invert(mat4_a, node.world_matrix);
-            vec2.transformMat4(vec2_a, world_position, mat4_a);
-            const aabb = element.getBounds();
-            if (!rect.contains(aabb, vec2_a)) {
+            const local_position: Readonly<Vec2> = vec2.transformMat4(vec2.create(), world_position, mat4_a);
+            if (!rect.contains(element.getBounds(), local_position)) {
                 continue;
             }
             // capture
             // if (element.has(event)) {
-            //     element.emit(event, new UITouchEvent(new UITouch(world_position, vec2_a)));
+            //     element.emit(event, new UITouchEvent(new UITouch(world_position, local_position)));
             // }
             if (element instanceof UIContainer) {
                 const children = node.children;
@@ -70,7 +78,10 @@ export default class UIDocument extends Component {
                     if (this.touchWalk(children[j], cameras, world_positions, event)) {
                         // bubbling
                         if (element.has(event)) {
-                            element.emit(event, new UITouchEvent(new UITouch(world_position, vec2_a)));
+                            element.emit(event, new UITouchEvent(new UITouch(world_position, local_position)));
+                        }
+                        if (event == UITouchEventType.TOUCH_START) {
+                            this._touchClaimed.set(element, element);
                         }
                         return true;
                     }
@@ -78,7 +89,10 @@ export default class UIDocument extends Component {
             }
             // target
             if (element.has(event)) {
-                element.emit(event, new UITouchEvent(new UITouch(world_position, vec2_a)));
+                element.emit(event, new UITouchEvent(new UITouch(world_position, local_position)));
+            }
+            if (event == UITouchEventType.TOUCH_START) {
+                this._touchClaimed.set(element, element);
             }
             return true;
         }
