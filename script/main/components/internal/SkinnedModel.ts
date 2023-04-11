@@ -1,6 +1,6 @@
 import Skin from "../../assets/Skin.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import mat4, { Mat4Like } from "../../core/math/mat4.js";
+import mat4 from "../../core/math/mat4.js";
 import BufferView from "../../core/scene/buffers/BufferView.js";
 import FrameChangeRecord from "../../core/scene/FrameChangeRecord.js";
 import Model from "../../core/scene/Model.js";
@@ -9,7 +9,7 @@ import Transform from "../../core/scene/Transform.js";
 import ShaderLib from "../../core/ShaderLib.js";
 
 class ModelSpaceTransform extends FrameChangeRecord {
-    matrix: Mat4Like = mat4.create();
+    matrix = mat4.create();
 }
 
 const mat4_a = mat4.create();
@@ -53,7 +53,7 @@ export default class SkinnedModel extends Model {
         }
         const parent = joint.parent!;
         if (parent == this._transform) {
-            Object.assign(modelSpace.matrix, joint.matrix);
+            modelSpace.matrix.splice(0, joint.matrix.length, ...joint.matrix)
         } else {
             this.updateModelSpace(parent);
             mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent)!.matrix, joint.matrix)

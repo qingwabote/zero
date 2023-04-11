@@ -5,10 +5,10 @@ import { Rect } from "../core/math/rect.js";
 import vec2, { Vec2Like } from "../core/math/vec2.js";
 import vec3, { Vec3Like } from "../core/math/vec3.js";
 import { default as render_Camera } from "../core/scene/Camera.js";
+import { TransformEvent } from "../core/scene/Transform.js";
 import VisibilityBit from "../VisibilityBit.js";
 
 const vec2_a = vec2.create();
-const vec3_a = vec3.create();
 
 enum DirtyFlag {
     NONE = 0,
@@ -46,7 +46,7 @@ export default class Camera extends Component {
     private _camera!: render_Camera;
 
     override start(): void {
-        this.node.eventEmitter.on("TRANSFORM_CHANGED", () => this._matViewFlags = DirtyFlag.DIRTY);
+        this.node.on(TransformEvent.TRANSFORM_CHANGED, () => this._matViewFlags = DirtyFlag.DIRTY);
 
         const camera = new render_Camera(this.node);
         camera.visibilityFlags = this.visibilityFlags;

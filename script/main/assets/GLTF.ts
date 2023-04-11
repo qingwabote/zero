@@ -10,8 +10,6 @@ import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
 import { CullMode, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4Like } from "../core/math/mat4.js";
-import { QuatLike } from "../core/math/quat.js";
-import { Vec3Like } from "../core/math/vec3.js";
 import vec4, { Vec4Like } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
 import Pass from "../core/scene/Pass.js";
@@ -249,7 +247,7 @@ export default class GLTF extends Asset {
             root = node;
         }
         if (info.matrix) {
-            mat4.toRTS(info.matrix, node.rotation as QuatLike, node.position as Vec3Like, node.scale as Vec3Like);
+            mat4.toTRS(info.matrix, node.position, node.rotation, node.scale);
         } else {
             if (info.translation) {
                 node.position = info.translation;

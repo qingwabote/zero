@@ -47,7 +47,7 @@ export default {
         ]
     },
 
-    fromRTS<Out extends Mat4Like>(out: Out, r: Readonly<QuatLike>, t: Readonly<Vec3Like>, s: Readonly<Vec3Like>) {
+    fromTRS<Out extends Mat4Like>(out: Out, r: Readonly<QuatLike>, t: Readonly<Vec3Like>, s: Readonly<Vec3Like>) {
         const x = r[0]; const y = r[1]; const z = r[2]; const w = r[3];
         const x2 = x + x;
         const y2 = y + y;
@@ -86,7 +86,7 @@ export default {
         return out;
     },
 
-    toRTS<Out extends Mat4Like>(m: Out, q: QuatLike, v: Vec3Like, s: Vec3Like) {
+    toTRS<Out extends Mat4Like>(m: Out, v: Vec3Like, q: QuatLike, s: Vec3Like) {
         s[0] = vec3_length(m[0], m[1], m[2])
 
         const m3_1 = mat3.create();

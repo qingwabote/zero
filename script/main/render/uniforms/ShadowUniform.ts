@@ -46,7 +46,7 @@ export default class ShadowUniform implements Uniform {
 
         if (light.hasChanged) {
             const rotation = quat.rotationTo(quat.create(), vec3.FORWARD, vec3.normalize(vec3.create(), vec3.negate(vec3.create(), light.position)));
-            const model = mat4.fromRTS(mat4.create(), rotation, light.position, vec3.create(1, 1, 1));
+            const model = mat4.fromTRS(mat4.create(), rotation, light.position, vec3.create(1, 1, 1));
             this._buffer.set(mat4.invert(mat4.create(), model), ShadowBlock.members.view.offset);
 
             const camera = ShadowUniform.camera;
