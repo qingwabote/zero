@@ -7,10 +7,10 @@ import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import Asset from "../../../../script/main/core/Asset.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
-import Flow from "../../../../script/main/core/pipeline/Flow.js";
+import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import ForwardStage from "../../../../script/main/pipeline/stages/ForwardStage.js";
+import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
+import ForwardStage from "../../../../script/main/render/stages/ForwardStage.js";
 import VisibilityBit from "../../../../script/main/VisibilityBit.js";
 
 export default class App extends Zero {
@@ -29,7 +29,7 @@ export default class App extends Zero {
 
         const sprite = UIRenderer.create(SpriteRenderer)
         sprite.node.visibilityFlag = VisibilityBit.DEFAULT;
-        sprite.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).gfx_texture;
+        sprite.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
         doc.addElement(sprite);
 
         node = new Node;

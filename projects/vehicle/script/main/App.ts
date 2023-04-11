@@ -45,7 +45,7 @@ export default class App extends Zero {
 
         const ground_size = vec3.create(30, 0.2, 30);
 
-        const ground = primitive.createScene("Cube")!;
+        const ground = primitive.createScene("Cube")!.children[0];
         ground.visibilityFlag = VisibilityBit.DEFAULT;
         let shape = ground.addComponent(BoxShape);
         let aabb = ground.getComponent(MeshRenderer)!.bounds;
@@ -68,10 +68,10 @@ export default class App extends Zero {
                 const box_y = box_bottom + box_size / 2;
                 const box_z = wall_pos[2];
 
-                const box = primitive.createScene("Cube", true)!;
+                const box = primitive.createScene("Cube", true)!.children[0];
                 box.visibilityFlag = VisibilityBit.DEFAULT;
                 let meshRenderer = box.getComponent(MeshRenderer)!
-                meshRenderer.materials[0].passes[0].setUniform('Material', 'albedo', vec4.create(0, 0, 1, 1));
+                meshRenderer.materials[0].passes[0].setUniform('Constants', 'albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
                 shape.body.mass = 0.1;
                 aabb = meshRenderer.bounds;

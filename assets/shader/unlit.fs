@@ -6,12 +6,16 @@ layout(location = 0) in vec2 v_uv;
     layout(set = 2, binding = 0) uniform sampler2D albedoMap;
 #endif
 
+layout(set = 2, binding = 1) uniform Constants  {
+    vec4 albedo;
+} constants;
+
 layout(location = 0) out vec4 v_color;
 
 void main() {
-    vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 albedo = constants.albedo;
     #if USE_ALBEDO_MAP
-        baseColor *= texture(albedoMap, v_uv);
+        albedo *= texture(albedoMap, v_uv);
     #endif
-    v_color = baseColor;
+    v_color = albedo;
 }

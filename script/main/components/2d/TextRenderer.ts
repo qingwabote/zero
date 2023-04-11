@@ -8,6 +8,7 @@ import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescripti
 import { CullMode, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import vec2 from "../../core/math/vec2.js";
+import vec4 from "../../core/math/vec4.js";
 import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";
 import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
@@ -18,7 +19,7 @@ import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-ShaderLib.preloaded.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
+ShaderLib.preloaded.push({ name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } });
 Asset.preloaded.push({ path: '../../assets/fnt/zero', type: FNT });
 
 enum DirtyFlagBits {
@@ -66,7 +67,7 @@ export default class TextRenderer extends BoundedRenderer {
     private _indexCount = 0;
 
     override start(): void {
-        const shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
+        const shader = ShaderLib.instance.getShader('unlit', { USE_ALBEDO_MAP: 1 });
 
         const attributes: VertexInputAttributeDescription[] = [];
         const bindings: VertexInputBindingDescription[] = [];
@@ -104,6 +105,7 @@ export default class TextRenderer extends BoundedRenderer {
         const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }));
         pass.initialize()
         pass.setTexture('albedoMap', this._fnt.texture.impl)
+        pass.setUniform('Constants', 'albedo', vec4.ONE)
         const subModel: SubModel = new SubModel([], [pass]);
         const model = new Model(this.node, [subModel]);
         zero.scene.models.push(model);

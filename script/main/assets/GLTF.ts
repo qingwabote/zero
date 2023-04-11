@@ -236,7 +236,7 @@ export default class GLTF extends Asset {
         if (texture) {
             phongPass.setTexture('albedoMap', texture.impl)
         }
-        phongPass.setUniform('Material', 'albedo', albedo)
+        phongPass.setUniform('Constants', 'albedo', albedo)
         passes.push(phongPass);
 
         return new Material(passes);

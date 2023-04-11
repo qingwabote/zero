@@ -1,7 +1,0 @@
-{
-    "scripts": {
-        "tsc": "tsc --watch",
-        "server": "http-server ../../../../../ -p 8003 -o projects/triangle/script/platforms/web/app.html -c-1",
-        "dev": "concurrently \"npm run tsc\" \"npm run server\""
-    }
-}

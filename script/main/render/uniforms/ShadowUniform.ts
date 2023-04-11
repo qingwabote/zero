@@ -26,6 +26,8 @@ const ShadowBlock = {
 const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(ShadowBlock);
 
 export default class ShadowUniform implements Uniform {
+    static readonly camera = { orthoHeight: 6, aspect: 1, near: 1, far: 16 };
+
     get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
         return descriptorSetLayoutBinding;
     }
@@ -46,7 +48,11 @@ export default class ShadowUniform implements Uniform {
             const rotation = quat.rotationTo(quat.create(), vec3.FORWARD, vec3.normalize(vec3.create(), vec3.negate(vec3.create(), light.position)));
             const model = mat4.fromRTS(mat4.create(), rotation, light.position, vec3.create(1, 1, 1));
             this._buffer.set(mat4.invert(mat4.create(), model), ShadowBlock.members.view.offset);
-            const lightProjection = mat4.ortho(mat4.create(), -4, 4, -4, 4, 1, 10, gfx.capabilities.clipSpaceMinZ);
+
+            const camera = ShadowUniform.camera;
+            const x = camera.orthoHeight * camera.aspect;
+            const y = camera.orthoHeight;
+            const lightProjection = mat4.ortho(mat4.create(), -x, x, -y, y, camera.near, camera.far, gfx.capabilities.clipSpaceMinZ);
             this._buffer.set(lightProjection, ShadowBlock.members.projection.offset);
             this._buffer.update();
         }

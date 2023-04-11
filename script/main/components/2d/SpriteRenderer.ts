@@ -6,6 +6,7 @@ import { Filter } from "../../core/gfx/Sampler.js";
 import Shader from "../../core/gfx/Shader.js";
 import Texture from "../../core/gfx/Texture.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
+import vec4 from "../../core/math/vec4.js";
 import samplers from "../../core/samplers.js";
 import BufferView from "../../core/scene/buffers/BufferView.js";
 import Model from "../../core/scene/Model.js";
@@ -14,7 +15,7 @@ import SubModel from "../../core/scene/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
-ShaderLib.preloaded.push({ name: 'zero', macros: { USE_ALBEDO_MAP: 1 } });
+ShaderLib.preloaded.push({ name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } });
 
 export default class SpriteRenderer extends BoundedRenderer {
     private _bounds = aabb2d.create();
@@ -39,7 +40,7 @@ export default class SpriteRenderer extends BoundedRenderer {
     private _model!: Model;
 
     override start(): void {
-        const shader: Shader = ShaderLib.instance.getShader('zero', { USE_ALBEDO_MAP: 1 });
+        const shader: Shader = ShaderLib.instance.getShader('unlit', { USE_ALBEDO_MAP: 1 });
 
         const attributes: VertexInputAttributeDescription[] = [];
         const bindings: VertexInputBindingDescription[] = [];
@@ -133,7 +134,8 @@ export default class SpriteRenderer extends BoundedRenderer {
         })
 
         const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }))
-        pass.initialize()
+        pass.initialize();
+        pass.setUniform('Constants', 'albedo', vec4.ONE)
         pass.setTexture('albedoMap', this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = new SubModel([inputAssembler], [pass], indexBuffer.length);
         const model = new Model(this.node, [subModel]);
