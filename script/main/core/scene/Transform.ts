@@ -222,17 +222,21 @@ export default class Transform extends FrameChangeRecord implements TRS, EventEm
         if (!this._parent) {
             mat4.fromTRS(this._matrix, this._rotation, this._position, this._scale);
             this._world_matrix.splice(0, this._matrix.length, ...this._matrix);
-            this._world_rotation.splice(0, this._rotation.length, ...this._rotation);
+
             this._world_position.splice(0, this._position.length, ...this._position);
+            this._world_rotation.splice(0, this._rotation.length, ...this._rotation);
             this._world_scale.splice(0, this._scale.length, ...this._scale);
+
             this._changed = TransformBit.NONE;
             return;
         }
 
         mat4.fromTRS(this._matrix, this._rotation, this._position, this._scale);
         mat4.multiply(this._world_matrix, this._parent.world_matrix, this._matrix);
-        quat.multiply(this._world_rotation, this._parent.world_rotation, this._rotation);
+
         vec3.transformMat4(this._world_position, vec3.ZERO, this._world_matrix);
+
+        quat.multiply(this._world_rotation, this._parent.world_rotation, this._rotation);
 
         quat.conjugate(quat_a, this._world_rotation);
         mat3.fromQuat(mat3_a, quat_a);
