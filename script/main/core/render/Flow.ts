@@ -10,15 +10,7 @@ import Stage from "./Stage.js";
 import Uniform from "./Uniform.js";
 
 export default class Flow {
-    private _framebuffer: Framebuffer;
-    get framebuffer(): Framebuffer {
-        return this._framebuffer;
-    }
-
-    private _stages: Stage[];
-    get stages(): Stage[] {
-        return this._stages;
-    }
+    readonly framebuffer: Framebuffer;
 
     private _drawCalls: number = 0;
     get drawCalls() {
@@ -33,10 +25,10 @@ export default class Flow {
 
     private _clearFlag2renderPass: Record<string, RenderPass> = {};
 
-    constructor(stages: Stage[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
+    constructor(readonly stages: readonly Stage[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
         const uniforms: Set<new () => Uniform> = new Set;
         for (const stage of stages) {
-            for (const uniform of stage.getRequestedUniforms()) {
+            for (const uniform of stage.uniforms) {
                 uniforms.add(uniform);
             }
         }
@@ -53,8 +45,6 @@ export default class Flow {
 
         const descriptorSet = gfx.createDescriptorSet();
         descriptorSet.initialize(descriptorSetLayout);
-
-        this._stages = stages;
 
         const pipelineLayout = gfx.createPipelineLayout();
         pipelineLayout.initialize([descriptorSetLayout]);
@@ -91,7 +81,7 @@ export default class Flow {
             renderPass: this.getRenderPass(ClearFlagBit.COLOR, samples),
             width: zero.window.width, height: zero.window.height
         });
-        this._framebuffer = framebuffer;
+        this.framebuffer = framebuffer;
     }
 
     initialize() {
@@ -118,7 +108,7 @@ export default class Flow {
             const camera = renderScene.cameras[cameraIndex];
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.index, this.globalDescriptorSet,
                 [ShaderLib.sets.global.uniforms.Camera.size * cameraIndex]);
-            for (const stage of this._stages) {
+            for (const stage of this.stages) {
                 if ((camera.visibilityFlags & stage.visibility) == 0) {
                     continue;
                 }

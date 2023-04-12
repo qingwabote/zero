@@ -6,36 +6,27 @@ import Camera from "../scene/Camera.js";
 import Phase from "./Phase.js";
 import Uniform from "./Uniform.js";
 
-export default abstract class Stage {
-
+export default class Stage {
     readonly visibility: number;
 
-    protected _phases: Phase[];
-
-    private _framebuffer?: Framebuffer;
     get framebuffer(): Framebuffer {
         return this._framebuffer || zero.flow.framebuffer;
     }
-
-    private _renderPass?: RenderPass;
-
-    private _viewport?: Rect;
 
     private _drawCalls: number = 0;
     get drawCalls() {
         return this._drawCalls;
     }
 
-    constructor(phases: Phase[], framebuffer?: Framebuffer, renderPass?: RenderPass, viewport?: Rect) {
-        this.visibility = phases.reduce(function (val, phase) { return phase.visibility | val }, 0)
-        this._phases = phases;
-
-        this._framebuffer = framebuffer;
-        this._renderPass = renderPass;
-        this._viewport = viewport;
+    constructor(
+        readonly uniforms: readonly (new () => Uniform)[],
+        private _phases: Phase[],
+        private _framebuffer?: Framebuffer,
+        private _renderPass?: RenderPass,
+        private _viewport?: Rect
+    ) {
+        this.visibility = _phases.reduce(function (val, phase) { return phase.visibility | val }, 0)
     }
-
-    abstract getRequestedUniforms(): (new () => Uniform)[];
 
     record(commandBuffer: CommandBuffer, camera: Camera): void {
         const framebuffer = this.framebuffer;

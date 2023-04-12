@@ -5,7 +5,7 @@ import CameraControlPanel from "../../../../script/main/components/CameraControl
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import { ClearFlagBit, PassState, SampleCountFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
+import { ClearFlagBit, PassState } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
@@ -18,8 +18,7 @@ import ShaderLib from "../../../../script/main/core/ShaderLib.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import PassFlag from "../../../../script/main/render/PassFlag.js";
 import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
-import ForwardStage from "../../../../script/main/render/stages/ForwardStage.js";
-import ShadowStage from "../../../../script/main/render/stages/ShadowStage.js";
+import stageFactory from "../../../../script/main/render/stageFactory.js";
 import ShadowUniform from "../../../../script/main/render/uniforms/ShadowUniform.js";
 import VisibilityBit from "../../../../script/main/VisibilityBit.js";
 
@@ -33,13 +32,6 @@ const USE_SHADOW_MAP = 1;
 export default class App extends Zero {
     async start(): Promise<Flow> {
         const { width, height } = this.window;
-
-        const stages: Stage[] = [];
-        let shadowStage: ShadowStage;
-        if (USE_SHADOW_MAP) {
-            shadowStage = new ShadowStage(VisibilityBit_UP);
-            stages.push(shadowStage);
-        }
 
         const lit_position: Vec3 = [4, 4, 4];
 
@@ -140,11 +132,15 @@ export default class App extends Zero {
         node.euler = vec3.create(180, 0, 180)
         up_camera.node.addChild(node);
 
-        stages.push(new ForwardStage([
+        const stages: Stage[] = [];
+        if (USE_SHADOW_MAP) {
+            stages.push(stageFactory.shadow(VisibilityBit_UP));
+        }
+        stages.push(stageFactory.forward([
             new ModelPhase(PassFlag.DEFAULT, VisibilityBit.UI | VisibilityBit_UP),
             new ModelPhase(PassFlag_DOWN, VisibilityBit_DOWN)
         ]));
-        return new Flow(stages, SampleCountFlagBits.SAMPLE_COUNT_1);
+        return new Flow(stages);
     }
 }
 

@@ -8,10 +8,8 @@ import quat from "../../../../script/main/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
-import Stage from "../../../../script/main/core/render/Stage.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
-import ForwardStage from "../../../../script/main/render/stages/ForwardStage.js";
+import stageFactory from "../../../../script/main/render/stageFactory.js";
 import VisibilityBit from "../../../../script/main/VisibilityBit.js";
 
 export default class App extends Zero {
@@ -81,9 +79,7 @@ export default class App extends Zero {
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2 + 200, 0];
 
-        const stages: Stage[] = [];
-        stages.push(new ForwardStage([new ModelPhase]));
-        return new Flow(stages);
+        return new Flow([stageFactory.forward()]);
     }
 }
 

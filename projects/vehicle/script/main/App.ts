@@ -14,8 +14,7 @@ import vec4 from "../../../../script/main/core/math/vec4.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
-import ForwardStage from "../../../../script/main/render/stages/ForwardStage.js";
+import stageFactory from "../../../../script/main/render/stageFactory.js";
 import VisibilityBit from "../../../../script/main/VisibilityBit.js";
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
@@ -138,7 +137,7 @@ export default class App extends Zero {
         node.position = vec3.create(width / 2 - (bounds.x + bounds.width), -height / 2 - bounds.y, 0)
         doc.addElement(joystick);
 
-        return new Flow([new ForwardStage([new ModelPhase])])
+        return new Flow([stageFactory.forward()]);
     }
 }
 

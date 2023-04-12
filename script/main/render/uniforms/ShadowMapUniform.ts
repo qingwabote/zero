@@ -4,7 +4,7 @@ import { ShaderStageFlagBits } from "../../core/gfx/Shader.js";
 import Uniform from "../../core/render/Uniform.js";
 import samplers from "../../core/samplers.js";
 import ShaderLib from "../../core/ShaderLib.js";
-import ShadowStage from "../stages/ShadowStage.js";
+import ShadowUniform from "./ShadowUniform.js";
 
 const shadowMap = {
     type: DescriptorType.SAMPLER_TEXTURE,
@@ -20,7 +20,7 @@ export default class ShadowMapUniform implements Uniform {
     }
 
     initialize(): void {
-        const shadowStage = zero.flow.stages.find((stage) => { return stage instanceof ShadowStage }) as ShadowStage;
+        const shadowStage = zero.flow.stages.find((stage) => { return stage.uniforms.indexOf(ShadowUniform) != -1 })!;
         zero.flow.globalDescriptorSet.bindTexture(
             shadowMap.binding,
             shadowStage.framebuffer.info.depthStencilAttachment,
