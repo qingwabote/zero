@@ -29,16 +29,18 @@ export interface BufferInfo {
 export default interface Buffer {
     get info(): BufferInfo;
     initialize(info: BufferInfo): boolean;
-    update(buffer: ArrayBufferView): void;
+    update(buffer: ArrayBuffer, offset: number, length: number): void;
 }
 
 export class EmptyBuffer implements Buffer {
+    private _info!: BufferInfo;
     get info(): BufferInfo {
-        return { usage: 0, mem_usage: 0, size: 0 };
+        return this._info
     }
     initialize(info: BufferInfo): boolean {
+        this._info = info;
         return false;
     }
-    update(buffer: ArrayBufferView): void {
+    update(): void {
     }
 }

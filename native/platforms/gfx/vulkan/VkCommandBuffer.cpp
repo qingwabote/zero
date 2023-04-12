@@ -77,12 +77,14 @@ namespace binding
             vkBeginCommandBuffer(_impl->_commandBuffer, &info);
         }
 
-        void CommandBuffer::copyBuffer(const void *src, Buffer *dstBuffer, size_t size)
+        void CommandBuffer::copyBuffer(std::shared_ptr<v8::BackingStore> srcBuffer, Buffer *dstBuffer, size_t srcOffset, size_t length)
         {
-            VkBuffer buffer = _impl->createStagingBuffer(src, size);
+            auto start = reinterpret_cast<const uint8_t *>(srcBuffer->Data()) + srcOffset;
+
+            VkBuffer buffer = _impl->createStagingBuffer(start, length);
 
             VkBufferCopy copy = {};
-            copy.size = size;
+            copy.size = length;
             vkCmdCopyBuffer(_impl->_commandBuffer, buffer, dstBuffer->impl(), 1, &copy);
         }
 

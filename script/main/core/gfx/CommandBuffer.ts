@@ -10,7 +10,7 @@ import Texture from "./Texture.js";
 export default interface CommandBuffer {
     initialize(): boolean;
     begin(): void;
-    copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void;
+    copyBuffer(srcBuffer: ArrayBuffer, dstBuffer: Buffer, srcOffset: number, length: number): void;
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;
     beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect): void;
     bindPipeline(pipeline: Pipeline): void;
@@ -28,7 +28,7 @@ export class EmptyCommandBuffer implements CommandBuffer {
     }
     begin(): void {
     }
-    copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void {
+    copyBuffer(): void {
     }
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
     }

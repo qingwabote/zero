@@ -35,11 +35,10 @@ namespace binding
             return false;
         }
 
-        void Buffer::update(v8::Local<v8::ArrayBufferView> buffer)
+        void Buffer::update(v8::Local<v8::ArrayBuffer> buffer, size_t offset, size_t length)
         {
-            size_t size = sugar::v8::object_get(_info.Get(v8::Isolate::GetCurrent()), "size").As<v8::Number>()->Value();
-            auto start = reinterpret_cast<const uint8_t *>(buffer->Buffer()->Data()) + buffer->ByteOffset();
-            memcpy(_impl->_allocationInfo.pMappedData, start, size);
+            auto start = reinterpret_cast<const uint8_t *>(buffer->Data()) + offset;
+            memcpy(_impl->_allocationInfo.pMappedData, start, length);
         }
 
         Buffer::~Buffer()

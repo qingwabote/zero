@@ -44,7 +44,7 @@ export default class WebBuffer implements Buffer {
         return false;
     }
 
-    update(buffer: ArrayBufferView): void {
+    update(buffer: ArrayBuffer, offset: number, length: number): void {
         const gl = this._gl;
 
         const target = usage2target(this._info.usage);
@@ -52,7 +52,7 @@ export default class WebBuffer implements Buffer {
         gl.bindVertexArray(null);
 
         gl.bindBuffer(target, this._impl.deref());
-        gl.bufferSubData(target, 0, buffer);
+        gl.bufferSubData(target, 0, new DataView(buffer, offset, length));
 
         gl.bindBuffer(target, null);
     }

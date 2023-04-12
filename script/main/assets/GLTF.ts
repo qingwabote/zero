@@ -360,9 +360,7 @@ export default class GLTF extends Asset {
         let buffer = this._buffers[index];
         if (!this._buffers[index]) {
             const viewInfo = this._json.bufferViews[index];
-            const view = new DataView(this._bin!, viewInfo.byteOffset, viewInfo.byteLength)
             buffer = gfx.createBuffer();
-
             if (usage & BufferUsageFlagBits.VERTEX) {
                 buffer.initialize({
                     usage: usage | BufferUsageFlagBits.TRANSFER_DST,
@@ -379,7 +377,7 @@ export default class GLTF extends Asset {
                     _fence.initialize();
                 }
                 _commandBuffer.begin();
-                _commandBuffer.copyBuffer(view, buffer);
+                _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
                 _commandBuffer.end();
                 gfx.queue.submit({ commandBuffer: _commandBuffer }, _fence);
                 gfx.queue.waitFence(_fence);
@@ -390,7 +388,7 @@ export default class GLTF extends Asset {
                     stride: viewInfo.byteStride,
                     size: viewInfo.byteLength
                 });
-                buffer.update(view);
+                buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);
             }
 
             this._buffers[index] = buffer;

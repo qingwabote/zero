@@ -36,17 +36,16 @@ namespace binding::gfx
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
 
-                auto js_view = c_obj->retain(info[0]).As<v8::ArrayBufferView>();
-                auto backingStore = js_view->Buffer()->GetBackingStore();
-                auto offset = js_view->ByteOffset();
-                auto size = js_view->ByteLength();
+                auto js_buffer = c_obj->retain(info[0]).As<v8::ArrayBuffer>();
+                auto backingStore = js_buffer->GetBackingStore();
                 auto c_buffer = c_obj->retain<Buffer>(info[1]);
+                size_t srcOffset = info[2].As<v8::Number>()->Value();
+                size_t length = info[3].As<v8::Number>()->Value();
 
                 auto f = new auto(
                     [=]()
                     {
-                        auto src = reinterpret_cast<const uint8_t *>(backingStore->Data()) + offset;
-                        c_obj->copyBuffer(src, c_buffer, size);
+                        c_obj->copyBuffer(backingStore, c_buffer, srcOffset, length);
                     });
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });

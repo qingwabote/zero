@@ -73,8 +73,8 @@ export default class WebCommandBuffer implements CommandBuffer {
 
     begin(): void { }
 
-    copyBuffer(srcBuffer: ArrayBufferView, dstBuffer: Buffer): void {
-        dstBuffer.update(srcBuffer);
+    copyBuffer(srcBuffer: ArrayBuffer, dstBuffer: Buffer, srcOffset: number, length: number): void {
+        dstBuffer.update(srcBuffer, srcOffset, length);
     }
 
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {

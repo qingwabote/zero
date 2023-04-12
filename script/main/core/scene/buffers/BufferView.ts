@@ -78,11 +78,8 @@ export default class BufferView {
         if (!this._dirty) {
             return;
         }
-        let size;
-        if (length) {
-            size = length * this._source.BYTES_PER_ELEMENT
-        }
-        this._buffer.update(new DataView(this._source.buffer, this._source.byteOffset, size));
+        const size = length ? length * this._source.BYTES_PER_ELEMENT : this._source.buffer.byteLength;
+        this._buffer.update(this._source.buffer, this._source.byteOffset, size);
         this._dirty = false;
     }
 }
