@@ -1,6 +1,6 @@
 import SmartRef from "../../../main/base/SmartRef.js";
 import { SampleCountFlagBits } from "../../../main/core/gfx/Pipeline.js";
-import Texture, { TextureInfo, TextureUsageBit } from "../../../main/core/gfx/Texture.js";
+import Texture, { TextureInfo, TextureUsageBits } from "../../../main/core/gfx/Texture.js";
 
 export default class WebTexture implements Texture {
     private _gl: WebGL2RenderingContext;
@@ -27,8 +27,8 @@ export default class WebTexture implements Texture {
     initialize(info: TextureInfo): boolean {
         const gl = this._gl;
 
-        let format = gl.RGBA8;
-        if (info.usage & TextureUsageBit.DEPTH_STENCIL_ATTACHMENT) {
+        let format: GLenum = gl.RGBA8;
+        if (info.usage & TextureUsageBits.DEPTH_STENCIL_ATTACHMENT) {
             format = gl.DEPTH_COMPONENT32F
         }
 

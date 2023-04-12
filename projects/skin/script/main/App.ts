@@ -5,7 +5,7 @@ import DirectionalLight from "../../../../script/main/components/DirectionalLigh
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import Asset from "../../../../script/main/core/Asset.js";
-import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
+import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
@@ -13,7 +13,7 @@ import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import stageFactory from "../../../../script/main/render/stageFactory.js";
-import VisibilityBit from "../../../../script/main/VisibilityBit.js";
+import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 
 export default class App extends Zero {
     async start(): Promise<Flow> {
@@ -34,7 +34,7 @@ export default class App extends Zero {
 
         const skin = await Asset.cache.load('./assets/killer-whale/scene', GLTF);
         node = skin.createScene('Scene')!;
-        node.visibilityFlag = VisibilityBit.DEFAULT;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         node.position = vec3.create(0, -5, 0)
         node.euler = vec3.create(-30, -80, 0)
 
@@ -69,8 +69,8 @@ export default class App extends Zero {
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
-        ui_camera.visibilityFlags = VisibilityBit.UI;
-        ui_camera.clearFlags = ClearFlagBit.DEPTH;
+        ui_camera.visibilityFlags = VisibilityFlagBits.UI;
+        ui_camera.clearFlags = ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
@@ -78,12 +78,12 @@ export default class App extends Zero {
         const doc = (new Node).addComponent(UIDocument);
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2, 0];
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
         cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = main_camera;

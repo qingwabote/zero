@@ -5,7 +5,7 @@ import CameraControlPanel from "../../../../script/main/components/CameraControl
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import { ClearFlagBit, PassState } from "../../../../script/main/core/gfx/Pipeline.js";
+import { ClearFlagBits, PassState } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
@@ -16,11 +16,11 @@ import Stage from "../../../../script/main/core/render/Stage.js";
 import Pass from "../../../../script/main/core/scene/Pass.js";
 import ShaderLib from "../../../../script/main/core/ShaderLib.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import PassFlag from "../../../../script/main/render/PassFlag.js";
+import PassType from "../../../../script/main/render/PassType.js";
 import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/render/stageFactory.js";
 import ShadowUniform from "../../../../script/main/render/uniforms/ShadowUniform.js";
-import VisibilityBit from "../../../../script/main/VisibilityBit.js";
+import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 
 const PassFlag_DOWN: number = 3;
 
@@ -47,7 +47,7 @@ export default class App extends Zero {
         // cameras
         node = new Node;
         const up_camera = node.addComponent(Camera);
-        up_camera.visibilityFlags = VisibilityBit.DEFAULT | VisibilityBit_UP;
+        up_camera.visibilityFlags = VisibilityFlagBits.DEFAULT | VisibilityBit_UP;
         up_camera.fov = 45;
         up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
         node.position = [0, 0, 10];
@@ -55,7 +55,7 @@ export default class App extends Zero {
         const down_size = 400;
         node = new Node;
         const down_camera = node.addComponent(Camera);
-        down_camera.visibilityFlags = VisibilityBit.DEFAULT | VisibilityBit_DOWN;
+        down_camera.visibilityFlags = VisibilityFlagBits.DEFAULT | VisibilityBit_DOWN;
         down_camera.orthoHeight = ShadowUniform.camera.orthoHeight;
         down_camera.far = ShadowUniform.camera.far;
         down_camera.viewport = { x: 0, y: 0, width: down_size * ShadowUniform.camera.aspect, height: down_size };
@@ -65,8 +65,8 @@ export default class App extends Zero {
         // UI
         node = new Node;
         const cameraUI = node.addComponent(Camera);
-        cameraUI.visibilityFlags = VisibilityBit.UI;
-        cameraUI.clearFlags = ClearFlagBit.DEPTH;
+        cameraUI.visibilityFlags = VisibilityFlagBits.UI;
+        cameraUI.clearFlags = ClearFlagBits.DEPTH;
         cameraUI.orthoHeight = height / 2;
         cameraUI.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
@@ -74,12 +74,12 @@ export default class App extends Zero {
         const doc = (new Node).addComponent(UIDocument);
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2, 0];
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
         cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = up_camera;
@@ -114,13 +114,13 @@ export default class App extends Zero {
         node = guardian.createScene("Sketchfab_Scene")!;
         const ac = node.addComponent(AnimationController);
         ac.animations = guardian.animations
-        node.visibilityFlag = VisibilityBit.DEFAULT
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT
 
         const plane = new GLTF();
         await plane.load('./assets/plane', USE_SHADOW_MAP);
         await addUnlitPass(plane)
         node = plane.createScene("Scene")!;
-        node.visibilityFlag = VisibilityBit.DEFAULT
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT
         node.scale = [5, 5, 5];
 
         const gltf_camera = new GLTF();
@@ -137,7 +137,7 @@ export default class App extends Zero {
             stages.push(stageFactory.shadow(VisibilityBit_UP));
         }
         stages.push(stageFactory.forward([
-            new ModelPhase(PassFlag.DEFAULT, VisibilityBit.UI | VisibilityBit_UP),
+            new ModelPhase(PassType.DEFAULT, VisibilityFlagBits.UI | VisibilityBit_UP),
             new ModelPhase(PassFlag_DOWN, VisibilityBit_DOWN)
         ]));
         return new Flow(stages);

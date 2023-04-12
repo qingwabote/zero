@@ -15,7 +15,7 @@ import Node from "../core/Node.js";
 import Pass from "../core/scene/Pass.js";
 import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
-import PassFlag from "../render/PassFlag.js";
+import PassType from "../render/PassType.js";
 import Animation, { Channel } from "./Animation.js";
 import Material from "./Material.js";
 import Mesh, { SubMesh, VertexAttribute } from "./Mesh.js";
@@ -215,7 +215,7 @@ export default class GLTF extends Asset {
                     PrimitiveTopology.TRIANGLE_LIST,
                     { cullMode: CullMode.FRONT }
                 ),
-                PassFlag.SHADOWMAP
+                PassType.SHADOWMAP
             );
             shadowMapPass.initialize();
             passes.push(shadowMapPass);

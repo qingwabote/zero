@@ -3,14 +3,14 @@ import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
-import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
+import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import stageFactory from "../../../../script/main/render/stageFactory.js";
-import VisibilityBit from "../../../../script/main/VisibilityBit.js";
+import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 
 export default class App extends Zero {
     async start(): Promise<Flow> {
@@ -37,11 +37,11 @@ export default class App extends Zero {
         const primitive = new GLTF();
         await primitive.load('../../assets/models/primitive/scene');
         node = primitive.createScene("Cube")!;
-        node.visibilityFlag = VisibilityBit.DEFAULT;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         node.scale = [0.5, 0.5, 0.5];
 
         node = primitive.createScene("Cone")!;
-        node.visibilityFlag = VisibilityBit.DEFAULT;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         node.scale = [0.5, 0.5, 0.5];
         const moon = new Node;
         moon.addChild(node);
@@ -64,18 +64,18 @@ export default class App extends Zero {
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
-        ui_camera.visibilityFlags = VisibilityBit.UI;
-        ui_camera.clearFlags = ClearFlagBit.DEPTH;
+        ui_camera.visibilityFlags = VisibilityFlagBits.UI;
+        ui_camera.clearFlags = ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         node.addComponent(DebugDrawer);
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2 + 200, 0];
 

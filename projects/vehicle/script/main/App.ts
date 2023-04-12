@@ -7,7 +7,7 @@ import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import Asset from "../../../../script/main/core/Asset.js";
-import { ClearFlagBit } from "../../../../script/main/core/gfx/Pipeline.js";
+import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import vec4 from "../../../../script/main/core/math/vec4.js";
@@ -15,7 +15,7 @@ import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import stageFactory from "../../../../script/main/render/stageFactory.js";
-import VisibilityBit from "../../../../script/main/VisibilityBit.js";
+import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
@@ -45,7 +45,7 @@ export default class App extends Zero {
         const ground_size = vec3.create(30, 0.2, 30);
 
         const ground = primitive.createScene("Cube")!.children[0];
-        ground.visibilityFlag = VisibilityBit.DEFAULT;
+        ground.visibilityFlag = VisibilityFlagBits.DEFAULT;
         let shape = ground.addComponent(BoxShape);
         let aabb = ground.getComponent(MeshRenderer)!.bounds;
         shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
@@ -68,7 +68,7 @@ export default class App extends Zero {
                 const box_z = wall_pos[2];
 
                 const box = primitive.createScene("Cube", true)!.children[0];
-                box.visibilityFlag = VisibilityBit.DEFAULT;
+                box.visibilityFlag = VisibilityFlagBits.DEFAULT;
                 let meshRenderer = box.getComponent(MeshRenderer)!
                 meshRenderer.materials[0].passes[0].setUniform('Constants', 'albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
@@ -82,14 +82,14 @@ export default class App extends Zero {
 
         node = new Node();
         const vehicle = node.addComponent(Vehicle);
-        node.visibilityFlag = VisibilityBit.DEFAULT;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         node.position = [0, 3, 0];
 
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
-        ui_camera.visibilityFlags = VisibilityBit.UI;
-        ui_camera.clearFlags = ClearFlagBit.DEPTH;
+        ui_camera.visibilityFlags = VisibilityFlagBits.UI;
+        ui_camera.clearFlags = ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
@@ -97,19 +97,19 @@ export default class App extends Zero {
         const doc = (new Node).addComponent(UIDocument);
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2, 0];
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
         cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = main_camera;
         doc.addElement(cameraControlPanel);
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.UI;
+        node.visibilityFlag = VisibilityFlagBits.UI;
         const joystick = node.addComponent(Joystick);
         this.setInterval(() => {
             // const speed = vehicle.speedKmHour;

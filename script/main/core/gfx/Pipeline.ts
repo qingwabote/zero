@@ -24,7 +24,7 @@ export interface PipelineLayout {
     initialize(setLayouts: DescriptorSetLayout[]): boolean;
 }
 
-export enum ClearFlagBit {
+export enum ClearFlagBits {
     NONE = 0,
     COLOR = 0x1,
     DEPTH = 0x2

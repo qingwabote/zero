@@ -8,8 +8,8 @@ import Camera from "../../core/scene/Camera.js";
 import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
 import ShaderLib from "../../core/ShaderLib.js";
-import VisibilityBit from "../../VisibilityBit.js";
-import PassFlag from "../PassFlag.js";
+import VisibilityFlagBits from "../../VisibilityFlagBits.js";
+import PassType from "../PassType.js";
 
 const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
 
@@ -18,11 +18,8 @@ const pipelineLayoutCache: Record<string, PipelineLayout> = {};
 const pipelineCache: Record<string, Pipeline> = {};
 
 export default class ModelPhase extends Phase {
-    private _passFlag: PassFlag;
-
-    constructor(passFlag: PassFlag = PassFlag.DEFAULT, visibility: VisibilityBit = VisibilityBit.ALL) {
+    constructor(private _passType: PassType = PassType.DEFAULT, visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
         super(visibility);
-        this._passFlag = passFlag;
     }
 
     record(commandBuffer: CommandBuffer, camera: Camera, renderPass: RenderPass): void {
@@ -39,7 +36,7 @@ export default class ModelPhase extends Phase {
                 }
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
-                    if (pass.flag != this._passFlag) {
+                    if (pass.type != this._passType) {
                         continue;
                     }
                     const inputAssembler = subModel.inputAssemblers[i];

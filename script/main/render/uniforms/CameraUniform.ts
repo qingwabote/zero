@@ -1,17 +1,12 @@
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import { DescriptorSetLayoutBinding } from "../../core/gfx/DescriptorSetLayout.js";
 import Uniform from "../../core/render/Uniform.js";
 import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";
 import ShaderLib from "../../core/ShaderLib.js";
 
 const CameraBlock = ShaderLib.sets.global.uniforms.Camera;
 
-const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(CameraBlock);
-
 export default class CameraUniform implements Uniform {
-    get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
-        return descriptorSetLayoutBinding;
-    }
+    readonly definition = CameraBlock;
 
     private _buffer!: BufferViewResizable;
 

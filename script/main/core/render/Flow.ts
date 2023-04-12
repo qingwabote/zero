@@ -2,9 +2,9 @@ import CommandBuffer from "../gfx/CommandBuffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
 import { DescriptorSetLayoutBinding } from "../gfx/DescriptorSetLayout.js";
 import { Framebuffer } from "../gfx/Framebuffer.js";
-import { ClearFlagBit, PipelineLayout, SampleCountFlagBits } from "../gfx/Pipeline.js";
+import { ClearFlagBits, PipelineLayout, SampleCountFlagBits } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo } from "../gfx/RenderPass.js";
-import Texture, { TextureUsageBit } from "../gfx/Texture.js";
+import Texture, { TextureUsageBits } from "../gfx/Texture.js";
 import ShaderLib from "../ShaderLib.js";
 import Stage from "./Stage.js";
 import Uniform from "./Uniform.js";
@@ -36,7 +36,7 @@ export default class Flow {
         const descriptorSetLayoutBindings: DescriptorSetLayoutBinding[] = [];
         for (const uniform of uniforms) {
             const instance = new uniform;
-            descriptorSetLayoutBindings.push(instance.descriptorSetLayoutBinding)
+            descriptorSetLayoutBindings.push(ShaderLib.createDescriptorSetLayoutBinding(instance.definition))
             this._uniforms.push(instance);
         }
 
@@ -60,7 +60,7 @@ export default class Flow {
             const colorAttachment = gfx.createTexture();
             colorAttachment.initialize({
                 samples,
-                usage: TextureUsageBit.COLOR_ATTACHMENT | TextureUsageBit.TRANSIENT_ATTACHMENT,
+                usage: TextureUsageBits.COLOR_ATTACHMENT | TextureUsageBits.TRANSIENT_ATTACHMENT,
                 width: zero.window.width, height: zero.window.height
             })
             colorAttachments.push(colorAttachment);
@@ -70,7 +70,7 @@ export default class Flow {
         const depthStencilAttachment = gfx.createTexture();
         depthStencilAttachment.initialize({
             samples,
-            usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
+            usage: TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED,
             width: zero.window.width, height: zero.window.height
         });
         const framebuffer = gfx.createFramebuffer();
@@ -78,7 +78,7 @@ export default class Flow {
             colorAttachments,
             depthStencilAttachment,
             resolveAttachments,
-            renderPass: this.getRenderPass(ClearFlagBit.COLOR, samples),
+            renderPass: this.getRenderPass(ClearFlagBits.COLOR, samples),
             width: zero.window.width, height: zero.window.height
         });
         this.framebuffer = framebuffer;
@@ -118,7 +118,7 @@ export default class Flow {
         }
     }
 
-    getRenderPass(clearFlags: ClearFlagBit, samples = SampleCountFlagBits.SAMPLE_COUNT_1): RenderPass {
+    getRenderPass(clearFlags: ClearFlagBits, samples = SampleCountFlagBits.SAMPLE_COUNT_1): RenderPass {
         const hash = `${clearFlags}${samples}`;
         let renderPass = this._clearFlag2renderPass[hash];
         if (!renderPass) {
@@ -126,26 +126,26 @@ export default class Flow {
             const resolveAttachments: AttachmentDescription[] = [];
             if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
                 colorAttachments.push({
-                    loadOp: clearFlags & ClearFlagBit.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                    initialLayout: clearFlags & ClearFlagBit.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
+                    loadOp: clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                    initialLayout: clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
                     finalLayout: ImageLayout.PRESENT_SRC
                 })
             } else {
                 colorAttachments.push({
-                    loadOp: clearFlags & ClearFlagBit.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                    initialLayout: clearFlags & ClearFlagBit.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR_ATTACHMENT_OPTIMAL,
+                    loadOp: clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                    initialLayout: clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR_ATTACHMENT_OPTIMAL,
                     finalLayout: ImageLayout.COLOR_ATTACHMENT_OPTIMAL
                 });
                 resolveAttachments.push({
-                    loadOp: clearFlags & ClearFlagBit.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                    initialLayout: clearFlags & ClearFlagBit.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
+                    loadOp: clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                    initialLayout: clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC,
                     finalLayout: ImageLayout.PRESENT_SRC
                 })
             }
 
             const depthStencilAttachment: AttachmentDescription = {
-                loadOp: clearFlags & ClearFlagBit.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
-                initialLayout: clearFlags & ClearFlagBit.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                loadOp: clearFlags & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD,
+                initialLayout: clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             };
             renderPass = gfx.createRenderPass();

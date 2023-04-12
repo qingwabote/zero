@@ -6,7 +6,7 @@ export default class PassInstance extends Pass {
     private _raw: Pass;
 
     constructor(raw: Pass) {
-        super(raw.state, raw.flag);
+        super(raw.state, raw.type);
         for (const name in raw.samplerTextures) {
             this.setTexture(name, ...raw.samplerTextures[name]);
         }

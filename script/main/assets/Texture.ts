@@ -2,7 +2,7 @@ import Asset from "../core/Asset.js";
 import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
 import { SampleCountFlagBits } from "../core/gfx/Pipeline.js";
-import { default as GFX_Texture, TextureUsageBit } from "../core/gfx/Texture.js";
+import { default as GFX_Texture, TextureUsageBits } from "../core/gfx/Texture.js";
 
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
@@ -19,7 +19,7 @@ export default class Texture extends Asset {
         const texture = gfx.createTexture();
         texture.initialize({
             samples: SampleCountFlagBits.SAMPLE_COUNT_1,
-            usage: TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
+            usage: TextureUsageBits.SAMPLED | TextureUsageBits.TRANSFER_DST,
             width: imageBitmap.width, height: imageBitmap.height
         });
 

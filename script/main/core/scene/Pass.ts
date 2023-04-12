@@ -20,17 +20,9 @@ function type2Length(type: string): number {
 }
 
 export default class Pass {
-    get state(): PassState {
-        return this._state;
-    }
-
     protected _descriptorSet?: DescriptorSet;
     get descriptorSet(): DescriptorSet | undefined {
         return this._descriptorSet;
-    }
-
-    get flag(): number {
-        return this._flag;
     }
 
     protected _uniformBuffers: Record<string, BufferView> = {};
@@ -43,15 +35,15 @@ export default class Pass {
         return this._samplerTextures;
     }
 
-    constructor(private _state: PassState, private _flag = 0) { }
+    constructor(readonly state: PassState, readonly type = 0) { }
 
     initialize() {
-        const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this._state.shader);
+        const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this.state.shader);
         if (descriptorSetLayout.bindings.length) {
             const descriptorSet = gfx.createDescriptorSet();
             descriptorSet.initialize(descriptorSetLayout);
 
-            const blocks = this._state.shader.info.meta.blocks;
+            const blocks = this.state.shader.info.meta.blocks;
             for (const name in blocks) {
                 const block = blocks[name];
                 if (block.set != ShaderLib.sets.material.index) {
@@ -66,7 +58,7 @@ export default class Pass {
     }
 
     setUniform(name: string, member: string, value: ArrayLike<number>) {
-        const block = this._state.shader.info.meta.blocks[name];
+        const block = this.state.shader.info.meta.blocks[name];
         let offset = 0;
         for (const mem of block.members!) {
             if (mem.name == member) {
@@ -79,7 +71,7 @@ export default class Pass {
     }
 
     setTexture(name: string, texture: Texture, sampler: Sampler = samplers.get()): void {
-        const binding = this._state.shader.info.meta.samplerTextures[name].binding;
+        const binding = this.state.shader.info.meta.samplerTextures[name].binding;
         this._descriptorSet?.bindTexture(binding, texture, sampler);
         this._samplerTextures[name] = [texture, sampler];
     }
@@ -91,7 +83,7 @@ export default class Pass {
     }
 
     protected createUniformBuffer(name: string): BufferView {
-        const block = this._state.shader.info.meta.blocks[name];
+        const block = this.state.shader.info.meta.blocks[name];
         let length = block.members!.reduce((acc, mem) => acc + type2Length(mem.type), 0);
         return new BufferView('Float32', BufferUsageFlagBits.UNIFORM, length);
     }

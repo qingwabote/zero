@@ -1,12 +1,11 @@
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import { DescriptorSetLayoutBinding, DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
+import { DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
 import { ShaderStageFlagBits } from "../../core/gfx/Shader.js";
 import mat4 from "../../core/math/mat4.js";
 import quat from "../../core/math/quat.js";
 import vec3 from "../../core/math/vec3.js";
 import Uniform from "../../core/render/Uniform.js";
 import BufferView from "../../core/scene/buffers/BufferView.js";
-import ShaderLib from "../../core/ShaderLib.js";
 
 const ShadowBlock = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -21,16 +20,12 @@ const ShadowBlock = {
         }
     },
     size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
-}
-
-const descriptorSetLayoutBinding = ShaderLib.createDescriptorSetLayoutBinding(ShadowBlock);
+} as const
 
 export default class ShadowUniform implements Uniform {
     static readonly camera = { orthoHeight: 6, aspect: 1, near: 1, far: 16 };
 
-    get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding {
-        return descriptorSetLayoutBinding;
-    }
+    readonly definition = ShadowBlock;
 
     private _buffer!: BufferView;
 

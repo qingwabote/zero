@@ -1,4 +1,4 @@
-import { ClearFlagBit } from "../gfx/Pipeline.js";
+import { ClearFlagBits } from "../gfx/Pipeline.js";
 import { Mat4Like } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
 import { Vec3Like } from "../math/vec3.js";
@@ -19,7 +19,7 @@ export default class Camera extends FrameChangeRecord {
 
     visibilityFlags = 0;
 
-    clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
+    clearFlags: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
 
     viewport: Rect = { x: 0, y: 0, width: 0, height: 0 };
 

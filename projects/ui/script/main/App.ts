@@ -11,7 +11,7 @@ import Flow from "../../../../script/main/core/render/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/render/stageFactory.js";
-import VisibilityBit from "../../../../script/main/VisibilityBit.js";
+import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 
 export default class App extends Zero {
     async start(): Promise<Flow> {
@@ -28,12 +28,12 @@ export default class App extends Zero {
         const doc = UIDocument.create();
 
         const sprite = UIRenderer.create(SpriteRenderer)
-        sprite.node.visibilityFlag = VisibilityBit.DEFAULT;
+        sprite.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         sprite.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
         doc.addElement(sprite);
 
         node = new Node;
-        node.visibilityFlag = VisibilityBit.DEFAULT
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT
         node.addComponent(Profiler);
         node.position = [-width / 2, - height / 2, 0];
 

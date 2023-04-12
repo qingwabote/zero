@@ -1,12 +1,12 @@
 import Component from "../core/Component.js";
-import { ClearFlagBit } from "../core/gfx/Pipeline.js";
+import { ClearFlagBits } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4Like } from "../core/math/mat4.js";
 import { Rect } from "../core/math/rect.js";
 import vec2, { Vec2Like } from "../core/math/vec2.js";
 import vec3, { Vec3Like } from "../core/math/vec3.js";
 import { default as render_Camera } from "../core/scene/Camera.js";
 import { TransformEvent } from "../core/scene/Transform.js";
-import VisibilityBit from "../VisibilityBit.js";
+import VisibilityFlagBits from "../VisibilityFlagBits.js";
 
 const vec2_a = vec2.create();
 
@@ -34,9 +34,9 @@ export default class Camera extends Component {
     near = 1;
     far = 1000;
 
-    visibilityFlags: VisibilityBit = VisibilityBit.DEFAULT;
+    visibilityFlags: VisibilityFlagBits = VisibilityFlagBits.DEFAULT;
 
-    clearFlags: ClearFlagBit = ClearFlagBit.COLOR | ClearFlagBit.DEPTH;
+    clearFlags: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
 
     /**
      * x,y the lower left corner

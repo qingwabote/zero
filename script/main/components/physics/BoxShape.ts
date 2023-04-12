@@ -1,7 +1,7 @@
 import Component from "../../core/Component.js";
 import vec3, { Vec3Like } from "../../core/math/vec3.js";
 import Node from "../../core/Node.js";
-import { TransformBit } from "../../core/scene/Transform.js";
+import { TransformBits } from "../../core/scene/Transform.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
 import RigidBody from "./RigidBody.js";
 
@@ -60,7 +60,7 @@ export default class BoxShape extends Component {
         const ps = PhysicsSystem.instance;
         const ammo = ps.ammo;
 
-        if (this.node.hasChanged & TransformBit.SCALE) {
+        if (this.node.hasChanged & TransformBits.SCALE) {
             this._dirtyFlags |= DirtyFlagBits.SCALE;
         }
 

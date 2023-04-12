@@ -64,7 +64,7 @@ const sets = {
     }
 } as const
 
-export interface Uniform {
+export interface UniformDefinition {
     type: DescriptorType,
     stageFlags: ShaderStageFlagBits,
     binding: number
@@ -74,7 +74,7 @@ export default class ShaderLib {
 
     static readonly sets = sets;
 
-    static createDescriptorSetLayoutBinding(uniform: Uniform): DescriptorSetLayoutBinding {
+    static createDescriptorSetLayoutBinding(uniform: UniformDefinition): DescriptorSetLayoutBinding {
         return {
             descriptorType: uniform.type,
             stageFlags: uniform.stageFlags,
@@ -83,7 +83,7 @@ export default class ShaderLib {
         }
     }
 
-    static createDescriptorSetLayout(uniforms: Uniform[]) {
+    static createDescriptorSetLayout(uniforms: UniformDefinition[]) {
         const bindings = uniforms.map(uniform => this.createDescriptorSetLayoutBinding(uniform));
         const layout = gfx.createDescriptorSetLayout();
         layout.initialize(bindings);

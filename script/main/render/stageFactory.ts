@@ -1,11 +1,11 @@
-import VisibilityBit from "../VisibilityBit.js";
+import VisibilityFlagBits from "../VisibilityFlagBits.js";
 import { SampleCountFlagBits } from "../core/gfx/Pipeline.js";
 import { ImageLayout, LOAD_OP, RenderPassInfo } from "../core/gfx/RenderPass.js";
-import { TextureUsageBit } from "../core/gfx/Texture.js";
+import { TextureUsageBits } from "../core/gfx/Texture.js";
 import Phase from "../core/render/Phase.js";
 import Stage from "../core/render/Stage.js";
 import Uniform from "../core/render/Uniform.js";
-import PassFlag from "./PassFlag.js";
+import PassType from "./PassType.js";
 import ModelPhase from "./phases/ModelPhase.js";
 import CameraUniform from "./uniforms/CameraUniform.js";
 import LightUniform from "./uniforms/LightUniform.js";
@@ -25,7 +25,7 @@ export default {
         return new Stage(uniforms, phases)
     },
 
-    shadow(visibility: VisibilityBit = VisibilityBit.DEFAULT) {
+    shadow(visibility: VisibilityFlagBits = VisibilityFlagBits.DEFAULT) {
         const renderPass = gfx.createRenderPass();
         renderPass.initialize(new RenderPassInfo([], {
             loadOp: LOAD_OP.CLEAR,
@@ -36,7 +36,7 @@ export default {
         const depthStencilAttachment = gfx.createTexture();
         depthStencilAttachment.initialize({
             samples: SampleCountFlagBits.SAMPLE_COUNT_1,
-            usage: TextureUsageBit.DEPTH_STENCIL_ATTACHMENT | TextureUsageBit.SAMPLED,
+            usage: TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
         const framebuffer = gfx.createFramebuffer();
@@ -47,6 +47,6 @@ export default {
             renderPass: renderPass,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
-        return new Stage([ShadowUniform, ShadowMapUniform], [new ModelPhase(PassFlag.SHADOWMAP, visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
+        return new Stage([ShadowUniform, ShadowMapUniform], [new ModelPhase(PassType.SHADOWMAP, visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
     }
 } as const

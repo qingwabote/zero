@@ -1,7 +1,7 @@
-import { DescriptorSetLayoutBinding } from "../gfx/DescriptorSetLayout.js";
+import { UniformDefinition } from "../ShaderLib.js";
 
 export default interface Uniform {
-    get descriptorSetLayoutBinding(): DescriptorSetLayoutBinding;
+    readonly definition: UniformDefinition;
     initialize(): void;
     update(): void;
 }

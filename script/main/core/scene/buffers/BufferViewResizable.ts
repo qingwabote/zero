@@ -24,15 +24,7 @@ export default class BufferViewResizable {
         return this._bufferView.BYTES_PER_ELEMENT
     }
 
-    private _format: TypedArrayFormat;
-    private _usage: BufferUsageFlagBits;
-    private _onReallocate: (buffer: Buffer) => void;
-
-    constructor(format: TypedArrayFormat, usage: BufferUsageFlagBits, onReallocate: (buffer: Buffer) => void = noop) {
-        this._format = format;
-        this._usage = usage;
-        this._onReallocate = onReallocate;
-
+    constructor(private _format: TypedArrayFormat, private _usage: BufferUsageFlagBits, private _onReallocate: (buffer: Buffer) => void = noop) {
         this._data = new Proxy(this, {
             get(target, p) {
                 return Reflect.get(target._bufferView.data, p);
