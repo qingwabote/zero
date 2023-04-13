@@ -1,16 +1,16 @@
 import EventEmitterImpl from "../base/EventEmitterImpl.js";
 
 export interface Touch {
-    x: number,
-    y: number
+    readonly x: number,
+    readonly y: number
 }
 
 export interface TouchEvent {
-    touches: Touch[]
+    readonly touches: readonly Touch[]
 }
 
 export interface GestureEvent {
-    delta: number
+    readonly delta: number
 }
 
 export enum InputEvent {

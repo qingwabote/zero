@@ -11,13 +11,9 @@ const vec2_d = vec2.create();
 
 type Listener = (event: any) => void;
 
-export class UITouch {
-    world = vec2.create();
-    local = vec2.create();
-    constructor(world: Readonly<Vec2>, local: Readonly<Vec2>) {
-        vec2.set(this.world, ...world)
-        vec2.set(this.local, ...local)
-    }
+export interface UITouch {
+    world: Readonly<Vec2>;
+    local: Readonly<Vec2>;
 }
 
 export enum UITouchEventType {
@@ -26,8 +22,8 @@ export enum UITouchEventType {
     TOUCH_END = "TOUCH_END",
 }
 
-export class UITouchEvent {
-    constructor(readonly touch: UITouch) { }
+export interface UITouchEvent {
+    readonly touch: UITouch
 }
 
 export interface UIEventToListener {

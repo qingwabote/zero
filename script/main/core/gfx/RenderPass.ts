@@ -23,38 +23,18 @@ export interface AttachmentDescription {
 }
 
 export class RenderPassInfo {
-    private _colorAttachments: AttachmentDescription[];
-    get colorAttachments(): readonly AttachmentDescription[] {
-        return this._colorAttachments;
-    }
-
-    private _depthStencilAttachment: AttachmentDescription;
-    get depthStencilAttachment(): AttachmentDescription {
-        return this._depthStencilAttachment;
-    }
-
-    private _resolveAttachments: AttachmentDescription[];
-    get resolveAttachments(): readonly AttachmentDescription[] {
-        return this._resolveAttachments;
-    }
-
-    private _samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1;
-    get samples(): SampleCountFlagBits {
-        return this._samples;
-    }
-
     /**
      * https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
      */
     readonly compatibleHash: string;
 
-    constructor(colorAttachments: AttachmentDescription[], depthStencilAttachment: AttachmentDescription, resolveAttachments: AttachmentDescription[] = [], samples = SampleCountFlagBits.SAMPLE_COUNT_1) {
+    constructor(
+        readonly colorAttachments: readonly AttachmentDescription[],
+        readonly depthStencilAttachment: AttachmentDescription,
+        readonly resolveAttachments: readonly AttachmentDescription[] = [],
+        readonly samples = SampleCountFlagBits.SAMPLE_COUNT_1
+    ) {
         this.compatibleHash = `${colorAttachments.length}1${resolveAttachments.length}${samples}`
-
-        this._colorAttachments = colorAttachments;
-        this._depthStencilAttachment = depthStencilAttachment;
-        this._resolveAttachments = resolveAttachments;
-        this._samples = samples;
     }
 }
 

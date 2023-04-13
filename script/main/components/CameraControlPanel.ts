@@ -1,6 +1,6 @@
 import { InputEvent } from "../core/Input.js";
 import quat from "../core/math/quat.js";
-import vec2, { Vec2Like } from "../core/math/vec2.js";
+import vec2, { Vec2 } from "../core/math/vec2.js";
 import vec3 from "../core/math/vec3.js";
 import Node from "../core/Node.js";
 import TextRenderer from "./2d/TextRenderer.js";
@@ -39,7 +39,7 @@ export default class CameraControlPanel extends UIContainer {
         })
 
 
-        let point: Vec2Like;
+        let point: Readonly<Vec2>;
         this.on(UITouchEventType.TOUCH_START, event => {
             point = event.touch.local
         })

@@ -5,7 +5,7 @@ import rect from "../../core/math/rect.js";
 import vec2, { Vec2 } from "../../core/math/vec2.js";
 import Node from "../../core/Node.js";
 import Camera from "../Camera.js";
-import UIElement, { UITouch, UITouchEvent, UITouchEventType } from "./internal/UIElement.js";
+import UIElement, { UITouchEventType } from "./internal/UIElement.js";
 import UIContainer from "./UIContainer.js";
 
 const mat4_a = mat4.create();
@@ -78,7 +78,7 @@ export default class UIDocument extends Component {
                     if (this.touchWalk(children[j], cameras, world_positions, event)) {
                         // bubbling
                         if (element.has(event)) {
-                            element.emit(event, new UITouchEvent(new UITouch(world_position, local_position)));
+                            element.emit(event, { touch: { world: world_position, local: local_position } });
                         }
                         if (event == UITouchEventType.TOUCH_START) {
                             this._touchClaimed.set(element, element);
@@ -89,7 +89,7 @@ export default class UIDocument extends Component {
             }
             // target
             if (element.has(event)) {
-                element.emit(event, new UITouchEvent(new UITouch(world_position, local_position)));
+                element.emit(event, { touch: { world: world_position, local: local_position } });
             }
             if (event == UITouchEventType.TOUCH_START) {
                 this._touchClaimed.set(element, element);

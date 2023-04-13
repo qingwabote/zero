@@ -10,7 +10,7 @@ export default class Profiler extends Component {
 
     private _fps: number = 0;
 
-    private _gameLogic_time = 0
+    private _logic_time = 0
 
     private _render_time = 0;
 
@@ -23,7 +23,7 @@ export default class Profiler extends Component {
         this.node.addChild(text.node);
         this._text = text;
 
-        this.profileGameLogic();
+        this.profileLogic();
         this.profileRender();
     }
 
@@ -40,10 +40,10 @@ export default class Profiler extends Component {
         this._text.impl.text = `FPS: ${this._fps.toString().slice(0, 5)}
 Draw call: ${zero.flow.drawCalls}
 Render(ms): ${this._render_time.toString().slice(0, 5)}
-Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
+Logic(ms): ${this._logic_time.toString().slice(0, 5)}`;
     }
 
-    private profileGameLogic() {
+    private profileLogic() {
         let time = 0;
         let delta = 0;
         let count = 0;
@@ -54,7 +54,7 @@ Logic(ms): ${this._gameLogic_time.toString().slice(0, 5)}`;
             delta += Date.now() - time;
             count++;
             if (count == 60) {
-                this._gameLogic_time = delta / count;
+                this._logic_time = delta / count;
                 delta = 0;
                 count = 0;
             }
