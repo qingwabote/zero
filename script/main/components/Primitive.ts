@@ -1,7 +1,6 @@
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import { FormatInfos } from "../core/gfx/Format.js";
-import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
-import { CullMode, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { CullMode, PrimitiveTopology, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3, { Vec3Like } from "../core/math/vec3.js";
 import { Vec4Like } from "../core/math/vec4.js";
@@ -99,8 +98,12 @@ export default class Primitive extends BoundedRenderer {
         })
         this._vertexInputState = new VertexInputState(attributes, bindings);
 
-        const pass = new Pass(new PassState(shader, PrimitiveTopology.LINE_LIST, { cullMode: CullMode.NONE }, { depthTestEnable: false }));
-        pass.initialize()
+        const pass = new Pass({
+            shader,
+            primitive: PrimitiveTopology.LINE_LIST,
+            rasterizationState: { cullMode: CullMode.NONE },
+            depthStencilState: { depthTestEnable: false }
+        });
         const subModel: SubModel = new SubModel([], [pass]);
         const model = new Model(this.node, [subModel])
         zero.scene.models.push(model);

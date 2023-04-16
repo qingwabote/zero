@@ -4,8 +4,8 @@ import FNT from "../../assets/FNT.js";
 import Asset from "../../core/Asset.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import { FormatInfos } from "../../core/gfx/Format.js";
-import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
-import { CullMode, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
+import { IndexType } from "../../core/gfx/InputAssembler.js";
+import { BlendFactor, CullMode, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/Pipeline.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import vec2 from "../../core/math/vec2.js";
 import vec4 from "../../core/math/vec4.js";
@@ -102,8 +102,17 @@ export default class TextRenderer extends BoundedRenderer {
 
         this._vertexInputState = new VertexInputState(attributes, bindings);
 
-        const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }));
-        pass.initialize()
+        //new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }, undefined, { enabled: true })
+        const pass = new Pass({
+            shader,
+            rasterizationState: { cullMode: CullMode.NONE },
+            blendState: {
+                srcRGB: BlendFactor.SRC_ALPHA,
+                dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA,
+                srcAlpha: BlendFactor.ONE,
+                dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA
+            }
+        });
         pass.setTexture('albedoMap', this._fnt.texture.impl)
         pass.setUniform('Constants', 'albedo', vec4.ONE)
         const subModel: SubModel = new SubModel([], [pass]);

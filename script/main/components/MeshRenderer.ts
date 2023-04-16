@@ -1,7 +1,8 @@
 import Material from "../assets/Material.js";
 import Mesh from "../assets/Mesh.js";
 import { FormatInfos } from "../core/gfx/Format.js";
-import InputAssembler, { IndexInput, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/InputAssembler.js";
+import InputAssembler, { IndexInput, VertexInput } from "../core/gfx/InputAssembler.js";
+import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3 from "../core/math/vec3.js";
 import Model from "../core/scene/Model.js";

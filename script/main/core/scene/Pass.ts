@@ -1,6 +1,6 @@
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
-import { PassState } from "../gfx/Pipeline.js";
+import { PassState, PassStateInfo } from "../gfx/Pipeline.js";
 import { Sampler } from "../gfx/Sampler.js";
 import Texture from "../gfx/Texture.js";
 import samplers from "../samplers.js";
@@ -20,10 +20,9 @@ function type2Length(type: string): number {
 }
 
 export default class Pass {
-    protected _descriptorSet?: DescriptorSet;
-    get descriptorSet(): DescriptorSet | undefined {
-        return this._descriptorSet;
-    }
+    readonly state: PassState;
+
+    readonly descriptorSet?: DescriptorSet;
 
     protected _uniformBuffers: Record<string, BufferView> = {};
     get uniformBuffers(): Readonly<Record<string, BufferView>> {
@@ -35,9 +34,13 @@ export default class Pass {
         return this._samplerTextures;
     }
 
-    constructor(readonly state: PassState, readonly type = 0) { }
-
-    initialize() {
+    constructor(stateOrInfo: PassState | PassStateInfo, readonly type = 0, getThis?: (self: any) => void) {
+        getThis && getThis(this);
+        if (stateOrInfo instanceof PassState) {
+            this.state = stateOrInfo;
+        } else {
+            this.state = new PassState(stateOrInfo);
+        }
         const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this.state.shader);
         if (descriptorSetLayout.bindings.length) {
             const descriptorSet = gfx.createDescriptorSet();
@@ -53,7 +56,7 @@ export default class Pass {
                 descriptorSet.bindBuffer(block.binding, view.buffer);
                 this._uniformBuffers[name] = view;
             }
-            this._descriptorSet = descriptorSet;
+            this.descriptorSet = descriptorSet;
         }
     }
 
@@ -66,13 +69,12 @@ export default class Pass {
             }
             offset += type2Length(mem.type);
         }
-        let view = this._uniformBuffers[name]
-        view.set(value, offset);
+        this._uniformBuffers[name].set(value, offset);
     }
 
     setTexture(name: string, texture: Texture, sampler: Sampler = samplers.get()): void {
         const binding = this.state.shader.info.meta.samplerTextures[name].binding;
-        this._descriptorSet?.bindTexture(binding, texture, sampler);
+        this.descriptorSet?.bindTexture(binding, texture, sampler);
         this._samplerTextures[name] = [texture, sampler];
     }
 

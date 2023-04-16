@@ -5,7 +5,7 @@ import CameraControlPanel from "../../../../script/main/components/CameraControl
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import { ClearFlagBits, PassState } from "../../../../script/main/core/gfx/Pipeline.js";
+import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
@@ -97,7 +97,7 @@ export default class App extends Zero {
                 const albedo: Readonly<Vec4Like> = info.pbrMetallicRoughness.baseColorFactor || vec4.ONE;
 
                 const unlit_shader = await ShaderLib.instance.loadShader('unlit', { USE_ALBEDO_MAP: textureIdx != -1 ? 1 : 0 });
-                const unlit_pass = new Pass(new PassState(unlit_shader), PassFlag_DOWN);
+                const unlit_pass = new Pass({ shader: unlit_shader }, PassFlag_DOWN);
                 unlit_pass.initialize();
                 if (textureIdx != -1) {
                     unlit_pass.setTexture('albedoMap', gltf.textures[textureIdx].impl)

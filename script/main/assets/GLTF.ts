@@ -8,7 +8,7 @@ import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
-import { CullMode, PassState, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { CullMode } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4Like } from "../core/math/mat4.js";
 import vec4, { Vec4Like } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
@@ -209,15 +209,7 @@ export default class GLTF extends Asset {
 
         if (USE_SHADOW_MAP) {
             const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
-            const shadowMapPass = new Pass(
-                new PassState(
-                    shadowMapShader,
-                    PrimitiveTopology.TRIANGLE_LIST,
-                    { cullMode: CullMode.FRONT }
-                ),
-                PassType.SHADOWMAP
-            );
-            shadowMapPass.initialize();
+            const shadowMapPass = new Pass({ shader: shadowMapShader, rasterizationState: { cullMode: CullMode.FRONT } }, PassType.SHADOWMAP);
             passes.push(shadowMapPass);
         }
 
@@ -229,8 +221,7 @@ export default class GLTF extends Asset {
             CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
         })
 
-        const phongPass = new Pass(new PassState(phongShader));
-        phongPass.initialize()
+        const phongPass = new Pass({ shader: phongShader });
         if (texture) {
             phongPass.setTexture('albedoMap', texture.impl)
         }

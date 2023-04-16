@@ -1,7 +1,6 @@
 import CommandBuffer from "../../core/gfx/CommandBuffer.js";
 import DescriptorSetLayout from "../../core/gfx/DescriptorSetLayout.js";
-import { VertexInputState } from "../../core/gfx/InputAssembler.js";
-import Pipeline, { PassState, PipelineLayout } from "../../core/gfx/Pipeline.js";
+import Pipeline, { PassState, PipelineLayout, VertexInputState } from "../../core/gfx/Pipeline.js";
 import RenderPass from "../../core/gfx/RenderPass.js";
 import Phase from "../../core/render/Phase.js";
 import Camera from "../../core/scene/Camera.js";

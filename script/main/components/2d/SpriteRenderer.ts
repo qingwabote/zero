@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import { FormatInfos } from "../../core/gfx/Format.js";
-import { IndexType, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/InputAssembler.js";
-import { CullMode, PassState, PrimitiveTopology } from "../../core/gfx/Pipeline.js";
+import { IndexType } from "../../core/gfx/InputAssembler.js";
+import { CullMode, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/Pipeline.js";
 import { Filter } from "../../core/gfx/Sampler.js";
 import Shader from "../../core/gfx/Shader.js";
 import Texture from "../../core/gfx/Texture.js";
@@ -133,8 +133,7 @@ export default class SpriteRenderer extends BoundedRenderer {
             }
         })
 
-        const pass = new Pass(new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }))
-        pass.initialize();
+        const pass = new Pass({ shader, rasterizationState: { cullMode: CullMode.NONE } });
         pass.setUniform('Constants', 'albedo', vec4.ONE)
         pass.setTexture('albedoMap', this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = new SubModel([inputAssembler], [pass], indexBuffer.length);

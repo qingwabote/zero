@@ -1,5 +1,5 @@
 import DescriptorSetLayout from "./DescriptorSetLayout.js";
-import { VertexInputState } from "./InputAssembler.js";
+import Format from "./Format.js";
 import RenderPass from "./RenderPass.js";
 import Shader from "./Shader.js";
 
@@ -30,6 +30,45 @@ export enum ClearFlagBits {
     DEPTH = 0x2
 }
 
+// copy values from VkVertexInputRate in vulkan_core.h
+export enum VertexInputRate {
+    VERTEX = 0,
+    INSTANCE = 1
+}
+
+/**
+ * stride can't be zero even if vertex buffer is tightly packed. Unlike in OpenGL, the value must be explicit in Vulkan.
+ */
+export interface VertexInputBindingDescription {
+    readonly binding: number;
+    readonly stride: number;
+    readonly inputRate: VertexInputRate;
+}
+
+export interface VertexInputAttributeDescription {
+    readonly location: number;
+    readonly format: Format;
+    readonly binding: number;
+    readonly offset: number
+}
+
+/**
+ * Vulkan separates binding from attribute, because multi attributes will use the same binding if vertex buffer is interleaved, I guess.
+ */
+export class VertexInputState {
+    readonly hash: string;
+
+    constructor(readonly attributes: readonly VertexInputAttributeDescription[], readonly bindings: readonly VertexInputBindingDescription[]) {
+        let hash = '';
+        for (const attribute of attributes) {
+            hash += attribute.location + attribute.format + attribute.binding + attribute.offset;
+        }
+        this.hash = hash;
+        this.attributes = attributes;
+        this.bindings = bindings;
+    }
+}
+
 export enum PrimitiveTopology {
     LINE_LIST = 1,
     TRIANGLE_LIST = 3
@@ -43,11 +82,11 @@ export enum CullMode {
 }
 
 export interface RasterizationState {
-    cullMode: CullMode;
+    readonly cullMode: CullMode;
 }
 
 export interface DepthStencilState {
-    depthTestEnable: boolean;
+    readonly depthTestEnable: boolean;
 }
 
 // copy values from VkBlendFactor in vulkan_core.h
@@ -70,28 +109,43 @@ export enum BlendFactor {
 }
 
 export interface BlendState {
-    enabled: boolean;
-    srcRGB: BlendFactor;
-    dstRGB: BlendFactor;
-    srcAlpha: BlendFactor;
-    dstAlpha: BlendFactor;
+    readonly srcRGB: BlendFactor;
+    readonly dstRGB: BlendFactor;
+    readonly srcAlpha: BlendFactor;
+    readonly dstAlpha: BlendFactor;
+}
+
+export interface PassStateInfo {
+    readonly shader: Shader;
+    readonly primitive?: PrimitiveTopology;
+    readonly rasterizationState?: RasterizationState;
+    readonly depthStencilState?: DepthStencilState;
+    readonly blendState?: BlendState;
 }
 
 export class PassState {
+    readonly shader: Shader;
+    readonly primitive: PrimitiveTopology;
+    readonly rasterizationState: RasterizationState;
+    readonly depthStencilState: DepthStencilState;
+    readonly blendState?: BlendState;
+
     readonly hash: string;
 
-    constructor(
-        readonly shader: Shader,
-        readonly primitive: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
-        readonly rasterizationState: RasterizationState = { cullMode: CullMode.BACK },
-        readonly depthStencilState: DepthStencilState = { depthTestEnable: true },
-        readonly blendState: BlendState = { enabled: true, srcRGB: BlendFactor.SRC_ALPHA, dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA, srcAlpha: BlendFactor.ONE, dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA },
-    ) {
-        let hash = shader.info.hash;
-        hash += `${rasterizationState.cullMode}`;
-        hash += `${depthStencilState.depthTestEnable}`;
-        hash += `${blendState.enabled}${blendState.srcRGB}${blendState.dstRGB}${blendState.srcAlpha}${blendState.dstAlpha}`;
-        hash += `${primitive}`;
+    constructor(info: PassStateInfo) {
+        this.shader = info.shader;
+        this.primitive = info.primitive != undefined ? info.primitive : PrimitiveTopology.TRIANGLE_LIST;
+        this.rasterizationState = info.rasterizationState || { cullMode: CullMode.BACK };
+        this.depthStencilState = info.depthStencilState || { depthTestEnable: true };
+        this.blendState = info.blendState;
+
+        let hash = this.shader.info.hash;
+        hash += `${this.primitive}`;
+        hash += `${this.rasterizationState.cullMode}`;
+        hash += `${this.depthStencilState.depthTestEnable}`;
+        if (this.blendState) {
+            hash += `${this.blendState.srcRGB}${this.blendState.dstRGB}${this.blendState.srcAlpha}${this.blendState.dstAlpha}`;
+        }
         this.hash = hash;
     }
 }

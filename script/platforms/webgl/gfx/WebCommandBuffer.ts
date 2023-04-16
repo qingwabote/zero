@@ -141,18 +141,17 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         const blendState = state.blendState;
-        if (blendState.enabled) {
+        if (blendState) {
+            gl.blendFuncSeparate(
+                bendFactor2WebGL(blendState.srcRGB),
+                bendFactor2WebGL(blendState.dstRGB),
+                bendFactor2WebGL(blendState.srcAlpha),
+                bendFactor2WebGL(blendState.dstAlpha),
+            );
             gl.enable(gl.BLEND);
         } else {
             gl.disable(gl.BLEND);
         }
-
-        gl.blendFuncSeparate(
-            bendFactor2WebGL(blendState.srcRGB),
-            bendFactor2WebGL(blendState.dstRGB),
-            bendFactor2WebGL(blendState.srcAlpha),
-            bendFactor2WebGL(blendState.dstAlpha),
-        );
     }
 
     bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {
