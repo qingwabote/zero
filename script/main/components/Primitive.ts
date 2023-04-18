@@ -1,12 +1,13 @@
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
-import { FormatInfos } from "../core/gfx/Format.js";
-import { CullMode, PrimitiveTopology, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/Pipeline.js";
+import Format, { FormatInfos } from "../core/gfx/Format.js";
+import { CullMode, PrimitiveTopology } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3, { Vec3Like } from "../core/math/vec3.js";
 import { Vec4Like } from "../core/math/vec4.js";
 import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
+import SubMesh, { VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
 import SubModel from "../core/scene/SubModel.js";
 import ShaderLib from "../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
@@ -28,19 +29,15 @@ export default class Primitive extends BoundedRenderer {
     }
 
     private _buffer: BufferViewResizable = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
-    private _buffer_reallocated: boolean = false;
 
     private _vertexCount: number = 0;
 
-    private _vertexInputState!: VertexInputState;
+    private _subMesh!: SubMesh;
 
-    private _model!: Model;
 
     drawLine(from: Vec3Like, to: Vec3Like, color: Vec4Like = [1, 1, 1, 1]) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
-        if (this._buffer.resize(length)) {
-            this._buffer_reallocated = true;
-        }
+        this._buffer.resize(length)
 
         let offset = this._vertexCount * VERTEX_COMPONENTS;
         this._buffer.set(from, offset);
@@ -66,74 +63,48 @@ export default class Primitive extends BoundedRenderer {
     }
 
     start() {
-        const shader = ShaderLib.instance.getShader('primitive');
-        const attributes: VertexInputAttributeDescription[] = [];
-
+        const vertexAttributes: VertexAttribute[] = [];
         let offset = 0;
-        const definition_position = shader.info.meta.attributes["a_position"];
-        const attribute_position: VertexInputAttributeDescription = {
-            location: definition_position.location,
-            format: definition_position.format,
-            binding: 0,
-            offset
-        };
-        attributes.push(attribute_position);
-        offset += FormatInfos[attribute_position.format].size;
+        let format = Format.RGB32_SFLOAT;
+        vertexAttributes.push({ name: 'a_position', format, buffer: 0, offset });
+        offset += FormatInfos[format].size;
+        format = Format.RGBA32_SFLOAT;
+        vertexAttributes.push({ name: 'a_color', format, buffer: 0, offset });
+        offset += FormatInfos[format].size;
 
-        const definition_color = shader.info.meta.attributes["a_color"];
-        const attribute_color: VertexInputAttributeDescription = {
-            location: definition_color.location,
-            format: definition_color.format,
-            binding: 0,
-            offset
-        };
-        attributes.push(attribute_color);
-        offset += FormatInfos[attribute_color.format].size;
-
-        const bindings: VertexInputBindingDescription[] = [];
-        bindings.push({
-            binding: attribute_position.binding,
-            stride: offset,
-            inputRate: VertexInputRate.VERTEX
-        })
-        this._vertexInputState = new VertexInputState(attributes, bindings);
+        const vertexInput: VertexInputView = {
+            buffers: [this._buffer],
+            offsets: [0]
+        }
+        const subMesh: SubMesh = {
+            vertexAttributes,
+            vertexInput,
+            vertexPositionMin: vec3.create(),
+            vertexPositionMax: vec3.create(),
+            vertexOrIndexCount: 0
+        }
 
         const pass = new Pass({
-            shader,
+            shader: ShaderLib.instance.getShader('primitive'),
             primitive: PrimitiveTopology.LINE_LIST,
             rasterizationState: { cullMode: CullMode.NONE },
             depthStencilState: { depthTestEnable: false }
         });
-        const subModel: SubModel = new SubModel([], [pass]);
+        const subModel: SubModel = new SubModel(subMesh, [pass]);
         const model = new Model(this.node, [subModel])
         zero.scene.models.push(model);
-        this._model = model;
+        this._subMesh = subMesh;
     }
 
     commit(): void {
-        const subModel = this._model.subModels[0];
-
         if (this._vertexCount == 0) {
-            subModel.vertexOrIndexCount = 0;
+            this._subMesh.vertexOrIndexCount = 0;
             return;
         }
 
         this._buffer.update();
 
-        if (!subModel.inputAssemblers[0] || this._buffer_reallocated) {
-            const inputAssembler = gfx.createInputAssembler();
-            inputAssembler.initialize({
-                vertexInputState: this._vertexInputState,
-                vertexInput: {
-                    vertexBuffers: [this._buffer.buffer],
-                    vertexOffsets: [0],
-                }
-            })
-            subModel.inputAssemblers[0] = inputAssembler;
-            this._buffer_reallocated = false;
-        }
-
-        subModel.vertexOrIndexCount = this._vertexCount;
+        this._subMesh.vertexOrIndexCount = this._vertexCount;
     }
 
     clear() {

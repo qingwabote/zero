@@ -5,7 +5,7 @@ import mat4 from "../../core/math/mat4.js";
 import quat from "../../core/math/quat.js";
 import vec3 from "../../core/math/vec3.js";
 import Uniform from "../../core/render/Uniform.js";
-import BufferView from "../../core/scene/buffers/BufferView.js";
+import BufferViewWritable from "../../core/scene/buffers/BufferViewWritable.js";
 
 const ShadowBlock = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -27,10 +27,10 @@ export default class ShadowUniform implements Uniform {
 
     readonly definition = ShadowBlock;
 
-    private _buffer!: BufferView;
+    private _buffer!: BufferViewWritable;
 
     initialize(): void {
-        const buffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);
+        const buffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);
         zero.flow.globalDescriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
         this._buffer = buffer;
     }

@@ -98,7 +98,6 @@ export default class App extends Zero {
 
                 const unlit_shader = await ShaderLib.instance.loadShader('unlit', { USE_ALBEDO_MAP: textureIdx != -1 ? 1 : 0 });
                 const unlit_pass = new Pass({ shader: unlit_shader }, PassFlag_DOWN);
-                unlit_pass.initialize();
                 if (textureIdx != -1) {
                     unlit_pass.setTexture('albedoMap', gltf.textures[textureIdx].impl)
                 }

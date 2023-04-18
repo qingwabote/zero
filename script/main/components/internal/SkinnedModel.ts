@@ -1,7 +1,7 @@
 import Skin from "../../assets/Skin.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import mat4 from "../../core/math/mat4.js";
-import BufferView from "../../core/scene/buffers/BufferView.js";
+import BufferViewWritable from "../../core/scene/buffers/BufferViewWritable.js";
 import FrameChangeRecord from "../../core/scene/FrameChangeRecord.js";
 import Model from "../../core/scene/Model.js";
 import SubModel from "../../core/scene/SubModel.js";
@@ -24,7 +24,7 @@ export default class SkinnedModel extends Model {
 
     private readonly _joints: readonly Transform[];
 
-    private _skinBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShaderLib.sets.local.uniforms.Skin.length);
+    private _skinBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, ShaderLib.sets.local.uniforms.Skin.length);
 
     constructor(transform: Transform, subModels: SubModel[], private readonly _skin: Skin) {
         super(transform, subModels);

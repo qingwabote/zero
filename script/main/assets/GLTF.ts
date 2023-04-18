@@ -12,13 +12,15 @@ import { CullMode } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4Like } from "../core/math/mat4.js";
 import vec4, { Vec4Like } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
+import BufferView from "../core/scene/buffers/BufferView.js";
 import Pass from "../core/scene/Pass.js";
+import SubMesh, { VertexAttribute } from "../core/scene/SubMesh.js";
 import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
 import PassType from "../render/PassType.js";
 import Animation, { Channel } from "./Animation.js";
 import Material from "./Material.js";
-import Mesh, { SubMesh, VertexAttribute } from "./Mesh.js";
+import Mesh from "./Mesh.js";
 import Skin from "./Skin.js";
 import Texture from "./Texture.js";
 
@@ -286,7 +288,7 @@ export default class GLTF extends Asset {
                 continue;
             }
 
-            const vertexBuffers: Buffer[] = [];
+            const vertexBuffers: BufferView[] = [];
             const vertexOffsets: number[] = [];
             const vertexAttributes: VertexAttribute[] = [];
             for (const key in primitive.attributes) {
@@ -308,7 +310,7 @@ export default class GLTF extends Asset {
                     offset: 0
                 }
                 vertexAttributes.push(attribute);
-                vertexBuffers.push(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX));
+                vertexBuffers.push({ buffer: this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX) });
                 vertexOffsets.push(accessor.byteOffset || 0);
             }
 
@@ -335,13 +337,18 @@ export default class GLTF extends Asset {
             const posAccessor = this._json.accessors[primitive.attributes['POSITION']];
             subMeshes.push({
                 vertexAttributes,
-                vertexBuffers,
-                vertexOffsets,
+                vertexInput: {
+                    buffers: vertexBuffers,
+                    offsets: vertexOffsets,
+                },
                 vertexPositionMin: posAccessor.min,
                 vertexPositionMax: posAccessor.max,
-                indexBuffer, indexType, indexCount:
-                    indexAccessor.count,
-                indexOffset: indexAccessor.byteOffset || 0
+                indexInput: {
+                    buffer: { buffer: indexBuffer },
+                    offset: indexAccessor.byteOffset || 0,
+                    type: indexType
+                },
+                vertexOrIndexCount: indexAccessor.count,
             })
         }
         return [{ subMeshes }, materials];

@@ -1,4 +1,4 @@
-import BufferView from "./core/scene/buffers/BufferView.js";
+import BufferViewWritable from "./core/scene/buffers/BufferViewWritable.js";
 import Pass from "./core/scene/Pass.js";
 
 export default class PassInstance extends Pass {
@@ -25,7 +25,7 @@ export default class PassInstance extends Pass {
         super.setUniform(name, member, value);
     }
 
-    protected override createUniformBuffer(name: string): BufferView {
+    protected override createUniformBuffer(name: string): BufferViewWritable {
         return this._raw.uniformBuffers[name];
     }
 }

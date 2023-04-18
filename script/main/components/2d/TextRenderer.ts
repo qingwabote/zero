@@ -3,15 +3,17 @@
 import FNT from "../../assets/FNT.js";
 import Asset from "../../core/Asset.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import { FormatInfos } from "../../core/gfx/Format.js";
+import Format from "../../core/gfx/Format.js";
 import { IndexType } from "../../core/gfx/InputAssembler.js";
-import { BlendFactor, CullMode, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../../core/gfx/Pipeline.js";
+import { BlendFactor, CullMode } from "../../core/gfx/Pipeline.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
 import vec2 from "../../core/math/vec2.js";
+import vec3 from "../../core/math/vec3.js";
 import vec4 from "../../core/math/vec4.js";
 import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";
 import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
+import SubMesh, { IndexInputView, VertexAttribute, VertexInputView } from "../../core/scene/SubMesh.js";
 import SubModel from "../../core/scene/SubModel.js";
 import ShaderLib from "../../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
@@ -58,53 +60,35 @@ export default class TextRenderer extends BoundedRenderer {
 
     private _indexBuffer = new BufferViewResizable("Uint16", BufferUsageFlagBits.INDEX);
 
-    private _vertexInputState!: VertexInputState;
-
-    private _model!: Model;
-
-    private _inputAssemblerInvalidated = true;
+    private _subMesh!: SubMesh;
 
     private _indexCount = 0;
 
     override start(): void {
-        const shader = ShaderLib.instance.getShader('unlit', { USE_ALBEDO_MAP: 1 });
+        const vertexAttributes: VertexAttribute[] = [
+            { name: 'a_texCoord', format: Format.RG32_SFLOAT, buffer: 0, offset: 0 },
+            { name: 'a_position', format: Format.RGB32_SFLOAT, buffer: 1, offset: 0 },
+        ];
+        const vertexInput: VertexInputView = {
+            buffers: [this._texCoordBuffer, this._positionBuffer],
+            offsets: [0, 0]
+        }
+        const indexInput: IndexInputView = {
+            buffer: this._indexBuffer,
+            offset: 0,
+            type: IndexType.UINT16
+        }
+        const subMesh: SubMesh = {
+            vertexAttributes,
+            vertexInput,
+            vertexPositionMin: vec3.create(),
+            vertexPositionMax: vec3.create(),
+            indexInput,
+            vertexOrIndexCount: 0
+        }
 
-        const attributes: VertexInputAttributeDescription[] = [];
-        const bindings: VertexInputBindingDescription[] = [];
-
-        let definition = shader.info.meta.attributes["a_texCoord"];
-        let attribute: VertexInputAttributeDescription = {
-            location: definition.location,
-            format: definition.format,
-            binding: 0,
-            offset: 0
-        };
-        attributes.push(attribute);
-        bindings.push({
-            binding: attribute.binding,
-            stride: FormatInfos[attribute.format].size,
-            inputRate: VertexInputRate.VERTEX
-        })
-
-        definition = shader.info.meta.attributes["a_position"];
-        attribute = {
-            location: definition.location,
-            format: definition.format,
-            binding: 1,
-            offset: 0
-        };
-        attributes.push(attribute);
-        bindings.push({
-            binding: attribute.binding,
-            stride: FormatInfos[attribute.format].size,
-            inputRate: VertexInputRate.VERTEX
-        })
-
-        this._vertexInputState = new VertexInputState(attributes, bindings);
-
-        //new PassState(shader, PrimitiveTopology.TRIANGLE_LIST, { cullMode: CullMode.NONE }, undefined, { enabled: true })
         const pass = new Pass({
-            shader,
+            shader: ShaderLib.instance.getShader('unlit', { USE_ALBEDO_MAP: 1 }),
             rasterizationState: { cullMode: CullMode.NONE },
             blendState: {
                 srcRGB: BlendFactor.SRC_ALPHA,
@@ -115,19 +99,17 @@ export default class TextRenderer extends BoundedRenderer {
         });
         pass.setTexture('albedoMap', this._fnt.texture.impl)
         pass.setUniform('Constants', 'albedo', vec4.ONE)
-        const subModel: SubModel = new SubModel([], [pass]);
+        const subModel: SubModel = new SubModel(subMesh, [pass]);
         const model = new Model(this.node, [subModel]);
         zero.scene.models.push(model);
-        this._model = model;
+        this._subMesh = subMesh;
     }
 
     override commit(): void {
         this.updateData();
 
-        const subModel = this._model.subModels[0];
-
         if (this._text.length == 0) {
-            subModel.vertexOrIndexCount = 0;
+            this._subMesh.vertexOrIndexCount = 0;
             return;
         }
 
@@ -135,25 +117,7 @@ export default class TextRenderer extends BoundedRenderer {
         this._positionBuffer.update();
         this._indexBuffer.update();
 
-        if (this._inputAssemblerInvalidated) {
-            const inputAssembler = gfx.createInputAssembler();
-            inputAssembler.initialize({
-                vertexInputState: this._vertexInputState,
-                vertexInput: {
-                    vertexBuffers: [this._texCoordBuffer.buffer, this._positionBuffer.buffer],
-                    vertexOffsets: [0, 0],
-                },
-                indexInput: {
-                    indexBuffer: this._indexBuffer.buffer,
-                    indexOffset: 0,
-                    indexType: IndexType.UINT16,
-                }
-            })
-            subModel.inputAssemblers[0] = inputAssembler;
-            this._inputAssemblerInvalidated = false;
-        }
-
-        subModel.vertexOrIndexCount = this._indexCount;
+        this._subMesh.vertexOrIndexCount = this._indexCount;
     }
 
     private updateData(): void {
@@ -170,10 +134,9 @@ export default class TextRenderer extends BoundedRenderer {
 
         const indexCount = 6 * this._text.length;
 
-        let reallocated = false;
-        reallocated = this._texCoordBuffer.reset(2 * 4 * this._text.length) || reallocated;
-        reallocated = this._positionBuffer.reset(3 * 4 * this._text.length) || reallocated;
-        reallocated = this._indexBuffer.reset(indexCount) || reallocated;
+        this._texCoordBuffer.reset(2 * 4 * this._text.length);
+        this._positionBuffer.reset(3 * 4 * this._text.length);
+        this._indexBuffer.reset(indexCount);
 
         const tex = this._fnt.texture.impl.info;
         let [x, y, l, r, t, b, i] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
@@ -252,9 +215,6 @@ export default class TextRenderer extends BoundedRenderer {
         aabb2d.fromPoints(this._bounds, vec2_a, vec2_b);
 
         this.emit(BoundsEvent.BOUNDS_CHANGED);
-        if (reallocated) {
-            this._inputAssemblerInvalidated = true;
-        }
 
         this._dirtyFlag = DirtyFlagBits.NONE;
     }

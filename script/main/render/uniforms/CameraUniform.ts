@@ -8,17 +8,17 @@ const CameraBlock = ShaderLib.sets.global.uniforms.Camera;
 export default class CameraUniform implements Uniform {
     readonly definition = CameraBlock;
 
-    private _buffer!: BufferViewResizable;
+    private _buffer: BufferViewResizable = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM);
 
-    initialize(): void {
-        this._buffer = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM, buffer => { zero.flow.globalDescriptorSet.bindBuffer(CameraBlock.binding, buffer, CameraBlock.size); });
-    }
+    initialize(): void { }
 
     update(): void {
         const renderScene = zero.scene;
         const cameras = renderScene.cameras;
         const camerasUboSize = CameraBlock.size * cameras.length;
-        this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);
+        if (this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT)) {
+            zero.flow.globalDescriptorSet.bindBuffer(CameraBlock.binding, this._buffer.buffer, CameraBlock.size)
+        }
         let camerasDataOffset = 0;
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];

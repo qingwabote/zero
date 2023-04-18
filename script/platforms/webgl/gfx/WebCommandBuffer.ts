@@ -190,8 +190,8 @@ export default class WebCommandBuffer implements CommandBuffer {
             const attributes = inputAssemblerInfo.vertexInputState.attributes;
             for (const attribute of attributes) {
                 const binding = inputAssemblerInfo.vertexInputState.bindings[attribute.binding];
-                const buffer = inputAssemblerInfo.vertexInput.vertexBuffers[attribute.binding] as WebBuffer;
-                const offset = inputAssemblerInfo.vertexInput.vertexOffsets[attribute.binding];
+                const buffer = inputAssemblerInfo.vertexInput.buffers[attribute.binding] as WebBuffer;
+                const offset = inputAssemblerInfo.vertexInput.offsets[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl.deref());
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
@@ -234,7 +234,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
             }
             if (inputAssemblerInfo.indexInput) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput.indexBuffer as WebBuffer).impl.deref());
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput.buffer as WebBuffer).impl.deref());
             }
             input2vao.set(inputAssemblerInfo, vao);
 
@@ -256,7 +256,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         const indexInput = this._inputAssembler!.indexInput!;
 
         let type: GLenum;
-        switch (indexInput.indexType) {
+        switch (indexInput.type) {
             case IndexType.UINT16:
                 type = WebGL2RenderingContext.UNSIGNED_SHORT;
                 break;
@@ -269,7 +269,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, indexCount, type, indexInput.indexOffset);
+        gl.drawElements(gl.TRIANGLES, indexCount, type, indexInput.offset);
         gl.bindVertexArray(null);
     }
 

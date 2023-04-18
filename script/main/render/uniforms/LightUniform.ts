@@ -3,7 +3,7 @@ import { DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
 import { ShaderStageFlagBits } from "../../core/gfx/Shader.js";
 import vec3 from "../../core/math/vec3.js";
 import Uniform from "../../core/render/Uniform.js";
-import BufferView from "../../core/scene/buffers/BufferView.js";
+import BufferViewWritable from "../../core/scene/buffers/BufferViewWritable.js";
 
 const LightBlock = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -18,10 +18,10 @@ const LightBlock = {
 export default class LightUniform implements Uniform {
     readonly definition = LightBlock;
 
-    private _buffer!: BufferView;
+    private _buffer!: BufferViewWritable;
 
     initialize(): void {
-        const buffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
+        const buffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
         zero.flow.globalDescriptorSet.bindBuffer(LightBlock.binding, buffer.buffer)
         this._buffer = buffer;
     }

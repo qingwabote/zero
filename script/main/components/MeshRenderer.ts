@@ -1,8 +1,5 @@
 import Material from "../assets/Material.js";
 import Mesh from "../assets/Mesh.js";
-import { FormatInfos } from "../core/gfx/Format.js";
-import InputAssembler, { IndexInput, VertexInput } from "../core/gfx/InputAssembler.js";
-import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3 from "../core/math/vec3.js";
 import Model from "../core/scene/Model.js";
@@ -35,65 +32,7 @@ export default class MeshRenderer extends BoundedRenderer {
     override start(): void {
         const subModels: SubModel[] = [];
         for (let i = 0; i < this.mesh.subMeshes.length; i++) {
-            const subMesh = this.mesh.subMeshes[i];
-            const bindings: VertexInputBindingDescription[] = [];
-            for (let binding = 0; binding < subMesh.vertexBuffers.length; binding++) {
-                const buffer = subMesh.vertexBuffers[binding];
-                let stride = buffer.info.stride;
-                if (!stride) {
-                    const attribute = subMesh.vertexAttributes.find(attribute => attribute.buffer == binding)!;
-                    stride = FormatInfos[attribute.format].size;
-                }
-                bindings.push({
-                    binding,
-                    stride,
-                    inputRate: VertexInputRate.VERTEX
-                })
-            }
-            const vertexInput: VertexInput = {
-                vertexBuffers: subMesh.vertexBuffers,
-                vertexOffsets: subMesh.vertexOffsets,
-            }
-            const indexInput: IndexInput = {
-                indexBuffer: subMesh.indexBuffer,
-                indexOffset: subMesh.indexOffset,
-                indexType: subMesh.indexType,
-            }
-            const inputAssemblers: InputAssembler[] = [];
-            const passes = this.materials[i].passes;
-            for (let j = 0; j < passes.length; j++) {
-                const pass = passes[j];
-                const attributes: VertexInputAttributeDescription[] = [];
-                for (const attribute of subMesh.vertexAttributes) {
-                    const definition = pass.state.shader.info.meta.attributes[attribute.name];
-                    if (!definition) {
-                        continue;
-                    }
-                    if (definition.format != attribute.format) {
-                        // throw new Error(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`);
-                        console.log(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`)
-                    }
-
-                    attributes.push({
-                        location: definition.location,
-                        format: attribute.format,
-                        binding: attribute.buffer,
-                        offset: attribute.offset
-                    });
-                }
-
-                const inputAssembler = gfx.createInputAssembler();
-                inputAssembler.initialize({
-                    vertexInputState: new VertexInputState(
-                        attributes,
-                        bindings
-                    ),
-                    vertexInput,
-                    indexInput
-                })
-                inputAssemblers.push(inputAssembler);
-            }
-            subModels.push(new SubModel(inputAssemblers, passes, subMesh.indexCount));
+            subModels.push(new SubModel(this.mesh.subMeshes[i], this.materials[i].passes));
         }
         const model = this.createModel(subModels);
         zero.scene.models.push(model);
