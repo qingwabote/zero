@@ -7,10 +7,10 @@ import UIElement from "./internal/UIElement.js";
 
 export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
     static create<T extends BoundedRenderer>(constructor: new (...args: ConstructorParameters<typeof BoundedRenderer>) => T): UIRenderer<T> {
-        const renderer = (new Node(constructor.name)).addComponent(constructor);
-        const element = (new Node).addComponent(UIRenderer);
-        element.node.addChild(renderer.node);
-        return element as UIRenderer<T>;
+        const impl = (new Node(constructor.name)).addComponent(constructor);
+        const ui = (new Node).addComponent(UIRenderer);
+        ui.node.addChild(impl.node);
+        return ui as UIRenderer<T>;
     }
 
     get impl(): T {

@@ -211,7 +211,11 @@ export default class GLTF extends Asset {
 
         if (USE_SHADOW_MAP) {
             const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
-            const shadowMapPass = new Pass({ shader: shadowMapShader, rasterizationState: { cullMode: CullMode.FRONT } }, PassType.SHADOWMAP);
+            const shadowMapPass = new Pass({
+                shader: shadowMapShader,
+                rasterizationState: { cullMode: CullMode.FRONT },
+                depthStencilState: { depthTestEnable: true }
+            }, PassType.SHADOWMAP);
             passes.push(shadowMapPass);
         }
 
@@ -223,7 +227,7 @@ export default class GLTF extends Asset {
             CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
         })
 
-        const phongPass = new Pass({ shader: phongShader });
+        const phongPass = new Pass({ shader: phongShader, depthStencilState: { depthTestEnable: true } });
         if (texture) {
             phongPass.setTexture('albedoMap', texture.impl)
         }

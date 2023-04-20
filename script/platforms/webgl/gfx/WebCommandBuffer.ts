@@ -134,7 +134,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         gl.enable(gl.SCISSOR_TEST);
 
-        if (state.depthStencilState.depthTestEnable) {
+        if (state.depthStencilState?.depthTestEnable) {
             gl.enable(gl.DEPTH_TEST);
         } else {
             gl.disable(gl.DEPTH_TEST);

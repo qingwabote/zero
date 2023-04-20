@@ -1,9 +1,9 @@
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format, { FormatInfos } from "../core/gfx/Format.js";
-import { CullMode, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { BlendFactor, CullMode, PrimitiveTopology } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3, { Vec3Like } from "../core/math/vec3.js";
-import { Vec4Like } from "../core/math/vec4.js";
+import vec4, { Vec4Like } from "../core/math/vec4.js";
 import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
@@ -35,7 +35,7 @@ export default class Primitive extends BoundedRenderer {
     private _subMesh!: SubMesh;
 
 
-    drawLine(from: Vec3Like, to: Vec3Like, color: Vec4Like = [1, 1, 1, 1]) {
+    drawLine(from: Readonly<Vec3Like>, to: Readonly<Vec3Like>, color: Readonly<Vec4Like> = vec4.ONE) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
         this._buffer.resize(length)
 
@@ -88,7 +88,12 @@ export default class Primitive extends BoundedRenderer {
             shader: ShaderLib.instance.getShader('primitive'),
             primitive: PrimitiveTopology.LINE_LIST,
             rasterizationState: { cullMode: CullMode.NONE },
-            depthStencilState: { depthTestEnable: false }
+            blendState: {
+                srcRGB: BlendFactor.SRC_ALPHA,
+                dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA,
+                srcAlpha: BlendFactor.ONE,
+                dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA
+            }
         });
         const subModel: SubModel = new SubModel(subMesh, [pass]);
         const model = new Model(this.node, [subModel])

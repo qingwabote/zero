@@ -7,6 +7,7 @@ export type Vec4Like = {
 }
 
 export default {
+    ZERO: [0, 0, 0, 0],
     ONE: [1, 1, 1, 1],
 
     create(x = 0, y = 0, z = 0, w = 0): Vec4 {

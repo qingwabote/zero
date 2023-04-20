@@ -44,6 +44,9 @@ export default class BufferViewResizable extends EventEmitterImpl<BufferViewResi
         })
     }
 
+    /**
+    * @returns true if the buffer is reallocated
+    */
     reset(length: number): boolean {
         this._length = length;
         if (this._bufferView.length >= length) {

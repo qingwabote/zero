@@ -100,10 +100,12 @@ namespace binding
 
             v8::Local<v8::Object> js_depthStencilState = sugar::v8::object_get(js_passState, "depthStencilState").As<v8::Object>();
             VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
-            depthStencilState.depthTestEnable = sugar::v8::object_get(js_depthStencilState, "depthTestEnable").As<v8::Boolean>()->Value();
-            depthStencilState.depthWriteEnable = VK_TRUE;
-            depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
-            depthStencilState.stencilTestEnable = VK_FALSE;
+            if (!js_depthStencilState->IsUndefined())
+            {
+                depthStencilState.depthTestEnable = sugar::v8::object_get(js_depthStencilState, "depthTestEnable").As<v8::Boolean>()->Value();
+                depthStencilState.depthWriteEnable = VK_TRUE;
+                depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+            }
             pipelineInfo.pDepthStencilState = &depthStencilState;
 
             v8::Local<v8::Object> js_blendState = sugar::v8::object_get(js_passState, "blendState").As<v8::Object>();

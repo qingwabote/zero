@@ -97,7 +97,7 @@ export default class App extends Zero {
                 const albedo: Readonly<Vec4Like> = info.pbrMetallicRoughness.baseColorFactor || vec4.ONE;
 
                 const unlit_shader = await ShaderLib.instance.loadShader('unlit', { USE_ALBEDO_MAP: textureIdx != -1 ? 1 : 0 });
-                const unlit_pass = new Pass({ shader: unlit_shader }, PassFlag_DOWN);
+                const unlit_pass = new Pass({ shader: unlit_shader, depthStencilState: { depthTestEnable: true } }, PassFlag_DOWN);
                 if (textureIdx != -1) {
                     unlit_pass.setTexture('albedoMap', gltf.textures[textureIdx].impl)
                 }

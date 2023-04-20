@@ -127,7 +127,7 @@ export class PassState {
     readonly shader: Shader;
     readonly primitive: PrimitiveTopology;
     readonly rasterizationState: RasterizationState;
-    readonly depthStencilState: DepthStencilState;
+    readonly depthStencilState?: DepthStencilState;
     readonly blendState?: BlendState;
 
     readonly hash: string;
@@ -136,13 +136,15 @@ export class PassState {
         this.shader = info.shader;
         this.primitive = info.primitive != undefined ? info.primitive : PrimitiveTopology.TRIANGLE_LIST;
         this.rasterizationState = info.rasterizationState || { cullMode: CullMode.BACK };
-        this.depthStencilState = info.depthStencilState || { depthTestEnable: true };
+        this.depthStencilState = info.depthStencilState;
         this.blendState = info.blendState;
 
         let hash = this.shader.info.hash;
         hash += `${this.primitive}`;
         hash += `${this.rasterizationState.cullMode}`;
-        hash += `${this.depthStencilState.depthTestEnable}`;
+        if (this.depthStencilState) {
+            hash += `${this.depthStencilState.depthTestEnable}`;
+        }
         if (this.blendState) {
             hash += `${this.blendState.srcRGB}${this.blendState.dstRGB}${this.blendState.srcAlpha}${this.blendState.dstAlpha}`;
         }
