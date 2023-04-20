@@ -7,5 +7,7 @@ export interface Vertex {
 
 export interface Polygon {
     readonly vertexes: readonly Vertex[];
-    readonly pos: Readonly<Vec2>
+    readonly vertexPosMin: Readonly<Vec2>;
+    readonly vertexPosMax: Readonly<Vec2>;
+    readonly translation: Readonly<Vec2>
 }

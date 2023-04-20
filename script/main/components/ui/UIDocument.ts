@@ -5,6 +5,7 @@ import rect from "../../core/math/rect.js";
 import vec2, { Vec2 } from "../../core/math/vec2.js";
 import Node from "../../core/Node.js";
 import Camera from "../Camera.js";
+import ModelRenderer from "../internal/ModelRenderer.js";
 import UIElement, { UITouchEventType } from "./internal/UIElement.js";
 import UIContainer from "./UIContainer.js";
 
@@ -28,8 +29,23 @@ export default class UIDocument extends Component {
         zero.input.on(InputEvent.TOUCH_END, event => this.touchHandler(event.touches[0], UITouchEventType.TOUCH_END));
     }
 
+    override commit(): void {
+        this.orderWalk(this.node, 0);
+    }
+
     addElement(element: UIElement) {
         this.node.addChild(element.node);
+    }
+
+    private orderWalk(node: Node, order: number): number {
+        const renderer = node.getComponent(ModelRenderer);
+        if (renderer?.model) {
+            renderer.model.order = order++;
+        }
+        for (let i = node.children.length - 1; i > -1; i--) {
+            order = this.orderWalk(node.children[i], order++)
+        }
+        return order;
     }
 
     private touchHandler(touch: Touch, event: UITouchEventType) {

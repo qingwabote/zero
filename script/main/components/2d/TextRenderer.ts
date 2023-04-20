@@ -32,6 +32,11 @@ enum DirtyFlagBits {
 const lineBreak = '\n'.charCodeAt(0);
 
 export default class TextRenderer extends BoundedRenderer {
+    private _model: Model | undefined;
+    get model(): Model | undefined {
+        return this._model;
+    }
+
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
     private _text: string = "";
@@ -101,7 +106,8 @@ export default class TextRenderer extends BoundedRenderer {
         pass.setUniform('Constants', 'albedo', vec4.ONE)
         const subModel: SubModel = new SubModel(subMesh, [pass]);
         const model = new Model(this.node, [subModel]);
-        zero.scene.models.push(model);
+        zero.scene.addModel(model)
+        this._model = model;
         this._subMesh = subMesh;
     }
 

@@ -19,6 +19,11 @@ import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 ShaderLib.preloaded.push({ name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } });
 
 export default class SpriteRenderer extends BoundedRenderer {
+    private _model: Model | undefined;
+    get model(): Model | undefined {
+        return this._model;
+    }
+
     private _bounds = aabb2d.create();
     public get bounds(): Readonly<AABB2D> {
         return this._bounds;
@@ -37,8 +42,6 @@ export default class SpriteRenderer extends BoundedRenderer {
 
         this._texture = value;
     }
-
-    private _model!: Model;
 
     override start(): void {
         const texCoordBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX, 8);
@@ -114,7 +117,7 @@ export default class SpriteRenderer extends BoundedRenderer {
         pass.setTexture('albedoMap', this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = new SubModel(subMesh, [pass]);
         const model = new Model(this.node, [subModel]);
-        zero.scene.models.push(model);
+        zero.scene.addModel(model)
         this._model = model;
     }
 }

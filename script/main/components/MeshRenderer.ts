@@ -12,6 +12,11 @@ const vec3_b = vec3.create();
 const emptyMesh = { subMeshes: [] };
 
 export default class MeshRenderer extends BoundedRenderer {
+    private _model: Model | undefined;
+    get model(): Model | undefined {
+        return this._model;
+    }
+
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
         vec3.set(vec3_a, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
@@ -27,15 +32,13 @@ export default class MeshRenderer extends BoundedRenderer {
 
     materials: Material[] = [];
 
-    private _model!: Model;
-
     override start(): void {
         const subModels: SubModel[] = [];
         for (let i = 0; i < this.mesh.subMeshes.length; i++) {
             subModels.push(new SubModel(this.mesh.subMeshes[i], this.materials[i].passes));
         }
         const model = this.createModel(subModels);
-        zero.scene.models.push(model);
+        zero.scene.addModel(model);
         this._model = model;
     }
 

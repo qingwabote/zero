@@ -91,9 +91,7 @@ export default class Flow {
     }
 
     update() {
-        for (const model of zero.scene.models) {
-            model.update();
-        }
+        zero.scene.update();
 
         for (const uniform of this._uniforms) {
             uniform.update();

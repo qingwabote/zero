@@ -1,5 +1,6 @@
 import Texture from "../../../../script/main/assets/Texture.js";
 import Camera from "../../../../script/main/components/Camera.js";
+import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import Asset from "../../../../script/main/core/Asset.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
@@ -33,10 +34,10 @@ export default class App extends Zero {
         cuttingBoard.size = vec2.create(width, height);
         doc.addElement(cuttingBoard);
 
-        // node = new Node;
-        // node.visibilityFlag = VisibilityFlagBits.DEFAULT
-        // node.addComponent(Profiler);
-        // node.position = [-width / 2, - height / 2, 0];
+        node = new Node;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        node.addComponent(Profiler);
+        node.position = [-width / 2, - height / 2, 0];
 
         return new Flow([stageFactory.forward([new ModelPhase], false)]);
     }

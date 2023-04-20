@@ -1,5 +1,5 @@
 import rect, { Rect } from "../../core/math/rect.js";
-import vec2, { Vec2Like } from "../../core/math/vec2.js";
+import vec2, { Vec2, Vec2Like } from "../../core/math/vec2.js";
 import vec3 from "../../core/math/vec3.js";
 import Node from "../../core/Node.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
@@ -33,11 +33,11 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         this._transformDirty = true;
     }
 
-    private _anchor = vec2.create(0.5, 0.5);
+    private _anchor: Readonly<Vec2> = vec2.create(0.5, 0.5);
     public get anchor() {
         return this._anchor;
     }
-    public set anchor(value) {
+    public set anchor(value: Readonly<Vec2>) {
         this._anchor = value;
         this._transformDirty = true;
     }

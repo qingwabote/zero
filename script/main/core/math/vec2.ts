@@ -59,4 +59,18 @@ export default {
         return out;
     },
 
+    distance(a: Readonly<Vec2Like>, b: Readonly<Vec2Like>) {
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
+        return Math.sqrt(x * x + y * y);
+    },
+
+    lerp<Out extends Vec2Like>(out: Out, a: Readonly<Vec2Like>, b: Readonly<Vec2Like>, t: number) {
+        const x = a[0];
+        const y = a[1];
+        out[0] = x + t * (b[0] - x);
+        out[1] = y + t * (b[1] - y);
+        return out;
+    }
+
 } as const

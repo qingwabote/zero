@@ -20,6 +20,11 @@ ShaderLib.preloaded.push({ name: 'primitive' })
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
 export default class Primitive extends BoundedRenderer {
+    private _model: Model | undefined;
+    get model(): Model | undefined {
+        return this._model;
+    }
+
     private _vertexMin = vec3.create(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
     private _vertexMax = vec3.create(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
 
@@ -97,8 +102,9 @@ export default class Primitive extends BoundedRenderer {
         });
         const subModel: SubModel = new SubModel(subMesh, [pass]);
         const model = new Model(this.node, [subModel])
-        zero.scene.models.push(model);
+        zero.scene.addModel(model)
         this._subMesh = subMesh;
+        this._model = model;
     }
 
     commit(): void {

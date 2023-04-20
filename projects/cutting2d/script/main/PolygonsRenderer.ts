@@ -1,14 +1,14 @@
 import Material from "../../../../script/main/assets/Material.js";
 import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
-import BoundedRenderer from "../../../../script/main/components/internal/BoundedRenderer.js";
-import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
-import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
+import UIElement from "../../../../script/main/components/ui/internal/UIElement.js";
+import Node from "../../../../script/main/core/Node.js";
 import ShaderLib from "../../../../script/main/core/ShaderLib.js";
 import { BufferUsageFlagBits } from "../../../../script/main/core/gfx/Buffer.js";
 import Format, { FormatInfos } from "../../../../script/main/core/gfx/Format.js";
 import { IndexType } from "../../../../script/main/core/gfx/InputAssembler.js";
 import { CullMode } from "../../../../script/main/core/gfx/Pipeline.js";
 import Texture from "../../../../script/main/core/gfx/Texture.js";
+import vec2, { Vec2Like } from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import vec4 from "../../../../script/main/core/math/vec4.js";
 import Pass from "../../../../script/main/core/scene/Pass.js";
@@ -33,13 +33,20 @@ function triangulate(n: number, indexBuffer: BufferViewResizable) {
     }
 }
 
-export default class PolygonsRenderer extends UIContainer {
+export default class PolygonsRenderer extends UIElement {
+    public get size(): Vec2Like {
+        return vec2.ZERO
+    }
+    public set size(value: Vec2Like) { }
+
+    private _polygons_invalidated = true;
     private _polygons: readonly Polygon[] = [];
     public get polygons(): readonly Polygon[] {
         return this._polygons;
     }
     public set polygons(value: readonly Polygon[]) {
         this._polygons = value;
+        this._polygons_invalidated = true;
     }
 
     texture!: Texture;
@@ -53,37 +60,38 @@ export default class PolygonsRenderer extends UIContainer {
         pass.setUniform('Constants', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
         this._material = { passes: [pass] };
+    }
 
-        for (let i = 0; i < this._polygons.length; i++) {
-            const polygon = this._polygons[i];
-            const renderer = this.getMeshRenderer(i);
-            const subMesh = renderer.mesh.subMeshes[0];
-            vec3.set(subMesh.vertexPositionMin, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0);
-            vec3.set(subMesh.vertexPositionMax, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, 0);
-            const vertexBuffer = subMesh.vertexInput.buffers[0] as BufferViewResizable;
-            vertexBuffer.reset(5 * polygon.vertexes.length);
-            let offset = 0;
-            for (let i = 0; i < polygon.vertexes.length; i++) {
-                const vertex = polygon.vertexes[i];
-                const [x, y] = [vertex.pos[0] / BoundedRenderer.PIXELS_PER_UNIT, vertex.pos[1] / BoundedRenderer.PIXELS_PER_UNIT];
-                vertexBuffer.data[offset++] = x
-                vertexBuffer.data[offset++] = y
-                vertexBuffer.data[offset++] = 0
-                vertexBuffer.set(vertex.uv, offset);
-                offset += 2
+    override update(): void {
+        if (this._polygons_invalidated) {
+            for (let i = 0; i < this._polygons.length; i++) {
+                const polygon = this._polygons[i];
+                const renderer = this.getMeshRenderer(i);
+                const subMesh = renderer.mesh.subMeshes[0];
+                const vertexBuffer = subMesh.vertexInput.buffers[0] as BufferViewResizable;
+                vertexBuffer.reset(5 * polygon.vertexes.length);
+                let offset = 0;
+                for (let i = 0; i < polygon.vertexes.length; i++) {
+                    const vertex = polygon.vertexes[i];
+                    vertexBuffer.data[offset++] = vertex.pos[0]
+                    vertexBuffer.data[offset++] = vertex.pos[1]
+                    vertexBuffer.data[offset++] = 0
+                    vertexBuffer.set(vertex.uv, offset);
+                    offset += 2
+                }
+                vertexBuffer.update();
+                vec3.set(subMesh.vertexPositionMin, ...polygon.vertexPosMin, 0);
+                vec3.set(subMesh.vertexPositionMax, ...polygon.vertexPosMax, 0);
 
-                subMesh.vertexPositionMin[0] = Math.min(subMesh.vertexPositionMin[0], x)
-                subMesh.vertexPositionMin[1] = Math.min(subMesh.vertexPositionMin[1], y)
-                subMesh.vertexPositionMax[0] = Math.max(subMesh.vertexPositionMax[0], x)
-                subMesh.vertexPositionMax[1] = Math.max(subMesh.vertexPositionMax[1], y)
+                const indexBuffer = subMesh.indexInput?.buffer as BufferViewResizable;
+                triangulate(polygon.vertexes.length, indexBuffer);
+                indexBuffer.update();
+
+                subMesh.vertexOrIndexCount = indexBuffer.length;
+
+                renderer.node.position = vec3.create(...polygon.translation, 0)
             }
-            vertexBuffer.update();
-
-            const indexBuffer = subMesh.indexInput?.buffer as BufferViewResizable;
-            triangulate(polygon.vertexes.length, indexBuffer);
-            indexBuffer.update();
-
-            subMesh.vertexOrIndexCount = indexBuffer.length;
+            this._polygons_invalidated = false;
         }
     }
 
@@ -105,11 +113,10 @@ export default class PolygonsRenderer extends UIContainer {
                 },
                 vertexOrIndexCount: 0
             }
-            const ui = UIRenderer.create(MeshRenderer);
-            renderer = ui.impl;
+            renderer = (new Node).addComponent(MeshRenderer)
             renderer.mesh = { subMeshes: [subMesh] }
             renderer.materials = [this._material];
-            this.addElement(ui);
+            this.node.addChild(renderer.node)
             this._meshRenderers[index] = renderer;
         }
         return renderer;

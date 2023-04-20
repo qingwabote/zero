@@ -1,7 +1,7 @@
 import EventEmitter from "../../base/EventEmitter.js";
 import EventEmitterImpl from "../../base/EventEmitterImpl.js";
-import Component from "../../core/Component.js";
 import { AABB2D } from "../../core/math/aabb2d.js";
+import ModelRenderer from "./ModelRenderer.js";
 
 export enum BoundsEvent {
     BOUNDS_CHANGED = "BOUNDS_CHANGED",
@@ -11,7 +11,7 @@ interface BoundsEventToListener {
     [BoundsEvent.BOUNDS_CHANGED]: () => void;
 }
 
-export default abstract class BoundedRenderer extends Component implements EventEmitter<BoundsEventToListener> {
+export default abstract class BoundedRenderer extends ModelRenderer implements EventEmitter<BoundsEventToListener> {
     static readonly PIXELS_PER_UNIT = 100;
 
     private __emitter?: EventEmitter<BoundsEventToListener>;
