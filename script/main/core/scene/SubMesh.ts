@@ -1,6 +1,6 @@
 import Format from "../gfx/Format.js";
 import { IndexType } from "../gfx/InputAssembler.js";
-import { Vec3Like } from "../math/vec3.js";
+import { Vec3 } from "../math/vec3.js";
 import BufferView from "./buffers/BufferView.js";
 
 export interface VertexAttribute {
@@ -26,8 +26,8 @@ export default interface SubMesh {
 
     readonly vertexInput: VertexInputView;
 
-    readonly vertexPositionMin: Vec3Like,
-    readonly vertexPositionMax: Vec3Like,
+    readonly vertexPositionMin: Vec3,
+    readonly vertexPositionMax: Vec3,
 
     readonly indexInput?: IndexInputView;
 

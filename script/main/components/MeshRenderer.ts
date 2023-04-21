@@ -19,11 +19,11 @@ export default class MeshRenderer extends BoundedRenderer {
 
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
-        vec3.set(vec3_a, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
-        vec3.set(vec3_b, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER)
-        for (const subMesh of this.mesh.subMeshes) {
-            vec3.min(vec3_a, vec3_a, subMesh.vertexPositionMin);
-            vec3.max(vec3_b, vec3_b, subMesh.vertexPositionMax);
+        vec3.set(vec3_a, ...this.mesh.subMeshes[0].vertexPositionMin);
+        vec3.set(vec3_b, ...this.mesh.subMeshes[0].vertexPositionMax);
+        for (let i = 1; i < this.mesh.subMeshes.length; i++) {
+            vec3.min(vec3_a, vec3_a, this.mesh.subMeshes[i].vertexPositionMin);
+            vec3.max(vec3_b, vec3_b, this.mesh.subMeshes[i].vertexPositionMax);
         }
         return aabb3d.fromPoints(this._bounds, vec3_a, vec3_b);
     }

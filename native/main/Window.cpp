@@ -210,6 +210,7 @@ int Window::loop()
                     running = false;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEMOTION:
                 {
                     char *name = nullptr;
@@ -218,6 +219,12 @@ int Window::loop()
                     if (event.type == SDL_MOUSEBUTTONDOWN)
                     {
                         name = "TOUCH_START";
+                        x = event.button.x;
+                        y = event.button.y;
+                    }
+                    else if (event.type == SDL_MOUSEBUTTONUP)
+                    {
+                        name = "TOUCH_END";
                         x = event.button.x;
                         y = event.button.y;
                     }

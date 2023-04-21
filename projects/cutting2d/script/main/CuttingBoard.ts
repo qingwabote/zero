@@ -76,8 +76,6 @@ function cut(polygon: Polygon, intersections: Intersection[]): Polygon {
             return tail - head;
         }
     }
-    const vertexPosMin = vec2.create(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-    const vertexPosMax = vec2.create(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
     const vertexes: Vertex[] = [];
     let index = intersections[0].i;
     let next = nextIndex(index);
@@ -87,8 +85,8 @@ function cut(polygon: Polygon, intersections: Intersection[]): Polygon {
         pos: point,
         uv: vec2.lerp(vec2.create(), polygon.vertexes[index].uv, polygon.vertexes[next].uv, t)
     });
-    vec2.min(vertexPosMin, vertexPosMin, point)
-    vec2.max(vertexPosMax, vertexPosMax, point)
+    const vertexPosMin = vec2.create(...point);
+    const vertexPosMax = vec2.create(...point);
     index = nextIndex(index);
 
     const count = delta(intersections[0].i, intersections[1].i);
