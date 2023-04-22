@@ -30,7 +30,7 @@ export default {
         return out
     },
 
-    normalize<Out extends Vec3Like>(out: Vec3Like, a: Readonly<Vec3Like>) {
+    normalize<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>) {
         const x = a[0];
         const y = a[1];
         const z = a[2];

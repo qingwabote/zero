@@ -89,9 +89,8 @@ export default class UIDocument extends Component {
             //     element.emit(event, new UITouchEvent(new UITouch(world_position, local_position)));
             // }
             if (element instanceof UIContainer) {
-                const children = node.children;
-                for (let j = children.length - 1; j > -1; j--) {
-                    if (this.touchWalk(children[j], cameras, world_positions, event)) {
+                for (let j = element.elementCount - 1; j > -1; j--) {
+                    if (this.touchWalk(element.getElement(j).node, cameras, world_positions, event)) {
                         // bubbling
                         if (element.has(event)) {
                             element.emit(event, { touch: { world: world_position, local: local_position } });

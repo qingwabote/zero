@@ -2,7 +2,7 @@ import EventEmitter from "../../../base/EventEmitter.js";
 import EventEmitterImpl from "../../../base/EventEmitterImpl.js";
 import Component from "../../../core/Component.js";
 import rect, { Rect } from "../../../core/math/rect.js";
-import vec2, { Vec2, Vec2Like } from "../../../core/math/vec2.js";
+import vec2, { Vec2 } from "../../../core/math/vec2.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
@@ -50,8 +50,8 @@ export default abstract class UIElement<EventToListener extends UIEventToListene
         this.__emitter?.emit(name, event);
     }
 
-    public abstract get size(): Vec2Like;
-    public abstract set size(value: Vec2Like);
+    public abstract get size(): Readonly<Vec2>;
+    public abstract set size(value: Readonly<Vec2>);
 
     getBounds(): Rect {
         return rect.create(-this.size[0] / 2, -this.size[1] / 2, this.size[0], this.size[1]);

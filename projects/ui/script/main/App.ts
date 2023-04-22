@@ -5,6 +5,7 @@ import Profiler from "../../../../script/main/components/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import Asset from "../../../../script/main/core/Asset.js";
+import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
@@ -34,7 +35,8 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
-        node.addComponent(Profiler);
+        const profiler = node.addComponent(Profiler);
+        profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, - height / 2, 0];
 
         return new Flow([stageFactory.forward([new ModelPhase], false)]);

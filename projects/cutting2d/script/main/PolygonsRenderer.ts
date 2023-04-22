@@ -8,7 +8,7 @@ import Format, { FormatInfos } from "../../../../script/main/core/gfx/Format.js"
 import { IndexType } from "../../../../script/main/core/gfx/InputAssembler.js";
 import { CullMode } from "../../../../script/main/core/gfx/Pipeline.js";
 import Texture from "../../../../script/main/core/gfx/Texture.js";
-import vec2, { Vec2Like } from "../../../../script/main/core/math/vec2.js";
+import vec2, { Vec2 } from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import vec4 from "../../../../script/main/core/math/vec4.js";
 import Pass from "../../../../script/main/core/scene/Pass.js";
@@ -34,10 +34,10 @@ function triangulate(n: number, indexBuffer: BufferViewResizable) {
 }
 
 export default class PolygonsRenderer extends UIElement {
-    public get size(): Vec2Like {
+    public get size(): Readonly<Vec2> {
         return vec2.ZERO
     }
-    public set size(value: Vec2Like) { }
+    public set size(value: Readonly<Vec2>) { }
 
     private _polygons_invalidated = true;
     private _polygons: readonly Polygon[] = [];

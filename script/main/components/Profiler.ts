@@ -1,10 +1,9 @@
-import Component from "../core/Component.js";
-import vec2 from "../core/math/vec2.js";
 import { ZeroEvent } from "../core/Zero.js";
 import TextRenderer from "./2d/TextRenderer.js";
+import UIContainer from "./ui/UIContainer.js";
 import UIRenderer from "./ui/UIRenderer.js";
 
-export default class Profiler extends Component {
+export default class Profiler extends UIContainer {
     private _time: number = 0;
     private _frames: number = 0;
 
@@ -18,9 +17,7 @@ export default class Profiler extends Component {
 
     override start(): void {
         const text = UIRenderer.create(TextRenderer);
-        text.node.visibilityFlag = this.node.visibilityFlag;
-        text.anchor = vec2.create(0, 0)
-        this.node.addChild(text.node);
+        this.addElement(text);
         this._text = text;
 
         this.profileLogic();
@@ -28,6 +25,7 @@ export default class Profiler extends Component {
     }
 
     override update(): void {
+        super.update();
         const now = Date.now();
         const duration = now - this._time;
         if (duration > 1000) {
