@@ -48,8 +48,8 @@ export default class App extends Zero {
         ground.visibilityFlag = VisibilityFlagBits.DEFAULT;
         let shape = ground.addComponent(BoxShape);
         let aabb = ground.getComponent(MeshRenderer)!.bounds;
-        shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
-        ground.scale = [ground_size[0] / (aabb.halfExtentX * 2), ground_size[1] / (aabb.halfExtentY * 2), ground_size[2] / (aabb.halfExtentZ * 2)]
+        shape.size = vec3.create(aabb.halfExtent[0] * 2, aabb.halfExtent[1] * 2, aabb.halfExtent[2] * 2)
+        ground.scale = [ground_size[0] / (aabb.halfExtent[0] * 2), ground_size[1] / (aabb.halfExtent[1] * 2), ground_size[2] / (aabb.halfExtent[2] * 2)]
         ground.position = [0, -ground_size[1] / 2, 0];
 
         const box_size = 1;
@@ -74,8 +74,8 @@ export default class App extends Zero {
                 shape = box.addComponent(BoxShape);
                 shape.body.mass = 0.1;
                 aabb = meshRenderer.bounds;
-                shape.size = vec3.create(aabb.halfExtentX * 2, aabb.halfExtentY * 2, aabb.halfExtentZ * 2)
-                box.scale = [box_size / (aabb.halfExtentX * 2), box_size / (aabb.halfExtentY * 2), box_size / (aabb.halfExtentZ * 2)]
+                shape.size = vec3.create(aabb.halfExtent[0] * 2, aabb.halfExtent[1] * 2, aabb.halfExtent[2] * 2)
+                box.scale = [box_size / (aabb.halfExtent[0] * 2), box_size / (aabb.halfExtent[1] * 2), box_size / (aabb.halfExtent[2] * 2)]
                 box.position = [box_x, box_y, box_z];
             }
         }

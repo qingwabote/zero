@@ -1,12 +1,11 @@
 import { Mat4Like } from "./mat4.js";
 import { QuatLike } from "./quat.js";
+import { Vec2Like } from "./vec2.js";
 
 export type Vec3 = [number, number, number];
 
-export type Vec3Like = {
-    0: number; 1: number; 2: number;
-    readonly length: 3;
-    [Symbol.iterator](): IterableIterator<number>;
+export interface Vec3Like extends Vec2Like {
+    2: number;
 }
 
 export default {
@@ -28,6 +27,13 @@ export default {
         out[1] = y;
         out[2] = z;
         return out
+    },
+
+    copy<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>) {
+        out[0] = a[0];
+        out[1] = a[1];
+        out[2] = a[2];
+        return out;
     },
 
     normalize<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>) {
@@ -114,8 +120,8 @@ export default {
     },
 
     cross<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
-        const [ax, ay, az] = a;
-        const [bx, by, bz] = b;
+        const [ax, ay, az] = [a[0], a[1], a[2]];
+        const [bx, by, bz] = [b[0], b[1], b[2]];
         out[0] = ay * bz - az * by;
         out[1] = az * bx - ax * bz;
         out[2] = ax * by - ay * bx;
@@ -144,8 +150,8 @@ export default {
     },
 
     equals(a: Vec3Like, b: Vec3Like, epsilon = 0.000001) {
-        const [a0, a1, a2] = a;
-        const [b0, b1, b2] = b;
+        const [a0, a1, a2] = [a[0], a[1], a[2]];
+        const [b0, b1, b2] = [b[0], b[1], b[2]];
         return (
             Math.abs(a0 - b0)
             <= epsilon * Math.max(1.0, Math.abs(a0), Math.abs(b0))

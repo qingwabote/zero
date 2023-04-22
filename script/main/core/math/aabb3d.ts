@@ -5,13 +5,13 @@ const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
 export interface AABB3D extends AABB2D {
-    centerZ: number;
-    halfExtentZ: number;
+    center: Vec3Like;
+    halfExtent: Vec3Like;
 }
 
 export default {
     create(): AABB3D {
-        return { centerX: 0, centerY: 0, centerZ: 0, halfExtentX: 0, halfExtentY: 0, halfExtentZ: 0 };
+        return { center: vec3.create(), halfExtent: vec3.create() };
     },
 
     fromPoints(out: AABB3D, minPos: Vec3Like, maxPos: Vec3Like): AABB3D {
@@ -21,18 +21,13 @@ export default {
         vec3.subtract(vec3_b, maxPos, minPos);
         vec3.scale(vec3_b, vec3_b, 0.5);
 
-        this.set(out, ...vec3_a, ...vec3_b);
+        this.set(out, vec3_a, vec3_b);
         return out;
     },
 
-    set(out: AABB3D, centerX: number, centerY: number, centerZ: number, halfExtentX: number, halfExtentY: number, halfExtentZ: number): AABB2D {
-        out.centerX = centerX;
-        out.centerY = centerY;
-        out.centerZ = centerZ;
-
-        out.halfExtentX = halfExtentX;
-        out.halfExtentY = halfExtentY;
-        out.halfExtentZ = halfExtentZ;
+    set(out: AABB3D, center: Readonly<Vec3Like>, halfExtent: Readonly<Vec3Like>): AABB2D {
+        vec3.copy(out.center, center)
+        vec3.copy(out.halfExtent, halfExtent)
         return out;
     }
 }

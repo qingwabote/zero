@@ -5,14 +5,11 @@ import Component from "../core/Component.js";
 import TRS from "../core/math/TRS.js";
 import quat, { QuatLike } from "../core/math/quat.js";
 import vec3, { Vec3Like } from "../core/math/vec3.js";
+import vec4, { Vec4 } from "../core/math/vec4.js";
 
-const vec3_a = vec3.create();
-const vec3_b = vec3.create();
-const vec3_c = vec3.create();
-
-const quat_a = quat.create();
-const quat_b = quat.create();
-const quat_c = quat.create();
+const vec4_a = vec4.create();
+const vec4_b = vec4.create();
+const vec4_c = vec4.create();
 
 type FilteredKeys<T, U> = { [P in keyof T]: T[P] extends U ? P : never }[keyof T];
 
@@ -21,23 +18,23 @@ class ChannelBindingVec3 implements ChannelBindingValue {
 
     update(sampler: Sampler, index: number, time: number): void {
         const values = sampler.output;
-        let value: Vec3Like;
+        let value: Vec4;
         if (index >= 0) {
             const start = index * 3;
-            value = vec3.set(vec3_a, values[start], values[start + 1], values[start + 2])
+            value = vec3.set(vec4_a, values[start], values[start + 1], values[start + 2])
         } else {
             const next = ~index;
             const prev = next - 1;
 
             const start_prev = prev * 3;
-            vec3.set(vec3_a, values[start_prev], values[start_prev + 1], values[start_prev + 2])
+            vec3.set(vec4_a, values[start_prev], values[start_prev + 1], values[start_prev + 2])
 
             const start_next = next * 3;
-            vec3.set(vec3_b, values[start_next], values[start_next + 1], values[start_next + 2])
+            vec3.set(vec4_b, values[start_next], values[start_next + 1], values[start_next + 2])
 
             const times = sampler.input;
             const t = (time - times[prev]) / (times[next] - times[prev]);
-            value = vec3.lerp(vec3_c, vec3_a, vec3_b, t);
+            value = vec3.lerp(vec4_c, vec4_a, vec4_b, t);
         }
         this._transform[this._property] = value;
     }
@@ -51,20 +48,20 @@ class ChannelBindingQuat implements ChannelBindingValue {
         let value: QuatLike;
         if (index >= 0) {
             const start = index * 4;
-            value = quat.set(quat_a, values[start], values[start + 1], values[start + 2], values[start + 3])
+            value = quat.set(vec4_a, values[start], values[start + 1], values[start + 2], values[start + 3])
         } else {
             const next = ~index;
             const prev = next - 1;
 
             const start_prev = prev * 4;
-            quat.set(quat_a, values[start_prev], values[start_prev + 1], values[start_prev + 2], values[start_prev + 3])
+            quat.set(vec4_a, values[start_prev], values[start_prev + 1], values[start_prev + 2], values[start_prev + 3])
 
             const start_next = next * 4;
-            quat.set(quat_b, values[start_next], values[start_next + 1], values[start_next + 2], values[start_next + 3])
+            quat.set(vec4_b, values[start_next], values[start_next + 1], values[start_next + 2], values[start_next + 3])
 
             const times = sampler.input;
             const t = (time - times[prev]) / (times[next] - times[prev]);
-            value = quat.slerp(quat_c, quat_a, quat_b, t);
+            value = quat.slerp(vec4_c, vec4_a, vec4_b, t);
         }
         this._transform[this._property] = value;
     }

@@ -1,7 +1,7 @@
 import { ClearFlagBits } from "../gfx/Pipeline.js";
 import { Mat4Like } from "../math/mat4.js";
 import { Rect } from "../math/rect.js";
-import { Vec3Like } from "../math/vec3.js";
+import { Vec3 } from "../math/vec3.js";
 import FrameChangeRecord from "./FrameChangeRecord.js";
 import Transform from "./Transform.js";
 
@@ -41,7 +41,7 @@ export default class Camera extends FrameChangeRecord {
         this.hasChanged = 1;
     }
 
-    get position(): Readonly<Vec3Like> {
+    get position(): Readonly<Vec3> {
         return this._transform.world_position;
     }
 

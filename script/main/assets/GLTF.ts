@@ -10,7 +10,7 @@ import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
 import { CullMode } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4Like } from "../core/math/mat4.js";
-import vec4, { Vec4Like } from "../core/math/vec4.js";
+import vec4, { Vec4 } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
 import BufferView from "../core/scene/buffers/BufferView.js";
 import Pass from "../core/scene/Pass.js";
@@ -30,7 +30,7 @@ interface MaterialMacros {
 }
 
 interface MaterialValues {
-    albedo?: Vec4Like;
+    albedo?: Vec4;
     texture?: Texture;
 }
 

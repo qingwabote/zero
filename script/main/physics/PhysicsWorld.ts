@@ -1,4 +1,4 @@
-import vec3, { Vec3Like } from "../core/math/vec3.js";
+import vec3, { Vec3 } from "../core/math/vec3.js";
 import PhysicsSystem from "./PhysicsSystem.js";
 import RayResultCallback from "./RayResultCallback.js";
 
@@ -10,7 +10,7 @@ export default class PhysicsWorld {
 
     readonly impl;
 
-    private _rayTestFromTo: Readonly<Vec3Like>[] = [vec3.ZERO, vec3.ZERO];
+    private _rayTestFromTo: Readonly<Vec3>[] = [vec3.ZERO, vec3.ZERO];
 
     constructor(context: PhysicsSystem) {
         const ammo = context.ammo;
@@ -22,7 +22,7 @@ export default class PhysicsWorld {
         this.impl = new ammo.btDiscreteDynamicsWorld(this._dispatcher, this._broadphase, this._solver, this._collisionConfiguration);
     }
 
-    rayTest(from: Vec3Like, to: Vec3Like, resultCallback: RayResultCallback): void {
+    rayTest(from: Vec3, to: Vec3, resultCallback: RayResultCallback): void {
         const ps = PhysicsSystem.instance;
 
         ps.bt_vec3_a.setValue(...from);

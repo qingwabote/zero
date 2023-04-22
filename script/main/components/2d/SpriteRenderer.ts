@@ -5,6 +5,7 @@ import { CullMode } from "../../core/gfx/Pipeline.js";
 import { Filter } from "../../core/gfx/Sampler.js";
 import Texture from "../../core/gfx/Texture.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
+import vec2 from "../../core/math/vec2.js";
 import vec3 from "../../core/math/vec3.js";
 import vec4 from "../../core/math/vec4.js";
 import samplers from "../../core/samplers.js";
@@ -37,7 +38,7 @@ export default class SpriteRenderer extends BoundedRenderer {
         const { width, height } = value.info;
         const w = width / BoundedRenderer.PIXELS_PER_UNIT;
         const h = height / BoundedRenderer.PIXELS_PER_UNIT;
-        aabb2d.set(this._bounds, 0, 0, w / 2, h / 2);
+        aabb2d.set(this._bounds, vec2.ZERO, [w / 2, h / 2]);
         this.emit(BoundsEvent.BOUNDS_CHANGED);
 
         this._texture = value;
@@ -52,11 +53,11 @@ export default class SpriteRenderer extends BoundedRenderer {
         const uv_t = 0;
         const uv_b = 1;
 
-        const { halfExtentX, halfExtentY } = this.bounds;
-        const pos_l = -halfExtentX;
-        const pos_r = halfExtentX;
-        const pos_t = halfExtentY;
-        const pos_b = -halfExtentY;
+        const halfExtent = this.bounds.halfExtent;
+        const pos_l = -halfExtent[0];
+        const pos_r = halfExtent[0];
+        const pos_t = halfExtent[1];
+        const pos_b = -halfExtent[1];
 
         texCoordBuffer.data[0] = uv_l;
         texCoordBuffer.data[1] = uv_t;

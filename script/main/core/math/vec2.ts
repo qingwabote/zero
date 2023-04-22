@@ -2,10 +2,9 @@ import { Mat4Like } from "./mat4.js";
 
 export type Vec2 = [number, number];
 
-export type Vec2Like = {
-    0: number; 1: number;
-    readonly length: 2;
-    [Symbol.iterator](): IterableIterator<number>;
+export interface Vec2Like {
+    0: number;
+    1: number;
 }
 
 export default {
@@ -19,6 +18,12 @@ export default {
         out[0] = x;
         out[1] = y;
         return out
+    },
+
+    copy<Out extends Vec2Like>(out: Out, a: Readonly<Vec2Like>) {
+        out[0] = a[0];
+        out[1] = a[1];
+        return out;
     },
 
     transformMat4<Out extends Vec2Like>(out: Out, a: Readonly<Vec2Like>, m: Readonly<Mat4Like>) {

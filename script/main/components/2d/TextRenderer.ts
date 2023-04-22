@@ -132,7 +132,7 @@ export default class TextRenderer extends BoundedRenderer {
         }
 
         if (this._text.length == 0) {
-            aabb2d.set(this._bounds, 0, 0, 0, 0);
+            aabb2d.set(this._bounds, vec2.ZERO, vec2.ZERO);
             this.emit(BoundsEvent.BOUNDS_CHANGED);
             this._dirtyFlag = DirtyFlagBits.NONE;
             return;

@@ -4,16 +4,13 @@ const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
 export interface AABB2D {
-    centerX: number;
-    centerY: number;
-
-    halfExtentX: number;
-    halfExtentY: number;
+    center: Vec2Like
+    halfExtent: Vec2Like;
 }
 
 export default {
     create(): AABB2D {
-        return { centerX: 0, centerY: 0, halfExtentX: 0, halfExtentY: 0 };
+        return { center: vec2.create(), halfExtent: vec2.create() };
     },
 
     fromPoints(out: AABB2D, minPos: Vec2Like, maxPos: Vec2Like): AABB2D {
@@ -23,15 +20,13 @@ export default {
         vec2.subtract(vec2_b, maxPos, minPos);
         vec2.scale(vec2_b, vec2_b, 0.5);
 
-        this.set(out, ...vec2_a, ...vec2_b);
+        this.set(out, vec2_a, vec2_b);
         return out;
     },
 
-    set(out: AABB2D, centerX: number, centerY: number, halfExtentX: number, halfExtentY: number): AABB2D {
-        out.centerX = centerX;
-        out.centerY = centerY;
-        out.halfExtentX = halfExtentX;
-        out.halfExtentY = halfExtentY;
+    set(out: AABB2D, center: Readonly<Vec2Like>, halfExtent: Readonly<Vec2Like>): AABB2D {
+        vec2.copy(out.center, center)
+        vec2.copy(out.halfExtent, halfExtent)
         return out;
     }
 }

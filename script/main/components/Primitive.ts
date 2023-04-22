@@ -2,8 +2,8 @@ import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format, { FormatInfos } from "../core/gfx/Format.js";
 import { BlendFactor, CullMode, PrimitiveTopology } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
-import vec3, { Vec3Like } from "../core/math/vec3.js";
-import vec4, { Vec4Like } from "../core/math/vec4.js";
+import vec3, { Vec3 } from "../core/math/vec3.js";
+import vec4, { Vec4 } from "../core/math/vec4.js";
 import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
@@ -40,7 +40,7 @@ export default class Primitive extends BoundedRenderer {
     private _subMesh!: SubMesh;
 
 
-    drawLine(from: Readonly<Vec3Like>, to: Readonly<Vec3Like>, color: Readonly<Vec4Like> = vec4.ONE) {
+    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = vec4.ONE) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
         this._buffer.resize(length)
 

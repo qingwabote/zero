@@ -1,17 +1,12 @@
 import mat3, { Mat3Like } from "./mat3.js";
 import vec3, { Vec3Like } from "./vec3.js";
+import vec4, { Vec4, Vec4Like } from "./vec4.js";
 
 const halfToRad = 0.5 * Math.PI / 180.0;
 
-export type Quat = [
-    number, number, number, number
-]
+export type Quat = Vec4;
 
-export type QuatLike = {
-    0: number; 1: number; 2: number; 3: number;
-    readonly length: 4;
-    [Symbol.iterator](): IterableIterator<number>;
-}
+export type QuatLike = Vec4Like
 
 export default {
     IDENTITY: [0, 0, 0, 1],
@@ -20,13 +15,7 @@ export default {
         return [x, y, z, w]
     },
 
-    set<Out extends QuatLike>(out: Out, x: number, y: number, z: number, w: number) {
-        out[0] = x;
-        out[1] = y;
-        out[2] = z;
-        out[3] = w;
-        return out;
-    },
+    set: vec4.set,
 
     fromEuler<Out extends QuatLike>(out: Out, x: number, y: number, z: number) {
         x *= halfToRad;
@@ -49,7 +38,7 @@ export default {
     },
 
     toEuler<Out extends Vec3Like>(out: Out, q: Readonly<QuatLike>) {
-        const [x, y, z, w] = q;
+        const [x, y, z, w] = [q[0], q[1], q[2], q[3]];
         let bank = 0;
         let heading = 0;
         let attitude = 0;
@@ -223,7 +212,7 @@ export default {
 
         const bx = Math.sin(rad);
         const bw = Math.cos(rad);
-        const [x, y, z, w] = a;
+        const [x, y, z, w] = [a[0], a[1], a[2], a[3]];
 
         out[0] = x * bw + w * bx;
         out[1] = y * bw + z * bx;
@@ -237,7 +226,7 @@ export default {
 
         const by = Math.sin(rad);
         const bw = Math.cos(rad);
-        const [x, y, z, w] = a;
+        const [x, y, z, w] = [a[0], a[1], a[2], a[3]];
 
         out[0] = x * bw - z * by;
         out[1] = y * bw + w * by;

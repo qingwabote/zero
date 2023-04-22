@@ -9,7 +9,7 @@ import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
-import vec4, { Vec4Like } from "../../../../script/main/core/math/vec4.js";
+import vec4, { Vec4 } from "../../../../script/main/core/math/vec4.js";
 import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
 import Stage from "../../../../script/main/core/render/Stage.js";
@@ -94,7 +94,7 @@ export default class App extends Zero {
                 if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
                     textureIdx = gltf.json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
                 }
-                const albedo: Readonly<Vec4Like> = info.pbrMetallicRoughness.baseColorFactor || vec4.ONE;
+                const albedo: Readonly<Vec4> = info.pbrMetallicRoughness.baseColorFactor || vec4.ONE;
 
                 const unlit_shader = await ShaderLib.instance.loadShader('unlit', { USE_ALBEDO_MAP: textureIdx != -1 ? 1 : 0 });
                 const unlit_pass = new Pass({ shader: unlit_shader, depthStencilState: { depthTestEnable: true } }, PassFlag_DOWN);

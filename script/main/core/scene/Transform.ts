@@ -5,6 +5,7 @@ import mat3 from "../math/mat3.js";
 import mat4, { Mat4Like } from "../math/mat4.js";
 import quat, { Quat, QuatLike } from "../math/quat.js";
 import vec3, { Vec3, Vec3Like } from "../math/vec3.js";
+import vec4 from "../math/vec4.js";
 import FrameChangeRecord from "./FrameChangeRecord.js";
 
 export enum TransformBits {
@@ -72,7 +73,7 @@ export default class Transform extends FrameChangeRecord implements TRS, EventEm
         return this._position;
     }
     set position(value: Readonly<Vec3Like>) {
-        this._position.splice(0, value.length, ...value)
+        vec3.copy(this._position, value)
         this.dirty(TransformBits.POSITION);
     }
 
@@ -84,7 +85,7 @@ export default class Transform extends FrameChangeRecord implements TRS, EventEm
         return this._rotation;
     }
     set rotation(value: Readonly<QuatLike>) {
-        this._rotation.splice(0, value.length, ...value)
+        vec4.copy(this._rotation, value)
         this.dirty(TransformBits.ROTATION);
     }
 
@@ -93,7 +94,7 @@ export default class Transform extends FrameChangeRecord implements TRS, EventEm
         return this._scale
     }
     set scale(value: Readonly<Vec3Like>) {
-        this._scale.splice(0, value.length, ...value);
+        vec3.copy(this._scale, value)
         this.dirty(TransformBits.SCALE);
     }
 

@@ -25,8 +25,8 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
             return this._explicit_size;
         }
 
-        const { halfExtentX, halfExtentY } = this.impl.bounds;
-        return vec2.create(halfExtentX * 2 * BoundedRenderer.PIXELS_PER_UNIT, halfExtentY * 2 * BoundedRenderer.PIXELS_PER_UNIT);
+        const halfExtent = this.impl.bounds.halfExtent;
+        return vec2.create(halfExtent[0] * 2 * BoundedRenderer.PIXELS_PER_UNIT, halfExtent[1] * 2 * BoundedRenderer.PIXELS_PER_UNIT);
     }
     public override set size(value: Readonly<Vec2>) {
         this._explicit_size = vec2.set(this._explicit_size || vec2.create(), value[0], value[1]);
@@ -54,13 +54,13 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         if (this._transformDirty) {
             const impl = this.impl;
 
-            if (impl.bounds.halfExtentX && impl.bounds.halfExtentY) {
-                const scaleX = this.size[0] / (impl.bounds.halfExtentX * 2);
-                const scaleY = this.size[1] / (impl.bounds.halfExtentY * 2);
+            if (impl.bounds.halfExtent[0] && impl.bounds.halfExtent[1]) {
+                const scaleX = this.size[0] / (impl.bounds.halfExtent[0] * 2);
+                const scaleY = this.size[1] / (impl.bounds.halfExtent[1] * 2);
                 impl.node.scale = vec3.create(scaleX, scaleY, 1);
                 impl.node.position = vec3.create(
-                    -this.size[0] * this.anchor[0] - (impl.bounds.centerX - impl.bounds.halfExtentX) * scaleX,
-                    -this.size[1] * this.anchor[1] - (impl.bounds.centerY - impl.bounds.halfExtentY) * scaleY,
+                    -this.size[0] * this.anchor[0] - (impl.bounds.center[0] - impl.bounds.halfExtent[0]) * scaleX,
+                    -this.size[1] * this.anchor[1] - (impl.bounds.center[1] - impl.bounds.halfExtent[1]) * scaleY,
                     0);
             }
 

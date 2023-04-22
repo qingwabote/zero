@@ -1,5 +1,5 @@
 import Component from "../../core/Component.js";
-import vec3, { Vec3Like } from "../../core/math/vec3.js";
+import vec3, { Vec3 } from "../../core/math/vec3.js";
 import Node from "../../core/Node.js";
 import { TransformBits } from "../../core/scene/Transform.js";
 import PhysicsSystem from "../../physics/PhysicsSystem.js";
@@ -15,20 +15,20 @@ enum DirtyFlagBits {
 export default class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;
 
-    private _size: Vec3Like = vec3.create(0, 0, 0);
-    public get size(): Vec3Like {
+    private _size = vec3.create(0, 0, 0);
+    public get size(): Vec3 {
         return this._size;
     }
-    public set size(value: Vec3Like) {
+    public set size(value: Vec3) {
         this._size = value;
         this._dirtyFlags |= DirtyFlagBits.SCALE;
     }
 
-    private _origin: Vec3Like = vec3.create(0, 0, 0);
-    public get origin(): Vec3Like {
+    private _origin = vec3.create(0, 0, 0);
+    public get origin(): Vec3 {
         return this._origin;
     }
-    public set origin(value: Vec3Like) {
+    public set origin(value: Vec3) {
         this._origin = value;
         this._dirtyFlags |= DirtyFlagBits.ORIGIN;
     }
