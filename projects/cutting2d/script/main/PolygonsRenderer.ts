@@ -39,6 +39,11 @@ export default class PolygonsRenderer extends UIElement {
     }
     public set size(value: Readonly<Vec2>) { }
 
+    public get anchor(): Readonly<Vec2> {
+        return vec2.ZERO
+    }
+    public set anchor(value: Readonly<Vec2>) { }
+
     private _polygons_invalidated = true;
     private _polygons: readonly Polygon[] = [];
     public get polygons(): readonly Polygon[] {

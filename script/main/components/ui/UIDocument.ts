@@ -1,7 +1,7 @@
 import Component from "../../core/Component.js";
 import { InputEvent, Touch } from "../../core/Input.js";
+import aabb2d from "../../core/math/aabb2d.js";
 import mat4 from "../../core/math/mat4.js";
-import rect from "../../core/math/rect.js";
 import vec2, { Vec2 } from "../../core/math/vec2.js";
 import Node from "../../core/Node.js";
 import Camera from "../Camera.js";
@@ -81,7 +81,7 @@ export default class UIDocument extends Component {
             const world_position = world_positions[i];
             mat4.invert(mat4_a, node.world_matrix);
             const local_position: Readonly<Vec2> = vec2.transformMat4(vec2.create(), world_position, mat4_a);
-            if (!rect.contains(element.getBounds(), local_position)) {
+            if (!aabb2d.contains(element.getBounds(), local_position)) {
                 continue;
             }
             // capture

@@ -1,10 +1,15 @@
 import Node from "../../core/Node.js";
-import rect, { Rect } from "../../core/math/rect.js";
+import aabb2d from "../../core/math/aabb2d.js";
 import vec2, { Vec2 } from "../../core/math/vec2.js";
 import vec3 from "../../core/math/vec3.js";
-import UIElement, { UIEventToListener } from "./internal/UIElement.js";
+import UIElement, { UIBoundsEventType, UIEventToListener } from "./internal/UIElement.js";
 
-const rect_a = rect.create();
+const vec2_a = vec2.create();
+const vec2_b = vec2.create();
+
+const vec3_a = vec3.create();
+
+const aabb2d_a = aabb2d.create();
 
 export default class UIContainer<EventToListener extends UIEventToListener = UIEventToListener> extends UIElement<EventToListener> {
     private _content: Node;
@@ -13,7 +18,7 @@ export default class UIContainer<EventToListener extends UIEventToListener = UIE
         return this._content.children.length;
     }
 
-    private _transformDirty = true;
+    private _layoutDirty = true;
 
     private _explicit_size?: Vec2;
     private _implicit_size = vec2.create();
@@ -22,16 +27,16 @@ export default class UIContainer<EventToListener extends UIEventToListener = UIE
             return this._explicit_size;
         }
 
-        rect.set(rect_a, 0, 0, 0, 0);
+        aabb2d.set(aabb2d_a, vec2.ZERO, vec2.ZERO);
         for (let i = 0; i < this.elementCount; i++) {
             const element = this.getElement(i);
-            rect.union(rect_a, rect_a, element.getBoundsToParent());
+            aabb2d.merge(aabb2d_a, aabb2d_a, element.getBoundsToParent());
         }
-        return vec2.set(this._implicit_size, rect_a.width, rect_a.height);
+        return vec2.set(this._implicit_size, aabb2d_a.halfExtent[0] * 2, aabb2d_a.halfExtent[1] * 2);
     }
     public override set size(value: Readonly<Vec2>) {
-        this._explicit_size = vec2.set(this._explicit_size || vec2.create(), value[0], value[1]);
-        this._transformDirty = true;
+        this._explicit_size = vec2.copy(this._explicit_size || vec2.create(), value);
+        this._layoutDirty = true;
     }
 
     private _anchor: Readonly<Vec2> = vec2.create(0.5, 0.5);
@@ -39,12 +44,8 @@ export default class UIContainer<EventToListener extends UIEventToListener = UIE
         return this._anchor;
     }
     public set anchor(value: Readonly<Vec2>) {
-        this._anchor = value;
-        this._transformDirty = true;
-    }
-
-    override getBounds(): Rect {
-        return rect.create(-this.size[0] * this._anchor[0], -this.size[1] * this._anchor[1], this.size[0], this.size[1]);
+        vec2.copy(this._anchor, value)
+        this._layoutDirty = true;
     }
 
     constructor(node: Node) {
@@ -58,21 +59,22 @@ export default class UIContainer<EventToListener extends UIEventToListener = UIE
     }
 
     addElement(element: UIElement) {
+        element.on(UIBoundsEventType.BOUNDS_CHANGED, () => this._layoutDirty = true);
         this._content.addChild(element.node);
     }
 
     override update(): void {
-        if (this._transformDirty) {
-            rect.set(rect_a, 0, 0, 0, 0);
+        if (this._layoutDirty) {
+
+            aabb2d.set(aabb2d_a, vec2.ZERO, vec2.ZERO);
             for (let i = 0; i < this.elementCount; i++) {
                 const element = this.getElement(i);
-                rect.union(rect_a, rect_a, element.getBoundsToParent());
+                aabb2d.merge(aabb2d_a, aabb2d_a, element.getBoundsToParent());
             }
-            console.log('rect_a', rect_a)
+            aabb2d.toPoints(vec2_a, vec2_b, aabb2d_a);
+            this._content.position = vec3.set(vec3_a, -this.size[0] * this.anchor[0] - vec2_a[0], -this.size[1] * this.anchor[1] - vec2_a[1], 0);
 
-            this._content.position = vec3.create(-this.size[0] * this.anchor[0] - rect_a.x, -this.size[1] * this.anchor[1] - rect_a.y, 0);
-
-            this._transformDirty = false;
+            this._layoutDirty = false;
         }
     }
 }

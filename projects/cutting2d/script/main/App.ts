@@ -36,7 +36,8 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
-        node.addComponent(Profiler);
+        const profiler = node.addComponent(Profiler);
+        profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, - height / 2, 0];
 
         return new Flow([stageFactory.forward([new ModelPhase], false)]);

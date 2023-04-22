@@ -2,6 +2,7 @@ import Texture from "../../../../script/main/assets/Texture.js";
 import SpriteRenderer from "../../../../script/main/components/2d/SpriteRenderer.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
+import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import Asset from "../../../../script/main/core/Asset.js";
@@ -31,6 +32,9 @@ export default class App extends Zero {
         const sprite = UIRenderer.create(SpriteRenderer)
         sprite.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         sprite.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
+        sprite.on(UITouchEventType.TOUCH_START, (event) => {
+            console.log('event.touch.local', event.touch.local)
+        })
         doc.addElement(sprite);
 
         node = new Node;
