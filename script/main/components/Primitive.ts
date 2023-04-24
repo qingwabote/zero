@@ -9,13 +9,14 @@ import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
 import SubMesh, { VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
 import SubModel from "../core/scene/SubModel.js";
-import ShaderLib from "../core/ShaderLib.js";
+import ShaderLib, { ShaderCreateInfo } from "../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
-ShaderLib.preloaded.push({ name: 'primitive' })
+const shader_primitive_info: ShaderCreateInfo = { name: 'primitive' };
+ShaderLib.preloaded.push(shader_primitive_info)
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
@@ -90,7 +91,7 @@ export default class Primitive extends BoundedRenderer {
         }
 
         const pass = new Pass({
-            shader: ShaderLib.instance.getShader('primitive'),
+            shader: ShaderLib.instance.getShader(shader_primitive_info),
             primitive: PrimitiveTopology.LINE_LIST,
             rasterizationState: { cullMode: CullMode.NONE },
             blendState: {
@@ -107,7 +108,7 @@ export default class Primitive extends BoundedRenderer {
         this._model = model;
     }
 
-    commit(): void {
+    lateUpdate(): void {
         if (this._vertexCount == 0) {
             this._subMesh.vertexOrIndexCount = 0;
             return;

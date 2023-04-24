@@ -133,8 +133,9 @@ export default class App extends Zero {
             vehicle.setSteeringValue(steering, 0);
             vehicle.setSteeringValue(steering, 1);
         })
-        const bounds = joystick.getBounds();
-        node.position = vec3.create(width / 2 - (bounds.x + bounds.width), -height / 2 - bounds.y, 0)
+        // joystick.anchor = vec2.create(1, 0)
+        // const bounds = joystick.getBounds();
+        // node.position = vec3.create(width / 2 - (bounds.center[0] + bounds.halfExtent[0] * 2), -height / 2 - bounds.y, 0)
         doc.addElement(joystick);
 
         return new Flow([stageFactory.forward()]);

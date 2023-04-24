@@ -15,13 +15,15 @@ import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
 import SubMesh, { IndexInputView, VertexAttribute, VertexInputView } from "../../core/scene/SubMesh.js";
 import SubModel from "../../core/scene/SubModel.js";
-import ShaderLib from "../../core/ShaderLib.js";
+import ShaderLib, { ShaderCreateInfo } from "../../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-ShaderLib.preloaded.push({ name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } });
+const shader_unlit_info: ShaderCreateInfo = { name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } };
+ShaderLib.preloaded.push(shader_unlit_info);
+
 Asset.preloaded.push({ path: '../../assets/fnt/zero', type: FNT });
 
 enum DirtyFlagBits {
@@ -93,7 +95,7 @@ export default class TextRenderer extends BoundedRenderer {
         }
 
         const pass = new Pass({
-            shader: ShaderLib.instance.getShader('unlit', { USE_ALBEDO_MAP: 1 }),
+            shader: ShaderLib.instance.getShader(shader_unlit_info),
             rasterizationState: { cullMode: CullMode.NONE },
             blendState: {
                 srcRGB: BlendFactor.SRC_ALPHA,
@@ -111,7 +113,7 @@ export default class TextRenderer extends BoundedRenderer {
         this._subMesh = subMesh;
     }
 
-    override commit(): void {
+    override lateUpdate(): void {
         this.updateData();
 
         if (this._text.length == 0) {

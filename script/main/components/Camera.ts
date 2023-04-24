@@ -58,7 +58,7 @@ export default class Camera extends Component {
         Camera._instances.push(this);
     }
 
-    override commit(): void {
+    override lateUpdate(): void {
         if (this._matViewFlags & DirtyFlag.COMMITTING) {
             this._camera.matView = this.getMatView();
             this._matViewFlags ^= DirtyFlag.COMMITTING;

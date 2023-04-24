@@ -14,10 +14,12 @@ import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
 import SubMesh, { IndexInputView, VertexAttribute, VertexInputView } from "../../core/scene/SubMesh.js";
 import SubModel from "../../core/scene/SubModel.js";
-import ShaderLib from "../../core/ShaderLib.js";
+import ShaderLib, { ShaderCreateInfo } from "../../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 
-ShaderLib.preloaded.push({ name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } });
+
+const shader_unlit_info: ShaderCreateInfo = { name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } };
+ShaderLib.preloaded.push(shader_unlit_info);
 
 export default class SpriteRenderer extends BoundedRenderer {
     private _model: Model | undefined;
@@ -113,7 +115,7 @@ export default class SpriteRenderer extends BoundedRenderer {
             vertexOrIndexCount: indexBuffer.length
         }
 
-        const pass = new Pass({ shader: ShaderLib.instance.getShader('unlit', { USE_ALBEDO_MAP: 1 }), rasterizationState: { cullMode: CullMode.NONE } });
+        const pass = new Pass({ shader: ShaderLib.instance.getShader(shader_unlit_info), rasterizationState: { cullMode: CullMode.NONE } });
         pass.setUniform('Constants', 'albedo', vec4.ONE)
         pass.setTexture('albedoMap', this.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = new SubModel(subMesh, [pass]);

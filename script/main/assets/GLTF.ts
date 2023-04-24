@@ -210,7 +210,7 @@ export default class GLTF extends Asset {
         const passes: Pass[] = [];
 
         if (USE_SHADOW_MAP) {
-            const shadowMapShader = await ShaderLib.instance.loadShader('shadowmap');
+            const shadowMapShader = await ShaderLib.instance.loadShader({ name: 'shadowmap' });
             const shadowMapPass = new Pass({
                 shader: shadowMapShader,
                 rasterizationState: { cullMode: CullMode.FRONT },
@@ -219,12 +219,15 @@ export default class GLTF extends Asset {
             passes.push(shadowMapPass);
         }
 
-        const phongShader = await ShaderLib.instance.loadShader('phong', {
-            USE_ALBEDO_MAP: texture ? 1 : 0,
-            USE_SHADOW_MAP,
-            SHADOW_MAP_PCF: 1,
-            USE_SKIN,
-            CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+        const phongShader = await ShaderLib.instance.loadShader({
+            name: 'phong',
+            macros: {
+                USE_ALBEDO_MAP: texture ? 1 : 0,
+                USE_SHADOW_MAP,
+                SHADOW_MAP_PCF: 1,
+                USE_SKIN,
+                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+            }
         })
 
         const phongPass = new Pass({ shader: phongShader, depthStencilState: { depthTestEnable: true } });

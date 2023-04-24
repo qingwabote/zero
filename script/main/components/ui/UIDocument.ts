@@ -29,7 +29,7 @@ export default class UIDocument extends Component {
         zero.input.on(InputEvent.TOUCH_END, event => this.touchHandler(event.touches[0], UITouchEventType.TOUCH_END));
     }
 
-    override commit(): void {
+    override lateUpdate(): void {
         this.orderWalk(this.node, 0);
     }
 

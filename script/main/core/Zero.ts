@@ -72,7 +72,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
     }
 
     async initialize(): Promise<void> {
-        await Promise.all(ShaderLib.preloaded.map(info => ShaderLib.instance.loadShader(info.name, info.macros)));
+        await Promise.all(ShaderLib.preloaded.map(info => ShaderLib.instance.loadShader(info)));
 
         await Promise.all(Asset.preloaded.map(info => Asset.cache.load(info.path, info.type)));
 
@@ -129,7 +129,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         for (const system of this._systems) {
             system.update();
         }
-        this._componentScheduler.commit();
+        this._componentScheduler.lateUpdate();
         this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);

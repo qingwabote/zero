@@ -70,6 +70,11 @@ export interface UniformDefinition {
     binding: number
 }
 
+export interface ShaderCreateInfo {
+    name: string;
+    macros?: Record<string, number>;
+}
+
 export default class ShaderLib {
 
     static readonly sets = sets;
@@ -90,7 +95,7 @@ export default class ShaderLib {
         return layout;
     }
 
-    static readonly preloaded: { name: string, macros?: Record<string, number> }[] = [];
+    static readonly preloaded: ShaderCreateInfo[] = [];
 
     static readonly instance = new ShaderLib;
 
@@ -99,7 +104,10 @@ export default class ShaderLib {
     private _key2shader: Record<string, Shader> = {};
     private _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
-    async loadShader(name: string, macros: Record<string, number> = {}): Promise<Shader> {
+    async loadShader(info: ShaderCreateInfo): Promise<Shader> {
+        const name = info.name;
+        const macros = info.macros || {};
+
         let source = this._name2source[name];
         if (!source) {
             const path = `../../assets/shader/${name}`; // hard code
@@ -117,7 +125,7 @@ export default class ShaderLib {
             this._name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
         }
 
-        const key = this.getShaderKey(name, macros);
+        const key = this.getShaderKey(info);
         if (!this._key2shader[key]) {
             const mac: Record<string, number> = {};
             for (const macro of this._name2macros[name]) {
@@ -136,8 +144,8 @@ export default class ShaderLib {
         return this._key2shader[key];
     }
 
-    getShader(name: string, macros: Record<string, number> = {}): Shader {
-        return this._key2shader[this.getShaderKey(name, macros)];
+    getShader(info: ShaderCreateInfo): Shader {
+        return this._key2shader[this.getShaderKey(info)];
     }
 
     getMaterialDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
@@ -182,7 +190,9 @@ export default class ShaderLib {
         return descriptorSetLayout;
     }
 
-    private getShaderKey(name: string, macros: Record<string, number> = {}): string {
+    private getShaderKey(info: ShaderCreateInfo): string {
+        const name = info.name;
+        const macros = info.macros || {};
         let key = name;
         for (const macro of this._name2macros[name]) {
             const val = macros[macro] || 0;

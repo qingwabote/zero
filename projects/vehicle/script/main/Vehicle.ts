@@ -88,7 +88,7 @@ export default class Vehicle extends Component {
         this._impl.setSteeringValue(value, wheel);
     }
 
-    override commit(): void {
+    override lateUpdate(): void {
         var n = this._impl.getNumWheels();
         for (let i = 0; i < n; i++) {
             this._impl.updateWheelTransform(i, true);
