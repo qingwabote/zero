@@ -21,13 +21,13 @@ export default abstract class Component {
         this._microUpdateRequested = true;
     }
 
+    /**micro start/update may not be invoked before the normal start/update, 
+     * but it can be sure that the micro start/update of nested component can be invoked in time rather than delayed to the next tick.
+     * it be used to update child component in composite component.*/
     protected microStart(): void { }
-
     protected microUpdate(): void { }
 
     start(): void { }
-
     update(): void { }
-
     lateUpdate(): void { }
 }

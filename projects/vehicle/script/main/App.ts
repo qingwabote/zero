@@ -95,21 +95,21 @@ export default class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
+        doc.node.visibilityFlag = VisibilityFlagBits.UI;
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
-        node.addComponent(Profiler);
+        const profiler = node.addComponent(Profiler);
+        profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, - height / 2, 0];
+        doc.addElement(profiler)
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
         cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = main_camera;
         doc.addElement(cameraControlPanel);
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
         const joystick = node.addComponent(Joystick);
         this.setInterval(() => {
             // const speed = vehicle.speedKmHour;
@@ -133,9 +133,8 @@ export default class App extends Zero {
             vehicle.setSteeringValue(steering, 0);
             vehicle.setSteeringValue(steering, 1);
         })
-        // joystick.anchor = vec2.create(1, 0)
-        // const bounds = joystick.getBounds();
-        // node.position = vec3.create(width / 2 - (bounds.center[0] + bounds.halfExtent[0] * 2), -height / 2 - bounds.y, 0)
+        joystick.anchor = vec2.create(1, 0)
+        node.position = vec3.create(width / 2, -height / 2, 0)
         doc.addElement(joystick);
 
         return new Flow([stageFactory.forward()]);

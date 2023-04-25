@@ -157,14 +157,6 @@ export default class CuttingBoard extends UIContainer {
         ];
         polygons.push({ vertexes, vertexPosMin: vertexes[1].pos, vertexPosMax: vertexes[3].pos, translation: vec2.ZERO });
 
-        const primitive = UIRenderer.create(Primitive);
-        this.addElement(primitive);
-        this._primitive = primitive.impl;
-
-        // set size
-        const halfSize = vec2.create(this.size[0] / 2, this.size[1] / 2);
-        this.drawLine(vec2.create(-halfSize[0], -halfSize[1]), vec2.create(halfSize[0], halfSize[1]), vec4.ZERO);
-
         let point: Readonly<Vec2>;
         this.on(UITouchEventType.TOUCH_START, event => {
             point = event.touch.local;
@@ -198,6 +190,14 @@ export default class CuttingBoard extends UIContainer {
         polygonsRenderer.polygons = polygons;
         polygonsRenderer.texture = this.texture;
         this.addElement(polygonsRenderer);
+
+        const primitive = UIRenderer.create(Primitive);
+        this.addElement(primitive);
+        this._primitive = primitive.impl;
+
+        // set size
+        const halfSize = vec2.create(this.size[0] / 2, this.size[1] / 2);
+        this.drawLine(vec2.create(-halfSize[0], -halfSize[1]), vec2.create(halfSize[0], halfSize[1]), vec4.ZERO);
     }
 
     private drawLine(from: Readonly<Vec2>, to: Readonly<Vec2>, color: Readonly<Vec4> = vec4.ONE) {

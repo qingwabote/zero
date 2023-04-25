@@ -25,7 +25,7 @@ export default class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = UIDocument.create();
+        const doc = (new Node).addComponent(UIDocument);
 
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT

@@ -63,8 +63,10 @@ export default abstract class UIElement<EventToListener extends UIEventToListene
 
     private _bounds = aabb2d.create();
     getBounds(): AABB2D {
-        vec2.set(vec2_a, -this.size[0] * this.anchor[0], -this.size[1] * this.anchor[1]);
-        vec2.add(vec2_b, vec2_a, this.size);
+        const size = this.size;
+        const anchor = this.anchor;
+        vec2.set(vec2_a, -size[0] * anchor[0], -size[1] * anchor[1]);
+        vec2.add(vec2_b, vec2_a, size);
         return aabb2d.fromPoints(this._bounds, vec2_a, vec2_b);
     }
 

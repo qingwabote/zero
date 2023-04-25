@@ -3,6 +3,7 @@ import SpriteRenderer from "../../../../script/main/components/2d/SpriteRenderer
 import Camera from "../../../../script/main/components/Camera.js";
 import Profiler from "../../../../script/main/components/Profiler.js";
 import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
+import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import Asset from "../../../../script/main/core/Asset.js";
@@ -27,15 +28,26 @@ export default class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = UIDocument.create();
+        const doc = (new Node).addComponent(UIDocument);
+        doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+
+        const conatiner = (new Node).addComponent(UIContainer);
+        // conatiner.anchor = vec2.create(0, 0)
+        conatiner.on(UITouchEventType.TOUCH_START, (event) => {
+            console.log('conatiner', event.touch.local)
+        })
 
         const sprite = UIRenderer.create(SpriteRenderer)
-        sprite.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         sprite.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
-        sprite.on(UITouchEventType.TOUCH_START, (event) => {
-            console.log('event.touch.local', event.touch.local)
-        })
-        doc.addElement(sprite);
+        conatiner.addElement(sprite);
+
+        const spriteS = UIRenderer.create(SpriteRenderer)
+        spriteS.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
+        spriteS.size = vec2.create(100, 100)
+        conatiner.addElement(spriteS);
+
+        doc.addElement(conatiner);
+        // doc.addElement(sprite);
 
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT

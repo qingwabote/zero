@@ -33,7 +33,7 @@ export default class Joystick extends UIContainer<EventToListener> {
         this.draw(primitive, this._point)
         this.addElement(primitive);
 
-        this.on(UITouchEventType.TOUCH_START, event => {
+        primitive.on(UITouchEventType.TOUCH_START, event => {
             const local = event.touch.local;
             vec2.set(
                 this._point,
@@ -43,7 +43,7 @@ export default class Joystick extends UIContainer<EventToListener> {
             this.draw(primitive, this._point)
             this.emit(JoystickEventType.CHANGED);
         });
-        this.on(UITouchEventType.TOUCH_MOVE, event => {
+        primitive.on(UITouchEventType.TOUCH_MOVE, event => {
             const local = event.touch.local;
             vec2.set(
                 this._point,
@@ -53,7 +53,7 @@ export default class Joystick extends UIContainer<EventToListener> {
             this.draw(primitive, this._point)
             this.emit(JoystickEventType.CHANGED);
         });
-        this.on(UITouchEventType.TOUCH_END, event => {
+        primitive.on(UITouchEventType.TOUCH_END, event => {
             vec2.set(this._point, 0, 0);
             this.draw(primitive, this._point)
             this.emit(JoystickEventType.CHANGED);
