@@ -29,13 +29,13 @@ export default class App extends Zero {
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
         main_camera.viewport = { x: 0, y: 0, width, height };
-        node.position = [0, 0, 24];
+        node.position = [0, 0, 12];
 
-        const guardian = new GLTF();
-        await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
-        node = guardian.createScene("Sketchfab_Scene")!;
+        const walkrun_and_idle = new GLTF();
+        await walkrun_and_idle.load('./assets/walkrun_and_idle/scene');
+        node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
         const ac = node.addComponent(AnimationController);
-        ac.animations = guardian.animations
+        ac.animations = walkrun_and_idle.animations
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
 
         // const boxAnimated = new GLTF();
@@ -55,15 +55,14 @@ export default class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
+        doc.node.visibilityFlag = VisibilityFlagBits.UI;
 
-        node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
-        node.addComponent(Profiler);
-        node.position = [-width / 2, - height / 2, 0];
+        const profiler = (new Node).addComponent(Profiler);
+        profiler.anchor = vec2.create(0, 0)
+        profiler.node.position = [-width / 2, - height / 2, 0];
+        doc.addElement(profiler);
 
-        node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
-        const cameraControlPanel = node.addComponent(CameraControlPanel);
+        const cameraControlPanel = (new Node).addComponent(CameraControlPanel);
         cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = main_camera;
         doc.addElement(cameraControlPanel);

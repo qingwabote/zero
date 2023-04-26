@@ -208,6 +208,10 @@ export default class WebCommandBuffer implements CommandBuffer {
                         type = WebGL2RenderingContext.UNSIGNED_BYTE;
                         isInteger = true;
                         break;
+                    case Format.RGBA16_UINT:
+                        type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                        isInteger = true;
+                        break;
                     case Format.RGBA32_UINT:
                         type = WebGL2RenderingContext.UNSIGNED_INT;
                         isInteger = true;

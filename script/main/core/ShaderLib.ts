@@ -54,8 +54,8 @@ const sets = {
                 members: {
                     joints: {},
                 },
-                length: 16 * 10,
-                size: (16 * 10) * Float32Array.BYTES_PER_ELEMENT
+                length: 16 * 128,
+                size: (16 * 128) * Float32Array.BYTES_PER_ELEMENT
             }
         }
     },

@@ -45,13 +45,12 @@ export default class SubModel {
                 if (!definition) {
                     continue;
                 }
-                if (definition.format != attribute.format) {
-                    // throw new Error(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`);
-                    console.log(`unmatched attribute ${attribute.name} format: mesh ${attribute.format} and shader ${definition.format}`)
-                }
 
                 attributes.push({
                     location: definition.location,
+                    // attribute.format in buffer can be different from definition.format in shader, 
+                    // use attribute.format here to make sure type conversion can be done correctly by graphics api.
+                    // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
                     format: attribute.format,
                     binding: attribute.buffer,
                     offset: attribute.offset

@@ -108,6 +108,9 @@ export enum BlendFactor {
     // ONE_MINUS_CONSTANT_ALPHA,
 }
 
+/**color(RGB) = (sourceColor * srcRGB) + (destinationColor * dstRGB)
+ * color(A) = (sourceAlpha * srcAlpha) + (destinationAlpha * dstAlpha)
+ * https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendFuncSeparate*/
 export interface BlendState {
     readonly srcRGB: BlendFactor;
     readonly dstRGB: BlendFactor;
