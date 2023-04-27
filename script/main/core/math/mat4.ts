@@ -320,6 +320,11 @@ export default {
             b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
         if (!det) {
+            out[0] = 0; out[1] = 0; out[2] = 0; out[3] = 0;
+            out[4] = 0; out[5] = 0; out[6] = 0; out[7] = 0;
+            out[8] = 0; out[9] = 0; out[10] = 0; out[11] = 0;
+            out[12] = 0; out[13] = 0; out[14] = 0; out[15] = 0;
+            return out;
             throw new Error("");
         }
         det = 1.0 / det;
@@ -367,6 +372,7 @@ export default {
         let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
         if (!det) {
+            return out
             throw new Error("");
         }
         det = 1.0 / det;

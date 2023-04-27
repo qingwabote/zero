@@ -5,6 +5,7 @@ import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import CameraControlPanel from "../../../../script/main/components/ui/CameraControlPanel.js";
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
+import Slider, { SliderEventType } from "../../../../script/main/components/ui/Slider.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import Node from "../../../../script/main/core/Node.js";
 import Zero from "../../../../script/main/core/Zero.js";
@@ -56,6 +57,12 @@ export default class App extends Zero {
 
         const doc = (new Node).addComponent(UIDocument);
         doc.node.visibilityFlag = VisibilityFlagBits.UI;
+
+        const slider = (new Node).addComponent(Slider);
+        slider.on(SliderEventType.CHANGED, () => {
+
+        })
+        doc.addElement(slider);
 
         const profiler = (new Node).addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)

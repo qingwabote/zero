@@ -4,7 +4,7 @@ import { Filter } from "../core/gfx/Sampler.js";
 import aabb2d, { AABB2D } from "../core/math/aabb2d.js";
 import vec2 from "../core/math/vec2.js";
 import vec3 from "../core/math/vec3.js";
-import vec4 from "../core/math/vec4.js";
+import vec4, { Vec4 } from "../core/math/vec4.js";
 import samplers from "../core/samplers.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
@@ -45,9 +45,11 @@ export default class SpriteRenderer extends BoundedRenderer {
         this.emit(BoundsEvent.BOUNDS_CHANGED);
     }
 
+    color: Readonly<Vec4> = vec4.ONE;
+
     override start(): void {
         const pass = new Pass({ shader: ShaderLib.instance.getShader(shader_unlit_info), rasterizationState: { cullMode: CullMode.NONE } });
-        pass.setUniform('Constants', 'albedo', vec4.ONE)
+        pass.setUniform('Constants', 'albedo', this.color)
         pass.setTexture('albedoMap', this._spriteFrame.texture.impl, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);
         const model = new Model(this.node, [subModel]);

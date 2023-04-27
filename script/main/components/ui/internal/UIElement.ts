@@ -80,4 +80,8 @@ export default abstract class UIElement<EventToListener extends UIEventToListene
         vec2.max(vec2_d, vec2_a, vec2_b);
         return aabb2d.fromPoints(this._boundsToParent, vec2_c, vec2_d);
     }
+
+    getBoundsOnTouch() {
+        return this.getBounds();
+    }
 }

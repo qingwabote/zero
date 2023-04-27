@@ -72,7 +72,8 @@ export default class UIContainer<EventToListener extends UIEventToListener = UIE
                 aabb2d.merge(aabb2d_a, aabb2d_a, element.getBoundsToParent());
             }
             aabb2d.toPoints(vec2_a, vec2_b, aabb2d_a);
-            this._content.position = vec3.set(vec3_a, -this.size[0] * this.anchor[0] - vec2_a[0], -this.size[1] * this.anchor[1] - vec2_a[1], 0);
+            const size = this.size;
+            this._content.position = vec3.set(vec3_a, -size[0] * this.anchor[0] - vec2_a[0], -size[1] * this.anchor[1] - vec2_a[1], 0);
 
             this._layoutDirty = false;
         }

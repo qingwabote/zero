@@ -1,13 +1,8 @@
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
-import SpriteFrame from "../../../../script/main/assets/SpriteFrame.js";
 import Camera from "../../../../script/main/components/Camera.js";
-import SpriteRenderer from "../../../../script/main/components/SpriteRenderer.js";
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
-import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
+import Slider from "../../../../script/main/components/ui/Slider.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
-import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
-import AssetLib from "../../../../script/main/core/AssetLib.js";
 import Node from "../../../../script/main/core/Node.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
@@ -31,26 +26,23 @@ export default class App extends Zero {
         const doc = (new Node).addComponent(UIDocument);
         doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
 
-        const conatiner = (new Node).addComponent(UIContainer);
-        // conatiner.anchor = vec2.create(0, 0)
-        conatiner.on(UITouchEventType.TOUCH_START, (event) => {
-            console.log('conatiner', event.touch.local)
-        })
+        // const conatiner = (new Node).addComponent(UIContainer);
+        // // conatiner.anchor = vec2.create(0, 0)
+        // conatiner.on(UITouchEventType.TOUCH_START, (event) => {
+        //     console.log('conatiner', event.touch.local)
+        // })
 
-        const sprite = UIRenderer.create(SpriteRenderer)
-        sprite.impl.spriteFrame = (await AssetLib.instance.load({ path: '../../assets/favicon.ico', type: SpriteFrame }));
-        sprite.on(UITouchEventType.TOUCH_START, (event) => {
-            console.log('sprite', event.touch.local)
-        })
-        conatiner.addElement(sprite);
+        // const sprite = UIRenderer.create(SpriteRenderer)
+        // sprite.impl.spriteFrame = (await AssetLib.instance.load({ path: '../../assets/favicon.ico', type: SpriteFrame }));
+        // sprite.on(UITouchEventType.TOUCH_START, (event) => {
+        //     console.log('sprite', event.touch.local)
+        // })
+        // conatiner.addElement(sprite);
 
-        // const spriteS = UIRenderer.create(SpriteRenderer)
-        // spriteS.impl.spriteFrame = (await AssetLib.instance.load({ path: '../../assets/favicon.ico', type: SpriteFrame }));
-        // spriteS.size = vec2.create(100, 100)
-        // conatiner.addElement(spriteS);
+        // doc.addElement(conatiner);
 
-        doc.addElement(conatiner);
-        // doc.addElement(sprite);
+        const slider = (new Node).addComponent(Slider);
+        doc.addElement(slider);
 
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT

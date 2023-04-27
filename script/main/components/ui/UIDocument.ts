@@ -73,7 +73,7 @@ export default class UIDocument extends Component {
             const world_position = world_positions[i];
             mat4.invert(mat4_a, element.node.world_matrix);
             const local_position: Readonly<Vec2> = vec2.transformMat4(vec2.create(), world_position, mat4_a);
-            if (!aabb2d.contains(element.getBounds(), local_position)) {
+            if (!aabb2d.contains(element.getBoundsOnTouch(), local_position)) {
                 continue;
             }
             // capture
