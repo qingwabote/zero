@@ -3,6 +3,8 @@ import { IndexType } from "../gfx/InputAssembler.js";
 import { Vec3 } from "../math/vec3.js";
 import BufferView from "./buffers/BufferView.js";
 
+export const PIXELS_PER_UNIT = 100;
+
 export interface VertexAttribute {
     readonly name: string
     readonly format: Format

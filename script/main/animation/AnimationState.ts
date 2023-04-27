@@ -18,13 +18,14 @@ function binarySearch(source: ArrayLike<number>, value: number, EPSILON = 1e-6):
 }
 
 export interface ChannelBindingValue {
-    update(sampler: Sampler, index: number, time: number): void;
+    set(buffer: ArrayLike<number>, index: number): void;
+    lerp(buffer: ArrayLike<number>, prev: number, next: number, t: number): void;
 }
 
 export class ChannelBinding {
     constructor(private _sampler: Sampler, private _value: ChannelBindingValue) { }
 
-    update(time: number): void {
+    sample(time: number): void {
         const times = this._sampler.input;
 
         let index: number;
@@ -36,11 +37,20 @@ export class ChannelBinding {
             index = binarySearch(times, time);
         }
 
-        this._value.update(this._sampler, index, time);
+        if (index >= 0) {
+            this._value.set(this._sampler.output, index);
+        } else {
+            const next = ~index;
+            const prev = next - 1;
+
+            const t = (time - times[prev]) / (times[next] - times[prev]);
+            this._value.lerp(this._sampler.output, prev, next, t);
+        }
     }
 }
 
 export default class AnimationState {
+    /**When set new time, we should ensure the frame at the specified time being played at next update.*/
     private _time_dirty = true;
     private _time: number = 0;
     public get time(): number {
@@ -51,14 +61,16 @@ export default class AnimationState {
         this._time_dirty = true;
     }
 
-    constructor(private readonly _bindings: readonly ChannelBinding[], readonly duration: number) { }
+    speed: number = 1;
+
+    constructor(private readonly _channels: readonly ChannelBinding[], readonly duration: number) { }
 
     update(dt: number): void {
-        this._time += this._time_dirty ? 0 : dt;
+        this._time += this._time_dirty ? 0 : (dt * this.speed);
         this._time = Math.min(this._time, this.duration);
 
-        for (const binding of this._bindings) {
-            binding.update(this._time);
+        for (const channel of this._channels) {
+            channel.sample(this._time);
         }
 
         this._time_dirty = false;

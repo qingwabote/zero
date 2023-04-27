@@ -1,5 +1,5 @@
 import EventEmitterImpl from "../base/EventEmitterImpl.js";
-import Asset from "./Asset.js";
+import AssetLib from "./AssetLib.js";
 import Component from "./Component.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
 import Fence from "./gfx/Fence.js";
@@ -74,7 +74,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
     async initialize(): Promise<void> {
         await Promise.all(ShaderLib.preloaded.map(info => ShaderLib.instance.loadShader(info)));
 
-        await Promise.all(Asset.preloaded.map(info => Asset.cache.load(info.path, info.type)));
+        await Promise.all(AssetLib.preloaded.map(info => AssetLib.instance.load(info)));
 
         for (const system of this._systems) {
             await system.load();

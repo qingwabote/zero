@@ -1,5 +1,4 @@
 import Primitive from "../../../../script/main/components/Primitive.js";
-import BoundedRenderer from "../../../../script/main/components/internal/BoundedRenderer.js";
 import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
@@ -8,6 +7,7 @@ import Texture from "../../../../script/main/core/gfx/Texture.js";
 import vec2, { Vec2 } from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import vec4, { Vec4 } from "../../../../script/main/core/math/vec4.js";
+import { PIXELS_PER_UNIT } from "../../../../script/main/core/scene/SubMesh.js";
 import { Polygon, Vertex } from "./Polygon.js";
 import PolygonsRenderer from "./PolygonsRenderer.js";
 
@@ -125,8 +125,6 @@ function cut(polygon: Polygon, intersections: Intersection[]): Polygon {
 
     return { vertexes, vertexPosMin, vertexPosMax, translation };
 }
-
-const PIXELS_PER_UNIT = BoundedRenderer.PIXELS_PER_UNIT;
 
 export default class CuttingBoard extends UIContainer {
 

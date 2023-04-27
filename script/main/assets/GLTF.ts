@@ -3,6 +3,7 @@
 import MeshRenderer from "../components/MeshRenderer.js";
 import SkinnedMeshRenderer from "../components/SkinnedMeshRenderer.js";
 import Asset from "../core/Asset.js";
+import AssetLib from "../core/AssetLib.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../core/gfx/Buffer.js";
 import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
@@ -103,7 +104,7 @@ export default class GLTF extends Asset {
         const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         const bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
-        const textures = await Promise.all(json_images.map((info: any) => Asset.cache.load(`${parent}/${uri2path(info.uri)}`, Texture)));
+        const textures = await Promise.all(json_images.map((info: any) => AssetLib.instance.load({ path: `${parent}/${uri2path(info.uri)}`, type: Texture })));
 
         this._default_material = await this.createMaterial({ USE_SHADOW_MAP });
 

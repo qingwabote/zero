@@ -12,8 +12,6 @@ interface BoundsEventToListener {
 }
 
 export default abstract class BoundedRenderer extends ModelRenderer implements EventEmitter<BoundsEventToListener> {
-    static readonly PIXELS_PER_UNIT = 100;
-
     private __emitter?: EventEmitter<BoundsEventToListener>;
     private get _emitter() {
         return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;

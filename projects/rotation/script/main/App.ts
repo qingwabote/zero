@@ -2,7 +2,7 @@ import GLTF from "../../../../script/main/assets/GLTF.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
-import Profiler from "../../../../script/main/components/Profiler.js";
+import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";

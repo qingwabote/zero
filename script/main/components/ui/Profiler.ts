@@ -1,7 +1,7 @@
-import { ZeroEvent } from "../core/Zero.js";
-import TextRenderer from "./2d/TextRenderer.js";
-import UIContainer from "./ui/UIContainer.js";
-import UIRenderer from "./ui/UIRenderer.js";
+import { ZeroEvent } from "../../core/Zero.js";
+import TextRenderer from "../TextRenderer.js";
+import UIContainer from "./UIContainer.js";
+import UIRenderer from "./UIRenderer.js";
 
 export default class Profiler extends UIContainer {
     private _time: number = 0;

@@ -1,20 +1,20 @@
-import Texture from "../../../../script/main/assets/Texture.js";
-import SpriteRenderer from "../../../../script/main/components/2d/SpriteRenderer.js";
+import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
+import SpriteFrame from "../../../../script/main/assets/SpriteFrame.js";
 import Camera from "../../../../script/main/components/Camera.js";
-import Profiler from "../../../../script/main/components/Profiler.js";
-import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
+import SpriteRenderer from "../../../../script/main/components/SpriteRenderer.js";
+import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
-import Asset from "../../../../script/main/core/Asset.js";
+import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
+import AssetLib from "../../../../script/main/core/AssetLib.js";
+import Node from "../../../../script/main/core/Node.js";
+import Zero from "../../../../script/main/core/Zero.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
-import Node from "../../../../script/main/core/Node.js";
 import Flow from "../../../../script/main/core/render/Flow.js";
-import Zero from "../../../../script/main/core/Zero.js";
 import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/render/stageFactory.js";
-import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 
 export default class App extends Zero {
     async start(): Promise<Flow> {
@@ -38,13 +38,16 @@ export default class App extends Zero {
         })
 
         const sprite = UIRenderer.create(SpriteRenderer)
-        sprite.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
+        sprite.impl.spriteFrame = (await AssetLib.instance.load({ path: '../../assets/favicon.ico', type: SpriteFrame }));
+        sprite.on(UITouchEventType.TOUCH_START, (event) => {
+            console.log('sprite', event.touch.local)
+        })
         conatiner.addElement(sprite);
 
-        const spriteS = UIRenderer.create(SpriteRenderer)
-        spriteS.impl.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
-        spriteS.size = vec2.create(100, 100)
-        conatiner.addElement(spriteS);
+        // const spriteS = UIRenderer.create(SpriteRenderer)
+        // spriteS.impl.spriteFrame = (await AssetLib.instance.load({ path: '../../assets/favicon.ico', type: SpriteFrame }));
+        // spriteS.size = vec2.create(100, 100)
+        // conatiner.addElement(spriteS);
 
         doc.addElement(conatiner);
         // doc.addElement(sprite);

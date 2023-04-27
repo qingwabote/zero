@@ -1,13 +1,13 @@
-import { InputEvent } from "../core/Input.js";
-import quat from "../core/math/quat.js";
-import vec2, { Vec2 } from "../core/math/vec2.js";
-import vec3 from "../core/math/vec3.js";
-import Node from "../core/Node.js";
-import TextRenderer from "./2d/TextRenderer.js";
-import Camera from "./Camera.js";
-import { UITouchEventType } from "./ui/internal/UIElement.js";
-import UIContainer from "./ui/UIContainer.js";
-import UIRenderer from "./ui/UIRenderer.js";
+import { InputEvent } from "../../core/Input.js";
+import Node from "../../core/Node.js";
+import quat from "../../core/math/quat.js";
+import vec2, { Vec2 } from "../../core/math/vec2.js";
+import vec3 from "../../core/math/vec3.js";
+import Camera from "../Camera.js";
+import TextRenderer from "../TextRenderer.js";
+import UIContainer from "./UIContainer.js";
+import UIRenderer from "./UIRenderer.js";
+import { UITouchEventType } from "./internal/UIElement.js";
 
 export default class CameraControlPanel extends UIContainer {
     camera!: Camera;

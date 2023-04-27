@@ -1,8 +1,8 @@
 import Texture from "../../../../script/main/assets/Texture.js";
 import Camera from "../../../../script/main/components/Camera.js";
-import Profiler from "../../../../script/main/components/Profiler.js";
+import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import Asset from "../../../../script/main/core/Asset.js";
+import AssetLib from "../../../../script/main/core/AssetLib.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
@@ -30,7 +30,7 @@ export default class App extends Zero {
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
         const cuttingBoard = node.addComponent(CuttingBoard);
-        cuttingBoard.texture = (await Asset.cache.load('../../assets/favicon.ico', Texture)).impl;
+        cuttingBoard.texture = (await AssetLib.instance.load({ path: '../../assets/favicon.ico', type: Texture })).impl;
         cuttingBoard.size = vec2.create(width, height);
         doc.addElement(cuttingBoard);
 

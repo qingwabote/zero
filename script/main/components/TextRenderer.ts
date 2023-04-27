@@ -1,22 +1,22 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
-import FNT from "../../assets/FNT.js";
-import Asset from "../../core/Asset.js";
-import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import Format from "../../core/gfx/Format.js";
-import { IndexType } from "../../core/gfx/InputAssembler.js";
-import { BlendFactor, CullMode } from "../../core/gfx/Pipeline.js";
-import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
-import vec2 from "../../core/math/vec2.js";
-import vec3 from "../../core/math/vec3.js";
-import vec4 from "../../core/math/vec4.js";
-import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";
-import Model from "../../core/scene/Model.js";
-import Pass from "../../core/scene/Pass.js";
-import SubMesh, { IndexInputView, VertexAttribute, VertexInputView } from "../../core/scene/SubMesh.js";
-import SubModel from "../../core/scene/SubModel.js";
-import ShaderLib, { ShaderCreateInfo } from "../../core/ShaderLib.js";
-import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
+import FNT from "../assets/FNT.js";
+import AssetLib from "../core/AssetLib.js";
+import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
+import Format from "../core/gfx/Format.js";
+import { IndexType } from "../core/gfx/InputAssembler.js";
+import { BlendFactor, CullMode } from "../core/gfx/Pipeline.js";
+import aabb2d, { AABB2D } from "../core/math/aabb2d.js";
+import vec2 from "../core/math/vec2.js";
+import vec3 from "../core/math/vec3.js";
+import vec4 from "../core/math/vec4.js";
+import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
+import Model from "../core/scene/Model.js";
+import Pass from "../core/scene/Pass.js";
+import SubMesh, { IndexInputView, PIXELS_PER_UNIT, VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
+import SubModel from "../core/scene/SubModel.js";
+import ShaderLib, { ShaderCreateInfo } from "../core/ShaderLib.js";
+import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
@@ -24,7 +24,8 @@ const vec2_b = vec2.create();
 const shader_unlit_info: ShaderCreateInfo = { name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } };
 ShaderLib.preloaded.push(shader_unlit_info);
 
-Asset.preloaded.push({ path: '../../assets/fnt/zero', type: FNT });
+const fnt_zero_info = { path: '../../assets/fnt/zero', type: FNT };
+AssetLib.preloaded.push(fnt_zero_info);
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -59,7 +60,7 @@ export default class TextRenderer extends BoundedRenderer {
         return this._bounds;
     }
 
-    private _fnt: FNT = Asset.cache.get('../../assets/fnt/zero', FNT);
+    private _fnt: FNT = AssetLib.instance.get(fnt_zero_info);
 
     private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
 
@@ -152,7 +153,7 @@ export default class TextRenderer extends BoundedRenderer {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
-                y -= this._fnt.common.lineHeight / BoundedRenderer.PIXELS_PER_UNIT;
+                y -= this._fnt.common.lineHeight / PIXELS_PER_UNIT;
                 i++;
                 continue;
             }
@@ -163,10 +164,10 @@ export default class TextRenderer extends BoundedRenderer {
             const tex_t = char.y / tex.height;
             const tex_b = (char.y + char.height) / tex.height;
 
-            const xoffset = char.xoffset / BoundedRenderer.PIXELS_PER_UNIT;
-            const yoffset = char.yoffset / BoundedRenderer.PIXELS_PER_UNIT;
-            const width = char.width / BoundedRenderer.PIXELS_PER_UNIT;
-            const height = char.height / BoundedRenderer.PIXELS_PER_UNIT;
+            const xoffset = char.xoffset / PIXELS_PER_UNIT;
+            const yoffset = char.yoffset / PIXELS_PER_UNIT;
+            const width = char.width / PIXELS_PER_UNIT;
+            const height = char.height / PIXELS_PER_UNIT;
 
             const pos_l = x + xoffset;
             const pos_r = x + xoffset + width;
@@ -212,7 +213,7 @@ export default class TextRenderer extends BoundedRenderer {
             t = Math.max(t, pos_t);
             b = Math.min(b, pos_b);
 
-            x += char.xadvance / BoundedRenderer.PIXELS_PER_UNIT;
+            x += char.xadvance / PIXELS_PER_UNIT;
             i++;
         }
 

@@ -1,6 +1,7 @@
 import vec2, { Vec2 } from "../../core/math/vec2.js";
 import vec3 from "../../core/math/vec3.js";
 import Node from "../../core/Node.js";
+import { PIXELS_PER_UNIT } from "../../core/scene/SubMesh.js";
 import BoundedRenderer, { BoundsEvent } from "../internal/BoundedRenderer.js";
 import UIElement, { UIBoundsEventType } from "./internal/UIElement.js";
 
@@ -27,7 +28,7 @@ export default class UIRenderer<T extends BoundedRenderer> extends UIElement {
         }
 
         const halfExtent = this.impl.bounds.halfExtent;
-        return vec2.create(halfExtent[0] * 2 * BoundedRenderer.PIXELS_PER_UNIT, halfExtent[1] * 2 * BoundedRenderer.PIXELS_PER_UNIT);
+        return vec2.create(halfExtent[0] * 2 * PIXELS_PER_UNIT, halfExtent[1] * 2 * PIXELS_PER_UNIT);
     }
     public override set size(value: Readonly<Vec2>) {
         this._explicit_size = vec2.copy(this._explicit_size || vec2.create(), value);
