@@ -1,6 +1,7 @@
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
+import AnimationClip from "../../../../script/main/assets/AnimationClip.js";
 import GLTF from "../../../../script/main/assets/GLTF.js";
-import AnimationController from "../../../../script/main/components/AnimationController.js";
+import AnimationBlended from "../../../../script/main/components/AnimationBlended.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import CameraControlPanel from "../../../../script/main/components/ui/CameraControlPanel.js";
@@ -35,16 +36,14 @@ export default class App extends Zero {
         const walkrun_and_idle = new GLTF();
         await walkrun_and_idle.load('./assets/walkrun_and_idle/scene');
         node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
-        const ac = node.addComponent(AnimationController);
-        ac.animations = walkrun_and_idle.animations
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
-
-        // const boxAnimated = new GLTF();
-        // await boxAnimated.load('./assets/BoxAnimated/BoxAnimated')
-        // node = boxAnimated.createScene()!;
-        // const ac = node.addComponent(AnimationController);
-        // ac.animations = boxAnimated.animations
-        // node.visibilityFlag = VisibilityBit.DEFAULT;
+        const animation = node.addComponent(AnimationBlended);
+        const clips: AnimationClip[] = [];
+        clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Idle')!)
+        clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Walk')!)
+        clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Run')!)
+        animation.clips = clips;
+        animation.thresholds = [0, 0.5, 1]
 
         // UI
         node = new Node;
@@ -58,12 +57,6 @@ export default class App extends Zero {
         const doc = (new Node).addComponent(UIDocument);
         doc.node.visibilityFlag = VisibilityFlagBits.UI;
 
-        const slider = (new Node).addComponent(Slider);
-        slider.on(SliderEventType.CHANGED, () => {
-
-        })
-        doc.addElement(slider);
-
         const profiler = (new Node).addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
         profiler.node.position = [-width / 2, - height / 2, 0];
@@ -73,6 +66,14 @@ export default class App extends Zero {
         cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = main_camera;
         doc.addElement(cameraControlPanel);
+
+        const slider = (new Node).addComponent(Slider);
+        slider.value = 0;
+        slider.on(SliderEventType.CHANGED, () => {
+            // animation.getState('Armature|Walk').speed = slider.value;
+            animation.input = slider.value;
+        })
+        doc.addElement(slider);
 
         return new Flow([stageFactory.forward()])
     }

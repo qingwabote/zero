@@ -1,6 +1,6 @@
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 import GLTF from "../../../../script/main/assets/GLTF.js";
-import AnimationController from "../../../../script/main/components/AnimationController.js";
+import Animation from "../../../../script/main/components/Animation.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import CameraControlPanel from "../../../../script/main/components/ui/CameraControlPanel.js";
@@ -112,8 +112,8 @@ export default class App extends Zero {
         await guardian.load('./assets/guardian_zelda_botw_fan-art/scene', USE_SHADOW_MAP);
         await addUnlitPass(guardian)
         node = guardian.createScene("Sketchfab_Scene")!;
-        const ac = node.addComponent(AnimationController);
-        ac.animations = guardian.animations
+        const ac = node.addComponent(Animation);
+        ac.clips = guardian.animationClips
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
 
         const plane = new GLTF();

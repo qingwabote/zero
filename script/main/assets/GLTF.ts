@@ -19,7 +19,7 @@ import SubMesh, { VertexAttribute } from "../core/scene/SubMesh.js";
 import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
 import PassType from "../render/PassType.js";
-import Animation, { Channel } from "./Animation.js";
+import AnimationClip, { Channel } from "./AnimationClip.js";
 import Material from "./Material.js";
 import Mesh from "./Mesh.js";
 import Skin from "./Skin.js";
@@ -89,9 +89,9 @@ export default class GLTF extends Asset {
 
     private _skins: Skin[] = [];
 
-    private _animations: Animation[] = [];
-    get animations(): readonly Animation[] {
-        return this._animations;
+    private _animationClips: AnimationClip[] = [];
+    get animationClips(): readonly AnimationClip[] {
+        return this._animationClips;
     }
 
     async load(url: string, USE_SHADOW_MAP: 0 | 1 = 0): Promise<this> {
@@ -183,7 +183,7 @@ export default class GLTF extends Asset {
                 }
                 channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation } })
             }
-            this._animations.push(new Animation(animation.name, channels));
+            this._animationClips.push({ name: animation.name, channels });
         }
 
         this._bin = bin;

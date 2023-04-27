@@ -17,6 +17,8 @@ export default {
 
     set: vec4.set,
 
+    copy: vec4.copy,
+
     fromEuler<Out extends QuatLike>(out: Out, x: number, y: number, z: number) {
         x *= halfToRad;
         y *= halfToRad;

@@ -15,7 +15,7 @@ export default class AnimationSystem implements System {
         this._time = new Date().getSeconds();
     }
 
-    addState(state: AnimationState) {
+    addAnimation(state: AnimationState) {
         this._states.set(state, state);
     }
 
