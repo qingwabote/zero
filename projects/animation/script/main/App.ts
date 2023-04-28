@@ -4,10 +4,12 @@ import GLTF from "../../../../script/main/assets/GLTF.js";
 import AnimationBlended from "../../../../script/main/components/AnimationBlended.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
+import TextRenderer from "../../../../script/main/components/TextRenderer.js";
 import CameraControlPanel from "../../../../script/main/components/ui/CameraControlPanel.js";
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import Slider, { SliderEventType } from "../../../../script/main/components/ui/Slider.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
+import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import Node from "../../../../script/main/core/Node.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
@@ -38,6 +40,7 @@ export default class App extends Zero {
         node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
         const animation = node.addComponent(AnimationBlended);
+        node.euler = vec3.create(0, 60, 0)
         const clips: AnimationClip[] = [];
         clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Idle')!)
         clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Walk')!)
@@ -67,13 +70,32 @@ export default class App extends Zero {
         cameraControlPanel.camera = main_camera;
         doc.addElement(cameraControlPanel);
 
+        const text = UIRenderer.create(TextRenderer);
+        text.anchor = vec2.create(0, 0.5)
+        text.node.position = vec3.create(-width / 2, 0, 0)
+        doc.addElement(text);
+
+        this.setInterval(() => {
+            const weights = animation.state.weights;
+            text.impl.text = `Idle: ${weights[0].toFixed(2)}
+Walk: ${weights[1].toFixed(2)}
+Run: ${weights[2].toFixed(2)}`
+        })
+
+        function updateInput(value: number) {
+            animation.input = value;
+        }
+
         const slider = (new Node).addComponent(Slider);
+        slider.anchor = vec2.create(0.5, 1)
+        slider.size = vec2.create(180, 20)
         slider.value = 0;
         slider.on(SliderEventType.CHANGED, () => {
-            // animation.getState('Armature|Walk').speed = slider.value;
-            animation.input = slider.value;
+            updateInput(slider.value)
         })
         doc.addElement(slider);
+
+        updateInput(slider.value)
 
         return new Flow([stageFactory.forward()])
     }

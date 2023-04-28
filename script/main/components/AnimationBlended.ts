@@ -10,7 +10,7 @@ import AnimationStateBlended, { BlendContext } from "./internal/animation/Animat
 import ClipBinging from "./internal/animation/ClipBinging.js";
 
 class BlendTRS implements TRS {
-    // private _position_default = vec3.create();
+    private _position_default = vec3.create();
     private _position_weight: number = -1;
     private _position = vec3.create();
     public get position(): Readonly<Vec3Like> {
@@ -27,7 +27,7 @@ class BlendTRS implements TRS {
         vec3.lerp(this._position, this._position, value, weight / this._position_weight);
     }
 
-    // private _rotation_default = quat.create();
+    private _rotation_default = quat.create();
     private _rotation_weight: number = -1;
     private _rotation = quat.create();
     public get rotation(): Readonly<Vec4Like> {
@@ -44,7 +44,7 @@ class BlendTRS implements TRS {
         quat.slerp(this._rotation, this._rotation, value, weight / this._rotation_weight);
     }
 
-    // private _scale_default = vec3.create();
+    private _scale_default = vec3.create();
     private _scale_weight: number = -1;
     private _scale = vec3.create();
     public get scale(): Readonly<Vec3Like> {
@@ -61,23 +61,42 @@ class BlendTRS implements TRS {
         vec3.lerp(this._scale, this._scale, value, weight / this._scale_weight);
     }
 
-    // constructor(position: Readonly<Vec3Like>, rotation: Readonly<Vec4Like>, scale: Readonly<Vec3Like>, private _context: BlendContext) {
-    //     vec3.copy(this._position_default, position);
-    // }
+    constructor(position: Readonly<Vec3Like>, rotation: Readonly<Vec4Like>, scale: Readonly<Vec3Like>, private _context: BlendContext) {
+        vec3.copy(this._position_default, position);
+        quat.copy(this._rotation_default, rotation);
+        vec3.copy(this._scale_default, scale);
 
-    constructor(private _context: BlendContext) { }
+        // vec3.copy(this._position, this._position_default);
+        // quat.copy(this._rotation, this._rotation_default);
+        // vec3.copy(this._scale, this._scale_default);
+    }
 
     flush(out: TRS) {
         if (this._position_weight != -1) {
+            if (this._position_weight < 1) {
+                this._context.weight = 1 - this._position_weight;
+                this.position = this._position_default
+            }
             out.position = this._position;
+            // vec3.copy(this._position, this._position_default);
             this._position_weight = -1;
         }
         if (this._rotation_weight != -1) {
+            if (this._rotation_weight < 1) {
+                this._context.weight = 1 - this._rotation_weight;
+                this.rotation = this._rotation_default
+            }
             out.rotation = this._rotation;
+            // quat.copy(this._rotation, this._rotation_default);
             this._rotation_weight = -1;
         }
         if (this._scale_weight != -1) {
+            if (this._scale_weight < 1) {
+                this._context.weight = 1 - this._scale_weight;
+                this.scale = this._scale_default
+            }
             out.scale = this._scale;
+            // vec3.copy(this._scale, this._scale_default);
             this._scale_weight = -1;
         }
     }
@@ -94,7 +113,7 @@ class BlendContextImpl implements BlendContext {
         const child = this._root.getChildByPath(path)!;
         let trs = this._node2trs.get(child);
         if (!trs) {
-            trs = new BlendTRS(this);
+            trs = new BlendTRS(child.position, child.rotation, child.scale, this);
             this._node2trs.set(child, trs);
         }
         return trs;
@@ -123,6 +142,9 @@ export default class AnimationBlended extends Component {
     }
 
     private _state!: AnimationStateBlended;
+    public get state(): AnimationStateBlended {
+        return this._state;
+    }
 
     override start(): void {
         const context = new BlendContextImpl(this.node);

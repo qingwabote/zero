@@ -1,8 +1,10 @@
 # Showcase
 
-[Shadow Map and Animation](https://qingwabote.github.io/zero/projects/test/script/platforms/web/app.html)
+[Shadow Map](https://qingwabote.github.io/zero/projects/test/script/platforms/web/app.html)
 
 [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/script/platforms/web/app.html)
+
+[Animation Blend](https://qingwabote.github.io/zero/projects/animation/script/platforms/web/app.html)
 
 [SpriteRenderer](https://qingwabote.github.io/zero/projects/ui/script/platforms/web/app.html)
 

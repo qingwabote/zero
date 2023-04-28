@@ -35,10 +35,10 @@ export default class Profiler extends UIContainer {
         }
         this._frames++;
 
-        this._text.impl.text = `FPS: ${this._fps.toString().slice(0, 5)}
+        this._text.impl.text = `FPS: ${this._fps.toFixed(2)}
 Draw call: ${zero.flow.drawCalls}
-Render(ms): ${this._render_time.toString().slice(0, 5)}
-Logic(ms): ${this._logic_time.toString().slice(0, 5)}`;
+Render(ms): ${this._render_time.toFixed(2)}
+Logic(ms): ${this._logic_time.toFixed(2)}`;
     }
 
     private profileLogic() {

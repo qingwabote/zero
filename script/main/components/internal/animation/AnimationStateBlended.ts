@@ -8,8 +8,11 @@ export interface BlendContext {
 
 export default class AnimationStateBlended extends AnimationState {
     private _weights: number[];
+    public get weights(): readonly number[] {
+        return this._weights;
+    }
 
-    public get duration(): number {
+    public override get duration(): number {
         let duration = 0;
         for (let i = 0; i < this._clips.length; i++) {
             duration += this._clips[i].duration * this._weights[i];
