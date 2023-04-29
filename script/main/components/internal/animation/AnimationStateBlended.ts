@@ -62,18 +62,12 @@ export default class AnimationStateBlended extends AnimationState {
         } else if (input >= thresholds[thresholds.length - 1]) {
             weights[weights.length - 1] = 1;
         } else {
-            let iUpper = 0;
-            for (let i = 1; i < thresholds.length; i++) {
-                if (thresholds[i] > input) {
-                    iUpper = i;
-                    break;
-                }
-            }
-            const upper = thresholds[iUpper];
-            const lower = thresholds[iUpper - 1];
-            const dVal = upper - lower;
-            weights[iUpper - 1] = (upper - input) / dVal;
-            weights[iUpper] = (input - lower) / dVal;
+            let iGreater = thresholds.findIndex(value => value > input);
+            const greater = thresholds[iGreater];
+            const smaller = thresholds[iGreater - 1];
+            const d = greater - smaller;
+            weights[iGreater] = (input - smaller) / d;
+            weights[iGreater - 1] = (greater - input) / d;
         }
     }
 }

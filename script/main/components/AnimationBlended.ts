@@ -17,14 +17,7 @@ class BlendTRS implements TRS {
         return this._position;
     }
     public set position(value: Readonly<Vec3Like>) {
-        const weight = this._context.weight;
-        if (this._position_weight == -1) {
-            vec3.copy(this._position, value);
-            this._position_weight = weight;
-            return;
-        }
-        this._position_weight += weight;
-        vec3.lerp(this._position, this._position, value, weight / this._position_weight);
+        this.blendPosition(value, this._context.weight)
     }
 
     private _rotation_default = quat.create();
@@ -34,14 +27,7 @@ class BlendTRS implements TRS {
         return this._rotation;
     }
     public set rotation(value: Readonly<Vec4Like>) {
-        const weight = this._context.weight;
-        if (this._rotation_weight == -1) {
-            quat.copy(this._rotation, value);
-            this._rotation_weight = weight;
-            return;
-        }
-        this._rotation_weight += weight;
-        quat.slerp(this._rotation, this._rotation, value, weight / this._rotation_weight);
+        this.blendRotation(value, this._context.weight)
     }
 
     private _scale_default = vec3.create();
@@ -51,17 +37,10 @@ class BlendTRS implements TRS {
         return this._scale;
     }
     public set scale(value: Readonly<Vec3Like>) {
-        const weight = this._context.weight;
-        if (this._scale_weight == -1) {
-            vec3.copy(this._scale, value);
-            this._scale_weight = weight;
-            return;
-        }
-        this._scale_weight += weight;
-        vec3.lerp(this._scale, this._scale, value, weight / this._scale_weight);
+        this.blendScale(value, this._context.weight)
     }
 
-    constructor(position: Readonly<Vec3Like>, rotation: Readonly<Vec4Like>, scale: Readonly<Vec3Like>, private _context: BlendContext) {
+    constructor(position: Readonly<Vec3Like>, rotation: Readonly<Vec4Like>, scale: Readonly<Vec3Like>, private _context: Readonly<BlendContext>) {
         vec3.copy(this._position_default, position);
         quat.copy(this._rotation_default, rotation);
         vec3.copy(this._scale_default, scale);
@@ -71,30 +50,62 @@ class BlendTRS implements TRS {
         // vec3.copy(this._scale, this._scale_default);
     }
 
+    private blendPosition(value: Readonly<Vec3Like>, weight: number) {
+        if (this._position_weight == -1) {
+            vec3.copy(this._position, value);
+            this._position_weight = weight;
+            return;
+        }
+        this._position_weight += weight;
+        vec3.lerp(this._position, this._position, value, weight / this._position_weight);
+    }
+
+    private blendRotation(value: Readonly<Vec4Like>, weight: number) {
+        if (this._rotation_weight == -1) {
+            quat.copy(this._rotation, value);
+            this._rotation_weight = weight;
+            return;
+        }
+        this._rotation_weight += weight;
+        quat.slerp(this._rotation, this._rotation, value, weight / this._rotation_weight);
+    }
+
+    private blendScale(value: Readonly<Vec3Like>, weight: number) {
+        if (this._scale_weight == -1) {
+            vec3.copy(this._scale, value);
+            this._scale_weight = weight;
+            return;
+        }
+        this._scale_weight += weight;
+        vec3.lerp(this._scale, this._scale, value, weight / this._scale_weight);
+    }
+
     flush(out: TRS) {
         if (this._position_weight != -1) {
             if (this._position_weight < 1) {
-                this._context.weight = 1 - this._position_weight;
-                this.position = this._position_default
+                this.blendPosition(this._position_default, 1 - this._position_weight)
             }
+
             out.position = this._position;
             // vec3.copy(this._position, this._position_default);
             this._position_weight = -1;
         }
+
         if (this._rotation_weight != -1) {
             if (this._rotation_weight < 1) {
-                this._context.weight = 1 - this._rotation_weight;
-                this.rotation = this._rotation_default
+                this.blendRotation(this._rotation_default, 1 - this._rotation_weight)
             }
+
             out.rotation = this._rotation;
             // quat.copy(this._rotation, this._rotation_default);
             this._rotation_weight = -1;
         }
+
         if (this._scale_weight != -1) {
             if (this._scale_weight < 1) {
-                this._context.weight = 1 - this._scale_weight;
-                this.scale = this._scale_default
+                this.blendScale(this._scale_default, 1 - this._scale_weight)
             }
+
             out.scale = this._scale;
             // vec3.copy(this._scale, this._scale_default);
             this._scale_weight = -1;

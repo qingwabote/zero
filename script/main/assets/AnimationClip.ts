@@ -1,6 +1,8 @@
 
 export interface Sampler {
+    /**a set of floating-point scalar values representing linear time in seconds*/
     input: ArrayLike<number>;
+    /**a set of vectors or scalars representing the animated property*/
     output: ArrayLike<number>;
     interpolation: 'LINEAR' | 'STEP' | 'CUBICSPLINE';
 }

@@ -123,7 +123,6 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         for (const [name, event] of name2event) {
             this.input.emit(name, event);
         }
-        this._componentScheduler.start();
         this._componentScheduler.update();
         this._timeScheduler.update();
         for (const system of this._systems) {

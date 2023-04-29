@@ -4,8 +4,6 @@ import Component from "../core/Component.js";
 import AnimationStateSingle from "./internal/animation/AnimationStateSingle.js";
 import ClipBinging from "./internal/animation/ClipBinging.js";
 
-
-
 export default class Animation extends Component {
     private _name2state: Record<string, AnimationStateSingle> = {};
 

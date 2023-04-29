@@ -53,7 +53,6 @@ export default class PolygonsRenderer extends UIElement {
     public set polygons(value: readonly Polygon[]) {
         this._polygons = value;
         this._polygons_invalidated = true;
-        this.requestMicroUpdate();
     }
 
     texture!: Texture;
@@ -62,14 +61,14 @@ export default class PolygonsRenderer extends UIElement {
 
     private _meshRenderers: MeshRenderer[] = [];
 
-    protected override microStart(): void {
+    override start(): void {
         const pass = new Pass({ shader: ShaderLib.instance.getShader(shader_unlit_info), rasterizationState: { cullMode: CullMode.NONE } });
         pass.setUniform('Constants', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
         this._material = { passes: [pass] };
     }
 
-    protected override microUpdate(): void {
+    override update(): void {
         if (this._polygons_invalidated) {
             for (let i = 0; i < this._polygons.length; i++) {
                 const polygon = this._polygons[i];
