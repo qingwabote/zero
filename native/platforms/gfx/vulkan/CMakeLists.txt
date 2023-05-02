@@ -27,5 +27,5 @@ target_link_libraries(gfx PRIVATE main)
 target_link_libraries(gfx PRIVATE ${glslang_libs})
 
 set(VK_BOOTSTRAP_VULKAN_HEADER_DIR ${CMAKE_CURRENT_LIST_DIR}/internal)
-add_subdirectory(thirdparty/vk-bootstrap)
+add_subdirectory(internal/vk-bootstrap)
 target_link_libraries(gfx PRIVATE vk-bootstrap)
