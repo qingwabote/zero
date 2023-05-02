@@ -1,4 +1,5 @@
 set(SRC_FILES
+    internal/volk/volk.c
     VkDevice.cpp
     VkCommandBuffer.cpp
     VkBuffer.cpp
@@ -18,23 +19,13 @@ set(SRC_FILES
 )
 
 add_library(gfx STATIC ${SRC_FILES})
+target_include_directories(gfx PRIVATE ./internal ../internal)
 
 # add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
 target_link_libraries(gfx PRIVATE main)
 
-# use vulkan sdk
-find_package(Vulkan REQUIRED COMPONENTS glslang SPIRV-Tools)
-target_link_libraries(gfx PRIVATE Vulkan::Vulkan Vulkan::glslang Vulkan::SPIRV-Tools)
+target_link_libraries(gfx PRIVATE ${glslang_libs})
 
-# https://github.com/KhronosGroup/glslang/issues/3026
-# add lib SPIRV-Tools-opt that doesn't in FindVulkan
-add_library(SPIRV-Tools-opt STATIC IMPORTED)
-set_target_properties(SPIRV-Tools-opt PROPERTIES
-    IMPORTED_CONFIGURATIONS "Release;Debug"
-    IMPORTED_LOCATION_RELEASE $ENV{VULKAN_SDK}/Lib/SPIRV-Tools-opt.lib
-    IMPORTED_LOCATION_DEBUG $ENV{VULKAN_SDK}/Lib/SPIRV-Tools-optd.lib
-)
-target_link_libraries(gfx PRIVATE SPIRV-Tools-opt)
-
+set(VK_BOOTSTRAP_VULKAN_HEADER_DIR ${CMAKE_CURRENT_LIST_DIR}/internal)
 add_subdirectory(thirdparty/vk-bootstrap)
 target_link_libraries(gfx PRIVATE vk-bootstrap)

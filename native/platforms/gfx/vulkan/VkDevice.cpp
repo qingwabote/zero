@@ -1,9 +1,10 @@
 #include "bindings/gfx/device.hpp"
 
+#include "VkDevice_impl.hpp"
+
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
 
-#include "VkDevice_impl.hpp"
 #include "VkBuffer_impl.hpp"
 #include "VkTexture_impl.hpp"
 #include "VkSampler_impl.hpp"
@@ -28,6 +29,11 @@ namespace binding::gfx
 
     bool Device::initialize()
     {
+        if (volkInitialize())
+        {
+            return true;
+        }
+
         _impl->_version = VK_API_VERSION_1_3;
         // instance
         vkb::InstanceBuilder builder;
@@ -45,6 +51,8 @@ namespace binding::gfx
                             .use_default_debug_messenger()
                             .build();
         auto &vkb_instance = inst_ret.value();
+
+        volkLoadInstanceOnly(vkb_instance.instance);
 
         // surface
         VkSurfaceKHR surface = nullptr;
@@ -68,11 +76,23 @@ namespace binding::gfx
         auto &vkb_device = device_ret.value();
         auto device = vkb_device.device;
 
-        VmaAllocatorCreateInfo allocatorInfo = {};
+        volkLoadDevice(device);
+
+        VmaAllocatorCreateInfo allocatorInfo{};
         allocatorInfo.physicalDevice = physicalDevice.physical_device;
         allocatorInfo.device = device;
         allocatorInfo.instance = vkb_instance.instance;
-        vmaCreateAllocator(&allocatorInfo, &_impl->_allocator);
+
+        VmaVulkanFunctions vmaVulkanFunc{};
+        vmaVulkanFunc.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+        vmaVulkanFunc.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+
+        allocatorInfo.pVulkanFunctions = &vmaVulkanFunc;
+
+        if (vmaCreateAllocator(&allocatorInfo, &_impl->_allocator))
+        {
+            return true;
+        }
 
         // swapchain
         vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, device, surface};
@@ -104,7 +124,10 @@ namespace binding::gfx
         commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         commandPoolInfo.queueFamilyIndex = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
         commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        vkCreateCommandPool(device, &commandPoolInfo, nullptr, &_impl->_commandPool);
+        if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &_impl->_commandPool))
+        {
+            return true;
+        }
 
         // descriptor pool
         std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {
@@ -114,7 +137,10 @@ namespace binding::gfx
         descriptorPoolCreateInfo.maxSets = 2000;
         descriptorPoolCreateInfo.poolSizeCount = descriptorPoolSizes.size();
         descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
-        vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool);
+        if (vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool))
+        {
+            return true;
+        }
 
         v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
         sugar::v8::object_set(
