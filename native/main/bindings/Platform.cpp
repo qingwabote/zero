@@ -4,7 +4,7 @@
 #include "Window.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "thirdparty/stb_image.h"
+#include "internal/stb_image.h"
 
 namespace binding
 {

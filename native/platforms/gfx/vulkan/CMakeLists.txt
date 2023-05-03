@@ -21,7 +21,6 @@ set(SRC_FILES
 add_library(gfx STATIC ${SRC_FILES})
 target_include_directories(gfx PRIVATE ./internal ../internal)
 
-# add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
 target_link_libraries(gfx PRIVATE main)
 
 target_link_libraries(gfx PRIVATE ${glslang_libs})

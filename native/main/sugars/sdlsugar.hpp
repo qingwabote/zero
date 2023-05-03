@@ -13,7 +13,5 @@ namespace sugar
         unique_window initWithWindow(int width, int height);
 
         unique_char getBasePath();
-
-        unique_char rw_readUtf8(const char *file);
     }
 }

@@ -1,9 +1,9 @@
 #include "v8sugar.hpp"
-#include "sdlsugar.hpp"
 #include <sstream>
 #include <unordered_map>
 #include <map>
 #include <filesystem>
+#include <fstream>
 
 namespace
 {
@@ -259,16 +259,22 @@ namespace sugar::v8
             return handle_scope.EscapeMaybe(_v8::MaybeLocal<_v8::Module>{it->second.Get(isolate)});
         }
 
-        auto res = sugar::sdl::rw_readUtf8(path.string().c_str());
-        if (!res)
+        std::error_code ec;
+        std::uintmax_t size = std::filesystem::file_size(path, ec);
+        if (ec)
         {
-            std::string exception{"module resolve failed to read the file: " + path.string()};
+            std::string exception{"module resolve failed to read the size of file: " + path.string()};
             isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, exception.c_str()).ToLocalChecked()));
             return {};
         }
 
+        auto res = std::unique_ptr<char, decltype(free) *>{(char *)malloc(size), free};
+        std::ifstream is;
+        is.open(path.string(), std::ios::binary);
+        is.read(res.get(), size);
+
         auto origin = _v8::ScriptOrigin(isolate, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked(), 0, 0, false, -1, _v8::Local<_v8::Value>(), false, false, true);
-        _v8::ScriptCompiler::Source source(_v8::String::NewFromUtf8(isolate, res.get()).ToLocalChecked(), origin);
+        _v8::ScriptCompiler::Source source(_v8::String::NewFromUtf8(isolate, res.get(), _v8::NewStringType::kNormal, size).ToLocalChecked(), origin);
         auto maybeModule = _v8::ScriptCompiler::CompileModule(isolate, &source);
 
         auto module = maybeModule.ToLocalChecked();

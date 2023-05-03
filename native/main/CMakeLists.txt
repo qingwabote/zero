@@ -28,12 +28,6 @@ set(SRC_FILES
 )
 
 add_library(main STATIC ${SRC_FILES})
-target_include_directories(main PUBLIC ./)
-
-add_subdirectory(thirdparty/sdl2)
-target_link_libraries(main PUBLIC SDL2)
-
-add_subdirectory(thirdparty/v8)
+target_link_libraries(main PUBLIC sdl)
 target_link_libraries(main PUBLIC v8)
-
-set(WIN32_DLLS ${WIN32_DLLS} PARENT_SCOPE)
+target_include_directories(main PUBLIC ./ ./sdl ./v8)

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Binding.hpp"
-#include "thirdparty/stb_image.h"
 
 namespace binding
 {

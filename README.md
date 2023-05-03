@@ -44,9 +44,9 @@ rectangle GFX {
 }
 
 Logic-d->RenderScene
-Render-d->RenderScene
+Render-r->RenderScene
 
-Logic-l->System
+Logic-r->System
 
 RenderScene-d->GFX
 Render-d->GFX

@@ -40,22 +40,21 @@ namespace binding
                     return;
                 }
 
-                char *res = (char *)malloc(size);
+                auto res = std::unique_ptr<char, decltype(free) *>{(char *)malloc(size), free};
                 std::ifstream is;
                 is.open(abs_path.string(), std::ios::binary);
-                is.read(res, size);
+                is.read(res.get(), size);
 
                 if (type == "text")
                 {
                     auto f = new auto(
-                        [res, size, g_resolver = std::move(g_resolver)]()
+                        [res = std::move(res), size, g_resolver = std::move(g_resolver)]()
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
                             v8::EscapableHandleScope scrop(isolate);
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-                            v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, res, v8::NewStringType::kNormal, size).ToLocalChecked();
-                            free(res);
+                            v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, res.get(), v8::NewStringType::kNormal, size).ToLocalChecked();
                             g_resolver.Get(isolate)->Resolve(context, str);
                         });
                     Window::instance().run(UniqueFunction::create<decltype(f)>(f));
@@ -63,7 +62,7 @@ namespace binding
                 else if (type == "arraybuffer")
                 {
                     auto f = new auto(
-                        [res, size, g_resolver = std::move(g_resolver)]()
+                        [res = std::move(res), size, g_resolver = std::move(g_resolver)]()
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
                             v8::EscapableHandleScope scrop(isolate);
@@ -79,8 +78,7 @@ namespace binding
                             // auto arraybuffer = v8::ArrayBuffer::New(isolate, std::move(backingStore));
 
                             auto arraybuffer = v8::ArrayBuffer::New(isolate, size);
-                            memcpy(arraybuffer->GetBackingStore()->Data(), res, size);
-                            free(res);
+                            memcpy(arraybuffer->GetBackingStore()->Data(), res.get(), size);
 
                             g_resolver.Get(isolate)->Resolve(context, arraybuffer);
                         });
