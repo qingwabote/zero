@@ -16,6 +16,13 @@ add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
 
 target_link_libraries(zero PRIVATE zero::main)
 
+# sdl
+add_library(sdl SHARED IMPORTED GLOBAL)
+set_target_properties(sdl PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.dll
+    IMPORTED_IMPLIB ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.lib
+)
+
 # glslang
 set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
 
@@ -26,13 +33,6 @@ foreach(name IN LISTS glslang_libs)
         IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}.lib
     )
 endforeach()
-
-# sdl
-add_library(sdl SHARED IMPORTED GLOBAL)
-set_target_properties(sdl PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.dll
-    IMPORTED_IMPLIB ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.lib
-)
 
 # v8
 add_library(v8 SHARED IMPORTED GLOBAL)

@@ -1,0 +1,11 @@
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Gradle files
+.gradle/
+
+# IntelliJ
+.idea/
+
+# Android Studio generated files and folders
+.cxx/
