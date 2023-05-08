@@ -14,7 +14,7 @@ add_executable(zero WIN32 ${SRC_FILES})
 
 add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
 
-target_link_libraries(zero PRIVATE main)
+target_link_libraries(zero PRIVATE zero::main)
 
 # glslang
 set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
@@ -54,7 +54,7 @@ set_target_properties(v8_libplatform PROPERTIES
 target_link_libraries(v8 INTERFACE v8_libbase v8_libplatform)
 
 add_subdirectory(../gfx/vulkan gfx)
-target_link_libraries(zero PRIVATE gfx)
+target_link_libraries(zero PRIVATE zero::gfx)
 
 file(GLOB_RECURSE dlls
     ${CMAKE_CURRENT_LIST_DIR}/libs/**/*.dll

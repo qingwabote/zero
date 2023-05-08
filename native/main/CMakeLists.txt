@@ -27,7 +27,8 @@ set(SRC_FILES
     bindings/gfx/Queue.cpp
 )
 
-add_library(main STATIC ${SRC_FILES})
-target_link_libraries(main PUBLIC sdl)
-target_link_libraries(main PUBLIC v8)
-target_include_directories(main PUBLIC ./ ./sdl ./v8)
+add_library(zero_main STATIC ${SRC_FILES})
+target_link_libraries(zero_main PUBLIC sdl)
+target_link_libraries(zero_main PUBLIC v8)
+target_include_directories(zero_main PUBLIC ./ ./sdl ./v8)
+add_library(zero::main ALIAS zero_main)

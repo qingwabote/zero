@@ -18,13 +18,15 @@ set(SRC_FILES
     VkQueue.cpp
 )
 
-add_library(gfx STATIC ${SRC_FILES})
-target_include_directories(gfx PRIVATE ./internal ../internal)
+add_library(zero_gfx STATIC ${SRC_FILES})
+target_include_directories(zero_gfx PRIVATE ./internal ../internal)
 
-target_link_libraries(gfx PRIVATE main)
+target_link_libraries(zero_gfx PRIVATE zero::main)
 
-target_link_libraries(gfx PRIVATE ${glslang_libs})
+target_link_libraries(zero_gfx PRIVATE ${glslang_libs})
 
 set(VK_BOOTSTRAP_VULKAN_HEADER_DIR ${CMAKE_CURRENT_LIST_DIR}/internal)
 add_subdirectory(internal/vk-bootstrap)
-target_link_libraries(gfx PRIVATE vk-bootstrap)
+target_link_libraries(zero_gfx PRIVATE vk-bootstrap)
+
+add_library(zero::gfx ALIAS zero_gfx)
