@@ -23,17 +23,6 @@ set_target_properties(sdl PROPERTIES
     IMPORTED_IMPLIB ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.lib
 )
 
-# glslang
-set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
-
-foreach(name IN LISTS glslang_libs)
-    add_library(${name} STATIC IMPORTED GLOBAL)
-    set_target_properties(${name} PROPERTIES
-        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}d.lib
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}.lib
-    )
-endforeach()
-
 # v8
 add_library(v8 SHARED IMPORTED GLOBAL)
 set_target_properties(v8 PROPERTIES
@@ -52,6 +41,17 @@ set_target_properties(v8_libplatform PROPERTIES
     IMPORTED_IMPLIB ${CMAKE_CURRENT_LIST_DIR}/libs/v8/v8_libplatform.dll.lib
 )
 target_link_libraries(v8 INTERFACE v8_libbase v8_libplatform)
+
+# glslang
+set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
+
+foreach(name IN LISTS glslang_libs)
+    add_library(${name} STATIC IMPORTED GLOBAL)
+    set_target_properties(${name} PROPERTIES
+        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}d.lib
+        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}.lib
+    )
+endforeach()
 
 add_subdirectory(../gfx/vulkan gfx)
 target_link_libraries(zero PRIVATE zero::gfx)

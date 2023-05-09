@@ -15,10 +15,27 @@ set_target_properties(sdl PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/libSDL2.so
 )
 
+# v8
+add_library(v8 STATIC IMPORTED GLOBAL)
+set_target_properties(v8 PROPERTIES
+    INTERFACE_COMPILE_DEFINITIONS V8_COMPRESS_POINTERS
+    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/v8/libv8_monolith.a
+)
+
 # Compilation of companion libraries
 # add_subdirectory(SDL_image)
 # add_subdirectory(SDL_mixer)
 # add_subdirectory(SDL_ttf)
 add_library(main SHARED main.cpp)
+
+# temp
 target_link_libraries(main sdl)
 target_include_directories(main PRIVATE ../../../../../main/sdl)
+
+target_link_libraries(main v8)
+target_include_directories(main PRIVATE ../../../../../main/v8)
+
+# __android_log_vprint used in v8
+# https://developer.android.com/studio/projects/configure-cmake#add-ndk-api
+find_library(log-lib log)
+target_link_libraries(main ${log-lib})
