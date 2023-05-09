@@ -22,6 +22,16 @@ set_target_properties(v8 PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/v8/libv8_monolith.a
 )
 
+# glslang
+set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
+
+foreach(name IN LISTS glslang_libs)
+    add_library(${name} STATIC IMPORTED GLOBAL)
+    set_target_properties(${name} PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/lib${name}.a
+    )
+endforeach()
+
 # Compilation of companion libraries
 # add_subdirectory(SDL_image)
 # add_subdirectory(SDL_mixer)
@@ -34,6 +44,9 @@ target_include_directories(main PRIVATE ../../../../../main/sdl)
 
 target_link_libraries(main v8)
 target_include_directories(main PRIVATE ../../../../../main/v8)
+
+target_link_libraries(main ${glslang_libs})
+target_include_directories(main PRIVATE ../../../../gfx/internal)
 
 # __android_log_vprint used in v8
 # https://developer.android.com/studio/projects/configure-cmake#add-ndk-api

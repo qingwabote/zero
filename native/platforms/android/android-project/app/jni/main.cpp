@@ -2,10 +2,11 @@
 #include <SDL.h>
 #include "v8.h"
 #include "libplatform/libplatform.h"
+#include "glslang/Public/ShaderLang.h"
 
 int main(int argc, char **argv)
 {
-    auto platform = v8::platform::NewDefaultPlatform();
-    SDL_Log("Hello, v8!\n");
+    glslang::InitializeProcess();
+    SDL_Log("Hello, glslang!\n");
     return 0;
 }
