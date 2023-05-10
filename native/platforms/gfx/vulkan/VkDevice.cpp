@@ -50,6 +50,11 @@ namespace binding::gfx
                             .require_api_version(_impl->_version)
                             .use_default_debug_messenger()
                             .build();
+        if (!inst_ret)
+        {
+            ZERO_LOG("Failed to create Vulkan instance. Error: %s", inst_ret.error().message().c_str());
+            return true;
+        }
         auto &vkb_instance = inst_ret.value();
 
         volkLoadInstanceOnly(vkb_instance.instance);

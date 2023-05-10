@@ -37,24 +37,17 @@ foreach(name IN LISTS glslang_libs)
     )
 endforeach()
 
-# Compilation of companion libraries
-# add_subdirectory(SDL_image)
-# add_subdirectory(SDL_mixer)
-# add_subdirectory(SDL_ttf)
+# vkLayer
+add_library(vkLayer SHARED IMPORTED)
+set_target_properties(vkLayer PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/vklayer/libVkLayer_khronos_validation.so
+)
+
 add_library(main SHARED main.cpp)
+target_link_libraries(main vkLayer)
 
 add_subdirectory(../../../../../main main)
 target_link_libraries(main zero::main)
 
 add_subdirectory(../../../../gfx/vulkan gfx)
 target_link_libraries(main zero::gfx)
-
-# temp
-# target_link_libraries(main sdl)
-# target_include_directories(main PRIVATE ../../../../../main/sdl)
-
-# target_link_libraries(main v8)
-# target_include_directories(main PRIVATE ../../../../../main/v8)
-
-# target_link_libraries(main ${glslang_libs})
-# target_include_directories(main PRIVATE ../../../../gfx/internal)
