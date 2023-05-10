@@ -57,11 +57,11 @@ v8::Local<v8::Object> Binding::retain(v8::Local<v8::Value> val, sugar::v8::Weak<
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::Map> map = js_props().As<v8::Map>();
-    map->Set(context, val, val);
+    map->Set(context, val, val).ToLocalChecked();
 
     if (!handle.IsEmpty())
     {
-        map->Delete(context, handle.Get(isolate));
+        map->Delete(context, handle.Get(isolate)).ToChecked();
     }
     handle.Reset(isolate, val.As<v8::Object>());
 
@@ -75,14 +75,14 @@ v8::Local<v8::Object> Binding::retain(v8::Local<v8::Value> val)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::Map> map = js_props().As<v8::Map>();
-    map->Set(context, val, val);
+    map->Set(context, val, val).ToLocalChecked();
     return val.As<v8::Object>();
 }
 
 void Binding::release(v8::Local<v8::Object> obj)
 {
     v8::Local<v8::Map> map = js_props().As<v8::Map>();
-    map->Delete(v8::Isolate::GetCurrent()->GetCurrentContext(), obj);
+    map->Delete(v8::Isolate::GetCurrent()->GetCurrentContext(), obj).ToChecked();
 }
 
 void Binding::releaseAll()

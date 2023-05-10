@@ -1,7 +1,7 @@
 # "3.10.2" Nothing special, just a supported version of android sdk
 cmake_minimum_required(VERSION 3.10.2)
 
-project(zero CXX)
+project(zero)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -22,6 +22,11 @@ set_target_properties(v8 PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/v8/libv8_monolith.a
 )
 
+# __android_log_vprint used in v8
+# https://developer.android.com/studio/projects/configure-cmake#add-ndk-api
+find_library(log-lib log)
+target_link_libraries(v8 INTERFACE ${log-lib})
+
 # glslang
 set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
 
@@ -38,17 +43,18 @@ endforeach()
 # add_subdirectory(SDL_ttf)
 add_library(main SHARED main.cpp)
 
+add_subdirectory(../../../../../main main)
+target_link_libraries(main zero::main)
+
+add_subdirectory(../../../../gfx/vulkan gfx)
+target_link_libraries(main zero::gfx)
+
 # temp
-target_link_libraries(main sdl)
-target_include_directories(main PRIVATE ../../../../../main/sdl)
+# target_link_libraries(main sdl)
+# target_include_directories(main PRIVATE ../../../../../main/sdl)
 
-target_link_libraries(main v8)
-target_include_directories(main PRIVATE ../../../../../main/v8)
+# target_link_libraries(main v8)
+# target_include_directories(main PRIVATE ../../../../../main/v8)
 
-target_link_libraries(main ${glslang_libs})
-target_include_directories(main PRIVATE ../../../../gfx/internal)
-
-# __android_log_vprint used in v8
-# https://developer.android.com/studio/projects/configure-cmake#add-ndk-api
-find_library(log-lib log)
-target_link_libraries(main ${log-lib})
+# target_link_libraries(main ${glslang_libs})
+# target_include_directories(main PRIVATE ../../../../gfx/internal)

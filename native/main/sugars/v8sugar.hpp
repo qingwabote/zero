@@ -29,7 +29,7 @@ namespace sugar::v8
 
     void object_set(_v8::Local<_v8::Object> object, const char *name, _v8::Local<_v8::Value> value);
 
-    _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object);
+    const _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object);
 
     void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb);
 

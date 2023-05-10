@@ -1,4 +1,4 @@
-#include "bindings/gfx/device.hpp"
+#include "bindings/gfx/Device.hpp"
 
 #include "VkDevice_impl.hpp"
 

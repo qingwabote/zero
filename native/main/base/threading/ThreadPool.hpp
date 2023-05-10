@@ -1,5 +1,6 @@
 #pragma once
 
+#include <thread>
 #include "ThreadSafeQueue.hpp"
 #include "base/UniqueFunction.hpp"
 

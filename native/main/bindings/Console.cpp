@@ -18,7 +18,7 @@ namespace binding
                 v8::Local<v8::Array> array = v8::Array::New(isolate, info.Length());
                 for (int i = 0; i < info.Length(); i++)
                 {
-                    array->Set(context, i, info[i]);
+                    array->Set(context, i, info[i]).ToChecked();
                 }
 
                 auto join = sugar::v8::object_get(array, "join").As<v8::Function>();

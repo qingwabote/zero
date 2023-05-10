@@ -4,6 +4,7 @@ class FunctionHolderBase
 {
 public:
     virtual void call() = 0;
+    virtual ~FunctionHolderBase() = default;
 };
 
 template <typename T>

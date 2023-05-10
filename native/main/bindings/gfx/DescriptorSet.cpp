@@ -2,7 +2,7 @@
 #include "DescriptorSetLayout.hpp"
 #include "Buffer.hpp"
 
-sugar::v8::Weak<v8::Object> &getHandle(std::unordered_map<std::string, sugar::v8::Weak<_v8::Object>> &handleMap, std::string &key)
+sugar::v8::Weak<v8::Object> &getHandle(std::unordered_map<std::string, sugar::v8::Weak<_v8::Object>> &handleMap, std::string &&key)
 {
     auto it = handleMap.find(key);
     if (it == handleMap.end())

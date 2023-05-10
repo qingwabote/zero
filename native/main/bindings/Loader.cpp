@@ -34,7 +34,7 @@ namespace binding
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
                             std::string msg = ec.message() + ": " + abs_path.string();
-                            g_resolver.Get(isolate)->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
+                            g_resolver.Get(isolate)->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked())).ToChecked();
                         });
                     Window::instance().run(UniqueFunction::create<decltype(f)>(f));
                     return;
@@ -55,7 +55,7 @@ namespace binding
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
                             v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, res.get(), v8::NewStringType::kNormal, size).ToLocalChecked();
-                            g_resolver.Get(isolate)->Resolve(context, str);
+                            g_resolver.Get(isolate)->Resolve(context, str).ToChecked();
                         });
                     Window::instance().run(UniqueFunction::create<decltype(f)>(f));
                 }
@@ -80,7 +80,7 @@ namespace binding
                             auto arraybuffer = v8::ArrayBuffer::New(isolate, size);
                             memcpy(arraybuffer->GetBackingStore()->Data(), res.get(), size);
 
-                            g_resolver.Get(isolate)->Resolve(context, arraybuffer);
+                            g_resolver.Get(isolate)->Resolve(context, arraybuffer).ToChecked();
                         });
                     Window::instance().run(UniqueFunction::create<decltype(f)>(f));
                 }

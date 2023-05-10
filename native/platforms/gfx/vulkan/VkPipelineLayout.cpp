@@ -2,7 +2,7 @@
 #include "VkPipelineLayout_impl.hpp"
 
 #include "bindings/gfx/DescriptorSetLayout.hpp"
-#include "VKDescriptorSetLayout_impl.hpp"
+#include "VkDescriptorSetLayout_impl.hpp"
 
 namespace binding
 {

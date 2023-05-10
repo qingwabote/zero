@@ -71,14 +71,14 @@ int Window::loop()
         global->Set(
             context,
             v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-            (new binding::Console())->js_obj());
+            (new binding::Console())->js_obj()).ToChecked();
 
         binding::gfx::Device *gfx = new binding::gfx::Device(window.get());
         gfx->initialize();
         global->Set(
             context,
             v8::String::NewFromUtf8Literal(isolate.get(), "gfx"),
-            gfx->js_obj());
+            gfx->js_obj()).ToChecked();
 
         v8::Local<v8::Object> bootstrap;
         {
@@ -95,13 +95,13 @@ int Window::loop()
                 return -1;
             }
             v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-            v8::Local<v8::Object> default = sugar::v8::object_get(ns, "default").As<v8::Object>();
-            if (default.IsEmpty())
+            v8::Local<v8::Object> def = sugar::v8::object_get(ns, "default").As<v8::Object>();
+            if (def.IsEmpty())
             {
                 printf("bootstrap.js: no default export found\n");
                 return -1;
             }
-            bootstrap = handle_scope.Escape(default);
+            bootstrap = handle_scope.Escape(def);
         }
 
         auto projectDir = sugar::v8::object_get(bootstrap, "project").As<v8::String>();
@@ -115,12 +115,12 @@ int Window::loop()
         global->Set(
             context,
             v8::String::NewFromUtf8Literal(isolate.get(), "loader"),
-            loader->js_obj());
+            loader->js_obj()).ToChecked();
 
         global->Set(
             context,
             v8::String::NewFromUtf8Literal(isolate.get(), "platform"),
-            (new binding::Platform())->js_obj());
+            (new binding::Platform())->js_obj()).ToChecked();
 
         v8::Local<v8::Object> app;
         {
@@ -158,7 +158,7 @@ int Window::loop()
             }
             app = handle_scope.Escape(maybeApp.ToLocalChecked());
         }
-        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app);
+        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app).ToChecked();
 
         auto initialize = sugar::v8::object_get(app, "initialize").As<v8::Function>();
         if (initialize.IsEmpty())
@@ -213,7 +213,7 @@ int Window::loop()
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEMOTION:
                 {
-                    char *name = nullptr;
+                    const char *name = nullptr;
                     double x;
                     double y;
                     if (event.type == SDL_MOUSEBUTTONDOWN)
@@ -239,13 +239,13 @@ int Window::loop()
                         y = event.motion.y;
                     }
                     auto touch = v8::Object::New(isolate.get());
-                    touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "x"), v8::Number::New(isolate.get(), x));
-                    touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "y"), v8::Number::New(isolate.get(), y));
+                    touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "x"), v8::Number::New(isolate.get(), x)).ToChecked();
+                    touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "y"), v8::Number::New(isolate.get(), y)).ToChecked();
                     auto touches = v8::Array::New(isolate.get(), 1);
-                    touches->Set(context, 0, touch);
+                    touches->Set(context, 0, touch).ToChecked();
                     auto touchEvent = v8::Object::New(isolate.get());
-                    touchEvent->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "touches"), touches);
-                    name2event->Set(context, v8::String::NewFromUtf8(isolate.get(), name).ToLocalChecked(), touchEvent);
+                    touchEvent->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "touches"), touches).ToChecked();
+                    name2event->Set(context, v8::String::NewFromUtf8(isolate.get(), name).ToLocalChecked(), touchEvent).ToLocalChecked();
                     break;
                 }
                 default:
@@ -264,8 +264,7 @@ int Window::loop()
 
             v8::Local<v8::Value> args[] = {name2event};
             v8::TryCatch try_catch(isolate.get());
-            app_tick->Call(context, app, 1, args);
-            if (try_catch.HasCaught())
+            if (app_tick->Call(context, app, 1, args).IsEmpty())
             {
                 sugar::v8::tryCatch_print(try_catch);
                 return -1;

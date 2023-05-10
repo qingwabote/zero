@@ -1,12 +1,7 @@
-#include <stdio.h>
-#include <SDL.h>
-#include "v8.h"
-#include "libplatform/libplatform.h"
-#include "glslang/Public/ShaderLang.h"
+#include "Window.hpp"
 
 int main(int argc, char **argv)
 {
-    glslang::InitializeProcess();
-    SDL_Log("Hello, glslang!\n");
+    Window::instance().loop();
     return 0;
 }

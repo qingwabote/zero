@@ -23,7 +23,16 @@ namespace
 
         std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> constructorCache;
 
-        std::unordered_map<std::filesystem::path, sugar::v8::Weak<_v8::Module>> path2module;
+        // https://cplusplus.github.io/LWG/issue3657
+        struct path_hash
+        {
+            size_t operator()(const std::filesystem::path &path) const
+            {
+                return std::filesystem::hash_value(path);
+            }
+        };
+
+        std::unordered_map<std::filesystem::path, sugar::v8::Weak<_v8::Module>, path_hash> path2module;
 
         struct module_hash
         {
@@ -329,8 +338,10 @@ namespace sugar::v8
         _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
         _v8::Local<_v8::Value> out;
-        object->Get(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked()).ToLocal(&out);
-        return handleScope.Escape(out);
+        if(object->Get(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked()).ToLocal(&out)){
+            return handleScope.Escape(out);
+        }
+        return {};
     }
 
     void object_set(_v8::Local<_v8::Object> object, const char *name, _v8::Local<_v8::Value> value)
@@ -339,10 +350,10 @@ namespace sugar::v8
         _v8::HandleScope handleScope(isolate);
         _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
-        object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value);
+        object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value).ToChecked();
     }
 
-    _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object)
+    const _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object)
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
         _v8::HandleScope scope{isolate};
@@ -361,7 +372,7 @@ namespace sugar::v8
     void gc(_v8::Local<_v8::Context> context)
     {
         auto gc = object_get(context->Global(), "__gc__").As<_v8::Function>();
-        gc->Call(context, context->Global(), 0, nullptr);
+        gc->Call(context, context->Global(), 0, nullptr).ToLocalChecked();
     }
 
     _v8::Local<_v8::Value> run(const char *source)

@@ -33,7 +33,7 @@ namespace binding
                         v8::EscapableHandleScope scrop(isolate);
                         v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-                        g_resolver.Get(isolate)->Resolve(context, (new ImageBitmap(pixels, x, y))->js_obj());
+                        g_resolver.Get(isolate)->Resolve(context, (new ImageBitmap(pixels, x, y))->js_obj()).ToChecked();
                     });
                 Window::instance().run(UniqueFunction::create<decltype(f)>(f));
             });

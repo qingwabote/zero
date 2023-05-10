@@ -6,16 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT zero)
 
-set(SRC_FILES
-    main.cpp
-)
-
-add_executable(zero WIN32 ${SRC_FILES})
-
-add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
-
-target_link_libraries(zero PRIVATE zero::main)
-
 # sdl
 add_library(sdl SHARED IMPORTED GLOBAL)
 set_target_properties(sdl PROPERTIES
@@ -52,6 +42,11 @@ foreach(name IN LISTS glslang_libs)
         IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}.lib
     )
 endforeach()
+
+add_executable(zero WIN32 main.cpp)
+
+add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
+target_link_libraries(zero PRIVATE zero::main)
 
 add_subdirectory(../gfx/vulkan gfx)
 target_link_libraries(zero PRIVATE zero::gfx)
