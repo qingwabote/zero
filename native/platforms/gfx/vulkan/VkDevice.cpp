@@ -1,6 +1,6 @@
 #include "bindings/gfx/Device.hpp"
-
 #include "VkDevice_impl.hpp"
+#include "log.h"
 
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
@@ -58,7 +58,7 @@ namespace binding::gfx
         VkSurfaceKHR surface = nullptr;
         if (!SDL_Vulkan_CreateSurface(_impl->_window, vkb_instance.instance, &surface))
         {
-            printf("failed to create surface, SDL Error: %s", SDL_GetError());
+            ZERO_LOG("failed to create surface, SDL Error: %s", SDL_GetError());
             return true;
         }
 

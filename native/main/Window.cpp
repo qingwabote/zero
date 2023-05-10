@@ -1,3 +1,4 @@
+#include "log.h"
 #include "Window.hpp"
 #include "base/threading/ThreadPool.hpp"
 #include "sugars/sdlsugar.hpp"
@@ -31,10 +32,11 @@ Window::~Window() {}
 
 int Window::loop()
 {
+    ZERO_LOG("Window::loop");
     sugar::sdl::unique_window window = sugar::sdl::initWithWindow(width, height);
     if (!window)
     {
-        printf("Could not create window: %s\n", SDL_GetError());
+        ZERO_LOG("Could not create window: %s\n", SDL_GetError());
         return -1;
     }
 
@@ -56,7 +58,7 @@ int Window::loop()
         isolate->AddMessageListener(
             [](v8::Local<v8::Message> message, v8::Local<v8::Value> data)
             {
-                printf(
+                ZERO_LOG(
                     "%s\nSTACK:\n%s\n",
                     *v8::String::Utf8Value{v8::Isolate::GetCurrent(), message->Get()},
                     sugar::v8::stackTrace_toString(message->GetStackTrace()).c_str());
@@ -69,16 +71,18 @@ int Window::loop()
 
         auto global = context->Global();
         global->Set(
-            context,
-            v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-            (new binding::Console())->js_obj()).ToChecked();
+                  context,
+                  v8::String::NewFromUtf8Literal(isolate.get(), "console"),
+                  (new binding::Console())->js_obj())
+            .ToChecked();
 
         binding::gfx::Device *gfx = new binding::gfx::Device(window.get());
         gfx->initialize();
         global->Set(
-            context,
-            v8::String::NewFromUtf8Literal(isolate.get(), "gfx"),
-            gfx->js_obj()).ToChecked();
+                  context,
+                  v8::String::NewFromUtf8Literal(isolate.get(), "gfx"),
+                  gfx->js_obj())
+            .ToChecked();
 
         v8::Local<v8::Object> bootstrap;
         {
@@ -91,14 +95,14 @@ int Window::loop()
             auto maybeModule = sugar::v8::module_evaluate(context, path);
             if (maybeModule.IsEmpty())
             {
-                printf("bootstrap.js: load failed\n");
+                ZERO_LOG("bootstrap.js: load failed\n");
                 return -1;
             }
             v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
             v8::Local<v8::Object> def = sugar::v8::object_get(ns, "default").As<v8::Object>();
             if (def.IsEmpty())
             {
-                printf("bootstrap.js: no default export found\n");
+                ZERO_LOG("bootstrap.js: no default export found\n");
                 return -1;
             }
             bootstrap = handle_scope.Escape(def);
@@ -107,20 +111,22 @@ int Window::loop()
         auto projectDir = sugar::v8::object_get(bootstrap, "project").As<v8::String>();
         if (!projectDir->IsString())
         {
-            printf("bootstrap.js: no project found\n");
+            ZERO_LOG("bootstrap.js: no project found\n");
             return -1;
         }
 
         binding::Loader *loader = new binding::Loader(*v8::String::Utf8Value(isolate.get(), projectDir));
         global->Set(
-            context,
-            v8::String::NewFromUtf8Literal(isolate.get(), "loader"),
-            loader->js_obj()).ToChecked();
+                  context,
+                  v8::String::NewFromUtf8Literal(isolate.get(), "loader"),
+                  loader->js_obj())
+            .ToChecked();
 
         global->Set(
-            context,
-            v8::String::NewFromUtf8Literal(isolate.get(), "platform"),
-            (new binding::Platform())->js_obj()).ToChecked();
+                  context,
+                  v8::String::NewFromUtf8Literal(isolate.get(), "platform"),
+                  (new binding::Platform())->js_obj())
+            .ToChecked();
 
         v8::Local<v8::Object> app;
         {
@@ -129,7 +135,7 @@ int Window::loop()
             auto appSrc = sugar::v8::object_get(bootstrap, "app").As<v8::String>();
             if (!appSrc->IsString())
             {
-                printf("bootstrap.js: no app found\n");
+                ZERO_LOG("bootstrap.js: no app found\n");
                 return -1;
             }
 
@@ -138,7 +144,7 @@ int Window::loop()
             auto maybeModule = sugar::v8::module_evaluate(context, appSrc);
             if (maybeModule.IsEmpty())
             {
-                printf("app load failed: %s\n", *v8::String::Utf8Value(isolate.get(), appSrc));
+                ZERO_LOG("app load failed: %s\n", *v8::String::Utf8Value(isolate.get(), appSrc));
                 return -1;
             }
 
@@ -146,7 +152,7 @@ int Window::loop()
             v8::Local<v8::Function> constructor = sugar::v8::object_get(ns, "default").As<v8::Function>();
             if (constructor.IsEmpty())
             {
-                printf("app: no default class found\n");
+                ZERO_LOG("app: no default class found\n");
                 return -1;
             }
 
@@ -163,7 +169,7 @@ int Window::loop()
         auto initialize = sugar::v8::object_get(app, "initialize").As<v8::Function>();
         if (initialize.IsEmpty())
         {
-            printf("app: no initialize function found\n");
+            ZERO_LOG("app: no initialize function found\n");
             return -1;
         }
         v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 0, nullptr);

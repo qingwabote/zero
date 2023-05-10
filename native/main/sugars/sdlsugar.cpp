@@ -1,4 +1,5 @@
 #include "sdlsugar.hpp"
+#include "log.h"
 
 namespace sugar
 {
@@ -14,7 +15,7 @@ namespace sugar
         {
             if (SDL_Init(SDL_INIT_VIDEO) < 0)
             {
-                printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+                ZERO_LOG("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
                 return unique_window{nullptr, windowDeleter};
             }
 

@@ -1,4 +1,5 @@
 #include "v8sugar.hpp"
+#include "log.h"
 #include <sstream>
 #include <unordered_map>
 #include <map>
@@ -190,7 +191,7 @@ namespace sugar::v8
     void tryCatch_print(_v8::TryCatch &tryCatch)
     {
         _v8::Local<_v8::Message> message = tryCatch.Message();
-        printf(
+        ZERO_LOG(
             "%s\nSTACK:\n%s\n",
             *_v8::String::Utf8Value{message->GetIsolate(), message->Get()},
             stackTrace_toString(message->GetStackTrace()).c_str());
@@ -215,9 +216,9 @@ namespace sugar::v8
         case _v8::kPromiseRejectAfterResolved:
         {
             _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, rejectMessage.GetValue());
-            printf("%s\nSTACK:\n%s\n",
-                   *_v8::String::Utf8Value{isolate, message->Get()},
-                   stackTrace_toString(message->GetStackTrace()).c_str());
+            ZERO_LOG("%s\nSTACK:\n%s\n",
+                     *_v8::String::Utf8Value{isolate, message->Get()},
+                     stackTrace_toString(message->GetStackTrace()).c_str());
             break;
         }
         case _v8::kPromiseResolveAfterResolved:
@@ -233,9 +234,9 @@ namespace sugar::v8
                 for (auto &it : promiseRejectMessages)
                 {
                     _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, it.second.Get(isolate));
-                    printf("%s\nSTACK:\n%s\n",
-                           *_v8::String::Utf8Value{isolate, message->Get()},
-                           stackTrace_toString(message->GetStackTrace()).c_str());
+                    ZERO_LOG("%s\nSTACK:\n%s\n",
+                             *_v8::String::Utf8Value{isolate, message->Get()},
+                             stackTrace_toString(message->GetStackTrace()).c_str());
                 }
                 promiseRejectMessages.clear();
             },
@@ -307,7 +308,7 @@ namespace sugar::v8
         }
         if (maybeModule.IsEmpty())
         {
-            printf("module resolve failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            ZERO_LOG("module resolve failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
             return {};
         }
         auto module = maybeModule.ToLocalChecked();
@@ -319,13 +320,13 @@ namespace sugar::v8
         }
         if (maybeOk.IsNothing())
         {
-            printf("module instantiate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            ZERO_LOG("module instantiate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
             return {};
         }
         _v8::Local<_v8::Promise> promise = module->Evaluate(context).ToLocalChecked().As<_v8::Promise>();
         if (promise->State() != _v8::Promise::kFulfilled)
         {
-            printf("module evaluate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            ZERO_LOG("module evaluate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
             return {};
         }
         return handle_scope.EscapeMaybe(maybeModule);
@@ -338,7 +339,8 @@ namespace sugar::v8
         _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
         _v8::Local<_v8::Value> out;
-        if(object->Get(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked()).ToLocal(&out)){
+        if (object->Get(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked()).ToLocal(&out))
+        {
             return handleScope.Escape(out);
         }
         return {};

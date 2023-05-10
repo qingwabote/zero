@@ -1,5 +1,6 @@
 #include "bindings/gfx/Shader.hpp"
 #include "VkShader_impl.hpp"
+#include "log.h"
 #include "sugars/v8sugar.hpp"
 
 #include "glslang/Public/ShaderLang.h"
@@ -169,15 +170,15 @@ namespace binding
                     version_spirv = glslang::EShTargetSpv_1_3;
                     break;
                 default:
-                    printf("GLSL Unsupported vulkan api version\n");
+                    ZERO_LOG("GLSL Unsupported vulkan api version\n");
                     return true;
                 }
                 shader.setEnvTarget(glslang::EShTargetSpv, version_spirv);
 
                 if (!shader.parse(&DefaultTBuiltInResource, version_semantics, false, messages))
                 {
-                    printf("GLSL Parsing Failed:\n%s\n%s\n", shader.getInfoLog(), shader.getInfoDebugLog());
-                    printf("source:\n%s\n", source_c_str);
+                    ZERO_LOG("GLSL Parsing Failed:\n%s\n%s\n", shader.getInfoLog(), shader.getInfoDebugLog());
+                    ZERO_LOG("source:\n%s\n", source_c_str);
                     return true;
                 }
 
@@ -185,8 +186,8 @@ namespace binding
                 program.addShader(&shader);
                 if (!program.link(messages))
                 {
-                    printf("GLSL Linking Failed:\n%s\n%s\n", program.getInfoLog(), program.getInfoDebugLog());
-                    printf("source:\n%s\n", source_c_str);
+                    ZERO_LOG("GLSL Linking Failed:\n%s\n%s\n", program.getInfoLog(), program.getInfoDebugLog());
+                    ZERO_LOG("source:\n%s\n", source_c_str);
                     return true;
                 }
 
