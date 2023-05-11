@@ -2,6 +2,15 @@
 
 A SDL APP come from https://github.com/libsdl-org/SDL/tree/release-2.26.5/android-project
 
-# connect to WSA
+# create bootstrap.js
 
-C:\Users\qingwabote\AppData\Local\Android\Sdk\platform-tools\adb.exe connect 127.0.0.1:58526
+/storage/emulated/0/Android/data/org.libsdl.app/files/bootstrap.js
+
+```js
+// use "/" as path separator
+export default {
+  project:
+    "/storage/emulated/0/Android/data/org.libsdl.app/files/projects/animation/",
+  app: "script/platforms/jsb/dist/projects/animation/script/main/App.js",
+};
+```

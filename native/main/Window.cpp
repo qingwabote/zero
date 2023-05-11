@@ -1,4 +1,5 @@
 #include "log.h"
+#include "env.hpp"
 #include "Window.hpp"
 #include "base/threading/ThreadPool.hpp"
 #include "sugars/sdlsugar.hpp"
@@ -32,7 +33,6 @@ Window::~Window() {}
 
 int Window::loop()
 {
-    ZERO_LOG("Window::loop");
     sugar::sdl::unique_window window = sugar::sdl::initWithWindow(width, height);
     if (!window)
     {
@@ -88,11 +88,8 @@ int Window::loop()
         {
             v8::EscapableHandleScope handle_scope(isolate.get());
 
-            v8::Local<v8::String> path = v8::String::Concat(
-                isolate.get(),
-                v8::String::NewFromUtf8(isolate.get(), sugar::sdl::getBasePath().get()).ToLocalChecked(),
-                v8::String::NewFromUtf8Literal(isolate.get(), "bootstrap.js"));
-            auto maybeModule = sugar::v8::module_evaluate(context, path);
+            auto bootstrapJs = env::bootstrapJs();
+            auto maybeModule = sugar::v8::module_evaluate(context, v8::String::NewFromUtf8(isolate.get(), bootstrapJs.string().c_str()).ToLocalChecked());
             if (maybeModule.IsEmpty())
             {
                 ZERO_LOG("bootstrap.js: load failed\n");

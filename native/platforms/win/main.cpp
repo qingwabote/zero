@@ -1,8 +1,20 @@
-// #include <tchar.h>
+#include "env.hpp"
+#include "SDL_filesystem.h"
 #include <windows.h>
 #include "Window.hpp"
 #include <thread>
-// #include <cstdlib>
+
+namespace env
+{
+    std::filesystem::path bootstrapJs()
+    {
+        auto prefPath = SDL_GetPrefPath(nullptr, "zero");
+        std::filesystem::path res(prefPath);
+        res.append("bootstrap.js");
+        SDL_free(prefPath);
+        return res;
+    }
+}
 
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,

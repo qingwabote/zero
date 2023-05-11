@@ -34,7 +34,6 @@ namespace binding::gfx
             return true;
         }
 
-        _impl->_version = VK_API_VERSION_1_3;
         // instance
         vkb::InstanceBuilder builder;
         auto system_info_ret = vkb::SystemInfo::get_system_info();
@@ -69,11 +68,16 @@ namespace binding::gfx
 
         // physical device
         vkb::PhysicalDeviceSelector selector{vkb_instance};
-        vkb::PhysicalDevice physicalDevice = selector
-                                                 .set_minimum_version(1, 3)
-                                                 .set_surface(surface)
-                                                 .select()
-                                                 .value();
+        auto dev_ret = selector
+                           .set_minimum_version(VK_API_VERSION_MAJOR(_impl->_version), VK_API_VERSION_MINOR(_impl->_version))
+                           .set_surface(surface)
+                           .select();
+        if (!dev_ret)
+        {
+            ZERO_LOG("Failed to create Vulkan device. Error: %s", dev_ret.error().message().c_str());
+            return true;
+        }
+        vkb::PhysicalDevice physicalDevice = dev_ret.value();
 
         // logical device
         vkb::DeviceBuilder deviceBuilder{physicalDevice};

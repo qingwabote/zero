@@ -22,7 +22,7 @@ namespace binding::gfx
         friend class Device;
 
     private:
-        uint32_t _version{};
+        uint32_t _version = VK_API_VERSION_1_3;
 
         SDL_Window *_window = nullptr;
         vkb::Instance _vkb_instance;

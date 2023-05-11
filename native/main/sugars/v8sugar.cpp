@@ -259,7 +259,7 @@ namespace sugar::v8
         {
             std::filesystem::path &ref = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;
             std::filesystem::current_path(ref.parent_path());
-            path = std::filesystem::absolute(path);
+            path = std::filesystem::canonical(path);
         }
 
         auto &path2module = IsolateData::getCurrent(isolate)->path2module;

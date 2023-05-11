@@ -17,7 +17,7 @@ namespace binding
         v8::Global<v8::Promise::Resolver> g_resolver(isolate, l_resolver);
 
         std::filesystem::current_path(_currentPath);
-        std::filesystem::path abs_path = std::filesystem::absolute(path);
+        std::filesystem::path abs_path = std::filesystem::canonical(path);
 
         auto f = new auto(
             [abs_path, type, g_resolver = std::move(g_resolver)]() mutable
