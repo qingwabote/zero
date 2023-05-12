@@ -1,3 +1,4 @@
+#include "log.h"
 #include "Loader.hpp"
 #include "sugars/v8sugar.hpp"
 #include "Window.hpp"
@@ -14,11 +15,18 @@ namespace binding
         v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
         v8::Local<v8::Promise::Resolver> l_resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
-        v8::Global<v8::Promise::Resolver> g_resolver(isolate, l_resolver);
 
         std::filesystem::current_path(_currentPath);
-        std::filesystem::path abs_path = std::filesystem::canonical(path);
+        std::error_code ec;
+        std::filesystem::path abs_path = std::filesystem::canonical(path, ec);
+        if (ec)
+        {
+            std::string msg{ec.message() + ": " + path.string()};
+            l_resolver->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked())).ToChecked();
+            return scrop.Escape(l_resolver->GetPromise());
+        }
 
+        v8::Global<v8::Promise::Resolver> g_resolver(isolate, l_resolver);
         auto f = new auto(
             [abs_path, type, g_resolver = std::move(g_resolver)]() mutable
             {
@@ -33,7 +41,7 @@ namespace binding
                             v8::EscapableHandleScope scrop(isolate);
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-                            std::string msg = ec.message() + ": " + abs_path.string();
+                            std::string msg{ec.message() + ": " + abs_path.string()};
                             g_resolver.Get(isolate)->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked())).ToChecked();
                         });
                     Window::instance().run(UniqueFunction::create<decltype(f)>(f));

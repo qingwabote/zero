@@ -65,7 +65,7 @@ namespace binding
             // passState
             v8::Local<v8::Object> js_passState = sugar::v8::object_get(info, "passState").As<v8::Object>();
 
-            Shader *c_shader = retain<Shader>(sugar::v8::object_get(js_passState, "shader"));
+            Shader *c_shader = Binding::c_obj<Shader>(sugar::v8::object_get(js_passState, "shader").As<v8::Object>());
             auto &stageInfos = c_shader->impl()->stageInfos();
             pipelineInfo.stageCount = stageInfos.size();
             pipelineInfo.pStages = stageInfos.data();
@@ -130,7 +130,7 @@ namespace binding
             pipelineInfo.pColorBlendState = &colorBlending;
 
             // renderPass
-            auto c_renderPass = retain<RenderPass>(sugar::v8::object_get(info, "renderPass"));
+            auto c_renderPass = Binding::c_obj<RenderPass>(sugar::v8::object_get(info, "renderPass").As<v8::Object>());
             VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
             multisampleState.sampleShadingEnable = VK_FALSE;
             multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(sugar::v8::object_get(c_renderPass->info(), "samples").As<v8::Number>()->Value());
@@ -142,7 +142,7 @@ namespace binding
             pipelineInfo.subpass = 0;
 
             // layout
-            pipelineInfo.layout = retain<PipelineLayout>(sugar::v8::object_get(info, "layout"))->impl();
+            pipelineInfo.layout = Binding::c_obj<PipelineLayout>(sugar::v8::object_get(info, "layout").As<v8::Object>())->impl();
 
             if (vkCreateGraphicsPipelines(*_impl->_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))
             {

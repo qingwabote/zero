@@ -23,6 +23,21 @@
 
 #include "glslang/Public/ShaderLang.h"
 
+namespace
+{
+    inline VKAPI_ATTR VkBool32 VKAPI_CALL vkb_debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                             const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+                                                             void *)
+    {
+        auto ms = vkb::to_string_message_severity(messageSeverity);
+        auto mt = vkb::to_string_message_type(messageType);
+        ZERO_LOG_ERROR("[%s: %s]\n%s", ms, mt, pCallbackData->pMessage);
+
+        return VK_FALSE; // Applications must return false here
+    }
+}
+
 namespace binding::gfx
 {
     Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
@@ -47,7 +62,7 @@ namespace binding::gfx
         auto inst_ret = builder
                             .set_app_name("_app_name")
                             .require_api_version(_impl->_version)
-                            .use_default_debug_messenger()
+                            .set_debug_callback(vkb_debug_callback)
                             .build();
         if (!inst_ret)
         {

@@ -37,6 +37,9 @@ public:
         return c_obj<T>(retain(js_obj));
     }
 
+    /**
+     * @param handle just for fast retrieving, getting property from v8 object directly is slow.
+     */
     v8::Local<v8::Object> retain(v8::Local<v8::Value> val, sugar::v8::Weak<v8::Object> &handle);
 
     v8::Local<v8::Object> retain(v8::Local<v8::Value> val);

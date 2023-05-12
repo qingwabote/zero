@@ -191,8 +191,8 @@ namespace sugar::v8
     void tryCatch_print(_v8::TryCatch &tryCatch)
     {
         _v8::Local<_v8::Message> message = tryCatch.Message();
-        ZERO_LOG(
-            "%s\nSTACK:\n%s\n",
+        ZERO_LOG_ERROR(
+            "%s\nSTACK:\n%s",
             *_v8::String::Utf8Value{message->GetIsolate(), message->Get()},
             stackTrace_toString(message->GetStackTrace()).c_str());
     }
@@ -216,9 +216,9 @@ namespace sugar::v8
         case _v8::kPromiseRejectAfterResolved:
         {
             _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, rejectMessage.GetValue());
-            ZERO_LOG("%s\nSTACK:\n%s\n",
-                     *_v8::String::Utf8Value{isolate, message->Get()},
-                     stackTrace_toString(message->GetStackTrace()).c_str());
+            ZERO_LOG_ERROR("%s\nSTACK:\n%s",
+                           *_v8::String::Utf8Value{isolate, message->Get()},
+                           stackTrace_toString(message->GetStackTrace()).c_str());
             break;
         }
         case _v8::kPromiseResolveAfterResolved:
@@ -234,9 +234,9 @@ namespace sugar::v8
                 for (auto &it : promiseRejectMessages)
                 {
                     _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, it.second.Get(isolate));
-                    ZERO_LOG("%s\nSTACK:\n%s\n",
-                             *_v8::String::Utf8Value{isolate, message->Get()},
-                             stackTrace_toString(message->GetStackTrace()).c_str());
+                    ZERO_LOG_ERROR("%s\nSTACK:\n%s",
+                                   *_v8::String::Utf8Value{isolate, message->Get()},
+                                   stackTrace_toString(message->GetStackTrace()).c_str());
                 }
                 promiseRejectMessages.clear();
             },
@@ -259,7 +259,14 @@ namespace sugar::v8
         {
             std::filesystem::path &ref = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;
             std::filesystem::current_path(ref.parent_path());
-            path = std::filesystem::canonical(path);
+            std::error_code ec;
+            path = std::filesystem::canonical(path, ec);
+            if (ec)
+            {
+                std::string msg{ec.message() + ": " + path.string()};
+                isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
+                return {};
+            }
         }
 
         auto &path2module = IsolateData::getCurrent(isolate)->path2module;
@@ -273,8 +280,8 @@ namespace sugar::v8
         std::uintmax_t size = std::filesystem::file_size(path, ec);
         if (ec)
         {
-            std::string exception{"module resolve failed to read the size of file: " + path.string()};
-            isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, exception.c_str()).ToLocalChecked()));
+            std::string msg{"module resolve failed to read the size of file: " + path.string()};
+            isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
             return {};
         }
 
@@ -308,7 +315,7 @@ namespace sugar::v8
         }
         if (maybeModule.IsEmpty())
         {
-            ZERO_LOG("module resolve failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            ZERO_LOG_ERROR("module resolve failed: %s", *_v8::String::Utf8Value(isolate, specifier));
             return {};
         }
         auto module = maybeModule.ToLocalChecked();
@@ -320,13 +327,13 @@ namespace sugar::v8
         }
         if (maybeOk.IsNothing())
         {
-            ZERO_LOG("module instantiate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            ZERO_LOG_ERROR("module instantiate failed: %s", *_v8::String::Utf8Value(isolate, specifier));
             return {};
         }
         _v8::Local<_v8::Promise> promise = module->Evaluate(context).ToLocalChecked().As<_v8::Promise>();
         if (promise->State() != _v8::Promise::kFulfilled)
         {
-            ZERO_LOG("module evaluate failed: %s\n", *_v8::String::Utf8Value(isolate, specifier));
+            ZERO_LOG_ERROR("module evaluate failed: %s", *_v8::String::Utf8Value(isolate, specifier));
             return {};
         }
         return handle_scope.EscapeMaybe(maybeModule);
