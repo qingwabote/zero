@@ -8,15 +8,19 @@ namespace binding
         {
             v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-            sugar::v8::Class cls{"DescriptorSetLayout"};
-            cls.defineAccessor(
+            auto ctor = Binding::createTemplate();
+
+            sugar::v8::ctor_name(ctor, "DescriptorSetLayout");
+            sugar::v8::ctor_accessor(
+                ctor,
                 "bindings",
                 [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<DescriptorSetLayout>(info.This());
                     info.GetReturnValue().Set(c_obj->_bindings.Get(info.GetIsolate()));
                 });
-            cls.defineFunction(
+            sugar::v8::ctor_function(
+                ctor,
                 "initialize",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
@@ -24,7 +28,8 @@ namespace binding
                     info.GetReturnValue().Set(c_obj->initialize(c_obj->retain(info[0], c_obj->_bindings).As<v8::Array>()));
                 });
 
-            cls.defineFunction(
+            sugar::v8::ctor_function(
+                ctor,
                 "createDescriptorSet",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
@@ -32,7 +37,7 @@ namespace binding
                     info.GetReturnValue().Set(c_obj->createDescriptorSet()->js_obj());
                 });
 
-            return scope.Escape(cls.flush());
+            return scope.Escape(ctor);
         }
     }
 }

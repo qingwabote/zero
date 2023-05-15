@@ -8,8 +8,11 @@ namespace binding
         {
             v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-            sugar::v8::Class cls{"PipelineLayout"};
-            cls.defineFunction(
+            auto ctor = Binding::createTemplate();
+
+            sugar::v8::ctor_name(ctor, "PipelineLayout");
+            sugar::v8::ctor_function(
+                ctor,
                 "initialize",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
@@ -17,7 +20,7 @@ namespace binding
                     info.GetReturnValue().Set(c_obj->initialize(c_obj->retain(info[0]).As<v8::Array>()));
                 });
 
-            return scope.Escape(cls.flush());
+            return scope.Escape(ctor);
         }
     }
 }

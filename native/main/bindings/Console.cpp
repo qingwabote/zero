@@ -6,8 +6,11 @@ namespace binding
 {
     v8::Local<v8::FunctionTemplate> Console::createTemplate()
     {
-        sugar::v8::Class cls{"Console"};
-        cls.defineFunction(
+        auto ctor = Binding::createTemplate();
+
+        sugar::v8::ctor_name(ctor, "Console");
+        sugar::v8::ctor_function(
+            ctor,
             "log",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -27,6 +30,6 @@ namespace binding
                 auto res = join->Call(context, array, 1, a).ToLocalChecked().As<v8::String>();
                 ZERO_LOG("%s\n", *v8::String::Utf8Value(isolate, res));
             });
-        return cls.flush();
+        return ctor;
     }
 }

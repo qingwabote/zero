@@ -7,15 +7,20 @@ namespace binding::gfx
     {
         v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-        sugar::v8::Class cls{"CommandBuffer"};
-        cls.defineFunction(
+        auto ctor = Binding::createTemplate();
+
+        sugar::v8::ctor_name(ctor, "CommandBuffer");
+
+        sugar::v8::ctor_function(
+            ctor,
             "initialize",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
                 c_obj->initialize();
             });
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "begin",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -30,7 +35,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "copyBuffer",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -49,7 +55,8 @@ namespace binding::gfx
                     });
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "copyImageBitmapToTexture",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -64,7 +71,8 @@ namespace binding::gfx
                     });
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "beginRenderPass",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -85,7 +93,8 @@ namespace binding::gfx
                     });
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "bindDescriptorSet",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -113,7 +122,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "bindInputAssembler",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -128,7 +138,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "bindPipeline",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -143,7 +154,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "draw",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -158,7 +170,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "drawIndexed",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -173,7 +186,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "endRenderPass",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -187,7 +201,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "end",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -201,6 +216,6 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        return scope.Escape(cls.flush());
+        return scope.Escape(ctor);
     }
 }

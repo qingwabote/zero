@@ -17,9 +17,9 @@ private:
 
     std::vector<VkDescriptorSet> _sets;
 
-    void multiply();
-
 public:
+    bool empty() { return _sets.empty(); }
+
     DescriptorSetPool(VkDevice device);
 
     void initialize(std::vector<VkDescriptorPoolSize> &poolSizes, uint32_t maxSets, VkDescriptorSetLayout layout);
@@ -27,6 +27,8 @@ public:
     VkDescriptorSet get();
 
     void put(VkDescriptorSet set);
+
+    void multiply();
 
     ~DescriptorSetPool();
 };

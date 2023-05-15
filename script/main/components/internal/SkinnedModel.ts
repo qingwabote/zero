@@ -17,10 +17,14 @@ const mat4_a = mat4.create();
 const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
 
 export default class SkinnedModel extends Model {
-    static readonly descriptorSetLayout = ShaderLib.createDescriptorSetLayout([
-        ShaderLib.sets.local.uniforms.Local,
-        ShaderLib.sets.local.uniforms.Skin
-    ]);
+    static readonly descriptorSetLayout = (function () {
+        const layout = ShaderLib.createDescriptorSetLayout([
+            ShaderLib.sets.local.uniforms.Local,
+            ShaderLib.sets.local.uniforms.Skin
+        ]);
+        (layout as any).name = "SkinnedModel descriptorSetLayout";
+        return layout;
+    })()
 
     private readonly _joints: readonly Transform[];
 

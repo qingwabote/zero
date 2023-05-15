@@ -44,14 +44,17 @@ namespace binding
 
     v8::Local<v8::FunctionTemplate> Platform::createTemplate()
     {
-        sugar::v8::Class cls{"Platform"};
-        cls.defineFunction(
+        auto ctor = Binding::createTemplate();
+
+        sugar::v8::ctor_name(ctor, "Platform");
+        sugar::v8::ctor_function(
+            ctor,
             "decodeImage",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<Platform>(info.This());
                 info.GetReturnValue().Set(c_obj->decodeImage(info[0].As<v8::ArrayBuffer>()));
             });
-        return cls.flush();
+        return ctor;
     }
 }

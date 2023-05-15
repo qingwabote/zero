@@ -8,9 +8,12 @@ namespace binding::gfx
     {
         v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-        sugar::v8::Class cls{"Queue"};
+        auto ctor = Binding::createTemplate();
 
-        cls.defineFunction(
+        sugar::v8::ctor_name(ctor, "Queue");
+
+        sugar::v8::ctor_function(
+            ctor,
             "submit",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -51,7 +54,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "present",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -66,7 +70,8 @@ namespace binding::gfx
                 DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "waitFence",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -84,6 +89,6 @@ namespace binding::gfx
                 c_obj->release(c_fence->js_obj());
             });
 
-        return scope.Escape(cls.flush());
+        return scope.Escape(ctor);
     }
 }

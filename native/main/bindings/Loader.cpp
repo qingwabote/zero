@@ -100,8 +100,11 @@ namespace binding
 
     v8::Local<v8::FunctionTemplate> Loader::createTemplate()
     {
-        sugar::v8::Class cls{"Loader"};
-        cls.defineFunction(
+        auto ctor = Binding::createTemplate();
+
+        sugar::v8::ctor_name(ctor, "Loader");
+        sugar::v8::ctor_function(
+            ctor,
             "load",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -113,6 +116,6 @@ namespace binding
                 auto promise = c_obj->load(*v8::String::Utf8Value(isolate, url), *v8::String::Utf8Value(isolate, type));
                 info.GetReturnValue().Set(promise);
             });
-        return cls.flush();
+        return ctor;
     }
 }

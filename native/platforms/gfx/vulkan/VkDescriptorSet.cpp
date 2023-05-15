@@ -1,3 +1,4 @@
+#include "log.h"
 #include "bindings/gfx/DescriptorSet.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
@@ -16,9 +17,15 @@ namespace binding
 
         DescriptorSet::DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl, DescriptorSetLayout *layout) : Binding(), _impl(std::move(impl))
         {
-            retain(layout->js_obj(), _layout);
+            auto &pool = layout->impl()->pool();
+            if (pool.empty())
+            {
+                pool.multiply();
+                // ZERO_LOG("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
+            }
+            _impl->_descriptorSet = pool.get();
             _impl->_layout = layout->impl();
-            _impl->_descriptorSet = layout->impl()->pool().get();
+            retain(layout->js_obj(), _layout);
         }
 
         void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer, double range)

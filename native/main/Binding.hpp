@@ -12,9 +12,11 @@ private:
     v8::Local<v8::Object> js_props();
 
 protected:
-    virtual v8::Local<v8::FunctionTemplate> createTemplate() = 0;
+    virtual v8::Local<v8::FunctionTemplate> createTemplate();
 
 public:
+    std::string name;
+
     template <class T>
     inline static T *c_obj(v8::Local<v8::Object> js_obj)
     {

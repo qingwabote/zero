@@ -50,6 +50,31 @@ v8::Local<v8::Object> Binding::js_props()
     return _js_props.Get(isolate);
 }
 
+v8::Local<v8::FunctionTemplate> Binding::createTemplate()
+{
+    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope scope(isolate);
+
+    v8::Local<v8::FunctionTemplate> ctor{v8::FunctionTemplate::New(isolate)};
+    ctor->InstanceTemplate()->SetInternalFieldCount(1);
+
+    sugar::v8::ctor_accessor(
+        ctor,
+        "name",
+        [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
+        {
+            auto c_obj = Binding::c_obj<Binding>(info.This());
+            info.GetReturnValue().Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), c_obj->name.c_str()).ToLocalChecked());
+        },
+        [](v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
+        {
+            auto c_obj = Binding::c_obj<Binding>(info.This());
+            c_obj->name = *v8::String::Utf8Value(info.GetIsolate(), value);
+        });
+
+    return scope.Escape(ctor);
+}
+
 v8::Local<v8::Object> Binding::retain(v8::Local<v8::Value> val, sugar::v8::Weak<v8::Object> &handle)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();

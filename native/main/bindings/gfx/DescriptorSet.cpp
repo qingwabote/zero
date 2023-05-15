@@ -20,15 +20,19 @@ namespace binding
         {
             v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-            sugar::v8::Class cls{"DescriptorSet"};
-            cls.defineAccessor(
+            auto ctor = Binding::createTemplate();
+
+            sugar::v8::ctor_name(ctor, "DescriptorSet");
+            sugar::v8::ctor_accessor(
+                ctor,
                 "layout",
                 [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
                     info.GetReturnValue().Set(c_obj->_layout.Get(info.GetIsolate()));
                 });
-            cls.defineFunction(
+            sugar::v8::ctor_function(
+                ctor,
                 "bindBuffer",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
@@ -39,7 +43,8 @@ namespace binding
                     double range = (info.Length() > 2 && !info[2]->IsUndefined()) ? info[2].As<v8::Number>()->Value() : 0;
                     c_obj->bindBuffer(binding, c_buffer, range);
                 });
-            cls.defineFunction(
+            sugar::v8::ctor_function(
+                ctor,
                 "bindTexture",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
@@ -49,7 +54,7 @@ namespace binding
                     Sampler *c_sampler = c_obj->retain<Sampler>(info[2], getHandle(c_obj->_bindedResources, "sampler_" + std::to_string(binding)));
                     c_obj->bindTexture(binding, c_texture, c_sampler);
                 });
-            return scope.Escape(cls.flush());
+            return scope.Escape(ctor);
         }
     }
 }

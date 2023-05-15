@@ -7,7 +7,11 @@ import SubModel from "./SubModel.js";
 import Transform from "./Transform.js";
 
 export default class Model {
-    static readonly descriptorSetLayout = ShaderLib.createDescriptorSetLayout([ShaderLib.sets.local.uniforms.Local]);
+    static readonly descriptorSetLayout = (function () {
+        const layout = ShaderLib.createDescriptorSetLayout([ShaderLib.sets.local.uniforms.Local]);
+        (layout as any).name = "Model descriptorSetLayout";
+        return layout;
+    })();
 
     readonly descriptorSet: DescriptorSet;
 

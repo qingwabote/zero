@@ -13,9 +13,12 @@ namespace binding::gfx
     {
         v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-        sugar::v8::Class cls{"Device"};
+        auto ctor = Binding::createTemplate();
 
-        cls.defineAccessor(
+        sugar::v8::ctor_name(ctor, "Device");
+
+        sugar::v8::ctor_accessor(
+            ctor,
             "capabilities",
             [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
             {
@@ -23,7 +26,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->_capabilities.Get(info.GetIsolate()));
             });
 
-        cls.defineAccessor(
+        sugar::v8::ctor_accessor(
+            ctor,
             "swapchain",
             [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
             {
@@ -31,7 +35,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->_swapchain.Get(info.GetIsolate()));
             });
 
-        cls.defineAccessor(
+        sugar::v8::ctor_accessor(
+            ctor,
             "queue",
             [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
             {
@@ -39,7 +44,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->_queue.Get(info.GetIsolate()));
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createBuffer",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -47,7 +53,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createBuffer()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createTexture",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -55,7 +62,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createTexture()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createSampler",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -63,7 +71,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createSampler()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createShader",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -71,7 +80,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createShader()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createRenderPass",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -79,7 +89,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createRenderPass()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createFramebuffer",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -87,7 +98,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createFramebuffer()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createDescriptorSetLayout",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -95,7 +107,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createDescriptorSetLayout()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createInputAssembler",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -103,7 +116,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createInputAssembler()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createPipelineLayout",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -111,7 +125,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createPipelineLayout()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createPipeline",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -119,7 +134,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createPipeline()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createCommandBuffer",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -127,7 +143,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createCommandBuffer()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createSemaphore",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -135,7 +152,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createSemaphore()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "createFence",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -143,7 +161,8 @@ namespace binding::gfx
                 info.GetReturnValue().Set(c_obj->createFence()->js_obj());
             });
 
-        cls.defineFunction(
+        sugar::v8::ctor_function(
+            ctor,
             "acquire",
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
@@ -152,6 +171,6 @@ namespace binding::gfx
                 c_obj->acquire(c_semaphore);
             });
 
-        return scope.Escape(cls.flush());
+        return scope.Escape(ctor);
     }
 }

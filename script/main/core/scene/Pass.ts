@@ -42,6 +42,7 @@ export default class Pass {
             this.state = new PassState(stateOrInfo);
         }
         const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this.state.shader);
+        (descriptorSetLayout as any).name = "Pass descriptorSetLayout";
         if (descriptorSetLayout.bindings.length) {
             const descriptorSet = descriptorSetLayout.createDescriptorSet();
 

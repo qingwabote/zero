@@ -362,6 +362,24 @@ namespace sugar::v8
         object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value).ToChecked();
     }
 
+    void ctor_name(_v8::Local<_v8::FunctionTemplate> ctor, const char *name)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        ctor->SetClassName(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked());
+    }
+
+    void ctor_function(_v8::Local<_v8::FunctionTemplate> ctor, const char *name, _v8::FunctionCallback callback)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        ctor->PrototypeTemplate()->Set(isolate, name, _v8::FunctionTemplate::New(isolate, callback));
+    }
+
+    void ctor_accessor(_v8::Local<_v8::FunctionTemplate> ctor, const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter)
+    {
+        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        ctor->PrototypeTemplate()->SetAccessor(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), getter, setter);
+    }
+
     const _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object)
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
@@ -404,34 +422,5 @@ namespace sugar::v8
             return {};
         }
         return scope.Escape(result);
-    }
-
-    Class::Class(const char *name)
-    {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        _v8::HandleScope scope(isolate);
-
-        _v8::Local<_v8::FunctionTemplate> constructor{_v8::FunctionTemplate::New(isolate)};
-        constructor->SetClassName(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked());
-        constructor->InstanceTemplate()->SetInternalFieldCount(1);
-
-        _functionTemplate.Reset(isolate, constructor);
-    }
-
-    void Class::defineFunction(const char *name, _v8::FunctionCallback callback)
-    {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        _functionTemplate.Get(isolate)->PrototypeTemplate()->Set(isolate, name, _v8::FunctionTemplate::New(isolate, callback));
-    }
-
-    void Class::defineAccessor(const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter)
-    {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        _functionTemplate.Get(isolate)->PrototypeTemplate()->SetAccessor(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), getter, setter);
-    }
-
-    _v8::Local<_v8::FunctionTemplate> Class::flush()
-    {
-        return _functionTemplate.Get(_v8::Isolate::GetCurrent());
     }
 }

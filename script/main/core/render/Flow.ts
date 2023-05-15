@@ -41,6 +41,7 @@ export default class Flow {
         }
 
         const descriptorSetLayout = gfx.createDescriptorSetLayout();
+        (descriptorSetLayout as any).name = "global descriptorSetLayout";
         descriptorSetLayout.initialize(descriptorSetLayoutBindings);
 
         const pipelineLayout = gfx.createPipelineLayout();

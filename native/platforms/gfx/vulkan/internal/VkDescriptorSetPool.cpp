@@ -11,10 +11,6 @@ void DescriptorSetPool::initialize(std::vector<VkDescriptorPoolSize> &poolSizes,
 
 VkDescriptorSet DescriptorSetPool::get()
 {
-    if (_sets.empty())
-    {
-        multiply();
-    }
     VkDescriptorSet set = _sets.back();
     _sets.pop_back();
     return set;

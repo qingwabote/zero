@@ -8,15 +8,18 @@ namespace binding
         {
             v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 
-            sugar::v8::Class cls{"Semaphore"};
-            cls.defineFunction(
+            auto ctor = Binding::createTemplate();
+
+            sugar::v8::ctor_name(ctor, "Semaphore");
+            sugar::v8::ctor_function(
+                ctor,
                 "initialize",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<Semaphore>(info.This());
                     info.GetReturnValue().Set(c_obj->initialize());
                 });
-            return scope.Escape(cls.flush());
+            return scope.Escape(ctor);
         }
     }
 }
