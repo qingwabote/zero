@@ -24,6 +24,14 @@ namespace binding
                     info.GetReturnValue().Set(c_obj->initialize(c_obj->retain(info[0], c_obj->_bindings).As<v8::Array>()));
                 });
 
+            cls.defineFunction(
+                "createDescriptorSet",
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto c_obj = Binding::c_obj<DescriptorSetLayout>(info.This());
+                    info.GetReturnValue().Set(c_obj->createDescriptorSet()->js_obj());
+                });
+
             return scope.Escape(cls.flush());
         }
     }

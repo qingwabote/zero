@@ -9,7 +9,6 @@
 #include "RenderPass.hpp"
 #include "Framebuffer.hpp"
 #include "DescriptorSetLayout.hpp"
-#include "DescriptorSet.hpp"
 #include "InputAssembler.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
@@ -56,8 +55,6 @@ namespace binding::gfx
         Framebuffer *createFramebuffer();
 
         DescriptorSetLayout *createDescriptorSetLayout();
-
-        DescriptorSet *createDescriptorSet();
 
         InputAssembler *createInputAssembler();
 

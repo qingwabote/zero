@@ -32,7 +32,6 @@ namespace binding::gfx
         VmaAllocator _allocator{nullptr};
 
         VkCommandPool _commandPool = nullptr;
-        VkDescriptorPool _descriptorPool = nullptr;
 
         vkb::Swapchain _vkb_swapchain;
         std::vector<VkImageView> _swapchainImageViews;
@@ -45,8 +44,6 @@ namespace binding::gfx
         uint32_t version() { return _version; }
 
         VkCommandPool commandPool() { return _commandPool; }
-
-        VkDescriptorPool descriptorPool() { return _descriptorPool; }
 
         VmaAllocator allocator() { return _allocator; }
 

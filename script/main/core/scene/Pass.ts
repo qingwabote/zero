@@ -43,8 +43,7 @@ export default class Pass {
         }
         const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this.state.shader);
         if (descriptorSetLayout.bindings.length) {
-            const descriptorSet = gfx.createDescriptorSet();
-            descriptorSet.initialize(descriptorSetLayout);
+            const descriptorSet = descriptorSetLayout.createDescriptorSet();
 
             const blocks = this.state.shader.info.meta.blocks;
             for (const name in blocks) {

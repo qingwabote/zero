@@ -23,8 +23,7 @@ export default class Model {
 
     constructor(protected _transform: Transform, readonly subModels: SubModel[]) {
         const ModelType = (this.constructor as typeof Model);
-        const descriptorSet = gfx.createDescriptorSet();
-        descriptorSet.initialize(ModelType.descriptorSetLayout);
+        const descriptorSet = ModelType.descriptorSetLayout.createDescriptorSet()
         descriptorSet.bindBuffer(ShaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
         this.descriptorSet = descriptorSet;
     }

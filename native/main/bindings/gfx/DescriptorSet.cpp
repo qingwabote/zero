@@ -29,13 +29,6 @@ namespace binding
                     info.GetReturnValue().Set(c_obj->_layout.Get(info.GetIsolate()));
                 });
             cls.defineFunction(
-                "initialize",
-                [](const v8::FunctionCallbackInfo<v8::Value> &info)
-                {
-                    auto c_obj = Binding::c_obj<DescriptorSet>(info.This());
-                    info.GetReturnValue().Set(c_obj->initialize(c_obj->retain<DescriptorSetLayout>(info[0], c_obj->_layout)));
-                });
-            cls.defineFunction(
                 "bindBuffer",
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {

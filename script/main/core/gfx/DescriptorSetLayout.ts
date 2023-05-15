@@ -1,3 +1,4 @@
+import DescriptorSet from "./DescriptorSet.js";
 import { ShaderStageFlagBits } from "./Shader.js";
 
 // copy values from VkDescriptorType in vulkan_core.h
@@ -17,4 +18,5 @@ export interface DescriptorSetLayoutBinding {
 export default interface DescriptorSetLayout {
     get bindings(): readonly DescriptorSetLayoutBinding[];
     initialize(bindings: DescriptorSetLayoutBinding[]): boolean;
+    createDescriptorSet(): DescriptorSet;
 }

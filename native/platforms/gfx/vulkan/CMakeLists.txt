@@ -1,5 +1,6 @@
 set(SRC_FILES
     internal/volk/volk.c
+    internal/VkDescriptorSetPool.cpp
     VkDevice.cpp
     VkCommandBuffer.cpp
     VkBuffer.cpp

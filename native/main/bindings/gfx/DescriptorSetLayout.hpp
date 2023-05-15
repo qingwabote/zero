@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Binding.hpp"
+#include "DescriptorSet.hpp"
 
 namespace binding
 {
@@ -23,6 +24,8 @@ namespace binding
             DescriptorSetLayout(std::unique_ptr<DescriptorSetLayout_impl> impl);
 
             bool initialize(v8::Local<v8::Array> js_layoutBindings);
+
+            DescriptorSet *createDescriptorSet();
 
             ~DescriptorSetLayout();
         };

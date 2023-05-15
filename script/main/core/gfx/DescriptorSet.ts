@@ -6,7 +6,6 @@ import Texture from "./Texture.js";
 export default interface DescriptorSet {
     get layout(): DescriptorSetLayout;
 
-    initialize(layout: DescriptorSetLayout): boolean;
     // getBuffer(binding: number): Buffer;
     bindBuffer(binding: number, buffer: Buffer, range?: number): void;
     // getTexture(binding: number): Texture;

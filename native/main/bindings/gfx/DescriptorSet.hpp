@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Binding.hpp"
-#include "bindings/gfx/DescriptorSetLayout.hpp"
 #include "bindings/gfx/Buffer.hpp"
 #include "bindings/gfx/Texture.hpp"
 #include "bindings/gfx/Sampler.hpp"
@@ -10,6 +9,7 @@ namespace binding
 {
     namespace gfx
     {
+        class DescriptorSetLayout;
         class DescriptorSet_impl;
         class DescriptorSet : public Binding
         {
@@ -26,9 +26,7 @@ namespace binding
         public:
             DescriptorSet_impl &impl() { return *_impl.get(); }
 
-            DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl);
-
-            bool initialize(DescriptorSetLayout *setLayout);
+            DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl, DescriptorSetLayout *layout);
 
             void bindBuffer(uint32_t binding, Buffer *buffer, double range);
 

@@ -14,24 +14,11 @@ namespace binding
 
         DescriptorSet_impl::~DescriptorSet_impl() {}
 
-        DescriptorSet::DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl) : Binding(), _impl(std::move(impl)) {}
-
-        bool DescriptorSet::initialize(DescriptorSetLayout *c_setLayout)
+        DescriptorSet::DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl, DescriptorSetLayout *layout) : Binding(), _impl(std::move(impl))
         {
-            VkDescriptorSetAllocateInfo allocInfo = {};
-            allocInfo.pNext = nullptr;
-            allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocInfo.descriptorPool = _impl->_device->descriptorPool();
-            allocInfo.descriptorSetCount = 1;
-            VkDescriptorSetLayout setLayout = c_setLayout->impl()->setLayout();
-            allocInfo.pSetLayouts = &setLayout;
-            auto err = vkAllocateDescriptorSets(*_impl->_device, &allocInfo, &_impl->_descriptorSet);
-            if (err)
-            {
-                return true;
-            }
-
-            return false;
+            retain(layout->js_obj(), _layout);
+            _impl->_layout = layout->impl();
+            _impl->_descriptorSet = layout->impl()->pool().get();
         }
 
         void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer, double range)
@@ -81,7 +68,7 @@ namespace binding
 
         DescriptorSet::~DescriptorSet()
         {
-            // You don't need to explicitly clean up descriptor sets, because they will be automatically freed when the descriptor pool is destroyed
-        }
+            _impl->_layout->pool().put(_impl->_descriptorSet);
+        };
     }
 }

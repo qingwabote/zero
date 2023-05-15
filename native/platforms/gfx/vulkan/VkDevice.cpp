@@ -153,19 +153,6 @@ namespace binding::gfx
             return true;
         }
 
-        // descriptor pool
-        std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10}};
-        VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
-        descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        descriptorPoolCreateInfo.maxSets = 2000;
-        descriptorPoolCreateInfo.poolSizeCount = descriptorPoolSizes.size();
-        descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
-        if (vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &_impl->_descriptorPool))
-        {
-            return true;
-        }
-
         v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
         sugar::v8::object_set(
             capabilities,
@@ -205,8 +192,6 @@ namespace binding::gfx
 
     DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl)); }
 
-    DescriptorSet *Device::createDescriptorSet() { return new DescriptorSet(std::make_unique<DescriptorSet_impl>(_impl)); }
-
     InputAssembler *Device::createInputAssembler() { return new InputAssembler(std::make_unique<InputAssembler_impl>(_impl)); }
 
     PipelineLayout *Device::createPipelineLayout() { return new PipelineLayout(std::make_unique<PipelineLayout_impl>(_impl)); }
@@ -236,7 +221,6 @@ namespace binding::gfx
 
         vkb::Device &vkb_device = _impl->_vkb_device;
 
-        vkDestroyDescriptorPool(vkb_device.device, _impl->_descriptorPool, nullptr);
         vkDestroyCommandPool(vkb_device.device, _impl->_commandPool, nullptr);
 
         vmaDestroyAllocator(_impl->_allocator);

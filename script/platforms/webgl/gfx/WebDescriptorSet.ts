@@ -5,21 +5,13 @@ import { Sampler } from "../../../main/core/gfx/Sampler.js";
 import Texture from "../../../main/core/gfx/Texture.js";
 
 export default class WebDescriptorSet implements DescriptorSet {
-    private _layout!: DescriptorSetLayout;
-    get layout(): DescriptorSetLayout {
-        return this._layout;
-    }
-
     private _buffers: Buffer[] = [];
     private _bufferRanges: number[] = [];
 
     private _textures: Texture[] = [];
     private _textureSamplers: Sampler[] = [];
 
-    initialize(layout: DescriptorSetLayout): boolean {
-        this._layout = layout;
-        return false;
-    }
+    constructor(readonly layout: DescriptorSetLayout) { }
 
     getBuffer(binding: number): Buffer {
         return this._buffers[binding];

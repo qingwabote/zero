@@ -1,12 +1,16 @@
 #include "bindings/gfx/DescriptorSetLayout.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
+#include "VkDescriptorSet_impl.hpp"
 #include "sugars/v8sugar.hpp"
 
 namespace binding
 {
     namespace gfx
     {
-        DescriptorSetLayout_impl::DescriptorSetLayout_impl(Device_impl *device) : _device(device) {}
+        DescriptorSetLayout_impl::DescriptorSetLayout_impl(Device_impl *device) : _device(device)
+        {
+            _pool = std::make_unique<DescriptorSetPool>(*device);
+        }
 
         DescriptorSetLayout_impl::~DescriptorSetLayout_impl() {}
 
@@ -14,21 +18,26 @@ namespace binding
 
         bool DescriptorSetLayout::initialize(v8::Local<v8::Array> js_setLayoutBindings)
         {
+            uint32_t maxSets{10};
+
             uint32_t bindingCount = js_setLayoutBindings->Length();
             std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{bindingCount};
+            std::unordered_map<VkDescriptorType, uint32_t> type2count;
             for (uint32_t i = 0; i < bindingCount; i++)
             {
                 v8::Local<v8::Object> js_layoutBinding = js_setLayoutBindings->Get(js_setLayoutBindings->GetCreationContext().ToLocalChecked(), i).ToLocalChecked().As<v8::Object>();
 
                 uint32_t binding = sugar::v8::object_get(js_layoutBinding, "binding").As<v8::Number>()->Value();
-                uint32_t descriptorType = sugar::v8::object_get(js_layoutBinding, "descriptorType").As<v8::Number>()->Value();
+                VkDescriptorType descriptorType = static_cast<VkDescriptorType>(sugar::v8::object_get(js_layoutBinding, "descriptorType").As<v8::Number>()->Value());
                 uint32_t descriptorCount = sugar::v8::object_get(js_layoutBinding, "descriptorCount").As<v8::Number>()->Value();
-                uint32_t stageFlags = sugar::v8::object_get(js_layoutBinding, "stageFlags").As<v8::Number>()->Value();
+                VkShaderStageFlagBits stageFlags = static_cast<VkShaderStageFlagBits>(sugar::v8::object_get(js_layoutBinding, "stageFlags").As<v8::Number>()->Value());
 
                 setLayoutBindings[i].binding = binding;
-                setLayoutBindings[i].descriptorType = static_cast<VkDescriptorType>(descriptorType);
+                setLayoutBindings[i].descriptorType = descriptorType;
                 setLayoutBindings[i].descriptorCount = descriptorCount;
-                setLayoutBindings[i].stageFlags = static_cast<VkShaderStageFlagBits>(stageFlags);
+                setLayoutBindings[i].stageFlags = stageFlags;
+
+                type2count[descriptorType] += maxSets * descriptorCount;
             }
 
             VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -43,7 +52,19 @@ namespace binding
                 return true;
             }
 
+            std::vector<VkDescriptorPoolSize> descriptorPoolSizes;
+            for (auto &it : type2count)
+            {
+                descriptorPoolSizes.push_back({it.first, it.second});
+            }
+            _impl->_pool->initialize(descriptorPoolSizes, maxSets, _impl->_setLayout);
+
             return false;
+        }
+
+        DescriptorSet *DescriptorSetLayout::createDescriptorSet()
+        {
+            return new DescriptorSet(std::make_unique<DescriptorSet_impl>(_impl->_device), this);
         }
 
         DescriptorSetLayout::~DescriptorSetLayout()

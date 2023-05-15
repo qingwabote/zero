@@ -43,14 +43,11 @@ export default class Flow {
         const descriptorSetLayout = gfx.createDescriptorSetLayout();
         descriptorSetLayout.initialize(descriptorSetLayoutBindings);
 
-        const descriptorSet = gfx.createDescriptorSet();
-        descriptorSet.initialize(descriptorSetLayout);
-
         const pipelineLayout = gfx.createPipelineLayout();
         pipelineLayout.initialize([descriptorSetLayout]);
         this._globalPipelineLayout = pipelineLayout;
 
-        this.globalDescriptorSet = descriptorSet;
+        this.globalDescriptorSet = descriptorSetLayout.createDescriptorSet();
 
         const colorAttachments: Texture[] = [];
         const resolveAttachments: Texture[] = [];
