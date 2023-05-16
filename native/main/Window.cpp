@@ -15,12 +15,6 @@
 #define NANOSECONDS_PER_SECOND 1000000000
 #define NANOSECONDS_60FPS 16666667L
 
-namespace
-{
-    int width = 640;
-    int height = 960;
-}
-
 Window &Window::instance()
 {
     static Window instance;
@@ -31,15 +25,8 @@ Window::Window() {}
 
 Window::~Window() {}
 
-int Window::loop()
+int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 {
-    sugar::sdl::unique_window window = sugar::sdl::initWithWindow(width, height);
-    if (!window)
-    {
-        ZERO_LOG("Could not create window: %s\n", SDL_GetError());
-        return -1;
-    }
-
     std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(platform.get());
     v8::V8::SetFlagsFromString("--expose-gc-as=__gc__");
@@ -76,7 +63,7 @@ int Window::loop()
                   (new binding::Console())->js_obj())
             .ToChecked();
 
-        binding::gfx::Device *gfx = new binding::gfx::Device(window.get());
+        binding::gfx::Device *gfx = new binding::gfx::Device(sdl_window.get());
         gfx->initialize();
         global->Set(
                   context,
@@ -153,6 +140,9 @@ int Window::loop()
                 return -1;
             }
 
+            int width;
+            int height;
+            SDL_GetWindowSize(sdl_window.get(), &width, &height);
             v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), width), v8::Number::New(isolate.get(), height)};
             auto maybeApp = constructor->NewInstance(context, 2, args);
             if (maybeApp.IsEmpty())

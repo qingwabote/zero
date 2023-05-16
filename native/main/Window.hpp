@@ -2,6 +2,7 @@
 
 #include "base/threading/ThreadSafeQueue.hpp"
 #include "base/UniqueFunction.hpp"
+#include "SDL_video.h"
 
 class Window
 {
@@ -15,7 +16,7 @@ private:
 public:
     static Window &instance();
 
-    int loop();
+    int loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window);
 
     void run(UniqueFunction &&func)
     {
