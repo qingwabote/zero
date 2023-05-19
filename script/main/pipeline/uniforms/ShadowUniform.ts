@@ -4,7 +4,7 @@ import { ShaderStageFlagBits } from "../../core/gfx/Shader.js";
 import mat4 from "../../core/math/mat4.js";
 import quat from "../../core/math/quat.js";
 import vec3 from "../../core/math/vec3.js";
-import Uniform from "../../core/render/Uniform.js";
+import Uniform from "../../core/pipeline/Uniform.js";
 import BufferViewWritable from "../../core/scene/buffers/BufferViewWritable.js";
 
 const ShadowBlock = {

@@ -1,13 +1,13 @@
+import VisibilityFlagBits from "../../VisibilityFlagBits.js";
+import ShaderLib from "../../core/ShaderLib.js";
 import CommandBuffer from "../../core/gfx/CommandBuffer.js";
 import DescriptorSetLayout from "../../core/gfx/DescriptorSetLayout.js";
 import Pipeline, { PassState, PipelineLayout, VertexInputState } from "../../core/gfx/Pipeline.js";
 import RenderPass from "../../core/gfx/RenderPass.js";
-import Phase from "../../core/render/Phase.js";
+import Phase from "../../core/pipeline/Phase.js";
 import Camera from "../../core/scene/Camera.js";
 import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
-import ShaderLib from "../../core/ShaderLib.js";
-import VisibilityFlagBits from "../../VisibilityFlagBits.js";
 import PassType from "../PassType.js";
 
 const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;

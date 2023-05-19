@@ -8,7 +8,7 @@ import Semaphore from "./gfx/Semaphore.js";
 import Input, { InputEvent } from "./Input.js";
 import ComponentScheduler from "./internal/ComponentScheduler.js";
 import TimeScheduler from "./internal/TimeScheduler.js";
-import Flow from "./render/Flow.js";
+import Flow from "./pipeline/Flow.js";
 import FrameChangeRecord from "./scene/FrameChangeRecord.js";
 import Root from "./scene/Root.js";
 import ShaderLib from "./ShaderLib.js";

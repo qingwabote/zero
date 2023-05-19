@@ -14,13 +14,13 @@ import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
 import vec4, { Vec4 } from "../../../../script/main/core/math/vec4.js";
-import Flow from "../../../../script/main/core/render/Flow.js";
-import Stage from "../../../../script/main/core/render/Stage.js";
+import Flow from "../../../../script/main/core/pipeline/Flow.js";
+import Stage from "../../../../script/main/core/pipeline/Stage.js";
 import Pass from "../../../../script/main/core/scene/Pass.js";
-import PassType from "../../../../script/main/render/PassType.js";
-import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
-import stageFactory from "../../../../script/main/render/stageFactory.js";
-import ShadowUniform from "../../../../script/main/render/uniforms/ShadowUniform.js";
+import PassType from "../../../../script/main/pipeline/PassType.js";
+import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
+import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
+import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
 const PassFlag_DOWN: number = 3;
 

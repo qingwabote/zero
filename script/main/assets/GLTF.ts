@@ -18,7 +18,7 @@ import Pass from "../core/scene/Pass.js";
 import SubMesh, { VertexAttribute } from "../core/scene/SubMesh.js";
 import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
-import PassType from "../render/PassType.js";
+import PassType from "../pipeline/PassType.js";
 import AnimationClip, { Channel } from "./AnimationClip.js";
 import Material from "./Material.js";
 import Mesh from "./Mesh.js";
