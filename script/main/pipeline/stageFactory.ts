@@ -5,7 +5,6 @@ import { TextureUsageBits } from "../core/gfx/Texture.js";
 import Phase from "../core/pipeline/Phase.js";
 import Stage from "../core/pipeline/Stage.js";
 import Uniform from "../core/pipeline/Uniform.js";
-import PassType from "./PassType.js";
 import ModelPhase from "./phases/ModelPhase.js";
 import CameraUniform from "./uniforms/CameraUniform.js";
 import LightUniform from "./uniforms/LightUniform.js";
@@ -47,6 +46,6 @@ export default {
             renderPass: renderPass,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
-        return new Stage([ShadowUniform, ShadowMapUniform], [new ModelPhase(PassType.SHADOWMAP, visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
+        return new Stage([ShadowUniform, ShadowMapUniform], [new ModelPhase('shadowmap', visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
     }
 } as const

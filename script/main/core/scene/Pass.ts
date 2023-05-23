@@ -34,7 +34,7 @@ export default class Pass {
         return this._samplerTextures;
     }
 
-    constructor(stateOrInfo: PassState | PassStateInfo, readonly type = 0, getThis?: (self: any) => void) {
+    constructor(stateOrInfo: PassState | PassStateInfo, readonly type = 'default', getThis?: (self: any) => void) {
         getThis && getThis(this);
         if (stateOrInfo instanceof PassState) {
             this.state = stateOrInfo;

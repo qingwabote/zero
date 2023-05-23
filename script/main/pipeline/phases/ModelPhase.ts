@@ -8,7 +8,6 @@ import Phase from "../../core/pipeline/Phase.js";
 import Camera from "../../core/scene/Camera.js";
 import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
-import PassType from "../PassType.js";
 
 const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
 
@@ -17,7 +16,7 @@ const pipelineLayoutCache: Record<string, PipelineLayout> = {};
 const pipelineCache: Record<string, Pipeline> = {};
 
 export default class ModelPhase extends Phase {
-    constructor(private _passType: PassType = PassType.DEFAULT, visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
+    constructor(private _passType = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
         super(visibility);
     }
 
