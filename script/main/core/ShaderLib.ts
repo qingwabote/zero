@@ -110,7 +110,7 @@ export default class ShaderLib {
 
         let source = this._name2source[name];
         if (!source) {
-            const path = `../../assets/shader/${name}`; // hard code
+            const path = `../../assets/shaders/${name}`; // hard code
 
             let vs = await loader.load(`${path}.vs`, "text");
             vs = await preprocessor.includeExpand(vs);
