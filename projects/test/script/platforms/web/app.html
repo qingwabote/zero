@@ -25,13 +25,23 @@
       <label id="eulerZLabel"></label>
     </div>
   </div>
-  <!-- <script type="importmap">
-        {
-          "imports": {
-            "gl-matrix": "../../script/node_modules/gl-matrix/esm/index.js"
-          }
-        }
-  </script> -->
+  <script>
+    const currentScript = document.currentScript;
+    const req = new XMLHttpRequest();
+    // use synchronous request
+    req.open('GET', "../../../imports.json", false);
+    req.onload = function () {
+      const imports = JSON.parse(req.response);
+      for (const key in imports) {
+        imports[key] = "../../../" + imports[key];
+      }
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports });
+      currentScript.after(im);
+    };
+    req.send();
+  </script>
   <script type="module">
     import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
     const gfx = new WebDevice(document.getElementById("ZeroCanvas"));

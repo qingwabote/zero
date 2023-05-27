@@ -2,15 +2,13 @@
 
 A SDL APP come from https://github.com/libsdl-org/SDL/tree/release-2.26.5/android-project
 
-# create bootstrap.js
+# create bootstrap.json
 
-/storage/emulated/0/Android/data/org.libsdl.app/files/bootstrap.js
+/storage/emulated/0/Android/data/org.libsdl.app/files/bootstrap.json
 
-```js
-// use "/" as path separator
-export default {
-  project:
-    "/storage/emulated/0/Android/data/org.libsdl.app/files/projects/animation/",
-  app: "script/platforms/jsb/dist/projects/animation/script/main/App.js",
-};
+```json
+{
+  "project": "/storage/emulated/0/Android/data/org.libsdl.app/files/projects/test/",
+  "app": "script/platforms/jsb/dist/projects/test/script/main/App.js"
+}
 ```

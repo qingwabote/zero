@@ -14,13 +14,12 @@ namespace
 
 namespace env
 {
-    std::filesystem::path bootstrapJs()
+    std::string bootstrap()
     {
-        auto prefPath = SDL_AndroidGetExternalStoragePath();
-        std::filesystem::path res(prefPath);
-        res.append("bootstrap.js");
-        SDL_free((void *)prefPath);
-        return res;
+        auto res = SDL_AndroidGetExternalStoragePath();
+        std::string file(res);
+        SDL_free((void *)res);
+        return file + "/bootstrap.json";
     }
 }
 

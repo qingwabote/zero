@@ -16,13 +16,12 @@ namespace
 
 namespace env
 {
-    std::filesystem::path bootstrapJs()
+    std::string bootstrap()
     {
-        auto prefPath = SDL_GetPrefPath(nullptr, "zero");
-        std::filesystem::path res(prefPath);
-        res.append("bootstrap.js");
-        SDL_free(prefPath);
-        return res;
+        auto res = SDL_GetPrefPath(nullptr, "zero");
+        std::string file(res);
+        SDL_free(res);
+        return file + "bootstrap.json";
     }
 }
 

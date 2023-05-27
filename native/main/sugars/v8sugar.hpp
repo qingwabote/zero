@@ -2,12 +2,13 @@
 
 #include "v8.h"
 #include <unordered_map>
+#include <filesystem>
 
 namespace _v8 = v8;
 namespace sugar::v8
 {
     typedef std::unique_ptr<_v8::Isolate, void (*)(_v8::Isolate *)> unique_isolate;
-    unique_isolate initWithIsolate();
+    unique_isolate initWithIsolate(std::filesystem::path &imports);
 
     std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate);
 

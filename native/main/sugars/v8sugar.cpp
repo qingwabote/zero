@@ -3,8 +3,8 @@
 #include <sstream>
 #include <unordered_map>
 #include <map>
-#include <filesystem>
 #include <fstream>
+#include <nlohmann/json.hpp>
 
 namespace
 {
@@ -12,13 +12,23 @@ namespace
 
     struct IsolateData
     {
+    private:
+        std::unordered_map<std::string, std::filesystem::path> _imports;
+
+    public:
         static IsolateData *getCurrent(_v8::Isolate *isolate)
         {
             return static_cast<IsolateData *>(isolate->GetData(0));
         }
 
-        IsolateData(_v8::Isolate *isolate)
+        std::unordered_map<std::string, std::filesystem::path> &imports()
         {
+            return _imports;
+        }
+
+        IsolateData(_v8::Isolate *isolate, std::unordered_map<std::string, std::filesystem::path> &imports)
+        {
+            _imports = imports;
             isolate->SetData(0, this);
         }
 
@@ -112,8 +122,35 @@ namespace sugar::v8
 
         isolate->Dispose();
     }
-    unique_isolate initWithIsolate()
+    unique_isolate initWithIsolate(std::filesystem::path &imports_path)
     {
+        nlohmann::json imports_json;
+        try
+        {
+            imports_json = nlohmann::json::parse(std::ifstream(imports_path));
+        }
+        catch (nlohmann::json::parse_error &e)
+        {
+            ZERO_LOG_ERROR("failed to parse %s %s", imports_path.string().c_str(), e.what());
+            return {nullptr, isolateDeleter};
+        }
+
+        std::unordered_map<std::string, std::filesystem::path> imports;
+
+        std::filesystem::current_path(imports_path.parent_path());
+        for (auto &&i : imports_json.items())
+        {
+            std::filesystem::path path = i.value();
+            std::error_code ec;
+            path = std::filesystem::canonical(path, ec);
+            if (ec)
+            {
+                ZERO_LOG_ERROR("%s", ec.message().c_str());
+                return {nullptr, isolateDeleter};
+            }
+            imports.emplace(i.key(), path);
+        }
+
         _v8::Isolate::CreateParams create_params;
         create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
         _v8::Isolate *isolate = _v8::Isolate::New(create_params);
@@ -130,7 +167,8 @@ namespace sugar::v8
         //         object_set(meta, "url", _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
         //     });
 
-        new IsolateData(isolate);
+        new IsolateData(isolate, imports);
+
         return unique_isolate{isolate, isolateDeleter};
     }
 
@@ -253,8 +291,13 @@ namespace sugar::v8
         _v8::EscapableHandleScope handle_scope(isolate);
         _v8::Context::Scope context_scope(context);
 
+        std::string specifier_string(*_v8::String::Utf8Value(isolate, specifier));
+
+        auto &imports = IsolateData::getCurrent(isolate)->imports();
+        auto imports_it = imports.find(specifier_string);
+        std::filesystem::path path(imports_it != imports.end() ? imports_it->second.string() : specifier_string);
+
         auto &module2path = IsolateData::getCurrent(isolate)->module2path;
-        std::filesystem::path path(*_v8::String::Utf8Value(isolate, specifier));
         if (path.is_relative())
         {
             std::filesystem::path &ref = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;

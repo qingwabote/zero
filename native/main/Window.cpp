@@ -11,6 +11,7 @@
 #include "bindings/gfx/Device.hpp"
 #include "bindings/gfx/DeviceThread.hpp"
 #include <chrono>
+#include <nlohmann/json.hpp>
 
 #define NANOSECONDS_PER_SECOND 1000000000
 #define NANOSECONDS_60FPS 16666667L
@@ -27,14 +28,29 @@ Window::~Window() {}
 
 int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 {
-    std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+    std::string bootstrap_path = env::bootstrap();
+    nlohmann::json bootstrap_json;
+    try
+    {
+        bootstrap_json = nlohmann::json::parse(std::ifstream(bootstrap_path));
+    }
+    catch (nlohmann::json::parse_error &e)
+    {
+        ZERO_LOG_ERROR("failed to parse %s %s", bootstrap_path.c_str(), e.what());
+        return -1;
+    }
+
+    const std::filesystem::path project = bootstrap_json["project"];
+
+    std::unique_ptr<v8::Platform>
+        platform = v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(platform.get());
     v8::V8::SetFlagsFromString("--expose-gc-as=__gc__");
     v8::V8::Initialize();
 
     // Isolate Scope
     {
-        sugar::v8::unique_isolate isolate = sugar::v8::initWithIsolate();
+        sugar::v8::unique_isolate isolate = sugar::v8::initWithIsolate(std::filesystem::path(project).append("imports.json"));
         isolate->SetOOMErrorHandler(
             [](const char *location, const v8::OOMDetails &details)
             {
@@ -71,35 +87,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                   gfx->js_obj())
             .ToChecked();
 
-        v8::Local<v8::Object> bootstrap;
-        {
-            v8::EscapableHandleScope handle_scope(isolate.get());
-
-            auto bootstrapJs = env::bootstrapJs();
-            auto maybeModule = sugar::v8::module_evaluate(context, v8::String::NewFromUtf8(isolate.get(), bootstrapJs.string().c_str()).ToLocalChecked());
-            if (maybeModule.IsEmpty())
-            {
-                ZERO_LOG("bootstrap.js: load failed\n");
-                return -1;
-            }
-            v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-            v8::Local<v8::Object> def = sugar::v8::object_get(ns, "default").As<v8::Object>();
-            if (def.IsEmpty())
-            {
-                ZERO_LOG("bootstrap.js: no default export found\n");
-                return -1;
-            }
-            bootstrap = handle_scope.Escape(def);
-        }
-
-        auto projectDir = sugar::v8::object_get(bootstrap, "project").As<v8::String>();
-        if (!projectDir->IsString())
-        {
-            ZERO_LOG("bootstrap.js: no project found\n");
-            return -1;
-        }
-
-        binding::Loader *loader = new binding::Loader(*v8::String::Utf8Value(isolate.get(), projectDir));
+        binding::Loader *loader = new binding::Loader(project);
         global->Set(
                   context,
                   v8::String::NewFromUtf8Literal(isolate.get(), "loader"),
@@ -116,19 +104,20 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         {
             v8::EscapableHandleScope handle_scope(isolate.get());
 
-            auto appSrc = sugar::v8::object_get(bootstrap, "app").As<v8::String>();
-            if (!appSrc->IsString())
+            std::filesystem::path appSrc = bootstrap_json["app"];
+            std::filesystem::current_path(project);
+            std::error_code ec;
+            appSrc = std::filesystem::canonical(appSrc);
+            if (ec)
             {
-                ZERO_LOG("bootstrap.js: no app found\n");
+                ZERO_LOG_ERROR("%s", ec.message().c_str());
                 return -1;
             }
 
-            appSrc = v8::String::Concat(isolate.get(), projectDir, appSrc);
-
-            auto maybeModule = sugar::v8::module_evaluate(context, appSrc);
+            auto maybeModule = sugar::v8::module_evaluate(context, v8::String::NewFromUtf8(isolate.get(), appSrc.string().c_str()).ToLocalChecked());
             if (maybeModule.IsEmpty())
             {
-                ZERO_LOG("app load failed: %s\n", *v8::String::Utf8Value(isolate.get(), appSrc));
+                ZERO_LOG_ERROR("app load failed: %s\n", appSrc.string().c_str());
                 return -1;
             }
 

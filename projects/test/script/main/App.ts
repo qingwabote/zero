@@ -1,4 +1,5 @@
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
+import Effect from "../../../../script/main/assets/Effect.js";
 import GLTF from "../../../../script/main/assets/GLTF.js";
 import Animation from "../../../../script/main/components/Animation.js";
 import Camera from "../../../../script/main/components/Camera.js";
@@ -84,6 +85,9 @@ export default class App extends Zero {
         cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = up_camera;
         doc.addElement(cameraControlPanel);
+
+        const foo = new Effect;
+        foo.load("../../assets/effects/phong");
 
         async function addUnlitPass(gltf: GLTF) {
             for (let i = 0; i < gltf.materials.length; i++) {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <filesystem>
+#include <string>
 
 namespace env
 {
-    std::filesystem::path bootstrapJs();
+    std::string bootstrap();
 }
