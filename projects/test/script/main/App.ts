@@ -1,23 +1,24 @@
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 import Effect from "../../../../script/main/assets/Effect.js";
-import GLTF from "../../../../script/main/assets/GLTF.js";
+import GLTF, { MaterialMacros, MaterialValues } from "../../../../script/main/assets/GLTF.js";
+import Material from "../../../../script/main/assets/Material.js";
 import Animation from "../../../../script/main/components/Animation.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import CameraControlPanel from "../../../../script/main/components/ui/CameraControlPanel.js";
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
+import AssetLib from "../../../../script/main/core/AssetLib.js";
 import Node from "../../../../script/main/core/Node.js";
-import ShaderLib from "../../../../script/main/core/ShaderLib.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
-import vec4, { Vec4 } from "../../../../script/main/core/math/vec4.js";
+import vec4 from "../../../../script/main/core/math/vec4.js";
 import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Stage from "../../../../script/main/core/pipeline/Stage.js";
-import Pass from "../../../../script/main/core/scene/Pass.js";
+import samplers from "../../../../script/main/core/samplers.js";
 import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
@@ -86,49 +87,60 @@ export default class App extends Zero {
         cameraControlPanel.camera = up_camera;
         doc.addElement(cameraControlPanel);
 
-        const foo = new Effect;
-        foo.load("../../assets/effects/phong");
+        async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues = {}) {
+            // const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
+            const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
+            const albedo = values.albedo || vec4.ONE;
+            const texture = values.texture;
 
-        async function addUnlitPass(gltf: GLTF) {
-            for (let i = 0; i < gltf.materials.length; i++) {
-                const material = gltf.materials[i];
-
-                const info = gltf.json.materials[i];
-                let textureIdx = -1;
-                if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
-                    textureIdx = gltf.json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
+            const effect = await AssetLib.instance.load({ path: "./assets/effects/test", type: Effect });
+            const passes = await effect.createPasses([
+                {
+                    macros: { USE_SHADOW_MAP }
+                },
+                {
+                    macros: {
+                        USE_ALBEDO_MAP: texture ? 1 : 0,
+                        USE_SHADOW_MAP,
+                        USE_SKIN,
+                        CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+                    },
+                    constants: {
+                        albedo
+                    },
+                    ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
+                },
+                {
+                    macros: {
+                        USE_ALBEDO_MAP: texture ? 1 : 0
+                    },
+                    constants: {
+                        albedo
+                    },
+                    ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
                 }
-                const albedo: Readonly<Vec4> = info.pbrMetallicRoughness.baseColorFactor || vec4.ONE;
-
-                const unlit_shader = await ShaderLib.instance.loadShader({ name: 'unlit', macros: { USE_ALBEDO_MAP: textureIdx != -1 ? 1 : 0 } });
-                const unlit_pass = new Pass({ shader: unlit_shader, depthStencilState: { depthTestEnable: true } }, PassFlag_DOWN);
-                if (textureIdx != -1) {
-                    unlit_pass.setTexture('albedoMap', gltf.textures[textureIdx].impl)
-                }
-                unlit_pass.setUniform('Constants', 'albedo', albedo)
-
-                material.passes.push(unlit_pass);
-            }
+            ])
+            return new Material(passes);
         }
 
         const guardian = new GLTF();
-        await guardian.load('./assets/guardian_zelda_botw_fan-art/scene', USE_SHADOW_MAP);
-        await addUnlitPass(guardian)
+        guardian.materialFunc = materialFunc;
+        await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
         node = guardian.createScene("Sketchfab_Scene")!;
         const ac = node.addComponent(Animation);
         ac.clips = guardian.animationClips
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
 
         const plane = new GLTF();
-        await plane.load('./assets/plane', USE_SHADOW_MAP);
-        await addUnlitPass(plane)
+        plane.materialFunc = materialFunc;
+        await plane.load('./assets/plane');
         node = plane.createScene("Scene")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
         node.scale = [5, 5, 5];
 
         const gltf_camera = new GLTF();
+        gltf_camera.materialFunc = materialFunc;
         await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
-        await addUnlitPass(gltf_camera)
         node = gltf_camera.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityBit_DOWN
         node.scale = [0.005, 0.005, 0.005];

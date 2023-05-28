@@ -5,7 +5,7 @@ import { DescriptorType } from "../../../main/core/gfx/DescriptorSetLayout.js";
 import Format, { FormatInfos } from "../../../main/core/gfx/Format.js";
 import { Framebuffer } from "../../../main/core/gfx/Framebuffer.js";
 import InputAssembler, { IndexType, InputAssemblerInfo } from "../../../main/core/gfx/InputAssembler.js";
-import Pipeline, { BlendFactor, CullMode, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../main/core/gfx/RenderPass.js";
 import Texture from "../../../main/core/gfx/Texture.js";
 import { Rect } from "../../../main/core/math/rect.js";
@@ -19,12 +19,12 @@ import WebTexture from "./WebTexture.js";
 
 function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
-        case BlendFactor.ZERO: return WebGL2RenderingContext.ZERO;
-        case BlendFactor.ONE: return WebGL2RenderingContext.ONE;
-        case BlendFactor.SRC_ALPHA: return WebGL2RenderingContext.SRC_ALPHA;
-        case BlendFactor.DST_ALPHA: return WebGL2RenderingContext.DST_ALPHA;
-        case BlendFactor.ONE_MINUS_SRC_ALPHA: return WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA;
-        case BlendFactor.ONE_MINUS_DST_ALPHA: return WebGL2RenderingContext.ONE_MINUS_DST_ALPHA;
+        case 'ZERO': return WebGL2RenderingContext.ZERO;
+        case 'ONE': return WebGL2RenderingContext.ONE;
+        case 'SRC_ALPHA': return WebGL2RenderingContext.SRC_ALPHA;
+        case 'DST_ALPHA': return WebGL2RenderingContext.DST_ALPHA;
+        case 'ONE_MINUS_SRC_ALPHA': return WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA;
+        case 'ONE_MINUS_DST_ALPHA': return WebGL2RenderingContext.ONE_MINUS_DST_ALPHA;
     }
 }
 
@@ -117,14 +117,14 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.useProgram((state.shader as WebShader).program.deref());
 
         switch (state.rasterizationState.cullMode) {
-            case CullMode.NONE:
+            case 'NONE':
                 gl.disable(gl.CULL_FACE);
                 break;
-            case CullMode.FRONT:
+            case 'FRONT':
                 gl.cullFace(gl.FRONT);
                 gl.enable(gl.CULL_FACE);
                 break;
-            case CullMode.BACK:
+            case 'BACK':
                 gl.cullFace(gl.BACK);
                 gl.enable(gl.CULL_FACE);
                 break;

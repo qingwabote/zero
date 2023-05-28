@@ -1,6 +1,6 @@
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format, { FormatInfos } from "../core/gfx/Format.js";
-import { BlendFactor, CullMode, PrimitiveTopology } from "../core/gfx/Pipeline.js";
+import { PassState } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3, { Vec3 } from "../core/math/vec3.js";
 import vec4, { Vec4 } from "../core/math/vec4.js";
@@ -90,18 +90,14 @@ export default class Primitive extends BoundedRenderer {
             vertexOrIndexCount: 0
         }
 
-        const pass = new Pass({
-            shader: ShaderLib.instance.getShader(shader_primitive_info),
-            primitive: PrimitiveTopology.LINE_LIST,
-            rasterizationState: { cullMode: CullMode.NONE },
-            blendState: {
-                srcRGB: BlendFactor.SRC_ALPHA,
-                dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA,
-                srcAlpha: BlendFactor.ONE,
-                dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA
-            }
-        });
-        const subModel: SubModel = new SubModel(subMesh, [pass]);
+        const state = new PassState(
+            ShaderLib.instance.getShader(shader_primitive_info),
+            "LINE_LIST",
+            { cullMode: 'NONE' },
+            undefined,
+            { srcRGB: 'SRC_ALPHA', dstRGB: 'ONE_MINUS_SRC_ALPHA', srcAlpha: 'ONE', dstAlpha: 'ONE_MINUS_SRC_ALPHA' })
+
+        const subModel: SubModel = new SubModel(subMesh, [new Pass(state)]);
         const model = new Model(this.node, [subModel])
         zero.scene.addModel(model)
         this._subMesh = subMesh;

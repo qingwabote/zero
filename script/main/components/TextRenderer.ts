@@ -5,7 +5,7 @@ import AssetLib from "../core/AssetLib.js";
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
-import { BlendFactor, CullMode } from "../core/gfx/Pipeline.js";
+import { PassState } from "../core/gfx/Pipeline.js";
 import aabb2d, { AABB2D } from "../core/math/aabb2d.js";
 import vec2 from "../core/math/vec2.js";
 import vec3 from "../core/math/vec3.js";
@@ -95,16 +95,18 @@ export default class TextRenderer extends BoundedRenderer {
             vertexOrIndexCount: 0
         }
 
-        const pass = new Pass({
-            shader: ShaderLib.instance.getShader(shader_unlit_info),
-            rasterizationState: { cullMode: CullMode.NONE },
-            blendState: {
-                srcRGB: BlendFactor.SRC_ALPHA,
-                dstRGB: BlendFactor.ONE_MINUS_SRC_ALPHA,
-                srcAlpha: BlendFactor.ONE,
-                dstAlpha: BlendFactor.ONE_MINUS_SRC_ALPHA
-            }
-        });
+        const state = new PassState(
+            ShaderLib.instance.getShader(shader_unlit_info),
+            undefined,
+            { cullMode: 'NONE' },
+            undefined,
+            {
+                srcRGB: 'SRC_ALPHA',
+                dstRGB: 'ONE_MINUS_SRC_ALPHA',
+                srcAlpha: 'ONE',
+                dstAlpha: 'ONE_MINUS_SRC_ALPHA'
+            })
+        const pass = new Pass(state);
         pass.setTexture('albedoMap', this._fnt.texture.impl)
         pass.setUniform('Constants', 'albedo', vec4.ONE)
         const subModel: SubModel = new SubModel(subMesh, [pass]);

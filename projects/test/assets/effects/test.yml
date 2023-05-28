@@ -13,3 +13,11 @@ passes:
       albedo: [1, 1, 1, 1]
     depthStencilState:
       depthTestEnable: true
+  - shader: unlit
+    type: down
+    constants:
+      albedo: [1, 1, 1, 1]
+    rasterizationState:
+      cullMode: FRONT
+    depthStencilState:
+      depthTestEnable: true

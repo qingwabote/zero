@@ -13,6 +13,39 @@
 #include "bindings/gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
 
+namespace
+{
+    VkBlendFactor toVkBlendFactor(v8::Isolate *isolate, v8::Local<v8::String> js_factor)
+    {
+        std::string factor(*v8::String::Utf8Value(isolate, js_factor));
+        if (factor == "ZERO")
+        {
+            return VK_BLEND_FACTOR_ZERO;
+        }
+        if (factor == "ONE")
+        {
+            return VK_BLEND_FACTOR_ONE;
+        }
+        if (factor == "SRC_ALPHA")
+        {
+            return VK_BLEND_FACTOR_SRC_ALPHA;
+        }
+        if (factor == "ONE_MINUS_SRC_ALPHA")
+        {
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        }
+        if (factor == "DST_ALPHA")
+        {
+            return VK_BLEND_FACTOR_DST_ALPHA;
+        }
+        if (factor == "ONE_MINUS_DST_ALPHA")
+        {
+            return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+        }
+        return VK_BLEND_FACTOR_ZERO;
+    }
+}
+
 namespace binding
 {
     namespace gfx
@@ -72,7 +105,15 @@ namespace binding
 
             VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
             inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-            inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(sugar::v8::object_get(js_passState, "primitive").As<v8::Number>()->Value());
+            std::string primitive(*v8::String::Utf8Value(isolate, sugar::v8::object_get(js_passState, "primitive").As<v8::String>()));
+            if (primitive == "LINE_LIST")
+            {
+                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+            }
+            else if (primitive == "TRIANGLE_LIST")
+            {
+                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            }
             pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
             std::vector<VkDynamicState> dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_FRONT_FACE});
@@ -90,7 +131,19 @@ namespace binding
             VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
             rasterizationState.rasterizerDiscardEnable = VK_FALSE;
             rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-            rasterizationState.cullMode = sugar::v8::object_get(js_rasterizationState, "cullMode").As<v8::Number>()->Value();
+            std::string cullMode(*v8::String::Utf8Value(isolate, sugar::v8::object_get(js_rasterizationState, "cullMode").As<v8::String>()));
+            if (cullMode == "NONE")
+            {
+                rasterizationState.cullMode = VK_CULL_MODE_NONE;
+            }
+            else if (cullMode == "FRONT")
+            {
+                rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
+            }
+            else if (cullMode == "BACK")
+            {
+                rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+            }
             rasterizationState.depthBiasEnable = VK_FALSE;
             rasterizationState.depthBiasConstantFactor = 0;
             rasterizationState.depthBiasClamp = 0;
@@ -114,10 +167,10 @@ namespace binding
                                                   VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
             if (!js_blendState->IsUndefined())
             {
-                colorBlendAttachment.srcColorBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "srcRGB").As<v8::Number>()->Value());
-                colorBlendAttachment.dstColorBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "dstRGB").As<v8::Number>()->Value());
-                colorBlendAttachment.srcAlphaBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "srcAlpha").As<v8::Number>()->Value());
-                colorBlendAttachment.dstAlphaBlendFactor = static_cast<VkBlendFactor>(sugar::v8::object_get(js_blendState, "dstAlpha").As<v8::Number>()->Value());
+                colorBlendAttachment.srcColorBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "srcRGB").As<v8::String>());
+                colorBlendAttachment.dstColorBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "dstRGB").As<v8::String>());
+                colorBlendAttachment.srcAlphaBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "srcAlpha").As<v8::String>());
+                colorBlendAttachment.dstAlphaBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "dstAlpha").As<v8::String>());
                 colorBlendAttachment.blendEnable = VK_TRUE;
             }
             else

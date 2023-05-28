@@ -1,6 +1,6 @@
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
-import { PassState, PassStateInfo } from "../gfx/Pipeline.js";
+import { PassState } from "../gfx/Pipeline.js";
 import { Sampler } from "../gfx/Sampler.js";
 import Texture from "../gfx/Texture.js";
 import samplers from "../samplers.js";
@@ -20,8 +20,6 @@ function type2Length(type: string): number {
 }
 
 export default class Pass {
-    readonly state: PassState;
-
     readonly descriptorSet?: DescriptorSet;
 
     protected _uniformBuffers: Record<string, BufferViewWritable> = {};
@@ -34,13 +32,9 @@ export default class Pass {
         return this._samplerTextures;
     }
 
-    constructor(stateOrInfo: PassState | PassStateInfo, readonly type = 'default', getThis?: (self: any) => void) {
+    constructor(readonly state: PassState, readonly type = 'default', getThis?: (self: any) => void) {
         getThis && getThis(this);
-        if (stateOrInfo instanceof PassState) {
-            this.state = stateOrInfo;
-        } else {
-            this.state = new PassState(stateOrInfo);
-        }
+
         const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this.state.shader);
         (descriptorSetLayout as any).name = "Pass descriptorSetLayout";
         if (descriptorSetLayout.bindings.length) {

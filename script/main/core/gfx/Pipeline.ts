@@ -69,44 +69,48 @@ export class VertexInputState {
     }
 }
 
-export enum PrimitiveTopology {
-    LINE_LIST = 1,
-    TRIANGLE_LIST = 3
-}
+// export enum PrimitiveTopology {
+//     LINE_LIST = 1,
+//     TRIANGLE_LIST = 3
+// }
+
+export type PrimitiveTopology = "LINE_LIST" | "TRIANGLE_LIST";
 
 // copy values from VkCullModeFlagBits in vulkan_core.h
-export enum CullMode {
-    NONE = 0,
-    FRONT = 0x00000001,
-    BACK = 0x00000002,
-}
+// export enum CullMode {
+//     NONE = 0,
+//     FRONT = 0x00000001,
+//     BACK = 0x00000002,
+// }
 
 export interface RasterizationState {
-    readonly cullMode: CullMode;
+    readonly cullMode: "NONE" | "FRONT" | "BACK";
 }
 
 export interface DepthStencilState {
     readonly depthTestEnable: boolean;
 }
 
+export type BlendFactor = "ZERO" | "ONE" | "SRC_ALPHA" | "ONE_MINUS_SRC_ALPHA" | "DST_ALPHA" | "ONE_MINUS_DST_ALPHA"
+
 // copy values from VkBlendFactor in vulkan_core.h
-export enum BlendFactor {
-    ZERO = 0,
-    ONE = 1,
-    SRC_ALPHA = 6,
-    ONE_MINUS_SRC_ALPHA = 7,
-    DST_ALPHA = 8,
-    ONE_MINUS_DST_ALPHA = 9,
-    // SRC_COLOR,
-    // DST_COLOR,
-    // ONE_MINUS_SRC_COLOR,
-    // ONE_MINUS_DST_COLOR,
-    // SRC_ALPHA_SATURATE,
-    // CONSTANT_COLOR,
-    // ONE_MINUS_CONSTANT_COLOR,
-    // CONSTANT_ALPHA,
-    // ONE_MINUS_CONSTANT_ALPHA,
-}
+// export enum BlendFactor {
+//     ZERO = 0,
+//     ONE = 1,
+//     SRC_ALPHA = 6,
+//     ONE_MINUS_SRC_ALPHA = 7,
+//     DST_ALPHA = 8,
+//     ONE_MINUS_DST_ALPHA = 9,
+//     // SRC_COLOR,
+//     // DST_COLOR,
+//     // ONE_MINUS_SRC_COLOR,
+//     // ONE_MINUS_DST_COLOR,
+//     // SRC_ALPHA_SATURATE,
+//     // CONSTANT_COLOR,
+//     // ONE_MINUS_CONSTANT_COLOR,
+//     // CONSTANT_ALPHA,
+//     // ONE_MINUS_CONSTANT_ALPHA,
+// }
 
 /**color(RGB) = (sourceColor * srcRGB) + (destinationColor * dstRGB)
  * color(A) = (sourceAlpha * srcAlpha) + (destinationAlpha * dstAlpha)
@@ -118,29 +122,15 @@ export interface BlendState {
     readonly dstAlpha: BlendFactor;
 }
 
-export interface PassStateInfo {
-    readonly shader: Shader;
-    readonly primitive?: PrimitiveTopology;
-    readonly rasterizationState?: RasterizationState;
-    readonly depthStencilState?: DepthStencilState;
-    readonly blendState?: BlendState;
-}
-
 export class PassState {
-    readonly shader: Shader;
-    readonly primitive: PrimitiveTopology;
-    readonly rasterizationState: RasterizationState;
-    readonly depthStencilState?: DepthStencilState;
-    readonly blendState?: BlendState;
-
     readonly hash: string;
 
-    constructor(info: PassStateInfo) {
-        this.shader = info.shader;
-        this.primitive = info.primitive != undefined ? info.primitive : PrimitiveTopology.TRIANGLE_LIST;
-        this.rasterizationState = info.rasterizationState || { cullMode: CullMode.BACK };
-        this.depthStencilState = info.depthStencilState;
-        this.blendState = info.blendState;
+    constructor(
+        readonly shader: Shader,
+        readonly primitive: PrimitiveTopology = 'TRIANGLE_LIST',
+        readonly rasterizationState: RasterizationState = { cullMode: 'BACK' },
+        readonly depthStencilState?: DepthStencilState,
+        readonly blendState?: BlendState) {
 
         let hash = this.shader.info.hash;
         hash += `${this.primitive}`;

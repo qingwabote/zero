@@ -9,27 +9,26 @@ import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
-import { CullMode } from "../core/gfx/Pipeline.js";
 import mat4, { Mat4Like } from "../core/math/mat4.js";
 import vec4, { Vec4 } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
+import samplers from "../core/samplers.js";
 import BufferView from "../core/scene/buffers/BufferView.js";
-import Pass from "../core/scene/Pass.js";
 import SubMesh, { VertexAttribute } from "../core/scene/SubMesh.js";
-import ShaderLib from "../core/ShaderLib.js";
 import MaterialInstance from "../MaterialInstance.js";
 import AnimationClip, { Channel } from "./AnimationClip.js";
+import Effect from "./Effect.js";
 import Material from "./Material.js";
 import Mesh from "./Mesh.js";
 import Skin from "./Skin.js";
 import Texture from "./Texture.js";
 
-interface MaterialMacros {
+export interface MaterialMacros {
     USE_SHADOW_MAP?: 0 | 1;
     USE_SKIN?: 0 | 1;
 }
 
-interface MaterialValues {
+export interface MaterialValues {
     albedo?: Vec4;
     texture?: Texture;
 }
@@ -64,6 +63,34 @@ function node2name(node: any, index: number): string {
     return node.name == undefined ? `${index}` : node.name;
 }
 
+
+export async function materialFuncDefault(macros: MaterialMacros = {}, values: MaterialValues = {}) {
+    const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
+    const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
+    const albedo = values.albedo || vec4.ONE;
+    const texture = values.texture;
+
+    const effect = await AssetLib.instance.load({ path: "../../assets/effects/phong", type: Effect });
+    const passes = await effect.createPasses([
+        {
+            macros: { USE_SHADOW_MAP }
+        },
+        {
+            macros: {
+                USE_ALBEDO_MAP: texture ? 1 : 0,
+                USE_SHADOW_MAP,
+                USE_SKIN,
+                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+            },
+            constants: {
+                albedo
+            },
+            ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
+        }
+    ]);
+    return new Material(passes);
+}
+
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
@@ -82,9 +109,11 @@ export default class GLTF extends Asset {
         return this._textures;
     }
 
-    private _default_material!: Material;
+    private _materialDefault!: Material;
 
     materials: Material[] = [];
+
+    materialFunc: (macros?: MaterialMacros, values?: MaterialValues) => Promise<Material> = materialFuncDefault;
 
     private _skins: Skin[] = [];
 
@@ -93,7 +122,7 @@ export default class GLTF extends Asset {
         return this._animationClips;
     }
 
-    async load(url: string, USE_SHADOW_MAP: 0 | 1 = 0): Promise<this> {
+    async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
             return this;
@@ -105,14 +134,14 @@ export default class GLTF extends Asset {
         const json_images = json.images || [];
         const textures = await Promise.all(json_images.map((info: any) => AssetLib.instance.load({ path: `${parent}/${uri2path(info.uri)}`, type: Texture })));
 
-        this._default_material = await this.createMaterial({ USE_SHADOW_MAP });
+        this._materialDefault = await this.materialFunc();
 
         for (const info of json.materials || []) {
             let textureIdx = -1;
             if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
                 textureIdx = json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
             }
-            this.materials.push(await this.createMaterial({ USE_SHADOW_MAP, USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
+            this.materials.push(await this.materialFunc({ USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
         }
         this._textures = textures;
 
@@ -201,45 +230,6 @@ export default class GLTF extends Asset {
         return node;
     }
 
-    private async createMaterial(macros: MaterialMacros, values: MaterialValues = {}) {
-        const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
-        const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
-        const albedo = values.albedo || vec4.ONE;
-        const texture = values.texture;
-
-        const passes: Pass[] = [];
-
-        if (USE_SHADOW_MAP) {
-            const shadowMapShader = await ShaderLib.instance.loadShader({ name: 'shadowmap' });
-            const shadowMapPass = new Pass({
-                shader: shadowMapShader,
-                rasterizationState: { cullMode: CullMode.FRONT },
-                depthStencilState: { depthTestEnable: true }
-            }, 'shadowmap');
-            passes.push(shadowMapPass);
-        }
-
-        const phongShader = await ShaderLib.instance.loadShader({
-            name: 'phong',
-            macros: {
-                USE_ALBEDO_MAP: texture ? 1 : 0,
-                USE_SHADOW_MAP,
-                SHADOW_MAP_PCF: 1,
-                USE_SKIN,
-                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-            }
-        })
-
-        const phongPass = new Pass({ shader: phongShader, depthStencilState: { depthTestEnable: true } });
-        if (texture) {
-            phongPass.setTexture('albedoMap', texture.impl)
-        }
-        phongPass.setUniform('Constants', 'albedo', albedo)
-        passes.push(phongPass);
-
-        return new Material(passes);
-    }
-
     private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
         const info = this._json.nodes[index];
         const node = new Node(node2name(info, index));
@@ -283,7 +273,7 @@ export default class GLTF extends Asset {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
         for (const primitive of info.primitives) {
-            let material = primitive.material == undefined ? this._default_material : this.materials[primitive.material];
+            let material = primitive.material == undefined ? this._materialDefault : this.materials[primitive.material];
             if (materialInstancing) {
                 material = new MaterialInstance(material);
             }
