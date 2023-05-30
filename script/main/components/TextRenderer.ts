@@ -1,7 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import FNT from "../assets/FNT.js";
-import AssetLib from "../core/AssetLib.js";
+import assetLib2 from "../core/assetLib2.js";
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
@@ -10,22 +10,20 @@ import aabb2d, { AABB2D } from "../core/math/aabb2d.js";
 import vec2 from "../core/math/vec2.js";
 import vec3 from "../core/math/vec3.js";
 import vec4 from "../core/math/vec4.js";
+import programLib from "../core/programLib.js";
 import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
 import SubMesh, { IndexInputView, PIXELS_PER_UNIT, VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
 import SubModel from "../core/scene/SubModel.js";
-import ShaderLib, { ShaderCreateInfo } from "../core/ShaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-const shader_unlit_info: ShaderCreateInfo = { name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } };
-ShaderLib.preloaded.push(shader_unlit_info);
+const shader_unlit = await programLib.loadShader({ name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } })
 
-const fnt_zero_info = { path: '../../assets/fnt/zero', type: FNT };
-AssetLib.preloaded.push(fnt_zero_info);
+const fnt_zero = await assetLib2.load({ path: '../../assets/fnt/zero', type: FNT });
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -60,7 +58,7 @@ export default class TextRenderer extends BoundedRenderer {
         return this._bounds;
     }
 
-    private _fnt: FNT = AssetLib.instance.get(fnt_zero_info);
+    private _fnt = fnt_zero;
 
     private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
 
@@ -96,7 +94,7 @@ export default class TextRenderer extends BoundedRenderer {
         }
 
         const state = new PassState(
-            ShaderLib.instance.getShader(shader_unlit_info),
+            shader_unlit,
             undefined,
             { cullMode: 'NONE' },
             undefined,

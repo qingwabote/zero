@@ -1,10 +1,10 @@
 import VisibilityFlagBits from "../../VisibilityFlagBits.js";
-import ShaderLib from "../../core/ShaderLib.js";
 import CommandBuffer from "../../core/gfx/CommandBuffer.js";
 import DescriptorSetLayout from "../../core/gfx/DescriptorSetLayout.js";
 import Pipeline, { PassState, PipelineLayout, VertexInputState } from "../../core/gfx/Pipeline.js";
 import RenderPass from "../../core/gfx/RenderPass.js";
 import Phase from "../../core/pipeline/Phase.js";
+import programLib from "../../core/programLib.js";
 import Camera from "../../core/scene/Camera.js";
 import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
@@ -27,7 +27,7 @@ export default class ModelPhase extends Phase {
             if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
                 continue;
             }
-            commandBuffer.bindDescriptorSet(this.getModelPipelineLayout(model), ShaderLib.sets.local.index, model.descriptorSet);
+            commandBuffer.bindDescriptorSet(this.getModelPipelineLayout(model), programLib.sets.local.index, model.descriptorSet);
             for (const subModel of model.subModels) {
                 if (subModel.vertexOrIndexCount == 0) {
                     continue;
@@ -41,7 +41,7 @@ export default class ModelPhase extends Phase {
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = this.getPipelineLayout(model, pass);
                     if (pass.descriptorSet) {
-                        commandBuffer.bindDescriptorSet(layout, ShaderLib.sets.material.index, pass.descriptorSet);
+                        commandBuffer.bindDescriptorSet(layout, programLib.sets.material.index, pass.descriptorSet);
                     }
                     const pipeline = this.getPipeline(pass.state, inputAssembler.info.vertexInputState, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);

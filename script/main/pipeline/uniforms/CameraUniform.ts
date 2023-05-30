@@ -1,9 +1,9 @@
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import Uniform from "../../core/pipeline/Uniform.js";
+import programLib from "../../core/programLib.js";
 import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";
-import ShaderLib from "../../core/ShaderLib.js";
 
-const CameraBlock = ShaderLib.sets.global.uniforms.Camera;
+const CameraBlock = programLib.sets.global.uniforms.Camera;
 
 export default class CameraUniform implements Uniform {
     readonly definition = CameraBlock;

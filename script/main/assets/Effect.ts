@@ -1,9 +1,9 @@
 import { parse } from "yaml";
 import Asset from "../core/Asset.js";
-import ShaderLib from "../core/ShaderLib.js";
 import { BlendState, DepthStencilState, PassState, PrimitiveTopology, RasterizationState } from "../core/gfx/Pipeline.js";
 import { Sampler } from "../core/gfx/Sampler.js";
 import Texture from "../core/gfx/Texture.js";
+import programLib from "../core/programLib.js";
 import Pass from "../core/scene/Pass.js";
 
 function merge<Out>(target: Out, ...sources: Out[]): Out {
@@ -53,7 +53,7 @@ export default class Effect extends Asset {
         const passes: Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
-            const shader = await ShaderLib.instance.loadShader({ name: info.shader!, macros: info.macros });
+            const shader = await programLib.loadShader({ name: info.shader!, macros: info.macros });
             const pass = new Pass(new PassState(shader, info.primitive, info.rasterizationState, info.depthStencilState, info.blendState), info.type);
             for (const key in info.constants) {
                 pass.setUniform('Constants', key, info.constants[key]);

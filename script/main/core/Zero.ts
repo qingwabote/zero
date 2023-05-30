@@ -1,5 +1,4 @@
 import EventEmitterImpl from "../base/EventEmitterImpl.js";
-import AssetLib from "./AssetLib.js";
 import Component from "./Component.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
 import Fence from "./gfx/Fence.js";
@@ -11,7 +10,6 @@ import TimeScheduler from "./internal/TimeScheduler.js";
 import Flow from "./pipeline/Flow.js";
 import FrameChangeRecord from "./scene/FrameChangeRecord.js";
 import Root from "./scene/Root.js";
-import ShaderLib from "./ShaderLib.js";
 import System from "./System.js";
 
 export enum ZeroEvent {
@@ -72,10 +70,6 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
     }
 
     async initialize(): Promise<void> {
-        await Promise.all(ShaderLib.preloaded.map(info => ShaderLib.instance.loadShader(info)));
-
-        await Promise.all(AssetLib.preloaded.map(info => AssetLib.instance.load(info)));
-
         for (const system of this._systems) {
             await system.load();
         }

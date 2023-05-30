@@ -75,84 +75,46 @@ export interface ShaderCreateInfo {
     macros?: Record<string, number>;
 }
 
-export default class ShaderLib {
+const _name2source: Record<string, ShaderStage[]> = {};
+const _name2macros: Record<string, Set<string>> = {};
+const _key2shader: Record<string, Shader> = {};
+const _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
-    static readonly sets = sets;
+function getShaderKey(info: ShaderCreateInfo): string {
+    const name = info.name;
+    const macros = info.macros || {};
+    let key = name;
+    for (const macro of _name2macros[name]) {
+        const val = macros[macro] || 0;
+        key += val
+    }
+    return key;
+}
 
-    static createDescriptorSetLayoutBinding(uniform: UniformDefinition): DescriptorSetLayoutBinding {
+export default {
+    sets,
+
+    createDescriptorSetLayoutBinding(uniform: UniformDefinition): DescriptorSetLayoutBinding {
         return {
             descriptorType: uniform.type,
             stageFlags: uniform.stageFlags,
             binding: uniform.binding,
             descriptorCount: 1,
         }
-    }
+    },
 
-    static createDescriptorSetLayout(uniforms: UniformDefinition[]) {
+    createDescriptorSetLayout(uniforms: UniformDefinition[]) {
         const bindings = uniforms.map(uniform => this.createDescriptorSetLayoutBinding(uniform));
         const layout = gfx.createDescriptorSetLayout();
         layout.initialize(bindings);
         return layout;
-    }
-
-    static readonly preloaded: ShaderCreateInfo[] = [];
-
-    static readonly instance = new ShaderLib;
-
-    private _name2source: Record<string, ShaderStage[]> = {};
-    private _name2macros: Record<string, Set<string>> = {};
-    private _key2shader: Record<string, Shader> = {};
-    private _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
-
-    async loadShader(info: ShaderCreateInfo): Promise<Shader> {
-        const name = info.name;
-        const macros = info.macros || {};
-
-        let source = this._name2source[name];
-        if (!source) {
-            const path = `../../assets/shaders/${name}`; // hard code
-
-            let vs = await loader.load(`${path}.vs`, "text");
-            vs = await preprocessor.includeExpand(vs);
-
-            let fs = await loader.load(`${path}.fs`, "text");
-            fs = await preprocessor.includeExpand(fs);
-
-            this._name2source[name] = [
-                { type: ShaderStageFlagBits.VERTEX, source: vs },
-                { type: ShaderStageFlagBits.FRAGMENT, source: fs },
-            ];
-            this._name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
-        }
-
-        const key = this.getShaderKey(info);
-        if (!this._key2shader[key]) {
-            const mac: Record<string, number> = {};
-            for (const macro of this._name2macros[name]) {
-                mac[macro] = macros[macro] || 0;
-            }
-            const res = await preprocessor.preprocess(this._name2source[name], mac);
-            const shader = gfx.createShader();
-            shader.initialize({
-                name,
-                stages: res.stages,
-                meta: res.meta,
-                hash: key
-            });
-            this._key2shader[key] = shader;
-        }
-        return this._key2shader[key];
-    }
-
-    getShader(info: ShaderCreateInfo): Shader {
-        return this._key2shader[this.getShaderKey(info)];
-    }
+    },
 
     getMaterialDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
         const set = sets.material.index;
 
         const key = `${set}:${shader.info.hash}`;
-        let descriptorSetLayout = this._shader2descriptorSetLayout[key];
+        let descriptorSetLayout = _shader2descriptorSetLayout[key];
         if (!descriptorSetLayout) {
             const bindings: DescriptorSetLayoutBinding[] = [];
             const samplerTextures = shader.info.meta.samplerTextures;
@@ -184,20 +146,53 @@ export default class ShaderLib {
             descriptorSetLayout = gfx.createDescriptorSetLayout();
             descriptorSetLayout.initialize(bindings);
 
-            this._shader2descriptorSetLayout[key] = descriptorSetLayout;
+            _shader2descriptorSetLayout[key] = descriptorSetLayout;
         }
 
         return descriptorSetLayout;
-    }
+    },
 
-    private getShaderKey(info: ShaderCreateInfo): string {
+    // getShader(info: ShaderCreateInfo): Shader {
+    //     return _key2shader[getShaderKey(info)];
+    // },
+
+    async loadShader(info: ShaderCreateInfo): Promise<Shader> {
         const name = info.name;
         const macros = info.macros || {};
-        let key = name;
-        for (const macro of this._name2macros[name]) {
-            const val = macros[macro] || 0;
-            key += val
+
+        let source = _name2source[name];
+        if (!source) {
+            const path = `../../assets/shaders/${name}`; // hard code
+
+            let vs = await loader.load(`${path}.vs`, "text");
+            vs = await preprocessor.includeExpand(vs);
+
+            let fs = await loader.load(`${path}.fs`, "text");
+            fs = await preprocessor.includeExpand(fs);
+
+            _name2source[name] = [
+                { type: ShaderStageFlagBits.VERTEX, source: vs },
+                { type: ShaderStageFlagBits.FRAGMENT, source: fs },
+            ];
+            _name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
         }
-        return key;
+
+        const key = getShaderKey(info);
+        if (!_key2shader[key]) {
+            const mac: Record<string, number> = {};
+            for (const macro of _name2macros[name]) {
+                mac[macro] = macros[macro] || 0;
+            }
+            const res = await preprocessor.preprocess(_name2source[name], mac);
+            const shader = gfx.createShader();
+            shader.initialize({
+                name,
+                stages: res.stages,
+                meta: res.meta,
+                hash: key
+            });
+            _key2shader[key] = shader;
+        }
+        return _key2shader[key];
     }
-}
+} as const

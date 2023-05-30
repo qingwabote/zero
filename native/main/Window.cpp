@@ -100,63 +100,30 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                   (new binding::Platform())->js_obj())
             .ToChecked();
 
+        std::filesystem::current_path(project);
+        std::error_code ec;
+        std::filesystem::path appSrc = std::filesystem::canonical(bootstrap_json["app"]);
+        if (ec)
+        {
+            ZERO_LOG_ERROR("%s", ec.message().c_str());
+            return -1;
+        }
+
         v8::Local<v8::Object> app;
+        v8::Local<v8::Module> app_module;
+        v8::Local<v8::Promise> app_promise;
+        sugar::v8::module_evaluate(context, appSrc, &app_module, &app_promise);
+        if (app_promise.IsEmpty())
         {
-            v8::EscapableHandleScope handle_scope(isolate.get());
-
-            std::filesystem::path appSrc = bootstrap_json["app"];
-            std::filesystem::current_path(project);
-            std::error_code ec;
-            appSrc = std::filesystem::canonical(appSrc);
-            if (ec)
-            {
-                ZERO_LOG_ERROR("%s", ec.message().c_str());
-                return -1;
-            }
-
-            auto maybeModule = sugar::v8::module_evaluate(context, v8::String::NewFromUtf8(isolate.get(), appSrc.string().c_str()).ToLocalChecked());
-            if (maybeModule.IsEmpty())
-            {
-                ZERO_LOG_ERROR("app load failed: %s\n", appSrc.string().c_str());
-                return -1;
-            }
-
-            v8::Local<v8::Object> ns = maybeModule.ToLocalChecked()->GetModuleNamespace().As<v8::Object>();
-            v8::Local<v8::Function> constructor = sugar::v8::object_get(ns, "default").As<v8::Function>();
-            if (constructor.IsEmpty())
-            {
-                ZERO_LOG("app: no default class found\n");
-                return -1;
-            }
-
-            int width;
-            int height;
-            SDL_GetWindowSize(sdl_window.get(), &width, &height);
-            v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), width), v8::Number::New(isolate.get(), height)};
-            auto maybeApp = constructor->NewInstance(context, 2, args);
-            if (maybeApp.IsEmpty())
-            {
-                return -1;
-            }
-            app = handle_scope.Escape(maybeApp.ToLocalChecked());
-        }
-        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app).ToChecked();
-
-        auto initialize = sugar::v8::object_get(app, "initialize").As<v8::Function>();
-        if (initialize.IsEmpty())
-        {
-            ZERO_LOG("app: no initialize function found\n");
+            ZERO_LOG_ERROR("app load failed: %s\n", appSrc.string().c_str());
             return -1;
         }
-        v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 0, nullptr);
-        if (maybe.IsEmpty())
-        {
-            return -1;
-        }
-        v8::Local<v8::Promise> app_initialize_promise = maybe.ToLocalChecked().As<v8::Promise>();
 
-        v8::Local<v8::Function> app_tick = sugar::v8::object_get(app, "tick").As<v8::Function>();
+        v8::Local<v8::Function> app_tick;
+        v8::Local<v8::Promise> app_initialize_promise;
+
         v8::Local<v8::Map> name2event = v8::Map::New(isolate.get());
+        v8::Local<v8::Value> app_tick_args[] = {name2event};
 
         bool running = true;
         auto time = std::chrono::steady_clock::now();
@@ -172,20 +139,81 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             {
             }
 
-            if (app_initialize_promise->State() == v8::Promise::PromiseState::kRejected)
+            if (app.IsEmpty())
             {
-                return -1;
-            }
-            if (app_initialize_promise->State() == v8::Promise::PromiseState::kPending)
-            {
-                continue;
+                {
+                    v8::EscapableHandleScope scope(isolate.get());
+
+                    if (app_promise->State() == v8::Promise::PromiseState::kRejected)
+                    {
+                        return -1;
+                    }
+                    if (app_promise->State() == v8::Promise::PromiseState::kPending)
+                    {
+                        continue;
+                    }
+
+                    v8::Local<v8::Object> ns = app_module->GetModuleNamespace().As<v8::Object>();
+                    v8::Local<v8::Function> constructor = sugar::v8::object_get(ns, "default").As<v8::Function>();
+                    if (constructor.IsEmpty())
+                    {
+                        ZERO_LOG("app: no default class found\n");
+                        return -1;
+                    }
+
+                    int width;
+                    int height;
+                    SDL_GetWindowSize(sdl_window.get(), &width, &height);
+                    v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), width), v8::Number::New(isolate.get(), height)};
+                    auto app_maybe = constructor->NewInstance(context, 2, args);
+                    if (app_maybe.IsEmpty())
+                    {
+                        return -1;
+                    }
+
+                    app = scope.Escape(app_maybe.ToLocalChecked());
+                }
+
+                {
+                    v8::EscapableHandleScope scope(isolate.get());
+
+                    global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app).ToChecked();
+
+                    auto initialize = sugar::v8::object_get(app, "initialize").As<v8::Function>();
+                    if (initialize.IsEmpty())
+                    {
+                        ZERO_LOG("app: no initialize function found\n");
+                        return -1;
+                    }
+                    v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 0, nullptr);
+                    if (maybe.IsEmpty())
+                    {
+                        return -1;
+                    }
+                    app_initialize_promise = scope.Escape(maybe.ToLocalChecked().As<v8::Promise>());
+                }
             }
 
-            v8::HandleScope handle_scope(isolate.get());
+            if (app_tick.IsEmpty())
+            {
+                v8::EscapableHandleScope scope(isolate.get());
+
+                if (app_initialize_promise->State() == v8::Promise::PromiseState::kRejected)
+                {
+                    return -1;
+                }
+                if (app_initialize_promise->State() == v8::Promise::PromiseState::kPending)
+                {
+                    continue;
+                }
+                app_tick = scope.Escape(sugar::v8::object_get(app, "tick").As<v8::Function>());
+            }
 
             SDL_Event event;
             while (SDL_PollEvent(&event))
             {
+                v8::HandleScope scope(isolate.get());
+
                 switch (event.type)
                 {
                 case SDL_QUIT:
@@ -244,16 +272,13 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             }
             time = now;
 
-            v8::Local<v8::Value> args[] = {name2event};
             v8::TryCatch try_catch(isolate.get());
-            if (app_tick->Call(context, app, 1, args).IsEmpty())
+            if (app_tick->Call(context, app, 1, app_tick_args).IsEmpty())
             {
                 sugar::v8::tryCatch_print(try_catch);
                 return -1;
             }
             name2event->Clear();
-
-            // SDL_GL_SwapWindow(window.get());
         }
 
         ThreadPool::shared().join();

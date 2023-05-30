@@ -12,9 +12,9 @@ import CameraControlPanel from "../../../../script/main/components/ui/CameraCont
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
 import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
-import AssetLib from "../../../../script/main/core/AssetLib.js";
 import Node from "../../../../script/main/core/Node.js";
 import Zero from "../../../../script/main/core/Zero.js";
+import assetLib2 from "../../../../script/main/core/assetLib2.js";
 import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
@@ -95,7 +95,7 @@ export default class App extends Zero {
             const albedo = values.albedo || vec4.ONE;
             const texture = values.texture;
 
-            const effect = await AssetLib.instance.load({ path: "./assets/effects/test", type: Effect });
+            const effect = await assetLib2.load({ path: "./assets/effects/test", type: Effect });
             const passes = await effect.createPasses([
                 {
                     macros: { USE_SHADOW_MAP }

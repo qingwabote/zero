@@ -54,10 +54,6 @@ export default class WebDevice implements Device {
         this._gl = gl;
     }
 
-    initialize(): boolean {
-        return false;
-    }
-
     createCommandBuffer(): CommandBuffer {
         return new WebCommandBuffer(this._gl);
     }

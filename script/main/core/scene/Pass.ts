@@ -3,8 +3,8 @@ import DescriptorSet from "../gfx/DescriptorSet.js";
 import { PassState } from "../gfx/Pipeline.js";
 import { Sampler } from "../gfx/Sampler.js";
 import Texture from "../gfx/Texture.js";
+import programLib from "../programLib.js";
 import samplers from "../samplers.js";
-import ShaderLib from "../ShaderLib.js";
 import BufferViewWritable from "./buffers/BufferViewWritable.js";
 
 function type2Length(type: string): number {
@@ -35,7 +35,7 @@ export default class Pass {
     constructor(readonly state: PassState, readonly type = 'default', getThis?: (self: any) => void) {
         getThis && getThis(this);
 
-        const descriptorSetLayout = ShaderLib.instance.getMaterialDescriptorSetLayout(this.state.shader);
+        const descriptorSetLayout = programLib.getMaterialDescriptorSetLayout(this.state.shader);
         (descriptorSetLayout as any).name = "Pass descriptorSetLayout";
         if (descriptorSetLayout.bindings.length) {
             const descriptorSet = descriptorSetLayout.createDescriptorSet();
@@ -43,7 +43,7 @@ export default class Pass {
             const blocks = this.state.shader.info.meta.blocks;
             for (const name in blocks) {
                 const block = blocks[name];
-                if (block.set != ShaderLib.sets.material.index) {
+                if (block.set != programLib.sets.material.index) {
                     continue;
                 }
                 const view = this.createUniformBuffer(name);

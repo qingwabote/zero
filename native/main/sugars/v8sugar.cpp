@@ -344,42 +344,40 @@ namespace sugar::v8
         return handle_scope.EscapeMaybe(maybeModule);
     }
 
-    _v8::MaybeLocal<_v8::Module> module_evaluate(_v8::Local<_v8::Context> context, _v8::Local<_v8::String> specifier)
+    void module_evaluate(_v8::Local<_v8::Context> context, std::filesystem::path &path, _v8::Local<_v8::Module> *out_module, _v8::Local<_v8::Promise> *out_promise)
     {
         _v8::Isolate *isolate = context->GetIsolate();
-        _v8::EscapableHandleScope handle_scope(isolate);
+        {
+            _v8::EscapableHandleScope scope(isolate);
 
-        _v8::TryCatch try_catch(isolate);
-        auto maybeModule = module_resolve(context, specifier);
-        if (try_catch.HasCaught())
-        {
-            tryCatch_print(try_catch);
-            return {};
+            _v8::TryCatch try_catch(isolate);
+            _v8::MaybeLocal<_v8::Module> maybeModule = module_resolve(context, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
+            if (try_catch.HasCaught())
+            {
+                tryCatch_print(try_catch);
+                return;
+            }
+            if (maybeModule.IsEmpty())
+            {
+                ZERO_LOG_ERROR("module resolve failed: %s", path.string().c_str());
+                return;
+            }
+            auto module = maybeModule.ToLocalChecked();
+            auto maybeOk = module->InstantiateModule(context, module_resolve);
+            if (try_catch.HasCaught())
+            {
+                tryCatch_print(try_catch);
+                return;
+            }
+            if (maybeOk.IsNothing())
+            {
+                ZERO_LOG_ERROR("module instantiate failed: %s", path.string().c_str());
+                return;
+            }
+            *out_module = scope.Escape(module);
         }
-        if (maybeModule.IsEmpty())
-        {
-            ZERO_LOG_ERROR("module resolve failed: %s", *_v8::String::Utf8Value(isolate, specifier));
-            return {};
-        }
-        auto module = maybeModule.ToLocalChecked();
-        auto maybeOk = module->InstantiateModule(context, module_resolve);
-        if (try_catch.HasCaught())
-        {
-            tryCatch_print(try_catch);
-            return {};
-        }
-        if (maybeOk.IsNothing())
-        {
-            ZERO_LOG_ERROR("module instantiate failed: %s", *_v8::String::Utf8Value(isolate, specifier));
-            return {};
-        }
-        _v8::Local<_v8::Promise> promise = module->Evaluate(context).ToLocalChecked().As<_v8::Promise>();
-        if (promise->State() != _v8::Promise::kFulfilled)
-        {
-            ZERO_LOG_ERROR("module evaluate failed: %s", *_v8::String::Utf8Value(isolate, specifier));
-            return {};
-        }
-        return handle_scope.EscapeMaybe(maybeModule);
+
+        *out_promise = (*out_module)->Evaluate(context).ToLocalChecked().As<_v8::Promise>();
     }
 
     _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name)

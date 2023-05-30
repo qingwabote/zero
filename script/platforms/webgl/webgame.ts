@@ -1,12 +1,8 @@
 import { InputEvent } from "../../main/core/Input.js";
 import Zero from "../../main/core/Zero.js";
-import WebLoader from "./WebLoader.js";
-import WebPlatfrom from "./WebPlatform.js";
 
 export default {
     async run(canvas: HTMLCanvasElement, App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
-        (window as any).loader = new WebLoader;
-        (window as any).platform = new WebPlatfrom;
         (window as any).zero = new App(canvas.width, canvas.height);
         await zero.initialize();
 

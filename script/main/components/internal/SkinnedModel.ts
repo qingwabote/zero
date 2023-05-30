@@ -1,12 +1,12 @@
 import Skin from "../../assets/Skin.js";
 import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
 import mat4 from "../../core/math/mat4.js";
+import programLib from "../../core/programLib.js";
 import BufferViewWritable from "../../core/scene/buffers/BufferViewWritable.js";
 import FrameChangeRecord from "../../core/scene/FrameChangeRecord.js";
 import Model from "../../core/scene/Model.js";
 import SubModel from "../../core/scene/SubModel.js";
 import Transform from "../../core/scene/Transform.js";
-import ShaderLib from "../../core/ShaderLib.js";
 
 class ModelSpaceTransform extends FrameChangeRecord {
     matrix = mat4.create();
@@ -18,9 +18,9 @@ const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
 
 export default class SkinnedModel extends Model {
     static readonly descriptorSetLayout = (function () {
-        const layout = ShaderLib.createDescriptorSetLayout([
-            ShaderLib.sets.local.uniforms.Local,
-            ShaderLib.sets.local.uniforms.Skin
+        const layout = programLib.createDescriptorSetLayout([
+            programLib.sets.local.uniforms.Local,
+            programLib.sets.local.uniforms.Skin
         ]);
         (layout as any).name = "SkinnedModel descriptorSetLayout";
         return layout;
@@ -28,12 +28,12 @@ export default class SkinnedModel extends Model {
 
     private readonly _joints: readonly Transform[];
 
-    private _skinBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, ShaderLib.sets.local.uniforms.Skin.length);
+    private _skinBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, programLib.sets.local.uniforms.Skin.length);
 
     constructor(transform: Transform, subModels: SubModel[], private readonly _skin: Skin) {
         super(transform, subModels);
         this._joints = _skin.joints.map(paths => transform.getChildByPath(paths)!);
-        this.descriptorSet.bindBuffer(ShaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
+        this.descriptorSet.bindBuffer(programLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
     }
 
     override update(): void {

@@ -5,7 +5,7 @@ import { Framebuffer } from "../gfx/Framebuffer.js";
 import { ClearFlagBits, PipelineLayout, SampleCountFlagBits } from "../gfx/Pipeline.js";
 import RenderPass, { AttachmentDescription, ImageLayout, LOAD_OP, RenderPassInfo } from "../gfx/RenderPass.js";
 import Texture, { TextureUsageBits } from "../gfx/Texture.js";
-import ShaderLib from "../ShaderLib.js";
+import programLib from "../programLib.js";
 import Stage from "./Stage.js";
 import Uniform from "./Uniform.js";
 
@@ -36,7 +36,7 @@ export default class Flow {
         const descriptorSetLayoutBindings: DescriptorSetLayoutBinding[] = [];
         for (const uniform of uniforms) {
             const instance = new uniform;
-            descriptorSetLayoutBindings.push(ShaderLib.createDescriptorSetLayoutBinding(instance.definition))
+            descriptorSetLayoutBindings.push(programLib.createDescriptorSetLayoutBinding(instance.definition))
             this._uniforms.push(instance);
         }
 
@@ -102,8 +102,8 @@ export default class Flow {
         const renderScene = zero.scene;
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
-            commandBuffer.bindDescriptorSet(this._globalPipelineLayout, ShaderLib.sets.global.index, this.globalDescriptorSet,
-                [ShaderLib.sets.global.uniforms.Camera.size * cameraIndex]);
+            commandBuffer.bindDescriptorSet(this._globalPipelineLayout, programLib.sets.global.index, this.globalDescriptorSet,
+                [programLib.sets.global.uniforms.Camera.size * cameraIndex]);
             for (const stage of this.stages) {
                 if ((camera.visibilityFlags & stage.visibility) == 0) {
                     continue;

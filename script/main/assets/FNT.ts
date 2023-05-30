@@ -1,7 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import Asset from "../core/Asset.js";
-import AssetLib from "../core/AssetLib.js";
+import assetLib2 from "../core/assetLib2.js";
 import Texture from "./Texture.js";
 
 interface Common {
@@ -75,7 +75,7 @@ export default class FNT extends Asset {
             return this;
         }
         const file = res[1];
-        this._texture = await AssetLib.instance.load({ path: `${parent}/${file}`, type: Texture });
+        this._texture = await assetLib2.load({ path: `${parent}/${file}`, type: Texture });
         return this;
     }
 
