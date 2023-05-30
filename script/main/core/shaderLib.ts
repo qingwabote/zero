@@ -70,19 +70,12 @@ export interface UniformDefinition {
     binding: number
 }
 
-export interface ShaderCreateInfo {
-    name: string;
-    macros?: Record<string, number>;
-}
-
 const _name2source: Record<string, ShaderStage[]> = {};
 const _name2macros: Record<string, Set<string>> = {};
 const _key2shader: Record<string, Shader> = {};
 const _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
-function getShaderKey(info: ShaderCreateInfo): string {
-    const name = info.name;
-    const macros = info.macros || {};
+function getShaderKey(name: string, macros: Record<string, number> = {}): string {
     let key = name;
     for (const macro of _name2macros[name]) {
         const val = macros[macro] || 0;
@@ -152,14 +145,7 @@ export default {
         return descriptorSetLayout;
     },
 
-    // getShader(info: ShaderCreateInfo): Shader {
-    //     return _key2shader[getShaderKey(info)];
-    // },
-
-    async loadShader(info: ShaderCreateInfo): Promise<Shader> {
-        const name = info.name;
-        const macros = info.macros || {};
-
+    async load(name: string, macros: Record<string, number> = {}): Promise<Shader> {
         let source = _name2source[name];
         if (!source) {
             const path = `../../assets/shaders/${name}`; // hard code
@@ -177,7 +163,7 @@ export default {
             _name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
         }
 
-        const key = getShaderKey(info);
+        const key = getShaderKey(name, macros);
         if (!_key2shader[key]) {
             const mac: Record<string, number> = {};
             for (const macro of _name2macros[name]) {

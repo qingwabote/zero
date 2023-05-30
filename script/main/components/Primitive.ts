@@ -4,18 +4,18 @@ import { PassState } from "../core/gfx/Pipeline.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3, { Vec3 } from "../core/math/vec3.js";
 import vec4, { Vec4 } from "../core/math/vec4.js";
-import programLib from "../core/programLib.js";
-import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
 import SubMesh, { VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
 import SubModel from "../core/scene/SubModel.js";
+import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
+import shaderLib from "../core/shaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
-const shader_primitive = await programLib.loadShader({ name: 'primitive' });
+const shader_primitive = await shaderLib.load('primitive');
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 

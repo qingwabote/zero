@@ -1,4 +1,4 @@
-import { UniformDefinition } from "../programLib.js";
+import { UniformDefinition } from "../shaderLib.js";
 
 export default interface Uniform {
     readonly definition: UniformDefinition;

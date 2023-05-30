@@ -1,14 +1,14 @@
 import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
 import mat4 from "../math/mat4.js";
-import programLib from "../programLib.js";
+import shaderLib from "../shaderLib.js";
 import BufferViewWritable from "./buffers/BufferViewWritable.js";
 import SubModel from "./SubModel.js";
 import Transform from "./Transform.js";
 
 export default class Model {
     static readonly descriptorSetLayout = (function () {
-        const layout = programLib.createDescriptorSetLayout([programLib.sets.local.uniforms.Local]);
+        const layout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
         (layout as any).name = "Model descriptorSetLayout";
         return layout;
     })();
@@ -21,14 +21,14 @@ export default class Model {
 
     order: number = 0;
 
-    private _localBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, programLib.sets.local.uniforms.Local.length);
+    private _localBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
 
     private _addingToScene = false;
 
     constructor(protected _transform: Transform, readonly subModels: SubModel[]) {
         const ModelType = (this.constructor as typeof Model);
         const descriptorSet = ModelType.descriptorSetLayout.createDescriptorSet()
-        descriptorSet.bindBuffer(programLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
+        descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
         this.descriptorSet = descriptorSet;
     }
 

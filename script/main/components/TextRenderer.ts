@@ -1,7 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import FNT from "../assets/FNT.js";
-import assetLib2 from "../core/assetLib2.js";
+import assetLib from "../core/assetLib.js";
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
@@ -10,20 +10,20 @@ import aabb2d, { AABB2D } from "../core/math/aabb2d.js";
 import vec2 from "../core/math/vec2.js";
 import vec3 from "../core/math/vec3.js";
 import vec4 from "../core/math/vec4.js";
-import programLib from "../core/programLib.js";
-import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
 import Model from "../core/scene/Model.js";
 import Pass from "../core/scene/Pass.js";
 import SubMesh, { IndexInputView, PIXELS_PER_UNIT, VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
 import SubModel from "../core/scene/SubModel.js";
+import BufferViewResizable from "../core/scene/buffers/BufferViewResizable.js";
+import shaderLib from "../core/shaderLib.js";
 import BoundedRenderer, { BoundsEvent } from "./internal/BoundedRenderer.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-const shader_unlit = await programLib.loadShader({ name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } })
+const shader_unlit = await shaderLib.load('unlit', { USE_ALBEDO_MAP: 1 })
 
-const fnt_zero = await assetLib2.load({ path: '../../assets/fnt/zero', type: FNT });
+const fnt_zero = await assetLib.load('../../assets/fnt/zero', FNT);
 
 enum DirtyFlagBits {
     NONE = 0,

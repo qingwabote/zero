@@ -3,7 +3,7 @@
 import MeshRenderer from "../components/MeshRenderer.js";
 import SkinnedMeshRenderer from "../components/SkinnedMeshRenderer.js";
 import Asset from "../core/Asset.js";
-import { default as assetLib2 } from "../core/assetLib2.js";
+import { default as assetLib } from "../core/assetLib.js";
 import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../core/gfx/Buffer.js";
 import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
@@ -70,7 +70,7 @@ export async function materialFuncDefault(macros: MaterialMacros = {}, values: M
     const albedo = values.albedo || vec4.ONE;
     const texture = values.texture;
 
-    const effect = await assetLib2.load({ path: "../../assets/effects/phong", type: Effect });
+    const effect = await assetLib.load("../../assets/effects/phong", Effect);
     const passes = await effect.createPasses([
         {
             macros: { USE_SHADOW_MAP }
@@ -132,7 +132,7 @@ export default class GLTF extends Asset {
         const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
         const bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
         const json_images = json.images || [];
-        const textures = await Promise.all(json_images.map((info: any) => assetLib2.load({ path: `${parent}/${uri2path(info.uri)}`, type: Texture })));
+        const textures = await Promise.all(json_images.map((info: any) => assetLib.load(`${parent}/${uri2path(info.uri)}`, Texture)));
 
         this._materialDefault = await this.materialFunc();
 
