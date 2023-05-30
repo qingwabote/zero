@@ -53,7 +53,7 @@ export default class App extends Zero {
         up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
         node.position = [0, 0, 10];
 
-        const down_size = 400;
+        const down_size = height / 2;
         node = new Node;
         const down_camera = node.addComponent(Camera);
         down_camera.visibilityFlags = VisibilityFlagBits.DEFAULT | VisibilityBit_DOWN;

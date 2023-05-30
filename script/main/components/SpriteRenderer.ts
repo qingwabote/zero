@@ -51,7 +51,7 @@ export default class SpriteRenderer extends BoundedRenderer {
         const state = new PassState(ShaderLib.instance.getShader(shader_unlit_info), undefined, { cullMode: 'NONE' })
         const pass = new Pass(state);
         pass.setUniform('Constants', 'albedo', this.color)
-        pass.setTexture('albedoMap', this._spriteFrame.texture.impl, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
+        pass.setTexture('albedoMap', this._spriteFrame.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);
         const model = new Model(this.node, [subModel]);
         zero.scene.addModel(model)

@@ -8,7 +8,7 @@ passes:
       depthTestEnable: true
   - shader: phong
     macros:
-      SHADOW_MAP_PCF: 1
+      SHADOW_MAP_PCF: 0
     constants:
       albedo: [1, 1, 1, 1]
     depthStencilState:

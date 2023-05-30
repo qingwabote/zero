@@ -1,4 +1,5 @@
 import SpriteFrame from "../../assets/SpriteFrame.js";
+import Texture from "../../assets/Texture.js";
 import AssetLib from "../../core/AssetLib.js";
 import Node from "../../core/Node.js";
 import aabb2d, { AABB2D } from "../../core/math/aabb2d.js";
@@ -10,7 +11,7 @@ import UIContainer from "./UIContainer.js";
 import UIRenderer from "./UIRenderer.js";
 import { UIEventToListener, UITouchEventType } from "./internal/UIElement.js";
 
-const texture_splash_info = { path: '../../assets/images/splash.png', type: SpriteFrame };
+const texture_splash_info = { path: '../../assets/images/splash.png', type: Texture };
 AssetLib.preloaded.push(texture_splash_info);
 
 export enum SliderEventType {
@@ -46,16 +47,18 @@ export default class Slider extends UIContainer<SliderEventToListener> {
     constructor(node: Node) {
         super(node);
 
+        const splash = new SpriteFrame(AssetLib.instance.get(texture_splash_info).impl);
+
         const background = UIRenderer.create(SpriteRenderer);
         background.size = this._size;
-        background.impl.spriteFrame = AssetLib.instance.get(texture_splash_info);
+        background.impl.spriteFrame = splash;
         this.addElement(background);
         this._background = background;
 
         const foreground = UIRenderer.create(SpriteRenderer);
         foreground.size = this._size;
         foreground.anchor = vec2.create(0, 0.5)
-        foreground.impl.spriteFrame = AssetLib.instance.get(texture_splash_info);
+        foreground.impl.spriteFrame = splash;
         foreground.impl.color = vec4.create(0, 1, 0, 1);
         this.addElement(foreground);
         this._foreground = foreground;

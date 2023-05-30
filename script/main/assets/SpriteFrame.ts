@@ -1,28 +1,16 @@
-import Asset from "../core/Asset.js";
-import AssetLib from "../core/AssetLib.js";
 import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format from "../core/gfx/Format.js";
 import { IndexType } from "../core/gfx/InputAssembler.js";
+import Texture from "../core/gfx/Texture.js";
 import vec3 from "../core/math/vec3.js";
 import SubMesh, { IndexInputView, PIXELS_PER_UNIT, VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
 import BufferViewWritable from "../core/scene/buffers/BufferViewWritable.js";
 import Mesh from "./Mesh.js";
-import Texture from "./Texture.js";
 
-export default class SpriteFrame extends Asset {
-    private _texture!: Texture;
-    get texture(): Texture {
-        return this._texture;
-    }
+export default class SpriteFrame {
+    readonly mesh: Mesh;
 
-    private _mesh!: Mesh;
-    get mesh(): Mesh {
-        return this._mesh;
-    }
-
-    async load(path: string): Promise<this> {
-        const texture = await AssetLib.instance.load({ path, type: Texture });
-
+    constructor(readonly texture: Texture) {
         const texCoordBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX, 8);
         const positionBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX, 12);
 
@@ -31,7 +19,7 @@ export default class SpriteFrame extends Asset {
         const uv_t = 0;
         const uv_b = 1;
 
-        let { width, height } = texture.impl.info;
+        let { width, height } = texture.info;
         [width, height] = [width / PIXELS_PER_UNIT, height / PIXELS_PER_UNIT];
         const pos_l = -width / 2;
         const pos_r = width / 2;
@@ -91,9 +79,6 @@ export default class SpriteFrame extends Asset {
             indexInput,
             vertexOrIndexCount: indexBuffer.length
         }
-        this._mesh = { subMeshes: [subMesh] };
-        this._texture = texture;
-        return this;
+        this.mesh = { subMeshes: [subMesh] };
     }
-
 }
