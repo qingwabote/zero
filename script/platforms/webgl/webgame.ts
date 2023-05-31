@@ -2,9 +2,9 @@ import { InputEvent } from "../../main/core/Input.js";
 import Zero from "../../main/core/Zero.js";
 
 export default {
-    async run(canvas: HTMLCanvasElement, App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
+    run(canvas: HTMLCanvasElement, App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
         (window as any).zero = new App(canvas.width, canvas.height);
-        await zero.initialize();
+        zero.initialize();
 
         const name2event: Map<InputEvent, any> = new Map;
         canvas.addEventListener("mousedown", (mouseEvent) => {

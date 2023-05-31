@@ -113,58 +113,33 @@ export default {
         stages = stages.map(stage => ({ type: stage.type, source: macroExpand(macros, stage.source) }));
 
         const vertexStage = stages.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!;
-        const fragmentStage = stages.find(stage => stage.type == ShaderStageFlagBits.FRAGMENT)!;
 
         const attributes: Record<string, Attribute> = {};
-        let matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
+        const matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
         for (const match of matches) {
             const [_, location, type, name] = match;
             attributes[name] = { location: parseInt(location), format: getFormat(type) };
         }
 
-        // remove unsupported layout qualifier for webgl
-        vertexStage.source = vertexStage.source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*out/g,
-            function (content: string): string {
-                if (typeof window != 'undefined') {
-                    return "out"
-                }
-                return content;
-            }
-        );
-        fragmentStage.source = fragmentStage.source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*in/g,
-            function (content: string): string {
-                if (typeof window != 'undefined') {
-                    return "in"
-                }
-                return content;
-            }
-        );
-
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
         for (const stage of stages) {
-            stage.source = stage.source.replace(
-                /^\s*layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)\s*(?:\{([^\{\}]*)\})?/gm,// 非捕获括号 (?:x)
-                function (res: string, set: string, binding: string, type: string, name: string, content: string): string {
-                    if (!type) {
-                        const members: UniformMember[] = [];
-                        const matches = content.matchAll(/(\w+)\s+(\w+)/g);
-                        for (const match of matches) {
-                            const [_, type, name] = match;
-                            members.push({ name, type });
-                        }
-                        const block = blocks[name];
-                        blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, stageFlags: block ? stage.type | block.stageFlags : stage.type };
-                    } else if (type == 'sampler2D') {
-                        const samplerTexture = samplerTextures[name];
-                        samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding), stageFlags: samplerTexture ? stage.type | samplerTexture.stageFlags : stage.type };
+            const matches = stage.source.matchAll(/layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)\s*(?:\{([^\{\}]*)\})?/g);// 非捕获括号 (?:x))!
+            for (const match of matches) {
+                const [_, set, binding, type, name, content] = match;
+                if (!type) {
+                    const members: UniformMember[] = [];
+                    for (const match of content.matchAll(/(\w+)\s+(\w+)/g)) {
+                        const [_, type, name] = match;
+                        members.push({ name, type });
                     }
-                    // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
-                    if (typeof window != 'undefined') {
-                        return res.replace(/layout\(.*\)/, '');
-                    }
-                    return res;
-                })
+                    const block = blocks[name];
+                    blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, stageFlags: block ? stage.type | block.stageFlags : stage.type };
+                } else if (type == 'sampler2D') {
+                    const samplerTexture = samplerTextures[name];
+                    samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding), stageFlags: samplerTexture ? stage.type | samplerTexture.stageFlags : stage.type };
+                }
+            }
         }
         return {
             stages,

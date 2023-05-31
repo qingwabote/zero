@@ -120,8 +120,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         }
 
         v8::Local<v8::Function> app_tick;
-        v8::Local<v8::Promise> app_initialize_promise;
-
         v8::Local<v8::Map> name2event = v8::Map::New(isolate.get());
         v8::Local<v8::Value> app_tick_args[] = {name2event};
 
@@ -185,28 +183,14 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                         ZERO_LOG("app: no initialize function found\n");
                         return -1;
                     }
-                    v8::MaybeLocal<v8::Value> maybe = initialize->Call(context, app, 0, nullptr);
-                    if (maybe.IsEmpty())
+                    v8::TryCatch try_catch(isolate.get());
+                    if (initialize->Call(context, app, 0, nullptr).IsEmpty())
                     {
+                        sugar::v8::tryCatch_print(try_catch);
                         return -1;
                     }
-                    app_initialize_promise = scope.Escape(maybe.ToLocalChecked().As<v8::Promise>());
+                    app_tick = scope.Escape(sugar::v8::object_get(app, "tick").As<v8::Function>());
                 }
-            }
-
-            if (app_tick.IsEmpty())
-            {
-                v8::EscapableHandleScope scope(isolate.get());
-
-                if (app_initialize_promise->State() == v8::Promise::PromiseState::kRejected)
-                {
-                    return -1;
-                }
-                if (app_initialize_promise->State() == v8::Promise::PromiseState::kPending)
-                {
-                    continue;
-                }
-                app_tick = scope.Escape(sugar::v8::object_get(app, "tick").As<v8::Function>());
             }
 
             SDL_Event event;

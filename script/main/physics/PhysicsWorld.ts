@@ -12,9 +12,7 @@ export default class PhysicsWorld {
 
     private _rayTestFromTo: Readonly<Vec3>[] = [vec3.ZERO, vec3.ZERO];
 
-    constructor(context: PhysicsSystem) {
-        const ammo = context.ammo;
-
+    constructor(ammo: any) {
         this._collisionConfiguration = new ammo.btDefaultCollisionConfiguration();
         this._dispatcher = new ammo.btCollisionDispatcher(this._collisionConfiguration);
         this._broadphase = new ammo.btDbvtBroadphase();

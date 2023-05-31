@@ -1,4 +1,3 @@
-import BoundedRenderer from "../../../../script/main/components/internal/BoundedRenderer.js";
 import Primitive from "../../../../script/main/components/Primitive.js";
 import { UIEventToListener, UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
 import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
@@ -6,6 +5,7 @@ import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
 import vec2, { Vec2 } from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
+import { PIXELS_PER_UNIT } from "../../../../script/main/core/scene/SubMesh.js";
 
 const vec3_a = vec3.create()
 const vec3_b = vec3.create()
@@ -37,8 +37,8 @@ export default class Joystick extends UIContainer<EventToListener> {
             const local = event.touch.local;
             vec2.set(
                 this._point,
-                Math.max(Math.min(local[0] / BoundedRenderer.PIXELS_PER_UNIT, 1), -1),
-                Math.max(Math.min(local[1] / BoundedRenderer.PIXELS_PER_UNIT, 1), -1)
+                Math.max(Math.min(local[0] / PIXELS_PER_UNIT, 1), -1),
+                Math.max(Math.min(local[1] / PIXELS_PER_UNIT, 1), -1)
             )
             this.draw(primitive, this._point)
             this.emit(JoystickEventType.CHANGED);
@@ -47,8 +47,8 @@ export default class Joystick extends UIContainer<EventToListener> {
             const local = event.touch.local;
             vec2.set(
                 this._point,
-                Math.max(Math.min(local[0] / BoundedRenderer.PIXELS_PER_UNIT, 1), -1),
-                Math.max(Math.min(local[1] / BoundedRenderer.PIXELS_PER_UNIT, 1), -1)
+                Math.max(Math.min(local[0] / PIXELS_PER_UNIT, 1), -1),
+                Math.max(Math.min(local[1] / PIXELS_PER_UNIT, 1), -1)
             )
             this.draw(primitive, this._point)
             this.emit(JoystickEventType.CHANGED);

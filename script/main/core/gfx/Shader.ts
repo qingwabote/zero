@@ -43,5 +43,5 @@ export interface ShaderInfo {
 
 export default interface Shader {
     get info(): ShaderInfo;
-    initialize(info: ShaderInfo): void;
+    initialize(info: ShaderInfo): boolean;
 }

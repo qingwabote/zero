@@ -9,8 +9,6 @@ export default class AnimationSystem implements System {
 
     private _states: Map<AnimationState, AnimationState> = new Map;
 
-    async load(): Promise<void> { }
-
     start(): void {
         this._time = new Date().getSeconds();
     }

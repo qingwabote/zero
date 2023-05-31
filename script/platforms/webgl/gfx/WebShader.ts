@@ -18,18 +18,25 @@ export default class WebShader implements Shader {
         this._gl = gl;
     }
 
-    initialize(info: ShaderInfo): void {
+    initialize(info: ShaderInfo): boolean {
         this._info = info;
-        this.compileShader(info.stages, info.meta.blocks, info.meta.samplerTextures);
+        return this.compileShader(info.stages, info.meta.blocks, info.meta.samplerTextures);
     }
 
-    protected compileShader(stages: Readonly<ShaderStage[]>, blocks: Record<string, Uniform>, samplerTextures: Record<string, Uniform>): void {
+    protected compileShader(stages: Readonly<ShaderStage[]>, blocks: Record<string, Uniform>, samplerTextures: Record<string, Uniform>): boolean {
         const gl = this._gl;
 
         const shaders: WebGLShader[] = [];
         for (const stage of stages) {
-            const source = `#version 300 es\n${stage.source}`
+            // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
+            let source = stage.source.replace(/layout.*uniform/g, 'uniform');
+            if (stage.type == ShaderStageFlagBits.VERTEX) {
+                source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*out/g, 'out');
+            } else {
+                source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*in/g, 'in');
+            }
 
+            source = `#version 300 es\n${source}`
             const shader = gl.createShader(stage.type == ShaderStageFlagBits.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER)!;
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
@@ -38,7 +45,7 @@ export default class WebShader implements Shader {
                 console.error(gl.getShaderInfoLog(shader));
                 let lineNumber = 1;
                 console.error('Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `));
-                return;
+                return true;
             }
             shaders.push(shader);
         }
@@ -51,7 +58,7 @@ export default class WebShader implements Shader {
         if (!gl.getProgramParameter(program.deref(), gl.LINK_STATUS)) {
             console.error(`Failed to link shader '${this._info.name}'.`);
             console.error(gl.getProgramInfoLog(program.deref()));
-            return;
+            return true;
         }
 
         for (const name in blocks) {
@@ -76,5 +83,7 @@ export default class WebShader implements Shader {
         }
 
         this._program = program;
+
+        return false;
     }
 }

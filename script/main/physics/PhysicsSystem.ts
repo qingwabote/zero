@@ -3,69 +3,36 @@ import Zero from "../core/Zero.js";
 import Ammo from "./impl/ammo.wasm.js";
 import PhysicsWorld from "./PhysicsWorld.js";
 
+const ammo: any = {}
+ammo.wasmBinary = await loader.load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
+ammo.printErr = console.log.bind(console);
+ammo.locateFile = function () { return 'not care' };
+
+const emptyObj = {};
+if (typeof globalThis.window != 'object') {
+    (globalThis as any).window = emptyObj;
+}
+await Ammo(ammo);
+if ((globalThis as any).window == emptyObj) {
+    (globalThis as any).window = undefined;
+}
+
 export default class PhysicsSystem implements System {
     static readonly instance = new PhysicsSystem()
 
-    private _bt_vec3_a: any;
-    public get bt_vec3_a(): any {
-        return this._bt_vec3_a;
-    }
+    readonly bt_vec3_a = new ammo.btVector3(0, 0, 0);
 
-    private _bt_vec3_b: any;
-    public get bt_vec3_b(): any {
-        return this._bt_vec3_b;
-    }
+    readonly bt_vec3_b = new ammo.btVector3(0, 0, 0);
 
-    private _bt_vec3_c: any;
-    public get bt_vec3_c(): any {
-        return this._bt_vec3_c;
-    }
+    readonly bt_vec3_c = new ammo.btVector3(0, 0, 0);
 
-    private _bt_transform_a: any;
-    public get bt_transform_a(): any {
-        return this._bt_transform_a;
-    }
+    readonly bt_transform_a = new ammo.btTransform();
 
-    private _bt_quat_a: any;
-    public get bt_quat_a(): any {
-        return this._bt_quat_a;
-    }
+    readonly bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
 
-    private _ammo: any;
-    public get ammo(): any {
-        return this._ammo;
-    }
+    readonly ammo = ammo;
 
-    private _world!: PhysicsWorld;
-    public get world(): PhysicsWorld {
-        return this._world;
-    }
-
-    async load(): Promise<void> {
-        const Module: any = {}
-        Module.wasmBinary = await loader.load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
-        Module.printErr = console.log.bind(console);
-        Module.locateFile = function () { return 'not care' };
-
-        const emptyObj = {};
-        if (typeof globalThis.window != 'object') {
-            (globalThis as any).window = emptyObj;
-        }
-        await Ammo(Module);
-        if ((globalThis as any).window == emptyObj) {
-            (globalThis as any).window = undefined;
-        }
-
-        this._bt_vec3_a = new Module.btVector3(0, 0, 0);
-        this._bt_vec3_b = new Module.btVector3(0, 0, 0);
-        this._bt_vec3_c = new Module.btVector3(0, 0, 0);
-        this._bt_transform_a = new Module.btTransform();
-        this._bt_quat_a = new Module.btQuaternion(0, 0, 0, 1);
-
-        this._ammo = Module;
-
-        this._world = new PhysicsWorld(this);
-    }
+    readonly world: PhysicsWorld = new PhysicsWorld(ammo);
 
     start(): void { }
 

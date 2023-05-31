@@ -171,12 +171,9 @@ export default {
             }
             const res = await preprocessor.preprocess(_name2source[name], mac);
             const shader = gfx.createShader();
-            shader.initialize({
-                name,
-                stages: res.stages,
-                meta: res.meta,
-                hash: key
-            });
+            if (shader.initialize({ name, stages: res.stages, meta: res.meta, hash: key })) {
+                throw new Error(`failed to initialize shader: ${name}`)
+            }
             _key2shader[key] = shader;
         }
         return _key2shader[key];

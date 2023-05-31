@@ -32,8 +32,55 @@ const VisibilityBit_DOWN = 1 << 10;
 
 const USE_SHADOW_MAP = 1;
 
+async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues = {}) {
+    const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
+    const albedo = values.albedo || vec4.ONE;
+    const texture = values.texture;
+
+    const effect = await assetLib.load("./assets/effects/test", Effect);
+    const passes = await effect.createPasses([
+        {
+            macros: { USE_SHADOW_MAP }
+        },
+        {
+            macros: {
+                USE_ALBEDO_MAP: texture ? 1 : 0,
+                USE_SHADOW_MAP,
+                USE_SKIN,
+                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+            },
+            constants: {
+                albedo
+            },
+            ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
+        },
+        {
+            macros: {
+                USE_ALBEDO_MAP: texture ? 1 : 0
+            },
+            constants: {
+                albedo
+            },
+            ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
+        }
+    ])
+    return new Material(passes);
+}
+
+const guardian = new GLTF();
+guardian.materialFunc = materialFunc;
+await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
+
+const plane = new GLTF();
+plane.materialFunc = materialFunc;
+await plane.load('../../assets/models/primitive/scene');
+
+const gltf_camera = new GLTF();
+gltf_camera.materialFunc = materialFunc;
+await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
+
 export default class App extends Zero {
-    async start(): Promise<Flow> {
+    start(): Flow {
         const { width, height } = this.window;
 
         const lit_position: Vec3 = [4, 4, 4];
@@ -89,51 +136,9 @@ export default class App extends Zero {
         cameraControlPanel.camera = up_camera;
         doc.addElement(cameraControlPanel);
 
-        async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues = {}) {
-            // const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
-            const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
-            const albedo = values.albedo || vec4.ONE;
-            const texture = values.texture;
 
-            const effect = await assetLib.load("./assets/effects/test", Effect);
-            const passes = await effect.createPasses([
-                {
-                    macros: { USE_SHADOW_MAP }
-                },
-                {
-                    macros: {
-                        USE_ALBEDO_MAP: texture ? 1 : 0,
-                        USE_SHADOW_MAP,
-                        USE_SKIN,
-                        CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-                    },
-                    constants: {
-                        albedo
-                    },
-                    ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
-                },
-                {
-                    macros: {
-                        USE_ALBEDO_MAP: texture ? 1 : 0
-                    },
-                    constants: {
-                        albedo
-                    },
-                    ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
-                }
-            ])
-            return new Material(passes);
-        }
-
-        const guardian = new GLTF();
-        guardian.materialFunc = materialFunc;
-        await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
         node = guardian.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
-
-        const plane = new GLTF();
-        plane.materialFunc = materialFunc;
-        await plane.load('../../assets/models/primitive/scene');
 
         node = plane.createScene("Cube")!.children[0]!;
         const renderer = node.getComponent(MeshRenderer)!;
@@ -146,9 +151,6 @@ export default class App extends Zero {
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
         node.scale = [5, 0.2, 5];
 
-        const gltf_camera = new GLTF();
-        gltf_camera.materialFunc = materialFunc;
-        await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
         node = gltf_camera.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityBit_DOWN
         node.scale = [0.005, 0.005, 0.005];

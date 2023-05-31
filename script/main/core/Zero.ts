@@ -69,11 +69,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this.window = { width, height };
     }
 
-    async initialize(): Promise<void> {
-        for (const system of this._systems) {
-            await system.load();
-        }
-
+    initialize(): void {
         const commandBuffer = gfx.createCommandBuffer();
         commandBuffer.initialize();
         this._commandBuffer = commandBuffer;
@@ -90,7 +86,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         renderFence.initialize(true);
         this._renderFence = renderFence;
 
-        this._flow = await this.start();
+        this._flow = this.start();
         this._flow.initialize();
 
         for (const system of this._systems) {
@@ -98,7 +94,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         }
     }
 
-    abstract start(): Promise<Flow>;
+    abstract start(): Flow;
 
     addComponent(com: Component): void {
         this._componentScheduler.add(com);

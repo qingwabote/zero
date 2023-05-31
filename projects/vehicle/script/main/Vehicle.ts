@@ -1,7 +1,7 @@
 import GLTF from "../../../../script/main/assets/GLTF.js";
 import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
 import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
-import AssetLib from "../../../../script/main/core/AssetLib.js";
+import assetLib from "../../../../script/main/core/assetLib.js";
 import Component from "../../../../script/main/core/Component.js";
 import quat from "../../../../script/main/core/math/quat.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
@@ -9,8 +9,7 @@ import vec4 from "../../../../script/main/core/math/vec4.js";
 import Node from "../../../../script/main/core/Node.js";
 import PhysicsSystem from "../../../../script/main/physics/PhysicsSystem.js";
 
-const gltf_primitive_info = { path: '../../assets/models/primitive/scene', type: GLTF };
-AssetLib.preloaded.push(gltf_primitive_info)
+const gltf_primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);
 
 const chassis_size = vec3.create(1.8, 0.6, 4);
 
@@ -35,8 +34,7 @@ export default class Vehicle extends Component {
     constructor(node: Node) {
         super(node);
 
-        const primitive = AssetLib.instance.get(gltf_primitive_info);
-        const cube = primitive.createScene("Cube", true)!.children[0];
+        const cube = gltf_primitive.createScene("Cube", true)!.children[0];
         let meshRenderer = cube.getComponent(MeshRenderer)!;
         meshRenderer.materials[0].passes[0].setUniform('Constants', 'albedo', vec4.create(1, 0, 0, 1));
         cube.scale = vec3.scale(vec3.create(), chassis_size, 0.5)
@@ -112,12 +110,11 @@ export default class Vehicle extends Component {
         wheelInfo.set_m_suspensionStiffness(20);
 
         const node = new Node;
-        const primitive = AssetLib.instance.get(gltf_primitive_info);
-        const cylinder = primitive.createScene("Cylinder")!.children[0];
+        const cylinder = gltf_primitive.createScene("Cylinder")!.children[0];
         cylinder.scale = vec3.create(wheel_radius, wheel_width / 2, wheel_radius)
         cylinder.euler = vec3.create(0, 0, 90)
         node.addChild(cylinder)
-        const cube = primitive.createScene("Cube", true)!.children[0];
+        const cube = gltf_primitive.createScene("Cube", true)!.children[0];
         cube.scale = vec3.create(wheel_width / 2 + 0.01, wheel_radius - 0.01, wheel_radius / 3)
         let meshRenderer = cube.getComponent(MeshRenderer)!;
         meshRenderer.materials[0].passes[0].setUniform('Constants', 'albedo', vec4.create(1, 0, 0, 1));

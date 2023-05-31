@@ -53,6 +53,9 @@ export default class Effect extends Asset {
         const passes: Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
+            if (info.switch && info.macros![info.switch] != 1) {
+                continue;
+            }
             const shader = await shaderLib.load(info.shader!, info.macros);
             const pass = new Pass(new PassState(shader, info.primitive, info.rasterizationState, info.depthStencilState, info.blendState), info.type);
             for (const key in info.constants) {
