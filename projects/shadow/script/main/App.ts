@@ -1,4 +1,3 @@
-import MaterialInstance from "../../../../script/main/MaterialInstance.js";
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 import Effect from "../../../../script/main/assets/Effect.js";
 import GLTF, { MaterialMacros, MaterialValues } from "../../../../script/main/assets/GLTF.js";
@@ -6,7 +5,6 @@ import Material from "../../../../script/main/assets/Material.js";
 import SpriteFrame from "../../../../script/main/assets/SpriteFrame.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
-import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
 import SpriteRenderer from "../../../../script/main/components/SpriteRenderer.js";
 import CameraControlPanel from "../../../../script/main/components/ui/CameraControlPanel.js";
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
@@ -23,6 +21,7 @@ import vec4 from "../../../../script/main/core/math/vec4.js";
 import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Stage from "../../../../script/main/core/pipeline/Stage.js";
 import samplers from "../../../../script/main/core/samplers.js";
+import shaderLib from "../../../../script/main/core/shaderLib.js";
 import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
@@ -78,6 +77,8 @@ await plane.load('../../assets/models/primitive/scene');
 const gltf_camera = new GLTF();
 gltf_camera.materialFunc = materialFunc;
 await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
+
+const shader_depth = await shaderLib.load('depth');
 
 export default class App extends Zero {
     start(): Flow {
@@ -140,16 +141,9 @@ export default class App extends Zero {
         node = guardian.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
 
-        node = plane.createScene("Cube")!.children[0]!;
-        const renderer = node.getComponent(MeshRenderer)!;
-        renderer.materials[0] = new MaterialInstance(renderer.materials[0]);
-        renderer.materials[0].passes[1].setUniform('Constants', 'albedo', [0, 0, 1, 1]);
-        renderer.materials[0].passes[2].setUniform('Constants', 'albedo', [0, 0, 1, 1]);
+        node = plane.createScene("Plane")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
-
-        node = plane.createScene("Cube")!;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
-        node.scale = [5, 0.2, 5];
+        node.scale = [5, 1, 5];
 
         node = gltf_camera.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityBit_DOWN
@@ -163,6 +157,7 @@ export default class App extends Zero {
 
             const sprite = UIRenderer.create(SpriteRenderer);
             sprite.impl.spriteFrame = new SpriteFrame(stage.framebuffer.info.depthStencilAttachment);
+            sprite.impl.shader = shader_depth;
             sprite.size = [height / 4, height / 4]
             sprite.anchor = [1, 0];
             sprite.node.position = [width / 2, -height / 2, 0];

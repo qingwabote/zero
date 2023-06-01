@@ -35,6 +35,8 @@ export default class SpriteRenderer extends BoundedRenderer {
         return aabb2d.fromPoints(this._bounds, vec2_a, vec2_b);
     }
 
+    shader = shader_unlit;
+
     private _spriteFrame!: SpriteFrame;
     public get spriteFrame(): SpriteFrame {
         return this._spriteFrame;
@@ -47,9 +49,11 @@ export default class SpriteRenderer extends BoundedRenderer {
     color: Readonly<Vec4> = vec4.ONE;
 
     override start(): void {
-        const state = new PassState(shader_unlit, undefined, { cullMode: 'NONE' })
+        const state = new PassState(this.shader, undefined, { cullMode: 'NONE' })
         const pass = new Pass(state);
-        pass.setUniform('Constants', 'albedo', this.color)
+        if (pass.hasUniform('Constants', 'albedo')) {
+            pass.setUniform('Constants', 'albedo', this.color);
+        }
         pass.setTexture('albedoMap', this._spriteFrame.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);
         const model = new Model(this.node, [subModel]);

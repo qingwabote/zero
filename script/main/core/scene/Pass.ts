@@ -54,6 +54,19 @@ export default class Pass {
         }
     }
 
+    hasUniform(name: string, member: string): boolean {
+        const block = this.state.shader.info.meta.blocks[name];
+        if (!block) {
+            return false;
+        }
+        for (const mem of block.members!) {
+            if (mem.name == member) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     setUniform(name: string, member: string, value: ArrayLike<number>) {
         const block = this.state.shader.info.meta.blocks[name];
         let offset = 0;
