@@ -1,161 +1,69 @@
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
-import Effect from "../../../../script/main/assets/Effect.js";
-import GLTF, { MaterialMacros, MaterialValues } from "../../../../script/main/assets/GLTF.js";
-import Material from "../../../../script/main/assets/Material.js";
-import Animation from "../../../../script/main/components/Animation.js";
 import Camera from "../../../../script/main/components/Camera.js";
-import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
-import CameraControlPanel from "../../../../script/main/components/ui/CameraControlPanel.js";
-import Profiler from "../../../../script/main/components/ui/Profiler.js";
-import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import AssetLib from "../../../../script/main/core/AssetLib.js";
 import Node from "../../../../script/main/core/Node.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
-import quat from "../../../../script/main/core/math/quat.js";
-import vec2 from "../../../../script/main/core/math/vec2.js";
-import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
-import vec4 from "../../../../script/main/core/math/vec4.js";
+import { BufferUsageFlagBits } from "../../../../script/main/core/gfx/Buffer.js";
+import Format from "../../../../script/main/core/gfx/Format.js";
+import { PassState } from "../../../../script/main/core/gfx/Pipeline.js";
+import vec3 from "../../../../script/main/core/math/vec3.js";
 import Flow from "../../../../script/main/core/pipeline/Flow.js";
-import Stage from "../../../../script/main/core/pipeline/Stage.js";
-import samplers from "../../../../script/main/core/samplers.js";
+import Model from "../../../../script/main/core/scene/Model.js";
+import Pass from "../../../../script/main/core/scene/Pass.js";
+import SubMesh, { VertexAttribute, VertexInputView } from "../../../../script/main/core/scene/SubMesh.js";
+import SubModel from "../../../../script/main/core/scene/SubModel.js";
+import BufferViewWritable from "../../../../script/main/core/scene/buffers/BufferViewWritable.js";
+import shaderLib from "../../../../script/main/core/shaderLib.js";
 import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
-import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
-const PassFlag_DOWN = 'down';
-
-const VisibilityBit_UP = 1 << 9;
-const VisibilityBit_DOWN = 1 << 10;
-
-const USE_SHADOW_MAP = 1;
+const shader = await shaderLib.load('triangle');
 
 export default class App extends Zero {
-    async start(): Promise<Flow> {
+    start(): Flow {
         const { width, height } = this.window;
-
-        const lit_position: Vec3 = [4, 4, 4];
 
         let node: Node;
 
-        // light
-        node = new Node;
-        node.addComponent(DirectionalLight);
-        node.position = lit_position;
-        // node.visibility = Visibility_Up;
-
-
         // cameras
         node = new Node;
-        const up_camera = node.addComponent(Camera);
-        up_camera.visibilityFlags = VisibilityFlagBits.DEFAULT | VisibilityBit_UP;
-        up_camera.fov = 45;
-        up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
+        const camera = node.addComponent(Camera);
+        camera.visibilityFlags = VisibilityFlagBits.DEFAULT;
+        camera.fov = 45;
+        camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 10];
 
-        const down_size = height / 2;
-        node = new Node;
-        const down_camera = node.addComponent(Camera);
-        down_camera.visibilityFlags = VisibilityFlagBits.DEFAULT | VisibilityBit_DOWN;
-        down_camera.orthoHeight = ShadowUniform.camera.orthoHeight;
-        down_camera.far = ShadowUniform.camera.far;
-        down_camera.viewport = { x: 0, y: 0, width: down_size * ShadowUniform.camera.aspect, height: down_size };
-        node.position = lit_position;
-        node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
-
-        // UI
-        node = new Node;
-        const cameraUI = node.addComponent(Camera);
-        cameraUI.visibilityFlags = VisibilityFlagBits.UI;
-        cameraUI.clearFlags = ClearFlagBits.DEPTH;
-        cameraUI.orthoHeight = height / 2;
-        cameraUI.viewport = { x: 0, y: 0, width, height };
-        node.position = vec3.create(0, 0, width / 2);
-
-        const doc = (new Node).addComponent(UIDocument);
-
-        node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
-        const profiler = node.addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, - height / 2, 0];
-
-        node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
-        const cameraControlPanel = node.addComponent(CameraControlPanel);
-        cameraControlPanel.size = vec2.create(width, height);
-        cameraControlPanel.camera = up_camera;
-        doc.addElement(cameraControlPanel);
-
-        async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues = {}) {
-            // const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
-            const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
-            const albedo = values.albedo || vec4.ONE;
-            const texture = values.texture;
-
-            const effect = await AssetLib.instance.load({ path: "./assets/effects/test", type: Effect });
-            const passes = await effect.createPasses([
-                {
-                    macros: { USE_SHADOW_MAP }
-                },
-                {
-                    macros: {
-                        USE_ALBEDO_MAP: texture ? 1 : 0,
-                        USE_SHADOW_MAP,
-                        USE_SKIN,
-                        CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-                    },
-                    constants: {
-                        albedo
-                    },
-                    ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
-                },
-                {
-                    macros: {
-                        USE_ALBEDO_MAP: texture ? 1 : 0
-                    },
-                    constants: {
-                        albedo
-                    },
-                    ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
-                }
-            ])
-            return new Material(passes);
+        const positionBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX, 9);
+        positionBuffer.set([
+            1, 1, 0,
+            -1, 1, 0,
+            0, -1, 0
+        ]);
+        positionBuffer.update();
+        const vertexAttributes: VertexAttribute[] = [
+            { name: 'a_position', format: Format.RGB32_SFLOAT, buffer: 0, offset: 0 },
+        ];
+        const vertexInput: VertexInputView = {
+            buffers: [positionBuffer],
+            offsets: [0]
+        }
+        const subMesh: SubMesh = {
+            vertexAttributes,
+            vertexInput,
+            vertexPositionMin: vec3.create(),
+            vertexPositionMax: vec3.create(),
+            vertexOrIndexCount: 3
         }
 
-        const guardian = new GLTF();
-        guardian.materialFunc = materialFunc;
-        await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
-        node = guardian.createScene("Sketchfab_Scene")!;
-        const ac = node.addComponent(Animation);
-        ac.clips = guardian.animationClips
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        const state = new PassState(shader);
+        const pass = new Pass(state);
+        const subModels = [new SubModel(subMesh, [pass])];
+        node = new Node;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        node.position = [Math.random(), Math.random(), 0];
+        const model = new Model(node, subModels);
+        zero.scene.addModel(model)
 
-        const plane = new GLTF();
-        plane.materialFunc = materialFunc;
-        await plane.load('./assets/plane');
-        node = plane.createScene("Scene")!;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
-        node.scale = [5, 5, 5];
-
-        const gltf_camera = new GLTF();
-        gltf_camera.materialFunc = materialFunc;
-        await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
-        node = gltf_camera.createScene("Sketchfab_Scene")!;
-        node.visibilityFlag = VisibilityBit_DOWN
-        node.scale = [0.005, 0.005, 0.005];
-        node.euler = vec3.create(180, 0, 180)
-        up_camera.node.addChild(node);
-
-        const stages: Stage[] = [];
-        if (USE_SHADOW_MAP) {
-            stages.push(stageFactory.shadow(VisibilityBit_UP));
-        }
-        stages.push(stageFactory.forward([
-            new ModelPhase('default', VisibilityFlagBits.UI | VisibilityBit_UP),
-            new ModelPhase(PassFlag_DOWN, VisibilityBit_DOWN)
-        ]));
-        return new Flow(stages);
+        return new Flow([stageFactory.forward([new ModelPhase()], false)]);
     }
 }
 

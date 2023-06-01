@@ -22,18 +22,19 @@ namespace binding
             auto samples = sugar::v8::object_get(info, "samples").As<v8::Number>()->Value();
 
             // renderpass
-            VkRenderPassCreateInfo renderPassInfo = {};
-            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-            std::vector<VkAttachmentDescription> attachments(js_colorAttachments->Length() + 1 + js_resolveAttachments->Length());
+            VkRenderPassCreateInfo2 renderPassInfo = {};
+            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
+            std::vector<VkAttachmentDescription2> attachments(js_colorAttachments->Length() + 1 + js_resolveAttachments->Length());
             _impl->_clearValues.resize(js_colorAttachments->Length() + static_cast<size_t>(1));
             uint32_t attachmentIdx = 0;
 
             // color
-            std::vector<VkAttachmentReference> colorAttachmentRefs(js_colorAttachments->Length());
+            std::vector<VkAttachmentReference2> colorAttachmentRefs(js_colorAttachments->Length());
             for (uint32_t i = 0; i < js_colorAttachments->Length(); i++)
             {
                 auto js_attachment = js_colorAttachments->Get(context, i).ToLocalChecked().As<v8::Object>();
                 auto &attachment = attachments[attachmentIdx];
+                attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
                 attachment.format = _impl->_device->swapchainImageFormat();
                 attachment.samples = static_cast<VkSampleCountFlagBits>(samples);
                 attachment.loadOp = static_cast<VkAttachmentLoadOp>(sugar::v8::object_get(js_attachment, "loadOp").As<v8::Number>()->Value());
@@ -43,6 +44,7 @@ namespace binding
                 attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 attachment.finalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_attachment, "finalLayout").As<v8::Number>()->Value());
 
+                colorAttachmentRefs[i].sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
                 colorAttachmentRefs[i].attachment = attachmentIdx;
                 colorAttachmentRefs[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -55,6 +57,7 @@ namespace binding
             auto js_depthStencilAttachment = sugar::v8::object_get(info, "depthStencilAttachment").As<v8::Object>();
             VkImageLayout depthFinalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_depthStencilAttachment, "finalLayout").As<v8::Number>()->Value());
 
+            attachments[attachmentIdx].sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
             attachments[attachmentIdx].flags = 0;
             attachments[attachmentIdx].format = VK_FORMAT_D32_SFLOAT;
             attachments[attachmentIdx].samples = static_cast<VkSampleCountFlagBits>(samples);
@@ -66,7 +69,8 @@ namespace binding
             attachments[attachmentIdx].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachments[attachmentIdx].finalLayout = depthFinalLayout;
 
-            VkAttachmentReference depthAttachmentRef = {};
+            VkAttachmentReference2 depthAttachmentRef = {};
+            depthAttachmentRef.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
             depthAttachmentRef.attachment = attachmentIdx;
             depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
@@ -74,12 +78,13 @@ namespace binding
 
             attachmentIdx++;
 
-            std::vector<VkAttachmentReference> resolveAttachmentRefs(js_resolveAttachments->Length());
+            std::vector<VkAttachmentReference2> resolveAttachmentRefs(js_resolveAttachments->Length());
             for (uint32_t i = 0; i < js_resolveAttachments->Length(); i++)
             {
                 auto js_attachment = js_resolveAttachments->Get(context, i).ToLocalChecked().As<v8::Object>();
 
                 auto &attachment = attachments[attachmentIdx];
+                attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
                 attachment.format = _impl->_device->swapchainImageFormat();
                 attachment.samples = VK_SAMPLE_COUNT_1_BIT;
                 attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -89,6 +94,7 @@ namespace binding
                 attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 attachment.finalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_attachment, "finalLayout").As<v8::Number>()->Value());
 
+                resolveAttachmentRefs[i].sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
                 resolveAttachmentRefs[i].attachment = attachmentIdx;
                 resolveAttachmentRefs[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -99,7 +105,8 @@ namespace binding
             renderPassInfo.attachmentCount = attachments.size();
 
             // we are going to create 1 subpass, which is the minimum you can do
-            VkSubpassDescription subpass = {};
+            VkSubpassDescription2 subpass = {};
+            subpass.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
             subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
             subpass.pColorAttachments = colorAttachmentRefs.data();
             subpass.colorAttachmentCount = colorAttachmentRefs.size();
@@ -108,8 +115,9 @@ namespace binding
             renderPassInfo.pSubpasses = &subpass;
             renderPassInfo.subpassCount = 1;
 
-            // https://github.com/SaschaWillems/Vulkan/blob/master/base/vulkanexamplebase.cpp
-            std::vector<VkSubpassDependency> dependencies(2);
+            std::vector<VkSubpassDependency2> dependencies(2);
+            dependencies[0].sType = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2;
+            dependencies[1].sType = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2;
             if (depthFinalLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
             {
                 dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -130,6 +138,7 @@ namespace binding
             }
             else if (depthFinalLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL)
             {
+                // https://github.com/SaschaWillems/Vulkan/blob/master/examples/shadowmapping/shadowmapping.cpp
                 dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
                 dependencies[0].dstSubpass = 0;
                 dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -153,7 +162,7 @@ namespace binding
 
             renderPassInfo.pDependencies = dependencies.data();
             renderPassInfo.dependencyCount = dependencies.size();
-            vkCreateRenderPass(*_impl->_device, &renderPassInfo, nullptr, &_impl->_renderPass);
+            vkCreateRenderPass2(*_impl->_device, &renderPassInfo, nullptr, &_impl->_renderPass);
             return false;
         }
 

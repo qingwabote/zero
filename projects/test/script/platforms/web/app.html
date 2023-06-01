@@ -43,10 +43,14 @@
     req.send();
   </script>
   <script type="module">
+    import WebPlatform from "./dist/script/platforms/webgl/WebPlatform.js";
+    window.platform = new WebPlatform;
+
+    import WebLoader from "./dist/script/platforms/webgl/WebLoader.js";
+    window.loader = new WebLoader;
+
     import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
-    const gfx = new WebDevice(document.getElementById("ZeroCanvas"));
-    gfx.initialize()
-    window.gfx = gfx;
+    window.gfx = new WebDevice(document.getElementById("ZeroCanvas"));
   </script>
   <script type="module">
     import App from "./dist/projects/test/script/main/App.js";

@@ -15,11 +15,14 @@ import Zero from "../../../../script/main/core/Zero.js";
 import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
-import Flow from "../../../../script/main/core/render/Flow.js";
-import stageFactory from "../../../../script/main/render/stageFactory.js";
+import Flow from "../../../../script/main/core/pipeline/Flow.js";
+import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
+
+const walkrun_and_idle = new GLTF();
+await walkrun_and_idle.load('./assets/walkrun_and_idle/scene');
 
 export default class App extends Zero {
-    async start(): Promise<Flow> {
+    start(): Flow {
         const { width, height } = this.window;
 
         let node: Node;
@@ -35,12 +38,10 @@ export default class App extends Zero {
         main_camera.viewport = { x: 0, y: 0, width, height };
         node.position = [0, 0, 12];
 
-        const walkrun_and_idle = new GLTF();
-        await walkrun_and_idle.load('./assets/walkrun_and_idle/scene');
         node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
-        const animation = node.addComponent(AnimationBlended);
         node.euler = vec3.create(0, 60, 0)
+        const animation = node.addComponent(AnimationBlended);
         const clips: AnimationClip[] = [];
         clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Idle')!)
         clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Walk')!)

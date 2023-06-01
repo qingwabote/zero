@@ -5,7 +5,7 @@ import { DescriptorType } from "../../../main/core/gfx/DescriptorSetLayout.js";
 import Format, { FormatInfos } from "../../../main/core/gfx/Format.js";
 import { Framebuffer } from "../../../main/core/gfx/Framebuffer.js";
 import InputAssembler, { IndexType, InputAssemblerInfo } from "../../../main/core/gfx/InputAssembler.js";
-import Pipeline, { BlendFactor, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
+import Pipeline, { BlendFactor, PipelineInfo, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../main/core/gfx/RenderPass.js";
 import Texture from "../../../main/core/gfx/Texture.js";
 import { Rect } from "../../../main/core/math/rect.js";
@@ -61,7 +61,8 @@ const input2vao: WeakMap<InputAssemblerInfo, WebGLVertexArrayObject> = new WeakM
 
 export default class WebCommandBuffer implements CommandBuffer {
     private _gl: WebGL2RenderingContext;
-    private _inputAssembler: InputAssemblerInfo | undefined;
+    private _pipeline!: PipelineInfo;
+    private _inputAssembler!: InputAssemblerInfo;
     private _framebuffer!: WebFramebuffer;
     private _viewport!: Rect;
 
@@ -112,7 +113,8 @@ export default class WebCommandBuffer implements CommandBuffer {
 
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
-        const state = (pipeline as WebPipeline).info.passState;
+        const info = (pipeline as WebPipeline).info;
+        const state = info.passState;
 
         gl.useProgram((state.shader as WebShader).program.deref());
 
@@ -152,6 +154,8 @@ export default class WebCommandBuffer implements CommandBuffer {
         } else {
             gl.disable(gl.BLEND);
         }
+
+        this._pipeline = info;
     }
 
     bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {
@@ -253,7 +257,19 @@ export default class WebCommandBuffer implements CommandBuffer {
 
     draw(vertexCount: number): void {
         const gl = this._gl;
-        gl.drawArrays(gl.LINES, 0, vertexCount);
+
+        let mode: GLenum;
+        switch (this._pipeline.passState.primitive) {
+            case 'LINE_LIST':
+                mode = gl.LINES;
+                break;
+            case 'TRIANGLE_LIST':
+                mode = gl.TRIANGLES;
+                break;
+            default:
+                throw `unsupported primitive: ${this._pipeline.passState.primitive}`
+        }
+        gl.drawArrays(mode, 0, vertexCount);
     }
 
     drawIndexed(indexCount: number) {
