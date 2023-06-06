@@ -1,6 +1,7 @@
 export interface LoaderTypes {
     text: string,
-    arraybuffer: ArrayBuffer
+    arraybuffer: ArrayBuffer,
+    bitmap: ImageBitmap
 }
 
 export default interface Loader {

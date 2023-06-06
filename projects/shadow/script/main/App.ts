@@ -26,6 +26,10 @@ import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
+(globalThis as any).loader2.load("hello swig!", () => {
+    console.log("hello callback!")
+})
+
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;
 

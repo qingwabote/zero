@@ -16,20 +16,14 @@ namespace
         std::unordered_map<std::string, std::filesystem::path> _imports;
 
     public:
-        static IsolateData *getCurrent(_v8::Isolate *isolate)
-        {
-            return static_cast<IsolateData *>(isolate->GetData(0));
-        }
-
         std::unordered_map<std::string, std::filesystem::path> &imports()
         {
             return _imports;
         }
 
-        IsolateData(_v8::Isolate *isolate, std::unordered_map<std::string, std::filesystem::path> &imports)
+        IsolateData(std::unordered_map<std::string, std::filesystem::path> &imports)
         {
             _imports = imports;
-            isolate->SetData(0, this);
         }
 
         std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> constructorCache;
@@ -54,6 +48,8 @@ namespace
         };
         std::unordered_map<sugar::v8::Weak<_v8::Module>, std::filesystem::path, module_hash> module2path;
 
+        std::unordered_map<void *, _v8::Global<_v8::Object>> native2js;
+
         std::map<uint32_t, SetWeakCallback *> weakCallbacks;
 
         struct promise_hash
@@ -65,6 +61,16 @@ namespace
         };
         std::unordered_map<sugar::v8::Weak<_v8::Promise>, _v8::Global<_v8::Value>, promise_hash> promiseRejectMessages;
     };
+
+    IsolateData *isolate_data(_v8::Isolate *isolate)
+    {
+        return static_cast<IsolateData *>(isolate->GetData(0));
+    }
+
+    void isolate_data(_v8::Isolate *isolate, IsolateData *data)
+    {
+        isolate->SetData(0, data);
+    }
 
     struct SetWeakCallback
     {
@@ -89,7 +95,7 @@ namespace
                 [](const _v8::WeakCallbackInfo<SetWeakCallback> &info)
                 {
                     SetWeakCallback *p = info.GetParameter();
-                    IsolateData::getCurrent(info.GetIsolate())->weakCallbacks.erase(p->older());
+                    isolate_data(info.GetIsolate())->weakCallbacks.erase(p->older());
                     delete p;
                 },
                 _v8::WeakCallbackType::kParameter);
@@ -107,9 +113,9 @@ namespace
 
 namespace sugar::v8
 {
-    static void isolateDeleter(_v8::Isolate *isolate)
+    static void isolate_deleter(_v8::Isolate *isolate)
     {
-        IsolateData *data = IsolateData::getCurrent(isolate);
+        IsolateData *data = isolate_data(isolate);
         for (auto &it : data->constructorCache)
         {
             it.second.Reset();
@@ -122,7 +128,7 @@ namespace sugar::v8
 
         isolate->Dispose();
     }
-    unique_isolate initWithIsolate(std::filesystem::path &imports_path)
+    unique_isolate isolate_create(std::filesystem::path &imports_path)
     {
         nlohmann::json imports_json;
         try
@@ -132,7 +138,7 @@ namespace sugar::v8
         catch (nlohmann::json::parse_error &e)
         {
             ZERO_LOG_ERROR("failed to parse %s %s", imports_path.string().c_str(), e.what());
-            return {nullptr, isolateDeleter};
+            return {nullptr, isolate_deleter};
         }
 
         std::unordered_map<std::string, std::filesystem::path> imports;
@@ -146,7 +152,7 @@ namespace sugar::v8
             if (ec)
             {
                 ZERO_LOG_ERROR("%s", ec.message().c_str());
-                return {nullptr, isolateDeleter};
+                return {nullptr, isolate_deleter};
             }
             imports.emplace(i.key(), path);
         }
@@ -162,19 +168,44 @@ namespace sugar::v8
         //     {
         //         _v8::Isolate *isolate = context->GetIsolate();
 
-        //         auto &module2path = IsolateData::getCurrent(isolate)->module2path;
+        //         auto &module2path = isolate_data(isolate)->module2path;
         //         std::filesystem::path &path = module2path.find(module->GetIdentityHash())->second;
         //         object_set(meta, "url", _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
         //     });
 
-        new IsolateData(isolate, imports);
+        isolate_data(isolate, new IsolateData(imports));
 
-        return unique_isolate{isolate, isolateDeleter};
+        return unique_isolate{isolate, isolate_deleter};
     }
 
-    std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_getConstructorCache(_v8::Isolate *isolate)
+    std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_constructorCache(_v8::Isolate *isolate)
     {
-        return &IsolateData::getCurrent(isolate)->constructorCache;
+        return &isolate_data(isolate)->constructorCache;
+    }
+
+    _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, void *ptr)
+    {
+        auto &native2js = isolate_data(isolate)->native2js;
+        auto it = native2js.find(ptr);
+        if (it != native2js.end())
+        {
+            return it->second.Get(isolate);
+        }
+        return {};
+    }
+
+    void isolate_native2js_set(_v8::Isolate *isolate, void *ptr, _v8::Local<_v8::Object> obj)
+    {
+        auto &native2js = isolate_data(isolate)->native2js;
+        _v8::Global<_v8::Object> global(isolate, obj);
+        global.SetWeak<void>(
+            ptr,
+            [](const _v8::WeakCallbackInfo<void> &info)
+            {
+                isolate_data(info.GetIsolate())->native2js.erase(info.GetParameter());
+            },
+            _v8::WeakCallbackType::kParameter);
+        native2js.emplace(ptr, std::move(global));
     }
 
     std::string stackTrace_toString(_v8::Local<_v8::StackTrace> stack)
@@ -239,7 +270,7 @@ namespace sugar::v8
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
 
-        auto &promiseRejectMessages = IsolateData::getCurrent(isolate)->promiseRejectMessages;
+        auto &promiseRejectMessages = isolate_data(isolate)->promiseRejectMessages;
         switch (rejectMessage.GetEvent())
         {
         case _v8::kPromiseRejectWithNoHandler:
@@ -268,7 +299,7 @@ namespace sugar::v8
             [](void *p)
             {
                 _v8::Isolate *isolate = static_cast<_v8::Isolate *>(p);
-                auto &promiseRejectMessages = IsolateData::getCurrent(isolate)->promiseRejectMessages;
+                auto &promiseRejectMessages = isolate_data(isolate)->promiseRejectMessages;
                 for (auto &it : promiseRejectMessages)
                 {
                     _v8::Local<_v8::Message> message = _v8::Exception::CreateMessage(isolate, it.second.Get(isolate));
@@ -293,11 +324,11 @@ namespace sugar::v8
 
         std::string specifier_string(*_v8::String::Utf8Value(isolate, specifier));
 
-        auto &imports = IsolateData::getCurrent(isolate)->imports();
+        auto &imports = isolate_data(isolate)->imports();
         auto imports_it = imports.find(specifier_string);
         std::filesystem::path path(imports_it != imports.end() ? imports_it->second.string() : specifier_string);
 
-        auto &module2path = IsolateData::getCurrent(isolate)->module2path;
+        auto &module2path = isolate_data(isolate)->module2path;
         if (path.is_relative())
         {
             std::filesystem::path &ref = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;
@@ -312,7 +343,7 @@ namespace sugar::v8
             }
         }
 
-        auto &path2module = IsolateData::getCurrent(isolate)->path2module;
+        auto &path2module = isolate_data(isolate)->path2module;
         auto it = path2module.find(path);
         if (it != path2module.end())
         {
@@ -434,7 +465,7 @@ namespace sugar::v8
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
         auto callback = new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb));
-        IsolateData::getCurrent(isolate)->weakCallbacks.emplace(callback->older(), callback);
+        isolate_data(isolate)->weakCallbacks.emplace(callback->older(), callback);
     }
 
     void gc(_v8::Local<_v8::Context> context)

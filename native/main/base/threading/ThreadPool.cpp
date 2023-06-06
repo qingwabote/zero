@@ -11,7 +11,7 @@ ThreadPool::ThreadPool(uint32_t size)
     _threads.resize(size);
 }
 
-void ThreadPool::run(UniqueFunction &&func)
+void ThreadPool::post(UniqueFunction &&func)
 {
     _functionQueue.push(std::forward<UniqueFunction>(func));
 

@@ -3,31 +3,35 @@
 #include "Binding.hpp"
 #include "DescriptorSet.hpp"
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    enum DescriptorType
     {
-        class DescriptorSetLayout_impl;
-        class DescriptorSetLayout : public Binding
-        {
-        private:
-            std::unique_ptr<DescriptorSetLayout_impl> _impl;
+        SAMPLER_TEXTURE = 1,
+        UNIFORM_BUFFER = 6,
+        UNIFORM_BUFFER_DYNAMIC = 8,
+    };
 
-            sugar::v8::Weak<v8::Object> _bindings;
+    class DescriptorSetLayout_impl;
+    class DescriptorSetLayout : public Binding
+    {
+    private:
+        std::unique_ptr<DescriptorSetLayout_impl> _impl;
 
-        protected:
-            virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
+        sugar::v8::Weak<v8::Object> _bindings;
 
-        public:
-            DescriptorSetLayout_impl *impl() { return _impl.get(); }
+    protected:
+        virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
 
-            DescriptorSetLayout(std::unique_ptr<DescriptorSetLayout_impl> impl);
+    public:
+        DescriptorSetLayout_impl *impl() { return _impl.get(); }
 
-            bool initialize(v8::Local<v8::Array> js_layoutBindings);
+        DescriptorSetLayout(std::unique_ptr<DescriptorSetLayout_impl> impl);
 
-            DescriptorSet *createDescriptorSet();
+        bool initialize(v8::Local<v8::Array> js_layoutBindings);
 
-            ~DescriptorSetLayout();
-        };
-    }
+        DescriptorSet *createDescriptorSet();
+
+        ~DescriptorSetLayout();
+    };
 }

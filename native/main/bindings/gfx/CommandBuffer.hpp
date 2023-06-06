@@ -39,7 +39,7 @@ namespace binding::gfx
 
         bool initialize();
 
-        void copyBuffer(std::shared_ptr<v8::BackingStore> srcBuffer, Buffer *dstBuffer, size_t srcOffset, size_t length);
+        void copyBuffer(const void *data, Buffer *buffer, size_t offset, size_t length);
 
         void copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture);
 

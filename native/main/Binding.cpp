@@ -15,7 +15,7 @@ v8::Local<v8::Object> Binding::js_obj()
     auto context = isolate->GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> constructor;
-    auto cache = sugar::v8::isolate_getConstructorCache(isolate);
+    auto cache = sugar::v8::isolate_constructorCache(isolate);
     auto key = typeid(*this).name();
     auto it = cache->find(key);
     if (it == cache->end())

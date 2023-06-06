@@ -1,9 +1,11 @@
 #include "log.h"
 #include "Loader.hpp"
 #include "sugars/v8sugar.hpp"
-#include "Window.hpp"
-#include "base/threading/ThreadPool.hpp"
 #include <fstream>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "internal/stb_image.h"
+#include "ImageBitmap.hpp"
 
 namespace binding
 {
@@ -25,33 +27,23 @@ namespace binding
             l_resolver->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked())).ToChecked();
             return scrop.Escape(l_resolver->GetPromise());
         }
+        std::uintmax_t size = std::filesystem::file_size(abs_path, ec);
+        if (ec)
+        {
+            std::string msg{ec.message() + ": " + abs_path.string()};
+            l_resolver->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked())).ToChecked();
+            return scrop.Escape(l_resolver->GetPromise());
+        }
 
         v8::Global<v8::Promise::Resolver> g_resolver(isolate, l_resolver);
+
+        auto foreground = _foreground;
         auto f = new auto(
-            [abs_path, type, g_resolver = std::move(g_resolver)]() mutable
+            [foreground, abs_path, size, type, g_resolver = std::move(g_resolver)]() mutable
             {
-                std::error_code ec;
-                std::uintmax_t size = std::filesystem::file_size(abs_path, ec);
-                if (ec)
-                {
-                    auto f = new auto(
-                        [abs_path, ec, g_resolver = std::move(g_resolver)]()
-                        {
-                            v8::Isolate *isolate = v8::Isolate::GetCurrent();
-                            v8::EscapableHandleScope scrop(isolate);
-                            v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
-                            std::string msg{ec.message() + ": " + abs_path.string()};
-                            g_resolver.Get(isolate)->Reject(context, v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked())).ToChecked();
-                        });
-                    Window::instance().run(UniqueFunction::create<decltype(f)>(f));
-                    return;
-                }
-
                 auto res = std::unique_ptr<char, decltype(free) *>{(char *)malloc(size), free};
-                std::ifstream is;
-                is.open(abs_path.string(), std::ios::binary);
-                is.read(res.get(), size);
+                std::ifstream stream{abs_path.string(), std::ios::binary};
+                stream.read(res.get(), size);
 
                 if (type == "text")
                 {
@@ -59,41 +51,55 @@ namespace binding
                         [res = std::move(res), size, g_resolver = std::move(g_resolver)]()
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
-                            v8::EscapableHandleScope scrop(isolate);
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
                             v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, res.get(), v8::NewStringType::kNormal, size).ToLocalChecked();
                             g_resolver.Get(isolate)->Resolve(context, str).ToChecked();
                         });
-                    Window::instance().run(UniqueFunction::create<decltype(f)>(f));
+                    foreground->post(UniqueFunction::create<decltype(f)>(f));
                 }
                 else if (type == "arraybuffer")
                 {
                     auto f = new auto(
-                        [res = std::move(res), size, g_resolver = std::move(g_resolver)]()
+                        [res = std::move(res), size, g_resolver = std::move(g_resolver)]() mutable
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
-                            v8::EscapableHandleScope scrop(isolate);
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-                            // auto backingStore = v8::ArrayBuffer::NewBackingStore(
-                            //     res, size,
+                            // std::shared_ptr<v8::BackingStore> backingStore = v8::ArrayBuffer::NewBackingStore(
+                            //     res.release(), size,
                             //     [](void *data, size_t length, void *deleter_data)
                             //     {
-                            //         // free(data);
+                            //         free(data);
                             //     },
                             //     nullptr);
-                            // auto arraybuffer = v8::ArrayBuffer::New(isolate, std::move(backingStore));
+                            // auto arraybuffer = v8::ArrayBuffer::New(isolate, backingStore);
 
                             auto arraybuffer = v8::ArrayBuffer::New(isolate, size);
                             memcpy(arraybuffer->GetBackingStore()->Data(), res.get(), size);
 
                             g_resolver.Get(isolate)->Resolve(context, arraybuffer).ToChecked();
                         });
-                    Window::instance().run(UniqueFunction::create<decltype(f)>(f));
+                    foreground->post(UniqueFunction::create<decltype(f)>(f));
+                }
+                else if (type == "bitmap")
+                {
+                    int x{0}, y{0}, channels{0};
+                    std::unique_ptr<void, void (*)(void *)> pixels(
+                        stbi_load_from_memory(reinterpret_cast<stbi_uc *>(res.get()), size, &x, &y, &channels, STBI_rgb_alpha),
+                        stbi_image_free);
+                    auto f = new auto(
+                        [pixels = std::move(pixels), x, y, g_resolver = std::move(g_resolver)]() mutable
+                        {
+                            v8::Isolate *isolate = v8::Isolate::GetCurrent();
+                            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+                            g_resolver.Get(isolate)->Resolve(context, (new ImageBitmap(pixels, x, y))->js_obj()).ToChecked();
+                        });
+                    foreground->post(UniqueFunction::create<decltype(f)>(f));
                 }
             });
-        ThreadPool::shared().run(UniqueFunction::create<decltype(f)>(f));
+        _background->post(UniqueFunction::create<decltype(f)>(f));
 
         return scrop.Escape(l_resolver->GetPromise());
     }

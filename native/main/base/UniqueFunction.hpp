@@ -19,6 +19,9 @@ public:
     ~FunctionHolder() { delete _f; }
 };
 
+/**
+ * A move-only lambda container, hide lambda type by polymorphism, so it can be used as type by container like vector<UniqueFunction> to store any type of lambda
+ */
 class UniqueFunction
 {
 protected:
@@ -44,13 +47,6 @@ public:
     UniqueFunction &operator=(UniqueFunction const &) = delete;
     UniqueFunction &operator=(UniqueFunction &&val) noexcept
     {
-        // if (_holder)
-        // {
-        //     delete _holder;
-        // }
-
-        // _holder = val._holder;
-        // val._holder = nullptr;
         std::swap(this->_holder, val._holder);
         return *this;
     }

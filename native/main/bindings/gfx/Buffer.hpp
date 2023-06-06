@@ -32,7 +32,7 @@ namespace binding::gfx
 
         bool initialize(BufferInfo &info);
 
-        void update(v8::Local<v8::ArrayBuffer> buffer, size_t offset, size_t length);
+        void update(const void *data, size_t offset, size_t length);
 
         ~Buffer();
     };

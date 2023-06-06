@@ -35,9 +35,9 @@ namespace binding
             return false;
         }
 
-        void Buffer::update(v8::Local<v8::ArrayBuffer> buffer, size_t offset, size_t length)
+        void Buffer::update(const void *data, size_t offset, size_t length)
         {
-            auto start = reinterpret_cast<const uint8_t *>(buffer->Data()) + offset;
+            auto start = reinterpret_cast<const uint8_t *>(data) + offset;
             memcpy(_impl->_allocationInfo.pMappedData, start, length);
         }
 

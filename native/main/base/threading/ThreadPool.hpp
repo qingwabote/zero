@@ -3,8 +3,9 @@
 #include <thread>
 #include "ThreadSafeQueue.hpp"
 #include "base/UniqueFunction.hpp"
+#include "base/TaskRunner.hpp"
 
-class ThreadPool
+class ThreadPool : public TaskRunner
 {
 private:
     bool _threadsCreated = false;
@@ -20,7 +21,7 @@ public:
 
     ThreadPool(uint32_t size);
 
-    void run(UniqueFunction &&func);
+    void post(UniqueFunction &&func) override;
 
     void join();
 

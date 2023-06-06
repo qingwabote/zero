@@ -2,30 +2,34 @@
 
 #include "Binding.hpp"
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    enum ShaderStageFlagBits
     {
-        class Shader_impl;
+        VERTEX = 0x1,
+        FRAGMENT = 0x10
+    };
+    typedef uint32_t ShaderStageFlags;
 
-        class Shader : public Binding
-        {
-        private:
-            std::unique_ptr<Shader_impl> _impl;
+    class Shader_impl;
 
-            sugar::v8::Weak<v8::Object> _info;
+    class Shader : public Binding
+    {
+    private:
+        std::unique_ptr<Shader_impl> _impl;
 
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
+        sugar::v8::Weak<v8::Object> _info;
 
-        public:
-            Shader_impl *impl() { return _impl.get(); }
+    protected:
+        v8::Local<v8::FunctionTemplate> createTemplate() override;
 
-            Shader(std::unique_ptr<Shader_impl> impl);
+    public:
+        Shader_impl *impl() { return _impl.get(); }
 
-            bool initialize(v8::Local<v8::Object> info);
+        Shader(std::unique_ptr<Shader_impl> impl);
 
-            ~Shader();
-        };
-    }
+        bool initialize(v8::Local<v8::Object> info);
+
+        ~Shader();
+    };
 }

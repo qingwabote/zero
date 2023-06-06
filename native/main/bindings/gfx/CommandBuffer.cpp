@@ -32,7 +32,7 @@ namespace binding::gfx
                     {
                         c_obj->begin();
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         sugar::v8::ctor_function(
@@ -51,9 +51,9 @@ namespace binding::gfx
                 auto f = new auto(
                     [=]()
                     {
-                        c_obj->copyBuffer(backingStore, c_buffer, srcOffset, length);
+                        c_obj->copyBuffer(backingStore->Data(), c_buffer, srcOffset, length);
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
         sugar::v8::ctor_function(
             ctor,
@@ -69,7 +69,7 @@ namespace binding::gfx
                     {
                         c_obj->copyImageBitmapToTexture(c_imageBitmap, c_texture);
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
         sugar::v8::ctor_function(
             ctor,
@@ -91,7 +91,7 @@ namespace binding::gfx
                     {
                         c_obj->beginRenderPass(c_renderPass, c_framebuffer, c_area);
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
         sugar::v8::ctor_function(
             ctor,
@@ -119,7 +119,7 @@ namespace binding::gfx
                     {
                         c_obj->bindDescriptorSet(c_pipelineLayout, index, c_descriptorSet, std::move(c_dynamicOffsets));
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         sugar::v8::ctor_function(
@@ -135,7 +135,7 @@ namespace binding::gfx
                     {
                         c_obj->bindInputAssembler(c_inputAssembler);
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         sugar::v8::ctor_function(
@@ -151,7 +151,7 @@ namespace binding::gfx
                     {
                         c_obj->bindPipeline(c_pipeline);
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         sugar::v8::ctor_function(
@@ -167,7 +167,7 @@ namespace binding::gfx
                     {
                         c_obj->draw(count);
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         sugar::v8::ctor_function(
@@ -183,7 +183,7 @@ namespace binding::gfx
                     {
                         c_obj->drawIndexed(count);
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         sugar::v8::ctor_function(
@@ -198,7 +198,7 @@ namespace binding::gfx
                     {
                         c_obj->endRenderPass();
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         sugar::v8::ctor_function(
@@ -213,7 +213,7 @@ namespace binding::gfx
                     {
                         c_obj->end();
                     });
-                DeviceThread::instance().run(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
             });
 
         return scope.Escape(ctor);

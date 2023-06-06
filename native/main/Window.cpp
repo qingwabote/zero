@@ -7,11 +7,15 @@
 #include "libplatform/libplatform.h"
 #include "bindings/Console.hpp"
 #include "bindings/Loader.hpp"
-#include "bindings/Platform.hpp"
 #include "bindings/gfx/Device.hpp"
 #include "bindings/gfx/DeviceThread.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
+
+extern "C"
+{
+    void Loader_initialize(v8::Local<v8::Object> exports_obj);
+}
 
 #define NANOSECONDS_PER_SECOND 1000000000
 #define NANOSECONDS_60FPS 16666667L
@@ -50,7 +54,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
     // Isolate Scope
     {
-        sugar::v8::unique_isolate isolate = sugar::v8::initWithIsolate(std::filesystem::path(project).append("imports.json"));
+        sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(project).append("imports.json"));
         isolate->SetOOMErrorHandler(
             [](const char *location, const v8::OOMDetails &details)
             {
@@ -87,18 +91,14 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                   gfx->js_obj())
             .ToChecked();
 
-        binding::Loader *loader = new binding::Loader(project);
+        binding::Loader *loader = new binding::Loader(project, this, &ThreadPool::shared());
         global->Set(
                   context,
                   v8::String::NewFromUtf8Literal(isolate.get(), "loader"),
                   loader->js_obj())
             .ToChecked();
 
-        global->Set(
-                  context,
-                  v8::String::NewFromUtf8Literal(isolate.get(), "platform"),
-                  (new binding::Platform())->js_obj())
-            .ToChecked();
+        Loader_initialize(global);
 
         std::filesystem::current_path(project);
         std::error_code ec;

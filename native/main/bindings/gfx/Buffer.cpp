@@ -43,7 +43,7 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<Buffer>(info.This());
-                    c_obj->update(info[0].As<v8::ArrayBuffer>(), info[1].As<v8::Number>()->Value(), info[2].As<v8::Number>()->Value());
+                    c_obj->update(info[0].As<v8::ArrayBuffer>()->Data(), info[1].As<v8::Number>()->Value(), info[2].As<v8::Number>()->Value());
                 });
 
             return scope.Escape(ctor);

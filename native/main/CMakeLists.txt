@@ -2,13 +2,13 @@ set(SRC_FILES
     base/threading/ThreadPool.cpp
     base/threading/Semaphore.cpp
     Window.cpp
+    Loader.cpp
     sugars/sdlsugar.cpp
     sugars/v8sugar.cpp
     Binding.cpp
     bindings/Console.cpp
     bindings/Loader.cpp
     bindings/ImageBitmap.cpp
-    bindings/Platform.cpp
     bindings/gfx/Device.cpp
     bindings/gfx/CommandBuffer.cpp
     bindings/gfx/Buffer.cpp
@@ -25,6 +25,7 @@ set(SRC_FILES
     bindings/gfx/Fence.cpp
     bindings/gfx/Semaphore.cpp
     bindings/gfx/Queue.cpp
+    swig/auto/Loader_wrap.cpp
 )
 
 add_library(zero_main STATIC ${SRC_FILES})
