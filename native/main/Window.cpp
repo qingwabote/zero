@@ -4,7 +4,7 @@
 #include "base/threading/ThreadPool.hpp"
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
-#include "libplatform/libplatform.h"
+#include "v8/libplatform/libplatform.h"
 #include "bindings/Console.hpp"
 #include "bindings/Loader.hpp"
 #include "bindings/gfx/Device.hpp"

@@ -66,17 +66,17 @@ namespace binding
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-                            // std::shared_ptr<v8::BackingStore> backingStore = v8::ArrayBuffer::NewBackingStore(
-                            //     res.release(), size,
-                            //     [](void *data, size_t length, void *deleter_data)
-                            //     {
-                            //         free(data);
-                            //     },
-                            //     nullptr);
-                            // auto arraybuffer = v8::ArrayBuffer::New(isolate, backingStore);
+                            std::shared_ptr<v8::BackingStore> backingStore = v8::ArrayBuffer::NewBackingStore(
+                                res.release(), size,
+                                [](void *data, size_t length, void *deleter_data)
+                                {
+                                    free(data);
+                                },
+                                nullptr);
+                            auto arraybuffer = v8::ArrayBuffer::New(isolate, backingStore);
 
-                            auto arraybuffer = v8::ArrayBuffer::New(isolate, size);
-                            memcpy(arraybuffer->GetBackingStore()->Data(), res.get(), size);
+                            // auto arraybuffer = v8::ArrayBuffer::New(isolate, size);
+                            // memcpy(arraybuffer->GetBackingStore()->Data(), res.get(), size);
 
                             g_resolver.Get(isolate)->Resolve(context, arraybuffer).ToChecked();
                         });
