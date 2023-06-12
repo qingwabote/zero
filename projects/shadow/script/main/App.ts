@@ -26,8 +26,9 @@ import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
-(globalThis as any).loader2.load("hello swig!", () => {
-    console.log("hello callback!")
+(globalThis as any).loader2.load("hello swig!", (res: any) => {
+    console.log("hello callback: " + res.takeText())
+    console.log("hello callback2: " + res.takeText())
 })
 
 const VisibilityBit_UP = 1 << 9;

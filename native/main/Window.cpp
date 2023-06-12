@@ -127,7 +127,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         auto time = std::chrono::steady_clock::now();
         while (running)
         {
-            UniqueFunction f{};
+            UniqueFunction<void> f{};
             while (_beforeTickQueue.pop(f))
             {
                 f();

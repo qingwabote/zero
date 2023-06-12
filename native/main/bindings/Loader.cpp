@@ -47,7 +47,7 @@ namespace binding
 
                 if (type == "text")
                 {
-                    auto f = new auto(
+                    foreground->post(new auto(
                         [res = std::move(res), size, g_resolver = std::move(g_resolver)]()
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
@@ -55,12 +55,11 @@ namespace binding
 
                             v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, res.get(), v8::NewStringType::kNormal, size).ToLocalChecked();
                             g_resolver.Get(isolate)->Resolve(context, str).ToChecked();
-                        });
-                    foreground->post(UniqueFunction::create<decltype(f)>(f));
+                        }));
                 }
                 else if (type == "arraybuffer")
                 {
-                    auto f = new auto(
+                    foreground->post(new auto(
                         [res = std::move(res), size, g_resolver = std::move(g_resolver)]() mutable
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
@@ -75,12 +74,8 @@ namespace binding
                                 nullptr);
                             auto arraybuffer = v8::ArrayBuffer::New(isolate, backingStore);
 
-                            // auto arraybuffer = v8::ArrayBuffer::New(isolate, size);
-                            // memcpy(arraybuffer->GetBackingStore()->Data(), res.get(), size);
-
                             g_resolver.Get(isolate)->Resolve(context, arraybuffer).ToChecked();
-                        });
-                    foreground->post(UniqueFunction::create<decltype(f)>(f));
+                        }));
                 }
                 else if (type == "bitmap")
                 {
@@ -88,18 +83,18 @@ namespace binding
                     std::unique_ptr<void, void (*)(void *)> pixels(
                         stbi_load_from_memory(reinterpret_cast<stbi_uc *>(res.get()), size, &x, &y, &channels, STBI_rgb_alpha),
                         stbi_image_free);
-                    auto f = new auto(
+
+                    foreground->post(new auto(
                         [pixels = std::move(pixels), x, y, g_resolver = std::move(g_resolver)]() mutable
                         {
                             v8::Isolate *isolate = v8::Isolate::GetCurrent();
                             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
                             g_resolver.Get(isolate)->Resolve(context, (new ImageBitmap(pixels, x, y))->js_obj()).ToChecked();
-                        });
-                    foreground->post(UniqueFunction::create<decltype(f)>(f));
+                        }));
                 }
             });
-        _background->post(UniqueFunction::create<decltype(f)>(f));
+        _background->post(f);
 
         return scrop.Escape(l_resolver->GetPromise());
     }

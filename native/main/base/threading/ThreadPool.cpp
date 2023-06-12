@@ -11,9 +11,9 @@ ThreadPool::ThreadPool(uint32_t size)
     _threads.resize(size);
 }
 
-void ThreadPool::post(UniqueFunction &&func)
+void ThreadPool::post(UniqueFunction<void> &&func)
 {
-    _functionQueue.push(std::forward<UniqueFunction>(func));
+    _functionQueue.push(std::forward<UniqueFunction<void>>(func));
 
     if (!_threadsCreated)
     {
@@ -29,7 +29,7 @@ void ThreadPool::post(UniqueFunction &&func)
                         // {
                         //     func();
                         // }
-                        UniqueFunction f{};
+                        UniqueFunction<void> f{};
                         _functionQueue.pop(f, true);
                         f();
                     }
@@ -49,7 +49,7 @@ void ThreadPool::join()
             {
                 // do nothing
             });
-        _functionQueue.push(UniqueFunction::create<decltype(f)>(f)); // wake the blocked threads up
+        post(f); // wake the blocked threads up
     }
     for (size_t i = 0; i < _threads.size(); i++)
     {

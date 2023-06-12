@@ -1,41 +1,43 @@
 #pragma once
 
+template <typename Ret, typename... Args>
 class FunctionHolderBase
 {
 public:
-    virtual void call() = 0;
+    virtual Ret call(Args &&...args) = 0;
     virtual ~FunctionHolderBase() = default;
 };
 
-template <typename T>
-class FunctionHolder : public FunctionHolderBase
+template <typename T, typename Ret, typename... Args>
+class FunctionHolder : public FunctionHolderBase<Ret, Args...>
 {
 private:
     T _f;
 
 public:
     FunctionHolder(T f) : _f(f) {}
-    void call() override { (*_f)(); }
+    Ret call(Args &&...args) override { return (*_f)(std::forward<Args>(args)...); }
     ~FunctionHolder() { delete _f; }
 };
 
 /**
  * A move-only lambda container, hide lambda type by polymorphism, so it can be used as type by container like vector<UniqueFunction> to store any type of lambda
  */
+template <typename Ret, typename... Args>
 class UniqueFunction
 {
 protected:
-    FunctionHolderBase *_holder{nullptr};
+    FunctionHolderBase<Ret, Args...> *_holder{nullptr};
 
 public:
     template <typename T>
     static UniqueFunction create(T f)
     {
-        return UniqueFunction(new FunctionHolder<T>(f));
+        return UniqueFunction(new FunctionHolder<T, Ret, Args...>(f));
     }
 
     UniqueFunction() noexcept = default;
-    UniqueFunction(FunctionHolderBase *holder) : _holder(holder) {}
+    UniqueFunction(FunctionHolderBase<Ret, Args...> *holder) : _holder(holder) {}
 
     UniqueFunction(const UniqueFunction &) = delete;
     UniqueFunction(UniqueFunction &&val) noexcept
@@ -51,7 +53,7 @@ public:
         return *this;
     }
 
-    virtual void operator()() { _holder->call(); }
+    virtual Ret operator()(Args &&...args) { return _holder->call(std::forward<Args>(args)...); }
 
     virtual ~UniqueFunction() { delete _holder; }
 };

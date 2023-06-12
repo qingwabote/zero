@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SDL_video.h"
-#include "base/UniqueFunction.hpp"
 #include "base/threading/ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
 
@@ -10,17 +9,20 @@ class Window : public TaskRunner
 private:
     Window(/* args */);
 
-    ThreadSafeQueue<UniqueFunction> _beforeTickQueue;
+    ThreadSafeQueue<UniqueFunction<void>> _beforeTickQueue;
 
     ~Window();
+
+protected:
+    void post(UniqueFunction<void> &&func) override
+    {
+        _beforeTickQueue.push(std::forward<UniqueFunction<void>>(func));
+    }
 
 public:
     static Window &instance();
 
-    int loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window);
+    using TaskRunner::post;
 
-    void post(UniqueFunction &&func) override
-    {
-        _beforeTickQueue.push(std::forward<UniqueFunction>(func));
-    }
+    int loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window);
 };

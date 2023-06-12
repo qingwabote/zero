@@ -51,7 +51,7 @@ namespace binding::gfx
                     {
                         c_obj->submit(c_submitInfo, c_fence);
                     });
-                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(f);
             });
 
         sugar::v8::ctor_function(
@@ -67,7 +67,7 @@ namespace binding::gfx
                     {
                         c_obj->present(c_waitSemaphore);
                     });
-                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(f);
             });
 
         sugar::v8::ctor_function(
@@ -84,7 +84,7 @@ namespace binding::gfx
                         c_obj->waitFence(c_fence);
                         semaphore.signal();
                     });
-                DeviceThread::instance().post(UniqueFunction::create<decltype(f)>(f));
+                DeviceThread::instance().post(f);
                 semaphore.wait();
                 c_obj->release(c_fence->js_obj());
             });
