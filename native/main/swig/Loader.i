@@ -8,13 +8,14 @@
 #include "Loader.hpp"
 %}
 
-%feature("novaluewrapper") std::unique_ptr< char[] >;
-%template() std::unique_ptr< char[] >;
+// Result
+%unique_ptr(ImageBitmap)
 
-%typemap (out, fragment="SWIG_FromCharPtr") std::unique_ptr< char[] > %{
-  $result = SWIG_FromCharPtr($1.get());
-%}
+%attribute(loader::Result, std::string, error, error);
 
+%ignore loader::Result::Result;
+
+// Loader
 %typemap(in) UniqueFunction<void, std::unique_ptr<loader::Result>> && (UniqueFunction<void, std::unique_ptr<loader::Result>> temp){
     auto js_func = $input.As<v8::Function>();
     v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
@@ -31,11 +32,9 @@
     $1 = &temp;
 }
 
-%ignore loader::Result::Result;
-
 %ignore loader::Loader::Loader;
 %ignore loader::Loader::instance;
 
-%include "Loader.hpp"
+%rename(_load) loader::Loader::load;
 
-%constant loader::Loader *loader2 = &loader::Loader::instance();
+%include "Loader.hpp"

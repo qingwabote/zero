@@ -130,10 +130,23 @@ namespace sugar::v8
     }
     unique_isolate isolate_create(std::filesystem::path &imports_path)
     {
+        std::error_code ec;
+        std::uintmax_t size = std::filesystem::file_size(imports_path, ec);
+        if (ec)
+        {
+            ZERO_LOG_ERROR("failed to get size of %s, %s", imports_path.string().c_str(), ec.message().c_str());
+            return {nullptr, isolate_deleter};
+        }
+
+        std::unique_ptr<char[]> buffer{new char[size]};
+
+        std::ifstream stream{imports_path, std::ios::binary};
+        stream.read(buffer.get(), size);
+
         nlohmann::json imports_json;
         try
         {
-            imports_json = nlohmann::json::parse(std::ifstream(imports_path));
+            imports_json = nlohmann::json::parse(buffer.get(), buffer.get() + size);
         }
         catch (nlohmann::json::parse_error &e)
         {
@@ -375,11 +388,14 @@ namespace sugar::v8
         return handle_scope.EscapeMaybe(maybeModule);
     }
 
-    void module_evaluate(_v8::Local<_v8::Context> context, std::filesystem::path &path, _v8::Local<_v8::Module> *out_module, _v8::Local<_v8::Promise> *out_promise)
+    void module_evaluate(_v8::Local<_v8::Context> context, std::filesystem::path &path, _v8::Local<_v8::Promise> *out_promise, _v8::Local<_v8::Module> *out_module)
     {
         _v8::Isolate *isolate = context->GetIsolate();
+
+        _v8::Global<_v8::Promise> g_promise;
+        _v8::Global<_v8::Module> g_module;
         {
-            _v8::EscapableHandleScope scope(isolate);
+            _v8::HandleScope scope(isolate);
 
             _v8::TryCatch try_catch(isolate);
             _v8::MaybeLocal<_v8::Module> maybeModule = module_resolve(context, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
@@ -405,10 +421,14 @@ namespace sugar::v8
                 ZERO_LOG_ERROR("module instantiate failed: %s", path.string().c_str());
                 return;
             }
-            *out_module = scope.Escape(module);
+            g_promise.Reset(isolate, module->Evaluate(context).ToLocalChecked().As<_v8::Promise>());
+            g_module.Reset(isolate, module);
         }
-
-        *out_promise = (*out_module)->Evaluate(context).ToLocalChecked().As<_v8::Promise>();
+        if (out_module)
+        {
+            *out_module = g_module.Get(isolate);
+        }
+        *out_promise = g_promise.Get(isolate);
     }
 
     _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name)

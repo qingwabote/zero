@@ -42,6 +42,42 @@
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
 
+
+%include "std_unique_ptr.i"
+
+/* std::unique_ptr< char[] > to string */
+
+%feature("novaluewrapper") std::unique_ptr< char[] >;
+%template() std::unique_ptr< char[] >;
+%typemap (out, fragment="SWIG_FromCharPtr") std::unique_ptr< char[] > %{
+  $result = SWIG_FromCharPtr($1.get());
+%}
+
+/* std::unique_ptr< std::vector<char> > to ArrayBuffer */
+
+%feature("novaluewrapper") std::unique_ptr< std::vector<char> >;
+%template() std::unique_ptr< std::vector<char> >;
+%typemap (out, fragment="SWIG_FromCharPtr") std::unique_ptr< std::vector<char> > {
+    auto vector = $1.release();
+    if (vector)
+    {
+      $result = v8::ArrayBuffer::New(
+          v8::Isolate::GetCurrent(),
+          v8::ArrayBuffer::NewBackingStore(
+              vector->data(), vector->size(),
+              [](void *data, size_t length, void *deleter_data)
+              {
+                auto vector = static_cast<std::vector<char> *>(deleter_data);
+                delete vector;
+              },
+              vector));
+    }
+    else
+    {
+      $result = SWIGV8_NULL();
+    }
+}
+
 %typemap(in) UniqueFunction<void> && (UniqueFunction<void> temp){
     auto js_func = $input.As<v8::Function>();
     v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);

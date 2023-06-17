@@ -3,11 +3,14 @@
 #include "SDL_video.h"
 #include "base/threading/ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
+#include "Loader.hpp"
 
 class Window : public TaskRunner
 {
 private:
     Window(/* args */);
+
+    std::unique_ptr<loader::Loader> _loader;
 
     ThreadSafeQueue<UniqueFunction<void>> _beforeTickQueue;
 
@@ -21,6 +24,8 @@ protected:
 
 public:
     static Window &instance();
+
+    loader::Loader &loader() { return *_loader.get(); }
 
     using TaskRunner::post;
 

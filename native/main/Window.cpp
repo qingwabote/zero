@@ -14,7 +14,9 @@
 
 extern "C"
 {
+    void ImageBitmap_initialize(v8::Local<v8::Object> exports_obj);
     void Loader_initialize(v8::Local<v8::Object> exports_obj);
+    void global_initialize(v8::Local<v8::Object> exports_obj);
 }
 
 #define NANOSECONDS_PER_SECOND 1000000000
@@ -55,6 +57,10 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
     // Isolate Scope
     {
         sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(project).append("imports.json"));
+        if (!isolate)
+        {
+            return -1;
+        }
         isolate->SetOOMErrorHandler(
             [](const char *location, const v8::OOMDetails &details)
             {
@@ -91,6 +97,8 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                   gfx->js_obj())
             .ToChecked();
 
+        _loader = std::make_unique<loader::Loader>(project, this, &ThreadPool::shared());
+
         binding::Loader *loader = new binding::Loader(project, this, &ThreadPool::shared());
         global->Set(
                   context,
@@ -98,10 +106,26 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                   loader->js_obj())
             .ToChecked();
 
+        ImageBitmap_initialize(global);
         Loader_initialize(global);
+        global_initialize(global);
 
         std::filesystem::current_path(project);
         std::error_code ec;
+
+        v8::Local<v8::Promise> polyfill_promise;
+        std::filesystem::path polyfill_src = std::filesystem::canonical("script/platforms/jsb/dist/script/platforms/jsb/polyfill.js");
+        if (ec)
+        {
+            ZERO_LOG_ERROR("%s", ec.message().c_str());
+            return -1;
+        }
+        sugar::v8::module_evaluate(context, polyfill_src, &polyfill_promise);
+        if (polyfill_promise->State() != v8::Promise::PromiseState::kFulfilled)
+        {
+            return -1;
+        }
+
         std::filesystem::path appSrc = std::filesystem::canonical(bootstrap_json["app"]);
         if (ec)
         {
@@ -112,7 +136,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         v8::Local<v8::Object> app;
         v8::Local<v8::Module> app_module;
         v8::Local<v8::Promise> app_promise;
-        sugar::v8::module_evaluate(context, appSrc, &app_module, &app_promise);
+        sugar::v8::module_evaluate(context, appSrc, &app_promise, &app_module);
         if (app_promise.IsEmpty())
         {
             ZERO_LOG_ERROR("app load failed: %s\n", appSrc.string().c_str());

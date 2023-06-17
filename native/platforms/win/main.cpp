@@ -32,11 +32,9 @@ int WINAPI WinMain(
     _In_ int nCmdShow)
 {
     AllocConsole();
-    // system("chcp 65001");
-    FILE *stream = nullptr;
-    // freopen_s(&stream, "conin$", "r+t", stdin);
-    freopen_s(&stream, "conout$", "w+t", stdout);
-    freopen_s(&stream, "conout$", "w+t", stderr);
+
+    freopen("conout$", "w", stdout);
+    freopen("conout$", "w", stderr);
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -58,5 +56,6 @@ int WINAPI WinMain(
     {
         std::this_thread::sleep_for(std::chrono::nanoseconds(30000000000));
     }
+
     return nCmdShow;
 }

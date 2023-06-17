@@ -3,6 +3,7 @@ import Effect from "../../../../script/main/assets/Effect.js";
 import GLTF, { MaterialMacros, MaterialValues } from "../../../../script/main/assets/GLTF.js";
 import Material from "../../../../script/main/assets/Material.js";
 import SpriteFrame from "../../../../script/main/assets/SpriteFrame.js";
+import Loader from "../../../../script/main/base/Loader.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import SpriteRenderer from "../../../../script/main/components/SpriteRenderer.js";
@@ -26,10 +27,9 @@ import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
-(globalThis as any).loader2.load("hello swig!", (res: any) => {
-    console.log("hello callback: " + res.takeText())
-    console.log("hello callback2: " + res.takeText())
-})
+const loader2: Loader = (globalThis as any).loader2;
+const text = await loader2.load("../../assets/fnt/zero_0.png", "bitmap");
+console.log("text", text.height);
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;

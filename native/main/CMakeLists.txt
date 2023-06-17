@@ -26,7 +26,9 @@ set(SRC_FILES
     bindings/gfx/Fence.cpp
     bindings/gfx/Semaphore.cpp
     bindings/gfx/Queue.cpp
+    swig/auto/ImageBitmap_wrap.cpp
     swig/auto/Loader_wrap.cpp
+    swig/auto/global_wrap.cpp
 )
 
 add_library(zero_main STATIC ${SRC_FILES})
