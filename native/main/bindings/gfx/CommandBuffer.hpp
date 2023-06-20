@@ -10,7 +10,7 @@
 #include "RenderPass.hpp"
 #include "Framebuffer.hpp"
 
-#include "bindings/ImageBitmap.hpp"
+#include "ImageBitmap.hpp"
 
 namespace binding::gfx
 {

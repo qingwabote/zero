@@ -1,6 +1,8 @@
 #include "CommandBuffer.hpp"
 #include "DeviceThread.hpp"
 
+ImageBitmap *swig_imageBitmap_js2c(v8::Local<v8::Value> js_obj);
+
 namespace binding::gfx
 {
     v8::Local<v8::FunctionTemplate> CommandBuffer::createTemplate()
@@ -61,7 +63,8 @@ namespace binding::gfx
             [](const v8::FunctionCallbackInfo<v8::Value> &info)
             {
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
-                auto c_imageBitmap = c_obj->retain<ImageBitmap>(info[0]);
+                auto c_imageBitmap = swig_imageBitmap_js2c(info[0]);
+                c_obj->retain(info[0]);
                 auto c_texture = c_obj->retain<Texture>(info[1]);
 
                 auto f = new auto(

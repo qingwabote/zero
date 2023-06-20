@@ -8,8 +8,6 @@ set(SRC_FILES
     tests/v8.cpp
     Binding.cpp
     bindings/Console.cpp
-    bindings/Loader.cpp
-    bindings/ImageBitmap.cpp
     bindings/gfx/Device.cpp
     bindings/gfx/CommandBuffer.cpp
     bindings/gfx/Buffer.cpp

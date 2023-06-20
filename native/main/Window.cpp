@@ -6,7 +6,6 @@
 #include "sugars/v8sugar.hpp"
 #include "v8/libplatform/libplatform.h"
 #include "bindings/Console.hpp"
-#include "bindings/Loader.hpp"
 #include "bindings/gfx/Device.hpp"
 #include "bindings/gfx/DeviceThread.hpp"
 #include <chrono>
@@ -98,13 +97,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             .ToChecked();
 
         _loader = std::make_unique<loader::Loader>(project, this, &ThreadPool::shared());
-
-        binding::Loader *loader = new binding::Loader(project, this, &ThreadPool::shared());
-        global->Set(
-                  context,
-                  v8::String::NewFromUtf8Literal(isolate.get(), "loader"),
-                  loader->js_obj())
-            .ToChecked();
 
         ImageBitmap_initialize(global);
         Loader_initialize(global);

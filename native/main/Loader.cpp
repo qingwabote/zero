@@ -2,7 +2,9 @@
 
 #include <fstream>
 #include "log.h"
-#include "bindings/internal/stb_image.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "internal/stb_image.h"
 
 namespace loader
 {

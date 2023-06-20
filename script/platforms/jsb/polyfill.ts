@@ -1,6 +1,6 @@
 import { LoaderTypes } from "../../main/base/Loader.js";
 
-const Loader: Function = (globalThis as any).loader2.constructor;
+const Loader: Function = (globalThis as any).loader.constructor;
 
 Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type: T): Promise<LoaderTypes[T]> {
     return new Promise((resolve, reject) => {

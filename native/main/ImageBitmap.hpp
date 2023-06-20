@@ -2,6 +2,8 @@
 
 #include <memory>
 
+// corresponds to the web API ImageBitmap
+// https://developer.mozilla.org/en-US/docs/Web/API/ImageBitmap
 class ImageBitmap
 {
 private:
