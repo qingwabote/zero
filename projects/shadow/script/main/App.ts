@@ -26,9 +26,14 @@ import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
-// const loader2: Loader = (globalThis as any).loader2;
-// const text = await loader2.load("../../assets/fnt/zero_0.png", "bitmap");
-// console.log("text", text.height);
+const res = (globalThis as any).test_get_imageBitmap();
+console.log("test_get_imageBitmap", res);
+console.log("res.width", res.width);
+
+(globalThis as any).test_set_imageBitmap(res);
+
+// (globalThis as any).fffff = res;
+
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;

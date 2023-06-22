@@ -162,6 +162,7 @@ public:
 
   bool swigCMemOwn;
   void *swigCObject;
+  std::shared_ptr<void> swigCObjectShared;
   swig_type_info *info;
   v8::Persistent<v8::Object> handle;
 };
@@ -195,10 +196,10 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
       return SWIG_TypeError;
     }
     int newmemory = 0;
-    *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
+    *ptr = SWIG_TypeCast(tc, cdata->swigCObjectShared ? cdata->swigCObjectShared.get() : cdata->swigCObject, &newmemory);
     assert(!newmemory); /* newmemory handling not yet implemented */
   } else {
-    *ptr = cdata->swigCObject;
+    *ptr = cdata->swigCObjectShared ? cdata->swigCObjectShared.get() : cdata->swigCObject;
   }
 
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !cdata->swigCMemOwn) {
@@ -208,6 +209,59 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
       cdata->swigCMemOwn = false;
     }
     if (flags & SWIG_POINTER_CLEAR) {
+      cdata->swigCObject = 0;
+    }
+  }
+  return SWIG_OK;
+}
+
+SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr<void> &ptr, swig_type_info *info, int flags)
+{
+  SWIGV8_HANDLESCOPE();
+
+  if (objRef->InternalFieldCount() < 1)
+    return SWIG_ERROR;
+
+  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
+
+  if (cdata == NULL)
+  {
+    return SWIG_ERROR;
+  }
+  if (info && cdata->info != info)
+  {
+    // swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
+    // if (!tc && cdata->info->name)
+    // {
+    //   tc = SWIG_TypeCheck(cdata->info->name, info);
+    // }
+    // bool type_valid = tc != 0;
+    // if (!type_valid)
+    // {
+    //   return SWIG_TypeError;
+    // }
+    // int newmemory = 0;
+    // *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
+    // assert(!newmemory); /* newmemory handling not yet implemented */
+    throw "fix me";
+  }
+  else
+  {
+    ptr = cdata->swigCObjectShared;
+  }
+
+  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !cdata->swigCMemOwn)
+  {
+    return SWIG_ERROR_RELEASE_NOT_OWNED;
+  }
+  else
+  {
+    if (flags & SWIG_POINTER_DISOWN)
+    {
+      cdata->swigCMemOwn = false;
+    }
+    if (flags & SWIG_POINTER_CLEAR)
+    {
       cdata->swigCObject = 0;
     }
   }
@@ -234,7 +288,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(SWIGV8_VALUE valRef, void **ptr) {
     return SWIG_ERROR;
   }
 
-  *ptr = cdata->swigCObject;
+  *ptr = cdata->swigCObjectShared ? cdata->swigCObjectShared.get() : cdata->swigCObject;
 
   return SWIG_OK;
 }
@@ -262,6 +316,24 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 #endif
 }
 
+SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, std::shared_ptr<void> ptr, swig_type_info *info, int flags)
+{
+  SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
+  cdata->swigCObjectShared = ptr;
+  cdata->info = info;
+
+  obj->SetAlignedPointerInInternalField(0, cdata);
+
+  cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
+  cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
+
+#if (SWIG_V8_VERSION < 0x0704)
+  cdata->handle.MarkIndependent();
+// Looks like future versions do not require that anymore:
+// https://monorail-prod.appspot.com/p/chromium/issues/detail?id=923361#c11
+#endif
+}
+
 SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE();
   
@@ -271,6 +343,23 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_in
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
   if(!valRef->IsObject()) {
+    return SWIG_TypeError;
+  }
+  SWIGV8_OBJECT objRef = SWIGV8_OBJECT::Cast(valRef);
+  return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
+}
+
+SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, std::shared_ptr<void> &ptr, swig_type_info *info, int flags)
+{
+  SWIGV8_HANDLESCOPE();
+
+  /* special case: JavaScript null => C NULL pointer */
+  if (valRef->IsNull())
+  {
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+  }
+  if (!valRef->IsObject())
+  {
     return SWIG_TypeError;
   }
   SWIGV8_OBJECT objRef = SWIGV8_OBJECT::Cast(valRef);
@@ -304,6 +393,43 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
     SWIGV8_SetPrivateData(result, ptr, info, flags);
 
     sugar::v8::isolate_native2js_set(isolate, ptr, result);
+  }
+
+  SWIGV8_ESCAPE(result);
+}
+
+SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(std::shared_ptr<void> ptr, swig_type_info *info, int flags)
+{
+  SWIGV8_HANDLESCOPE_ESC();
+
+  SWIGV8_FUNCTION_TEMPLATE class_templ;
+
+  if (ptr == NULL)
+  {
+    v8::Local<v8::Primitive> result = SWIGV8_NULL();
+    SWIGV8_ESCAPE(result);
+  }
+
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
+
+  v8::Local<v8::Object> result = sugar::v8::isolate_native2js_get(isolate, ptr.get());
+
+  if (result.IsEmpty())
+  {
+    if (info->clientdata != 0)
+    {
+      class_templ = v8::Local<v8::FunctionTemplate>::New(isolate, ((SWIGV8_ClientData *)info->clientdata)->class_templ);
+    }
+    else
+    {
+      class_templ = v8::Local<v8::FunctionTemplate>::New(isolate, SWIGV8_SWIGTYPE_Proxy_class_templ);
+    }
+
+    result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+
+    SWIGV8_SetPrivateData(result, ptr, info, flags);
+
+    sugar::v8::isolate_native2js_set(isolate, ptr.get(), result);
   }
 
   SWIGV8_ESCAPE(result);
