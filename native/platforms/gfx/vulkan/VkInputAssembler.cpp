@@ -1,5 +1,6 @@
 #include "bindings/gfx/InputAssembler.hpp"
 #include "VkInputAssembler_impl.hpp"
+#include "bindings/gfx/Buffer.hpp"
 #include "VkBuffer_impl.hpp"
 #include "sugars/v8sugar.hpp"
 

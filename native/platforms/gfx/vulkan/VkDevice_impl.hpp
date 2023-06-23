@@ -8,40 +8,32 @@
 
 #include "vma/vk_mem_alloc.h"
 
-#include "bindings/gfx/CommandBuffer.hpp"
-#include "bindings/gfx/Buffer.hpp"
-#include "bindings/gfx/Shader.hpp"
-#include "bindings/gfx/DescriptorSetLayout.hpp"
-#include "bindings/gfx/DescriptorSet.hpp"
-#include "bindings/gfx/Pipeline.hpp"
-
 namespace binding::gfx
 {
     class Device_impl
     {
-        friend class Device;
-
     private:
-        uint32_t _version = VK_API_VERSION_1_3;
-
-        SDL_Window *_window = nullptr;
+        SDL_Window *_window{nullptr};
         vkb::Instance _vkb_instance;
-        VkSurfaceKHR _surface = nullptr;
+        VkSurfaceKHR _surface{nullptr};
+        vkb::PhysicalDevice _vkb_physicalDevice;
         vkb::Device _vkb_device;
 
         VmaAllocator _allocator{nullptr};
 
-        VkCommandPool _commandPool = nullptr;
+        VkCommandPool _commandPool{nullptr};
 
         vkb::Swapchain _vkb_swapchain;
         std::vector<VkImageView> _swapchainImageViews;
 
         uint32_t _swapchainImageIndex = 0;
 
-        VkQueue _graphicsQueue = nullptr;
+        VkQueue _graphicsQueue{nullptr};
 
     public:
-        uint32_t version() { return _version; }
+        uint32_t version() { return VK_API_VERSION_1_3; }
+
+        VkPhysicalDeviceLimits &limits() { return _vkb_physicalDevice.properties.limits; }
 
         VkCommandPool commandPool() { return _commandPool; }
 
@@ -59,10 +51,16 @@ namespace binding::gfx
 
         VkQueue graphicsQueue() { return _graphicsQueue; }
 
+        VkDevice device() { return _vkb_device.device; }
+
         operator VkDevice() { return _vkb_device.device; }
 
         Device_impl(SDL_Window *window) : _window(window) {}
 
-        ~Device_impl() {}
+        bool initialize();
+
+        void acquireNextImage(VkSemaphore semaphore);
+
+        ~Device_impl();
     };
 }

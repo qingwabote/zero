@@ -1,6 +1,8 @@
 #include "bindings/gfx/Framebuffer.hpp"
 #include "VkFramebuffer_impl.hpp"
+#include "bindings/gfx/Texture.hpp"
 #include "VkTexture_impl.hpp"
+#include "bindings/gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
 #include "sugars/v8sugar.hpp"
 

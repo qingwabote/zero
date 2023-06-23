@@ -28,8 +28,6 @@ namespace binding::gfx
 
         sugar::v8::Weak<v8::Object> _capabilities;
 
-        sugar::v8::Weak<v8::Object> _swapchain;
-
         sugar::v8::Weak<v8::Object> _queue;
 
         sugar::v8::Weak<v8::Object> _acquire_semaphore;

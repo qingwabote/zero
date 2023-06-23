@@ -5,7 +5,7 @@
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "v8/libplatform/libplatform.h"
-#include "bindings/Console.hpp"
+#include "internal/console.hpp"
 #include "bindings/gfx/Device.hpp"
 #include "bindings/gfx/DeviceThread.hpp"
 #include <chrono>
@@ -82,11 +82,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         v8::Context::Scope context_scope(context);
 
         auto global = context->Global();
-        global->Set(
-                  context,
-                  v8::String::NewFromUtf8Literal(isolate.get(), "console"),
-                  (new binding::Console())->js_obj())
-            .ToChecked();
 
         binding::gfx::Device *gfx = new binding::gfx::Device(sdl_window.get());
         gfx->initialize();
@@ -101,6 +96,8 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         ImageBitmap_initialize(global);
         Loader_initialize(global);
         global_initialize(global);
+
+        console_initialize(context, global);
 
         std::filesystem::current_path(project);
         std::error_code ec;

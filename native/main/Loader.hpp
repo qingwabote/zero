@@ -37,7 +37,7 @@ namespace loader
 
         std::unique_ptr<std::vector<char>> takeBuffer() { return std::move(_buffer); }
 
-        std::unique_ptr<ImageBitmap> takeBitmap() { return std::move(_bitmap); }
+        std::shared_ptr<ImageBitmap> takeBitmap() { return std::move(_bitmap); }
     };
 
     class Loader

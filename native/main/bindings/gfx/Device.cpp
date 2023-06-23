@@ -28,15 +28,6 @@ namespace binding::gfx
 
         sugar::v8::ctor_accessor(
             ctor,
-            "swapchain",
-            [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
-            {
-                auto c_obj = Binding::c_obj<Device>(info.This());
-                info.GetReturnValue().Set(c_obj->_swapchain.Get(info.GetIsolate()));
-            });
-
-        sugar::v8::ctor_accessor(
-            ctor,
             "queue",
             [](v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info)
             {

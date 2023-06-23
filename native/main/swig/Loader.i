@@ -3,13 +3,14 @@
 %include "attribute.i"
 %include "std_string.i"
 %include "std_unique_ptr.i"
+%include "std_shared_ptr.i"
 
 %{
 #include "Loader.hpp"
 %}
 
 // Result
-%unique_ptr(ImageBitmap)
+%shared_ptr(ImageBitmap)
 
 %attribute(loader::Result, std::string, error, error);
 

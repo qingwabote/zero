@@ -1,6 +1,7 @@
 #include "log.h"
 #include "bindings/gfx/DescriptorSet.hpp"
 #include "VkDescriptorSet_impl.hpp"
+#include "bindings/gfx/DescriptorSetLayout.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
 #include "VkBuffer_impl.hpp"
 #include "VkTexture_impl.hpp"

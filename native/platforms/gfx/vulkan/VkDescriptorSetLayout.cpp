@@ -1,17 +1,11 @@
 #include "bindings/gfx/DescriptorSetLayout.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
+#include "bindings/gfx/DescriptorSet.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "sugars/v8sugar.hpp"
 
 namespace binding::gfx
 {
-    struct DescriptorSetLayoutBinding
-    {
-        uint32_t binding;
-        DescriptorType descriptorType;
-        ShaderStageFlags stageFlags;
-    };
-
     DescriptorSetLayout_impl::DescriptorSetLayout_impl(Device_impl *device) : _device(device)
     {
         _pool = std::make_unique<DescriptorSetPool>(*device);

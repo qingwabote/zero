@@ -1,7 +1,7 @@
 #include "CommandBuffer.hpp"
 #include "DeviceThread.hpp"
 
-ImageBitmap *swig_imageBitmap_js2c(v8::Local<v8::Value> js_obj);
+std::shared_ptr<ImageBitmap> swig_imageBitmap_js2c(v8::Local<v8::Value> js_obj);
 
 namespace binding::gfx
 {
@@ -70,7 +70,7 @@ namespace binding::gfx
                 auto f = new auto(
                     [=]()
                     {
-                        c_obj->copyImageBitmapToTexture(c_imageBitmap, c_texture);
+                        c_obj->copyImageBitmapToTexture(c_imageBitmap.get(), c_texture);
                     });
                 DeviceThread::instance().post(f);
             });

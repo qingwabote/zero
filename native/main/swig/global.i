@@ -30,9 +30,9 @@ ImageBitmap * test_get_imageBitmap2() {
 %}
 
 %{
-ImageBitmap * swig_imageBitmap_js2c(SWIGV8_VALUE js_obj) {
-  void *p{nullptr};
-  SWIG_ConvertPtr(js_obj, &p, SWIGTYPE_p_ImageBitmap, 0 | 0);
-  return reinterpret_cast<ImageBitmap *>(p);
+std::shared_ptr<ImageBitmap> swig_imageBitmap_js2c(SWIGV8_VALUE js_obj) {
+  std::shared_ptr<void> ptr;
+  SWIG_ConvertPtr(js_obj, ptr, SWIGTYPE_p_ImageBitmap, 0 | 0);
+  return std::reinterpret_pointer_cast<ImageBitmap>(ptr);
 }
 %}

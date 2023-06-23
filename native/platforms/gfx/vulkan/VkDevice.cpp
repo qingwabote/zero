@@ -40,9 +40,7 @@ namespace
 
 namespace binding::gfx
 {
-    Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
-
-    bool Device::initialize()
+    bool Device_impl::initialize()
     {
         if (volkInitialize())
         {
@@ -61,7 +59,7 @@ namespace binding::gfx
         }
         auto inst_ret = builder
                             .set_app_name("_app_name")
-                            .require_api_version(_impl->_version)
+                            .require_api_version(version())
                             .set_debug_callback(vkb_debug_callback)
                             .build();
         if (!inst_ret)
@@ -75,7 +73,7 @@ namespace binding::gfx
 
         // surface
         VkSurfaceKHR surface = nullptr;
-        if (!SDL_Vulkan_CreateSurface(_impl->_window, vkb_instance.instance, &surface))
+        if (!SDL_Vulkan_CreateSurface(_window, vkb_instance.instance, &surface))
         {
             ZERO_LOG("failed to create surface, SDL Error: %s", SDL_GetError());
             return true;
@@ -84,7 +82,7 @@ namespace binding::gfx
         // physical device
         vkb::PhysicalDeviceSelector selector{vkb_instance};
         auto dev_ret = selector
-                           .set_minimum_version(VK_API_VERSION_MAJOR(_impl->_version), VK_API_VERSION_MINOR(_impl->_version))
+                           .set_minimum_version(VK_API_VERSION_MAJOR(version()), VK_API_VERSION_MINOR(version()))
                            .set_surface(surface)
                            .select();
         if (!dev_ret)
@@ -113,7 +111,7 @@ namespace binding::gfx
 
         allocatorInfo.pVulkanFunctions = &vmaVulkanFunc;
 
-        if (vmaCreateAllocator(&allocatorInfo, &_impl->_allocator))
+        if (vmaCreateAllocator(&allocatorInfo, &_allocator))
         {
             return true;
         }
@@ -126,52 +124,74 @@ namespace binding::gfx
                                  .build();
         auto &vkb_swapchain = swapchain_ret.value();
 
-        auto src_js_swapchain = R"(
-                const swapchain = {
-                    colorTexture: {
-                        info: {
-                            samples: 1
-                        },
-                        isSwapchain: true
-                    }
-                };
-                swapchain;
-            )";
-        auto js_swapchain = sugar::v8::run(src_js_swapchain).As<v8::Object>();
-        retain(js_swapchain, _swapchain);
-
-        _impl->_swapchainImageViews = vkb_swapchain.get_image_views().value();
-        _impl->_vkb_swapchain = std::move(vkb_swapchain);
+        _swapchainImageViews = vkb_swapchain.get_image_views().value();
+        _vkb_swapchain = std::move(vkb_swapchain);
 
         // command pool and a buffer
         VkCommandPoolCreateInfo commandPoolInfo = {};
         commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         commandPoolInfo.queueFamilyIndex = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
         commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &_impl->_commandPool))
+        if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &_commandPool))
         {
             return true;
         }
+
+        _graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
+
+        _vkb_physicalDevice = std::move(physicalDevice);
+        _vkb_device = std::move(vkb_device);
+        _vkb_instance = std::move(vkb_instance);
+        _surface = surface;
+
+        return false;
+    }
+
+    void Device_impl::acquireNextImage(VkSemaphore semaphore)
+    {
+        vkAcquireNextImageKHR(_vkb_device.device, _vkb_swapchain.swapchain, 1000000000, semaphore, nullptr, &_swapchainImageIndex);
+    }
+
+    Device_impl::~Device_impl()
+    {
+        vkDestroyCommandPool(_vkb_device.device, _commandPool, nullptr);
+
+        vmaDestroyAllocator(_allocator);
+
+        for (int i = 0; i < _swapchainImageViews.size(); i++)
+        {
+            vkDestroyImageView(_vkb_device.device, _swapchainImageViews[i], nullptr);
+        }
+
+        vkb::destroy_swapchain(_vkb_swapchain);
+        vkb::destroy_device(_vkb_device);
+
+        vkb::destroy_surface(_vkb_instance.instance, _surface);
+        vkb::destroy_instance(_vkb_instance);
+    }
+
+    Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
+
+    bool Device::initialize()
+    {
+        if (_impl->initialize())
+        {
+            return true;
+        }
+
+        auto queue = new Queue(std::make_unique<Queue_impl>(_impl));
+        retain(queue->js_obj(), _queue);
 
         v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
         sugar::v8::object_set(
             capabilities,
             "uniformBufferOffsetAlignment",
-            v8::Number::New(v8::Isolate::GetCurrent(), physicalDevice.properties.limits.minUniformBufferOffsetAlignment));
+            v8::Number::New(v8::Isolate::GetCurrent(), _impl->limits().minUniformBufferOffsetAlignment));
         sugar::v8::object_set(
             capabilities,
             "clipSpaceMinZ",
             v8::Number::New(v8::Isolate::GetCurrent(), 0));
         retain(capabilities, _capabilities);
-
-        _impl->_graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
-
-        auto queue = new Queue(std::make_unique<Queue_impl>(_impl));
-        retain(queue->js_obj(), _queue);
-
-        _impl->_vkb_device = std::move(vkb_device);
-        _impl->_vkb_instance = std::move(vkb_instance);
-        _impl->_surface = surface;
 
         glslang::InitializeProcess();
 
@@ -207,34 +227,17 @@ namespace binding::gfx
     void Device::acquire(Semaphore *c_presentSemaphore)
     {
         VkSemaphore semaphore = c_presentSemaphore->impl();
-        vkAcquireNextImageKHR(_impl->_vkb_device.device, _impl->_vkb_swapchain.swapchain, 1000000000, semaphore, nullptr, &_impl->_swapchainImageIndex);
+        _impl->acquireNextImage(semaphore);
     }
 
     void Device::finish()
     {
-        vkDeviceWaitIdle(_impl->_vkb_device.device);
+        vkDeviceWaitIdle(_impl->device());
     }
 
     Device::~Device()
     {
         glslang::FinalizeProcess();
-
-        vkb::Device &vkb_device = _impl->_vkb_device;
-
-        vkDestroyCommandPool(vkb_device.device, _impl->_commandPool, nullptr);
-
-        vmaDestroyAllocator(_impl->_allocator);
-
-        for (int i = 0; i < _impl->_swapchainImageViews.size(); i++)
-        {
-            vkDestroyImageView(vkb_device.device, _impl->_swapchainImageViews[i], nullptr);
-        }
-
-        vkb::destroy_swapchain(_impl->_vkb_swapchain);
-        vkb::destroy_device(vkb_device);
-
-        vkb::destroy_surface(_impl->_vkb_instance.instance, _impl->_surface);
-        vkb::destroy_instance(_impl->_vkb_instance);
 
         delete _impl;
     }
