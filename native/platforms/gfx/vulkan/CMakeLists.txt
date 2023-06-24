@@ -17,6 +17,8 @@ set(SRC_FILES
     VkFence.cpp
     VkSemaphore.cpp
     VkQueue.cpp
+
+    tests/triangle.cpp
 )
 
 add_library(zero_gfx STATIC ${SRC_FILES})

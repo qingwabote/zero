@@ -133,37 +133,24 @@ namespace binding
     {
         Shader_impl::Shader_impl(Device_impl *device) : _device(device) {}
 
-        Shader_impl::~Shader_impl() {}
-
-        Shader::Shader(std::unique_ptr<Shader_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
-
-        bool Shader::initialize(v8::Local<v8::Object> info)
+        bool Shader_impl::initialize(const ShaderInfo &info)
         {
-            v8::Isolate *isolate = info->GetIsolate();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+            static const int version_semantics = 100; // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt
+            static EShMessages messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
 
-            auto gfx_stages = sugar::v8::object_get(info, "stages").As<v8::Array>();
-            for (size_t i = 0; i < gfx_stages->Length(); i++)
+            for (size_t i = 0; i < info.stages->size(); i++)
             {
-                const int version_semantics = 100; // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt
+                VkShaderStageFlagBits flag = info.stages->at(i)->type == ShaderStageFlagBits::VERTEX ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+                EShLanguage lang = flag == VK_SHADER_STAGE_VERTEX_BIT ? EShLangVertex : EShLangFragment;
+                std::string src = "#version 450\n" + info.stages->at(i)->source;
 
-                auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
-
-                auto gfx_stage = gfx_stages->Get(context, i).ToLocalChecked().As<v8::Object>();
-                auto gfx_state_type = sugar::v8::object_get(gfx_stage, "type").As<v8::Number>()->Value();
-
-                EShLanguage stage = gfx_state_type == VK_SHADER_STAGE_VERTEX_BIT ? EShLangVertex : EShLangFragment;
-                std::string source{*v8::String::Utf8Value{isolate, sugar::v8::object_get(gfx_stage, "source")}};
-                source = "#version 450\n" + source;
-                const char *source_c_str = source.c_str();
-
-                glslang::TShader shader{stage};
-                shader.setStrings(&source_c_str, 1);
-                shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, version_semantics);
-                shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_impl->_device->version()));
+                glslang::TShader shader{lang};
+                const char *src_c_str = src.c_str();
+                shader.setStrings(&src_c_str, 1);
+                shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, version_semantics);
+                shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_device->version()));
                 glslang::EShTargetLanguageVersion version_spirv;
-                switch (_impl->_device->version())
+                switch (_device->version())
                 {
                 case VK_API_VERSION_1_3:
                     version_spirv = glslang::EShTargetSpv_1_3;
@@ -176,7 +163,7 @@ namespace binding
 
                 if (!shader.parse(&DefaultTBuiltInResource, version_semantics, false, messages))
                 {
-                    ZERO_LOG_ERROR("GLSL Parsing Failed:\n%s\n%s\nsource:\n%s", shader.getInfoLog(), shader.getInfoDebugLog(), source_c_str);
+                    ZERO_LOG_ERROR("GLSL Parsing Failed:\n%s\n%s\nsource:\n%s", shader.getInfoLog(), shader.getInfoDebugLog(), src.c_str());
                     return true;
                 }
 
@@ -184,18 +171,12 @@ namespace binding
                 program.addShader(&shader);
                 if (!program.link(messages))
                 {
-                    ZERO_LOG_ERROR("GLSL Linking Failed:\n%s\n%s\nsource:\n%s", program.getInfoLog(), program.getInfoDebugLog(), source_c_str);
+                    ZERO_LOG_ERROR("GLSL Linking Failed:\n%s\n%s\nsource:\n%s", program.getInfoLog(), program.getInfoDebugLog(), src.c_str());
                     return true;
                 }
 
                 std::vector<uint32_t> spirv;
-                // spv::SpvBuildLogger logger;
-                // glslang::SpvOptions spvOptions;
-                // spvOptions.disableOptimizer = false;
-                // spvOptions.optimizeSize = true;
-                // spvOptions.stripDebugInfo = true;
-                // glslang::GlslangToSpv(*program.getIntermediate(type), spirv, &logger, &spvOptions);
-                glslang::GlslangToSpv(*program.getIntermediate(stage), spirv);
+                glslang::GlslangToSpv(*program.getIntermediate(lang), spirv);
 
                 VkShaderModuleCreateInfo moduleCreateInfo = {};
                 moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -203,7 +184,7 @@ namespace binding
                 moduleCreateInfo.codeSize = spirv.size() * sizeof(uint32_t);
                 moduleCreateInfo.pCode = spirv.data();
                 VkShaderModule shaderModule;
-                if (vkCreateShaderModule(*_impl->_device, &moduleCreateInfo, nullptr, &shaderModule))
+                if (vkCreateShaderModule(*_device, &moduleCreateInfo, nullptr, &shaderModule))
                 {
                     return true;
                 }
@@ -211,22 +192,49 @@ namespace binding
                 VkPipelineShaderStageCreateInfo stageCreateInfo{};
                 stageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                 stageCreateInfo.pNext = nullptr;
-                stageCreateInfo.stage = static_cast<VkShaderStageFlagBits>(gfx_state_type);
+                stageCreateInfo.stage = flag;
                 stageCreateInfo.module = shaderModule;
                 // the entry point of the shader
                 stageCreateInfo.pName = "main";
-                _impl->_stageInfos.emplace_back(stageCreateInfo);
+                _stages.emplace_back(std::move(stageCreateInfo));
             }
 
             return false;
         }
 
-        Shader::~Shader()
+        Shader_impl::~Shader_impl()
         {
-            for (size_t i = 0; i < _impl->_stageInfos.size(); i++)
+            for (size_t i = 0; i < _stages.size(); i++)
             {
-                vkDestroyShaderModule(*_impl->_device, _impl->_stageInfos[i].module, nullptr);
+                vkDestroyShaderModule(*_device, _stages[i].module, nullptr);
             }
         }
+
+        Shader::Shader(std::unique_ptr<Shader_impl> impl)
+            : Binding(), _impl(std::move(impl)) {}
+
+        bool Shader::initialize(v8::Local<v8::Object> js_info)
+        {
+            v8::Isolate *isolate = js_info->GetIsolate();
+            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+            auto js_stages = sugar::v8::object_get(js_info, "stages").As<v8::Array>();
+            auto info = std::make_shared<ShaderInfo>();
+            for (size_t i = 0; i < js_stages->Length(); i++)
+            {
+                auto js_stage = js_stages->Get(context, i).ToLocalChecked().As<v8::Object>();
+                auto js_state_type = sugar::v8::object_get(js_stage, "type").As<v8::Number>()->Value();
+
+                std::string source{*v8::String::Utf8Value{isolate, sugar::v8::object_get(js_stage, "source")}};
+
+                auto stage = std::make_shared<ShaderStage>();
+                stage->source = std::move(source);
+                stage->type = static_cast<ShaderStageFlagBits>(js_state_type);
+                info->stages->emplace_back(std::move(stage));
+            }
+            return _impl->initialize(*info);
+        }
+
+        Shader::~Shader() {}
     }
 }

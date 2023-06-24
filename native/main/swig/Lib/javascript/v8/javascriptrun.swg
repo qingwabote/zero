@@ -215,7 +215,8 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
   return SWIG_OK;
 }
 
-SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr<void> &ptr, swig_type_info *info, int flags)
+template <class T>
+SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr<T> &ptr, swig_type_info *info, int flags)
 {
   SWIGV8_HANDLESCOPE();
 
@@ -243,11 +244,19 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr
     // int newmemory = 0;
     // *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
     // assert(!newmemory); /* newmemory handling not yet implemented */
-    throw "fix me";
+    return SWIG_TypeError;
   }
   else
   {
-    ptr = cdata->swigCObjectShared;
+    if (cdata->swigCObject) {
+        cdata->swigCObjectShared = std::shared_ptr<T>(static_cast<T*>(cdata->swigCObject));
+        cdata->swigCObject = nullptr;
+        if (cdata->swigCMemOwn) {
+            cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
+            cdata->swigCMemOwn = false;
+        }
+    } 
+    ptr = std::reinterpret_pointer_cast<T>(cdata->swigCObjectShared);
   }
 
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !cdata->swigCMemOwn)
@@ -349,7 +358,8 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_in
   return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
-SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, std::shared_ptr<void> &ptr, swig_type_info *info, int flags)
+template <class T>
+SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, std::shared_ptr<T> &ptr, swig_type_info *info, int flags)
 {
   SWIGV8_HANDLESCOPE();
 

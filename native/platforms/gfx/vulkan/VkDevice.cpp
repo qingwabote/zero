@@ -144,6 +144,8 @@ namespace binding::gfx
         _vkb_instance = std::move(vkb_instance);
         _surface = surface;
 
+        glslang::InitializeProcess();
+
         return false;
     }
 
@@ -154,6 +156,8 @@ namespace binding::gfx
 
     Device_impl::~Device_impl()
     {
+        glslang::FinalizeProcess();
+
         vkDestroyCommandPool(_vkb_device.device, _commandPool, nullptr);
 
         vmaDestroyAllocator(_allocator);
@@ -192,8 +196,6 @@ namespace binding::gfx
             "clipSpaceMinZ",
             v8::Number::New(v8::Isolate::GetCurrent(), 0));
         retain(capabilities, _capabilities);
-
-        glslang::InitializeProcess();
 
         return false;
     }
@@ -237,8 +239,6 @@ namespace binding::gfx
 
     Device::~Device()
     {
-        glslang::FinalizeProcess();
-
         delete _impl;
     }
 }

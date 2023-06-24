@@ -5,6 +5,8 @@
 #include "Window.hpp"
 #include <thread>
 
+// #include "../gfx/vulkan/tests/triangle.hpp"
+
 namespace
 {
     static void windowDeleter(SDL_Window *ptr)
@@ -53,6 +55,7 @@ int WINAPI WinMain(
         windowDeleter};
 
     if (Window::instance().loop(std::move(sdl_window)))
+    // if (test::triangle::draw(std::move(sdl_window)))
     {
         std::this_thread::sleep_for(std::chrono::nanoseconds(30000000000));
     }

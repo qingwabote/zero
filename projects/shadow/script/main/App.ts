@@ -26,9 +26,7 @@ import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
-const res = (globalThis as any).test_get_imageBitmap();
-console.log("test_get_imageBitmap", res);
-console.log("res.width", res.width);
+const res = (globalThis as any).test_get_imageBitmap2();
 
 (globalThis as any).test_set_imageBitmap(res);
 

@@ -4,13 +4,6 @@
 
 namespace binding::gfx
 {
-    enum ShaderStageFlagBits
-    {
-        VERTEX = 0x1,
-        FRAGMENT = 0x10
-    };
-    typedef uint32_t ShaderStageFlags;
-
     class Shader_impl;
 
     class Shader : public Binding

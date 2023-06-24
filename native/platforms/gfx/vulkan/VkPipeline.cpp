@@ -99,7 +99,7 @@ namespace binding
             v8::Local<v8::Object> js_passState = sugar::v8::object_get(info, "passState").As<v8::Object>();
 
             Shader *c_shader = Binding::c_obj<Shader>(sugar::v8::object_get(js_passState, "shader").As<v8::Object>());
-            auto &stageInfos = c_shader->impl()->stageInfos();
+            auto &stageInfos = c_shader->impl()->stages();
             pipelineInfo.stageCount = stageInfos.size();
             pipelineInfo.pStages = stageInfos.data();
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VkDevice_impl.hpp"
+#include "bindings/gfx/info.hpp"
 
 namespace binding
 {
@@ -8,20 +9,17 @@ namespace binding
     {
         class Shader_impl
         {
-            friend class Shader;
-
         private:
-            Device_impl *_device = nullptr;
+            Device_impl *_device{nullptr};
 
-            std::vector<VkPipelineShaderStageCreateInfo> _stageInfos;
+            std::vector<VkPipelineShaderStageCreateInfo> _stages;
 
         public:
-            std::vector<VkPipelineShaderStageCreateInfo> &stageInfos()
-            {
-                return _stageInfos;
-            }
+            std::vector<VkPipelineShaderStageCreateInfo> &stages() { return _stages; }
 
             Shader_impl(Device_impl *device);
+
+            bool initialize(const ShaderInfo &info);
 
             ~Shader_impl();
         };
