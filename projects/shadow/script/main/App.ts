@@ -26,12 +26,8 @@ import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
 import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import ShadowUniform from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
 
-const res = (globalThis as any).test_get_imageBitmap2();
-
-(globalThis as any).test_set_imageBitmap(res);
-
-// (globalThis as any).fffff = res;
-
+// const res = (globalThis as any).test_get_imageBitmap2();
+// (globalThis as any).test_set_imageBitmap(res);
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;

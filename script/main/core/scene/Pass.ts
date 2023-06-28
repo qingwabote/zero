@@ -40,7 +40,7 @@ export default class Pass {
         if (descriptorSetLayout.bindings.length) {
             const descriptorSet = descriptorSetLayout.createDescriptorSet();
 
-            const blocks = this.state.shader.info.meta.blocks;
+            const blocks = shaderLib.getMeta(this.state.shader).blocks;
             for (const name in blocks) {
                 const block = blocks[name];
                 if (block.set != shaderLib.sets.material.index) {
@@ -55,7 +55,7 @@ export default class Pass {
     }
 
     hasUniform(name: string, member: string): boolean {
-        const block = this.state.shader.info.meta.blocks[name];
+        const block = shaderLib.getMeta(this.state.shader).blocks[name];
         if (!block) {
             return false;
         }
@@ -68,7 +68,7 @@ export default class Pass {
     }
 
     setUniform(name: string, member: string, value: ArrayLike<number>) {
-        const block = this.state.shader.info.meta.blocks[name];
+        const block = shaderLib.getMeta(this.state.shader).blocks[name];
         let offset = 0;
         for (const mem of block.members!) {
             if (mem.name == member) {
@@ -80,7 +80,7 @@ export default class Pass {
     }
 
     setTexture(name: string, texture: Texture, sampler: Sampler = samplers.get()): void {
-        const binding = this.state.shader.info.meta.samplerTextures[name].binding;
+        const binding = shaderLib.getMeta(this.state.shader).samplerTextures[name].binding;
         this.descriptorSet?.bindTexture(binding, texture, sampler);
         this._samplerTextures[name] = [texture, sampler];
     }
@@ -92,7 +92,7 @@ export default class Pass {
     }
 
     protected createUniformBuffer(name: string): BufferViewWritable {
-        const block = this.state.shader.info.meta.blocks[name];
+        const block = shaderLib.getMeta(this.state.shader).blocks[name];
         let length = block.members!.reduce((acc, mem) => acc + type2Length(mem.type), 0);
         return new BufferViewWritable('Float32', BufferUsageFlagBits.UNIFORM, length);
     }

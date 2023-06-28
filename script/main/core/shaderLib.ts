@@ -1,5 +1,6 @@
 import DescriptorSetLayout, { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/DescriptorSetLayout.js";
 import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
+import glsl, { Attribute, Uniform } from "./gfx/glsl.js";
 import preprocessor from "./internal/preprocessor.js";
 
 function align(size: number) {
@@ -70,12 +71,20 @@ export interface UniformDefinition {
     binding: number
 }
 
+export interface Meta {
+    readonly key: string;
+    readonly attributes: Record<string, Attribute>;
+    readonly blocks: Record<string, Uniform>;
+    readonly samplerTextures: Record<string, Uniform>;
+}
+
 const _name2source: Record<string, ShaderStage[]> = {};
 const _name2macros: Record<string, Set<string>> = {};
 const _key2shader: Record<string, Shader> = {};
+const _shader2meta: WeakMap<Shader, Meta> = new WeakMap;
 const _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
-function getShaderKey(name: string, macros: Record<string, number> = {}): string {
+function genKey(name: string, macros: Record<string, number> = {}): string {
     let key = name;
     for (const macro of _name2macros[name]) {
         const val = macros[macro] || 0;
@@ -104,13 +113,13 @@ export default {
     },
 
     getMaterialDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
+        const meta = _shader2meta.get(shader)!;
         const set = sets.material.index;
-
-        const key = `${set}:${shader.info.hash}`;
+        const key = `${set}:${meta.key}`;
         let descriptorSetLayout = _shader2descriptorSetLayout[key];
         if (!descriptorSetLayout) {
             const bindings: DescriptorSetLayoutBinding[] = [];
-            const samplerTextures = shader.info.meta.samplerTextures;
+            const samplerTextures = meta.samplerTextures;
             for (const name in samplerTextures) {
                 const samplerTexture = samplerTextures[name];
                 if (samplerTexture.set != set) {
@@ -123,7 +132,7 @@ export default {
                     stageFlags: samplerTexture.stageFlags
                 });
             };
-            const blocks = shader.info.meta.blocks;
+            const blocks = meta.blocks;
             for (const name in blocks) {
                 const block = blocks[name];
                 if (block.set != set) {
@@ -163,19 +172,24 @@ export default {
             _name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
         }
 
-        const key = getShaderKey(name, macros);
+        const key = genKey(name, macros);
         if (!_key2shader[key]) {
             const mac: Record<string, number> = {};
             for (const macro of _name2macros[name]) {
                 mac[macro] = macros[macro] || 0;
             }
-            const res = await preprocessor.preprocess(_name2source[name], mac);
+            const stages = await preprocessor.preprocess(_name2source[name], mac);
             const shader = gfx.createShader();
-            if (shader.initialize({ name, stages: res.stages, meta: res.meta, hash: key })) {
+            if (shader.initialize({ stages })) {
                 throw new Error(`failed to initialize shader: ${name}`)
             }
             _key2shader[key] = shader;
+            _shader2meta.set(shader, { key, ...glsl.parse(stages) });
         }
         return _key2shader[key];
+    },
+
+    getMeta(shader: Shader): Meta {
+        return _shader2meta.get(shader)!;
     }
 } as const

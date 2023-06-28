@@ -23,18 +23,12 @@ export interface AttachmentDescription {
 }
 
 export class RenderPassInfo {
-    /**
-     * https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
-     */
-    readonly compatibleHash: string;
-
     constructor(
         readonly colorAttachments: readonly AttachmentDescription[],
         readonly depthStencilAttachment: AttachmentDescription,
         readonly resolveAttachments: readonly AttachmentDescription[] = [],
         readonly samples = SampleCountFlagBits.SAMPLE_COUNT_1
     ) {
-        this.compatibleHash = `${colorAttachments.length}1${resolveAttachments.length}${samples}`
     }
 }
 

@@ -25,7 +25,7 @@ rectangle System {
     rectangle physics
 }
 
-rectangle Render {
+rectangle Pipeline {
     rectangle Flow
     rectangle Stage
 }
@@ -44,10 +44,10 @@ rectangle GFX {
 }
 
 Logic-d->RenderScene
-Render-r->RenderScene
+Pipeline-r->RenderScene
 
 Logic-r->System
 
 RenderScene-d->GFX
-Render-d->GFX
+Pipeline-d->GFX
 ```

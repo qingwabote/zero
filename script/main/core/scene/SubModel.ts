@@ -1,6 +1,7 @@
 import { FormatInfos } from "../gfx/Format.js";
 import InputAssembler, { IndexInput, VertexInput } from "../gfx/InputAssembler.js";
 import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
+import shaderLib from "../shaderLib.js";
 import Pass from "./Pass.js";
 import SubMesh from "./SubMesh.js";
 import BufferViewResizable, { BufferViewResizableEventType } from "./buffers/BufferViewResizable.js";
@@ -41,7 +42,7 @@ export default class SubModel {
             const pass = passes[j];
             const attributes: VertexInputAttributeDescription[] = [];
             for (const attribute of _subMesh.vertexAttributes) {
-                const definition = pass.state.shader.info.meta.attributes[attribute.name];
+                const definition = shaderLib.getMeta(pass.state.shader).attributes[attribute.name];
                 if (!definition) {
                     continue;
                 }
@@ -56,6 +57,7 @@ export default class SubModel {
                     offset: attribute.offset
                 });
             }
+            // the same attributes always come with same bindings for now, so we calculate only the hash of attributes
             vertexInputStates.push(new VertexInputState(attributes, bindings));
         }
         this._vertexInputStates = vertexInputStates;

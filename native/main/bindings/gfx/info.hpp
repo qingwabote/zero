@@ -6,6 +6,8 @@
 
 namespace binding::gfx
 {
+    class Shader;
+
     enum ShaderStageFlagBits
     {
         VERTEX = 0x1,

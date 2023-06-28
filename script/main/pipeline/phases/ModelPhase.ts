@@ -7,13 +7,14 @@ import Phase from "../../core/pipeline/Phase.js";
 import Camera from "../../core/scene/Camera.js";
 import Model from "../../core/scene/Model.js";
 import Pass from "../../core/scene/Pass.js";
+import hashLib from "../../core/scene/hashLib.js";
 import shaderLib from "../../core/shaderLib.js";
 
 const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
 
-const pipelineLayoutCache: Record<string, PipelineLayout> = {};
+const pipelineLayoutCache: Record<number, PipelineLayout> = {};
 
-const pipelineCache: Record<string, Pipeline> = {};
+const pipelineCache: Record<number, Pipeline> = {};
 
 export default class ModelPhase extends Phase {
     constructor(private _passType = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
@@ -69,7 +70,8 @@ export default class ModelPhase extends Phase {
 
     private getPipelineLayout(model: Model, pass: Pass): PipelineLayout {
         const shader = pass.state.shader;
-        let pipelineLayout = pipelineLayoutCache[shader.info.hash];
+        const shader_hash = hashLib.shader(shader);
+        let pipelineLayout = pipelineLayoutCache[shader_hash];
         if (!pipelineLayout) {
             pipelineLayout = gfx.createPipelineLayout();
             const layouts: DescriptorSetLayout[] = [];
@@ -79,7 +81,7 @@ export default class ModelPhase extends Phase {
                 layouts.push(pass.descriptorSet.layout);
             }
             pipelineLayout.initialize(layouts)
-            pipelineLayoutCache[shader.info.hash] = pipelineLayout;
+            pipelineLayoutCache[shader_hash] = pipelineLayout;
         }
         return pipelineLayout;
     }
@@ -87,12 +89,12 @@ export default class ModelPhase extends Phase {
     /**
      * @param renderPass a compatible renderPass
      */
-    private getPipeline(passState: PassState, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
-        const pipelineHash = passState.hash + vertexInputState.hash + renderPass.info.compatibleHash;
+    private getPipeline(pass: PassState, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
+        const pipelineHash = hashLib.passState(pass) ^ hashLib.vertexInputState(vertexInputState) ^ hashLib.renderPass(renderPass);
         let pipeline = pipelineCache[pipelineHash];
         if (!pipeline) {
             pipeline = gfx.createPipeline();
-            pipeline.initialize({ passState, vertexInputState, renderPass, layout, });
+            pipeline.initialize({ passState: pass, vertexInputState, renderPass, layout, });
             pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;

@@ -56,16 +56,11 @@ export interface VertexInputAttributeDescription {
  * Vulkan separates binding from attribute, because multi attributes will use the same binding if vertex buffer is interleaved, I guess.
  */
 export class VertexInputState {
-    readonly hash: string;
 
-    constructor(readonly attributes: readonly VertexInputAttributeDescription[], readonly bindings: readonly VertexInputBindingDescription[]) {
-        let hash = '';
-        for (const attribute of attributes) {
-            hash += attribute.location + attribute.format + attribute.binding + attribute.offset;
-        }
-        this.hash = hash;
-        this.attributes = attributes;
-        this.bindings = bindings;
+    constructor(
+        public readonly attributes: readonly VertexInputAttributeDescription[],
+        public readonly bindings: readonly VertexInputBindingDescription[],
+    ) {
     }
 }
 
@@ -123,7 +118,6 @@ export interface BlendState {
 }
 
 export class PassState {
-    readonly hash: string;
 
     constructor(
         readonly shader: Shader,
@@ -131,17 +125,6 @@ export class PassState {
         readonly rasterizationState: RasterizationState = { cullMode: 'BACK' },
         readonly depthStencilState?: DepthStencilState,
         readonly blendState?: BlendState) {
-
-        let hash = this.shader.info.hash;
-        hash += `${this.primitive}`;
-        hash += `${this.rasterizationState.cullMode}`;
-        if (this.depthStencilState) {
-            hash += `${this.depthStencilState.depthTestEnable}`;
-        }
-        if (this.blendState) {
-            hash += `${this.blendState.srcRGB}${this.blendState.dstRGB}${this.blendState.srcAlpha}${this.blendState.dstAlpha}`;
-        }
-        this.hash = hash;
     }
 }
 

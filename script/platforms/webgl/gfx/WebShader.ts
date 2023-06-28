@@ -1,5 +1,6 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits, Uniform } from "../../../main/core/gfx/Shader.js";
+import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits } from "../../../main/core/gfx/Shader.js";
+import glsl from "../../../main/core/gfx/glsl.js";
 
 export default class WebShader implements Shader {
     private _gl: WebGL2RenderingContext;
@@ -20,11 +21,13 @@ export default class WebShader implements Shader {
 
     initialize(info: ShaderInfo): boolean {
         this._info = info;
-        return this.compileShader(info.stages, info.meta.blocks, info.meta.samplerTextures);
+        return this.compileShader(info.stages);
     }
 
-    protected compileShader(stages: Readonly<ShaderStage[]>, blocks: Record<string, Uniform>, samplerTextures: Record<string, Uniform>): boolean {
+    private compileShader(stages: Readonly<ShaderStage[]>): boolean {
         const gl = this._gl;
+
+        const meta = glsl.parse(stages);
 
         const shaders: WebGLShader[] = [];
         for (const stage of stages) {
@@ -41,7 +44,7 @@ export default class WebShader implements Shader {
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error(`${stage.type == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in '${this._info.name}' compilation failed.`);
+                console.error(`${stage.type == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.`);
                 console.error(gl.getShaderInfoLog(shader));
                 let lineNumber = 1;
                 console.error('Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `));
@@ -56,20 +59,20 @@ export default class WebShader implements Shader {
         }
         gl.linkProgram(program.deref());
         if (!gl.getProgramParameter(program.deref(), gl.LINK_STATUS)) {
-            console.error(`Failed to link shader '${this._info.name}'.`);
+            console.error(`Failed to link shader.`);
             console.error(gl.getProgramInfoLog(program.deref()));
             return true;
         }
 
-        for (const name in blocks) {
-            const block = blocks[name];
+        for (const name in meta.blocks) {
+            const block = meta.blocks[name];
             const index = gl.getUniformBlockIndex(program.deref(), name);
             gl.uniformBlockBinding(program.deref(), index, block.binding + block.set * 10)
         }
 
         gl.useProgram(program.deref());
-        for (const name in samplerTextures) {
-            const sampler = samplerTextures[name];
+        for (const name in meta.samplerTextures) {
+            const sampler = meta.samplerTextures[name];
             const loc = gl.getUniformLocation(program.deref(), name);
             if (!loc) continue;
             gl.uniform1i(loc, sampler.binding + sampler.set * 10);
