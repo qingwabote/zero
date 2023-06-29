@@ -1,10 +1,11 @@
 import DescriptorSetLayout, { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/DescriptorSetLayout.js";
-import Shader, { ShaderStage, ShaderStageFlagBits } from "./gfx/Shader.js";
+import Shader from "./gfx/Shader.js";
 import glsl, { Attribute, Uniform } from "./gfx/glsl.js";
+import { ShaderStageFlagBits } from "./gfx/info.js";
 import preprocessor from "./internal/preprocessor.js";
 
 function align(size: number) {
-    const alignment = gfx.capabilities.uniformBufferOffsetAlignment;
+    const alignment = gfx.device.capabilities.uniformBufferOffsetAlignment;
     return Math.ceil(size / alignment) * alignment;
 }
 
@@ -78,7 +79,7 @@ export interface Meta {
     readonly samplerTextures: Record<string, Uniform>;
 }
 
-const _name2source: Record<string, ShaderStage[]> = {};
+const _name2source: Record<string, { vs: string, fs: string }> = {};
 const _name2macros: Record<string, Set<string>> = {};
 const _key2shader: Record<string, Shader> = {};
 const _shader2meta: WeakMap<Shader, Meta> = new WeakMap;
@@ -107,7 +108,7 @@ export default {
 
     createDescriptorSetLayout(uniforms: UniformDefinition[]) {
         const bindings = uniforms.map(uniform => this.createDescriptorSetLayoutBinding(uniform));
-        const layout = gfx.createDescriptorSetLayout();
+        const layout = gfx.device.createDescriptorSetLayout();
         layout.initialize(bindings);
         return layout;
     },
@@ -145,7 +146,7 @@ export default {
                     stageFlags: block.stageFlags
                 });
             }
-            descriptorSetLayout = gfx.createDescriptorSetLayout();
+            descriptorSetLayout = gfx.device.createDescriptorSetLayout();
             descriptorSetLayout.initialize(bindings);
 
             _shader2descriptorSetLayout[key] = descriptorSetLayout;
@@ -165,10 +166,7 @@ export default {
             let fs = await loader.load(`${path}.fs`, "text");
             fs = await preprocessor.includeExpand(fs);
 
-            _name2source[name] = [
-                { type: ShaderStageFlagBits.VERTEX, source: vs },
-                { type: ShaderStageFlagBits.FRAGMENT, source: fs },
-            ];
+            _name2source[name] = { vs, fs };
             _name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
         }
 
@@ -178,13 +176,22 @@ export default {
             for (const macro of _name2macros[name]) {
                 mac[macro] = macros[macro] || 0;
             }
-            const stages = await preprocessor.preprocess(_name2source[name], mac);
-            const shader = gfx.createShader();
-            if (shader.initialize({ stages })) {
+
+            let { vs, fs } = _name2source[name];
+            vs = preprocessor.macroExpand(mac, vs);
+            fs = preprocessor.macroExpand(mac, fs);
+
+            const shader = gfx.device.createShader();
+            const info = new gfx.ShaderInfo;
+            info.sources.add(vs)
+            info.types.add(ShaderStageFlagBits.VERTEX);
+            info.sources.add(fs)
+            info.types.add(ShaderStageFlagBits.FRAGMENT);
+            if (shader.initialize(info)) {
                 throw new Error(`failed to initialize shader: ${name}`)
             }
             _key2shader[key] = shader;
-            _shader2meta.set(shader, { key, ...glsl.parse(stages) });
+            _shader2meta.set(shader, { key, ...glsl.parse([vs, fs], [ShaderStageFlagBits.VERTEX, ShaderStageFlagBits.FRAGMENT]) });
         }
         return _key2shader[key];
     },

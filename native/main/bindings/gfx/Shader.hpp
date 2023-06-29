@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding::gfx
 {
@@ -21,7 +22,7 @@ namespace binding::gfx
 
         Shader(std::unique_ptr<Shader_impl> impl);
 
-        bool initialize(v8::Local<v8::Object> info);
+        bool initialize(std::shared_ptr<ShaderInfo> info);
 
         ~Shader();
     };

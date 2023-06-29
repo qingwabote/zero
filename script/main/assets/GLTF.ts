@@ -80,7 +80,7 @@ export async function materialFuncDefault(macros: MaterialMacros = {}, values: M
                 USE_ALBEDO_MAP: texture ? 1 : 0,
                 USE_SHADOW_MAP,
                 USE_SKIN,
-                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+                CLIP_SPACE_MIN_Z_0: gfx.device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
             },
             constants: {
                 albedo
@@ -355,7 +355,7 @@ export default class GLTF extends Asset {
         let buffer = this._buffers[index];
         if (!this._buffers[index]) {
             const viewInfo = this._json.bufferViews[index];
-            buffer = gfx.createBuffer();
+            buffer = gfx.device.createBuffer();
             if (usage & BufferUsageFlagBits.VERTEX) {
                 buffer.initialize({
                     usage: usage | BufferUsageFlagBits.TRANSFER_DST,
@@ -364,18 +364,18 @@ export default class GLTF extends Asset {
                     size: viewInfo.byteLength
                 });
                 if (!_commandBuffer) {
-                    _commandBuffer = gfx.createCommandBuffer();
+                    _commandBuffer = gfx.device.createCommandBuffer();
                     _commandBuffer.initialize();
                 }
                 if (!_fence) {
-                    _fence = gfx.createFence();
+                    _fence = gfx.device.createFence();
                     _fence.initialize();
                 }
                 _commandBuffer.begin();
                 _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
                 _commandBuffer.end();
-                gfx.queue.submit({ commandBuffer: _commandBuffer }, _fence);
-                gfx.queue.waitFence(_fence);
+                gfx.device.queue.submit({ commandBuffer: _commandBuffer }, _fence);
+                gfx.device.queue.waitFence(_fence);
             } else {
                 buffer.initialize({
                     usage: usage,

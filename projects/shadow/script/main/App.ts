@@ -49,7 +49,7 @@ async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues 
                 USE_ALBEDO_MAP: texture ? 1 : 0,
                 USE_SHADOW_MAP,
                 USE_SKIN,
-                CLIP_SPACE_MIN_Z_0: gfx.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+                CLIP_SPACE_MIN_Z_0: gfx.device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
             },
             constants: {
                 albedo

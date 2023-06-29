@@ -1,5 +1,5 @@
 import Format from "./Format.js";
-import { ShaderStage, ShaderStageFlagBits } from "./Shader.js";
+import { ShaderStageFlagBits } from "./info.js";
 
 export interface Attribute {
     readonly location: number
@@ -40,15 +40,15 @@ function getFormat(type: string): Format {
 }
 
 export default {
-    parse(stages: readonly ShaderStage[]): {
+    parse(sources: string[], types: ShaderStageFlagBits[]): {
         readonly attributes: Record<string, Attribute>;
         readonly blocks: Record<string, Uniform>;
         readonly samplerTextures: Record<string, Uniform>;
     } {
-        const vertexStage = stages.find(stage => stage.type == ShaderStageFlagBits.VERTEX)!;
+        const vs = sources[types.indexOf(ShaderStageFlagBits.VERTEX)];
 
         const attributes: Record<string, Attribute> = {};
-        const matches = vertexStage.source.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
+        const matches = vs.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
         for (const match of matches) {
             const [_, location, type, name] = match;
             attributes[name] = { location: parseInt(location), format: getFormat(type) };
@@ -56,8 +56,9 @@ export default {
 
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
-        for (const stage of stages) {
-            const matches = stage.source.matchAll(/layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)\s*(?:\{([^\{\}]*)\})?/g);// 非捕获括号 (?:x))!
+        for (let i = 0; i < sources.length; i++) {
+            const source = sources[i];
+            const matches = source.matchAll(/layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)\s*(?:\{([^\{\}]*)\})?/g);// 非捕获括号 (?:x))!
             for (const match of matches) {
                 const [_, set, binding, type, name, content] = match;
                 if (!type) {
@@ -67,10 +68,10 @@ export default {
                         members.push({ name, type });
                     }
                     const block = blocks[name];
-                    blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, stageFlags: block ? stage.type | block.stageFlags : stage.type };
+                    blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, stageFlags: block ? types[i] | block.stageFlags : types[i] };
                 } else if (type == 'sampler2D') {
                     const samplerTexture = samplerTextures[name];
-                    samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding), stageFlags: samplerTexture ? stage.type | samplerTexture.stageFlags : stage.type };
+                    samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding), stageFlags: samplerTexture ? types[i] | samplerTexture.stageFlags : types[i] };
                 }
             }
         }

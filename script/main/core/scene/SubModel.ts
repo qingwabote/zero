@@ -75,7 +75,7 @@ export default class SubModel {
                 type: this._subMesh.indexInput.type
             }
             for (let i = 0; i < this.passes.length; i++) {
-                const inputAssembler = gfx.createInputAssembler();
+                const inputAssembler = gfx.device.createInputAssembler();
                 inputAssembler.initialize({
                     vertexInputState: this._vertexInputStates[i],
                     vertexInput,

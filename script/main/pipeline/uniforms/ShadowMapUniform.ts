@@ -1,6 +1,6 @@
 import { DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
 import { Filter } from "../../core/gfx/Sampler.js";
-import { ShaderStageFlagBits } from "../../core/gfx/Shader.js";
+import { ShaderStageFlagBits } from "../../core/gfx/info.js";
 import Uniform from "../../core/pipeline/Uniform.js";
 import samplers from "../../core/samplers.js";
 import ShadowUniform from "./ShadowUniform.js";

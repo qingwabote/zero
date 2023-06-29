@@ -25,20 +25,20 @@ export default {
     },
 
     shadow(visibility: VisibilityFlagBits = VisibilityFlagBits.DEFAULT) {
-        const renderPass = gfx.createRenderPass();
+        const renderPass = gfx.device.createRenderPass();
         renderPass.initialize(new RenderPassInfo([], {
             loadOp: LOAD_OP.CLEAR,
             initialLayout: ImageLayout.UNDEFINED,
             finalLayout: ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL
         }));
 
-        const depthStencilAttachment = gfx.createTexture();
+        const depthStencilAttachment = gfx.device.createTexture();
         depthStencilAttachment.initialize({
             samples: SampleCountFlagBits.SAMPLE_COUNT_1,
             usage: TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED,
             width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
         });
-        const framebuffer = gfx.createFramebuffer();
+        const framebuffer = gfx.device.createFramebuffer();
         framebuffer.initialize({
             colorAttachments: [],
             depthStencilAttachment,

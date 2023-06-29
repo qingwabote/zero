@@ -8,7 +8,6 @@ import InputAssembler, { IndexType, InputAssemblerInfo } from "../../../main/cor
 import Pipeline, { BlendFactor, PipelineInfo, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
 import RenderPass, { LOAD_OP } from "../../../main/core/gfx/RenderPass.js";
 import Texture from "../../../main/core/gfx/Texture.js";
-import { Rect } from "../../../main/core/math/rect.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebFramebuffer from "./WebFramebuffer.js";
@@ -64,7 +63,7 @@ export default class WebCommandBuffer implements CommandBuffer {
     private _pipeline!: PipelineInfo;
     private _inputAssembler!: InputAssemblerInfo;
     private _framebuffer!: WebFramebuffer;
-    private _viewport!: Rect;
+    private _viewport!: { x: number, y: number, width: number, height: number };
 
     constructor(gl: WebGL2RenderingContext) {
         this._gl = gl;
@@ -86,15 +85,15 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect) {
+    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, x: number, y: number, width: number, height: number) {
         const gl = this._gl;
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, (framebuffer as WebFramebuffer).impl?.deref() || null);
         this._framebuffer = framebuffer as WebFramebuffer;
 
-        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-        gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height);
-        this._viewport = viewport;
+        gl.viewport(x, y, width, height);
+        gl.scissor(x, y, width, height);
+        this._viewport = { x, y, width, height };
 
         let flag: number = 0;
         for (const attachment of renderPass.info.colorAttachments) {
@@ -297,7 +296,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         const gl = this._gl;
 
         for (const attachment of this._framebuffer.info.resolveAttachments) {
-            if (attachment == gfx.swapchain.colorTexture) {
+            if (attachment == gfx.device.swapchain.colorTexture) {
                 gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl?.deref() || null);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 

@@ -15,6 +15,7 @@ extern "C"
 {
     void ImageBitmap_initialize(v8::Local<v8::Object> exports_obj);
     void Loader_initialize(v8::Local<v8::Object> exports_obj);
+    void gfx_initialize(v8::Local<v8::Object> exports_obj);
     void global_initialize(v8::Local<v8::Object> exports_obj);
 }
 
@@ -83,18 +84,19 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         auto global = context->Global();
 
-        binding::gfx::Device *gfx = new binding::gfx::Device(sdl_window.get());
-        gfx->initialize();
-        global->Set(
-                  context,
-                  v8::String::NewFromUtf8Literal(isolate.get(), "gfx"),
-                  gfx->js_obj())
+        binding::gfx::Device *device = new binding::gfx::Device(sdl_window.get());
+        device->initialize();
+        auto gfx = v8::Object::New(isolate.get());
+        gfx->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "device"), device->js_obj())
+            .ToChecked();
+        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), gfx)
             .ToChecked();
 
         _loader = std::make_unique<loader::Loader>(project, this, &ThreadPool::shared());
 
         ImageBitmap_initialize(global);
         Loader_initialize(global);
+        gfx_initialize(gfx);
         global_initialize(global);
 
         console_initialize(context, global);
@@ -282,7 +284,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         binding::gfx::DeviceThread::instance().join();
 
-        gfx->finish();
+        device->finish();
     }
     v8::V8::Dispose();
     v8::V8::DisposePlatform();

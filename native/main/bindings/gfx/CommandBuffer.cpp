@@ -82,17 +82,15 @@ namespace binding::gfx
                 auto c_obj = Binding::c_obj<CommandBuffer>(info.This());
                 auto c_renderPass = c_obj->retain<RenderPass>(info[0]);
                 auto c_framebuffer = c_obj->retain<Framebuffer>(info[1]);
-                auto js_area = info[2].As<v8::Object>();
-                RenderArea c_area{};
-                c_area.x = sugar::v8::object_get(js_area, "x").As<v8::Number>()->Value();
-                c_area.y = sugar::v8::object_get(js_area, "y").As<v8::Number>()->Value();
-                c_area.width = sugar::v8::object_get(js_area, "width").As<v8::Number>()->Value();
-                c_area.height = sugar::v8::object_get(js_area, "height").As<v8::Number>()->Value();
+                auto x = info[2].As<v8::Number>()->Value();
+                auto y = info[3].As<v8::Number>()->Value();
+                auto w = info[4].As<v8::Number>()->Value();
+                auto h = info[5].As<v8::Number>()->Value();
 
                 auto f = new auto(
                     [=]()
                     {
-                        c_obj->beginRenderPass(c_renderPass, c_framebuffer, c_area);
+                        c_obj->beginRenderPass(c_renderPass, c_framebuffer, x, y, w, h);
                     });
                 DeviceThread::instance().post(f);
             });

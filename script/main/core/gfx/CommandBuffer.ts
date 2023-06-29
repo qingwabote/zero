@@ -1,4 +1,3 @@
-import { Rect } from "../math/rect.js";
 import Buffer from "./Buffer.js";
 import DescriptorSet from "./DescriptorSet.js";
 import { Framebuffer } from "./Framebuffer.js";
@@ -12,7 +11,7 @@ export default interface CommandBuffer {
     begin(): void;
     copyBuffer(srcBuffer: ArrayBuffer, dstBuffer: Buffer, srcOffset: number, length: number): void;
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;
-    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect): void;
+    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, x: number, y: number, w: number, h: number): void;
     bindPipeline(pipeline: Pipeline): void;
     bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
@@ -32,7 +31,7 @@ export class EmptyCommandBuffer implements CommandBuffer {
     }
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
     }
-    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, viewport: Rect): void {
+    beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, x: number, y: number, w: number, h: number): void {
     }
     bindPipeline(pipeline: Pipeline): void {
     }

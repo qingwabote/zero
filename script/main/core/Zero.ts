@@ -70,19 +70,19 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
     }
 
     initialize(): void {
-        const commandBuffer = gfx.createCommandBuffer();
+        const commandBuffer = gfx.device.createCommandBuffer();
         commandBuffer.initialize();
         this._commandBuffer = commandBuffer;
 
-        const presentSemaphore = gfx.createSemaphore();
+        const presentSemaphore = gfx.device.createSemaphore();
         presentSemaphore.initialize();
         this._presentSemaphore = presentSemaphore;
 
-        const renderSemaphore = gfx.createSemaphore();
+        const renderSemaphore = gfx.device.createSemaphore();
         renderSemaphore.initialize();
         this._renderSemaphore = renderSemaphore;
 
-        const renderFence = gfx.createFence();
+        const renderFence = gfx.device.createFence();
         renderFence.initialize(true);
         this._renderFence = renderFence;
 
@@ -122,7 +122,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);
-        gfx.acquire(this._presentSemaphore);
+        gfx.device.acquire(this._presentSemaphore);
         this._flow.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
@@ -130,13 +130,13 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 
-        gfx.queue.submit({
+        gfx.device.queue.submit({
             commandBuffer: this._commandBuffer,
             waitSemaphore: this._presentSemaphore,
             waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             signalSemaphore: this._renderSemaphore
         }, this._renderFence);
-        gfx.queue.present(this._renderSemaphore);
-        gfx.queue.waitFence(this._renderFence);
+        gfx.device.queue.present(this._renderSemaphore);
+        gfx.device.queue.waitFence(this._renderFence);
     }
 } 

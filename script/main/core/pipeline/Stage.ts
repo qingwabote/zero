@@ -33,7 +33,7 @@ export default class Stage {
         const renderPass = this._renderPass || zero.flow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
         const viewport = this._viewport || camera.viewport;
 
-        commandBuffer.beginRenderPass(renderPass, framebuffer, viewport);
+        commandBuffer.beginRenderPass(renderPass, framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);
 
         this._drawCalls = 0;
         for (const phase of this._phases) {

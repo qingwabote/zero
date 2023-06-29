@@ -1,6 +1,8 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import Shader, { ShaderInfo, ShaderStage, ShaderStageFlagBits } from "../../../main/core/gfx/Shader.js";
+import Shader from "../../../main/core/gfx/Shader.js";
 import glsl from "../../../main/core/gfx/glsl.js";
+import { ShaderInfo, ShaderStageFlagBits } from "../../../main/core/gfx/info.js";
+import { WebVector } from "./info.js";
 
 export default class WebShader implements Shader {
     private _gl: WebGL2RenderingContext;
@@ -21,30 +23,32 @@ export default class WebShader implements Shader {
 
     initialize(info: ShaderInfo): boolean {
         this._info = info;
-        return this.compileShader(info.stages);
+        return this.compileShader(info);
     }
 
-    private compileShader(stages: Readonly<ShaderStage[]>): boolean {
+    private compileShader(info: ShaderInfo): boolean {
         const gl = this._gl;
 
-        const meta = glsl.parse(stages);
+        const sources = (info.sources as WebVector<string>).data;
+        const types = (info.types as WebVector<number>).data;
 
         const shaders: WebGLShader[] = [];
-        for (const stage of stages) {
+        for (let i = 0; i < sources.length; i++) {
+            let source = sources[i];
             // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
-            let source = stage.source.replace(/layout.*uniform/g, 'uniform');
-            if (stage.type == ShaderStageFlagBits.VERTEX) {
+            source = source.replace(/layout.*uniform/g, 'uniform');
+            if (types[i] == ShaderStageFlagBits.VERTEX) {
                 source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*out/g, 'out');
             } else {
                 source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*in/g, 'in');
             }
 
             source = `#version 300 es\n${source}`
-            const shader = gl.createShader(stage.type == ShaderStageFlagBits.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER)!;
+            const shader = gl.createShader(types[i] == ShaderStageFlagBits.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER)!;
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error(`${stage.type == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.`);
+                console.error(`${types[i] == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.`);
                 console.error(gl.getShaderInfoLog(shader));
                 let lineNumber = 1;
                 console.error('Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `));
@@ -63,6 +67,8 @@ export default class WebShader implements Shader {
             console.error(gl.getProgramInfoLog(program.deref()));
             return true;
         }
+
+        const meta = glsl.parse(sources, types);
 
         for (const name in meta.blocks) {
             const block = meta.blocks[name];

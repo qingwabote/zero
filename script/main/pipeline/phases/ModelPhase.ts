@@ -61,7 +61,7 @@ export default class ModelPhase extends Phase {
         const ModelType = model.constructor as typeof Model;
         let pipelineLayout = modelPipelineLayoutCache.get(ModelType);
         if (!pipelineLayout) {
-            pipelineLayout = gfx.createPipelineLayout();
+            pipelineLayout = gfx.device.createPipelineLayout();
             pipelineLayout.initialize([zero.flow.globalDescriptorSet.layout, ModelType.descriptorSetLayout]);
             modelPipelineLayoutCache.set(ModelType, pipelineLayout);
         }
@@ -73,7 +73,7 @@ export default class ModelPhase extends Phase {
         const shader_hash = hashLib.shader(shader);
         let pipelineLayout = pipelineLayoutCache[shader_hash];
         if (!pipelineLayout) {
-            pipelineLayout = gfx.createPipelineLayout();
+            pipelineLayout = gfx.device.createPipelineLayout();
             const layouts: DescriptorSetLayout[] = [];
             layouts.push(zero.flow.globalDescriptorSet.layout);
             layouts.push(model.descriptorSet.layout);
@@ -93,7 +93,7 @@ export default class ModelPhase extends Phase {
         const pipelineHash = hashLib.passState(pass) ^ hashLib.vertexInputState(vertexInputState) ^ hashLib.renderPass(renderPass);
         let pipeline = pipelineCache[pipelineHash];
         if (!pipeline) {
-            pipeline = gfx.createPipeline();
+            pipeline = gfx.device.createPipeline();
             pipeline.initialize({ passState: pass, vertexInputState, renderPass, layout, });
             pipelineCache[pipelineHash] = pipeline;
         }

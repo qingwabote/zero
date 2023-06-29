@@ -26,6 +26,7 @@ set(SRC_FILES
     bindings/gfx/Queue.cpp
     swig/auto/ImageBitmap_wrap.cpp
     swig/auto/Loader_wrap.cpp
+    swig/auto/gfx_wrap.cpp
     swig/auto/global_wrap.cpp
 )
 

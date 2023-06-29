@@ -24,7 +24,7 @@ Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type
     })
 };
 
-(gfx as any).swapchain = {
+(gfx.device as any).swapchain = {
     colorTexture: {
         info: {
             samples: 1

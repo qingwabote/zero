@@ -8,7 +8,7 @@ export default {
         hash |= (info.magFilter << 2);
         let sampler = hash2sampler.get(hash);
         if (!sampler) {
-            sampler = gfx.createSampler();
+            sampler = gfx.device.createSampler();
             sampler.initialize(info);
             hash2sampler.set(hash, sampler);
         }

@@ -14,14 +14,6 @@
 
 namespace binding::gfx
 {
-    struct RenderArea
-    {
-        int32_t x;
-        int32_t y;
-        uint32_t width;
-        uint32_t height;
-    };
-
     class CommandBuffer_impl;
 
     class CommandBuffer : public Binding
@@ -45,7 +37,7 @@ namespace binding::gfx
 
         void begin();
 
-        void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, const RenderArea &area);
+        void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height);
 
         void bindDescriptorSet(PipelineLayout *pipelineLayout,
                                uint32_t index,

@@ -1,5 +1,5 @@
 import DescriptorSet from "./DescriptorSet.js";
-import { ShaderStageFlagBits } from "./Shader.js";
+import { ShaderStageFlagBits } from "./info.js";
 
 // copy values from VkDescriptorType in vulkan_core.h
 export enum DescriptorType {

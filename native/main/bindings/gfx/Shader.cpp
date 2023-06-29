@@ -1,5 +1,7 @@
 #include "Shader.hpp"
 
+std::shared_ptr<binding::gfx::ShaderInfo> swig_ShaderInfo_js2c(v8::Local<v8::Value> js_obj);
+
 namespace binding
 {
     namespace gfx
@@ -25,7 +27,7 @@ namespace binding
                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
                 {
                     auto c_obj = Binding::c_obj<Shader>(info.This());
-                    info.GetReturnValue().Set(c_obj->initialize(c_obj->retain(info[0], c_obj->_info)));
+                    info.GetReturnValue().Set(c_obj->initialize(swig_ShaderInfo_js2c(info[0])));
                 });
 
             return scope.Escape(ctor);

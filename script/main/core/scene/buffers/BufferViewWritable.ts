@@ -63,7 +63,7 @@ export default class BufferViewWritable implements BufferView {
         }
 
         this._source = new format2array[format](length);
-        this._buffer = gfx.createBuffer();
+        this._buffer = gfx.device.createBuffer();
         this._buffer.initialize({
             usage,
             mem_usage: MemoryUsage.CPU_TO_GPU,

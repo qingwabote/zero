@@ -46,8 +46,8 @@
     import WebLoader from "./dist/script/platforms/webgl/WebLoader.js";
     window.loader = new WebLoader;
 
-    import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
-    window.gfx = new WebDevice(document.getElementById("ZeroCanvas"));
+    import WebNS from "./dist/script/platforms/webgl/gfx/WebNS.js";
+    window.gfx = new WebNS(document.getElementById("ZeroCanvas"));
   </script>
   <script type="module">
     import App from "./dist/projects/shadow/script/main/App.js";

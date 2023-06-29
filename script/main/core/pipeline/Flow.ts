@@ -40,11 +40,11 @@ export default class Flow {
             this._uniforms.push(instance);
         }
 
-        const descriptorSetLayout = gfx.createDescriptorSetLayout();
+        const descriptorSetLayout = gfx.device.createDescriptorSetLayout();
         (descriptorSetLayout as any).name = "global descriptorSetLayout";
         descriptorSetLayout.initialize(descriptorSetLayoutBindings);
 
-        const pipelineLayout = gfx.createPipelineLayout();
+        const pipelineLayout = gfx.device.createPipelineLayout();
         pipelineLayout.initialize([descriptorSetLayout]);
         this._globalPipelineLayout = pipelineLayout;
 
@@ -53,25 +53,25 @@ export default class Flow {
         const colorAttachments: Texture[] = [];
         const resolveAttachments: Texture[] = [];
         if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-            colorAttachments.push(gfx.swapchain.colorTexture);
+            colorAttachments.push(gfx.device.swapchain.colorTexture);
         } else {
-            const colorAttachment = gfx.createTexture();
+            const colorAttachment = gfx.device.createTexture();
             colorAttachment.initialize({
                 samples,
                 usage: TextureUsageBits.COLOR_ATTACHMENT | TextureUsageBits.TRANSIENT_ATTACHMENT,
                 width: zero.window.width, height: zero.window.height
             })
             colorAttachments.push(colorAttachment);
-            resolveAttachments.push(gfx.swapchain.colorTexture);
+            resolveAttachments.push(gfx.device.swapchain.colorTexture);
         }
 
-        const depthStencilAttachment = gfx.createTexture();
+        const depthStencilAttachment = gfx.device.createTexture();
         depthStencilAttachment.initialize({
             samples,
             usage: TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED,
             width: zero.window.width, height: zero.window.height
         });
-        const framebuffer = gfx.createFramebuffer();
+        const framebuffer = gfx.device.createFramebuffer();
         framebuffer.initialize({
             colorAttachments,
             depthStencilAttachment,
@@ -144,7 +144,7 @@ export default class Flow {
                 initialLayout: clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 finalLayout: ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             };
-            renderPass = gfx.createRenderPass();
+            renderPass = gfx.device.createRenderPass();
             renderPass.initialize(new RenderPassInfo(colorAttachments, depthStencilAttachment, resolveAttachments, samples));
             this._clearFlag2renderPass[hash] = renderPass;
         }

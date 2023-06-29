@@ -23,7 +23,7 @@ export default class WebFramebuffer implements Framebuffer {
     initialize(info: FramebufferInfo): boolean {
         this._info = info;
 
-        const isDefaultFramebuffer = info.colorAttachments.includes(gfx.swapchain.colorTexture);
+        const isDefaultFramebuffer = info.colorAttachments.includes(gfx.device.swapchain.colorTexture);
         if (isDefaultFramebuffer) {
             return false;
         }

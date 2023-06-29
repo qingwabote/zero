@@ -130,13 +130,8 @@ namespace binding
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
         }
 
-        void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, const RenderArea &area)
+        void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height)
         {
-            int32_t x = area.x;
-            uint32_t width = area.width;
-            uint32_t height = area.height;
-            int32_t y;
-
             VkViewport viewport{};
             viewport.x = x;
             viewport.width = width;
@@ -148,7 +143,7 @@ namespace binding
                 // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
                 // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
                 // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
-                y = _impl->_device->swapchainImageExtent().height - area.y - height;
+                y = _impl->_device->swapchainImageExtent().height - y - height;
 
                 viewport.y = y + height;
                 viewport.height = height * -1.0;
@@ -157,8 +152,6 @@ namespace binding
             }
             else
             {
-                y = area.y;
-
                 viewport.y = y;
                 viewport.height = height;
 

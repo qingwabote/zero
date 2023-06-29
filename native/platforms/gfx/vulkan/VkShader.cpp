@@ -138,11 +138,11 @@ namespace binding
             static const int version_semantics = 100; // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt
             static EShMessages messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
 
-            for (size_t i = 0; i < info.stages->size(); i++)
+            for (size_t i = 0; i < info.sources->size(); i++)
             {
-                VkShaderStageFlagBits flag = info.stages->at(i)->type == ShaderStageFlagBits::VERTEX ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+                VkShaderStageFlagBits flag = info.types->at(i) == ShaderStageFlagBits::VERTEX ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
                 EShLanguage lang = flag == VK_SHADER_STAGE_VERTEX_BIT ? EShLangVertex : EShLangFragment;
-                std::string src = "#version 450\n" + info.stages->at(i)->source;
+                std::string src = "#version 450\n" + info.sources->at(i);
 
                 glslang::TShader shader{lang};
                 const char *src_c_str = src.c_str();
@@ -213,25 +213,8 @@ namespace binding
         Shader::Shader(std::unique_ptr<Shader_impl> impl)
             : Binding(), _impl(std::move(impl)) {}
 
-        bool Shader::initialize(v8::Local<v8::Object> js_info)
+        bool Shader::initialize(std::shared_ptr<ShaderInfo> info)
         {
-            v8::Isolate *isolate = js_info->GetIsolate();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
-            auto js_stages = sugar::v8::object_get(js_info, "stages").As<v8::Array>();
-            auto info = std::make_shared<ShaderInfo>();
-            for (size_t i = 0; i < js_stages->Length(); i++)
-            {
-                auto js_stage = js_stages->Get(context, i).ToLocalChecked().As<v8::Object>();
-                auto js_state_type = sugar::v8::object_get(js_stage, "type").As<v8::Number>()->Value();
-
-                std::string source{*v8::String::Utf8Value{isolate, sugar::v8::object_get(js_stage, "source")}};
-
-                auto stage = std::make_shared<ShaderStage>();
-                stage->source = std::move(source);
-                stage->type = static_cast<ShaderStageFlagBits>(js_state_type);
-                info->stages->emplace_back(std::move(stage));
-            }
             return _impl->initialize(*info);
         }
 

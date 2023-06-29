@@ -15,16 +15,10 @@ namespace binding::gfx
     };
     // typedef uint32_t ShaderStageFlags;
 
-    struct ShaderStage
+    class ShaderInfo
     {
-        std::string source;
-        ShaderStageFlagBits type;
-    };
-
-    using ShaderStageVector = std::vector<std::shared_ptr<ShaderStage>>;
-
-    struct ShaderInfo
-    {
-        std::shared_ptr<ShaderStageVector> stages{new ShaderStageVector()};
+    public:
+        std::shared_ptr<std::vector<std::string>> sources{new std::vector<std::string>()};
+        std::shared_ptr<std::vector<float>> types{new std::vector<float>()};
     };
 }
