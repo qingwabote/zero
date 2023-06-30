@@ -1,6 +1,7 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import { SampleCountFlagBits } from "../../../main/core/gfx/Pipeline.js";
-import Texture, { TextureInfo, TextureUsageBits } from "../../../main/core/gfx/Texture.js";
+import Texture from "../../../main/core/gfx/Texture.js";
+import { SampleCountFlagBits, TextureInfo, TextureUsageBits } from "../../../main/core/gfx/info.js";
+import { WebTextureInfo } from "./info.js";
 
 export default class WebTexture implements Texture {
     private _gl: WebGL2RenderingContext;
@@ -20,7 +21,16 @@ export default class WebTexture implements Texture {
         return this._info;
     }
 
-    constructor(gl: WebGL2RenderingContext) {
+    private _swapchain: boolean;
+    get swapchain(): boolean {
+        return this._swapchain;
+    }
+
+    constructor(gl: WebGL2RenderingContext, swapchain = false) {
+        if (swapchain) {
+            this._info = new WebTextureInfo;
+        }
+        this._swapchain = swapchain;
         this._gl = gl;
     }
 

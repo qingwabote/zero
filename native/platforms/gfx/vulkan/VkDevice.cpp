@@ -5,21 +5,7 @@
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
 
-#include "VkBuffer_impl.hpp"
-#include "VkTexture_impl.hpp"
-#include "VkSampler_impl.hpp"
-#include "VkShader_impl.hpp"
-#include "VkRenderPass_impl.hpp"
-#include "VkFramebuffer_impl.hpp"
-#include "VkDescriptorSetLayout_impl.hpp"
-#include "VkDescriptorSet_impl.hpp"
-#include "VkInputAssembler_impl.hpp"
-#include "VkPipelineLayout_impl.hpp"
-#include "VkPipeline_impl.hpp"
-#include "VkCommandBuffer_impl.hpp"
-#include "VkFence_impl.hpp"
 #include "VkSemaphore_impl.hpp"
-#include "VkQueue_impl.hpp"
 
 #include "glslang/Public/ShaderLang.h"
 
@@ -174,7 +160,7 @@ namespace binding::gfx
         vkb::destroy_instance(_vkb_instance);
     }
 
-    Device::Device(SDL_Window *window) : Binding(), _impl(new Device_impl(window)) {}
+    Device::Device(SDL_Window *window) : _impl(new Device_impl(window)) {}
 
     bool Device::initialize()
     {
@@ -183,50 +169,50 @@ namespace binding::gfx
             return true;
         }
 
-        auto queue = new Queue(std::make_unique<Queue_impl>(_impl));
-        retain(queue->js_obj(), _queue);
+        _capabilities = std::make_unique<Capabilities>(_impl->limits().minUniformBufferOffsetAlignment, 0);
 
-        v8::Local<v8::Object> capabilities = v8::Object::New(v8::Isolate::GetCurrent());
-        sugar::v8::object_set(
-            capabilities,
-            "uniformBufferOffsetAlignment",
-            v8::Number::New(v8::Isolate::GetCurrent(), _impl->limits().minUniformBufferOffsetAlignment));
-        sugar::v8::object_set(
-            capabilities,
-            "clipSpaceMinZ",
-            v8::Number::New(v8::Isolate::GetCurrent(), 0));
-        retain(capabilities, _capabilities);
+        auto swapchain_color_info = std::make_shared<TextureInfo>();
+        swapchain_color_info->samples = SampleCountFlagBits::SAMPLE_COUNT_1;
+        auto swapchain_color = std::make_shared<Texture>(_impl, true);
+        swapchain_color->initialize(swapchain_color_info);
+        _swapchain = std::make_unique<Swapchain>(std::move(swapchain_color));
+
+        _queue = std::unique_ptr<Queue>(createQueue());
 
         return false;
     }
 
-    Buffer *Device::createBuffer() { return new Buffer(std::make_unique<Buffer_impl>(_impl)); }
+    Buffer *Device::createBuffer() { return new Buffer(_impl); }
 
-    Texture *Device::createTexture() { return new Texture(std::make_unique<Texture_impl>(_impl)); }
+    Texture *Device::createTexture() { return new Texture(_impl); }
 
-    Sampler *Device::createSampler() { return new Sampler(std::make_unique<Sampler_impl>(_impl)); }
+    Sampler *Device::createSampler() { return new Sampler(_impl); }
 
-    Shader *Device::createShader() { return new Shader(std::make_unique<Shader_impl>(_impl)); }
+    Shader *Device::createShader() { return new Shader(_impl); }
 
-    RenderPass *Device::createRenderPass() { return new RenderPass(std::make_unique<RenderPass_impl>(_impl)); }
+    RenderPass *Device::createRenderPass() { return new RenderPass(_impl); }
 
-    Framebuffer *Device::createFramebuffer() { return new Framebuffer(std::make_unique<Framebuffer_impl>(_impl)); }
+    Framebuffer *Device::createFramebuffer() { return new Framebuffer(_impl); }
 
-    DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(std::make_unique<DescriptorSetLayout_impl>(_impl)); }
+    DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(_impl); }
 
-    InputAssembler *Device::createInputAssembler() { return new InputAssembler(std::make_unique<InputAssembler_impl>(_impl)); }
+    DescriptorSet *Device::createDescriptorSet() { return new DescriptorSet(_impl); }
 
-    PipelineLayout *Device::createPipelineLayout() { return new PipelineLayout(std::make_unique<PipelineLayout_impl>(_impl)); }
+    InputAssembler *Device::createInputAssembler() { return new InputAssembler(_impl); }
 
-    Pipeline *Device::createPipeline() { return new Pipeline(std::make_unique<Pipeline_impl>(_impl)); }
+    PipelineLayout *Device::createPipelineLayout() { return new PipelineLayout(_impl); }
 
-    CommandBuffer *Device::createCommandBuffer() { return new CommandBuffer(std::make_unique<CommandBuffer_impl>(_impl)); }
+    Pipeline *Device::createPipeline() { return new Pipeline(_impl); }
 
-    Semaphore *Device::createSemaphore() { return new Semaphore(std::make_unique<Semaphore_impl>(_impl)); }
+    CommandBuffer *Device::createCommandBuffer() { return new CommandBuffer(_impl); }
 
-    Fence *Device::createFence() { return new Fence(std::make_unique<Fence_impl>(_impl)); }
+    Semaphore *Device::createSemaphore() { return new Semaphore(_impl); }
 
-    void Device::acquire(Semaphore *c_presentSemaphore)
+    Fence *Device::createFence() { return new Fence(_impl); }
+
+    Queue *Device::createQueue() { return new Queue(_impl); }
+
+    void Device::acquire(const std::shared_ptr<Semaphore> &c_presentSemaphore)
     {
         VkSemaphore semaphore = c_presentSemaphore->impl();
         _impl->acquireNextImage(semaphore);

@@ -1,31 +1,29 @@
 #pragma once
 
-#include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding
 {
     namespace gfx
     {
+        class Device_impl;
         class RenderPass_impl;
 
-        class RenderPass : public Binding
+        class RenderPass
         {
         private:
             std::unique_ptr<RenderPass_impl> _impl;
 
-            sugar::v8::Weak<v8::Object> _info;
-
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
+            std::shared_ptr<RenderPassInfo> _info;
 
         public:
             RenderPass_impl &impl() { return *_impl.get(); }
 
-            v8::Local<v8::Object> info() { return _info.Get(v8::Isolate::GetCurrent()); }
+            const std::shared_ptr<RenderPassInfo> &info() { return _info; }
 
-            RenderPass(std::unique_ptr<RenderPass_impl> impl);
+            RenderPass(Device_impl *device);
 
-            bool initialize(v8::Local<v8::Object> info);
+            bool initialize(const std::shared_ptr<RenderPassInfo> &info);
 
             ~RenderPass();
         };

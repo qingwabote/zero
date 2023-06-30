@@ -1,6 +1,4 @@
-import { DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
-import { Filter } from "../../core/gfx/Sampler.js";
-import { ShaderStageFlagBits } from "../../core/gfx/info.js";
+import { DescriptorType, Filter, ShaderStageFlagBits } from "../../core/gfx/info.js";
 import Uniform from "../../core/pipeline/Uniform.js";
 import samplers from "../../core/samplers.js";
 import ShadowUniform from "./ShadowUniform.js";
@@ -19,7 +17,7 @@ export default class ShadowMapUniform implements Uniform {
         zero.flow.globalDescriptorSet.bindTexture(
             shadowMap.binding,
             shadowStage.framebuffer.info.depthStencilAttachment,
-            samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST })
+            samplers.get(Filter.NEAREST, Filter.NEAREST)
         );
     }
 

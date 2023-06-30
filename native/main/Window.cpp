@@ -6,8 +6,7 @@
 #include "sugars/v8sugar.hpp"
 #include "v8/libplatform/libplatform.h"
 #include "internal/console.hpp"
-#include "bindings/gfx/Device.hpp"
-#include "bindings/gfx/DeviceThread.hpp"
+#include "bg/Device.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -84,19 +83,20 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         auto global = context->Global();
 
-        binding::gfx::Device *device = new binding::gfx::Device(sdl_window.get());
-        device->initialize();
-        auto gfx = v8::Object::New(isolate.get());
-        gfx->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "device"), device->js_obj())
-            .ToChecked();
-        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), gfx)
-            .ToChecked();
+        _device = std::make_unique<bg::Device>(sdl_window.get());
+        _device->initialize();
 
         _loader = std::make_unique<loader::Loader>(project, this, &ThreadPool::shared());
 
         ImageBitmap_initialize(global);
+
         Loader_initialize(global);
+
+        auto gfx = v8::Object::New(isolate.get());
+        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), gfx)
+            .ToChecked();
         gfx_initialize(gfx);
+
         global_initialize(global);
 
         console_initialize(context, global);
@@ -282,9 +282,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         ThreadPool::shared().join();
 
-        binding::gfx::DeviceThread::instance().join();
-
-        device->finish();
+        _device->finish();
     }
     v8::V8::Dispose();
     v8::V8::DisposePlatform();

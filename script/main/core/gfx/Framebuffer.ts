@@ -1,14 +1,4 @@
-import RenderPass from "./RenderPass.js";
-import Texture from "./Texture.js";
-
-export interface FramebufferInfo {
-    colorAttachments: Texture[];
-    depthStencilAttachment: Texture;
-    resolveAttachments: Texture[];
-    renderPass: RenderPass;
-    width: number;
-    height: number;
-}
+import { FramebufferInfo } from "./info.js";
 
 export interface Framebuffer {
     get info(): FramebufferInfo;

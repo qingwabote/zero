@@ -1,38 +1,26 @@
 #pragma once
 
-#include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding::gfx
 {
-    struct BufferInfo
-    {
-        int32_t usage;
-        uint64_t size;
-        int32_t mem_usage;
-    };
-
+    class Device_impl;
     class Buffer_impl;
 
-    class Buffer : public Binding
+    class Buffer
     {
     private:
         std::unique_ptr<Buffer_impl> _impl;
-
-        sugar::v8::Weak<v8::Object> _info;
-
-    protected:
-        v8::Local<v8::FunctionTemplate> createTemplate() override;
+        std::shared_ptr<BufferInfo> _info;
 
     public:
         Buffer_impl &impl() { return *_impl.get(); }
+        const std::shared_ptr<BufferInfo> &info() { return _info; };
 
-        v8::Local<v8::Object> info() { return _info.Get(v8::Isolate::GetCurrent()); }
+        Buffer(Device_impl *device);
 
-        Buffer(std::unique_ptr<Buffer_impl> impl);
-
-        bool initialize(BufferInfo &info);
-
-        void update(const void *data, size_t offset, size_t length);
+        bool initialize(const std::shared_ptr<BufferInfo> &info);
+        void update(const std::shared_ptr<const void> &data, size_t offset, size_t length);
 
         ~Buffer();
     };

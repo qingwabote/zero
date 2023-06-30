@@ -1,7 +1,9 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import { Framebuffer, FramebufferInfo } from "../../../main/core/gfx/Framebuffer.js";
-import { SampleCountFlagBits } from "../../../main/core/gfx/Pipeline.js";
+import { Framebuffer } from "../../../main/core/gfx/Framebuffer.js";
+import Texture from "../../../main/core/gfx/Texture.js";
+import { FramebufferInfo, SampleCountFlagBits } from "../../../main/core/gfx/info.js";
 import WebTexture from "./WebTexture.js";
+import { WebVector } from "./info.js";
 
 export default class WebFramebuffer implements Framebuffer {
     private _gl: WebGL2RenderingContext;
@@ -23,7 +25,7 @@ export default class WebFramebuffer implements Framebuffer {
     initialize(info: FramebufferInfo): boolean {
         this._info = info;
 
-        const isDefaultFramebuffer = info.colorAttachments.includes(gfx.device.swapchain.colorTexture);
+        const isDefaultFramebuffer = (info.colorAttachments as WebVector<Texture>).data.find(texture => (texture as WebTexture).swapchain) != undefined;
         if (isDefaultFramebuffer) {
             return false;
         }
@@ -33,8 +35,8 @@ export default class WebFramebuffer implements Framebuffer {
         const framebuffer = new SmartRef(gl.createFramebuffer()!, gl.deleteFramebuffer, gl)
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.deref());
 
-        for (let i = 0; i < info.colorAttachments.length; i++) {
-            const attachment = info.colorAttachments[i] as WebTexture;
+        for (let i = 0; i < (info.colorAttachments as WebVector<Texture>).data.length; i++) {
+            const attachment = (info.colorAttachments as WebVector<Texture>).data[i] as WebTexture;
             if (attachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, attachment.texture.deref(), 0);
             } else {

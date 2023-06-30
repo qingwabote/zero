@@ -2,7 +2,7 @@ import EventEmitterImpl from "../base/EventEmitterImpl.js";
 import Component from "./Component.js";
 import CommandBuffer from "./gfx/CommandBuffer.js";
 import Fence from "./gfx/Fence.js";
-import { PipelineStageFlagBits } from "./gfx/Pipeline.js";
+import { PipelineStageFlagBits } from "./gfx/info.js";
 import Semaphore from "./gfx/Semaphore.js";
 import Input, { InputEvent } from "./Input.js";
 import ComponentScheduler from "./internal/ComponentScheduler.js";
@@ -70,20 +70,20 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
     }
 
     initialize(): void {
-        const commandBuffer = gfx.device.createCommandBuffer();
+        const commandBuffer = device.createCommandBuffer();
         commandBuffer.initialize();
         this._commandBuffer = commandBuffer;
 
-        const presentSemaphore = gfx.device.createSemaphore();
+        const presentSemaphore = device.createSemaphore();
         presentSemaphore.initialize();
         this._presentSemaphore = presentSemaphore;
 
-        const renderSemaphore = gfx.device.createSemaphore();
+        const renderSemaphore = device.createSemaphore();
         renderSemaphore.initialize();
         this._renderSemaphore = renderSemaphore;
 
-        const renderFence = gfx.device.createFence();
-        renderFence.initialize(true);
+        const renderFence = device.createFence();
+        renderFence.initialize();
         this._renderFence = renderFence;
 
         this._flow = this.start();
@@ -122,7 +122,7 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);
-        gfx.device.acquire(this._presentSemaphore);
+        device.acquire(this._presentSemaphore);
         this._flow.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
@@ -130,13 +130,13 @@ export default abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 
-        gfx.device.queue.submit({
-            commandBuffer: this._commandBuffer,
-            waitSemaphore: this._presentSemaphore,
-            waitDstStageMask: PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            signalSemaphore: this._renderSemaphore
-        }, this._renderFence);
-        gfx.device.queue.present(this._renderSemaphore);
-        gfx.device.queue.waitFence(this._renderFence);
+        const submitInfo = new gfx.SubmitInfo;
+        submitInfo.commandBuffer = this._commandBuffer;
+        submitInfo.waitSemaphore = this._presentSemaphore;
+        submitInfo.waitDstStageMask = PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        submitInfo.signalSemaphore = this._renderSemaphore;
+        device.queue.submit(submitInfo, this._renderFence);
+        device.queue.present(this._renderSemaphore);
+        device.queue.waitFence(this._renderFence);
     }
 } 

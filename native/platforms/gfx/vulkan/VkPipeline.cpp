@@ -13,39 +13,6 @@
 #include "bindings/gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
 
-namespace
-{
-    VkBlendFactor toVkBlendFactor(v8::Isolate *isolate, v8::Local<v8::String> js_factor)
-    {
-        std::string factor(*v8::String::Utf8Value(isolate, js_factor));
-        if (factor == "ZERO")
-        {
-            return VK_BLEND_FACTOR_ZERO;
-        }
-        if (factor == "ONE")
-        {
-            return VK_BLEND_FACTOR_ONE;
-        }
-        if (factor == "SRC_ALPHA")
-        {
-            return VK_BLEND_FACTOR_SRC_ALPHA;
-        }
-        if (factor == "ONE_MINUS_SRC_ALPHA")
-        {
-            return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        }
-        if (factor == "DST_ALPHA")
-        {
-            return VK_BLEND_FACTOR_DST_ALPHA;
-        }
-        if (factor == "ONE_MINUS_DST_ALPHA")
-        {
-            return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
-        }
-        return VK_BLEND_FACTOR_ZERO;
-    }
-}
-
 namespace binding
 {
     namespace gfx
@@ -53,67 +20,55 @@ namespace binding
         Pipeline_impl::Pipeline_impl(Device_impl *device) : _device(device) {}
         Pipeline_impl::~Pipeline_impl() {}
 
-        Pipeline::Pipeline(std::unique_ptr<Pipeline_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        Pipeline::Pipeline(Device_impl *device) : _impl(std::make_unique<Pipeline_impl>(device)) {}
 
-        bool Pipeline::initialize(v8::Local<v8::Object> info)
+        bool Pipeline::initialize(const std::shared_ptr<PipelineInfo> &info)
         {
-            v8::Isolate *isolate = v8::Isolate::GetCurrent();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
             VkGraphicsPipelineCreateInfo pipelineInfo = {};
             pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
             // vertexInputState
-            v8::Local<v8::Object> js_vertexInputState = sugar::v8::object_get(info, "vertexInputState").As<v8::Object>();
+            auto gfx_vertexInputState = info->vertexInputState;
 
             VkPipelineVertexInputStateCreateInfo vertexInputState = {};
             vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-            v8::Local<v8::Array> js_attributes = sugar::v8::object_get(js_vertexInputState, "attributes").As<v8::Array>();
-            std::vector<VkVertexInputAttributeDescription> attributes{js_attributes->Length()};
-            for (uint32_t i = 0; i < js_attributes->Length(); i++)
+            auto gfx_attributes = gfx_vertexInputState->attributes;
+            std::vector<VkVertexInputAttributeDescription> attributes{gfx_attributes->size()};
+            for (uint32_t i = 0; i < gfx_attributes->size(); i++)
             {
-                v8::Local<v8::Object> js_attribute = js_attributes->Get(context, i).ToLocalChecked().As<v8::Object>();
-                attributes[i].location = sugar::v8::object_get(js_attribute, "location").As<v8::Number>()->Value();
-                attributes[i].binding = sugar::v8::object_get(js_attribute, "binding").As<v8::Number>()->Value();
-                attributes[i].format = static_cast<VkFormat>(sugar::v8::object_get(js_attribute, "format").As<v8::Number>()->Value());
-                attributes[i].offset = sugar::v8::object_get(js_attribute, "offset").As<v8::Number>()->Value();
+                auto gfx_attribute = gfx_attributes->at(i);
+                attributes[i].location = gfx_attribute->location;
+                attributes[i].binding = gfx_attribute->binding;
+                attributes[i].format = static_cast<VkFormat>(gfx_attribute->format);
+                attributes[i].offset = gfx_attribute->offset;
             }
             vertexInputState.vertexAttributeDescriptionCount = attributes.size();
             vertexInputState.pVertexAttributeDescriptions = attributes.data();
 
-            v8::Local<v8::Array> js_bindings = sugar::v8::object_get(js_vertexInputState, "bindings").As<v8::Array>();
-            std::vector<VkVertexInputBindingDescription> bindingDescriptions{js_bindings->Length()};
-            for (uint32_t i = 0; i < js_bindings->Length(); i++)
+            auto gfx_bindings = gfx_vertexInputState->bindings;
+            std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_bindings->size()};
+            for (uint32_t i = 0; i < gfx_bindings->size(); i++)
             {
-                v8::Local<v8::Object> js_binding = js_bindings->Get(context, i).ToLocalChecked().As<v8::Object>();
-                bindingDescriptions[i].binding = sugar::v8::object_get(js_binding, "binding").As<v8::Number>()->Value();
-                bindingDescriptions[i].stride = sugar::v8::object_get(js_binding, "stride").As<v8::Number>()->Value();
-                bindingDescriptions[i].inputRate = static_cast<VkVertexInputRate>(sugar::v8::object_get(js_binding, "inputRate").As<v8::Number>()->Value());
+                auto gfx_binding = gfx_bindings->at(i);
+                bindingDescriptions[i].binding = gfx_binding->binding;
+                bindingDescriptions[i].stride = gfx_binding->stride;
+                bindingDescriptions[i].inputRate = static_cast<VkVertexInputRate>(gfx_binding->inputRate);
             }
             vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
             vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();
             pipelineInfo.pVertexInputState = &vertexInputState;
 
             // passState
-            v8::Local<v8::Object> js_passState = sugar::v8::object_get(info, "passState").As<v8::Object>();
+            auto js_passState = info->passState;
 
-            Shader *c_shader = Binding::c_obj<Shader>(sugar::v8::object_get(js_passState, "shader").As<v8::Object>());
+            auto c_shader = js_passState->shader;
             auto &stageInfos = c_shader->impl()->stages();
             pipelineInfo.stageCount = stageInfos.size();
             pipelineInfo.pStages = stageInfos.data();
 
             VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
             inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-            std::string primitive(*v8::String::Utf8Value(isolate, sugar::v8::object_get(js_passState, "primitive").As<v8::String>()));
-            if (primitive == "LINE_LIST")
-            {
-                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-            }
-            else if (primitive == "TRIANGLE_LIST")
-            {
-                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-            }
+            inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(js_passState->primitive);
             pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
             std::vector<VkDynamicState> dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_FRONT_FACE});
@@ -127,23 +82,11 @@ namespace binding
             viewportState.scissorCount = 1;
             pipelineInfo.pViewportState = &viewportState;
 
-            v8::Local<v8::Object> js_rasterizationState = sugar::v8::object_get(js_passState, "rasterizationState").As<v8::Object>();
+            auto js_rasterizationState = js_passState->rasterizationState;
             VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
             rasterizationState.rasterizerDiscardEnable = VK_FALSE;
             rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-            std::string cullMode(*v8::String::Utf8Value(isolate, sugar::v8::object_get(js_rasterizationState, "cullMode").As<v8::String>()));
-            if (cullMode == "NONE")
-            {
-                rasterizationState.cullMode = VK_CULL_MODE_NONE;
-            }
-            else if (cullMode == "FRONT")
-            {
-                rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
-            }
-            else if (cullMode == "BACK")
-            {
-                rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
-            }
+            rasterizationState.cullMode = static_cast<VkCullModeFlags>(js_rasterizationState->cullMode);
             rasterizationState.depthBiasEnable = VK_FALSE;
             rasterizationState.depthBiasConstantFactor = 0;
             rasterizationState.depthBiasClamp = 0;
@@ -151,26 +94,26 @@ namespace binding
             rasterizationState.lineWidth = 1;
             pipelineInfo.pRasterizationState = &rasterizationState;
 
-            v8::Local<v8::Object> js_depthStencilState = sugar::v8::object_get(js_passState, "depthStencilState").As<v8::Object>();
+            auto js_depthStencilState = js_passState->depthStencilState;
             VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
-            if (!js_depthStencilState->IsUndefined())
+            if (js_depthStencilState)
             {
-                depthStencilState.depthTestEnable = sugar::v8::object_get(js_depthStencilState, "depthTestEnable").As<v8::Boolean>()->Value();
+                depthStencilState.depthTestEnable = js_depthStencilState->depthTestEnable;
                 depthStencilState.depthWriteEnable = VK_TRUE;
                 depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
             }
             pipelineInfo.pDepthStencilState = &depthStencilState;
 
-            v8::Local<v8::Object> js_blendState = sugar::v8::object_get(js_passState, "blendState").As<v8::Object>();
+            auto js_blendState = js_passState->blendState;
             VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
             colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                                   VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-            if (!js_blendState->IsUndefined())
+            if (js_blendState)
             {
-                colorBlendAttachment.srcColorBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "srcRGB").As<v8::String>());
-                colorBlendAttachment.dstColorBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "dstRGB").As<v8::String>());
-                colorBlendAttachment.srcAlphaBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "srcAlpha").As<v8::String>());
-                colorBlendAttachment.dstAlphaBlendFactor = toVkBlendFactor(isolate, sugar::v8::object_get(js_blendState, "dstAlpha").As<v8::String>());
+                colorBlendAttachment.srcColorBlendFactor = static_cast<VkBlendFactor>(js_blendState->srcRGB);
+                colorBlendAttachment.dstColorBlendFactor = static_cast<VkBlendFactor>(js_blendState->dstRGB);
+                colorBlendAttachment.srcAlphaBlendFactor = static_cast<VkBlendFactor>(js_blendState->srcAlpha);
+                colorBlendAttachment.dstAlphaBlendFactor = static_cast<VkBlendFactor>(js_blendState->dstAlpha);
                 colorBlendAttachment.blendEnable = VK_TRUE;
             }
             else
@@ -183,10 +126,10 @@ namespace binding
             pipelineInfo.pColorBlendState = &colorBlending;
 
             // renderPass
-            auto c_renderPass = Binding::c_obj<RenderPass>(sugar::v8::object_get(info, "renderPass").As<v8::Object>());
+            auto c_renderPass = info->renderPass;
             VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
             multisampleState.sampleShadingEnable = VK_FALSE;
-            multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(sugar::v8::object_get(c_renderPass->info(), "samples").As<v8::Number>()->Value());
+            multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(c_renderPass->info()->samples);
             multisampleState.minSampleShading = 1.0f;
             multisampleState.alphaToCoverageEnable = VK_FALSE;
             multisampleState.alphaToOneEnable = VK_FALSE;
@@ -195,7 +138,7 @@ namespace binding
             pipelineInfo.subpass = 0;
 
             // layout
-            pipelineInfo.layout = Binding::c_obj<PipelineLayout>(sugar::v8::object_get(info, "layout").As<v8::Object>())->impl();
+            pipelineInfo.layout = info->layout->impl();
 
             if (vkCreateGraphicsPipelines(*_impl->_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))
             {

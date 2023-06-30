@@ -1,6 +1,4 @@
-import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import { DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
-import { ShaderStageFlagBits } from "../../core/gfx/info.js";
+import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "../../core/gfx/info.js";
 import mat4 from "../../core/math/mat4.js";
 import quat from "../../core/math/quat.js";
 import vec3 from "../../core/math/vec3.js";
@@ -47,7 +45,7 @@ export default class ShadowUniform implements Uniform {
             const camera = ShadowUniform.camera;
             const x = camera.orthoHeight * camera.aspect;
             const y = camera.orthoHeight;
-            const lightProjection = mat4.ortho(mat4.create(), -x, x, -y, y, camera.near, camera.far, gfx.device.capabilities.clipSpaceMinZ);
+            const lightProjection = mat4.ortho(mat4.create(), -x, x, -y, y, camera.near, camera.far, device.capabilities.clipSpaceMinZ);
             this._buffer.set(lightProjection, ShadowBlock.members.projection.offset);
             this._buffer.update();
         }

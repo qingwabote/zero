@@ -1,6 +1,5 @@
-import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format, { FormatInfos } from "../core/gfx/Format.js";
-import { PassState } from "../core/gfx/Pipeline.js";
+import { BlendFactor, BufferUsageFlagBits, CullMode, PrimitiveTopology } from "../core/gfx/info.js";
 import aabb3d, { AABB3D } from "../core/math/aabb3d.js";
 import vec3, { Vec3 } from "../core/math/vec3.js";
 import vec4, { Vec4 } from "../core/math/vec4.js";
@@ -89,12 +88,18 @@ export default class Primitive extends BoundedRenderer {
             vertexOrIndexCount: 0
         }
 
-        const state = new PassState(
-            shader_primitive,
-            "LINE_LIST",
-            { cullMode: 'NONE' },
-            undefined,
-            { srcRGB: 'SRC_ALPHA', dstRGB: 'ONE_MINUS_SRC_ALPHA', srcAlpha: 'ONE', dstAlpha: 'ONE_MINUS_SRC_ALPHA' })
+        const rasterizationState = new gfx.RasterizationState;
+        rasterizationState.cullMode = CullMode.NONE;
+        const blendState = new gfx.BlendState;
+        blendState.srcRGB = BlendFactor.SRC_ALPHA;
+        blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
+        blendState.srcAlpha = BlendFactor.ONE;
+        blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
+        const state = new gfx.PassState;
+        state.shader = shader_primitive;
+        state.primitive = PrimitiveTopology.LINE_LIST;
+        state.rasterizationState = rasterizationState;
+        state.blendState = blendState;
 
         const subModel: SubModel = new SubModel(subMesh, [new Pass(state)]);
         const model = new Model(this.node, [subModel])

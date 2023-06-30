@@ -11,44 +11,17 @@
 static loader::Loader * Window_instance_loader() {
   return &Window::instance().loader();
 }
+static binding::gfx::Device * Window_instance_device() {
+  return &Window::instance().device();
+}
+
+void SWIGV8_DeletePrivateData(SWIGV8_OBJECT objRef) {
+  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
+  void *embedder_fields[] = {nullptr, nullptr};
+  v8::WeakCallbackInfo<SWIGV8_Proxy> callbackInfo{objRef->GetIsolate(), cdata, embedder_fields, nullptr};
+  static_cast<SWIGV8_ClientData *>(cdata->info->clientdata)->dtor(callbackInfo);
+}
 %}
 
 %constant loader::Loader *loader = Window_instance_loader();
-
-%shared_ptr(ImageBitmap)
-
-%template(ImageBitmapVector) std::vector<std::shared_ptr<ImageBitmap>>;
-
-%shared_ptr(std::vector<std::shared_ptr<ImageBitmap>>)
-
-// test 
-%inline %{
-
-void test_set_imageBitmap(std::shared_ptr<ImageBitmap> bitmap) {
-}
-
-std::shared_ptr<ImageBitmap> test_get_imageBitmap() {
-  return std::make_shared<ImageBitmap>(std::unique_ptr<void, void (*)(void *)>(nullptr, free), 100, 100);
-}
-
-std::shared_ptr<std::vector<std::shared_ptr<ImageBitmap>>> test_get_imageBitmaps() {
-  auto bitmaps = std::make_shared<std::vector<std::shared_ptr<ImageBitmap>>>();
-  bitmaps->emplace_back(std::make_shared<ImageBitmap>(std::unique_ptr<void, void (*)(void *)>(nullptr, free), 100, 100));
-  return bitmaps;
-}
-
-void test_set_imageBitmaps(std::shared_ptr<std::vector<std::shared_ptr<ImageBitmap>>> bitmaps) {
-}
-
-ImageBitmap * test_get_imageBitmap2() {
-  return new ImageBitmap(std::unique_ptr<void, void (*)(void *)>(nullptr, free), 100, 100);
-}
-%}
-
-%{
-std::shared_ptr<ImageBitmap> swig_imageBitmap_js2c(SWIGV8_VALUE js_obj) {
-  std::shared_ptr<void> ptr;
-  SWIG_ConvertPtr(js_obj, ptr, SWIGTYPE_p_ImageBitmap, 0 | 0);
-  return std::reinterpret_pointer_cast<ImageBitmap>(ptr);
-}
-%}
+%constant binding::gfx::Device *device = Window_instance_device();

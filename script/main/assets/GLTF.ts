@@ -4,11 +4,11 @@ import MeshRenderer from "../components/MeshRenderer.js";
 import SkinnedMeshRenderer from "../components/SkinnedMeshRenderer.js";
 import Asset from "../core/Asset.js";
 import { default as assetLib } from "../core/assetLib.js";
-import Buffer, { BufferUsageFlagBits, MemoryUsage } from "../core/gfx/Buffer.js";
+import Buffer from "../core/gfx/Buffer.js";
 import CommandBuffer from "../core/gfx/CommandBuffer.js";
 import Fence from "../core/gfx/Fence.js";
 import Format from "../core/gfx/Format.js";
-import { IndexType } from "../core/gfx/InputAssembler.js";
+import { BufferUsageFlagBits, IndexType, MemoryUsage } from "../core/gfx/info.js";
 import mat4, { Mat4Like } from "../core/math/mat4.js";
 import vec4, { Vec4 } from "../core/math/vec4.js";
 import Node from "../core/Node.js";
@@ -80,7 +80,7 @@ export async function materialFuncDefault(macros: MaterialMacros = {}, values: M
                 USE_ALBEDO_MAP: texture ? 1 : 0,
                 USE_SHADOW_MAP,
                 USE_SKIN,
-                CLIP_SPACE_MIN_Z_0: gfx.device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+                CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
             },
             constants: {
                 albedo
@@ -355,34 +355,36 @@ export default class GLTF extends Asset {
         let buffer = this._buffers[index];
         if (!this._buffers[index]) {
             const viewInfo = this._json.bufferViews[index];
-            buffer = gfx.device.createBuffer();
+            buffer = device.createBuffer();
             if (usage & BufferUsageFlagBits.VERTEX) {
-                buffer.initialize({
-                    usage: usage | BufferUsageFlagBits.TRANSFER_DST,
-                    mem_usage: MemoryUsage.GPU_ONLY,
-                    stride: viewInfo.byteStride,
-                    size: viewInfo.byteLength
-                });
+                const info = new gfx.BufferInfo();
+                info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
+                info.mem_usage = MemoryUsage.GPU_ONLY;
+                info.stride = viewInfo.byteStride | 0;
+                info.size = viewInfo.byteLength;
+                buffer.initialize(info);
                 if (!_commandBuffer) {
-                    _commandBuffer = gfx.device.createCommandBuffer();
+                    _commandBuffer = device.createCommandBuffer();
                     _commandBuffer.initialize();
                 }
                 if (!_fence) {
-                    _fence = gfx.device.createFence();
+                    _fence = device.createFence();
                     _fence.initialize();
                 }
                 _commandBuffer.begin();
                 _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
                 _commandBuffer.end();
-                gfx.device.queue.submit({ commandBuffer: _commandBuffer }, _fence);
-                gfx.device.queue.waitFence(_fence);
+                const submitInfo = new gfx.SubmitInfo;
+                submitInfo.commandBuffer = _commandBuffer;
+                device.queue.submit(submitInfo, _fence);
+                device.queue.waitFence(_fence);
             } else {
-                buffer.initialize({
-                    usage: usage,
-                    mem_usage: MemoryUsage.CPU_TO_GPU,
-                    stride: viewInfo.byteStride,
-                    size: viewInfo.byteLength
-                });
+                const info = new gfx.BufferInfo();
+                info.usage = usage;
+                info.mem_usage = MemoryUsage.CPU_TO_GPU;
+                info.stride = viewInfo.byteStride | 0;
+                info.size = viewInfo.byteLength;
+                buffer.initialize(info);
                 buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);
             }
 
@@ -390,7 +392,7 @@ export default class GLTF extends Asset {
         }
 
         if ((buffer.info.usage & usage) != usage) {
-            throw new Error("");
+            throw new Error("buffer.info.usage & usage) != usage");
         }
         return buffer;
     }

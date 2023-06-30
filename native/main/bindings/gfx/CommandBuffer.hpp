@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Binding.hpp"
 #include "DescriptorSet.hpp"
 #include "PipelineLayout.hpp"
 #include "InputAssembler.hpp"
@@ -14,48 +13,33 @@
 
 namespace binding::gfx
 {
+    class Device_impl;
     class CommandBuffer_impl;
 
-    class CommandBuffer : public Binding
+    class CommandBuffer
     {
     private:
         std::unique_ptr<CommandBuffer_impl> _impl;
 
-    protected:
-        virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
-
     public:
         CommandBuffer_impl &impl() { return *_impl.get(); }
 
-        CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl);
+        CommandBuffer(Device_impl *device);
 
         bool initialize();
 
-        void copyBuffer(const void *data, Buffer *buffer, size_t offset, size_t length);
+        virtual void begin();
+        virtual void copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<Buffer> &buffer, size_t offset, size_t length);
+        virtual void copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture);
+        virtual void beginRenderPass(const std::shared_ptr<RenderPass> &renderPass, const std::shared_ptr<Framebuffer> &framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height);
+        virtual void bindDescriptorSet(const std::shared_ptr<PipelineLayout> &pipelineLayout, uint32_t index, const std::shared_ptr<DescriptorSet> &descriptorSet, const std::shared_ptr<Uint32Vector> &dynamicOffsets = nullptr);
+        virtual void bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler);
+        virtual void bindPipeline(const std::shared_ptr<Pipeline> &pipeline);
+        virtual void draw(uint32_t count);
+        virtual void drawIndexed(uint32_t indexCount);
+        virtual void endRenderPass();
+        virtual void end();
 
-        void copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture);
-
-        void begin();
-
-        void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height);
-
-        void bindDescriptorSet(PipelineLayout *pipelineLayout,
-                               uint32_t index,
-                               DescriptorSet *descriptorSet,
-                               std::unique_ptr<std::vector<uint32_t>> dynamicOffsets);
-
-        void bindInputAssembler(InputAssembler *inputAssembler);
-
-        void bindPipeline(Pipeline *pipeline);
-
-        void draw(uint32_t count);
-
-        void drawIndexed(uint32_t indexCount);
-
-        void endRenderPass();
-
-        void end();
-
-        ~CommandBuffer();
+        virtual ~CommandBuffer();
     };
 }

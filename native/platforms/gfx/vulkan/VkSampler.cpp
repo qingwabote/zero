@@ -9,15 +9,14 @@ namespace binding
         Sampler_impl::Sampler_impl(Device_impl *device) : _device(device) {}
         Sampler_impl::~Sampler_impl() {}
 
-        Sampler::Sampler(std::unique_ptr<Sampler_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        Sampler::Sampler(Device_impl *device) : _impl(std::make_unique<Sampler_impl>(device)) {}
 
-        bool Sampler::initialize(v8::Local<v8::Object> info)
+        bool Sampler::initialize(const std::shared_ptr<SamplerInfo> &info)
         {
             VkSamplerCreateInfo samplerInfo = {};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-            samplerInfo.magFilter = static_cast<VkFilter>(sugar::v8::object_get(info, "magFilter").As<v8::Number>()->Value());
-            samplerInfo.minFilter = static_cast<VkFilter>(sugar::v8::object_get(info, "minFilter").As<v8::Number>()->Value());
+            samplerInfo.magFilter = static_cast<VkFilter>(info->magFilter);
+            samplerInfo.minFilter = static_cast<VkFilter>(info->minFilter);
             samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;

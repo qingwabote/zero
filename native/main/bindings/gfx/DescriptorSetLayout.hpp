@@ -1,36 +1,26 @@
 #pragma once
 
-#include "Binding.hpp"
-#include "DescriptorSet.hpp"
+#include "info.hpp"
 
 namespace binding::gfx
 {
-    enum DescriptorType
-    {
-        SAMPLER_TEXTURE = 1,
-        UNIFORM_BUFFER = 6,
-        UNIFORM_BUFFER_DYNAMIC = 8,
-    };
-
+    class Device_impl;
     class DescriptorSetLayout_impl;
-    class DescriptorSetLayout : public Binding
+    class DescriptorSetLayout
     {
     private:
         std::unique_ptr<DescriptorSetLayout_impl> _impl;
 
-        sugar::v8::Weak<v8::Object> _bindings;
-
-    protected:
-        virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
+        std::shared_ptr<DescriptorSetLayoutInfo> _info;
 
     public:
         DescriptorSetLayout_impl *impl() { return _impl.get(); }
 
-        DescriptorSetLayout(std::unique_ptr<DescriptorSetLayout_impl> impl);
+        const std::shared_ptr<DescriptorSetLayoutInfo> &info() { return _info; }
 
-        bool initialize(v8::Local<v8::Array> js_layoutBindings);
+        DescriptorSetLayout(Device_impl *device);
 
-        DescriptorSet *createDescriptorSet();
+        bool initialize(std::shared_ptr<DescriptorSetLayoutInfo> info);
 
         ~DescriptorSetLayout();
     };

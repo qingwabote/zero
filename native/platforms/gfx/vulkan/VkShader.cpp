@@ -140,7 +140,7 @@ namespace binding
 
             for (size_t i = 0; i < info.sources->size(); i++)
             {
-                VkShaderStageFlagBits flag = info.types->at(i) == ShaderStageFlagBits::VERTEX ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+                VkShaderStageFlagBits flag = static_cast<ShaderStageFlagBits>(info.types->at(i)) == ShaderStageFlagBits::VERTEX ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
                 EShLanguage lang = flag == VK_SHADER_STAGE_VERTEX_BIT ? EShLangVertex : EShLangFragment;
                 std::string src = "#version 450\n" + info.sources->at(i);
 
@@ -210,12 +210,16 @@ namespace binding
             }
         }
 
-        Shader::Shader(std::unique_ptr<Shader_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        Shader::Shader(Device_impl *device) : _impl(std::make_unique<Shader_impl>(device)) {}
 
-        bool Shader::initialize(std::shared_ptr<ShaderInfo> info)
+        bool Shader::initialize(const std::shared_ptr<ShaderInfo> &info)
         {
-            return _impl->initialize(*info);
+            if (_impl->initialize(*info))
+            {
+                return true;
+            }
+            _info = info;
+            return false;
         }
 
         Shader::~Shader() {}

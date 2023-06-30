@@ -1,5 +1,6 @@
 import EventEmitterImpl from "../../../base/EventEmitterImpl.js";
-import Buffer, { BufferUsageFlagBits } from "../../gfx/Buffer.js";
+import Buffer from "../../gfx/Buffer.js";
+import { BufferUsageFlagBits } from "../../gfx/info.js";
 import BufferView from "./BufferView.js";
 import BufferViewWritable, { TypedArrayFormat } from "./BufferViewWritable.js";
 

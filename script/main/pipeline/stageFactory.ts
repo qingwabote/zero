@@ -1,7 +1,5 @@
 import VisibilityFlagBits from "../VisibilityFlagBits.js";
-import { SampleCountFlagBits } from "../core/gfx/Pipeline.js";
-import { ImageLayout, LOAD_OP, RenderPassInfo } from "../core/gfx/RenderPass.js";
-import { TextureUsageBits } from "../core/gfx/Texture.js";
+import { ImageLayout, LOAD_OP, SampleCountFlagBits, TextureUsageBits } from "../core/gfx/info.js";
 import Phase from "../core/pipeline/Phase.js";
 import Stage from "../core/pipeline/Stage.js";
 import Uniform from "../core/pipeline/Uniform.js";
@@ -25,27 +23,27 @@ export default {
     },
 
     shadow(visibility: VisibilityFlagBits = VisibilityFlagBits.DEFAULT) {
-        const renderPass = gfx.device.createRenderPass();
-        renderPass.initialize(new RenderPassInfo([], {
-            loadOp: LOAD_OP.CLEAR,
-            initialLayout: ImageLayout.UNDEFINED,
-            finalLayout: ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL
-        }));
+        const renderPassInfo = new gfx.RenderPassInfo;
+        renderPassInfo.depthStencilAttachment.loadOp = LOAD_OP.CLEAR;
+        renderPassInfo.depthStencilAttachment.initialLayout = ImageLayout.UNDEFINED;
+        renderPassInfo.depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        const renderPass = device.createRenderPass();
+        renderPass.initialize(renderPassInfo);
 
-        const depthStencilAttachment = gfx.device.createTexture();
-        depthStencilAttachment.initialize({
-            samples: SampleCountFlagBits.SAMPLE_COUNT_1,
-            usage: TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED,
-            width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
-        });
-        const framebuffer = gfx.device.createFramebuffer();
-        framebuffer.initialize({
-            colorAttachments: [],
-            depthStencilAttachment,
-            resolveAttachments: [],
-            renderPass: renderPass,
-            width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT
-        });
+        const framebufferInfo = new gfx.FramebufferInfo;
+        const depthStencilAttachmentInfo = new gfx.TextureInfo;
+        depthStencilAttachmentInfo.samples = SampleCountFlagBits.SAMPLE_COUNT_1;
+        depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
+        depthStencilAttachmentInfo.width = SHADOWMAP_WIDTH;
+        depthStencilAttachmentInfo.height = SHADOWMAP_HEIGHT
+        const depthStencilAttachment = device.createTexture();
+        depthStencilAttachment.initialize(depthStencilAttachmentInfo);
+        framebufferInfo.depthStencilAttachment = depthStencilAttachment;
+        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.width = SHADOWMAP_WIDTH;
+        framebufferInfo.height = SHADOWMAP_HEIGHT;
+        const framebuffer = device.createFramebuffer();
+        framebuffer.initialize(framebufferInfo);
         return new Stage([ShadowUniform, ShadowMapUniform], [new ModelPhase('shadowmap', visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
     }
 } as const

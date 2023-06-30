@@ -1,20 +1,15 @@
-import DescriptorSet from "../../../main/core/gfx/DescriptorSet.js";
-import DescriptorSetLayout, { DescriptorSetLayoutBinding } from "../../../main/core/gfx/DescriptorSetLayout.js";
-import WebDescriptorSet from "./WebDescriptorSet.js";
+import DescriptorSetLayout from "../../../main/core/gfx/DescriptorSetLayout.js";
+import { DescriptorSetLayoutInfo } from "../../../main/core/gfx/info.js";
 
 export default class WebDescriptorSetLayout implements DescriptorSetLayout {
-    private _bindings: DescriptorSetLayoutBinding[] = [];
+    private _info!: DescriptorSetLayoutInfo;
 
-    get bindings(): readonly DescriptorSetLayoutBinding[] {
-        return this._bindings;
+    get info(): DescriptorSetLayoutInfo {
+        return this._info;
     }
 
-    initialize(bindings: DescriptorSetLayoutBinding[]): boolean {
-        this._bindings = bindings;
+    initialize(info: DescriptorSetLayoutInfo): boolean {
+        this._info = info;
         return false;
-    }
-
-    createDescriptorSet(): DescriptorSet {
-        return new WebDescriptorSet(this);
     }
 }

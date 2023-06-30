@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Binding.hpp"
 #include "SDL_video.h"
+#include "Capabilities.hpp"
 #include "Buffer.hpp"
 #include "Texture.hpp"
 #include "Sampler.hpp"
@@ -16,26 +16,29 @@
 #include "Fence.hpp"
 #include "Semaphore.hpp"
 #include "Queue.hpp"
+#include "Swapchain.hpp"
 
 namespace binding::gfx
 {
     class Device_impl;
 
-    class Device : public Binding
+    class Device
     {
     private:
-        Device_impl *_impl = nullptr;
+        std::unique_ptr<Capabilities> _capabilities;
 
-        sugar::v8::Weak<v8::Object> _capabilities;
+        std::unique_ptr<Swapchain> _swapchain;
 
-        sugar::v8::Weak<v8::Object> _queue;
-
-        sugar::v8::Weak<v8::Object> _acquire_semaphore;
+        std::unique_ptr<Queue> _queue;
 
     protected:
-        v8::Local<v8::FunctionTemplate> createTemplate() override;
+        Device_impl *_impl{nullptr};
 
     public:
+        Capabilities &capabilities() { return *_capabilities; }
+        Swapchain &swapchain() { return *_swapchain; }
+        Queue &queue() { return *_queue; }
+
         Device(SDL_Window *window);
 
         bool initialize();
@@ -54,22 +57,26 @@ namespace binding::gfx
 
         DescriptorSetLayout *createDescriptorSetLayout();
 
+        DescriptorSet *createDescriptorSet();
+
         InputAssembler *createInputAssembler();
 
         PipelineLayout *createPipelineLayout();
 
         Pipeline *createPipeline();
 
-        CommandBuffer *createCommandBuffer();
+        virtual CommandBuffer *createCommandBuffer();
 
         Semaphore *createSemaphore();
 
         Fence *createFence();
 
-        void acquire(Semaphore *presentSemaphore);
+        virtual Queue *createQueue();
 
-        void finish();
+        void acquire(const std::shared_ptr<Semaphore> &presentSemaphore);
 
-        ~Device();
+        virtual void finish();
+
+        virtual ~Device();
     };
 }

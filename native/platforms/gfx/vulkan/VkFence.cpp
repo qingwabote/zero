@@ -1,14 +1,12 @@
 #include "bindings/gfx/Fence.hpp"
 #include "VkFence_impl.hpp"
-#include "sugars/v8sugar.hpp"
 
 namespace binding::gfx
 {
     Fence_impl::Fence_impl(Device_impl *device) : _device(device) {}
     Fence_impl::~Fence_impl() {}
 
-    Fence::Fence(std::unique_ptr<Fence_impl> impl)
-        : Binding(), _impl(std::move(impl)) {}
+    Fence::Fence(Device_impl *device) : _impl(std::make_unique<Fence_impl>(device)) {}
 
     bool Fence::initialize(bool signaled)
     {

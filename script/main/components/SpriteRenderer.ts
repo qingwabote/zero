@@ -1,6 +1,5 @@
 import SpriteFrame from "../assets/SpriteFrame.js";
-import { PassState } from "../core/gfx/Pipeline.js";
-import { Filter } from "../core/gfx/Sampler.js";
+import { CullMode, Filter, PrimitiveTopology } from "../core/gfx/info.js";
 import aabb2d, { AABB2D } from "../core/math/aabb2d.js";
 import vec2 from "../core/math/vec2.js";
 import vec3 from "../core/math/vec3.js";
@@ -49,12 +48,17 @@ export default class SpriteRenderer extends BoundedRenderer {
     color: Readonly<Vec4> = vec4.ONE;
 
     override start(): void {
-        const state = new PassState(this.shader, undefined, { cullMode: 'NONE' })
+        const rasterizationState = new gfx.RasterizationState;
+        rasterizationState.cullMode = CullMode.NONE;
+        const state = new gfx.PassState;
+        state.shader = this.shader;
+        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
+        state.rasterizationState = rasterizationState;
         const pass = new Pass(state);
         if (pass.hasUniform('Constants', 'albedo')) {
             pass.setUniform('Constants', 'albedo', this.color);
         }
-        pass.setTexture('albedoMap', this._spriteFrame.texture, samplers.get({ magFilter: Filter.NEAREST, minFilter: Filter.NEAREST }))
+        pass.setTexture('albedoMap', this._spriteFrame.texture, samplers.get(Filter.NEAREST, Filter.NEAREST))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);
         const model = new Model(this.node, [subModel]);
         zero.scene.addModel(model)

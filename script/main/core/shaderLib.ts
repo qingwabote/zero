@@ -1,11 +1,11 @@
-import DescriptorSetLayout, { DescriptorSetLayoutBinding, DescriptorType } from "./gfx/DescriptorSetLayout.js";
+import DescriptorSetLayout from "./gfx/DescriptorSetLayout.js";
 import Shader from "./gfx/Shader.js";
 import glsl, { Attribute, Uniform } from "./gfx/glsl.js";
-import { ShaderStageFlagBits } from "./gfx/info.js";
+import { DescriptorSetLayoutBinding, DescriptorType, ShaderStageFlagBits } from "./gfx/info.js";
 import preprocessor from "./internal/preprocessor.js";
 
 function align(size: number) {
-    const alignment = gfx.device.capabilities.uniformBufferOffsetAlignment;
+    const alignment = device.capabilities.uniformBufferOffsetAlignment;
     return Math.ceil(size / alignment) * alignment;
 }
 
@@ -98,18 +98,21 @@ export default {
     sets,
 
     createDescriptorSetLayoutBinding(uniform: UniformDefinition): DescriptorSetLayoutBinding {
-        return {
-            descriptorType: uniform.type,
-            stageFlags: uniform.stageFlags,
-            binding: uniform.binding,
-            descriptorCount: 1,
-        }
+        const binding = new gfx.DescriptorSetLayoutBinding;
+        binding.descriptorType = uniform.type;
+        binding.stageFlags = uniform.stageFlags;
+        binding.binding = uniform.binding;
+        binding.descriptorCount = 1;
+        return binding;
     },
 
     createDescriptorSetLayout(uniforms: UniformDefinition[]) {
-        const bindings = uniforms.map(uniform => this.createDescriptorSetLayoutBinding(uniform));
-        const layout = gfx.device.createDescriptorSetLayout();
-        layout.initialize(bindings);
+        const info = new gfx.DescriptorSetLayoutInfo;
+        for (const uniform of uniforms) {
+            info.bindings.add(this.createDescriptorSetLayoutBinding(uniform));
+        }
+        const layout = device.createDescriptorSetLayout();
+        layout.initialize(info);
         return layout;
     },
 
@@ -119,19 +122,19 @@ export default {
         const key = `${set}:${meta.key}`;
         let descriptorSetLayout = _shader2descriptorSetLayout[key];
         if (!descriptorSetLayout) {
-            const bindings: DescriptorSetLayoutBinding[] = [];
+            const info = new gfx.DescriptorSetLayoutInfo;
             const samplerTextures = meta.samplerTextures;
             for (const name in samplerTextures) {
                 const samplerTexture = samplerTextures[name];
                 if (samplerTexture.set != set) {
                     continue;
                 }
-                bindings.push({
-                    binding: samplerTexture.binding,
-                    descriptorType: DescriptorType.SAMPLER_TEXTURE,
-                    descriptorCount: 1,
-                    stageFlags: samplerTexture.stageFlags
-                });
+                const binding = new gfx.DescriptorSetLayoutBinding;
+                binding.binding = samplerTexture.binding;
+                binding.descriptorType = DescriptorType.SAMPLER_TEXTURE;
+                binding.descriptorCount = 1;
+                binding.stageFlags = samplerTexture.stageFlags;
+                info.bindings.add(binding);
             };
             const blocks = meta.blocks;
             for (const name in blocks) {
@@ -139,15 +142,15 @@ export default {
                 if (block.set != set) {
                     continue;
                 }
-                bindings.push({
-                    binding: block.binding,
-                    descriptorType: DescriptorType.UNIFORM_BUFFER,
-                    descriptorCount: 1,
-                    stageFlags: block.stageFlags
-                });
+                const binding = new gfx.DescriptorSetLayoutBinding;
+                binding.binding = block.binding;
+                binding.descriptorType = DescriptorType.UNIFORM_BUFFER;
+                binding.descriptorCount = 1;
+                binding.stageFlags = block.stageFlags;
+                info.bindings.add(binding);
             }
-            descriptorSetLayout = gfx.device.createDescriptorSetLayout();
-            descriptorSetLayout.initialize(bindings);
+            descriptorSetLayout = device.createDescriptorSetLayout();
+            descriptorSetLayout.initialize(info);
 
             _shader2descriptorSetLayout[key] = descriptorSetLayout;
         }
@@ -181,7 +184,7 @@ export default {
             vs = preprocessor.macroExpand(mac, vs);
             fs = preprocessor.macroExpand(mac, fs);
 
-            const shader = gfx.device.createShader();
+            const shader = device.createShader();
             const info = new gfx.ShaderInfo;
             info.sources.add(vs)
             info.types.add(ShaderStageFlagBits.VERTEX);

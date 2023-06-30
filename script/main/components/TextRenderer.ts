@@ -2,10 +2,8 @@
 
 import FNT from "../assets/FNT.js";
 import assetLib from "../core/assetLib.js";
-import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format from "../core/gfx/Format.js";
-import { IndexType } from "../core/gfx/InputAssembler.js";
-import { PassState } from "../core/gfx/Pipeline.js";
+import { BlendFactor, BufferUsageFlagBits, CullMode, IndexType, PrimitiveTopology } from "../core/gfx/info.js";
 import aabb2d, { AABB2D } from "../core/math/aabb2d.js";
 import vec2 from "../core/math/vec2.js";
 import vec3 from "../core/math/vec3.js";
@@ -93,17 +91,19 @@ export default class TextRenderer extends BoundedRenderer {
             vertexOrIndexCount: 0
         }
 
-        const state = new PassState(
-            shader_unlit,
-            undefined,
-            { cullMode: 'NONE' },
-            undefined,
-            {
-                srcRGB: 'SRC_ALPHA',
-                dstRGB: 'ONE_MINUS_SRC_ALPHA',
-                srcAlpha: 'ONE',
-                dstAlpha: 'ONE_MINUS_SRC_ALPHA'
-            })
+        const rasterizationState = new gfx.RasterizationState;
+        rasterizationState.cullMode = CullMode.NONE;
+        const blendState = new gfx.BlendState;
+        blendState.srcRGB = BlendFactor.SRC_ALPHA;
+        blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
+        blendState.srcAlpha = BlendFactor.ONE;
+        blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
+        const state = new gfx.PassState;
+        state.shader = shader_unlit;
+        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
+        state.rasterizationState = rasterizationState;
+        state.blendState = blendState;
+
         const pass = new Pass(state);
         pass.setTexture('albedoMap', this._fnt.texture.impl)
         pass.setUniform('Constants', 'albedo', vec4.ONE)

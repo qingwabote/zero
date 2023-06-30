@@ -1,29 +1,29 @@
 #pragma once
 
-#include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding
 {
     namespace gfx
     {
+        class Device_impl;
         class Framebuffer_impl;
 
-        class Framebuffer : public Binding
+        class Framebuffer
         {
         private:
             std::unique_ptr<Framebuffer_impl> _impl;
 
-            sugar::v8::Weak<v8::Object> _info;
-
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
+            std::shared_ptr<FramebufferInfo> _info;
 
         public:
-            Framebuffer_impl &impl() { return *_impl.get(); }
+            Framebuffer_impl &impl() { return *_impl; }
 
-            Framebuffer(std::unique_ptr<Framebuffer_impl> impl);
+            const std::shared_ptr<FramebufferInfo> &info() { return _info; };
 
-            bool initialize(v8::Local<v8::Object> info);
+            Framebuffer(Device_impl *device);
+
+            bool initialize(const std::shared_ptr<FramebufferInfo> &info);
 
             ~Framebuffer();
         };

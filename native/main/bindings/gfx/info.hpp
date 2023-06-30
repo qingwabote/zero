@@ -6,19 +6,273 @@
 
 namespace binding::gfx
 {
+    class Buffer;
+    class DescriptorSetLayout;
+    class PipelineLayout;
+    class RenderPass;
     class Shader;
+    class Texture;
+    class CommandBuffer;
+    class Fence;
+    class Semaphore;
 
-    enum ShaderStageFlagBits
+    using FloatVector = std::vector<float>;
+    using Uint32Vector = std::vector<uint32_t>;
+    using StringVector = std::vector<std::string>;
+
+    enum class BufferUsageFlagBits
+    {
+        NONE = 0,
+        TRANSFER_DST = 0x00000002,
+        UNIFORM = 0x00000010,
+        INDEX = 0x00000040,
+        VERTEX = 0x00000080,
+    };
+
+    enum class MemoryUsage
+    {
+        NONE = 0,
+        GPU_ONLY = 1,
+        CPU_TO_GPU = 3,
+    };
+
+    struct BufferInfo
+    {
+        BufferUsageFlagBits usage;
+        MemoryUsage mem_usage;
+        uint32_t size;
+        uint32_t stride;
+    };
+
+    enum class ShaderStageFlagBits
     {
         VERTEX = 0x1,
         FRAGMENT = 0x10
     };
     // typedef uint32_t ShaderStageFlags;
 
-    class ShaderInfo
+    enum class DescriptorType
     {
-    public:
-        std::shared_ptr<std::vector<std::string>> sources{new std::vector<std::string>()};
-        std::shared_ptr<std::vector<float>> types{new std::vector<float>()};
+        NONE = 0,
+        SAMPLER_TEXTURE = 1,
+        UNIFORM_BUFFER = 6,
+        UNIFORM_BUFFER_DYNAMIC = 8,
+    };
+
+    struct DescriptorSetLayoutBinding
+    {
+        uint32_t binding;
+        DescriptorType descriptorType;
+        uint32_t descriptorCount;
+        ShaderStageFlagBits stageFlags;
+    };
+
+    using DescriptorSetLayoutBindingVector = std::vector<std::shared_ptr<DescriptorSetLayoutBinding>>;
+
+    struct DescriptorSetLayoutInfo
+    {
+        std::shared_ptr<DescriptorSetLayoutBindingVector> bindings{new DescriptorSetLayoutBindingVector()};
+    };
+
+    enum class SampleCountFlagBits
+    {
+        SAMPLE_COUNT_1 = 0x00000001,
+        SAMPLE_COUNT_2 = 0x00000002,
+        SAMPLE_COUNT_4 = 0x00000004,
+        SAMPLE_COUNT_8 = 0x00000008,
+        SAMPLE_COUNT_16 = 0x00000010,
+        SAMPLE_COUNT_32 = 0x00000020,
+        SAMPLE_COUNT_64 = 0x00000040,
+    };
+
+    enum class TextureUsageBits
+    {
+        NONE = 0,
+        TRANSFER_DST = 0x00000002,
+        SAMPLED = 0x00000004,
+        COLOR_ATTACHMENT = 0x00000010,
+        DEPTH_STENCIL_ATTACHMENT = 0x00000020,
+        TRANSIENT_ATTACHMENT = 0x00000040,
+    };
+
+    struct TextureInfo
+    {
+        SampleCountFlagBits samples;
+        TextureUsageBits usage;
+        uint32_t width;
+        uint32_t height;
+    };
+
+    using TextureVector = std::vector<std::shared_ptr<Texture>>;
+
+    struct FramebufferInfo
+    {
+        std::shared_ptr<TextureVector> colorAttachments{new TextureVector()};
+        std::shared_ptr<Texture> depthStencilAttachment;
+        std::shared_ptr<TextureVector> resolveAttachments{new TextureVector()};
+        std::shared_ptr<RenderPass> renderPass;
+        uint32_t width{0};
+        uint32_t height{0};
+    };
+
+    enum class LOAD_OP
+    {
+        LOAD = 0,
+        CLEAR = 1,
+    };
+    enum class ImageLayout
+    {
+        UNDEFINED = 0,
+        COLOR_ATTACHMENT_OPTIMAL = 2,
+        DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
+        DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
+        PRESENT_SRC = 1000001002,
+    };
+    struct AttachmentDescription
+    {
+        LOAD_OP loadOp;
+        ImageLayout initialLayout;
+        ImageLayout finalLayout;
+    };
+    using AttachmentDescriptionVector = std::vector<std::shared_ptr<AttachmentDescription>>;
+    struct RenderPassInfo
+    {
+        std::shared_ptr<AttachmentDescriptionVector> colorAttachments{new AttachmentDescriptionVector()};
+        std::shared_ptr<AttachmentDescription> depthStencilAttachment{new AttachmentDescription()};
+        std::shared_ptr<AttachmentDescriptionVector> resolveAttachments{new AttachmentDescriptionVector()};
+        SampleCountFlagBits samples{SampleCountFlagBits::SAMPLE_COUNT_1};
+    };
+
+    enum class Filter
+    {
+        NEAREST = 0,
+        LINEAR = 1
+    };
+    struct SamplerInfo
+    {
+        Filter magFilter;
+        Filter minFilter;
+    };
+
+    struct ShaderInfo
+    {
+        std::shared_ptr<StringVector> sources{new StringVector()};
+        std::shared_ptr<FloatVector> types{new FloatVector()};
+    };
+
+    using DescriptorSetLayoutVector = std::vector<std::shared_ptr<DescriptorSetLayout>>;
+    struct PipelineLayoutInfo
+    {
+        std::shared_ptr<DescriptorSetLayoutVector> layouts{new DescriptorSetLayoutVector()};
+    };
+
+    enum class VertexInputRate
+    {
+        VERTEX = 0,
+        INSTANCE = 1
+    };
+    struct VertexInputAttributeDescription
+    {
+        uint32_t location;
+        uint32_t format;
+        uint32_t binding;
+        uint32_t offset;
+    };
+    struct VertexInputBindingDescription
+    {
+        uint32_t binding;
+        uint32_t stride;
+        VertexInputRate inputRate;
+    };
+    using VertexInputAttributeDescriptionVector = std::vector<std::shared_ptr<VertexInputAttributeDescription>>;
+    using VertexInputBindingDescriptionVector = std::vector<std::shared_ptr<VertexInputBindingDescription>>;
+    struct VertexInputState
+    {
+        std::shared_ptr<VertexInputAttributeDescriptionVector> attributes{new VertexInputAttributeDescriptionVector()};
+        std::shared_ptr<VertexInputBindingDescriptionVector> bindings{new VertexInputBindingDescriptionVector()};
+    };
+    using BufferVector = std::vector<std::shared_ptr<Buffer>>;
+    struct VertexInput
+    {
+        std::shared_ptr<BufferVector> buffers{new BufferVector()};
+        std::shared_ptr<FloatVector> offsets{new FloatVector()};
+    };
+    enum class IndexType
+    {
+        UINT16 = 0,
+        UINT32 = 1,
+    };
+    struct IndexInput
+    {
+        std::shared_ptr<Buffer> buffer;
+        uint32_t offset{0};
+        IndexType type{0};
+    };
+    struct InputAssemblerInfo
+    {
+        std::shared_ptr<VertexInputState> vertexInputState;
+        std::shared_ptr<VertexInput> vertexInput;
+        std::shared_ptr<IndexInput> indexInput;
+    };
+
+    enum class CullMode
+    {
+        NONE = 0,
+        FRONT = 0x00000001,
+        BACK = 0x00000002,
+    };
+    struct RasterizationState
+    {
+        CullMode cullMode;
+    };
+    struct DepthStencilState
+    {
+        bool depthTestEnable;
+    };
+    enum class BlendFactor
+    {
+        ZERO = 0,
+        ONE = 1,
+        SRC_ALPHA = 6,
+        ONE_MINUS_SRC_ALPHA = 7,
+        DST_ALPHA = 8,
+        ONE_MINUS_DST_ALPHA = 9,
+    };
+    struct BlendState
+    {
+        BlendFactor srcRGB;
+        BlendFactor dstRGB;
+        BlendFactor srcAlpha;
+        BlendFactor dstAlpha;
+    };
+    enum class PrimitiveTopology
+    {
+        POINT_LIST = 0,
+        LINE_LIST = 1,
+        TRIANGLE_LIST = 3
+    };
+    struct PassState
+    {
+        std::shared_ptr<Shader> shader;
+        PrimitiveTopology primitive{0};
+        std::shared_ptr<RasterizationState> rasterizationState;
+        std::shared_ptr<DepthStencilState> depthStencilState;
+        std::shared_ptr<BlendState> blendState;
+    };
+
+    struct PipelineInfo
+    {
+        std::shared_ptr<VertexInputState> vertexInputState;
+        std::shared_ptr<PassState> passState;
+        std::shared_ptr<PipelineLayout> layout;
+        std::shared_ptr<RenderPass> renderPass;
+    };
+
+    struct SubmitInfo
+    {
+        std::shared_ptr<CommandBuffer> commandBuffer;
+        std::shared_ptr<Semaphore> waitSemaphore;
+        int32_t waitDstStageMask;
+        std::shared_ptr<Semaphore> signalSemaphore;
     };
 }

@@ -1,6 +1,6 @@
 import { FormatInfos } from "../gfx/Format.js";
-import InputAssembler, { IndexInput, VertexInput } from "../gfx/InputAssembler.js";
-import { VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "../gfx/Pipeline.js";
+import InputAssembler from "../gfx/InputAssembler.js";
+import { IndexInput, VertexInputRate, VertexInputState } from "../gfx/info.js";
 import shaderLib from "../shaderLib.js";
 import Pass from "./Pass.js";
 import SubMesh from "./SubMesh.js";
@@ -21,18 +21,18 @@ export default class SubModel {
     }
 
     constructor(private _subMesh: SubMesh, public readonly passes: Pass[]) {
-        const bindings: VertexInputBindingDescription[] = [];
+        const bindings = new gfx.VertexInputBindingDescriptionVector
         for (let binding = 0; binding < _subMesh.vertexInput.buffers.length; binding++) {
             const view = _subMesh.vertexInput.buffers[binding];
             let stride = view.buffer.info.stride;
             if (!stride) {
                 stride = _subMesh.vertexAttributes.reduce((count, attribute) => count + (attribute.buffer == binding ? FormatInfos[attribute.format].size : 0), 0);
             }
-            bindings.push({
-                binding,
-                stride,
-                inputRate: VertexInputRate.VERTEX
-            })
+            const description = new gfx.VertexInputBindingDescription;
+            description.binding = binding;
+            description.stride = stride;
+            description.inputRate = VertexInputRate.VERTEX;
+            bindings.add(description);
             if (view instanceof BufferViewResizable) {
                 view.on(BufferViewResizableEventType.REALLOCATED, () => this._inputAssemblerInvalidated = true)
             }
@@ -40,47 +40,53 @@ export default class SubModel {
         const vertexInputStates: VertexInputState[] = [];
         for (let j = 0; j < passes.length; j++) {
             const pass = passes[j];
-            const attributes: VertexInputAttributeDescription[] = [];
+            const vertexInputState = new gfx.VertexInputState;
             for (const attribute of _subMesh.vertexAttributes) {
                 const definition = shaderLib.getMeta(pass.state.shader).attributes[attribute.name];
                 if (!definition) {
                     continue;
                 }
 
-                attributes.push({
-                    location: definition.location,
-                    // attribute.format in buffer can be different from definition.format in shader, 
-                    // use attribute.format here to make sure type conversion can be done correctly by graphics api.
-                    // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
-                    format: attribute.format,
-                    binding: attribute.buffer,
-                    offset: attribute.offset
-                });
+                const description = new gfx.VertexInputAttributeDescription;
+                description.location = definition.location;
+                // attribute.format in buffer can be different from definition.format in shader, 
+                // use attribute.format here to make sure type conversion can be done correctly by graphics api.
+                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
+                description.format = attribute.format;
+                description.binding = attribute.buffer;
+                description.offset = attribute.offset;
+                vertexInputState.attributes.add(description);
             }
+            vertexInputState.bindings = bindings;
             // the same attributes always come with same bindings for now, so we calculate only the hash of attributes
-            vertexInputStates.push(new VertexInputState(attributes, bindings));
+            vertexInputStates.push(vertexInputState);
         }
         this._vertexInputStates = vertexInputStates;
     }
 
     update() {
         if (this._inputAssemblerInvalidated) {
-            const vertexInput: VertexInput = {
-                buffers: this._subMesh.vertexInput.buffers.map(view => view.buffer),
-                offsets: this._subMesh.vertexInput.offsets
+            const vertexInput = new gfx.VertexInput;
+            for (const view of this._subMesh.vertexInput.buffers) {
+                vertexInput.buffers.add(view.buffer);
             }
-            const indexInput: IndexInput | undefined = this._subMesh.indexInput && {
-                buffer: this._subMesh.indexInput.buffer.buffer,
-                offset: this._subMesh.indexInput.offset,
-                type: this._subMesh.indexInput.type
+            for (const offset of this._subMesh.vertexInput.offsets) {
+                vertexInput.offsets.add(offset);
+            }
+            let indexInput: IndexInput | undefined;
+            if (this._subMesh.indexInput) {
+                indexInput = new gfx.IndexInput
+                indexInput.buffer = this._subMesh.indexInput.buffer.buffer;
+                indexInput.offset = this._subMesh.indexInput.offset;
+                indexInput.type = this._subMesh.indexInput.type;
             }
             for (let i = 0; i < this.passes.length; i++) {
-                const inputAssembler = gfx.device.createInputAssembler();
-                inputAssembler.initialize({
-                    vertexInputState: this._vertexInputStates[i],
-                    vertexInput,
-                    indexInput
-                })
+                const inputAssemblerInfo = new gfx.InputAssemblerInfo;
+                inputAssemblerInfo.vertexInputState = this._vertexInputStates[i];
+                inputAssemblerInfo.vertexInput = vertexInput;
+                inputAssemblerInfo.indexInput = indexInput;
+                const inputAssembler = device.createInputAssembler();
+                inputAssembler.initialize(inputAssemblerInfo);
                 this._inputAssemblers[i] = inputAssembler;
             }
             this._inputAssemblerInvalidated = false;

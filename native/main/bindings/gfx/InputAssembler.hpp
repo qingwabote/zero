@@ -1,27 +1,27 @@
 #pragma once
 
-#include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding::gfx
 {
+    class Device_impl;
     class InputAssembler_impl;
 
-    class InputAssembler : public Binding
+    class InputAssembler
     {
     private:
         std::unique_ptr<InputAssembler_impl> _impl;
 
-        sugar::v8::Weak<v8::Object> _info;
-
-    protected:
-        v8::Local<v8::FunctionTemplate> createTemplate() override;
+        std::shared_ptr<InputAssemblerInfo> _info;
 
     public:
         InputAssembler_impl &impl() { return *_impl.get(); }
 
-        InputAssembler(std::unique_ptr<InputAssembler_impl> impl);
+        const std::shared_ptr<InputAssemblerInfo> &info() { return _info; };
 
-        bool initialize(v8::Local<v8::Object> info);
+        InputAssembler(Device_impl *device);
+
+        bool initialize(const std::shared_ptr<InputAssemblerInfo> &info);
 
         ~InputAssembler();
     };

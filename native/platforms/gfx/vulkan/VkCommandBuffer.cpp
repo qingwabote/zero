@@ -45,8 +45,7 @@ namespace binding
 
         CommandBuffer_impl::~CommandBuffer_impl() {}
 
-        CommandBuffer::CommandBuffer(std::unique_ptr<CommandBuffer_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        CommandBuffer::CommandBuffer(Device_impl *device) : _impl(std::make_unique<CommandBuffer_impl>(device)) {}
 
         bool CommandBuffer::initialize()
         {
@@ -77,16 +76,16 @@ namespace binding
             vkBeginCommandBuffer(_impl->_commandBuffer, &info);
         }
 
-        void CommandBuffer::copyBuffer(const void *data, Buffer *buffer, size_t offset, size_t length)
+        void CommandBuffer::copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<Buffer> &buffer, size_t offset, size_t length)
         {
-            auto start = reinterpret_cast<const uint8_t *>(data) + offset;
+            auto start = reinterpret_cast<const uint8_t *>(data.get()) + offset;
 
             VkBufferCopy copy = {};
             copy.size = length;
             vkCmdCopyBuffer(_impl->_commandBuffer, _impl->createStagingBuffer(start, length), buffer->impl(), 1, &copy);
         }
 
-        void CommandBuffer::copyImageBitmapToTexture(ImageBitmap *imageBitmap, Texture *texture)
+        void CommandBuffer::copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture)
         {
             VkDeviceSize size = static_cast<VkDeviceSize>(4) * imageBitmap->width() * imageBitmap->height();
 
@@ -130,7 +129,7 @@ namespace binding
             vkCmdPipelineBarrier(_impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
         }
 
-        void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height)
+        void CommandBuffer::beginRenderPass(const std::shared_ptr<RenderPass> &renderPass, const std::shared_ptr<Framebuffer> &framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height)
         {
             VkViewport viewport{};
             viewport.x = x;
@@ -177,7 +176,10 @@ namespace binding
             vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
         }
 
-        void CommandBuffer::bindDescriptorSet(PipelineLayout *pipelineLayout, uint32_t index, DescriptorSet *descriptorSet, std::unique_ptr<std::vector<uint32_t>> dynamicOffsets)
+        void CommandBuffer::bindDescriptorSet(const std::shared_ptr<PipelineLayout> &pipelineLayout,
+                                              uint32_t index,
+                                              const std::shared_ptr<DescriptorSet> &descriptorSet,
+                                              const std::shared_ptr<Uint32Vector> &dynamicOffsets)
         {
             VkDescriptorSet descriptorSet0 = descriptorSet->impl();
             uint32_t dynamicOffsetCount = dynamicOffsets ? dynamicOffsets->size() : 0;
@@ -193,7 +195,7 @@ namespace binding
                                     pDynamicOffsets);
         }
 
-        void CommandBuffer::bindInputAssembler(InputAssembler *inputAssembler)
+        void CommandBuffer::bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler)
         {
             auto vertexInput = inputAssembler->impl().vertexInput();
             vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexInput->vertexBuffers.size(), vertexInput->vertexBuffers.data(), vertexInput->vertexOffsets.data());
@@ -205,7 +207,7 @@ namespace binding
             }
         }
 
-        void CommandBuffer::bindPipeline(Pipeline *pipeline)
+        void CommandBuffer::bindPipeline(const std::shared_ptr<Pipeline> &pipeline)
         {
             vkCmdBindPipeline(_impl->_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->impl());
         }

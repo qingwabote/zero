@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { BufferUsageFlagBits } from "../../core/gfx/info.js";
 import Uniform from "../../core/pipeline/Uniform.js";
 import BufferViewResizable from "../../core/scene/buffers/BufferViewResizable.js";
 import shaderLib from "../../core/shaderLib.js";

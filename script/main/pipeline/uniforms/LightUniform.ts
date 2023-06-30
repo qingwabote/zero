@@ -1,6 +1,4 @@
-import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
-import { DescriptorType } from "../../core/gfx/DescriptorSetLayout.js";
-import { ShaderStageFlagBits } from "../../core/gfx/info.js";
+import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "../../core/gfx/info.js";
 import vec3 from "../../core/math/vec3.js";
 import Uniform from "../../core/pipeline/Uniform.js";
 import BufferViewWritable from "../../core/scene/buffers/BufferViewWritable.js";

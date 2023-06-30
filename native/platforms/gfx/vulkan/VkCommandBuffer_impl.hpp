@@ -2,6 +2,7 @@
 
 #include "VkDevice_impl.hpp"
 #include <queue>
+#include <functional>
 
 namespace binding
 {

@@ -1,5 +1,5 @@
 import Skin from "../../assets/Skin.js";
-import { BufferUsageFlagBits } from "../../core/gfx/Buffer.js";
+import { BufferUsageFlagBits } from "../../core/gfx/info.js";
 import mat4 from "../../core/math/mat4.js";
 import FrameChangeRecord from "../../core/scene/FrameChangeRecord.js";
 import Model from "../../core/scene/Model.js";

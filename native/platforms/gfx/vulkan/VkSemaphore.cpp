@@ -9,8 +9,7 @@ namespace binding
         Semaphore_impl::Semaphore_impl(Device_impl *device) : _device(device) {}
         Semaphore_impl::~Semaphore_impl() {}
 
-        Semaphore::Semaphore(std::unique_ptr<Semaphore_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        Semaphore::Semaphore(Device_impl *device) : _impl(std::make_unique<Semaphore_impl>(device)) {}
 
         bool Semaphore::initialize()
         {

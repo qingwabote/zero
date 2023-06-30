@@ -9,40 +9,38 @@ namespace binding
         RenderPass_impl::RenderPass_impl(Device_impl *device) : _device(device) {}
         RenderPass_impl::~RenderPass_impl() {}
 
-        RenderPass::RenderPass(std::unique_ptr<RenderPass_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        RenderPass::RenderPass(Device_impl *device) : _impl(std::make_unique<RenderPass_impl>(device)) {}
 
-        bool RenderPass::initialize(v8::Local<v8::Object> info)
+        bool RenderPass::initialize(const std::shared_ptr<RenderPassInfo> &info)
         {
             v8::Isolate *isolate = v8::Isolate::GetCurrent();
             v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-            auto js_colorAttachments = sugar::v8::object_get(info, "colorAttachments").As<v8::Array>();
-            auto js_resolveAttachments = sugar::v8::object_get(info, "resolveAttachments").As<v8::Array>();
-            auto samples = sugar::v8::object_get(info, "samples").As<v8::Number>()->Value();
+            auto gfx_colorAttachments = info->colorAttachments.get();
+            auto gfx_resolveAttachments = info->resolveAttachments.get();
 
             // renderpass
             VkRenderPassCreateInfo2 renderPassInfo = {};
             renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
-            std::vector<VkAttachmentDescription2> attachments(js_colorAttachments->Length() + 1 + js_resolveAttachments->Length());
-            _impl->_clearValues.resize(js_colorAttachments->Length() + static_cast<size_t>(1));
+            std::vector<VkAttachmentDescription2> attachments(gfx_colorAttachments->size() + 1 + gfx_resolveAttachments->size());
+            _impl->_clearValues.resize(gfx_colorAttachments->size() + static_cast<size_t>(1));
             uint32_t attachmentIdx = 0;
 
             // color
-            std::vector<VkAttachmentReference2> colorAttachmentRefs(js_colorAttachments->Length());
-            for (uint32_t i = 0; i < js_colorAttachments->Length(); i++)
+            std::vector<VkAttachmentReference2> colorAttachmentRefs(gfx_colorAttachments->size());
+            for (uint32_t i = 0; i < gfx_colorAttachments->size(); i++)
             {
-                auto js_attachment = js_colorAttachments->Get(context, i).ToLocalChecked().As<v8::Object>();
+                auto js_attachment = gfx_colorAttachments->at(i).get();
                 auto &attachment = attachments[attachmentIdx];
                 attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
                 attachment.format = _impl->_device->swapchainImageFormat();
-                attachment.samples = static_cast<VkSampleCountFlagBits>(samples);
-                attachment.loadOp = static_cast<VkAttachmentLoadOp>(sugar::v8::object_get(js_attachment, "loadOp").As<v8::Number>()->Value());
-                attachment.initialLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_attachment, "initialLayout").As<v8::Number>()->Value());
+                attachment.samples = static_cast<VkSampleCountFlagBits>(info->samples);
+                attachment.loadOp = static_cast<VkAttachmentLoadOp>(js_attachment->loadOp);
+                attachment.initialLayout = static_cast<VkImageLayout>(js_attachment->initialLayout);
                 attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                attachment.finalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_attachment, "finalLayout").As<v8::Number>()->Value());
+                attachment.finalLayout = static_cast<VkImageLayout>(js_attachment->finalLayout);
 
                 colorAttachmentRefs[i].sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
                 colorAttachmentRefs[i].attachment = attachmentIdx;
@@ -54,15 +52,15 @@ namespace binding
             }
 
             // depthStencil
-            auto js_depthStencilAttachment = sugar::v8::object_get(info, "depthStencilAttachment").As<v8::Object>();
-            VkImageLayout depthFinalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_depthStencilAttachment, "finalLayout").As<v8::Number>()->Value());
+            auto gfx_depthStencilAttachment = info->depthStencilAttachment.get();
+            VkImageLayout depthFinalLayout = static_cast<VkImageLayout>(gfx_depthStencilAttachment->finalLayout);
 
             attachments[attachmentIdx].sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
             attachments[attachmentIdx].flags = 0;
             attachments[attachmentIdx].format = VK_FORMAT_D32_SFLOAT;
-            attachments[attachmentIdx].samples = static_cast<VkSampleCountFlagBits>(samples);
-            attachments[attachmentIdx].loadOp = static_cast<VkAttachmentLoadOp>(sugar::v8::object_get(js_depthStencilAttachment, "loadOp").As<v8::Number>()->Value());
-            attachments[attachmentIdx].initialLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_depthStencilAttachment, "initialLayout").As<v8::Number>()->Value());
+            attachments[attachmentIdx].samples = static_cast<VkSampleCountFlagBits>(info->samples);
+            attachments[attachmentIdx].loadOp = static_cast<VkAttachmentLoadOp>(gfx_depthStencilAttachment->loadOp);
+            attachments[attachmentIdx].initialLayout = static_cast<VkImageLayout>(gfx_depthStencilAttachment->initialLayout);
 
             attachments[attachmentIdx].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             attachments[attachmentIdx].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -78,10 +76,10 @@ namespace binding
 
             attachmentIdx++;
 
-            std::vector<VkAttachmentReference2> resolveAttachmentRefs(js_resolveAttachments->Length());
-            for (uint32_t i = 0; i < js_resolveAttachments->Length(); i++)
+            std::vector<VkAttachmentReference2> resolveAttachmentRefs(gfx_resolveAttachments->size());
+            for (uint32_t i = 0; i < gfx_resolveAttachments->size(); i++)
             {
-                auto js_attachment = js_resolveAttachments->Get(context, i).ToLocalChecked().As<v8::Object>();
+                auto gfx_attachment = gfx_resolveAttachments->at(i).get();
 
                 auto &attachment = attachments[attachmentIdx];
                 attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
@@ -92,7 +90,7 @@ namespace binding
                 attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                attachment.finalLayout = static_cast<VkImageLayout>(sugar::v8::object_get(js_attachment, "finalLayout").As<v8::Number>()->Value());
+                attachment.finalLayout = static_cast<VkImageLayout>(gfx_attachment->finalLayout);
 
                 resolveAttachmentRefs[i].sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
                 resolveAttachmentRefs[i].attachment = attachmentIdx;
@@ -163,6 +161,8 @@ namespace binding
             renderPassInfo.pDependencies = dependencies.data();
             renderPassInfo.dependencyCount = dependencies.size();
             vkCreateRenderPass2(*_impl->_device, &renderPassInfo, nullptr, &_impl->_renderPass);
+
+            _info = info;
             return false;
         }
 

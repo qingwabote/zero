@@ -1,5 +1,5 @@
 import Format from "../gfx/Format.js";
-import { IndexType } from "../gfx/InputAssembler.js";
+import { IndexType } from "../gfx/info.js";
 import { Vec3 } from "../math/vec3.js";
 import BufferView from "./buffers/BufferView.js";
 

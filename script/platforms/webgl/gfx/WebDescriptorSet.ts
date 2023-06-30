@@ -11,7 +11,16 @@ export default class WebDescriptorSet implements DescriptorSet {
     private _textures: Texture[] = [];
     private _textureSamplers: Sampler[] = [];
 
-    constructor(readonly layout: DescriptorSetLayout) { }
+    private _layout!: DescriptorSetLayout;
+
+    get layout(): DescriptorSetLayout {
+        return this._layout;
+    }
+
+    initialize(layout: DescriptorSetLayout): boolean {
+        this._layout = layout;
+        return false;
+    }
 
     getBuffer(binding: number): Buffer {
         return this._buffers[binding];

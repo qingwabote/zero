@@ -30,7 +30,7 @@ export default class Stage {
 
     record(commandBuffer: CommandBuffer, camera: Camera): void {
         const framebuffer = this.framebuffer;
-        const renderPass = this._renderPass || zero.flow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments[0].info.samples);
+        const renderPass = this._renderPass || zero.flow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments.get(0).info.samples);
         const viewport = this._viewport || camera.viewport;
 
         commandBuffer.beginRenderPass(renderPass, framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);

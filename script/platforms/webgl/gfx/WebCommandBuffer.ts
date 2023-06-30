@@ -1,13 +1,13 @@
 import Buffer from "../../../main/core/gfx/Buffer.js";
 import CommandBuffer from "../../../main/core/gfx/CommandBuffer.js";
 import DescriptorSet from "../../../main/core/gfx/DescriptorSet.js";
-import { DescriptorType } from "../../../main/core/gfx/DescriptorSetLayout.js";
 import Format, { FormatInfos } from "../../../main/core/gfx/Format.js";
 import { Framebuffer } from "../../../main/core/gfx/Framebuffer.js";
-import InputAssembler, { IndexType, InputAssemblerInfo } from "../../../main/core/gfx/InputAssembler.js";
-import Pipeline, { BlendFactor, PipelineInfo, PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
-import RenderPass, { LOAD_OP } from "../../../main/core/gfx/RenderPass.js";
+import InputAssembler from "../../../main/core/gfx/InputAssembler.js";
+import Pipeline, { PipelineLayout } from "../../../main/core/gfx/Pipeline.js";
+import RenderPass from "../../../main/core/gfx/RenderPass.js";
 import Texture from "../../../main/core/gfx/Texture.js";
+import { AttachmentDescription, BlendFactor, CullMode, DescriptorSetLayoutBinding, DescriptorType, IndexType, InputAssemblerInfo, LOAD_OP, PipelineInfo, PrimitiveTopology, Uint32Vector, VertexInputAttributeDescription } from "../../../main/core/gfx/info.js";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebFramebuffer from "./WebFramebuffer.js";
@@ -15,15 +15,16 @@ import WebPipeline from "./WebPipeline.js";
 import WebSampler from "./WebSampler.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
+import { WebVector } from "./info.js";
 
 function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
-        case 'ZERO': return WebGL2RenderingContext.ZERO;
-        case 'ONE': return WebGL2RenderingContext.ONE;
-        case 'SRC_ALPHA': return WebGL2RenderingContext.SRC_ALPHA;
-        case 'DST_ALPHA': return WebGL2RenderingContext.DST_ALPHA;
-        case 'ONE_MINUS_SRC_ALPHA': return WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA;
-        case 'ONE_MINUS_DST_ALPHA': return WebGL2RenderingContext.ONE_MINUS_DST_ALPHA;
+        case BlendFactor.ZERO: return WebGL2RenderingContext.ZERO;
+        case BlendFactor.ONE: return WebGL2RenderingContext.ONE;
+        case BlendFactor.SRC_ALPHA: return WebGL2RenderingContext.SRC_ALPHA;
+        case BlendFactor.DST_ALPHA: return WebGL2RenderingContext.DST_ALPHA;
+        case BlendFactor.ONE_MINUS_SRC_ALPHA: return WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA;
+        case BlendFactor.ONE_MINUS_DST_ALPHA: return WebGL2RenderingContext.ONE_MINUS_DST_ALPHA;
     }
 }
 
@@ -96,7 +97,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         this._viewport = { x, y, width, height };
 
         let flag: number = 0;
-        for (const attachment of renderPass.info.colorAttachments) {
+        for (const attachment of (renderPass.info.colorAttachments as WebVector<AttachmentDescription>).data) {
             if (attachment.loadOp == LOAD_OP.CLEAR) {
                 gl.clearColor(0, 0, 0, 1);
                 flag |= gl.COLOR_BUFFER_BIT;
@@ -118,14 +119,14 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.useProgram((state.shader as WebShader).program.deref());
 
         switch (state.rasterizationState.cullMode) {
-            case 'NONE':
+            case CullMode.NONE:
                 gl.disable(gl.CULL_FACE);
                 break;
-            case 'FRONT':
+            case CullMode.FRONT:
                 gl.cullFace(gl.FRONT);
                 gl.enable(gl.CULL_FACE);
                 break;
-            case 'BACK':
+            case CullMode.BACK:
                 gl.cullFace(gl.BACK);
                 gl.enable(gl.CULL_FACE);
                 break;
@@ -157,16 +158,16 @@ export default class WebCommandBuffer implements CommandBuffer {
         this._pipeline = info;
     }
 
-    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: number[]): void {
+    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void {
         const gl = this._gl;
 
         let dynamicIndex = 0;
-        for (const layoutBinding of descriptorSet.layout.bindings) {
+        for (const layoutBinding of (descriptorSet.layout.info.bindings as WebVector<DescriptorSetLayoutBinding>).data) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
                 const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl.deref());
             } else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
-                const offset = dynamicOffsets![dynamicIndex++];
+                const offset = (dynamicOffsets! as WebVector<number>).data[dynamicIndex++];
                 const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
                 const range = (descriptorSet as WebDescriptorSet).getBufferRange(layoutBinding.binding);
                 gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl.deref(), offset, range);
@@ -190,11 +191,11 @@ export default class WebCommandBuffer implements CommandBuffer {
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = inputAssemblerInfo.vertexInputState.attributes;
+            const attributes = (inputAssemblerInfo.vertexInputState.attributes as WebVector<VertexInputAttributeDescription>).data;
             for (const attribute of attributes) {
-                const binding = inputAssemblerInfo.vertexInputState.bindings[attribute.binding];
-                const buffer = inputAssemblerInfo.vertexInput.buffers[attribute.binding] as WebBuffer;
-                const offset = inputAssemblerInfo.vertexInput.offsets[attribute.binding];
+                const binding = inputAssemblerInfo.vertexInputState.bindings.get(attribute.binding);
+                const buffer = (inputAssemblerInfo.vertexInput.buffers as WebVector<Buffer>).data[attribute.binding] as WebBuffer;
+                const offset = (inputAssemblerInfo.vertexInput.offsets as WebVector<number>).data[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl.deref());
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
@@ -259,10 +260,10 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         let mode: GLenum;
         switch (this._pipeline.passState.primitive) {
-            case 'LINE_LIST':
+            case PrimitiveTopology.LINE_LIST:
                 mode = gl.LINES;
                 break;
-            case 'TRIANGLE_LIST':
+            case PrimitiveTopology.TRIANGLE_LIST:
                 mode = gl.TRIANGLES;
                 break;
             default:
@@ -295,8 +296,8 @@ export default class WebCommandBuffer implements CommandBuffer {
     endRenderPass() {
         const gl = this._gl;
 
-        for (const attachment of this._framebuffer.info.resolveAttachments) {
-            if (attachment == gfx.device.swapchain.colorTexture) {
+        for (const attachment of (this._framebuffer.info.resolveAttachments as WebVector<Texture>).data) {
+            if ((attachment as WebTexture).swapchain) {
                 gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl?.deref() || null);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 

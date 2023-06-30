@@ -1,29 +1,25 @@
 #pragma once
 
-#include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding
 {
     namespace gfx
     {
+        class Device_impl;
         class Sampler_impl;
 
-        class Sampler : public Binding
+        class Sampler
         {
         private:
             std::unique_ptr<Sampler_impl> _impl;
 
-            sugar::v8::Weak<v8::Object> _info;
-
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
-
         public:
             Sampler_impl &impl() { return *_impl.get(); }
 
-            Sampler(std::unique_ptr<Sampler_impl> impl);
+            Sampler(Device_impl *device);
 
-            bool initialize(v8::Local<v8::Object> info);
+            bool initialize(const std::shared_ptr<SamplerInfo> &info);
 
             ~Sampler();
         };

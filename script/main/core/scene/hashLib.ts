@@ -1,7 +1,7 @@
 import { murmurhash2_32_gc } from "../../base/murmurhash2_gc.js";
-import { PassState, VertexInputState } from "../gfx/Pipeline.js";
-import RenderPass, { RenderPassInfo } from "../gfx/RenderPass.js";
+import RenderPass from "../gfx/RenderPass.js";
 import Shader from "../gfx/Shader.js";
+import { PassState, RenderPassInfo, VertexInputState } from "../gfx/info.js";
 import shaderLib from "../shaderLib.js";
 
 const _shader2hash: WeakMap<Shader, number> = new WeakMap;
@@ -42,7 +42,10 @@ export default {
         let hash = _vertex2hash.get(vertexInput);
         if (!hash) {
             let key = '';
-            for (const attribute of vertexInput.attributes) {
+            const attributes = vertexInput.attributes;
+            const length = attributes.size();
+            for (let i = 0; i < length; i++) {
+                const attribute = attributes.get(i);
                 key += `${attribute.location}${attribute.format}${attribute.binding}${attribute.offset}`;
             }
             hash = murmurhash2_32_gc(key, 666);
@@ -56,7 +59,7 @@ export default {
         let hash = _renderPass2hash.get(info);
         if (!hash) {
             // https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
-            const key = `${info.colorAttachments.length}1${info.resolveAttachments.length}${info.samples}`;
+            const key = `${info.colorAttachments.size()}1${info.resolveAttachments.size()}${info.samples}`;
             hash = murmurhash2_32_gc(key, 666);
             _renderPass2hash.set(info, hash);
         }

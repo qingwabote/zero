@@ -127,11 +127,11 @@ export default class Camera extends Component {
         if (this._matProjFlags & DirtyFlag.CALCULATING) {
             const aspect = this.viewport.width / this.viewport.height;
             if (this.isPerspective()) {
-                mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, this.near, this.far, gfx.device.capabilities.clipSpaceMinZ);
+                mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
             } else {
                 const x = this.orthoHeight * aspect;
                 const y = this.orthoHeight;
-                mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, gfx.device.capabilities.clipSpaceMinZ);
+                mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
             }
 
             this._matProjFlags ^= DirtyFlag.CALCULATING;

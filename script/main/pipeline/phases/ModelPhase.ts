@@ -1,8 +1,8 @@
 import VisibilityFlagBits from "../../VisibilityFlagBits.js";
 import CommandBuffer from "../../core/gfx/CommandBuffer.js";
-import DescriptorSetLayout from "../../core/gfx/DescriptorSetLayout.js";
-import Pipeline, { PassState, PipelineLayout, VertexInputState } from "../../core/gfx/Pipeline.js";
+import Pipeline, { PipelineLayout } from "../../core/gfx/Pipeline.js";
 import RenderPass from "../../core/gfx/RenderPass.js";
+import { PassState, VertexInputState } from "../../core/gfx/info.js";
 import Phase from "../../core/pipeline/Phase.js";
 import Camera from "../../core/scene/Camera.js";
 import Model from "../../core/scene/Model.js";
@@ -61,8 +61,11 @@ export default class ModelPhase extends Phase {
         const ModelType = model.constructor as typeof Model;
         let pipelineLayout = modelPipelineLayoutCache.get(ModelType);
         if (!pipelineLayout) {
-            pipelineLayout = gfx.device.createPipelineLayout();
-            pipelineLayout.initialize([zero.flow.globalDescriptorSet.layout, ModelType.descriptorSetLayout]);
+            const info = new gfx.PipelineLayoutInfo;
+            info.layouts.add(zero.flow.globalDescriptorSet.layout);
+            info.layouts.add(ModelType.descriptorSetLayout);
+            pipelineLayout = device.createPipelineLayout();
+            pipelineLayout.initialize(info);
             modelPipelineLayoutCache.set(ModelType, pipelineLayout);
         }
         return pipelineLayout;
@@ -73,14 +76,14 @@ export default class ModelPhase extends Phase {
         const shader_hash = hashLib.shader(shader);
         let pipelineLayout = pipelineLayoutCache[shader_hash];
         if (!pipelineLayout) {
-            pipelineLayout = gfx.device.createPipelineLayout();
-            const layouts: DescriptorSetLayout[] = [];
-            layouts.push(zero.flow.globalDescriptorSet.layout);
-            layouts.push(model.descriptorSet.layout);
+            const info = new gfx.PipelineLayoutInfo;
+            info.layouts.add(zero.flow.globalDescriptorSet.layout);
+            info.layouts.add(model.descriptorSet.layout);
             if (pass.descriptorSet) {
-                layouts.push(pass.descriptorSet.layout);
+                info.layouts.add(pass.descriptorSet.layout);
             }
-            pipelineLayout.initialize(layouts)
+            pipelineLayout = device.createPipelineLayout();
+            pipelineLayout.initialize(info)
             pipelineLayoutCache[shader_hash] = pipelineLayout;
         }
         return pipelineLayout;
@@ -93,8 +96,13 @@ export default class ModelPhase extends Phase {
         const pipelineHash = hashLib.passState(pass) ^ hashLib.vertexInputState(vertexInputState) ^ hashLib.renderPass(renderPass);
         let pipeline = pipelineCache[pipelineHash];
         if (!pipeline) {
-            pipeline = gfx.device.createPipeline();
-            pipeline.initialize({ passState: pass, vertexInputState, renderPass, layout, });
+            const info = new gfx.PipelineInfo();
+            info.passState = pass;
+            info.vertexInputState = vertexInputState;
+            info.renderPass = renderPass;
+            info.layout = layout;
+            pipeline = device.createPipeline();
+            pipeline.initialize(info);
             pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;

@@ -54,10 +54,9 @@
 %}
 
 /* std::unique_ptr< std::vector<char> > to ArrayBuffer */
-
 %feature("novaluewrapper") std::unique_ptr< std::vector<char> >;
 %template() std::unique_ptr< std::vector<char> >;
-%typemap (out, fragment="SWIG_FromCharPtr") std::unique_ptr< std::vector<char> > {
+%typemap (out) std::unique_ptr< std::vector<char> > {
     auto vector = $1.release();
     if (vector)
     {
@@ -76,6 +75,11 @@
     {
       $result = SWIGV8_NULL();
     }
+}
+%typemap(in) std::shared_ptr<const void>& (std::shared_ptr<const void> data) {
+  std::shared_ptr<v8::BackingStore> store = $input.As<v8::ArrayBuffer>()->GetBackingStore();
+  data.reset(store->Data(), [store](void *) {});
+  $1 = &data;
 }
 
 %typemap(in) UniqueFunction<void> && (UniqueFunction<void> temp){

@@ -1,5 +1,6 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import Buffer, { BufferInfo, BufferUsageFlagBits } from "../../../main/core/gfx/Buffer.js";
+import Buffer from "../../../main/core/gfx/Buffer.js";
+import { BufferInfo, BufferUsageFlagBits } from "../../../main/core/gfx/info.js";
 
 function usage2target(usage: BufferUsageFlagBits): GLenum {
     if (usage & BufferUsageFlagBits.VERTEX) {

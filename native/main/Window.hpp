@@ -4,6 +4,7 @@
 #include "base/threading/ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
 #include "Loader.hpp"
+#include "bindings/gfx/Device.hpp"
 
 class Window : public TaskRunner
 {
@@ -11,6 +12,8 @@ private:
     Window(/* args */);
 
     std::unique_ptr<loader::Loader> _loader;
+
+    std::unique_ptr<binding::gfx::Device> _device;
 
     ThreadSafeQueue<UniqueFunction<void>> _beforeTickQueue;
 
@@ -26,6 +29,8 @@ public:
     static Window &instance();
 
     loader::Loader &loader() { return *_loader.get(); }
+
+    binding::gfx::Device &device() { return *_device.get(); }
 
     using TaskRunner::post;
 

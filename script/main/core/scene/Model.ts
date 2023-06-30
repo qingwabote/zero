@@ -1,5 +1,5 @@
-import { BufferUsageFlagBits } from "../gfx/Buffer.js";
 import DescriptorSet from "../gfx/DescriptorSet.js";
+import { BufferUsageFlagBits } from "../gfx/info.js";
 import mat4 from "../math/mat4.js";
 import shaderLib from "../shaderLib.js";
 import BufferViewWritable from "./buffers/BufferViewWritable.js";
@@ -27,7 +27,8 @@ export default class Model {
 
     constructor(protected _transform: Transform, readonly subModels: SubModel[]) {
         const ModelType = (this.constructor as typeof Model);
-        const descriptorSet = ModelType.descriptorSetLayout.createDescriptorSet()
+        const descriptorSet = device.createDescriptorSet();
+        descriptorSet.initialize(ModelType.descriptorSetLayout);
         descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
         this.descriptorSet = descriptorSet;
     }

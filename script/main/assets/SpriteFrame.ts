@@ -1,7 +1,6 @@
-import { BufferUsageFlagBits } from "../core/gfx/Buffer.js";
 import Format from "../core/gfx/Format.js";
-import { IndexType } from "../core/gfx/InputAssembler.js";
 import Texture from "../core/gfx/Texture.js";
+import { BufferUsageFlagBits, IndexType } from "../core/gfx/info.js";
 import vec3 from "../core/math/vec3.js";
 import SubMesh, { IndexInputView, PIXELS_PER_UNIT, VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
 import BufferViewWritable from "../core/scene/buffers/BufferViewWritable.js";

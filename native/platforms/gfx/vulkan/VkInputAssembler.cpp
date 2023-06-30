@@ -2,53 +2,46 @@
 #include "VkInputAssembler_impl.hpp"
 #include "bindings/gfx/Buffer.hpp"
 #include "VkBuffer_impl.hpp"
-#include "sugars/v8sugar.hpp"
 
 namespace binding::gfx
 {
     InputAssembler_impl::InputAssembler_impl(Device_impl *device) : _device(device) {}
     InputAssembler_impl::~InputAssembler_impl() {}
 
-    InputAssembler::InputAssembler(std::unique_ptr<InputAssembler_impl> impl)
-        : Binding(), _impl(std::move(impl)) {}
+    InputAssembler::InputAssembler(Device_impl *device) : _impl(std::make_unique<InputAssembler_impl>(device)) {}
 
-    bool InputAssembler::initialize(v8::Local<v8::Object> info)
+    bool InputAssembler::initialize(const std::shared_ptr<InputAssemblerInfo> &info)
     {
-        v8::Isolate *isolate = v8::Isolate::GetCurrent();
-        v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
         auto c_vertexInput = std::make_unique<InputAssembler_impl::VkVertexInput>();
-        v8::Local<v8::Object> js_vertexInput = sugar::v8::object_get(info, "vertexInput").As<v8::Object>();
-        v8::Local<v8::Array> js_vertexBuffers = sugar::v8::object_get(js_vertexInput, "buffers").As<v8::Array>();
-        c_vertexInput->vertexBuffers.resize(js_vertexBuffers->Length());
+        auto js_vertexInput = info->vertexInput;
+        auto js_vertexBuffers = js_vertexInput->buffers;
+        c_vertexInput->vertexBuffers.resize(js_vertexBuffers->size());
         for (uint32_t i = 0; i < c_vertexInput->vertexBuffers.size(); i++)
         {
-            Buffer *c_buffer = Binding::c_obj<Buffer>(js_vertexBuffers->Get(context, i).ToLocalChecked().As<v8::Object>());
+            Buffer *c_buffer = js_vertexBuffers->at(i).get();
             c_vertexInput->vertexBuffers[i] = c_buffer->impl();
         }
-        v8::Local<v8::Array> js_vertexOffsets = sugar::v8::object_get(js_vertexInput, "offsets").As<v8::Array>();
-        c_vertexInput->vertexOffsets.resize(js_vertexOffsets->Length());
+        auto js_vertexOffsets = js_vertexInput->offsets;
+        c_vertexInput->vertexOffsets.resize(js_vertexOffsets->size());
         for (uint32_t i = 0; i < c_vertexInput->vertexOffsets.size(); i++)
         {
-            c_vertexInput->vertexOffsets[i] = js_vertexOffsets->Get(context, i).ToLocalChecked().As<v8::Number>()->Value();
+            c_vertexInput->vertexOffsets[i] = js_vertexOffsets->at(i);
         }
         _impl->_vertexInput = std::move(c_vertexInput);
 
-        v8::Local<v8::Object> js_indexInput = sugar::v8::object_get(info, "indexInput").As<v8::Object>();
-        if (!js_indexInput->IsUndefined())
+        auto gfx_indexInput = info->indexInput;
+        if (gfx_indexInput)
         {
-            auto c_indexInput = std::make_unique<InputAssembler_impl::VkIndexInput>();
-            v8::Local<v8::Object> js_indexBuffer = sugar::v8::object_get(js_indexInput, "buffer").As<v8::Object>();
-            c_indexInput->indexBuffer = Binding::c_obj<Buffer>(js_indexBuffer)->impl();
-            c_indexInput->indexOffset = sugar::v8::object_get(js_indexInput, "offset").As<v8::Number>()->Value();
-            c_indexInput->indexType = static_cast<VkIndexType>(sugar::v8::object_get(js_indexInput, "type").As<v8::Number>()->Value());
-            _impl->_indexInput = std::move(c_indexInput);
+            auto indexInput = std::make_unique<InputAssembler_impl::VkIndexInput>();
+            indexInput->indexBuffer = gfx_indexInput->buffer->impl();
+            indexInput->indexOffset = gfx_indexInput->offset;
+            indexInput->indexType = static_cast<VkIndexType>(gfx_indexInput->type);
+            _impl->_indexInput = std::move(indexInput);
         }
 
+        _info = info;
         return false;
     }
 
-    InputAssembler::~InputAssembler()
-    {
-    }
+    InputAssembler::~InputAssembler() {}
 }

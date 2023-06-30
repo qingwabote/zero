@@ -1,4 +1,5 @@
-import Buffer, { BufferUsageFlagBits, EmptyBuffer, MemoryUsage } from "../../gfx/Buffer.js";
+import Buffer, { EmptyBuffer } from "../../gfx/Buffer.js";
+import { BufferUsageFlagBits, MemoryUsage } from "../../gfx/info.js";
 import BufferView from "./BufferView.js";
 
 export interface ArrayLikeWritable<T> {
@@ -63,12 +64,12 @@ export default class BufferViewWritable implements BufferView {
         }
 
         this._source = new format2array[format](length);
-        this._buffer = gfx.device.createBuffer();
-        this._buffer.initialize({
-            usage,
-            mem_usage: MemoryUsage.CPU_TO_GPU,
-            size: this._source.byteLength
-        });
+        this._buffer = device.createBuffer();
+        const info = new gfx.BufferInfo;
+        info.usage = usage;
+        info.mem_usage = MemoryUsage.CPU_TO_GPU;
+        info.size = this._source.byteLength
+        this._buffer.initialize(info);
     }
 
     set(array: ArrayLike<number>, offset?: number) {

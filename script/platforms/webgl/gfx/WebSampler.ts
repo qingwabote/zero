@@ -1,5 +1,6 @@
 import SmartRef from "../../../main/base/SmartRef.js";
-import { Filter, Sampler, SamplerInfo } from "../../../main/core/gfx/Sampler.js";
+import { Sampler } from "../../../main/core/gfx/Sampler.js";
+import { Filter, SamplerInfo } from "../../../main/core/gfx/info.js";
 
 function getFilter(val: Filter): GLenum {
     switch (val) {

@@ -11,20 +11,16 @@ namespace binding
         PipelineLayout_impl::PipelineLayout_impl(Device_impl *device) : _device(device) {}
         PipelineLayout_impl::~PipelineLayout_impl() {}
 
-        PipelineLayout::PipelineLayout(std::unique_ptr<PipelineLayout_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        PipelineLayout::PipelineLayout(Device_impl *device) : _impl(std::make_unique<PipelineLayout_impl>(device)) {}
 
-        bool PipelineLayout::initialize(v8::Local<v8::Array> js_setLayouts)
+        bool PipelineLayout::initialize(const std::shared_ptr<PipelineLayoutInfo> &info)
         {
-            v8::Isolate *isolate = v8::Isolate::GetCurrent();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
-            std::vector<VkDescriptorSetLayout> descriptorSetLayouts(js_setLayouts->Length());
-            for (uint32_t i = 0; i < js_setLayouts->Length(); ++i)
+            std::vector<VkDescriptorSetLayout> descriptorSetLayouts(info->layouts->size());
+            for (uint32_t i = 0; i < descriptorSetLayouts.size(); ++i)
             {
 
-                DescriptorSetLayout *c_setLayout = Binding::c_obj<DescriptorSetLayout>(js_setLayouts->Get(context, i).ToLocalChecked().As<v8::Object>());
-                descriptorSetLayouts[i] = c_setLayout->impl()->setLayout();
+                DescriptorSetLayout *c_setLayout = info->layouts->at(i).get();
+                descriptorSetLayouts[i] = *c_setLayout->impl();
             }
 
             VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};

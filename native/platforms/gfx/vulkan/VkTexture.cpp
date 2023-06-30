@@ -6,21 +6,22 @@ namespace binding
 {
     namespace gfx
     {
-        Texture_impl::Texture_impl(Device_impl *device) : _device(device) {}
-        Texture_impl::~Texture_impl() {}
+        Texture_impl::Texture_impl(Device_impl *device, bool swapchain) : _device(device), _swapchain(swapchain) {}
 
-        Texture::Texture(std::unique_ptr<Texture_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
-
-        bool Texture::initialize(v8::Local<v8::Object> info)
+        bool Texture_impl::initialize(const TextureInfo &info)
         {
-            uint32_t usage = sugar::v8::object_get(info, "usage").As<v8::Number>()->Value();
+            if (_swapchain)
+            {
+                return false;
+            }
+
+            VkImageUsageFlagBits usage = static_cast<VkImageUsageFlagBits>(info.usage);
 
             auto format = VK_FORMAT_R8G8B8A8_UNORM;
             auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
             {
-                format = _impl->_device->swapchainImageFormat();
+                format = _device->swapchainImageFormat();
             }
             else if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
             {
@@ -29,8 +30,8 @@ namespace binding
             }
 
             VkExtent3D extent{};
-            extent.width = sugar::v8::object_get(info, "width").As<v8::Number>()->Value();
-            extent.height = sugar::v8::object_get(info, "height").As<v8::Number>()->Value();
+            extent.width = info.width;
+            extent.height = info.height;
             extent.depth = 1;
             VkImageCreateInfo imageInfo = {};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -38,13 +39,13 @@ namespace binding
             imageInfo.extent = extent;
             imageInfo.mipLevels = 1;
             imageInfo.arrayLayers = 1;
-            imageInfo.samples = static_cast<VkSampleCountFlagBits>(sugar::v8::object_get(info, "samples").As<v8::Number>()->Value());
+            imageInfo.samples = static_cast<VkSampleCountFlagBits>(info.samples);
             imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
             imageInfo.usage = usage;
             imageInfo.format = format;
             VmaAllocationCreateInfo allocationCreateInfo = {};
             allocationCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-            auto err = vmaCreateImage(_impl->_device->allocator(), &imageInfo, &allocationCreateInfo, &_impl->_image, &_impl->_allocation, &_impl->_allocationInfo);
+            auto err = vmaCreateImage(_device->allocator(), &imageInfo, &allocationCreateInfo, &_image, &_allocation, &_allocationInfo);
             if (err)
             {
                 return true;
@@ -53,14 +54,14 @@ namespace binding
             VkImageViewCreateInfo imageViewInfo = {};
             imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            imageViewInfo.image = _impl->_image;
+            imageViewInfo.image = _image;
             imageViewInfo.format = format;
             imageViewInfo.subresourceRange.baseMipLevel = 0;
             imageViewInfo.subresourceRange.levelCount = 1;
             imageViewInfo.subresourceRange.baseArrayLayer = 0;
             imageViewInfo.subresourceRange.layerCount = 1;
             imageViewInfo.subresourceRange.aspectMask = aspectMask;
-            err = vkCreateImageView(*_impl->_device, &imageViewInfo, nullptr, &_impl->_imageView);
+            err = vkCreateImageView(*_device, &imageViewInfo, nullptr, &_imageView);
             if (err)
             {
                 return true;
@@ -69,17 +70,23 @@ namespace binding
             return false;
         }
 
-        Texture::~Texture()
+        Texture_impl::~Texture_impl()
         {
-            VkDevice device = *_impl->_device;
-            VkImageView imageView = _impl->_imageView;
-
-            VmaAllocator allocator = _impl->_device->allocator();
-            VkImage image = _impl->_image;
-            VmaAllocation allocation = _impl->_allocation;
-
-            vkDestroyImageView(device, imageView, nullptr);
-            vmaDestroyImage(allocator, image, allocation);
+            if (!_swapchain)
+            {
+                vkDestroyImageView(*_device, _imageView, nullptr);
+                vmaDestroyImage(_device->allocator(), _image, _allocation);
+            }
         }
+
+        Texture::Texture(Device_impl *device, bool swapchain) : _impl(std::make_unique<Texture_impl>(device, swapchain)) {}
+
+        bool Texture::initialize(const std::shared_ptr<TextureInfo> &info)
+        {
+            _info = info;
+            return _impl->initialize(*info);
+        }
+
+        Texture::~Texture() {}
     }
 }

@@ -1,28 +1,27 @@
 #pragma once
 
-#include "Binding.hpp"
 #include "info.hpp"
 
 namespace binding::gfx
 {
+    class Device_impl;
     class Shader_impl;
 
-    class Shader : public Binding
+    class Shader
     {
     private:
         std::unique_ptr<Shader_impl> _impl;
 
-        sugar::v8::Weak<v8::Object> _info;
-
-    protected:
-        v8::Local<v8::FunctionTemplate> createTemplate() override;
+        std::shared_ptr<ShaderInfo> _info;
 
     public:
         Shader_impl *impl() { return _impl.get(); }
 
-        Shader(std::unique_ptr<Shader_impl> impl);
+        const std::shared_ptr<ShaderInfo> &info() { return _info; }
 
-        bool initialize(std::shared_ptr<ShaderInfo> info);
+        Shader(Device_impl *device);
+
+        bool initialize(const std::shared_ptr<ShaderInfo> &info);
 
         ~Shader();
     };

@@ -4,7 +4,6 @@
 #include "VkTexture_impl.hpp"
 #include "bindings/gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
-#include "sugars/v8sugar.hpp"
 
 namespace binding
 {
@@ -13,45 +12,41 @@ namespace binding
         Framebuffer_impl::Framebuffer_impl(Device_impl *device) : _device(device) {}
         Framebuffer_impl::~Framebuffer_impl() {}
 
-        Framebuffer::Framebuffer(std::unique_ptr<Framebuffer_impl> impl)
-            : Binding(), _impl(std::move(impl)) {}
+        Framebuffer::Framebuffer(Device_impl *device) : _impl(std::make_unique<Framebuffer_impl>(device)) {}
 
-        bool Framebuffer::initialize(v8::Local<v8::Object> js_info)
+        bool Framebuffer::initialize(const std::shared_ptr<FramebufferInfo> &info)
         {
-            v8::Isolate *isolate = v8::Isolate::GetCurrent();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+            auto width = info->width;
+            auto height = info->height;
+            auto colorAttachments = info->colorAttachments.get();
+            auto depthStencilAttachment = info->depthStencilAttachment.get();
+            auto resolveAttachments = info->resolveAttachments.get();
+            auto renderPass = info->renderPass;
 
-            auto width = sugar::v8::object_get(js_info, "width").As<v8::Number>()->Value();
-            auto height = sugar::v8::object_get(js_info, "height").As<v8::Number>()->Value();
-            auto js_colorAttachments = sugar::v8::object_get(js_info, "colorAttachments").As<v8::Array>();
-            auto js_depthStencilAttachment = sugar::v8::object_get(js_info, "depthStencilAttachment").As<v8::Object>();
-            auto js_resolveAttachments = sugar::v8::object_get(js_info, "resolveAttachments").As<v8::Array>();
-            auto js_renderPass = sugar::v8::object_get(js_info, "renderPass").As<v8::Object>();
-
-            v8::Local<v8::Object> swapchainAttachment;
-            for (uint32_t i = 0; i < js_colorAttachments->Length(); i++)
+            Texture *swapchainAttachment = nullptr;
+            for (uint32_t i = 0; i < colorAttachments->size(); i++)
             {
-                auto js_attachment = js_colorAttachments->Get(context, i).ToLocalChecked().As<v8::Object>();
-                if (sugar::v8::object_get(js_attachment, "isSwapchain")->IsUndefined() == false)
+                auto attachment = colorAttachments->at(i).get();
+                if (attachment->impl().swapchain())
                 {
-                    swapchainAttachment = js_attachment;
+                    swapchainAttachment = attachment;
                     break;
                 }
             }
-            if (swapchainAttachment.IsEmpty())
+            if (!swapchainAttachment)
             {
-                for (uint32_t i = 0; i < js_resolveAttachments->Length(); i++)
+                for (uint32_t i = 0; i < resolveAttachments->size(); i++)
                 {
-                    auto js_attachment = js_resolveAttachments->Get(context, i).ToLocalChecked().As<v8::Object>();
-                    if (sugar::v8::object_get(js_attachment, "isSwapchain")->IsUndefined() == false)
+                    auto attachment = resolveAttachments->at(i).get();
+                    if (attachment->impl().swapchain())
                     {
-                        swapchainAttachment = js_attachment;
+                        swapchainAttachment = attachment;
                         break;
                     }
                 }
             }
 
-            _impl->_framebuffers.resize(swapchainAttachment.IsEmpty() ? 1 : _impl->_device->swapchainImageViews().size());
+            _impl->_framebuffers.resize(swapchainAttachment == nullptr ? 1 : _impl->_device->swapchainImageViews().size());
             for (size_t framebufferIdx = 0; framebufferIdx < _impl->_framebuffers.size(); framebufferIdx++)
             {
                 VkFramebufferCreateInfo info = {};
@@ -59,47 +54,46 @@ namespace binding
                 info.width = width;
                 info.height = height;
                 info.layers = 1;
-                std::vector<VkImageView> attachments(js_colorAttachments->Length() + 1 + js_resolveAttachments->Length());
+                std::vector<VkImageView> attachments(colorAttachments->size() + 1 + resolveAttachments->size());
                 uint32_t attachmentIdx = 0;
-                for (size_t idx = 0; idx < js_colorAttachments->Length(); idx++)
+                for (size_t idx = 0; idx < colorAttachments->size(); idx++)
                 {
-                    auto js_attachment = js_colorAttachments->Get(context, idx).ToLocalChecked().As<v8::Object>();
-
-                    if (js_attachment->Equals(context, swapchainAttachment).FromMaybe(false))
+                    auto attachment = colorAttachments->at(idx).get();
+                    if (attachment == swapchainAttachment)
                     {
                         attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
                     }
                     else
                     {
-                        attachments[attachmentIdx] = Binding::c_obj<Texture>(js_attachment)->impl();
+                        attachments[attachmentIdx] = attachment->impl();
                     }
                     attachmentIdx++;
                 }
 
-                attachments[attachmentIdx] = Binding::c_obj<Texture>(js_depthStencilAttachment)->impl();
+                attachments[attachmentIdx] = depthStencilAttachment->impl();
                 attachmentIdx++;
 
-                for (size_t idx = 0; idx < js_resolveAttachments->Length(); idx++)
+                for (size_t idx = 0; idx < resolveAttachments->size(); idx++)
                 {
-                    auto js_attachment = js_resolveAttachments->Get(context, idx).ToLocalChecked().As<v8::Object>();
-
-                    if (js_attachment->Equals(context, swapchainAttachment).FromMaybe(false))
+                    auto attachment = resolveAttachments->at(idx).get();
+                    if (attachment == swapchainAttachment)
                     {
                         attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
                     }
                     else
                     {
-                        attachments[attachmentIdx] = Binding::c_obj<Texture>(js_attachment)->impl();
+                        attachments[attachmentIdx] = attachment->impl();
                     }
                     attachmentIdx++;
                 }
 
                 info.pAttachments = attachments.data();
                 info.attachmentCount = attachments.size();
-                info.renderPass = Binding::c_obj<RenderPass>(js_renderPass)->impl();
+                info.renderPass = renderPass->impl();
                 vkCreateFramebuffer(*_impl->_device, &info, nullptr, &_impl->_framebuffers[framebufferIdx]);
             }
 
+            _info = info;
             return false;
         }
 

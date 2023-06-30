@@ -1,5 +1,6 @@
 // copy values from VkFormat in vulkan_core.h
 enum Format {
+    UNDEFINED = 0,
     R8_UINT = 13,
     RGBA8_UNORM = 37,
     RGBA8_UINT = 41,
@@ -20,6 +21,7 @@ interface FormatInfo {
 }
 
 export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
+    [Format.UNDEFINED]: { name: "UNDEFINED", size: 0, count: 0 },
     [Format.R8_UINT]: { name: "R8_UINT", size: 1, count: 1 },
     [Format.RGBA8_UNORM]: { name: "RGBA8_UNORM", size: 4, count: 4 },
     [Format.RGBA8_UINT]: { name: "RGBA8_UINT", size: 4, count: 4 },

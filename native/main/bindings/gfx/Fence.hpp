@@ -1,27 +1,23 @@
 #pragma once
 
-#include "Binding.hpp"
+#include <memory>
 
 namespace binding::gfx
 {
+    class Device_impl;
     class Fence_impl;
 
-    class Fence : public Binding
+    class Fence
     {
     private:
         std::unique_ptr<Fence_impl> _impl;
 
-    protected:
-        v8::Local<v8::FunctionTemplate> createTemplate() override;
-
     public:
         Fence_impl &impl() { return *_impl.get(); }
 
-        sugar::v8::Weak<v8::Object> submitInfo;
+        Fence(Device_impl *device);
 
-        Fence(std::unique_ptr<Fence_impl> impl);
-
-        bool initialize(bool signaled);
+        bool initialize(bool signaled = false);
 
         ~Fence();
     };

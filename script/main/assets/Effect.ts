@@ -1,9 +1,9 @@
 import { parse } from "yaml";
 import Asset from "../core/Asset.js";
-import { BlendState, DepthStencilState, PassState, PrimitiveTopology, RasterizationState } from "../core/gfx/Pipeline.js";
 import { Sampler } from "../core/gfx/Sampler.js";
 import Texture from "../core/gfx/Texture.js";
-import Pass from "../core/scene/Pass.js";
+import { BlendFactor as gfx_BlendFactor, CullMode as gfx_CullMode, PrimitiveTopology as gfx_PrimitiveTopology } from "../core/gfx/info.js";
+import { default as scene_Pass } from "../core/scene/Pass.js";
 import shaderLib from "../core/shaderLib.js";
 
 function merge<Out>(target: Out, ...sources: Out[]): Out {
@@ -19,7 +19,29 @@ function merge<Out>(target: Out, ...sources: Out[]): Out {
     return target;
 }
 
-export interface PassInfo {
+export type PrimitiveTopology = "LINE_LIST" | "TRIANGLE_LIST";
+
+export interface RasterizationState {
+    readonly cullMode: "NONE" | "FRONT" | "BACK";
+}
+
+export interface DepthStencilState {
+    readonly depthTestEnable: boolean;
+}
+
+export type BlendFactor = "ZERO" | "ONE" | "SRC_ALPHA" | "ONE_MINUS_SRC_ALPHA" | "DST_ALPHA" | "ONE_MINUS_DST_ALPHA"
+
+/**color(RGB) = (sourceColor * srcRGB) + (destinationColor * dstRGB)
+ * color(A) = (sourceAlpha * srcAlpha) + (destinationAlpha * dstAlpha)
+ * https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendFuncSeparate*/
+export interface BlendState {
+    readonly srcRGB: BlendFactor;
+    readonly dstRGB: BlendFactor;
+    readonly srcAlpha: BlendFactor;
+    readonly dstAlpha: BlendFactor;
+}
+
+export interface Pass {
     readonly switch?: string;
     readonly type?: string;
     readonly shader?: string;
@@ -32,8 +54,25 @@ export interface PassInfo {
     readonly blendState?: BlendState;
 }
 
+function gfx_toBlendFactor(factor: BlendFactor): gfx_BlendFactor {
+    switch (factor) {
+        case 'ZERO':
+            return gfx_BlendFactor.ZERO;
+        case "ONE":
+            return gfx_BlendFactor.ONE;
+        case "SRC_ALPHA":
+            return gfx_BlendFactor.SRC_ALPHA;
+        case "ONE_MINUS_SRC_ALPHA":
+            return gfx_BlendFactor.ONE_MINUS_SRC_ALPHA;
+        case "DST_ALPHA":
+            return gfx_BlendFactor.DST_ALPHA;
+        case "ONE_MINUS_DST_ALPHA":
+            return gfx_BlendFactor.ONE_MINUS_DST_ALPHA;
+    }
+}
+
 export default class Effect extends Asset {
-    private _passes: PassInfo[] = [];
+    private _passes: Pass[] = [];
     // public get passes(): readonly PassInfo[] {
     //     return this._passes;
     // }
@@ -49,15 +88,55 @@ export default class Effect extends Asset {
         return this;
     }
 
-    async createPasses(overrides: PassInfo[]): Promise<Pass[]> {
-        const passes: Pass[] = [];
+    async createPasses(overrides: Pass[]): Promise<scene_Pass[]> {
+        const passes: scene_Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
             if (info.switch && info.macros![info.switch] != 1) {
                 continue;
             }
-            const shader = await shaderLib.load(info.shader!, info.macros);
-            const pass = new Pass(new PassState(shader, info.primitive, info.rasterizationState, info.depthStencilState, info.blendState), info.type);
+
+            const passState = new gfx.PassState;
+            passState.shader = await shaderLib.load(info.shader!, info.macros);
+            switch (info.primitive) {
+                case 'LINE_LIST':
+                    passState.primitive = gfx_PrimitiveTopology.LINE_LIST
+                    break;
+                case 'TRIANGLE_LIST':
+                    passState.primitive = gfx_PrimitiveTopology.TRIANGLE_LIST
+                    break;
+                default:
+                    passState.primitive = gfx_PrimitiveTopology.TRIANGLE_LIST;
+                    break;
+            }
+            const rasterizationState = new gfx.RasterizationState;
+            switch (info.rasterizationState?.cullMode) {
+                case 'FRONT':
+                    rasterizationState.cullMode = gfx_CullMode.FRONT;
+                    break;
+                case 'BACK':
+                    rasterizationState.cullMode = gfx_CullMode.BACK;
+                    break;
+                default:
+                    rasterizationState.cullMode = gfx_CullMode.BACK;
+                    break;
+            }
+            passState.rasterizationState = rasterizationState;
+            if (info.depthStencilState) {
+                const depthStencilState = new gfx.DepthStencilState;
+                depthStencilState.depthTestEnable = info.depthStencilState.depthTestEnable;
+                passState.depthStencilState = depthStencilState;
+            }
+            if (info.blendState) {
+                const blendState = new gfx.BlendState;
+                blendState.srcRGB = gfx_toBlendFactor(info.blendState.srcRGB);
+                blendState.dstRGB = gfx_toBlendFactor(info.blendState.dstRGB);
+                blendState.srcAlpha = gfx_toBlendFactor(info.blendState.srcAlpha);
+                blendState.dstAlpha = gfx_toBlendFactor(info.blendState.dstAlpha);
+                passState.blendState = blendState;
+            }
+
+            const pass = new scene_Pass(passState, info.type);
             for (const key in info.constants) {
                 pass.setUniform('Constants', key, info.constants[key]);
             }

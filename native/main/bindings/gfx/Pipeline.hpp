@@ -1,27 +1,25 @@
 #pragma once
 
-#include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding
 {
     namespace gfx
     {
+        class Device_impl;
         class Pipeline_impl;
 
-        class Pipeline : public Binding
+        class Pipeline
         {
         private:
             std::unique_ptr<Pipeline_impl> _impl;
 
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
-
         public:
             Pipeline_impl &impl() { return *_impl.get(); }
 
-            Pipeline(std::unique_ptr<Pipeline_impl> impl);
+            Pipeline(Device_impl *device);
 
-            bool initialize(v8::Local<v8::Object> info);
+            bool initialize(const std::shared_ptr<PipelineInfo> &info);
 
             ~Pipeline();
         };

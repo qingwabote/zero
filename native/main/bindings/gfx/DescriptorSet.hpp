@@ -1,38 +1,37 @@
 #pragma once
 
-#include "Binding.hpp"
 #include "bindings/gfx/Buffer.hpp"
 #include "bindings/gfx/Texture.hpp"
 #include "bindings/gfx/Sampler.hpp"
+#include <unordered_map>
 
-namespace binding
+namespace binding::gfx
 {
-    namespace gfx
+    class Device_impl;
+    class DescriptorSetLayout;
+    class DescriptorSet_impl;
+    class DescriptorSet
     {
-        class DescriptorSetLayout;
-        class DescriptorSet_impl;
-        class DescriptorSet : public Binding
-        {
-        private:
-            std::unique_ptr<DescriptorSet_impl> _impl;
+    private:
+        std::unique_ptr<DescriptorSet_impl> _impl;
+        std::shared_ptr<DescriptorSetLayout> _layout;
+        std::unordered_map<uint32_t, std::shared_ptr<Buffer>> _buffers;
+        std::unordered_map<uint32_t, std::shared_ptr<Texture>> _textures;
+        std::unordered_map<uint32_t, std::shared_ptr<Sampler>> _samplers;
 
-            sugar::v8::Weak<v8::Object> _layout;
+    public:
+        DescriptorSet_impl &impl() { return *_impl.get(); }
 
-            std::unordered_map<std::string, sugar::v8::Weak<_v8::Object>> _bindedResources;
+        const std::shared_ptr<DescriptorSetLayout> &layout() { return _layout; };
 
-        protected:
-            virtual v8::Local<v8::FunctionTemplate> createTemplate() override;
+        DescriptorSet(Device_impl *device);
 
-        public:
-            DescriptorSet_impl &impl() { return *_impl.get(); }
+        bool initialize(const std::shared_ptr<DescriptorSetLayout> &layout);
 
-            DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl, DescriptorSetLayout *layout);
+        void bindBuffer(uint32_t binding, const std::shared_ptr<Buffer> &buffer, double range = 0);
 
-            void bindBuffer(uint32_t binding, Buffer *buffer, double range);
+        void bindTexture(uint32_t binding, const std::shared_ptr<Texture> &texture, const std::shared_ptr<Sampler> &sampler);
 
-            void bindTexture(uint32_t binding, Texture *texture, Sampler *sampler);
-
-            ~DescriptorSet();
-        };
-    }
+        ~DescriptorSet();
+    };
 }

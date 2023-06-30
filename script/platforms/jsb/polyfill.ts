@@ -1,6 +1,6 @@
 import { LoaderTypes } from "../../main/base/Loader.js";
 
-const Loader: Function = (globalThis as any).loader.constructor;
+const Loader: Function = loader.constructor;
 
 Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type: T): Promise<LoaderTypes[T]> {
     return new Promise((resolve, reject) => {
@@ -23,12 +23,3 @@ Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type
         });
     })
 };
-
-(gfx.device as any).swapchain = {
-    colorTexture: {
-        info: {
-            samples: 1
-        },
-        isSwapchain: true
-    }
-}

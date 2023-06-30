@@ -6,6 +6,8 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
+void SWIGV8_DeletePrivateData(v8::Local<v8::Object> objRef);
+
 namespace
 {
     struct SetWeakCallback;
@@ -119,6 +121,14 @@ namespace sugar::v8
         for (auto &it : data->constructorCache)
         {
             it.second.Reset();
+        }
+        {
+            _v8::Isolate::Scope isolate_scope(isolate); // Isolate::GetCurrent() should be valid in SWIGV8_DeletePrivateData -> ~SWIGV8_Proxy() -> SWIGV8_ADJUST_MEMORY
+            _v8::HandleScope handle_scope(isolate);
+            for (auto &it : data->native2js)
+            {
+                SWIGV8_DeletePrivateData(it.second.Get(isolate));
+            }
         }
         for (auto it = data->weakCallbacks.rbegin(); it != data->weakCallbacks.rend(); it++)
         {

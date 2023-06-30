@@ -149,7 +149,7 @@ public:
 
 class SWIGV8_Proxy {
 public:
-  SWIGV8_Proxy(): swigCMemOwn(false), swigCObject(0), info(0) {
+  SWIGV8_Proxy(): swigCMemOwn(false), swigCObject(0),swigCObjectShared(0), info(0) {
     SWIGV8_ADJUST_MEMORY(SWIGV8_AVG_OBJ_SIZE);
   };
 
@@ -162,7 +162,7 @@ public:
 
   bool swigCMemOwn;
   void *swigCObject;
-  std::shared_ptr<void> swigCObjectShared;
+  void *swigCObjectShared;
   swig_type_info *info;
   v8::Persistent<v8::Object> handle;
 };
@@ -175,6 +175,11 @@ public:
 };
 
 SWIGRUNTIME v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
+
+SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
+  SWIGV8_Proxy *proxy = data.GetParameter();
+  delete proxy;
+}
 
 SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE();
@@ -196,10 +201,10 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
       return SWIG_TypeError;
     }
     int newmemory = 0;
-    *ptr = SWIG_TypeCast(tc, cdata->swigCObjectShared ? cdata->swigCObjectShared.get() : cdata->swigCObject, &newmemory);
+    *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
     assert(!newmemory); /* newmemory handling not yet implemented */
   } else {
-    *ptr = cdata->swigCObjectShared ? cdata->swigCObjectShared.get() : cdata->swigCObject;
+    *ptr = cdata->swigCObject;
   }
 
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !cdata->swigCMemOwn) {
@@ -216,7 +221,7 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
 }
 
 template <class T>
-SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr<T> &ptr, swig_type_info *info, int flags)
+SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr<T> **ptr, swig_type_info *info, int flags)
 {
   SWIGV8_HANDLESCOPE();
 
@@ -248,15 +253,11 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr
   }
   else
   {
-    if (cdata->swigCObject) {
-        cdata->swigCObjectShared = std::shared_ptr<T>(static_cast<T*>(cdata->swigCObject));
-        cdata->swigCObject = nullptr;
-        if (cdata->swigCMemOwn) {
-            cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
-            cdata->swigCMemOwn = false;
-        }
+    if (!cdata->swigCObjectShared) {
+        cdata->swigCObjectShared = new std::shared_ptr<T>(static_cast<T*>(cdata->swigCObject));
+        cdata->swigCMemOwn = false;
     } 
-    ptr = std::reinterpret_pointer_cast<T>(cdata->swigCObjectShared);
+    *ptr = static_cast<std::shared_ptr<T> *>(cdata->swigCObjectShared);
   }
 
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !cdata->swigCMemOwn)
@@ -277,12 +278,6 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, std::shared_ptr
   return SWIG_OK;
 }
 
-
-SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
-  SWIGV8_Proxy *proxy = data.GetParameter();
-  delete proxy;
-}
-
 SWIGRUNTIME int SWIG_V8_GetInstancePtr(SWIGV8_VALUE valRef, void **ptr) {
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
@@ -297,12 +292,14 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(SWIGV8_VALUE valRef, void **ptr) {
     return SWIG_ERROR;
   }
 
-  *ptr = cdata->swigCObjectShared ? cdata->swigCObjectShared.get() : cdata->swigCObject;
+  *ptr = cdata->swigCObject;
 
   return SWIG_OK;
 }
 
 SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_info *info, int flags) {
+  auto isolate = v8::Isolate::GetCurrent();
+
   SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
   cdata->swigCObject = ptr;
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
@@ -310,13 +307,15 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 
   obj->SetAlignedPointerInInternalField(0, cdata);
 
-  cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
+  cdata->handle.Reset(isolate, obj);
 
   if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.SetWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor, v8::WeakCallbackType::kParameter);
   } else {
     cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
   }
+
+  sugar::v8::isolate_native2js_set(isolate, ptr, obj);
 
 #if (SWIG_V8_VERSION < 0x0704)
   cdata->handle.MarkIndependent();
@@ -325,16 +324,22 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 #endif
 }
 
-SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, std::shared_ptr<void> ptr, swig_type_info *info, int flags)
+template <class T>
+SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, const std::shared_ptr<T> &ptr, swig_type_info *info, int flags)
 {
+  auto isolate = v8::Isolate::GetCurrent();
+
   SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
-  cdata->swigCObjectShared = ptr;
+  cdata->swigCObjectShared = new std::shared_ptr<T>(ptr);
+  cdata->swigCObject = ptr.get();
   cdata->info = info;
 
   obj->SetAlignedPointerInInternalField(0, cdata);
 
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
-  cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
+  cdata->handle.SetWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor, v8::WeakCallbackType::kParameter);
+
+  sugar::v8::isolate_native2js_set(isolate, ptr.get(), obj);
 
 #if (SWIG_V8_VERSION < 0x0704)
   cdata->handle.MarkIndependent();
@@ -359,7 +364,7 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_in
 }
 
 template <class T>
-SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, std::shared_ptr<T> &ptr, swig_type_info *info, int flags)
+SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, std::shared_ptr<T> **ptr, swig_type_info *info, int flags)
 {
   SWIGV8_HANDLESCOPE();
 
@@ -401,14 +406,13 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
     result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
 
     SWIGV8_SetPrivateData(result, ptr, info, flags);
-
-    sugar::v8::isolate_native2js_set(isolate, ptr, result);
   }
 
   SWIGV8_ESCAPE(result);
 }
 
-SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(std::shared_ptr<void> ptr, swig_type_info *info, int flags)
+template <class T>
+SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(const std::shared_ptr<T> &ptr, swig_type_info *info, int flags)
 {
   SWIGV8_HANDLESCOPE_ESC();
 
@@ -438,8 +442,6 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(std::shared_ptr<void> ptr, swig_t
     result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
 
     SWIGV8_SetPrivateData(result, ptr, info, flags);
-
-    sugar::v8::isolate_native2js_set(isolate, ptr.get(), result);
   }
 
   SWIGV8_ESCAPE(result);

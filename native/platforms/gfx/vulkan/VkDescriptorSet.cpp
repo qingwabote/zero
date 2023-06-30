@@ -6,7 +6,6 @@
 #include "VkBuffer_impl.hpp"
 #include "VkTexture_impl.hpp"
 #include "VkSampler_impl.hpp"
-#include "sugars/v8sugar.hpp"
 
 namespace binding
 {
@@ -16,7 +15,9 @@ namespace binding
 
         DescriptorSet_impl::~DescriptorSet_impl() {}
 
-        DescriptorSet::DescriptorSet(std::unique_ptr<DescriptorSet_impl> impl, DescriptorSetLayout *layout) : Binding(), _impl(std::move(impl))
+        DescriptorSet::DescriptorSet(Device_impl *device) : _impl(std::make_unique<DescriptorSet_impl>(device)) {}
+
+        bool DescriptorSet::initialize(const std::shared_ptr<DescriptorSetLayout> &layout)
         {
             auto &pool = layout->impl()->pool();
             if (pool.empty())
@@ -26,12 +27,13 @@ namespace binding
             }
             _impl->_descriptorSet = pool.get();
             _impl->_layout = layout->impl();
-            retain(layout->js_obj(), _layout);
+            _layout = layout;
+            return false;
         }
 
-        void DescriptorSet::bindBuffer(uint32_t binding, Buffer *c_buffer, double range)
+        void DescriptorSet::bindBuffer(uint32_t binding, const std::shared_ptr<Buffer> &c_buffer, double range)
         {
-            auto size = sugar::v8::object_get(c_buffer->info(), "size").As<v8::Number>()->Value();
+            auto size = c_buffer->info()->size;
 
             VkDescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = c_buffer->impl();
@@ -47,11 +49,13 @@ namespace binding
             write.pBufferInfo = &bufferInfo;
 
             vkUpdateDescriptorSets(*_impl->_device, 1, &write, 0, nullptr);
+
+            _buffers.emplace(binding, c_buffer);
         }
 
-        void DescriptorSet::bindTexture(uint32_t binding, Texture *texture, Sampler *sampler)
+        void DescriptorSet::bindTexture(uint32_t binding, const std::shared_ptr<Texture> &texture, const std::shared_ptr<Sampler> &sampler)
         {
-            uint32_t usage = sugar::v8::object_get(texture->info(), "usage").As<v8::Number>()->Value();
+            VkImageUsageFlags usage = static_cast<VkImageUsageFlags>(texture->info()->usage);
             VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
             {
@@ -72,6 +76,9 @@ namespace binding
             write.pImageInfo = &imageBufferInfo;
 
             vkUpdateDescriptorSets(*_impl->_device, 1, &write, 0, nullptr);
+
+            _textures.emplace(binding, texture);
+            _samplers.emplace(binding, sampler);
         }
 
         DescriptorSet::~DescriptorSet()

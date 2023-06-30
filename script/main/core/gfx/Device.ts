@@ -1,5 +1,6 @@
 import Buffer from "./Buffer.js";
 import CommandBuffer from "./CommandBuffer.js";
+import DescriptorSet from "./DescriptorSet.js";
 import DescriptorSetLayout from "./DescriptorSetLayout.js";
 import Fence from "./Fence.js";
 import { Framebuffer } from "./Framebuffer.js";
@@ -29,6 +30,8 @@ export default interface Device {
     get queue(): Queue;
 
     createDescriptorSetLayout(): DescriptorSetLayout;
+
+    createDescriptorSet(): DescriptorSet;
 
     createPipelineLayout(): PipelineLayout;
 

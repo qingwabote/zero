@@ -1,31 +1,29 @@
 #pragma once
 
-#include "Binding.hpp"
+#include "info.hpp"
 
 namespace binding
 {
     namespace gfx
     {
+        class Device_impl;
         class Texture_impl;
 
-        class Texture : public Binding
+        class Texture
         {
         private:
             std::unique_ptr<Texture_impl> _impl;
 
-            sugar::v8::Weak<v8::Object> _info;
-
-        protected:
-            v8::Local<v8::FunctionTemplate> createTemplate() override;
+            std::shared_ptr<TextureInfo> _info;
 
         public:
             Texture_impl &impl() { return *_impl.get(); }
 
-            v8::Local<v8::Object> info() { return _info.Get(v8::Isolate::GetCurrent()); }
+            const std::shared_ptr<TextureInfo> &info() { return _info; }
 
-            Texture(std::unique_ptr<Texture_impl> impl);
+            Texture(Device_impl *device, bool swapchain = false);
 
-            bool initialize(v8::Local<v8::Object> info);
+            bool initialize(const std::shared_ptr<TextureInfo> &info);
 
             ~Texture();
         };

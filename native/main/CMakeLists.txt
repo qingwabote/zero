@@ -6,28 +6,14 @@ set(SRC_FILES
     sugars/sdlsugar.cpp
     sugars/v8sugar.cpp
     tests/v8.cpp
-    Binding.cpp
     internal/console.cpp
-    bindings/gfx/Device.cpp
-    bindings/gfx/CommandBuffer.cpp
-    bindings/gfx/Buffer.cpp
-    bindings/gfx/Texture.cpp
-    bindings/gfx/Sampler.cpp
-    bindings/gfx/Shader.cpp
-    bindings/gfx/RenderPass.cpp
-    bindings/gfx/Framebuffer.cpp
-    bindings/gfx/InputAssembler.cpp
-    bindings/gfx/PipelineLayout.cpp
-    bindings/gfx/Pipeline.cpp
-    bindings/gfx/DescriptorSetLayout.cpp
-    bindings/gfx/DescriptorSet.cpp
-    bindings/gfx/Fence.cpp
-    bindings/gfx/Semaphore.cpp
-    bindings/gfx/Queue.cpp
     swig/auto/ImageBitmap_wrap.cpp
     swig/auto/Loader_wrap.cpp
     swig/auto/gfx_wrap.cpp
     swig/auto/global_wrap.cpp
+    bg/Device.cpp
+    bg/CommandBuffer.cpp
+    bg/Queue.cpp
 )
 
 add_library(zero_main STATIC ${SRC_FILES})

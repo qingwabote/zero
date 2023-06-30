@@ -17,10 +17,12 @@ namespace binding
             std::unique_ptr<DescriptorSetPool> _pool;
 
         public:
-            const VkDescriptorSetLayout setLayout() { return _setLayout; }
             DescriptorSetPool &pool() { return *_pool.get(); }
 
             DescriptorSetLayout_impl(Device_impl *device);
+
+            operator VkDescriptorSetLayout() { return _setLayout; }
+
             ~DescriptorSetLayout_impl();
         };
     }

@@ -1,41 +1,24 @@
 #pragma once
 
-#include "Binding.hpp"
-#include "Fence.hpp"
-#include "Semaphore.hpp"
-#include "CommandBuffer.hpp"
+#include "info.hpp"
 
 namespace binding::gfx
 {
-    struct SubmitInfo
-    {
-        Semaphore *waitSemaphore;
-        int32_t waitDstStageMask;
-        Semaphore *signalSemaphore;
-        CommandBuffer *commandBuffer;
-    };
-
+    class Device_impl;
     class Queue_impl;
 
-    class Queue : public Binding
+    class Queue
     {
     private:
         std::unique_ptr<Queue_impl> _impl;
 
-        sugar::v8::Weak<v8::Object> _present_semaphore;
-
-    protected:
-        v8::Local<v8::FunctionTemplate> createTemplate() override;
-
     public:
-        Queue(std::unique_ptr<Queue_impl> impl);
+        Queue(Device_impl *device);
 
-        void submit(const SubmitInfo &info, Fence *fence);
+        virtual void submit(const std::shared_ptr<SubmitInfo> &info, const std::shared_ptr<Fence> &fence);
+        virtual void present(const std::shared_ptr<Semaphore> &waitSemaphore);
+        virtual void waitFence(const std::shared_ptr<Fence> &fence);
 
-        void present(Semaphore *waitSemaphore);
-
-        void waitFence(Fence *fence);
-
-        ~Queue();
+        virtual ~Queue();
     };
 }
