@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace binding::gfx
+namespace gfx
 {
     class Capabilities
     {

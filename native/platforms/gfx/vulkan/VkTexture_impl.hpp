@@ -1,37 +1,34 @@
 #pragma once
 
 #include "VkDevice_impl.hpp"
-#include "bindings/gfx/info.hpp"
+#include "gfx/info.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class Texture_impl
     {
-        class Texture_impl
-        {
-        private:
-            Device_impl *_device{nullptr};
+    private:
+        Device_impl *_device{nullptr};
 
-            VkImage _image{nullptr};
-            VmaAllocation _allocation{nullptr};
-            VmaAllocationInfo _allocationInfo{};
+        VkImage _image{nullptr};
+        VmaAllocation _allocation{nullptr};
+        VmaAllocationInfo _allocationInfo{};
 
-            VkImageView _imageView{nullptr};
+        VkImageView _imageView{nullptr};
 
-            bool _swapchain{false};
+        bool _swapchain{false};
 
-        public:
-            bool swapchain() { return _swapchain; }
+    public:
+        bool swapchain() { return _swapchain; }
 
-            Texture_impl(Device_impl *device, bool swapchain = false);
+        Texture_impl(Device_impl *device, bool swapchain = false);
 
-            bool initialize(const TextureInfo &info);
+        bool initialize(const TextureInfo &info);
 
-            operator VkImage() { return _image; }
-            operator VkImageView() { return _imageView; }
+        operator VkImage() { return _image; }
+        operator VkImageView() { return _imageView; }
 
-            ~Texture_impl();
-        };
+        ~Texture_impl();
+    };
 
-    }
 }

@@ -1,16 +1,16 @@
-#include "bindings/gfx/Queue.hpp"
+#include "gfx/Queue.hpp"
 #include "VkQueue_impl.hpp"
 
-#include "bindings/gfx/Fence.hpp"
+#include "gfx/Fence.hpp"
 #include "VkFence_impl.hpp"
 
-#include "bindings/gfx/Semaphore.hpp"
+#include "gfx/Semaphore.hpp"
 #include "VkSemaphore_impl.hpp"
 
-#include "bindings/gfx/CommandBuffer.hpp"
+#include "gfx/CommandBuffer.hpp"
 #include "VkCommandBuffer_impl.hpp"
 
-namespace binding::gfx
+namespace gfx
 {
     Queue_impl::Queue_impl(Device_impl *device) : _device(device) {}
     Queue_impl::~Queue_impl() {}

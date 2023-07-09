@@ -2,7 +2,7 @@
 
 #include "Texture.hpp"
 
-namespace binding::gfx
+namespace gfx
 {
     /** a fake swap chain with fake texture */
     class Swapchain

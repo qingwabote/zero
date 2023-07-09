@@ -1,7 +1,7 @@
-#include "bindings/gfx/Fence.hpp"
+#include "gfx/Fence.hpp"
 #include "VkFence_impl.hpp"
 
-namespace binding::gfx
+namespace gfx
 {
     Fence_impl::Fence_impl(Device_impl *device) : _device(device) {}
     Fence_impl::~Fence_impl() {}

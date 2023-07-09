@@ -1,7 +1,6 @@
-#include "bindings/gfx/Shader.hpp"
+#include "gfx/Shader.hpp"
 #include "VkShader_impl.hpp"
 #include "log.h"
-#include "sugars/v8sugar.hpp"
 
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/SPIRV/SpvTools.h"
@@ -127,101 +126,98 @@ namespace
         }};
 }
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    Shader_impl::Shader_impl(Device_impl *device) : _device(device) {}
+
+    bool Shader_impl::initialize(const ShaderInfo &info)
     {
-        Shader_impl::Shader_impl(Device_impl *device) : _device(device) {}
+        static const int version_semantics = 100; // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt
+        static EShMessages messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
 
-        bool Shader_impl::initialize(const ShaderInfo &info)
+        for (size_t i = 0; i < info.sources->size(); i++)
         {
-            static const int version_semantics = 100; // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt
-            static EShMessages messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
+            VkShaderStageFlagBits flag = static_cast<ShaderStageFlagBits>(info.types->at(i)) == ShaderStageFlagBits::VERTEX ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+            EShLanguage lang = flag == VK_SHADER_STAGE_VERTEX_BIT ? EShLangVertex : EShLangFragment;
+            std::string src = "#version 450\n" + info.sources->at(i);
 
-            for (size_t i = 0; i < info.sources->size(); i++)
+            glslang::TShader shader{lang};
+            const char *src_c_str = src.c_str();
+            shader.setStrings(&src_c_str, 1);
+            shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, version_semantics);
+            shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_device->version()));
+            glslang::EShTargetLanguageVersion version_spirv;
+            switch (_device->version())
             {
-                VkShaderStageFlagBits flag = static_cast<ShaderStageFlagBits>(info.types->at(i)) == ShaderStageFlagBits::VERTEX ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
-                EShLanguage lang = flag == VK_SHADER_STAGE_VERTEX_BIT ? EShLangVertex : EShLangFragment;
-                std::string src = "#version 450\n" + info.sources->at(i);
+            case VK_API_VERSION_1_3:
+                version_spirv = glslang::EShTargetSpv_1_3;
+                break;
+            default:
+                ZERO_LOG_ERROR("GLSL Unsupported vulkan api version");
+                return true;
+            }
+            shader.setEnvTarget(glslang::EShTargetSpv, version_spirv);
 
-                glslang::TShader shader{lang};
-                const char *src_c_str = src.c_str();
-                shader.setStrings(&src_c_str, 1);
-                shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, version_semantics);
-                shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_device->version()));
-                glslang::EShTargetLanguageVersion version_spirv;
-                switch (_device->version())
-                {
-                case VK_API_VERSION_1_3:
-                    version_spirv = glslang::EShTargetSpv_1_3;
-                    break;
-                default:
-                    ZERO_LOG_ERROR("GLSL Unsupported vulkan api version");
-                    return true;
-                }
-                shader.setEnvTarget(glslang::EShTargetSpv, version_spirv);
-
-                if (!shader.parse(&DefaultTBuiltInResource, version_semantics, false, messages))
-                {
-                    ZERO_LOG_ERROR("GLSL Parsing Failed:\n%s\n%s\nsource:\n%s", shader.getInfoLog(), shader.getInfoDebugLog(), src.c_str());
-                    return true;
-                }
-
-                glslang::TProgram program;
-                program.addShader(&shader);
-                if (!program.link(messages))
-                {
-                    ZERO_LOG_ERROR("GLSL Linking Failed:\n%s\n%s\nsource:\n%s", program.getInfoLog(), program.getInfoDebugLog(), src.c_str());
-                    return true;
-                }
-
-                std::vector<uint32_t> spirv;
-                glslang::GlslangToSpv(*program.getIntermediate(lang), spirv);
-
-                VkShaderModuleCreateInfo moduleCreateInfo = {};
-                moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-                moduleCreateInfo.pNext = nullptr;
-                moduleCreateInfo.codeSize = spirv.size() * sizeof(uint32_t);
-                moduleCreateInfo.pCode = spirv.data();
-                VkShaderModule shaderModule;
-                if (vkCreateShaderModule(*_device, &moduleCreateInfo, nullptr, &shaderModule))
-                {
-                    return true;
-                }
-
-                VkPipelineShaderStageCreateInfo stageCreateInfo{};
-                stageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-                stageCreateInfo.pNext = nullptr;
-                stageCreateInfo.stage = flag;
-                stageCreateInfo.module = shaderModule;
-                // the entry point of the shader
-                stageCreateInfo.pName = "main";
-                _stages.emplace_back(std::move(stageCreateInfo));
+            if (!shader.parse(&DefaultTBuiltInResource, version_semantics, false, messages))
+            {
+                ZERO_LOG_ERROR("GLSL Parsing Failed:\n%s\n%s\nsource:\n%s", shader.getInfoLog(), shader.getInfoDebugLog(), src.c_str());
+                return true;
             }
 
-            return false;
-        }
-
-        Shader_impl::~Shader_impl()
-        {
-            for (size_t i = 0; i < _stages.size(); i++)
+            glslang::TProgram program;
+            program.addShader(&shader);
+            if (!program.link(messages))
             {
-                vkDestroyShaderModule(*_device, _stages[i].module, nullptr);
+                ZERO_LOG_ERROR("GLSL Linking Failed:\n%s\n%s\nsource:\n%s", program.getInfoLog(), program.getInfoDebugLog(), src.c_str());
+                return true;
             }
-        }
 
-        Shader::Shader(Device_impl *device) : _impl(std::make_unique<Shader_impl>(device)) {}
+            std::vector<uint32_t> spirv;
+            glslang::GlslangToSpv(*program.getIntermediate(lang), spirv);
 
-        bool Shader::initialize(const std::shared_ptr<ShaderInfo> &info)
-        {
-            if (_impl->initialize(*info))
+            VkShaderModuleCreateInfo moduleCreateInfo = {};
+            moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+            moduleCreateInfo.pNext = nullptr;
+            moduleCreateInfo.codeSize = spirv.size() * sizeof(uint32_t);
+            moduleCreateInfo.pCode = spirv.data();
+            VkShaderModule shaderModule;
+            if (vkCreateShaderModule(*_device, &moduleCreateInfo, nullptr, &shaderModule))
             {
                 return true;
             }
-            _info = info;
-            return false;
+
+            VkPipelineShaderStageCreateInfo stageCreateInfo{};
+            stageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            stageCreateInfo.pNext = nullptr;
+            stageCreateInfo.stage = flag;
+            stageCreateInfo.module = shaderModule;
+            // the entry point of the shader
+            stageCreateInfo.pName = "main";
+            _stages.emplace_back(std::move(stageCreateInfo));
         }
 
-        Shader::~Shader() {}
+        return false;
     }
+
+    Shader_impl::~Shader_impl()
+    {
+        for (size_t i = 0; i < _stages.size(); i++)
+        {
+            vkDestroyShaderModule(*_device, _stages[i].module, nullptr);
+        }
+    }
+
+    Shader::Shader(Device_impl *device) : _impl(std::make_unique<Shader_impl>(device)) {}
+
+    bool Shader::initialize(const std::shared_ptr<ShaderInfo> &info)
+    {
+        if (_impl->initialize(*info))
+        {
+            return true;
+        }
+        _info = info;
+        return false;
+    }
+
+    Shader::~Shader() {}
 }

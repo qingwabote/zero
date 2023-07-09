@@ -3,27 +3,24 @@
 #include "VkDevice_impl.hpp"
 #include "internal/VkDescriptorSetPool.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class DescriptorSetLayout_impl
     {
-        class DescriptorSetLayout_impl
-        {
-            friend class DescriptorSetLayout;
+        friend class DescriptorSetLayout;
 
-        private:
-            Device_impl *_device{nullptr};
-            VkDescriptorSetLayout _setLayout{nullptr};
-            std::unique_ptr<DescriptorSetPool> _pool;
+    private:
+        Device_impl *_device{nullptr};
+        VkDescriptorSetLayout _setLayout{nullptr};
+        std::unique_ptr<DescriptorSetPool> _pool;
 
-        public:
-            DescriptorSetPool &pool() { return *_pool.get(); }
+    public:
+        DescriptorSetPool &pool() { return *_pool.get(); }
 
-            DescriptorSetLayout_impl(Device_impl *device);
+        DescriptorSetLayout_impl(Device_impl *device);
 
-            operator VkDescriptorSetLayout() { return _setLayout; }
+        operator VkDescriptorSetLayout() { return _setLayout; }
 
-            ~DescriptorSetLayout_impl();
-        };
-    }
+        ~DescriptorSetLayout_impl();
+    };
 }

@@ -2,7 +2,7 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding::gfx
+namespace gfx
 {
     class InputAssembler_impl
     {

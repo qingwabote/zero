@@ -2,24 +2,21 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class PipelineLayout_impl
     {
-        class PipelineLayout_impl
-        {
-            friend class PipelineLayout;
+        friend class PipelineLayout;
 
-        private:
-            Device_impl *_device = nullptr;
-            VkPipelineLayout _layout = nullptr;
+    private:
+        Device_impl *_device = nullptr;
+        VkPipelineLayout _layout = nullptr;
 
-        public:
-            PipelineLayout_impl(Device_impl *device);
+    public:
+        PipelineLayout_impl(Device_impl *device);
 
-            operator VkPipelineLayout() const { return _layout; }
+        operator VkPipelineLayout() const { return _layout; }
 
-            ~PipelineLayout_impl();
-        };
-    }
+        ~PipelineLayout_impl();
+    };
 }

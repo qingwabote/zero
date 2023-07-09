@@ -2,26 +2,23 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class Sampler_impl
     {
-        class Sampler_impl
-        {
-            friend class Sampler;
+        friend class Sampler;
 
-        private:
-            Device_impl *_device = nullptr;
+    private:
+        Device_impl *_device = nullptr;
 
-            VkSampler _sampler = nullptr;
+        VkSampler _sampler = nullptr;
 
-        public:
-            Sampler_impl(Device_impl *device);
+    public:
+        Sampler_impl(Device_impl *device);
 
-            operator VkSampler() { return _sampler; }
+        operator VkSampler() { return _sampler; }
 
-            ~Sampler_impl();
-        };
+        ~Sampler_impl();
+    };
 
-    }
 }

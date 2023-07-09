@@ -48,8 +48,6 @@ namespace sugar::v8
     typedef std::unique_ptr<_v8::Isolate, void (*)(_v8::Isolate *)> unique_isolate;
     unique_isolate isolate_create(std::filesystem::path &imports);
 
-    std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_constructorCache(_v8::Isolate *isolate);
-
     _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, void *ptr);
 
     void isolate_native2js_set(_v8::Isolate *isolate, void *ptr, _v8::Local<_v8::Object> obj);
@@ -68,15 +66,7 @@ namespace sugar::v8
 
     void object_set(_v8::Local<_v8::Object> object, const char *name, _v8::Local<_v8::Value> value);
 
-    void ctor_name(_v8::Local<_v8::FunctionTemplate> ctor, const char *name);
-
-    void ctor_function(_v8::Local<_v8::FunctionTemplate> ctor, const char *name, _v8::FunctionCallback callback);
-
-    void ctor_accessor(_v8::Local<_v8::FunctionTemplate> ctor, const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter = nullptr);
-
     const _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object);
-
-    void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb);
 
     void gc(_v8::Local<_v8::Context> context);
 

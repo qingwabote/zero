@@ -2,30 +2,27 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class RenderPass_impl
     {
-        class RenderPass_impl
-        {
-            friend class RenderPass;
+        friend class RenderPass;
 
-        private:
-            Device_impl *_device = nullptr;
+    private:
+        Device_impl *_device = nullptr;
 
-            VkRenderPass _renderPass = nullptr;
+        VkRenderPass _renderPass = nullptr;
 
-            std::vector<VkClearValue> _clearValues;
+        std::vector<VkClearValue> _clearValues;
 
-        public:
-            RenderPass_impl(Device_impl *device);
+    public:
+        RenderPass_impl(Device_impl *device);
 
-            std::vector<VkClearValue> &clearValues() { return _clearValues; }
+        std::vector<VkClearValue> &clearValues() { return _clearValues; }
 
-            operator VkRenderPass() { return _renderPass; }
+        operator VkRenderPass() { return _renderPass; }
 
-            ~RenderPass_impl();
-        };
+        ~RenderPass_impl();
+    };
 
-    }
 }

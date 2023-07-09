@@ -10,8 +10,6 @@ void SWIGV8_DeletePrivateData(v8::Local<v8::Object> objRef);
 
 namespace
 {
-    struct SetWeakCallback;
-
     struct IsolateData
     {
     private:
@@ -27,8 +25,6 @@ namespace
         {
             _imports = imports;
         }
-
-        std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> constructorCache;
 
         // https://cplusplus.github.io/LWG/issue3657
         struct path_hash
@@ -52,8 +48,6 @@ namespace
 
         std::unordered_map<void *, _v8::Global<_v8::Object>> native2js;
 
-        std::map<uint32_t, SetWeakCallback *> weakCallbacks;
-
         struct promise_hash
         {
             size_t operator()(const sugar::v8::Weak<_v8::Promise> &promise) const
@@ -73,44 +67,6 @@ namespace
     {
         isolate->SetData(0, data);
     }
-
-    struct SetWeakCallback
-    {
-    private:
-        uint32_t _older;
-
-    public:
-        _v8::Persistent<_v8::Data> ref;
-        std::function<void()> callback;
-        uint32_t older()
-        {
-            return _older;
-        }
-
-        SetWeakCallback(_v8::Isolate *isolate, _v8::Local<_v8::Data> obj, std::function<void()> &&cb)
-        {
-            ref.Reset(isolate, obj);
-            callback = cb;
-
-            ref.SetWeak<SetWeakCallback>(
-                this,
-                [](const _v8::WeakCallbackInfo<SetWeakCallback> &info)
-                {
-                    SetWeakCallback *p = info.GetParameter();
-                    isolate_data(info.GetIsolate())->weakCallbacks.erase(p->older());
-                    delete p;
-                },
-                _v8::WeakCallbackType::kParameter);
-
-            static uint32_t count = 0;
-            _older = ++count;
-        }
-        ~SetWeakCallback()
-        {
-            callback();
-            ref.Reset();
-        }
-    };
 }
 
 namespace sugar::v8
@@ -118,10 +74,6 @@ namespace sugar::v8
     static void isolate_deleter(_v8::Isolate *isolate)
     {
         IsolateData *data = isolate_data(isolate);
-        for (auto &it : data->constructorCache)
-        {
-            it.second.Reset();
-        }
         {
             _v8::Isolate::Scope isolate_scope(isolate); // Isolate::GetCurrent() should be valid in SWIGV8_DeletePrivateData -> ~SWIGV8_Proxy() -> SWIGV8_ADJUST_MEMORY
             _v8::HandleScope handle_scope(isolate);
@@ -129,10 +81,6 @@ namespace sugar::v8
             {
                 SWIGV8_DeletePrivateData(it.second.Get(isolate));
             }
-        }
-        for (auto it = data->weakCallbacks.rbegin(); it != data->weakCallbacks.rend(); it++)
-        {
-            delete it->second;
         }
         delete data;
 
@@ -199,11 +147,6 @@ namespace sugar::v8
         isolate_data(isolate, new IsolateData(imports));
 
         return unique_isolate{isolate, isolate_deleter};
-    }
-
-    std::unordered_map<std::string, _v8::Global<_v8::FunctionTemplate>> *isolate_constructorCache(_v8::Isolate *isolate)
-    {
-        return &isolate_data(isolate)->constructorCache;
     }
 
     _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, void *ptr)
@@ -464,24 +407,6 @@ namespace sugar::v8
         object->Set(context, _v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), value).ToChecked();
     }
 
-    void ctor_name(_v8::Local<_v8::FunctionTemplate> ctor, const char *name)
-    {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        ctor->SetClassName(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked());
-    }
-
-    void ctor_function(_v8::Local<_v8::FunctionTemplate> ctor, const char *name, _v8::FunctionCallback callback)
-    {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        ctor->PrototypeTemplate()->Set(isolate, name, _v8::FunctionTemplate::New(isolate, callback));
-    }
-
-    void ctor_accessor(_v8::Local<_v8::FunctionTemplate> ctor, const char *name, _v8::AccessorNameGetterCallback getter, _v8::AccessorNameSetterCallback setter)
-    {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        ctor->PrototypeTemplate()->SetAccessor(_v8::String::NewFromUtf8(isolate, name).ToLocalChecked(), getter, setter);
-    }
-
     const _v8::String::Utf8Value &object_toString(_v8::Local<_v8::Object> object)
     {
         _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
@@ -489,13 +414,6 @@ namespace sugar::v8
         _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
         return _v8::String::Utf8Value(isolate, _v8::JSON::Stringify(context, object, _v8::String::NewFromUtf8Literal(isolate, " ")).ToLocalChecked());
-    }
-
-    void setWeakCallback(_v8::Local<_v8::Data> obj, std::function<void()> &&cb)
-    {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
-        auto callback = new SetWeakCallback(isolate, obj, std::forward<std::function<void()>>(cb));
-        isolate_data(isolate)->weakCallbacks.emplace(callback->older(), callback);
     }
 
     void gc(_v8::Local<_v8::Context> context)

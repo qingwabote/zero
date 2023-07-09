@@ -1,9 +1,7 @@
 #pragma once
 
-#include "bindings/gfx/CommandBuffer.hpp"
+#include "gfx/CommandBuffer.hpp"
 #include "base/TaskRunner.hpp"
-
-namespace gfx = binding::gfx;
 
 namespace bg
 {

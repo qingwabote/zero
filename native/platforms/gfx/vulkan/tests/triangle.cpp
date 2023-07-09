@@ -5,7 +5,7 @@ namespace test::triangle
 {
     bool draw(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
     {
-        auto device = new binding::gfx::Device_impl(sdl_window.get());
+        auto device = new gfx::Device_impl(sdl_window.get());
         if (device->initialize())
         {
             return true;

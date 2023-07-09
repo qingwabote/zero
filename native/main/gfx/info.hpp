@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-namespace binding::gfx
+namespace gfx
 {
     class Buffer;
     class DescriptorSetLayout;

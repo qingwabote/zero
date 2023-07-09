@@ -44,12 +44,12 @@ void ThreadPool::join()
     _running = false;
     for (size_t i = 0; i < _threads.size(); i++)
     {
-        auto f = new auto(
+        auto nudge = new auto(
             [=]()
             {
                 // do nothing
             });
-        post(f); // wake the blocked threads up
+        post(nudge); // wake the blocked threads up
     }
     for (size_t i = 0; i < _threads.size(); i++)
     {

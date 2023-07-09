@@ -1,9 +1,9 @@
-#include "bindings/gfx/InputAssembler.hpp"
+#include "gfx/InputAssembler.hpp"
 #include "VkInputAssembler_impl.hpp"
-#include "bindings/gfx/Buffer.hpp"
+#include "gfx/Buffer.hpp"
 #include "VkBuffer_impl.hpp"
 
-namespace binding::gfx
+namespace gfx
 {
     InputAssembler_impl::InputAssembler_impl(Device_impl *device) : _device(device) {}
     InputAssembler_impl::~InputAssembler_impl() {}

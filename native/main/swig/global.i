@@ -11,7 +11,7 @@
 static loader::Loader * Window_instance_loader() {
   return &Window::instance().loader();
 }
-static binding::gfx::Device * Window_instance_device() {
+static gfx::Device * Window_instance_device() {
   return &Window::instance().device();
 }
 
@@ -24,4 +24,4 @@ void SWIGV8_DeletePrivateData(SWIGV8_OBJECT objRef) {
 %}
 
 %constant loader::Loader *loader = Window_instance_loader();
-%constant binding::gfx::Device *device = Window_instance_device();
+%constant gfx::Device *device = Window_instance_device();

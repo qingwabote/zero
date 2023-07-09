@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace binding::gfx
+namespace gfx
 {
     class Device_impl;
     class Fence_impl;

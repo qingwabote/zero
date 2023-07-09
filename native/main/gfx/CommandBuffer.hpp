@@ -11,7 +11,7 @@
 
 #include "ImageBitmap.hpp"
 
-namespace binding::gfx
+namespace gfx
 {
     class Device_impl;
     class CommandBuffer_impl;

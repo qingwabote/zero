@@ -1,9 +1,7 @@
 #pragma once
 
-#include "bindings/gfx/Device.hpp"
+#include "gfx/Device.hpp"
 #include "base/threading/ThreadPool.hpp"
-
-namespace gfx = binding::gfx;
 
 namespace bg
 {

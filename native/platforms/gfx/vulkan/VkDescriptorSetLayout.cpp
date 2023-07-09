@@ -1,8 +1,8 @@
-#include "bindings/gfx/DescriptorSetLayout.hpp"
+#include "gfx/DescriptorSetLayout.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
-#include "sugars/v8sugar.hpp"
+#include <unordered_map>
 
-namespace binding::gfx
+namespace gfx
 {
     DescriptorSetLayout_impl::DescriptorSetLayout_impl(Device_impl *device) : _device(device)
     {

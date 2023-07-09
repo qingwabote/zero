@@ -2,28 +2,25 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class Buffer_impl
     {
-        class Buffer_impl
-        {
-            friend class Buffer;
+        friend class Buffer;
 
-        private:
-            Device_impl *_device = nullptr;
+    private:
+        Device_impl *_device = nullptr;
 
-            VkBuffer _buffer = nullptr;
-            VmaAllocation _allocation = nullptr;
-            VmaAllocationInfo _allocationInfo{};
+        VkBuffer _buffer = nullptr;
+        VmaAllocation _allocation = nullptr;
+        VmaAllocationInfo _allocationInfo{};
 
-        public:
-            Buffer_impl(Device_impl *device);
+    public:
+        Buffer_impl(Device_impl *device);
 
-            operator VkBuffer() { return _buffer; }
+        operator VkBuffer() { return _buffer; }
 
-            ~Buffer_impl();
-        };
+        ~Buffer_impl();
+    };
 
-    }
 }

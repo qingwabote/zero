@@ -1,9 +1,7 @@
 #pragma once
 
-#include "bindings/gfx/Queue.hpp"
+#include "gfx/Queue.hpp"
 #include "base/TaskRunner.hpp"
-
-namespace gfx = binding::gfx;
 
 namespace bg
 {

@@ -1,108 +1,105 @@
-#include "bindings/gfx/Framebuffer.hpp"
+#include "gfx/Framebuffer.hpp"
 #include "VkFramebuffer_impl.hpp"
-#include "bindings/gfx/Texture.hpp"
+#include "gfx/Texture.hpp"
 #include "VkTexture_impl.hpp"
-#include "bindings/gfx/RenderPass.hpp"
+#include "gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    Framebuffer_impl::Framebuffer_impl(Device_impl *device) : _device(device) {}
+    Framebuffer_impl::~Framebuffer_impl() {}
+
+    Framebuffer::Framebuffer(Device_impl *device) : _impl(std::make_unique<Framebuffer_impl>(device)) {}
+
+    bool Framebuffer::initialize(const std::shared_ptr<FramebufferInfo> &info)
     {
-        Framebuffer_impl::Framebuffer_impl(Device_impl *device) : _device(device) {}
-        Framebuffer_impl::~Framebuffer_impl() {}
+        auto width = info->width;
+        auto height = info->height;
+        auto colorAttachments = info->colorAttachments.get();
+        auto depthStencilAttachment = info->depthStencilAttachment.get();
+        auto resolveAttachments = info->resolveAttachments.get();
+        auto renderPass = info->renderPass;
 
-        Framebuffer::Framebuffer(Device_impl *device) : _impl(std::make_unique<Framebuffer_impl>(device)) {}
-
-        bool Framebuffer::initialize(const std::shared_ptr<FramebufferInfo> &info)
+        Texture *swapchainAttachment = nullptr;
+        for (uint32_t i = 0; i < colorAttachments->size(); i++)
         {
-            auto width = info->width;
-            auto height = info->height;
-            auto colorAttachments = info->colorAttachments.get();
-            auto depthStencilAttachment = info->depthStencilAttachment.get();
-            auto resolveAttachments = info->resolveAttachments.get();
-            auto renderPass = info->renderPass;
-
-            Texture *swapchainAttachment = nullptr;
-            for (uint32_t i = 0; i < colorAttachments->size(); i++)
+            auto attachment = colorAttachments->at(i).get();
+            if (attachment->impl().swapchain())
             {
-                auto attachment = colorAttachments->at(i).get();
+                swapchainAttachment = attachment;
+                break;
+            }
+        }
+        if (!swapchainAttachment)
+        {
+            for (uint32_t i = 0; i < resolveAttachments->size(); i++)
+            {
+                auto attachment = resolveAttachments->at(i).get();
                 if (attachment->impl().swapchain())
                 {
                     swapchainAttachment = attachment;
                     break;
                 }
             }
-            if (!swapchainAttachment)
-            {
-                for (uint32_t i = 0; i < resolveAttachments->size(); i++)
-                {
-                    auto attachment = resolveAttachments->at(i).get();
-                    if (attachment->impl().swapchain())
-                    {
-                        swapchainAttachment = attachment;
-                        break;
-                    }
-                }
-            }
-
-            _impl->_framebuffers.resize(swapchainAttachment == nullptr ? 1 : _impl->_device->swapchainImageViews().size());
-            for (size_t framebufferIdx = 0; framebufferIdx < _impl->_framebuffers.size(); framebufferIdx++)
-            {
-                VkFramebufferCreateInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-                info.width = width;
-                info.height = height;
-                info.layers = 1;
-                std::vector<VkImageView> attachments(colorAttachments->size() + 1 + resolveAttachments->size());
-                uint32_t attachmentIdx = 0;
-                for (size_t idx = 0; idx < colorAttachments->size(); idx++)
-                {
-                    auto attachment = colorAttachments->at(idx).get();
-                    if (attachment == swapchainAttachment)
-                    {
-                        attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
-                    }
-                    else
-                    {
-                        attachments[attachmentIdx] = attachment->impl();
-                    }
-                    attachmentIdx++;
-                }
-
-                attachments[attachmentIdx] = depthStencilAttachment->impl();
-                attachmentIdx++;
-
-                for (size_t idx = 0; idx < resolveAttachments->size(); idx++)
-                {
-                    auto attachment = resolveAttachments->at(idx).get();
-                    if (attachment == swapchainAttachment)
-                    {
-                        attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
-                    }
-                    else
-                    {
-                        attachments[attachmentIdx] = attachment->impl();
-                    }
-                    attachmentIdx++;
-                }
-
-                info.pAttachments = attachments.data();
-                info.attachmentCount = attachments.size();
-                info.renderPass = renderPass->impl();
-                vkCreateFramebuffer(*_impl->_device, &info, nullptr, &_impl->_framebuffers[framebufferIdx]);
-            }
-
-            _info = info;
-            return false;
         }
 
-        Framebuffer::~Framebuffer()
+        _impl->_framebuffers.resize(swapchainAttachment == nullptr ? 1 : _impl->_device->swapchainImageViews().size());
+        for (size_t framebufferIdx = 0; framebufferIdx < _impl->_framebuffers.size(); framebufferIdx++)
         {
-            for (size_t i = 0; i < _impl->_framebuffers.size(); i++)
+            VkFramebufferCreateInfo info = {};
+            info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            info.width = width;
+            info.height = height;
+            info.layers = 1;
+            std::vector<VkImageView> attachments(colorAttachments->size() + 1 + resolveAttachments->size());
+            uint32_t attachmentIdx = 0;
+            for (size_t idx = 0; idx < colorAttachments->size(); idx++)
             {
-                vkDestroyFramebuffer(*_impl->_device, _impl->_framebuffers[i], nullptr);
+                auto attachment = colorAttachments->at(idx).get();
+                if (attachment == swapchainAttachment)
+                {
+                    attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
+                }
+                else
+                {
+                    attachments[attachmentIdx] = attachment->impl();
+                }
+                attachmentIdx++;
             }
+
+            attachments[attachmentIdx] = depthStencilAttachment->impl();
+            attachmentIdx++;
+
+            for (size_t idx = 0; idx < resolveAttachments->size(); idx++)
+            {
+                auto attachment = resolveAttachments->at(idx).get();
+                if (attachment == swapchainAttachment)
+                {
+                    attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
+                }
+                else
+                {
+                    attachments[attachmentIdx] = attachment->impl();
+                }
+                attachmentIdx++;
+            }
+
+            info.pAttachments = attachments.data();
+            info.attachmentCount = attachments.size();
+            info.renderPass = renderPass->impl();
+            vkCreateFramebuffer(*_impl->_device, &info, nullptr, &_impl->_framebuffers[framebufferIdx]);
+        }
+
+        _info = info;
+        return false;
+    }
+
+    Framebuffer::~Framebuffer()
+    {
+        for (size_t i = 0; i < _impl->_framebuffers.size(); i++)
+        {
+            vkDestroyFramebuffer(*_impl->_device, _impl->_framebuffers[i], nullptr);
         }
     }
 }

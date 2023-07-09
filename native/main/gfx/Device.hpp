@@ -18,7 +18,7 @@
 #include "Queue.hpp"
 #include "Swapchain.hpp"
 
-namespace binding::gfx
+namespace gfx
 {
     class Device_impl;
 

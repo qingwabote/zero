@@ -2,24 +2,21 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class Queue_impl
     {
-        class Queue_impl
-        {
-            friend class Queue;
+        friend class Queue;
 
-        private:
-            Device_impl *_device = nullptr;
+    private:
+        Device_impl *_device = nullptr;
 
-        public:
-            Queue_impl(Device_impl *device);
+    public:
+        Queue_impl(Device_impl *device);
 
-            operator VkQueue() { return _device->graphicsQueue(); }
+        operator VkQueue() { return _device->graphicsQueue(); }
 
-            ~Queue_impl();
-        };
+        ~Queue_impl();
+    };
 
-    }
 }

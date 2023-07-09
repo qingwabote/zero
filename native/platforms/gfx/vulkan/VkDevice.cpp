@@ -1,4 +1,4 @@
-#include "bindings/gfx/Device.hpp"
+#include "gfx/Device.hpp"
 #include "VkDevice_impl.hpp"
 #include "log.h"
 
@@ -24,7 +24,7 @@ namespace
     }
 }
 
-namespace binding::gfx
+namespace gfx
 {
     bool Device_impl::initialize()
     {

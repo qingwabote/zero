@@ -2,28 +2,25 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class Framebuffer_impl
     {
-        class Framebuffer_impl
-        {
-            friend class Framebuffer;
+        friend class Framebuffer;
 
-        private:
-            Device_impl *_device = nullptr;
+    private:
+        Device_impl *_device = nullptr;
 
-            std::vector<VkFramebuffer> _framebuffers;
+        std::vector<VkFramebuffer> _framebuffers;
 
-        public:
-            Framebuffer_impl(Device_impl *device);
+    public:
+        Framebuffer_impl(Device_impl *device);
 
-            bool isSwapchain() { return _framebuffers.size() > 1; }
+        bool isSwapchain() { return _framebuffers.size() > 1; }
 
-            operator VkFramebuffer() { return isSwapchain() ? _framebuffers[_device->swapchainImageIndex()] : _framebuffers[0]; }
+        operator VkFramebuffer() { return isSwapchain() ? _framebuffers[_device->swapchainImageIndex()] : _framebuffers[0]; }
 
-            ~Framebuffer_impl();
-        };
+        ~Framebuffer_impl();
+    };
 
-    }
 }

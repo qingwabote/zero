@@ -2,26 +2,23 @@
 
 #include "VkDevice_impl.hpp"
 
-namespace binding
+namespace gfx
 {
-    namespace gfx
+    class Semaphore_impl
     {
-        class Semaphore_impl
-        {
-            friend class Semaphore;
+        friend class Semaphore;
 
-        private:
-            Device_impl *_device = nullptr;
+    private:
+        Device_impl *_device = nullptr;
 
-            VkSemaphore _semaphore = nullptr;
+        VkSemaphore _semaphore = nullptr;
 
-        public:
-            Semaphore_impl(Device_impl *device);
+    public:
+        Semaphore_impl(Device_impl *device);
 
-            operator VkSemaphore() { return _semaphore; }
+        operator VkSemaphore() { return _semaphore; }
 
-            ~Semaphore_impl();
-        };
+        ~Semaphore_impl();
+    };
 
-    }
 }

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "bindings/gfx/Buffer.hpp"
-#include "bindings/gfx/Texture.hpp"
-#include "bindings/gfx/Sampler.hpp"
+#include "gfx/Buffer.hpp"
+#include "gfx/Texture.hpp"
+#include "gfx/Sampler.hpp"
 #include <unordered_map>
 
-namespace binding::gfx
+namespace gfx
 {
     class Device_impl;
     class DescriptorSetLayout;
