@@ -18,11 +18,12 @@ namespace
 
 namespace env
 {
-    std::string bootstrap()
+    std::string bootstrap(const char **err)
     {
         auto res = SDL_GetPrefPath(nullptr, "zero");
         std::string file(res);
         SDL_free(res);
+        *err = nullptr;
         return file + "bootstrap.json";
     }
 }

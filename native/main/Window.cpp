@@ -33,7 +33,13 @@ Window::~Window() {}
 
 int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 {
-    std::string bootstrap_path = env::bootstrap();
+    const char *err = nullptr;
+    std::string bootstrap_path = env::bootstrap(&err);
+    if (err)
+    {
+        ZERO_LOG_ERROR("failed to get bootstrap path %s", err);
+        return -1;
+    }
     nlohmann::json bootstrap_json;
     try
     {

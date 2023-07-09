@@ -14,11 +14,17 @@ namespace
 
 namespace env
 {
-    std::string bootstrap()
+    std::string bootstrap(const char **err)
     {
         auto res = SDL_AndroidGetExternalStoragePath();
+        if (!res)
+        {
+            *err = SDL_GetError();
+            return "";
+        }
         std::string file(res);
         SDL_free((void *)res);
+        *err = nullptr;
         return file + "/bootstrap.json";
     }
 }

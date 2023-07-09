@@ -4,5 +4,5 @@
 
 namespace env
 {
-    std::string bootstrap();
+    std::string bootstrap(const char **err);
 }
