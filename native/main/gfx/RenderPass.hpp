@@ -15,7 +15,7 @@ namespace gfx
         std::shared_ptr<RenderPassInfo> _info;
 
     public:
-        RenderPass_impl &impl() { return *_impl.get(); }
+        RenderPass_impl &impl() { return *_impl; }
 
         const std::shared_ptr<RenderPassInfo> &info() { return _info; }
 

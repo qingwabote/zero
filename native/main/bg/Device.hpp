@@ -10,11 +10,13 @@ namespace bg
     private:
         std::unique_ptr<ThreadPool> _background{new ThreadPool(1)};
 
+    protected:
+        virtual std::unique_ptr<gfx::Queue> getQueue() override;
+
     public:
         Device(SDL_Window *window);
 
         gfx::CommandBuffer *createCommandBuffer() override;
-        gfx::Queue *createQueue() override;
 
         void finish() override;
     };

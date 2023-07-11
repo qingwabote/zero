@@ -23,10 +23,12 @@ export default {
     },
 
     shadow(visibility: VisibilityFlagBits = VisibilityFlagBits.DEFAULT) {
+        const depthStencilDescription = new gfx.AttachmentDescription();
+        depthStencilDescription.loadOp = LOAD_OP.CLEAR;
+        depthStencilDescription.initialLayout = ImageLayout.UNDEFINED;
+        depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL;
         const renderPassInfo = new gfx.RenderPassInfo;
-        renderPassInfo.depthStencilAttachment.loadOp = LOAD_OP.CLEAR;
-        renderPassInfo.depthStencilAttachment.initialLayout = ImageLayout.UNDEFINED;
-        renderPassInfo.depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        renderPassInfo.depthStencilAttachment = depthStencilDescription;
         const renderPass = device.createRenderPass();
         renderPass.initialize(renderPassInfo);
 

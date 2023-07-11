@@ -177,10 +177,12 @@ namespace gfx
         swapchain_color->initialize(swapchain_color_info);
         _swapchain = std::make_unique<Swapchain>(std::move(swapchain_color));
 
-        _queue = std::unique_ptr<Queue>(createQueue());
+        _queue = getQueue();
 
         return false;
     }
+
+    std::unique_ptr<Queue> Device::getQueue() { return std::make_unique<Queue>(_impl); }
 
     Buffer *Device::createBuffer() { return new Buffer(_impl); }
 
@@ -209,8 +211,6 @@ namespace gfx
     Semaphore *Device::createSemaphore() { return new Semaphore(_impl); }
 
     Fence *Device::createFence() { return new Fence(_impl); }
-
-    Queue *Device::createQueue() { return new Queue(_impl); }
 
     void Device::acquire(const std::shared_ptr<Semaphore> &c_presentSemaphore)
     {

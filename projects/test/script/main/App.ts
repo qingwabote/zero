@@ -2,9 +2,8 @@ import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import Node from "../../../../script/main/core/Node.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import { BufferUsageFlagBits } from "../../../../script/main/core/gfx/Buffer.js";
 import Format from "../../../../script/main/core/gfx/Format.js";
-import { PassState } from "../../../../script/main/core/gfx/Pipeline.js";
+import { BufferUsageFlagBits, CullMode, PrimitiveTopology } from "../../../../script/main/core/gfx/info.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Model from "../../../../script/main/core/scene/Model.js";
@@ -54,7 +53,12 @@ export default class App extends Zero {
             vertexOrIndexCount: 3
         }
 
-        const state = new PassState(shader);
+        const rasterizationState = new gfx.RasterizationState;
+        rasterizationState.cullMode = CullMode.NONE;
+        const state = new gfx.PassState;
+        state.shader = shader;
+        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
+        state.rasterizationState = rasterizationState;
         const pass = new Pass(state);
         const subModels = [new SubModel(subMesh, [pass])];
         node = new Node;

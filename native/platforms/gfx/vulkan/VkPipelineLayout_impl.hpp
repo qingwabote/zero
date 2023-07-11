@@ -6,14 +6,14 @@ namespace gfx
 {
     class PipelineLayout_impl
     {
-        friend class PipelineLayout;
-
     private:
-        Device_impl *_device = nullptr;
-        VkPipelineLayout _layout = nullptr;
+        Device_impl *_device{nullptr};
+        VkPipelineLayout _layout{nullptr};
 
     public:
         PipelineLayout_impl(Device_impl *device);
+
+        bool initialize(const PipelineLayoutInfo &info);
 
         operator VkPipelineLayout() const { return _layout; }
 

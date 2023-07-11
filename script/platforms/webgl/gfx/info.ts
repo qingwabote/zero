@@ -6,7 +6,7 @@ import RenderPass from "../../../main/core/gfx/RenderPass.js";
 import Semaphore from "../../../main/core/gfx/Semaphore.js";
 import Shader from "../../../main/core/gfx/Shader.js";
 import Texture from "../../../main/core/gfx/Texture.js";
-import { AttachmentDescription, AttachmentDescriptionVector, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, BufferVector, CullMode, DepthStencilState, DescriptorSetLayoutBinding, DescriptorSetLayoutBindingVector, DescriptorSetLayoutInfo, DescriptorSetLayoutVector, DescriptorType, Filter, FloatVector, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PipelineStageFlagBits, PrimitiveTopology, RasterizationState, SampleCountFlagBits, SamplerInfo, ShaderInfo, ShaderStageFlagBits, StringVector, SubmitInfo, TextureInfo, TextureUsageBits, TextureVector, Vector, VertexInput, VertexInputAttributeDescription, VertexInputAttributeDescriptionVector, VertexInputBindingDescription, VertexInputBindingDescriptionVector, VertexInputRate, VertexInputState } from "../../../main/core/gfx/info.js";
+import { AttachmentDescription, AttachmentDescriptionVector, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, BufferVector, CullMode, DepthStencilState, DescriptorSetLayoutBinding, DescriptorSetLayoutBindingVector, DescriptorSetLayoutInfo, DescriptorSetLayoutVector, DescriptorType, Filter, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PipelineStageFlagBits, PrimitiveTopology, RasterizationState, SampleCountFlagBits, SamplerInfo, ShaderInfo, ShaderStageFlagBits, StringVector, SubmitInfo, TextureInfo, TextureUsageBits, TextureVector, Uint32Vector, Vector, VertexInput, VertexInputAttributeDescription, VertexInputAttributeDescriptionVector, VertexInputBindingDescription, VertexInputBindingDescriptionVector, VertexInputRate, VertexInputState } from "../../../main/core/gfx/info.js";
 
 export class WebVector<T> implements Vector<T> {
     readonly data: Array<T> = [];
@@ -75,7 +75,7 @@ export class WebSamplerInfo implements SamplerInfo {
 
 export class WebShaderInfo implements ShaderInfo {
     sources: StringVector = new WebVector;
-    types: FloatVector = new WebVector;
+    types: Uint32Vector = new WebVector;
 }
 
 export class WebPipelineLayoutInfo implements PipelineLayoutInfo {
@@ -99,7 +99,7 @@ export class WebVertexInputState implements VertexInputState {
 }
 export class WebVertexInput implements VertexInput {
     buffers: BufferVector = new WebVector;
-    offsets: FloatVector = new WebVector;
+    offsets: Uint32Vector = new WebVector;
 }
 export class WebIndexInput implements IndexInput {
     buffer!: Buffer;

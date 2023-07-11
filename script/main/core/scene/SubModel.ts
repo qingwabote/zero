@@ -84,7 +84,7 @@ export default class SubModel {
                 const inputAssemblerInfo = new gfx.InputAssemblerInfo;
                 inputAssemblerInfo.vertexInputState = this._vertexInputStates[i];
                 inputAssemblerInfo.vertexInput = vertexInput;
-                inputAssemblerInfo.indexInput = indexInput;
+                if (indexInput) inputAssemblerInfo.indexInput = indexInput;
                 const inputAssembler = device.createInputAssembler();
                 inputAssembler.initialize(inputAssemblerInfo);
                 this._inputAssemblers[i] = inputAssembler;

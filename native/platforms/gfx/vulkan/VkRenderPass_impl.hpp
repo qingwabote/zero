@@ -6,12 +6,10 @@ namespace gfx
 {
     class RenderPass_impl
     {
-        friend class RenderPass;
-
     private:
-        Device_impl *_device = nullptr;
+        Device_impl *_device{nullptr};
 
-        VkRenderPass _renderPass = nullptr;
+        VkRenderPass _renderPass{nullptr};
 
         std::vector<VkClearValue> _clearValues;
 
@@ -19,6 +17,8 @@ namespace gfx
         RenderPass_impl(Device_impl *device);
 
         std::vector<VkClearValue> &clearValues() { return _clearValues; }
+
+        bool initialize(const RenderPassInfo &info);
 
         operator VkRenderPass() { return _renderPass; }
 

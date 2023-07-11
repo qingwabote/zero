@@ -138,7 +138,7 @@ namespace gfx
     struct RenderPassInfo
     {
         std::shared_ptr<AttachmentDescriptionVector> colorAttachments{new AttachmentDescriptionVector()};
-        std::shared_ptr<AttachmentDescription> depthStencilAttachment{new AttachmentDescription()};
+        std::shared_ptr<AttachmentDescription> depthStencilAttachment;
         std::shared_ptr<AttachmentDescriptionVector> resolveAttachments{new AttachmentDescriptionVector()};
         SampleCountFlagBits samples{SampleCountFlagBits::SAMPLE_COUNT_1};
     };
@@ -157,7 +157,7 @@ namespace gfx
     struct ShaderInfo
     {
         std::shared_ptr<StringVector> sources{new StringVector()};
-        std::shared_ptr<FloatVector> types{new FloatVector()};
+        std::shared_ptr<Uint32Vector> types{new Uint32Vector()};
     };
 
     using DescriptorSetLayoutVector = std::vector<std::shared_ptr<DescriptorSetLayout>>;
@@ -195,7 +195,7 @@ namespace gfx
     struct VertexInput
     {
         std::shared_ptr<BufferVector> buffers{new BufferVector()};
-        std::shared_ptr<FloatVector> offsets{new FloatVector()};
+        std::shared_ptr<Uint32Vector> offsets{new Uint32Vector()};
     };
     enum class IndexType
     {

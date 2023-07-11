@@ -142,9 +142,11 @@ export default class Flow {
                 resolveAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
                 info.resolveAttachments.add(resolveAttachmentDescription);
             }
-            info.depthStencilAttachment.loadOp = clearFlags & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-            info.depthStencilAttachment.initialLayout = clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            info.depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            const depthStencilAttachment = new gfx.AttachmentDescription();
+            depthStencilAttachment.loadOp = clearFlags & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+            depthStencilAttachment.initialLayout = clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            info.depthStencilAttachment = depthStencilAttachment;
             info.samples = samples;
             renderPass = device.createRenderPass();
             renderPass.initialize(info);

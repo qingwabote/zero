@@ -34,6 +34,8 @@ namespace gfx
     protected:
         Device_impl *_impl{nullptr};
 
+        virtual std::unique_ptr<Queue> getQueue();
+
     public:
         Capabilities &capabilities() { return *_capabilities; }
         Swapchain &swapchain() { return *_swapchain; }
@@ -70,8 +72,6 @@ namespace gfx
         Semaphore *createSemaphore();
 
         Fence *createFence();
-
-        virtual Queue *createQueue();
 
         void acquire(const std::shared_ptr<Semaphore> &presentSemaphore);
 
