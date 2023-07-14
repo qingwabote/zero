@@ -28,8 +28,13 @@ target_link_libraries(zero_gfx PRIVATE zero::main)
 
 target_link_libraries(zero_gfx PRIVATE ${glslang_libs})
 
-set(VK_BOOTSTRAP_VULKAN_HEADER_DIR ${CMAKE_CURRENT_LIST_DIR}/internal)
-add_subdirectory(internal/vk-bootstrap)
-target_link_libraries(zero_gfx PRIVATE vk-bootstrap)
+target_compile_definitions(zero_gfx PRIVATE VK_NO_PROTOTYPES)
+
+if(ANDROID)
+    target_compile_definitions(zero_gfx PRIVATE VK_USE_PLATFORM_ANDROID_KHR)
+elseif(WIN32)
+    target_compile_definitions(zero_gfx PRIVATE NOMINMAX) # https://stackoverflow.com/questions/2789481/problem-calling-stdmax
+    target_compile_definitions(zero_gfx PRIVATE VK_USE_PLATFORM_WIN32_KHR)
+endif()
 
 add_library(zero::gfx ALIAS zero_gfx)

@@ -1,12 +1,9 @@
 #pragma once
 
 #include "volk/volk.h"
-
 #include "SDL_vulkan.h"
-
-#include "VkBootstrap.h"
-
 #include "vma/vk_mem_alloc.h"
+#include <vector>
 
 namespace gfx
 {
@@ -14,46 +11,51 @@ namespace gfx
     {
     private:
         SDL_Window *_window{nullptr};
-        vkb::Instance _vkb_instance;
+
+        VkInstance _instance{nullptr};
+
         VkSurfaceKHR _surface{nullptr};
-        vkb::PhysicalDevice _vkb_physicalDevice;
-        vkb::Device _vkb_device;
+
+        VkDebugUtilsMessengerEXT _debugUtilsMessenger{nullptr};
+
+        VkPhysicalDeviceProperties _gpuProperties{};
+
+        VkDevice _device{nullptr};
+
+        VkFormat _swapchainImageFormat{};
+        VkExtent2D _swapchainImageExtent{};
+        VkSwapchainKHR _swapchain{nullptr};
+        std::vector<VkImageView> _swapchainImageViews;
 
         VmaAllocator _allocator{nullptr};
 
         VkCommandPool _commandPool{nullptr};
 
-        vkb::Swapchain _vkb_swapchain;
-        std::vector<VkImageView> _swapchainImageViews;
-
-        uint32_t _swapchainImageIndex = 0;
+        uint32_t _swapchainImageIndex{0};
 
         VkQueue _graphicsQueue{nullptr};
 
     public:
         uint32_t version() { return VK_API_VERSION_1_3; }
 
-        VkPhysicalDeviceLimits &limits() { return _vkb_physicalDevice.properties.limits; }
+        VkPhysicalDeviceLimits &limits() { return _gpuProperties.limits; }
 
-        VkCommandPool commandPool() { return _commandPool; }
-
-        VmaAllocator allocator() { return _allocator; }
-
-        VkSwapchainKHR swapchain() { return _vkb_swapchain.swapchain; }
-
+        VkFormat swapchainImageFormat() { return _swapchainImageFormat; }
+        VkExtent2D &swapchainImageExtent() { return _swapchainImageExtent; }
+        VkSwapchainKHR swapchain() { return _swapchain; }
         std::vector<VkImageView> &swapchainImageViews() { return _swapchainImageViews; }
-
-        VkFormat swapchainImageFormat() { return _vkb_swapchain.image_format; }
-
-        VkExtent2D &swapchainImageExtent() { return _vkb_swapchain.extent; }
 
         uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
 
         VkQueue graphicsQueue() { return _graphicsQueue; }
 
-        VkDevice device() { return _vkb_device.device; }
+        VkCommandPool commandPool() { return _commandPool; }
 
-        operator VkDevice() { return _vkb_device.device; }
+        VmaAllocator allocator() { return _allocator; }
+
+        VkDevice device() { return _device; }
+
+        operator VkDevice() { return _device; }
 
         Device_impl(SDL_Window *window) : _window(window) {}
 

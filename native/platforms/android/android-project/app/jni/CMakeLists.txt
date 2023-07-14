@@ -46,8 +46,12 @@ set_target_properties(vkLayer PROPERTIES
 add_library(main SHARED main.cpp)
 target_link_libraries(main vkLayer)
 
-add_subdirectory(../../../../../main main)
+set(NATIVE_DIR "../../../../../../native")
+
+add_subdirectory(${NATIVE_DIR}/main main)
 target_link_libraries(main zero::main)
 
-add_subdirectory(../../../../gfx/vulkan gfx)
+add_subdirectory(${NATIVE_DIR}/platforms/gfx/vulkan gfx)
 target_link_libraries(main zero::gfx)
+
+target_include_directories(main PRIVATE ${NATIVE_DIR}/platforms/)

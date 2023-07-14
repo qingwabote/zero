@@ -64,19 +64,41 @@ namespace tests::triangle
             return true;
         }
 
-        auto attachmentDescription = std::make_shared<gfx::AttachmentDescription>();
-        attachmentDescription->loadOp = gfx::LOAD_OP::CLEAR;
-        attachmentDescription->initialLayout = gfx::ImageLayout::UNDEFINED;
-        attachmentDescription->finalLayout = gfx::ImageLayout::PRESENT_SRC;
-        gfx::RenderPassInfo renderPassInfo;
-        renderPassInfo.colorAttachments->emplace_back(attachmentDescription);
-        auto renderPass = new gfx::RenderPass_impl(device);
-        renderPass->initialize(renderPassInfo);
+        VkAttachmentDescription attachmentDescription{};
+        attachmentDescription.format = device->swapchainImageFormat();
+        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        VkAttachmentReference color_ref = {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+        VkSubpassDescription subpass = {0};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &color_ref;
+        VkSubpassDependency dependency = {0};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        VkRenderPassCreateInfo rp_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
+        rp_info.attachmentCount = 1;
+        rp_info.pAttachments = &attachmentDescription;
+        rp_info.subpassCount = 1;
+        rp_info.pSubpasses = &subpass;
+        rp_info.dependencyCount = 1;
+        rp_info.pDependencies = &dependency;
+        VkRenderPass renderPass;
+        vkCreateRenderPass(*device, &rp_info, nullptr, &renderPass);
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo.layout = pipelineLayout;
-        pipelineInfo.renderPass = *renderPass;
+        pipelineInfo.renderPass = renderPass;
 
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{1};
         auto &attributePosition = attributeDescriptions[0];
@@ -170,7 +192,7 @@ namespace tests::triangle
             framebufferInfo.layers = 1;
             framebufferInfo.attachmentCount = attachments.size();
             framebufferInfo.pAttachments = attachments.data();
-            framebufferInfo.renderPass = *renderPass;
+            framebufferInfo.renderPass = renderPass;
             vkCreateFramebuffer(*device, &framebufferInfo, nullptr, &framebuffers[i]);
         }
 
@@ -204,7 +226,7 @@ namespace tests::triangle
 
         VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         renderPassBeginInfo.framebuffer = framebuffers[device->swapchainImageIndex()];
-        renderPassBeginInfo.renderPass = *renderPass;
+        renderPassBeginInfo.renderPass = renderPass;
         renderPassBeginInfo.renderArea.extent = {swapchainExtent.width, swapchainExtent.height};
         std::vector<VkClearValue> clearValues{1};
         clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};

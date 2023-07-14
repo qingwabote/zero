@@ -2,6 +2,7 @@
 #include "SDL.h"
 #include "env.hpp"
 #include "Window.hpp"
+#include "gfx/vulkan/tests/triangle.hpp"
 
 namespace
 {
@@ -50,6 +51,7 @@ int main(int argc, char **argv)
                          ),
         windowDeleter};
 
-    Window::instance().loop(std::move(sdl_window));
+    // Window::instance().loop(std::move(sdl_window));
+    tests::triangle::draw(std::move(sdl_window));
     return 0;
 }

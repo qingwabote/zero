@@ -11,16 +11,33 @@
 
 namespace
 {
-    inline VKAPI_ATTR VkBool32 VKAPI_CALL vkb_debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                             const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-                                                             void *)
+    VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                               VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
+                                                               const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+                                                               void * /*userData*/)
     {
-        auto ms = vkb::to_string_message_severity(messageSeverity);
-        auto mt = vkb::to_string_message_type(messageType);
-        ZERO_LOG_ERROR("[%s: %s]\n%s", ms, mt, pCallbackData->pMessage);
-
-        return VK_FALSE; // Applications must return false here
+        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+        {
+            ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            return VK_FALSE;
+        }
+        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        {
+            ZERO_LOG_WARN("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            return VK_FALSE;
+        }
+        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+        {
+            // CC_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            return VK_FALSE;
+        }
+        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+        {
+            // CC_LOG_DEBUG("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            return VK_FALSE;
+        }
+        ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+        return VK_FALSE;
     }
 }
 
@@ -33,63 +50,191 @@ namespace gfx
             return true;
         }
 
-        // instance
-        vkb::InstanceBuilder builder;
-        auto system_info_ret = vkb::SystemInfo::get_system_info();
-        auto &system_info = system_info_ret.value();
-        if (system_info.validation_layers_available)
+        VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
+        appInfo.apiVersion = version();
+
+        std::vector<const char *> instance_extensions;
+        instance_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        instance_extensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+        instance_extensions.emplace_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
+        instance_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#else
+#pragma error Platform not supported
+#endif
+        std::vector<const char *> validationLayers{"VK_LAYER_KHRONOS_validation"};
+
+        VkDebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
+        debugUtilsCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+        debugUtilsCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugUtilsCreateInfo.pfnUserCallback = debugUtilsMessengerCallback;
+
+        VkInstanceCreateInfo instance_info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+        instance_info.pApplicationInfo = &appInfo;
+        instance_info.enabledExtensionCount = instance_extensions.size();
+        instance_info.ppEnabledExtensionNames = instance_extensions.data();
+        instance_info.enabledLayerCount = validationLayers.size();
+        instance_info.ppEnabledLayerNames = validationLayers.data();
+        instance_info.pNext = &debugUtilsCreateInfo;
+        VkInstance instance;
+        if (vkCreateInstance(&instance_info, nullptr, &instance))
         {
-            // Validation layers can only be used if they have been installed onto the system
-            // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Validation_layers
-            builder.enable_validation_layers();
-        }
-        auto inst_ret = builder
-                            .set_app_name("_app_name")
-                            .require_api_version(version())
-                            .set_debug_callback(vkb_debug_callback)
-                            .build();
-        if (!inst_ret)
-        {
-            ZERO_LOG("Failed to create Vulkan instance. Error: %s", inst_ret.error().message().c_str());
             return true;
         }
-        auto &vkb_instance = inst_ret.value();
 
-        volkLoadInstanceOnly(vkb_instance.instance);
+        volkLoadInstance(instance);
 
-        // surface
+        vkCreateDebugUtilsMessengerEXT(instance, &debugUtilsCreateInfo, nullptr, &_debugUtilsMessenger);
+
         VkSurfaceKHR surface = nullptr;
-        if (!SDL_Vulkan_CreateSurface(_window, vkb_instance.instance, &surface))
+        if (!SDL_Vulkan_CreateSurface(_window, instance, &surface))
         {
             ZERO_LOG("failed to create surface, SDL Error: %s", SDL_GetError());
             return true;
         }
 
-        // physical device
-        vkb::PhysicalDeviceSelector selector{vkb_instance};
-        auto dev_ret = selector
-                           .set_minimum_version(VK_API_VERSION_MAJOR(version()), VK_API_VERSION_MINOR(version()))
-                           .set_surface(surface)
-                           .select();
-        if (!dev_ret)
-        {
-            ZERO_LOG("Failed to create Vulkan device. Error: %s", dev_ret.error().message().c_str());
-            return true;
-        }
-        vkb::PhysicalDevice physicalDevice = dev_ret.value();
+        uint32_t gpu_count = 0;
+        vkEnumeratePhysicalDevices(instance, &gpu_count, nullptr);
+        std::vector<VkPhysicalDevice> gpus(gpu_count);
+        vkEnumeratePhysicalDevices(instance, &gpu_count, gpus.data());
 
-        // logical device
-        vkb::DeviceBuilder deviceBuilder{physicalDevice};
-        auto device_ret = deviceBuilder.build();
-        auto &vkb_device = device_ret.value();
-        auto device = vkb_device.device;
+        VkPhysicalDevice gpu{nullptr};
+        int32_t queueFamilyIndex = -1;
+        for (size_t i = 0; i < gpu_count; i++)
+        {
+            uint32_t count;
+            vkGetPhysicalDeviceQueueFamilyProperties(gpus[i], &count, nullptr);
+
+            std::vector<VkQueueFamilyProperties> properties(count);
+            vkGetPhysicalDeviceQueueFamilyProperties(gpus[i], &count, properties.data());
+
+            for (uint32_t i = 0; i < count; i++)
+            {
+                VkBool32 supports_present;
+                vkGetPhysicalDeviceSurfaceSupportKHR(gpus[i], i, surface, &supports_present);
+
+                // Find a queue family which supports graphics and presentation.
+                if ((properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) && supports_present)
+                {
+                    queueFamilyIndex = i;
+                    break;
+                }
+            }
+
+            if (queueFamilyIndex != -1)
+            {
+                gpu = gpus[i];
+                break;
+            }
+        }
+
+        std::vector<const char *> device_extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+        // Create one queue
+        float queuePriorities[] = {1.0f};
+        VkDeviceQueueCreateInfo queueInfo{VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
+        queueInfo.queueFamilyIndex = queueFamilyIndex;
+        queueInfo.queueCount = 1;
+        queueInfo.pQueuePriorities = queuePriorities;
+
+        VkDeviceCreateInfo device_info{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+        device_info.queueCreateInfoCount = 1;
+        device_info.pQueueCreateInfos = &queueInfo;
+        device_info.enabledExtensionCount = device_extensions.size();
+        device_info.ppEnabledExtensionNames = device_extensions.data();
+        VkDevice device;
+        vkCreateDevice(gpu, &device_info, nullptr, &device);
 
         volkLoadDevice(device);
 
+        vkGetPhysicalDeviceProperties(gpu, &_gpuProperties);
+
+        vkGetDeviceQueue(device, queueFamilyIndex, 0, &_graphicsQueue);
+
+        // swapchain
+        VkSurfaceCapabilitiesKHR surface_properties;
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface, &surface_properties);
+
+        VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+        VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+
+        VkCompositeAlphaFlagBitsKHR composite{VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR};
+        if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+        {
+            composite = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        }
+        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR)
+        {
+            composite = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+        }
+        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR)
+        {
+            composite = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
+        }
+        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR)
+        {
+            composite = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
+        }
+
+        VkSwapchainCreateInfoKHR swapchainInfo{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
+        swapchainInfo.surface = surface;
+        swapchainInfo.minImageCount = 3;
+        swapchainInfo.imageFormat = colorFormat;
+        swapchainInfo.imageColorSpace = colorSpace;
+        swapchainInfo.imageExtent = surface_properties.currentExtent;
+        swapchainInfo.imageArrayLayers = 1;
+        swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swapchainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+        swapchainInfo.compositeAlpha = composite;
+        swapchainInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        swapchainInfo.clipped = true;
+        VkSwapchainKHR swapchain;
+        if (vkCreateSwapchainKHR(device, &swapchainInfo, nullptr, &swapchain))
+        {
+            return true;
+        }
+
+        uint32_t imageCount;
+        vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
+
+        std::vector<VkImage> images(imageCount);
+        vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data());
+
+        for (size_t i = 0; i < imageCount; i++)
+        {
+            // Create an image view which we can render into.
+            VkImageViewCreateInfo view_info{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+            view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            view_info.format = colorFormat;
+            view_info.image = images[i];
+            view_info.subresourceRange.levelCount = 1;
+            view_info.subresourceRange.layerCount = 1;
+            view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            view_info.components.r = VK_COMPONENT_SWIZZLE_R;
+            view_info.components.g = VK_COMPONENT_SWIZZLE_G;
+            view_info.components.b = VK_COMPONENT_SWIZZLE_B;
+            view_info.components.a = VK_COMPONENT_SWIZZLE_A;
+
+            VkImageView view;
+            vkCreateImageView(device, &view_info, nullptr, &view);
+
+            _swapchainImageViews.push_back(view);
+        }
+
+        _swapchainImageFormat = colorFormat;
+        _swapchainImageExtent = surface_properties.currentExtent;
+        _swapchain = swapchain;
+        _surface = surface;
+
         VmaAllocatorCreateInfo allocatorInfo{};
-        allocatorInfo.physicalDevice = physicalDevice.physical_device;
+        allocatorInfo.physicalDevice = gpu;
         allocatorInfo.device = device;
-        allocatorInfo.instance = vkb_instance.instance;
+        allocatorInfo.instance = instance;
 
         VmaVulkanFunctions vmaVulkanFunc{};
         vmaVulkanFunc.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
@@ -102,33 +247,17 @@ namespace gfx
             return true;
         }
 
-        // swapchain
-        vkb::SwapchainBuilder swapchainBuilder{physicalDevice.physical_device, device, surface};
-        auto swapchain_ret = swapchainBuilder
-                                 .set_desired_format({VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR})
-                                 .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
-                                 .build();
-        auto &vkb_swapchain = swapchain_ret.value();
-
-        _swapchainImageViews = vkb_swapchain.get_image_views().value();
-        _vkb_swapchain = std::move(vkb_swapchain);
-
         // command pool and a buffer
-        VkCommandPoolCreateInfo commandPoolInfo = {};
-        commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        commandPoolInfo.queueFamilyIndex = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
+        VkCommandPoolCreateInfo commandPoolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
+        commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
         commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &_commandPool))
         {
             return true;
         }
 
-        _graphicsQueue = vkb_device.get_queue(vkb::QueueType::graphics).value();
-
-        _vkb_physicalDevice = std::move(physicalDevice);
-        _vkb_device = std::move(vkb_device);
-        _vkb_instance = std::move(vkb_instance);
-        _surface = surface;
+        _device = device;
+        _instance = instance;
 
         glslang::InitializeProcess();
 
@@ -137,27 +266,31 @@ namespace gfx
 
     void Device_impl::acquireNextImage(VkSemaphore semaphore)
     {
-        vkAcquireNextImageKHR(_vkb_device.device, _vkb_swapchain.swapchain, 1000000000, semaphore, nullptr, &_swapchainImageIndex);
+        vkAcquireNextImageKHR(_device, _swapchain, 1000000000, semaphore, nullptr, &_swapchainImageIndex);
     }
 
     Device_impl::~Device_impl()
     {
         glslang::FinalizeProcess();
 
-        vkDestroyCommandPool(_vkb_device.device, _commandPool, nullptr);
+        vkDestroyCommandPool(_device, _commandPool, nullptr);
 
         vmaDestroyAllocator(_allocator);
 
         for (int i = 0; i < _swapchainImageViews.size(); i++)
         {
-            vkDestroyImageView(_vkb_device.device, _swapchainImageViews[i], nullptr);
+            vkDestroyImageView(_device, _swapchainImageViews[i], nullptr);
         }
 
-        vkb::destroy_swapchain(_vkb_swapchain);
-        vkb::destroy_device(_vkb_device);
+        vkDestroySwapchainKHR(_device, _swapchain, nullptr);
 
-        vkb::destroy_surface(_vkb_instance.instance, _surface);
-        vkb::destroy_instance(_vkb_instance);
+        vkDestroyDevice(_device, nullptr);
+
+        vkDestroySurfaceKHR(_instance, _surface, nullptr);
+
+        vkDestroyDebugUtilsMessengerEXT(_instance, _debugUtilsMessenger, nullptr);
+
+        vkDestroyInstance(_instance, nullptr);
     }
 
     Device::Device(SDL_Window *window) : _impl(new Device_impl(window)) {}

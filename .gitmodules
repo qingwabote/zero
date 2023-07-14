@@ -1,3 +1,0 @@
-[submodule "native/platforms/gfx/vulkan/internal/vk-bootstrap"]
-	path = native/platforms/gfx/vulkan/internal/vk-bootstrap
-	url = git@github.com:charles-lunarg/vk-bootstrap.git
