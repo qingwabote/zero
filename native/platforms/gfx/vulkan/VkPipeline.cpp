@@ -22,14 +22,12 @@ namespace gfx
 
     bool Pipeline::initialize(const std::shared_ptr<PipelineInfo> &info)
     {
-        VkGraphicsPipelineCreateInfo pipelineInfo = {};
-        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
 
         // vertexInputState
         auto gfx_vertexInputState = info->vertexInputState;
 
-        VkPipelineVertexInputStateCreateInfo vertexInputState = {};
-        vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
         auto gfx_attributes = gfx_vertexInputState->attributes;
         std::vector<VkVertexInputAttributeDescription> attributes{gfx_attributes->size()};
         for (uint32_t i = 0; i < gfx_attributes->size(); i++)
@@ -57,19 +55,18 @@ namespace gfx
         pipelineInfo.pVertexInputState = &vertexInputState;
 
         // passState
-        auto js_passState = info->passState;
+        auto gfx_passState = info->passState;
 
-        auto c_shader = js_passState->shader;
-        auto &stageInfos = c_shader->impl()->stages();
+        auto gfx_shader = gfx_passState->shader;
+        auto &stageInfos = gfx_shader->impl()->stages();
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
 
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
-        inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(js_passState->primitive);
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+        inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(gfx_passState->primitive);
         pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
-        std::vector<VkDynamicState> dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_FRONT_FACE});
+        std::vector<VkDynamicState> dynamicStates{VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
         VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
         dynamicState.dynamicStateCount = dynamicStates.size();
         dynamicState.pDynamicStates = dynamicStates.data();
@@ -80,11 +77,33 @@ namespace gfx
         viewportState.scissorCount = 1;
         pipelineInfo.pViewportState = &viewportState;
 
-        auto js_rasterizationState = js_passState->rasterizationState;
+        bool swapchain = false;
+        for (auto &attachment : *info->renderPass->info()->colorAttachments)
+        {
+            if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
+            {
+                swapchain = true;
+                break;
+            }
+        }
+        if (!swapchain)
+        {
+            for (auto &attachment : *info->renderPass->info()->resolveAttachments)
+            {
+                if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
+                {
+                    swapchain = true;
+                    break;
+                }
+            }
+        }
+
+        auto gfx_rasterizationState = gfx_passState->rasterizationState;
         VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
         rasterizationState.rasterizerDiscardEnable = VK_FALSE;
         rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-        rasterizationState.cullMode = static_cast<VkCullModeFlags>(js_rasterizationState->cullMode);
+        rasterizationState.cullMode = static_cast<VkCullModeFlags>(gfx_rasterizationState->cullMode);
+        rasterizationState.frontFace = swapchain ? VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE;
         rasterizationState.depthBiasEnable = VK_FALSE;
         rasterizationState.depthBiasConstantFactor = 0;
         rasterizationState.depthBiasClamp = 0;
@@ -92,26 +111,26 @@ namespace gfx
         rasterizationState.lineWidth = 1;
         pipelineInfo.pRasterizationState = &rasterizationState;
 
-        auto js_depthStencilState = js_passState->depthStencilState;
+        auto gfx_depthStencilState = gfx_passState->depthStencilState;
         VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
-        if (js_depthStencilState)
+        if (gfx_depthStencilState)
         {
-            depthStencilState.depthTestEnable = js_depthStencilState->depthTestEnable;
+            depthStencilState.depthTestEnable = gfx_depthStencilState->depthTestEnable;
             depthStencilState.depthWriteEnable = VK_TRUE;
             depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
         }
         pipelineInfo.pDepthStencilState = &depthStencilState;
 
-        auto js_blendState = js_passState->blendState;
+        auto gfx_blendState = gfx_passState->blendState;
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        if (js_blendState)
+        if (gfx_blendState)
         {
-            colorBlendAttachment.srcColorBlendFactor = static_cast<VkBlendFactor>(js_blendState->srcRGB);
-            colorBlendAttachment.dstColorBlendFactor = static_cast<VkBlendFactor>(js_blendState->dstRGB);
-            colorBlendAttachment.srcAlphaBlendFactor = static_cast<VkBlendFactor>(js_blendState->srcAlpha);
-            colorBlendAttachment.dstAlphaBlendFactor = static_cast<VkBlendFactor>(js_blendState->dstAlpha);
+            colorBlendAttachment.srcColorBlendFactor = static_cast<VkBlendFactor>(gfx_blendState->srcRGB);
+            colorBlendAttachment.dstColorBlendFactor = static_cast<VkBlendFactor>(gfx_blendState->dstRGB);
+            colorBlendAttachment.srcAlphaBlendFactor = static_cast<VkBlendFactor>(gfx_blendState->srcAlpha);
+            colorBlendAttachment.dstAlphaBlendFactor = static_cast<VkBlendFactor>(gfx_blendState->dstAlpha);
             colorBlendAttachment.blendEnable = VK_TRUE;
         }
         else
@@ -124,15 +143,15 @@ namespace gfx
         pipelineInfo.pColorBlendState = &colorBlending;
 
         // renderPass
-        auto c_renderPass = info->renderPass;
+        auto gfx_renderPass = info->renderPass;
         VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
         multisampleState.sampleShadingEnable = VK_FALSE;
-        multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(c_renderPass->info()->samples);
+        multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(gfx_renderPass->info()->samples);
         multisampleState.minSampleShading = 1.0f;
         multisampleState.alphaToCoverageEnable = VK_FALSE;
         multisampleState.alphaToOneEnable = VK_FALSE;
         pipelineInfo.pMultisampleState = &multisampleState;
-        pipelineInfo.renderPass = c_renderPass->impl();
+        pipelineInfo.renderPass = gfx_renderPass->impl();
         pipelineInfo.subpass = 0;
 
         // layout

@@ -28,12 +28,12 @@ namespace
         }
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
-            // CC_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            // ZERO_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
             return VK_FALSE;
         }
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
         {
-            // CC_LOG_DEBUG("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            // ZERO_LOG_DEBUG("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
             return VK_FALSE;
         }
         ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
@@ -159,8 +159,12 @@ namespace gfx
         VkSurfaceCapabilitiesKHR surface_properties;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface, &surface_properties);
 
-        VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
-        VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+        uint32_t surface_formatCount = 0U;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &surface_formatCount, nullptr);
+        std::vector<VkSurfaceFormatKHR> surface_formats(surface_formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &surface_formatCount, surface_formats.data());
+
+        VkSurfaceFormatKHR &surface_format = surface_formats[0];
 
         VkCompositeAlphaFlagBitsKHR composite{VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR};
         if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
@@ -183,8 +187,8 @@ namespace gfx
         VkSwapchainCreateInfoKHR swapchainInfo{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
         swapchainInfo.surface = surface;
         swapchainInfo.minImageCount = 3;
-        swapchainInfo.imageFormat = colorFormat;
-        swapchainInfo.imageColorSpace = colorSpace;
+        swapchainInfo.imageFormat = surface_format.format;
+        swapchainInfo.imageColorSpace = surface_format.colorSpace;
         swapchainInfo.imageExtent = surface_properties.currentExtent;
         swapchainInfo.imageArrayLayers = 1;
         swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -205,13 +209,13 @@ namespace gfx
         std::vector<VkImage> images(imageCount);
         vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data());
 
-        for (size_t i = 0; i < imageCount; i++)
+        for (VkImage &image : images)
         {
             // Create an image view which we can render into.
             VkImageViewCreateInfo view_info{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
             view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            view_info.format = colorFormat;
-            view_info.image = images[i];
+            view_info.format = surface_format.format;
+            view_info.image = image;
             view_info.subresourceRange.levelCount = 1;
             view_info.subresourceRange.layerCount = 1;
             view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -226,7 +230,7 @@ namespace gfx
             _swapchainImageViews.push_back(view);
         }
 
-        _swapchainImageFormat = colorFormat;
+        _swapchainImageFormat = surface_format.format;
         _swapchainImageExtent = surface_properties.currentExtent;
         _swapchain = swapchain;
         _surface = surface;
@@ -277,19 +281,15 @@ namespace gfx
 
         vmaDestroyAllocator(_allocator);
 
-        for (int i = 0; i < _swapchainImageViews.size(); i++)
+        for (VkImageView &view : _swapchainImageViews)
         {
-            vkDestroyImageView(_device, _swapchainImageViews[i], nullptr);
+            vkDestroyImageView(_device, view, nullptr);
         }
 
         vkDestroySwapchainKHR(_device, _swapchain, nullptr);
-
         vkDestroyDevice(_device, nullptr);
-
         vkDestroySurfaceKHR(_instance, _surface, nullptr);
-
         vkDestroyDebugUtilsMessengerEXT(_instance, _debugUtilsMessenger, nullptr);
-
         vkDestroyInstance(_instance, nullptr);
     }
 
@@ -318,46 +318,23 @@ namespace gfx
     std::unique_ptr<Queue> Device::getQueue() { return std::make_unique<Queue>(_impl); }
 
     Buffer *Device::createBuffer() { return new Buffer(_impl); }
-
     Texture *Device::createTexture() { return new Texture(_impl); }
-
     Sampler *Device::createSampler() { return new Sampler(_impl); }
-
     Shader *Device::createShader() { return new Shader(_impl); }
-
     RenderPass *Device::createRenderPass() { return new RenderPass(_impl); }
-
     Framebuffer *Device::createFramebuffer() { return new Framebuffer(_impl); }
-
     DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(_impl); }
-
     DescriptorSet *Device::createDescriptorSet() { return new DescriptorSet(_impl); }
-
     InputAssembler *Device::createInputAssembler() { return new InputAssembler(_impl); }
-
     PipelineLayout *Device::createPipelineLayout() { return new PipelineLayout(_impl); }
-
     Pipeline *Device::createPipeline() { return new Pipeline(_impl); }
-
     CommandBuffer *Device::createCommandBuffer() { return new CommandBuffer(_impl); }
-
     Semaphore *Device::createSemaphore() { return new Semaphore(_impl); }
-
     Fence *Device::createFence() { return new Fence(_impl); }
 
-    void Device::acquire(const std::shared_ptr<Semaphore> &c_presentSemaphore)
-    {
-        VkSemaphore semaphore = c_presentSemaphore->impl();
-        _impl->acquireNextImage(semaphore);
-    }
+    void Device::acquire(const std::shared_ptr<Semaphore> &semaphore) { _impl->acquireNextImage(semaphore->impl()); }
 
-    void Device::finish()
-    {
-        vkDeviceWaitIdle(_impl->device());
-    }
+    void Device::finish() { vkDeviceWaitIdle(_impl->device()); }
 
-    Device::~Device()
-    {
-        delete _impl;
-    }
+    Device::~Device() { delete _impl; }
 }

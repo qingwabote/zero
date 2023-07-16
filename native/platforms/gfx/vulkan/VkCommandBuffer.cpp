@@ -143,15 +143,11 @@ namespace gfx
 
             viewport.y = y + height;
             viewport.height = height * -1.0;
-
-            vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
         }
-        else
+        else // https://anki3d.org/vulkan-coordinate-system/
         {
             viewport.y = y;
             viewport.height = height;
-
-            vkCmdSetFrontFace(_impl->_commandBuffer, VK_FRONT_FACE_CLOCKWISE);
         }
 
         vkCmdSetViewport(_impl->_commandBuffer, 0, 1, &viewport);
