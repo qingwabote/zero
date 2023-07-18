@@ -3,6 +3,7 @@ import Effect from "../../../../script/main/assets/Effect.js";
 import GLTF, { MaterialMacros, MaterialValues } from "../../../../script/main/assets/GLTF.js";
 import Material from "../../../../script/main/assets/Material.js";
 import SpriteFrame from "../../../../script/main/assets/SpriteFrame.js";
+import Animation from "../../../../script/main/components/Animation.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
 import SpriteRenderer from "../../../../script/main/components/SpriteRenderer.js";
@@ -142,6 +143,10 @@ export default class App extends Zero {
 
 
         node = guardian.createScene("Sketchfab_Scene")!;
+        const animation = node.addComponent(Animation);
+        animation.clips = guardian.animationClips;
+        animation.play('WalkCycle')
+
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
 
         node = plane.createScene("Plane")!;

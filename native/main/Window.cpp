@@ -18,7 +18,6 @@ extern "C"
     void global_initialize(v8::Local<v8::Object> exports_obj);
 }
 
-#define NANOSECONDS_PER_SECOND 1000000000
 #define NANOSECONDS_60FPS 16666667L
 
 Window &Window::instance()
@@ -145,7 +144,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         v8::Local<v8::Value> app_tick_args[] = {name2event};
 
         bool running = true;
-        auto time = std::chrono::steady_clock::now();
         while (running)
         {
             UniqueFunction<void> f{};
@@ -268,12 +266,15 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                 }
             }
 
-            auto now = std::chrono::steady_clock::now();
-            auto dtNS = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count());
-            if (dtNS < NANOSECONDS_60FPS)
+            static std::chrono::steady_clock::time_point time;
+            static std::chrono::steady_clock::time_point now;
+
+            now = std::chrono::steady_clock::now();
+            auto dt = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count());
+            if (dt < NANOSECONDS_60FPS)
             {
-                std::this_thread::sleep_for(
-                    std::chrono::nanoseconds(NANOSECONDS_60FPS - static_cast<int64_t>(dtNS)));
+                std::this_thread::sleep_for(std::chrono::nanoseconds(NANOSECONDS_60FPS - static_cast<int64_t>(dt)));
+                now = std::chrono::steady_clock::now();
             }
             time = now;
 

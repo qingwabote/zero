@@ -2,19 +2,21 @@ import Texture from "../../../../script/main/assets/Texture.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import AssetLib from "../../../../script/main/core/AssetLib.js";
+import assetLib from "../../../../script/main/core/assetLib.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
-import Flow from "../../../../script/main/core/render/Flow.js";
+import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
-import stageFactory from "../../../../script/main/render/stageFactory.js";
+import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
+import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 import CuttingBoard from "./CuttingBoard.js";
 
+const favicon = await assetLib.load('../../assets/favicon.ico', Texture);
+
 export default class App extends Zero {
-    async start(): Promise<Flow> {
+    start(): Flow {
         const { width, height } = this.window;
 
         let node: Node;
@@ -30,7 +32,7 @@ export default class App extends Zero {
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
         const cuttingBoard = node.addComponent(CuttingBoard);
-        cuttingBoard.texture = (await AssetLib.instance.load({ path: '../../assets/favicon.ico', type: Texture })).impl;
+        cuttingBoard.texture = favicon.impl;
         cuttingBoard.size = vec2.create(width, height);
         doc.addElement(cuttingBoard);
 

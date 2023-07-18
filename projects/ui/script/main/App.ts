@@ -7,12 +7,12 @@ import Node from "../../../../script/main/core/Node.js";
 import Zero from "../../../../script/main/core/Zero.js";
 import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
-import Flow from "../../../../script/main/core/render/Flow.js";
-import ModelPhase from "../../../../script/main/render/phases/ModelPhase.js";
-import stageFactory from "../../../../script/main/render/stageFactory.js";
+import Flow from "../../../../script/main/core/pipeline/Flow.js";
+import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
+import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 
 export default class App extends Zero {
-    async start(): Promise<Flow> {
+    start(): Flow {
         const { width, height } = this.window;
 
         let node: Node;

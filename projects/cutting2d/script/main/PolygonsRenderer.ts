@@ -2,22 +2,19 @@ import Material from "../../../../script/main/assets/Material.js";
 import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
 import UIElement from "../../../../script/main/components/ui/internal/UIElement.js";
 import Node from "../../../../script/main/core/Node.js";
-import ShaderLib, { ShaderCreateInfo } from "../../../../script/main/core/ShaderLib.js";
-import { BufferUsageFlagBits } from "../../../../script/main/core/gfx/Buffer.js";
 import Format, { FormatInfos } from "../../../../script/main/core/gfx/Format.js";
-import { IndexType } from "../../../../script/main/core/gfx/InputAssembler.js";
-import { CullMode } from "../../../../script/main/core/gfx/Pipeline.js";
 import Texture from "../../../../script/main/core/gfx/Texture.js";
+import { BufferUsageFlagBits, CullMode, IndexType, PrimitiveTopology } from "../../../../script/main/core/gfx/info.js";
 import vec2, { Vec2 } from "../../../../script/main/core/math/vec2.js";
 import vec3 from "../../../../script/main/core/math/vec3.js";
 import vec4 from "../../../../script/main/core/math/vec4.js";
 import Pass from "../../../../script/main/core/scene/Pass.js";
 import SubMesh, { VertexAttribute } from "../../../../script/main/core/scene/SubMesh.js";
 import BufferViewResizable from "../../../../script/main/core/scene/buffers/BufferViewResizable.js";
+import shaderLib from "../../../../script/main/core/shaderLib.js";
 import { Polygon } from "./Polygon.js";
 
-const shader_unlit_info: ShaderCreateInfo = { name: 'unlit', macros: { USE_ALBEDO_MAP: 1 } };
-ShaderLib.preloaded.push(shader_unlit_info);
+const unlit = await shaderLib.load('unlit', { USE_ALBEDO_MAP: 1 })
 
 const vertexAttributes: readonly VertexAttribute[] = [
     { name: 'a_position', format: Format.RGB32_SFLOAT, buffer: 0, offset: 0 },
@@ -62,7 +59,13 @@ export default class PolygonsRenderer extends UIElement {
     private _meshRenderers: MeshRenderer[] = [];
 
     override start(): void {
-        const pass = new Pass({ shader: ShaderLib.instance.getShader(shader_unlit_info), rasterizationState: { cullMode: CullMode.NONE } });
+        const rasterizationState = new gfx.RasterizationState;
+        rasterizationState.cullMode = CullMode.NONE;
+        const state = new gfx.PassState();
+        state.shader = unlit;
+        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
+        state.rasterizationState = rasterizationState;
+        const pass = new Pass(state);
         pass.setUniform('Constants', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
         this._material = { passes: [pass] };

@@ -1,19 +1,22 @@
 import GLTF from "../../../../script/main/assets/GLTF.js";
 import Camera from "../../../../script/main/components/Camera.js";
 import DirectionalLight from "../../../../script/main/components/DirectionalLight.js";
-import DebugDrawer from "../../../../script/main/components/physics/DebugDrawer.js";
 import Profiler from "../../../../script/main/components/ui/Profiler.js";
 import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
 import quat from "../../../../script/main/core/math/quat.js";
+import vec2 from "../../../../script/main/core/math/vec2.js";
 import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
 import Node from "../../../../script/main/core/Node.js";
-import Flow from "../../../../script/main/core/render/Flow.js";
+import Flow from "../../../../script/main/core/pipeline/Flow.js";
 import Zero from "../../../../script/main/core/Zero.js";
-import stageFactory from "../../../../script/main/render/stageFactory.js";
+import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
 
+const primitive = new GLTF();
+await primitive.load('../../assets/models/primitive/scene');
+
 export default class App extends Zero {
-    async start(): Promise<Flow> {
+    start(): Flow {
         const { width, height } = this.window;
 
         const lit_position: Vec3 = [0, 4, 4];
@@ -34,8 +37,6 @@ export default class App extends Zero {
         const view = vec3.normalize(vec3.create(), node.position);
         node.rotation = quat.fromViewUp(quat.create(), view);
 
-        const primitive = new GLTF();
-        await primitive.load('../../assets/models/primitive/scene');
         node = primitive.createScene("Cube")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         node.scale = [0.5, 0.5, 0.5];
@@ -72,12 +73,9 @@ export default class App extends Zero {
 
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.UI;
-        node.addComponent(DebugDrawer);
-
-        node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
-        node.addComponent(Profiler);
-        node.position = [-width / 2, - height / 2 + 200, 0];
+        const profiler = node.addComponent(Profiler);
+        profiler.anchor = vec2.create(0, 0)
+        node.position = [-width / 2, - height / 2, 0];
 
         return new Flow([stageFactory.forward()]);
     }

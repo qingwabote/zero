@@ -19,8 +19,10 @@ import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
+const primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);
+
 export default class App extends Zero {
-    async start(): Promise<Flow> {
+    start(): Flow {
         const { width, height } = this.window;
 
         let node: Node;
@@ -39,8 +41,6 @@ export default class App extends Zero {
         // node = new Node;
         // node.visibilityFlag = VisibilityBit.DEFAULT;
         // node.addComponent(DebugDrawer);
-
-        const primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);
 
         const ground_size = vec3.create(30, 0.2, 30);
 
@@ -134,6 +134,7 @@ export default class App extends Zero {
             vehicle.setSteeringValue(steering, 1);
         })
         joystick.anchor = vec2.create(1, 0)
+        joystick.size = vec2.create(height / 4, height / 4)
         node.position = vec3.create(width / 2, -height / 2, 0)
         doc.addElement(joystick);
 
