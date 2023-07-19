@@ -1,4 +1,3 @@
-import SmartRef from "../../../main/base/SmartRef.js";
 import Buffer from "../../../main/core/gfx/Buffer.js";
 import { BufferInfo, BufferUsageFlagBits } from "../../../main/core/gfx/info.js";
 
@@ -16,8 +15,8 @@ function usage2target(usage: BufferUsageFlagBits): GLenum {
 export default class WebBuffer implements Buffer {
     private _gl: WebGL2RenderingContext;
 
-    private _impl!: SmartRef<WebGLBuffer>;
-    get impl(): SmartRef<WebGLBuffer> {
+    private _impl!: WebGLBuffer;
+    get impl(): WebGLBuffer {
         return this._impl;
     }
 
@@ -33,9 +32,9 @@ export default class WebBuffer implements Buffer {
     initialize(info: BufferInfo): boolean {
         const gl = this._gl;
 
-        const impl = new SmartRef(gl.createBuffer()!, gl.deleteBuffer, gl)
+        const impl = gl.createBuffer()!
         const target = usage2target(info.usage);
-        gl.bindBuffer(target, impl.deref());
+        gl.bindBuffer(target, impl);
         gl.bufferData(target, info.size, gl.STATIC_DRAW);
         gl.bindBuffer(target, null);
 
@@ -52,7 +51,7 @@ export default class WebBuffer implements Buffer {
 
         gl.bindVertexArray(null);
 
-        gl.bindBuffer(target, this._impl.deref());
+        gl.bindBuffer(target, this._impl);
         gl.bufferSubData(target, 0, new DataView(buffer, offset, length));
 
         gl.bindBuffer(target, null);

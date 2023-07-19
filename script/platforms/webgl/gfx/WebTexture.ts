@@ -1,4 +1,3 @@
-import SmartRef from "../../../main/base/SmartRef.js";
 import Texture from "../../../main/core/gfx/Texture.js";
 import { SampleCountFlagBits, TextureInfo, TextureUsageBits } from "../../../main/core/gfx/info.js";
 import { WebTextureInfo } from "./info.js";
@@ -6,13 +5,13 @@ import { WebTextureInfo } from "./info.js";
 export default class WebTexture implements Texture {
     private _gl: WebGL2RenderingContext;
 
-    private _texture!: SmartRef<WebGLTexture>;
-    get texture(): SmartRef<WebGLTexture> {
+    private _texture!: WebGLTexture;
+    get texture(): WebGLTexture {
         return this._texture;
     }
 
-    private _renderbuffer!: SmartRef<WebGLRenderbuffer>;
-    get renderbuffer(): SmartRef<WebGLRenderbuffer> {
+    private _renderbuffer!: WebGLRenderbuffer;
+    get renderbuffer(): WebGLRenderbuffer {
         return this._renderbuffer;
     }
 
@@ -43,8 +42,8 @@ export default class WebTexture implements Texture {
         }
 
         if (info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-            this._texture = new SmartRef(gl.createTexture()!, gl.deleteTexture, gl)
-            gl.bindTexture(gl.TEXTURE_2D, this._texture.deref());
+            this._texture = gl.createTexture()!
+            gl.bindTexture(gl.TEXTURE_2D, this._texture);
             gl.texStorage2D(gl.TEXTURE_2D, 1, format, info.width, info.height);
 
             // just for rendering depth map
@@ -57,8 +56,8 @@ export default class WebTexture implements Texture {
 
             gl.bindTexture(gl.TEXTURE_2D, null);
         } else {
-            this._renderbuffer = new SmartRef(gl.createRenderbuffer()!, gl.deleteRenderbuffer, gl)
-            gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer.deref());
+            this._renderbuffer = gl.createRenderbuffer()!
+            gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer);
             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, info.samples, format, info.width, info.height);
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);

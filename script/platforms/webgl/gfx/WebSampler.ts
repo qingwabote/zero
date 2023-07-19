@@ -1,4 +1,3 @@
-import SmartRef from "../../../main/base/SmartRef.js";
 import { Sampler } from "../../../main/core/gfx/Sampler.js";
 import { Filter, SamplerInfo } from "../../../main/core/gfx/info.js";
 
@@ -14,8 +13,8 @@ function getFilter(val: Filter): GLenum {
 export default class WebSampler implements Sampler {
     private _gl: WebGL2RenderingContext;
 
-    private _impl!: SmartRef<WebGLSampler>;
-    get impl(): SmartRef<WebGLSampler> {
+    private _impl!: WebGLSampler;
+    get impl(): WebGLSampler {
         return this._impl;
     }
 
@@ -26,12 +25,12 @@ export default class WebSampler implements Sampler {
     initialize(info: SamplerInfo): boolean {
         const gl = this._gl;
 
-        const sampler = new SmartRef(gl.createSampler()!, gl.deleteSampler, gl);
-        gl.samplerParameteri(sampler.deref(), gl.TEXTURE_MIN_FILTER, getFilter(info.magFilter));
-        gl.samplerParameteri(sampler.deref(), gl.TEXTURE_MAG_FILTER, getFilter(info.minFilter));
-        gl.samplerParameteri(sampler.deref(), gl.TEXTURE_WRAP_S, WebGL2RenderingContext.REPEAT);
-        gl.samplerParameteri(sampler.deref(), gl.TEXTURE_WRAP_T, WebGL2RenderingContext.REPEAT);
-        gl.samplerParameteri(sampler.deref(), gl.TEXTURE_WRAP_R, WebGL2RenderingContext.REPEAT);
+        const sampler = gl.createSampler()!
+        gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, getFilter(info.magFilter));
+        gl.samplerParameteri(sampler, gl.TEXTURE_MAG_FILTER, getFilter(info.minFilter));
+        gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, WebGL2RenderingContext.REPEAT);
+        gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_T, WebGL2RenderingContext.REPEAT);
+        gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_R, WebGL2RenderingContext.REPEAT);
         this._impl = sampler;
 
         return false;

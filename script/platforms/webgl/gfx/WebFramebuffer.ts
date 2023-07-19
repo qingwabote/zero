@@ -1,4 +1,3 @@
-import SmartRef from "../../../main/base/SmartRef.js";
 import { Framebuffer } from "../../../main/core/gfx/Framebuffer.js";
 import Texture from "../../../main/core/gfx/Texture.js";
 import { FramebufferInfo, SampleCountFlagBits } from "../../../main/core/gfx/info.js";
@@ -8,8 +7,8 @@ import { WebVector } from "./info.js";
 export default class WebFramebuffer implements Framebuffer {
     private _gl: WebGL2RenderingContext;
 
-    private _impl?: SmartRef<WebGLFramebuffer>;
-    get impl(): SmartRef<WebGLFramebuffer> | undefined {
+    private _impl?: WebGLFramebuffer;
+    get impl(): WebGLFramebuffer | undefined {
         return this._impl;
     }
 
@@ -32,22 +31,22 @@ export default class WebFramebuffer implements Framebuffer {
 
         const gl = this._gl;
 
-        const framebuffer = new SmartRef(gl.createFramebuffer()!, gl.deleteFramebuffer, gl)
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.deref());
+        const framebuffer = gl.createFramebuffer()!
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
         for (let i = 0; i < (info.colorAttachments as WebVector<Texture>).data.length; i++) {
             const attachment = (info.colorAttachments as WebVector<Texture>).data[i] as WebTexture;
             if (attachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, attachment.texture.deref(), 0);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, attachment.texture, 0);
             } else {
-                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, attachment.renderbuffer.deref());
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, attachment.renderbuffer);
             }
         }
         const depthStencilAttachment = info.depthStencilAttachment as WebTexture;
         if (depthStencilAttachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthStencilAttachment.texture.deref(), 0);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthStencilAttachment.texture, 0);
         } else {
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilAttachment.renderbuffer.deref());
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilAttachment.renderbuffer);
         }
 
         // gl.drawBuffers([gl.NONE]);

@@ -1,4 +1,3 @@
-import SmartRef from "../../../main/base/SmartRef.js";
 import Shader from "../../../main/core/gfx/Shader.js";
 import glsl from "../../../main/core/gfx/glsl.js";
 import { ShaderInfo, ShaderStageFlagBits } from "../../../main/core/gfx/info.js";
@@ -12,8 +11,8 @@ export default class WebShader implements Shader {
         return this._info;
     }
 
-    private _program!: SmartRef<WebGLProgram>;
-    get program(): SmartRef<WebGLProgram> {
+    private _program!: WebGLProgram;
+    get program(): WebGLProgram {
         return this._program;
     }
 
@@ -57,14 +56,14 @@ export default class WebShader implements Shader {
             shaders.push(shader);
         }
 
-        const program = new SmartRef(gl.createProgram()!, gl.deleteProgram, gl)
+        const program = gl.createProgram()!
         for (const shader of shaders) {
-            gl.attachShader(program.deref(), shader);
+            gl.attachShader(program, shader);
         }
-        gl.linkProgram(program.deref());
-        if (!gl.getProgramParameter(program.deref(), gl.LINK_STATUS)) {
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             console.error(`Failed to link shader.`);
-            console.error(gl.getProgramInfoLog(program.deref()));
+            console.error(gl.getProgramInfoLog(program));
             return true;
         }
 
@@ -72,14 +71,14 @@ export default class WebShader implements Shader {
 
         for (const name in meta.blocks) {
             const block = meta.blocks[name];
-            const index = gl.getUniformBlockIndex(program.deref(), name);
-            gl.uniformBlockBinding(program.deref(), index, block.binding + block.set * 10)
+            const index = gl.getUniformBlockIndex(program, name);
+            gl.uniformBlockBinding(program, index, block.binding + block.set * 10)
         }
 
-        gl.useProgram(program.deref());
+        gl.useProgram(program);
         for (const name in meta.samplerTextures) {
             const sampler = meta.samplerTextures[name];
-            const loc = gl.getUniformLocation(program.deref(), name);
+            const loc = gl.getUniformLocation(program, name);
             if (!loc) continue;
             gl.uniform1i(loc, sampler.binding + sampler.set * 10);
         }
@@ -87,7 +86,7 @@ export default class WebShader implements Shader {
 
         //After the link operation, applications are free to modify attached shader objects, compile attached shader objects, detach shader objects, delete shader objects, and attach additional shader objects. None of these operations affects the information log or the program that is part of the program object
         for (const shader of shaders) {
-            gl.detachShader(program.deref(), shader);
+            gl.detachShader(program, shader);
             gl.deleteShader(shader);
         }
 
