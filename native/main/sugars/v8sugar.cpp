@@ -1,4 +1,5 @@
 #include "v8sugar.hpp"
+#include "internal/v8/Weak.hpp"
 #include "log.h"
 #include <sstream>
 #include <unordered_map>

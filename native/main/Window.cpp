@@ -5,6 +5,7 @@
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "v8/libplatform/libplatform.h"
+#include "InspectorClient.hpp"
 #include "internal/console.hpp"
 #include "bg/Device.hpp"
 #include <chrono>
@@ -86,6 +87,8 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         v8::Local<v8::Context> context = v8::Context::New(isolate.get());
         v8::Context::Scope context_scope(context);
 
+        auto inspector = std::make_unique<InspectorClient>();
+
         auto global = context->Global();
 
         _device = std::make_unique<bg::Device>(sdl_window.get());
@@ -146,6 +149,8 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         bool running = true;
         while (running)
         {
+            inspector->tick();
+
             UniqueFunction<void> f{};
             while (_beforeTickQueue.pop(f))
             {

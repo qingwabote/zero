@@ -5,7 +5,11 @@ set(SRC_FILES
     Loader.cpp
     sugars/sdlsugar.cpp
     sugars/v8sugar.cpp
+    WebSocket.cpp
+    InspectorChannel.cpp
+    InspectorClient.cpp
     tests/v8.cpp
+    tests/websockets.cpp
     internal/console.cpp
     swig/auto/ImageBitmap_wrap.cpp
     swig/auto/Loader_wrap.cpp
@@ -19,8 +23,9 @@ set(SRC_FILES
 add_library(zero_main STATIC ${SRC_FILES})
 
 target_link_libraries(zero_main PUBLIC sdl)
+target_link_libraries(zero_main PUBLIC websockets)
 target_link_libraries(zero_main PUBLIC v8)
-target_include_directories(zero_main PUBLIC ./ ./sdl ./v8)
+target_include_directories(zero_main PUBLIC ./ ./sdl ./lws ./v8)
 
 include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)

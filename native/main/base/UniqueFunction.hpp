@@ -55,5 +55,7 @@ public:
 
     virtual Ret operator()(Args &&...args) { return _holder->call(std::forward<Args>(args)...); }
 
+    operator bool() const { return _holder != nullptr; }
+
     virtual ~UniqueFunction() { delete _holder; }
 };

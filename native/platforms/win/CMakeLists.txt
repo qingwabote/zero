@@ -18,6 +18,16 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.dll $<TARGET_FILE_DIR:${PROJECT_NAME}>/${SDL2.dll}
 )
 
+# websockets
+add_library(websockets SHARED IMPORTED GLOBAL)
+set_target_properties(websockets PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/lws/websockets.dll
+    IMPORTED_IMPLIB ${CMAKE_CURRENT_LIST_DIR}/libs/lws/websockets.lib
+)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/libs/lws/websockets.dll $<TARGET_FILE_DIR:${PROJECT_NAME}>/${websockets.dll}
+)
+
 # v8
 add_library(v8 SHARED IMPORTED GLOBAL)
 set_target_properties(v8 PROPERTIES

@@ -25,14 +25,14 @@ namespace gfx
         VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
 
         // vertexInputState
-        auto gfx_vertexInputState = info->vertexInputState;
+        auto &gfx_vertexInputState = info->vertexInputState;
 
         VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
-        auto gfx_attributes = gfx_vertexInputState->attributes;
+        auto &gfx_attributes = gfx_vertexInputState->attributes;
         std::vector<VkVertexInputAttributeDescription> attributes{gfx_attributes->size()};
         for (uint32_t i = 0; i < gfx_attributes->size(); i++)
         {
-            auto gfx_attribute = gfx_attributes->at(i);
+            auto &gfx_attribute = gfx_attributes->at(i);
             attributes[i].location = gfx_attribute->location;
             attributes[i].binding = gfx_attribute->binding;
             attributes[i].format = static_cast<VkFormat>(gfx_attribute->format);
@@ -41,11 +41,11 @@ namespace gfx
         vertexInputState.vertexAttributeDescriptionCount = attributes.size();
         vertexInputState.pVertexAttributeDescriptions = attributes.data();
 
-        auto gfx_bindings = gfx_vertexInputState->bindings;
+        auto &gfx_bindings = gfx_vertexInputState->bindings;
         std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_bindings->size()};
         for (uint32_t i = 0; i < gfx_bindings->size(); i++)
         {
-            auto gfx_binding = gfx_bindings->at(i);
+            auto &gfx_binding = gfx_bindings->at(i);
             bindingDescriptions[i].binding = gfx_binding->binding;
             bindingDescriptions[i].stride = gfx_binding->stride;
             bindingDescriptions[i].inputRate = static_cast<VkVertexInputRate>(gfx_binding->inputRate);
@@ -55,9 +55,9 @@ namespace gfx
         pipelineInfo.pVertexInputState = &vertexInputState;
 
         // passState
-        auto gfx_passState = info->passState;
+        auto &gfx_passState = info->passState;
 
-        auto gfx_shader = gfx_passState->shader;
+        auto &gfx_shader = gfx_passState->shader;
         auto &stageInfos = gfx_shader->impl()->stages();
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
@@ -98,7 +98,7 @@ namespace gfx
             }
         }
 
-        auto gfx_rasterizationState = gfx_passState->rasterizationState;
+        auto &gfx_rasterizationState = gfx_passState->rasterizationState;
         VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
         rasterizationState.rasterizerDiscardEnable = VK_FALSE;
         rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
@@ -111,7 +111,7 @@ namespace gfx
         rasterizationState.lineWidth = 1;
         pipelineInfo.pRasterizationState = &rasterizationState;
 
-        auto gfx_depthStencilState = gfx_passState->depthStencilState;
+        auto &gfx_depthStencilState = gfx_passState->depthStencilState;
         VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
         if (gfx_depthStencilState)
         {
@@ -121,7 +121,7 @@ namespace gfx
         }
         pipelineInfo.pDepthStencilState = &depthStencilState;
 
-        auto gfx_blendState = gfx_passState->blendState;
+        auto &gfx_blendState = gfx_passState->blendState;
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -143,7 +143,7 @@ namespace gfx
         pipelineInfo.pColorBlendState = &colorBlending;
 
         // renderPass
-        auto gfx_renderPass = info->renderPass;
+        auto &gfx_renderPass = info->renderPass;
         VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
         multisampleState.sampleShadingEnable = VK_FALSE;
         multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(gfx_renderPass->info()->samples);
