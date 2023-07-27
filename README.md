@@ -1,4 +1,4 @@
-# Showcase
+# showcase
 
 [Shadow Map](https://qingwabote.github.io/zero/projects/test/script/platforms/web/app.html)
 
@@ -10,7 +10,7 @@
 
 [Physics](https://qingwabote.github.io/zero/projects/vehicle/script/platforms/web/app.html)
 
-# Architecture
+# architecture
 
 ```plantuml
 skinparam handwritten true
@@ -50,4 +50,10 @@ Logic-r->System
 
 RenderScene-d->GFX
 Pipeline-d->GFX
+```
+
+# v8 inspector
+
+```
+devtools://devtools/bundled/js_app.html?v8only=true&ws=127.0.0.1:6086
 ```

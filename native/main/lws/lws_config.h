@@ -6,8 +6,6 @@
 	#endif
 #endif
 
-#define LWS_INSTALL_DATADIR "C:/Program Files (x86)/libwebsockets/share"
-#define LWS_INSTALL_LIBDIR "C:/Program Files (x86)/libwebsockets/lib"
 #define LWS_LIBRARY_VERSION_MAJOR 4
 #define LWS_LIBRARY_VERSION_MINOR 3
 #define LWS_LIBRARY_VERSION_PATCH_ELABORATED 2-unknown
@@ -31,11 +29,8 @@
 /* #undef LWS_DETECTED_PLAT_IOS */
 /* #undef LWS_FALLBACK_GETHOSTBYNAME */
 #define LWS_HAS_INTPTR_T
-/* #undef LWS_HAS_GETOPT_LONG */
-#define LWS_HAVE__ATOI64
 #define LWS_HAVE_ATOLL
 /* #undef LWS_HAVE_BN_bn2binpad */
-/* #undef LWS_HAVE_CLOCK_GETTIME */
 /* #undef LWS_HAVE_EC_POINT_get_affine_coordinates */
 /* #undef LWS_HAVE_EC_KEY_new_by_curve_name */
 /* #undef LWS_HAVE_ECDSA_SIG_set0 */
@@ -53,18 +48,12 @@
 /* #undef LWS_HAVE_EVP_aes_128_ecb */
 /* #undef LWS_HAVE_EVP_PKEY_new_raw_private_key */
 #define LWS_HAVE_EXECVPE
-/* #undef LWS_HAVE_LOCALTIME_R */
-/* #undef LWS_HAVE_GMTIME_R */
-/* #undef LWS_HAVE_CTIME_R */
 /* #undef LWS_HAVE_GETGRGID_R */
 /* #undef LWS_HAVE_GETGRNAM_R */
-/* #undef LWS_HAVE_GETPWUID_R */
-/* #undef LWS_HAVE_GETPWNAM_R */
 /* #undef LWS_HAVE_LIBCAP */
 /* #undef LWS_HAVE_HMAC_CTX_new */
 #define LWS_HAVE_MALLOC_H
 /* #undef LWS_HAVE_MALLOC_TRIM */
-/* #undef LWS_HAVE_MALLOC_USABLE_SIZE */
 /* #undef LWS_HAVE_mbedtls_md_setup */
 /* #undef LWS_HAVE_mbedtls_net_init */
 /* #undef LWS_HAVE_mbedtls_rsa_complete */
@@ -82,9 +71,7 @@
 /* #undef LWS_HAVE_NEW_UV_VERSION_H */
 /* #undef LWS_HAVE_OPENSSL_ECDH_H */
 /* #undef LWS_HAVE_OPENSSL_STACK */
-/* #undef LWS_HAVE_PIPE2 */
 /* #undef LWS_HAVE_EVENTFD */
-/* #undef LWS_HAVE_PTHREAD_H */
 /* #undef LWS_HAVE_RSA_SET0_KEY */
 /* #undef LWS_HAVE_RSA_verify_pss_mgf1 */
 /* #undef LWS_HAVE_SSL_CTX_get0_certificate */
@@ -99,15 +86,10 @@
 /* #undef LWS_HAVE_SSL_SET_INFO_CALLBACK */
 /* #undef LWS_HAVE_SSL_SESSION_set_time */
 /* #undef LWS_HAVE_SSL_SESSION_up_ref */
-#define LWS_HAVE__STAT32I64
 #define LWS_HAVE_STDINT_H
-/* #undef LWS_HAVE_SYS_CAPABILITY_H */
-/* #undef LWS_HAVE_TIMEGM */
 /* #undef LWS_HAVE_TLS_CLIENT_METHOD */
 /* #undef LWS_HAVE_TLSV1_2_CLIENT_METHOD */
-/* #undef LWS_HAVE_SUSECONDS_T */
 /* #undef LWS_HAVE_UV_VERSION_H */
-/* #undef LWS_HAVE_VFORK */
 /* #undef LWS_HAVE_X509_get_key_usage */
 /* #undef LWS_HAVE_X509_VERIFY_PARAM_set1_host */
 #define LWS_LIBRARY_VERSION "4.3.2-unknown"
@@ -120,7 +102,6 @@
 /* #undef LWS_OPENSSL_CLIENT_CERTS */
 /* #undef LWS_OPENSSL_SUPPORT */
 /* #undef LWS_PLAT_OPTEE */
-/* #undef LWS_PLAT_UNIX */
 /* #undef LWS_PLAT_FREERTOS */
 /* #undef LWS_ROLE_CGI */
 /* #undef LWS_ROLE_DBUS */
@@ -208,7 +189,6 @@
 /* #undef LWS_WITH_SELFTESTS */
 /* #undef LWS_WITH_SEQUENCER */
 /* #undef LWS_WITH_SERVER_STATUS */
-/* #undef LWS_WITH_SYS_SMD */
 /* #undef LWS_WITH_SMTP */
 /* #undef LWS_WITH_SOCKS5 */
 /* #undef LWS_WITH_STATEFUL_URLDECODE */
@@ -233,8 +213,6 @@
 /* #undef USE_OLD_CYASSL */
 /* #undef USE_WOLFSSL */
 /* #undef LWS_WITH_EVENT_LIBS */
-/* #undef LWS_WITH_EVLIB_PLUGINS */
 /* #undef LWS_WITH_LIBUV_INTERNAL */
 /* #undef LWS_WITH_PLUGINS_API */
-/* #undef LWS_HAVE_RTA_PREF */
 

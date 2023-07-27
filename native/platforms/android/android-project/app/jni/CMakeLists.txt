@@ -15,6 +15,12 @@ set_target_properties(sdl PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/libSDL2.so
 )
 
+# websockets
+add_library(websockets SHARED IMPORTED GLOBAL)
+set_target_properties(websockets PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/lws/libwebsockets.a
+)
+
 # v8
 add_library(v8 STATIC IMPORTED GLOBAL)
 set_target_properties(v8 PROPERTIES
