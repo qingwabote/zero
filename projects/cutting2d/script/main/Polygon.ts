@@ -1,4 +1,4 @@
-import { Vec2 } from "../../../../script/main/core/math/vec2.js";
+import { Vec2 } from "engine-main";
 
 export interface Vertex {
     readonly pos: Readonly<Vec2>;

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    ".",
+  ],
+  "compilerOptions": {
+    "paths": {
+      "gfx-main":["../../gfx/main"],
+      "gfx-webgl":["../../gfx/webgl"],
+      "engine-main": ["../main"],
+    }
+  }
+}

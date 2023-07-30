@@ -1,16 +1,16 @@
 import Primitive from "../../../../script/main/components/Primitive.js";
-import Component from "../../../../script/main/core/Component.js";
+import { Component } from "../../../../script/main/core/Component.js";
 import { InputEvent } from "../../../../script/main/core/Input.js";
-import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
+import { Vec3, vec3 } from "../../../../script/main/core/math/vec3.js";
 
 export default class DrawComponent extends Component {
     override start(): void {
         const primitive = this.node.addComponent(Primitive);
 
-        // const camera = zero.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
+        // const camera = Zero.instance.scene.cameras.find(camera => camera.visibilities & this.node.visibility)!;
 
         let last: Vec3;
-        zero.input.on(InputEvent.TOUCH_START, event => {
+        Zero.instance.input.on(InputEvent.TOUCH_START, event => {
             const touch = event.touches[0];
             const from = vec3.create();
             const to = vec3.create();

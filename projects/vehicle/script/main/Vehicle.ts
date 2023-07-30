@@ -1,12 +1,12 @@
-import GLTF from "../../../../script/main/assets/GLTF.js";
+import { GLTF } from "../../../../script/main/assets/GLTF.js";
 import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
 import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
-import assetLib from "../../../../script/main/core/assetLib.js";
-import Component from "../../../../script/main/core/Component.js";
-import quat from "../../../../script/main/core/math/quat.js";
-import vec3, { Vec3 } from "../../../../script/main/core/math/vec3.js";
-import vec4 from "../../../../script/main/core/math/vec4.js";
-import Node from "../../../../script/main/core/Node.js";
+import { assetLib } from "../../../../script/main/core/assetLib.js";
+import { Component } from "../../../../script/main/core/Component.js";
+import { quat } from "../../../../script/main/core/math/quat.js";
+import { Vec3, vec3 } from "../../../../script/main/core/math/vec3.js";
+import { vec4 } from "../../../../script/main/core/math/vec4.js";
+import { Node } from "../../../../script/main/core/Node.js";
 import PhysicsSystem from "../../../../script/main/physics/PhysicsSystem.js";
 
 const gltf_primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);

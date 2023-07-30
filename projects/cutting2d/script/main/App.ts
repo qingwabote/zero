@@ -1,16 +1,4 @@
-import Texture from "../../../../script/main/assets/Texture.js";
-import Camera from "../../../../script/main/components/Camera.js";
-import Profiler from "../../../../script/main/components/ui/Profiler.js";
-import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import assetLib from "../../../../script/main/core/assetLib.js";
-import vec2 from "../../../../script/main/core/math/vec2.js";
-import vec3 from "../../../../script/main/core/math/vec3.js";
-import Node from "../../../../script/main/core/Node.js";
-import Flow from "../../../../script/main/core/pipeline/Flow.js";
-import Zero from "../../../../script/main/core/Zero.js";
-import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
-import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
+import { Camera, Flow, ModelPhase, Node, Profiler, Texture, UIDocument, VisibilityFlagBits, Zero, assetLib, stageFactory, vec2, vec3 } from "engine-main";
 import CuttingBoard from "./CuttingBoard.js";
 
 const favicon = await assetLib.load('../../assets/favicon.ico', Texture);

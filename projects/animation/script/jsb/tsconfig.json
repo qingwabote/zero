@@ -1,0 +1,15 @@
+{
+  "extends": "../../../../script/tsconfig.json",
+  "include": [
+    ".",
+    "../main",
+    "../../../../script/engine/jsb",
+  ],
+  "compilerOptions": {
+    "paths": {
+      "gfx-main":["../../../../script/gfx/main"],
+      "engine-main": ["../../../../script/engine/main"],
+    },
+    "outDir": "dist"
+  }
+}

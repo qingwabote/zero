@@ -1,15 +1,15 @@
-import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
-import Camera from "../../../../script/main/components/Camera.js";
-import Profiler from "../../../../script/main/components/ui/Profiler.js";
+import { VisibilityFlagBits } from "../../../../script/main/VisibilityFlagBits.js";
+import { Camera } from "../../../../script/main/components/Camera.js";
+import { Profiler } from "../../../../script/main/components/ui/Profiler.js";
 import Slider from "../../../../script/main/components/ui/Slider.js";
-import UIDocument from "../../../../script/main/components/ui/UIDocument.js";
-import Node from "../../../../script/main/core/Node.js";
-import Zero from "../../../../script/main/core/Zero.js";
-import vec2 from "../../../../script/main/core/math/vec2.js";
-import vec3 from "../../../../script/main/core/math/vec3.js";
-import Flow from "../../../../script/main/core/pipeline/Flow.js";
-import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
+import { UIDocument } from "../../../../script/main/components/ui/UIDocument.js";
+import { Node } from "../../../../script/main/core/Node.js";
+import { Zero } from "../../../../script/main/core/Zero.js";
+import { vec2 } from "../../../../script/main/core/math/vec2.js";
+import { vec3 } from "../../../../script/main/core/math/vec3.js";
+import { Flow } from "../../../../script/main/core/pipeline/Flow.js";
+import { ModelPhase } from "../../../../script/main/pipeline/phases/ModelPhase.js";
+import { stageFactory } from "../../../../script/main/pipeline/stageFactory.js";
 
 export default class App extends Zero {
     start(): Flow {

@@ -51,7 +51,9 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         return -1;
     }
 
-    const std::filesystem::path project = bootstrap_json["project"];
+    const std::filesystem::path root = bootstrap_json["root"];
+    const std::string project_name = bootstrap_json["project"];
+    const std::filesystem::path project_path = std::filesystem::path(root).append("projects/" + project_name);
 
     std::unique_ptr<v8::Platform>
         platform = v8::platform::NewDefaultPlatform();
@@ -61,7 +63,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
     // Isolate Scope
     {
-        sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(project).append("imports.json"));
+        sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(project_path).append("script/jsb/imports.json"));
         if (!isolate)
         {
             return -1;
@@ -94,14 +96,14 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         _device = std::make_unique<bg::Device>(sdl_window.get());
         _device->initialize();
 
-        _loader = std::make_unique<loader::Loader>(project, this, &ThreadPool::shared());
+        _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
 
         ImageBitmap_initialize(global);
 
         Loader_initialize(global);
 
         auto gfx = v8::Object::New(isolate.get());
-        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), gfx)
+        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "_gfx_impl"), gfx)
             .ToChecked();
         gfx_initialize(gfx);
 
@@ -109,26 +111,18 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         console_initialize(context, global);
 
-        std::filesystem::current_path(project);
-        std::error_code ec;
-
-        v8::Local<v8::Promise> polyfill_promise;
-        std::filesystem::path polyfill_src = std::filesystem::canonical("script/platforms/jsb/dist/script/platforms/jsb/polyfill.js");
-        if (ec)
+        v8::Local<v8::Promise> engine_promise;
+        sugar::v8::module_evaluate(context, "engine-jsb", &engine_promise);
+        if (engine_promise.IsEmpty())
         {
-            ZERO_LOG_ERROR("%s", ec.message().c_str());
-            return -1;
-        }
-        sugar::v8::module_evaluate(context, polyfill_src, &polyfill_promise);
-        if (polyfill_promise->State() != v8::Promise::PromiseState::kFulfilled)
-        {
+            ZERO_LOG_ERROR("module engine-jsb load failed\n");
             return -1;
         }
 
-        std::filesystem::path appSrc = std::filesystem::canonical(bootstrap_json["app"]);
-        if (ec)
+        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/projects/" + project_name + "/script/main/App.js");
+        if (!std::filesystem::exists(appSrc))
         {
-            ZERO_LOG_ERROR("%s", ec.message().c_str());
+            ZERO_LOG_ERROR("App.js not exists: %s", appSrc.string().c_str());
             return -1;
         }
 
@@ -198,8 +192,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
                 {
                     v8::EscapableHandleScope scope(isolate.get());
-
-                    global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), app).ToChecked();
 
                     auto initialize = sugar::v8::object_get(app, "initialize").As<v8::Function>();
                     if (initialize.IsEmpty())

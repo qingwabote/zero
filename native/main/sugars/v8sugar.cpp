@@ -290,10 +290,10 @@ namespace sugar::v8
         _v8::Context::Scope context_scope(context);
 
         std::string specifier_string(*_v8::String::Utf8Value(isolate, specifier));
-
         auto &imports = isolate_data(isolate)->imports();
         auto imports_it = imports.find(specifier_string);
-        std::filesystem::path path(imports_it != imports.end() ? imports_it->second.string() : specifier_string);
+
+        std::filesystem::path path = imports_it != imports.end() ? imports_it->second : std::filesystem::path(specifier_string);
 
         auto &module2path = isolate_data(isolate)->module2path;
         if (path.is_relative())
@@ -342,7 +342,7 @@ namespace sugar::v8
         return handle_scope.EscapeMaybe(maybeModule);
     }
 
-    void module_evaluate(_v8::Local<_v8::Context> context, std::filesystem::path &path, _v8::Local<_v8::Promise> *out_promise, _v8::Local<_v8::Module> *out_module)
+    void module_evaluate(_v8::Local<_v8::Context> context, const std::filesystem::path &path, _v8::Local<_v8::Promise> *out_promise, _v8::Local<_v8::Module> *out_module)
     {
         _v8::Isolate *isolate = context->GetIsolate();
 

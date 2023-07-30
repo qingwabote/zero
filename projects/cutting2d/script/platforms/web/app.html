@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <title>test</title>
-  <link rel="icon" href="../../../../../assets/favicon.ico" />
+  <link rel="icon" href="/assets/favicon.ico" />
 </head>
 
 <body style="display:flex;">
@@ -29,11 +29,11 @@
     const currentScript = document.currentScript;
     const req = new XMLHttpRequest();
     // use synchronous request
-    req.open('GET', "../../../imports.json", false);
+    req.open('GET', "/script/imports.json", false);
     req.onload = function () {
       const imports = JSON.parse(req.response);
       for (const key in imports) {
-        imports[key] = "../../../" + imports[key];
+        imports[key] = "/script/" + imports[key];
       }
       const im = document.createElement('script');
       im.type = 'importmap';
@@ -43,13 +43,11 @@
     req.send();
   </script>
   <script type="module">
+    import { WebDevice } from "./dist/script/platforms/webgl/index.js";
+    window.device = new WebDevice(document.getElementById("ZeroCanvas"));
+
     import WebLoader from "./dist/script/platforms/webgl/WebLoader.js";
     window.loader = new WebLoader;
-
-    import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
-    window.device = new WebDevice(document.getElementById("ZeroCanvas"));
-    import WebNS from "./dist/script/platforms/webgl/gfx/WebNS.js";
-    window.gfx = new WebNS;   
   </script>
   <script type="module">
     import App from "./dist/projects/cutting2d/script/main/App.js";

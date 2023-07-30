@@ -1,7 +1,9 @@
 {
   "extends": "../../../../script/tsconfig.json",
-  "include": [
-    "../../../../script/main",
-    "."
-  ]
+  "compilerOptions": {
+    "paths": {
+      "gfx-main": ["../../../../script/gfx/main"],
+      "engine-main": ["../../../../script/engine/main"],
+    }
+  }
 }

@@ -11,8 +11,8 @@ C:\Users\name\AppData\Roaming\zero\bootstrap.json
 
 ```json
 {
-  "project": "/storage/emulated/0/Android/data/org.libsdl.app/files/projects/test/",
-  "app": "script/platforms/jsb/dist/projects/test/script/main/App.js"
+  "root": "c:/Users/qingwabote/Documents/zero/",
+  "project": "animation"
 }
 ```
 

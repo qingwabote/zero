@@ -1,13 +1,5 @@
-import Primitive from "../../../../script/main/components/Primitive.js";
-import UIContainer from "../../../../script/main/components/ui/UIContainer.js";
-import UIRenderer from "../../../../script/main/components/ui/UIRenderer.js";
-import { UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
-import Node from "../../../../script/main/core/Node.js";
-import Texture from "../../../../script/main/core/gfx/Texture.js";
-import vec2, { Vec2 } from "../../../../script/main/core/math/vec2.js";
-import vec3 from "../../../../script/main/core/math/vec3.js";
-import vec4, { Vec4 } from "../../../../script/main/core/math/vec4.js";
-import { PIXELS_PER_UNIT } from "../../../../script/main/core/scene/SubMesh.js";
+import { Node, Primitive, UIContainer, UIRenderer, UITouchEventType, Vec2, Vec4, vec2, vec3, vec4 } from "engine-main";
+import { Texture } from "gfx-main";
 import { Polygon, Vertex } from "./Polygon.js";
 import PolygonsRenderer from "./PolygonsRenderer.js";
 

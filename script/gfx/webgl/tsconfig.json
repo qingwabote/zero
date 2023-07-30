@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "gfx-main":["../main"]
+    },
+    "outDir": "dist"
+  }
+}

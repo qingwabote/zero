@@ -1,19 +1,19 @@
-import VisibilityFlagBits from "../../../../script/main/VisibilityFlagBits.js";
-import Camera from "../../../../script/main/components/Camera.js";
-import Node from "../../../../script/main/core/Node.js";
-import Zero from "../../../../script/main/core/Zero.js";
-import Format from "../../../../script/main/core/gfx/Format.js";
+import { VisibilityFlagBits } from "../../../../script/main/VisibilityFlagBits.js";
+import { Camera } from "../../../../script/main/components/Camera.js";
+import { Node } from "../../../../script/main/core/Node.js";
+import { Zero } from "../../../../script/main/core/Zero.js";
+import { Format } from "../../../../script/main/core/gfx/Format.js";
 import { BufferUsageFlagBits, CullMode, PrimitiveTopology } from "../../../../script/main/core/gfx/info.js";
-import vec3 from "../../../../script/main/core/math/vec3.js";
-import Flow from "../../../../script/main/core/pipeline/Flow.js";
-import Model from "../../../../script/main/core/scene/Model.js";
-import Pass from "../../../../script/main/core/scene/Pass.js";
+import { vec3 } from "../../../../script/main/core/math/vec3.js";
+import { Flow } from "../../../../script/main/core/pipeline/Flow.js";
+import { Model } from "../../../../script/main/core/scene/Model.js";
+import { Pass } from "../../../../script/main/core/scene/Pass.js";
 import SubMesh, { VertexAttribute, VertexInputView } from "../../../../script/main/core/scene/SubMesh.js";
-import SubModel from "../../../../script/main/core/scene/SubModel.js";
-import BufferViewWritable from "../../../../script/main/core/scene/buffers/BufferViewWritable.js";
-import shaderLib from "../../../../script/main/core/shaderLib.js";
-import ModelPhase from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import stageFactory from "../../../../script/main/pipeline/stageFactory.js";
+import { SubModel } from "../../../../script/main/core/scene/SubModel.js";
+import { BufferViewWritable } from "../../../../script/main/core/scene/buffers/BufferViewWritable.js";
+import { shaderLib } from "../../../../script/main/core/shaderLib.js";
+import { ModelPhase } from "../../../../script/main/pipeline/phases/ModelPhase.js";
+import { stageFactory } from "../../../../script/main/pipeline/stageFactory.js";
 
 const shader = await shaderLib.load('triangle');
 
@@ -53,9 +53,9 @@ export default class App extends Zero {
             vertexOrIndexCount: 3
         }
 
-        const rasterizationState = new gfx.RasterizationState;
+        const rasterizationState = new impl.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
-        const state = new gfx.PassState;
+        const state = new impl.PassState;
         state.shader = shader;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
@@ -65,7 +65,7 @@ export default class App extends Zero {
         node.visibilityFlag = VisibilityFlagBits.DEFAULT;
         node.position = [Math.random(), Math.random(), 0];
         const model = new Model(node, subModels);
-        zero.scene.addModel(model)
+        Zero.instance.scene.addModel(model)
 
         return new Flow([stageFactory.forward([new ModelPhase()], false)]);
     }

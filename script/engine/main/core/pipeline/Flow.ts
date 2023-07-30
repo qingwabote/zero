@@ -1,0 +1,154 @@
+import { ClearFlagBits, CommandBuffer, DescriptorSet, Framebuffer, ImageLayout, LOAD_OP, PipelineLayout, RenderPass, SampleCountFlagBits, TextureUsageBits, impl } from "gfx-main";
+import { Zero } from "../Zero.js";
+import { device } from "../impl.js";
+import { shaderLib } from "../shaderLib.js";
+import { Stage } from "./Stage.js";
+import { Uniform } from "./Uniform.js";
+
+export class Flow {
+    readonly framebuffer: Framebuffer;
+
+    private _drawCalls: number = 0;
+    get drawCalls() {
+        return this._drawCalls;
+    }
+
+    readonly globalDescriptorSet: DescriptorSet;
+
+    private _uniforms: Uniform[] = [];
+
+    private _globalPipelineLayout: PipelineLayout;
+
+    private _clearFlag2renderPass: Record<string, RenderPass> = {};
+
+    constructor(readonly stages: readonly Stage[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
+        const uniforms: Set<new () => Uniform> = new Set;
+        for (const stage of stages) {
+            for (const uniform of stage.uniforms) {
+                uniforms.add(uniform);
+            }
+        }
+
+        const descriptorSetLayoutInfo = new impl.DescriptorSetLayoutInfo;
+        for (const uniform of uniforms) {
+            const instance = new uniform;
+            descriptorSetLayoutInfo.bindings.add(shaderLib.createDescriptorSetLayoutBinding(instance.definition))
+            this._uniforms.push(instance);
+        }
+
+        const descriptorSetLayout = device.createDescriptorSetLayout();
+        (descriptorSetLayout as any).name = "global descriptorSetLayout";
+        descriptorSetLayout.initialize(descriptorSetLayoutInfo);
+
+        const pipelineLayoutInfo = new impl.PipelineLayoutInfo;
+        pipelineLayoutInfo.layouts.add(descriptorSetLayout);
+        const pipelineLayout = device.createPipelineLayout();
+        pipelineLayout.initialize(pipelineLayoutInfo);
+        this._globalPipelineLayout = pipelineLayout;
+
+        const globalDescriptorSet = device.createDescriptorSet();
+        globalDescriptorSet.initialize(descriptorSetLayout);
+        this.globalDescriptorSet = globalDescriptorSet;
+
+        const framebufferInfo = new impl.FramebufferInfo;
+        if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
+            framebufferInfo.colorAttachments.add(device.swapchain.colorTexture);
+        } else {
+            const colorAttachmentInfo = new impl.TextureInfo;
+            colorAttachmentInfo.samples = samples;
+            colorAttachmentInfo.usage = TextureUsageBits.COLOR_ATTACHMENT | TextureUsageBits.TRANSIENT_ATTACHMENT;
+            colorAttachmentInfo.width = Zero.instance.window.width;
+            colorAttachmentInfo.height = Zero.instance.window.height;
+            const colorAttachment = device.createTexture();
+            colorAttachment.initialize(colorAttachmentInfo);
+            framebufferInfo.colorAttachments.add(colorAttachment);
+            framebufferInfo.resolveAttachments.add(device.swapchain.colorTexture);
+        }
+
+        const depthStencilAttachmentInfo = new impl.TextureInfo;
+        depthStencilAttachmentInfo.samples = samples;
+        depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
+        depthStencilAttachmentInfo.width = Zero.instance.window.width;
+        depthStencilAttachmentInfo.height = Zero.instance.window.height;
+        const depthStencilAttachment = device.createTexture();
+        depthStencilAttachment.initialize(depthStencilAttachmentInfo);
+        framebufferInfo.depthStencilAttachment = depthStencilAttachment;
+
+        framebufferInfo.renderPass = this.getRenderPass(ClearFlagBits.COLOR, samples);
+        framebufferInfo.width = Zero.instance.window.width;
+        framebufferInfo.height = Zero.instance.window.height;
+
+        const framebuffer = device.createFramebuffer();
+        framebuffer.initialize(framebufferInfo);
+        this.framebuffer = framebuffer;
+    }
+
+    initialize() {
+        for (const uniform of this._uniforms) {
+            uniform.initialize();
+        }
+    }
+
+    update() {
+        Zero.instance.scene.update();
+
+        for (const uniform of this._uniforms) {
+            uniform.update();
+        }
+    }
+
+    record(commandBuffer: CommandBuffer) {
+        this._drawCalls = 0;
+
+        const renderScene = Zero.instance.scene;
+        for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
+            const camera = renderScene.cameras[cameraIndex];
+            const dynamicOffsets = new impl.Uint32Vector;
+            dynamicOffsets.add(shaderLib.sets.global.uniforms.Camera.size * cameraIndex);
+            commandBuffer.bindDescriptorSet(this._globalPipelineLayout, shaderLib.sets.global.index, this.globalDescriptorSet, dynamicOffsets);
+            for (const stage of this.stages) {
+                if ((camera.visibilityFlags & stage.visibility) == 0) {
+                    continue;
+                }
+                stage.record(commandBuffer, camera);
+                this._drawCalls += stage.drawCalls;
+            }
+        }
+    }
+
+    getRenderPass(clearFlags: ClearFlagBits, samples = SampleCountFlagBits.SAMPLE_COUNT_1): RenderPass {
+        const hash = `${clearFlags}${samples}`;
+        let renderPass = this._clearFlag2renderPass[hash];
+        if (!renderPass) {
+            const info = new impl.RenderPassInfo;
+            if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
+                const colorAttachmentDescription = new impl.AttachmentDescription;
+                colorAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+                colorAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
+                colorAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
+                info.colorAttachments.add(colorAttachmentDescription);
+            } else {
+                const colorAttachmentDescription = new impl.AttachmentDescription;
+                colorAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+                colorAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
+                colorAttachmentDescription.finalLayout = ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
+                info.colorAttachments.add(colorAttachmentDescription);
+                const resolveAttachmentDescription = new impl.AttachmentDescription;
+                resolveAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+                resolveAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
+                resolveAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
+                info.resolveAttachments.add(resolveAttachmentDescription);
+            }
+            const depthStencilAttachment = new impl.AttachmentDescription();
+            depthStencilAttachment.loadOp = clearFlags & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+            depthStencilAttachment.initialLayout = clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            info.depthStencilAttachment = depthStencilAttachment;
+            info.samples = samples;
+            renderPass = device.createRenderPass();
+            renderPass.initialize(info);
+            this._clearFlag2renderPass[hash] = renderPass;
+        }
+        return renderPass;
+    }
+}

@@ -23,5 +23,5 @@ void SWIGV8_DeletePrivateData(SWIGV8_OBJECT objRef) {
 }
 %}
 
-%constant loader::Loader *loader = Window_instance_loader();
-%constant gfx::Device *device = Window_instance_device();
+%constant loader::Loader *_zero_loader = Window_instance_loader();
+%constant gfx::Device *_zero_device = Window_instance_device();

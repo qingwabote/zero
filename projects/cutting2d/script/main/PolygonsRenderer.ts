@@ -1,17 +1,5 @@
-import Material from "../../../../script/main/assets/Material.js";
-import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
-import UIElement from "../../../../script/main/components/ui/internal/UIElement.js";
-import Node from "../../../../script/main/core/Node.js";
-import Format, { FormatInfos } from "../../../../script/main/core/gfx/Format.js";
-import Texture from "../../../../script/main/core/gfx/Texture.js";
-import { BufferUsageFlagBits, CullMode, IndexType, PrimitiveTopology } from "../../../../script/main/core/gfx/info.js";
-import vec2, { Vec2 } from "../../../../script/main/core/math/vec2.js";
-import vec3 from "../../../../script/main/core/math/vec3.js";
-import vec4 from "../../../../script/main/core/math/vec4.js";
-import Pass from "../../../../script/main/core/scene/Pass.js";
-import SubMesh, { VertexAttribute } from "../../../../script/main/core/scene/SubMesh.js";
-import BufferViewResizable from "../../../../script/main/core/scene/buffers/BufferViewResizable.js";
-import shaderLib from "../../../../script/main/core/shaderLib.js";
+import { BufferViewResizable, Material, MeshRenderer, Node, Pass, SubMesh, UIElement, Vec2, VertexAttribute, shaderLib, vec2, vec3, vec4 } from "engine-main";
+import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexType, PrimitiveTopology, Texture, impl } from "gfx-main";
 import { Polygon } from "./Polygon.js";
 
 const unlit = await shaderLib.load('unlit', { USE_ALBEDO_MAP: 1 })
@@ -59,9 +47,9 @@ export default class PolygonsRenderer extends UIElement {
     private _meshRenderers: MeshRenderer[] = [];
 
     override start(): void {
-        const rasterizationState = new gfx.RasterizationState;
+        const rasterizationState = new impl.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
-        const state = new gfx.PassState();
+        const state = new impl.PassState();
         state.shader = unlit;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;

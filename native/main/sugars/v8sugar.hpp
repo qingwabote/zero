@@ -26,7 +26,7 @@ namespace sugar::v8
         _v8::Local<_v8::FixedArray> import_assertions = _v8::Local<_v8::FixedArray>(),
         _v8::Local<_v8::Module> referrer = _v8::Local<_v8::Module>());
 
-    void module_evaluate(_v8::Local<_v8::Context> context, std::filesystem::path &path, _v8::Local<_v8::Promise> *promise, _v8::Local<_v8::Module> *module = nullptr);
+    void module_evaluate(_v8::Local<_v8::Context> context, const std::filesystem::path &path, _v8::Local<_v8::Promise> *promise, _v8::Local<_v8::Module> *module = nullptr);
 
     _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name);
 
