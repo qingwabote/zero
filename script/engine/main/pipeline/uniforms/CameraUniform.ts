@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits } from "gfx-main";
 import { Zero } from "../../core/Zero.js";
-import { Uniform } from "../../core/pipeline/Uniform.js";
-import { BufferViewResizable } from "../../core/scene/buffers/BufferViewResizable.js";
+import { Uniform } from "../../core/render/pipeline/Uniform.js";
+import { BufferViewResizable } from "../../core/render/scene/buffers/BufferViewResizable.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const CameraBlock = shaderLib.sets.global.uniforms.Camera;

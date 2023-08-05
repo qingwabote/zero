@@ -1,5 +1,5 @@
 import { Format, IndexType } from "gfx-main";
-import { Vec3 } from "../math/vec3.js";
+import { Vec3 } from "../../math/vec3.js";
 import { BufferView } from "./buffers/BufferView.js";
 
 export const PIXELS_PER_UNIT = 100;

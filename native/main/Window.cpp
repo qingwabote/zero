@@ -177,11 +177,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                         return -1;
                     }
 
-                    int width;
-                    int height;
-                    SDL_GetWindowSize(sdl_window.get(), &width, &height);
-                    v8::Local<v8::Value> args[] = {v8::Number::New(isolate.get(), width), v8::Number::New(isolate.get(), height)};
-                    auto app_maybe = constructor->NewInstance(context, 2, args);
+                    auto app_maybe = constructor->NewInstance(context, 0, nullptr);
                     if (app_maybe.IsEmpty())
                     {
                         return -1;

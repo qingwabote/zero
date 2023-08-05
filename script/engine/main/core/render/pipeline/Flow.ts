@@ -1,9 +1,11 @@
-import { ClearFlagBits, CommandBuffer, DescriptorSet, Framebuffer, ImageLayout, LOAD_OP, PipelineLayout, RenderPass, SampleCountFlagBits, TextureUsageBits, impl } from "gfx-main";
-import { Zero } from "../Zero.js";
-import { device } from "../impl.js";
-import { shaderLib } from "../shaderLib.js";
+import { ClearFlagBits, CommandBuffer, DescriptorSet, Framebuffer, PipelineLayout, SampleCountFlagBits, TextureUsageBits, impl } from "gfx-main";
+import { Zero } from "../../Zero.js";
+import { device } from "../../impl.js";
+import { shaderLib } from "../../shaderLib.js";
+import { Root } from "../scene/Root.js";
 import { Stage } from "./Stage.js";
 import { Uniform } from "./Uniform.js";
+import { getRenderPass } from "./rpc.js";
 
 export class Flow {
     readonly framebuffer: Framebuffer;
@@ -18,8 +20,6 @@ export class Flow {
     private _uniforms: Uniform[] = [];
 
     private _globalPipelineLayout: PipelineLayout;
-
-    private _clearFlag2renderPass: Record<string, RenderPass> = {};
 
     constructor(readonly stages: readonly Stage[], samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
         const uniforms: Set<new () => Uniform> = new Set;
@@ -57,8 +57,8 @@ export class Flow {
             const colorAttachmentInfo = new impl.TextureInfo;
             colorAttachmentInfo.samples = samples;
             colorAttachmentInfo.usage = TextureUsageBits.COLOR_ATTACHMENT | TextureUsageBits.TRANSIENT_ATTACHMENT;
-            colorAttachmentInfo.width = Zero.instance.window.width;
-            colorAttachmentInfo.height = Zero.instance.window.height;
+            colorAttachmentInfo.width = device.swapchain.width;
+            colorAttachmentInfo.height = device.swapchain.height;
             const colorAttachment = device.createTexture();
             colorAttachment.initialize(colorAttachmentInfo);
             framebufferInfo.colorAttachments.add(colorAttachment);
@@ -68,15 +68,15 @@ export class Flow {
         const depthStencilAttachmentInfo = new impl.TextureInfo;
         depthStencilAttachmentInfo.samples = samples;
         depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
-        depthStencilAttachmentInfo.width = Zero.instance.window.width;
-        depthStencilAttachmentInfo.height = Zero.instance.window.height;
+        depthStencilAttachmentInfo.width = device.swapchain.width;
+        depthStencilAttachmentInfo.height = device.swapchain.height;
         const depthStencilAttachment = device.createTexture();
         depthStencilAttachment.initialize(depthStencilAttachmentInfo);
         framebufferInfo.depthStencilAttachment = depthStencilAttachment;
 
-        framebufferInfo.renderPass = this.getRenderPass(ClearFlagBits.COLOR, samples);
-        framebufferInfo.width = Zero.instance.window.width;
-        framebufferInfo.height = Zero.instance.window.height;
+        framebufferInfo.renderPass = getRenderPass(ClearFlagBits.COLOR, samples);
+        framebufferInfo.width = device.swapchain.width;
+        framebufferInfo.height = device.swapchain.height;
 
         const framebuffer = device.createFramebuffer();
         framebuffer.initialize(framebufferInfo);
@@ -90,14 +90,12 @@ export class Flow {
     }
 
     update() {
-        Zero.instance.scene.update();
-
         for (const uniform of this._uniforms) {
             uniform.update();
         }
     }
 
-    record(commandBuffer: CommandBuffer) {
+    record(commandBuffer: CommandBuffer, scene: Root) {
         this._drawCalls = 0;
 
         const renderScene = Zero.instance.scene;
@@ -110,45 +108,9 @@ export class Flow {
                 if ((camera.visibilityFlags & stage.visibility) == 0) {
                     continue;
                 }
-                stage.record(commandBuffer, camera);
+                stage.record(commandBuffer, scene, camera);
                 this._drawCalls += stage.drawCalls;
             }
         }
-    }
-
-    getRenderPass(clearFlags: ClearFlagBits, samples = SampleCountFlagBits.SAMPLE_COUNT_1): RenderPass {
-        const hash = `${clearFlags}${samples}`;
-        let renderPass = this._clearFlag2renderPass[hash];
-        if (!renderPass) {
-            const info = new impl.RenderPassInfo;
-            if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-                const colorAttachmentDescription = new impl.AttachmentDescription;
-                colorAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-                colorAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
-                colorAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
-                info.colorAttachments.add(colorAttachmentDescription);
-            } else {
-                const colorAttachmentDescription = new impl.AttachmentDescription;
-                colorAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-                colorAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
-                colorAttachmentDescription.finalLayout = ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
-                info.colorAttachments.add(colorAttachmentDescription);
-                const resolveAttachmentDescription = new impl.AttachmentDescription;
-                resolveAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-                resolveAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
-                resolveAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
-                info.resolveAttachments.add(resolveAttachmentDescription);
-            }
-            const depthStencilAttachment = new impl.AttachmentDescription();
-            depthStencilAttachment.loadOp = clearFlags & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-            depthStencilAttachment.initialLayout = clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            info.depthStencilAttachment = depthStencilAttachment;
-            info.samples = samples;
-            renderPass = device.createRenderPass();
-            renderPass.initialize(info);
-            this._clearFlag2renderPass[hash] = renderPass;
-        }
-        return renderPass;
     }
 }

@@ -4,7 +4,6 @@ import {
     Camera,
     CameraControlPanel,
     DirectionalLight,
-    Flow,
     GLTF,
     Node,
     Profiler,
@@ -15,6 +14,8 @@ import {
     UIRenderer,
     VisibilityFlagBits,
     Zero,
+    device,
+    render,
     stageFactory,
     vec2,
     vec3
@@ -25,8 +26,8 @@ const walkrun_and_idle = new GLTF();
 await walkrun_and_idle.load('./assets/walkrun_and_idle/scene');
 
 export default class App extends Zero {
-    start(): Flow {
-        const { width, height } = this.window;
+    start(): render.Flow {
+        const { width, height } = device.swapchain;
 
         let node: Node;
 
@@ -101,7 +102,7 @@ Run: ${weights[2].toFixed(2)}`
 
         updateInput(slider.value)
 
-        return new Flow([stageFactory.forward()])
+        return new render.Flow([stageFactory.forward()])
     }
 }
 

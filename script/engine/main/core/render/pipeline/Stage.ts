@@ -1,9 +1,11 @@
 import { CommandBuffer, Framebuffer, RenderPass } from "gfx-main";
-import { Zero } from "../Zero.js";
-import { Rect } from "../math/rect.js";
+import { Zero } from "../../Zero.js";
+import { Rect } from "../../math/rect.js";
 import { Camera } from "../scene/Camera.js";
+import { Root } from "../scene/Root.js";
 import { Phase } from "./Phase.js";
 import { Uniform } from "./Uniform.js";
+import { getRenderPass } from "./rpc.js";
 
 export class Stage {
     readonly visibility: number;
@@ -27,9 +29,9 @@ export class Stage {
         this.visibility = _phases.reduce(function (val, phase) { return phase.visibility | val }, 0)
     }
 
-    record(commandBuffer: CommandBuffer, camera: Camera): void {
+    record(commandBuffer: CommandBuffer, scene: Root, camera: Camera): void {
         const framebuffer = this.framebuffer;
-        const renderPass = this._renderPass || Zero.instance.flow.getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments.get(0).info.samples);
+        const renderPass = this._renderPass || getRenderPass(camera.clearFlags, framebuffer.info.colorAttachments.get(0).info.samples);
         const viewport = this._viewport || camera.viewport;
 
         commandBuffer.beginRenderPass(renderPass, framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);
@@ -39,7 +41,7 @@ export class Stage {
             if ((camera.visibilityFlags & phase.visibility) == 0) {
                 continue;
             }
-            phase.record(commandBuffer, camera, renderPass);
+            phase.record(commandBuffer, scene, camera, renderPass);
             this._drawCalls += phase.drawCalls;
         }
 

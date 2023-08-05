@@ -2,11 +2,12 @@ import { CommandBuffer, PassState, Pipeline, PipelineLayout, RenderPass, VertexI
 import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
 import { Zero } from "../../core/Zero.js";
 import { device } from "../../core/impl.js";
-import { Phase } from "../../core/pipeline/Phase.js";
-import { Camera } from "../../core/scene/Camera.js";
-import { Model } from "../../core/scene/Model.js";
-import { Pass } from "../../core/scene/Pass.js";
-import { hashLib } from "../../core/scene/hashLib.js";
+import { Phase } from "../../core/render/pipeline/Phase.js";
+import { Camera } from "../../core/render/scene/Camera.js";
+import { Model } from "../../core/render/scene/Model.js";
+import { Pass } from "../../core/render/scene/Pass.js";
+import { Root } from "../../core/render/scene/Root.js";
+import { hashLib } from "../../core/render/scene/hashLib.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
@@ -20,10 +21,9 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    record(commandBuffer: CommandBuffer, camera: Camera, renderPass: RenderPass): void {
-        const models = Zero.instance.scene.models;
+    record(commandBuffer: CommandBuffer, scene: Root, camera: Camera, renderPass: RenderPass): void {
         this._drawCalls = 0;
-        for (const model of models) {
+        for (const model of scene.models) {
             if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
                 continue;
             }

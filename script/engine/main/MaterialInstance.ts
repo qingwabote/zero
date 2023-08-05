@@ -1,5 +1,5 @@
 import { Material } from "./assets/Material.js";
-import { Pass } from "./core/scene/Pass.js";
+import { Pass } from "./core/render/scene/Pass.js";
 import { PassInstance } from "./PassInstance.js";
 
 export class MaterialInstance extends Material {

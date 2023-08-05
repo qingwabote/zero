@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits, Format, IndexType, Texture } from "gfx-main";
 import { vec3 } from "../core/math/vec3.js";
-import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
-import { BufferViewWritable } from "../core/scene/buffers/BufferViewWritable.js";
+import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexAttribute, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { Mesh } from "./Mesh.js";
 
 export class SpriteFrame {

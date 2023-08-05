@@ -1,11 +1,11 @@
-import { EventEmitter } from "../../base/EventEmitter.js";
-import { EventEmitterImpl } from "../../base/EventEmitterImpl.js";
-import { TRS } from "../math/TRS.js";
-import { mat3 } from "../math/mat3.js";
-import { Mat4Like, mat4 } from "../math/mat4.js";
-import { Quat, QuatLike, quat } from "../math/quat.js";
-import { Vec3, Vec3Like, vec3 } from "../math/vec3.js";
-import { vec4 } from "../math/vec4.js";
+import { EventEmitter } from "../../../base/EventEmitter.js";
+import { EventEmitterImpl } from "../../../base/EventEmitterImpl.js";
+import { TRS } from "../../math/TRS.js";
+import { mat3 } from "../../math/mat3.js";
+import { Mat4Like, mat4 } from "../../math/mat4.js";
+import { Quat, QuatLike, quat } from "../../math/quat.js";
+import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
+import { vec4 } from "../../math/vec4.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
 
 export enum TransformBits {

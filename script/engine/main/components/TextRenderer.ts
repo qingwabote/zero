@@ -8,11 +8,11 @@ import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { Model } from "../core/scene/Model.js";
-import { Pass } from "../core/scene/Pass.js";
-import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexAttribute, VertexInputView } from "../core/scene/SubMesh.js";
-import { SubModel } from "../core/scene/SubModel.js";
-import { BufferViewResizable } from "../core/scene/buffers/BufferViewResizable.js";
+import { Model } from "../core/render/scene/Model.js";
+import { Pass } from "../core/render/scene/Pass.js";
+import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexAttribute, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { SubModel } from "../core/render/scene/SubModel.js";
+import { BufferViewResizable } from "../core/render/scene/buffers/BufferViewResizable.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 

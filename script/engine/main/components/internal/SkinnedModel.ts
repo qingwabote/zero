@@ -1,11 +1,11 @@
 import { BufferUsageFlagBits } from "gfx-main";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
-import { FrameChangeRecord } from "../../core/scene/FrameChangeRecord.js";
-import { Model } from "../../core/scene/Model.js";
-import { SubModel } from "../../core/scene/SubModel.js";
-import { Transform } from "../../core/scene/Transform.js";
-import { BufferViewWritable } from "../../core/scene/buffers/BufferViewWritable.js";
+import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";
+import { Model } from "../../core/render/scene/Model.js";
+import { SubModel } from "../../core/render/scene/SubModel.js";
+import { Transform } from "../../core/render/scene/Transform.js";
+import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 class ModelSpaceTransform extends FrameChangeRecord {

@@ -4,7 +4,7 @@ import "./impl.js";
 export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
     const canvas = window.document.getElementById("ZeroCanvas") as HTMLCanvasElement;
 
-    const zero = new App(canvas.width, canvas.height);
+    const zero = new App();
     zero.initialize();
 
     const name2event: Map<InputEvent, any> = new Map;

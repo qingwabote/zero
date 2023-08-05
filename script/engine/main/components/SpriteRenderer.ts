@@ -5,10 +5,10 @@ import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { samplers } from "../core/samplers.js";
-import { Model } from "../core/scene/Model.js";
-import { Pass } from "../core/scene/Pass.js";
-import { SubModel } from "../core/scene/SubModel.js";
+import { Model } from "../core/render/scene/Model.js";
+import { Pass } from "../core/render/scene/Pass.js";
+import { SubModel } from "../core/render/scene/SubModel.js";
+import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 
@@ -59,7 +59,7 @@ export class SpriteRenderer extends BoundedRenderer {
         if (pass.hasUniform('Constants', 'albedo')) {
             pass.setUniform('Constants', 'albedo', this.color);
         }
-        pass.setTexture('albedoMap', this._spriteFrame.texture, samplers.get(Filter.NEAREST, Filter.NEAREST))
+        pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);
         const model = new Model(this.node, [subModel]);
         Zero.instance.scene.addModel(model)

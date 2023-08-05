@@ -5,7 +5,7 @@ import { TRS } from "../core/math/TRS.js";
 import { quat } from "../core/math/quat.js";
 import { Vec3Like, vec3 } from "../core/math/vec3.js";
 import { Vec4Like } from "../core/math/vec4.js";
-import { Transform } from "../core/scene/Transform.js";
+import { Transform } from "../core/render/scene/Transform.js";
 import { AnimationStateBlended, BlendContext } from "./internal/animation/AnimationStateBlended.js";
 import { ClipBinging } from "./internal/animation/ClipBinging.js";
 

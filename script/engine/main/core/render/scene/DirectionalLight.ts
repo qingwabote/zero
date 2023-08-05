@@ -1,4 +1,4 @@
-import { Vec3Like } from "../math/vec3.js";
+import { Vec3Like } from "../../math/vec3.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
 import { Transform } from "./Transform.js";
 

@@ -1,6 +1,6 @@
 import { FormatInfos, IndexInput, InputAssembler, VertexInputRate, VertexInputState, impl } from "gfx-main";
-import { device } from "../impl.js";
-import { shaderLib } from "../shaderLib.js";
+import { device } from "../../impl.js";
+import { shaderLib } from "../../shaderLib.js";
 import { Pass } from "./Pass.js";
 import { SubMesh } from "./SubMesh.js";
 import { BufferViewResizable, BufferViewResizableEventType } from "./buffers/BufferViewResizable.js";

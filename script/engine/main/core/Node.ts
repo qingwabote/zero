@@ -1,6 +1,6 @@
 import { Component } from "./Component.js";
 import { Zero } from "./Zero.js";
-import { Transform } from "./scene/Transform.js";
+import { Transform } from "./render/scene/Transform.js";
 
 type ComponentConstructor<T> = new (...args: ConstructorParameters<typeof Component>) => T;
 type AbstractConstructor<T> = abstract new (...args: ConstructorParameters<typeof Component>) => T;

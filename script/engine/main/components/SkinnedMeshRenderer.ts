@@ -1,7 +1,7 @@
 import { Skin } from "../assets/Skin.js";
-import { Model } from "../core/scene/Model.js";
-import { SubModel } from "../core/scene/SubModel.js";
-import { Transform } from "../core/scene/Transform.js";
+import { Model } from "../core/render/scene/Model.js";
+import { SubModel } from "../core/render/scene/SubModel.js";
+import { Transform } from "../core/render/scene/Transform.js";
 import { SkinnedModel } from "./internal/SkinnedModel.js";
 import { MeshRenderer } from "./MeshRenderer.js";
 

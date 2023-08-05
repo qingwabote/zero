@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits, DescriptorSet } from "gfx-main";
-import { device } from "../impl.js";
-import { mat4 } from "../math/mat4.js";
-import { shaderLib } from "../shaderLib.js";
+import { device } from "../../impl.js";
+import { mat4 } from "../../math/mat4.js";
+import { shaderLib } from "../../shaderLib.js";
 import { SubModel } from "./SubModel.js";
 import { Transform } from "./Transform.js";
 import { BufferViewWritable } from "./buffers/BufferViewWritable.js";

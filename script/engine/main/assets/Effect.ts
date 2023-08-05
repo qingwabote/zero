@@ -2,7 +2,7 @@ import { Sampler, Texture, BlendFactor as gfx_BlendFactor, CullMode as gfx_CullM
 import { parse } from "yaml";
 import { Asset } from "../core/Asset.js";
 import { loader } from "../core/impl.js";
-import { Pass as scene_Pass } from "../core/scene/Pass.js";
+import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
 
 function merge<Out>(target: Out, ...sources: Out[]): Out {

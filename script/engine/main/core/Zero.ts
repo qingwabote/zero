@@ -6,9 +6,9 @@ import { System } from "./System.js";
 import { device } from "./impl.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
-import { Flow } from "./pipeline/Flow.js";
-import { FrameChangeRecord } from "./scene/FrameChangeRecord.js";
-import { Root } from "./scene/Root.js";
+import { Flow } from "./render/pipeline/Flow.js";
+import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
+import { Root } from "./render/scene/Root.js";
 
 export enum ZeroEvent {
     LOGIC_START = "LOGIC_START",
@@ -38,8 +38,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._system2priority.set(system, priority);
     }
 
-    readonly window: { readonly width: number, readonly height: number };
-
     readonly input = new Input;
 
     readonly scene = new Root;
@@ -60,7 +58,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
     private _renderSemaphore!: Semaphore;
     private _renderFence!: Fence;
 
-    constructor(width: number, height: number) {
+    constructor() {
         super();
 
         const systems: System[] = [...Zero._system2priority.keys()];
@@ -68,8 +66,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
             return Zero._system2priority.get(b)! - Zero._system2priority.get(a)!;
         })
         this._systems = systems;
-
-        this.window = { width, height };
 
         Zero._instance = this;
     }
@@ -128,10 +124,11 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
 
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
+        this.scene.update();
         this._flow.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._flow.record(this._commandBuffer);
+        this._flow.record(this._commandBuffer, this.scene);
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 

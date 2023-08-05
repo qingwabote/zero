@@ -1,9 +1,9 @@
 import { ImageLayout, LOAD_OP, SampleCountFlagBits, TextureUsageBits, impl } from "gfx-main";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
 import { device } from "../core/impl.js";
-import { Phase } from "../core/pipeline/Phase.js";
-import { Stage } from "../core/pipeline/Stage.js";
-import { Uniform } from "../core/pipeline/Uniform.js";
+import { Phase } from "../core/render/pipeline/Phase.js";
+import { Stage } from "../core/render/pipeline/Stage.js";
+import { Uniform } from "../core/render/pipeline/Uniform.js";
 import { ModelPhase } from "./phases/ModelPhase.js";
 import { CameraUniform } from "./uniforms/CameraUniform.js";
 import { LightUniform } from "./uniforms/LightUniform.js";

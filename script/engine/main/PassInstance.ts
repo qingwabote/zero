@@ -1,5 +1,5 @@
-import { BufferViewWritable } from "./core/scene/buffers/BufferViewWritable.js";
-import { Pass } from "./core/scene/Pass.js";
+import { BufferViewWritable } from "./core/render/scene/buffers/BufferViewWritable.js";
+import { Pass } from "./core/render/scene/Pass.js";
 import { shaderLib } from "./core/shaderLib.js";
 
 export class PassInstance extends Pass {

@@ -1,7 +1,7 @@
 import { vec2, Vec2 } from "../../core/math/vec2.js";
 import { vec3 } from "../../core/math/vec3.js";
 import { Node } from "../../core/Node.js";
-import { PIXELS_PER_UNIT } from "../../core/scene/SubMesh.js";
+import { PIXELS_PER_UNIT } from "../../core/render/scene/SubMesh.js";
 import { BoundedRenderer, BoundsEvent } from "../internal/BoundedRenderer.js";
 import { UIBoundsEventType, UIElement } from "./UIElement.js";
 

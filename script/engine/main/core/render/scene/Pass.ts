@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits, DescriptorSet, PassState, Sampler, Texture } from "gfx-main";
-import { device } from "../impl.js";
-import { samplers } from "../samplers.js";
-import { shaderLib } from "../shaderLib.js";
+import { device } from "../../impl.js";
+import { getSampler } from "../../sc.js";
+import { shaderLib } from "../../shaderLib.js";
 import { BufferViewWritable } from "./buffers/BufferViewWritable.js";
 
 function type2Length(type: string): number {
@@ -77,7 +77,7 @@ export class Pass {
         this._uniformBuffers[name].set(value, offset);
     }
 
-    setTexture(name: string, texture: Texture, sampler: Sampler = samplers.get()): void {
+    setTexture(name: string, texture: Texture, sampler: Sampler = getSampler()): void {
         const binding = shaderLib.getMeta(this.state.shader).samplerTextures[name].binding;
         this.descriptorSet?.bindTexture(binding, texture, sampler);
         this._samplerTextures[name] = [texture, sampler];

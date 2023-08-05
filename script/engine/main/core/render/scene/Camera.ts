@@ -1,7 +1,7 @@
 import { ClearFlagBits } from "gfx-main";
-import { Mat4Like } from "../math/mat4.js";
-import { Rect } from "../math/rect.js";
-import { Vec3 } from "../math/vec3.js";
+import { Mat4Like } from "../../math/mat4.js";
+import { Rect } from "../../math/rect.js";
+import { Vec3 } from "../../math/vec3.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
 import { Transform } from "./Transform.js";
 

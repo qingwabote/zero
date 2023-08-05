@@ -1,6 +1,6 @@
 import { PassState, RenderPass, RenderPassInfo, Shader, VertexInputState } from "gfx-main";
-import { murmurhash2_32_gc } from "../../base/murmurhash2_gc.js";
-import { shaderLib } from "../shaderLib.js";
+import { murmurhash2_32_gc } from "../../../base/murmurhash2_gc.js";
+import { shaderLib } from "../../shaderLib.js";
 
 const _shader2hash: WeakMap<Shader, number> = new WeakMap;
 const _pass2hash: WeakMap<PassState, number> = new WeakMap;

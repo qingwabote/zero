@@ -157,6 +157,8 @@
 
 %ignore gfx::Swapchain::Swapchain;
 %attribute2(gfx::Swapchain, std::shared_ptr<gfx::Texture>, colorTexture, colorTexture);
+%attribute(gfx::Swapchain, uint32_t, width, width);
+%attribute(gfx::Swapchain, uint32_t, height, height);
 %include "gfx/Swapchain.hpp"
 
 %ignore gfx::Queue::Queue;

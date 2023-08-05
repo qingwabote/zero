@@ -39,7 +39,7 @@ export class WebDevice implements Device {
             uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1
         }
-        this._swapchain = { colorTexture: new WebTexture(gl, true) };
+        this._swapchain = { colorTexture: new WebTexture(gl, true), width: canvas.width, height: canvas.height };
         this._gl = gl;
     }
 

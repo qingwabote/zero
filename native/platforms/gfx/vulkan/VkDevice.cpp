@@ -308,7 +308,7 @@ namespace gfx
         swapchain_color_info->samples = SampleCountFlagBits::SAMPLE_COUNT_1;
         auto swapchain_color = std::make_shared<Texture>(_impl, true);
         swapchain_color->initialize(swapchain_color_info);
-        _swapchain = std::make_unique<Swapchain>(std::move(swapchain_color));
+        _swapchain = std::make_unique<Swapchain>(std::move(swapchain_color), _impl->swapchainImageExtent().width, _impl->swapchainImageExtent().height);
 
         _queue = getQueue();
 

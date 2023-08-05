@@ -7,8 +7,8 @@ import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Rect } from "../core/math/rect.js";
 import { Vec2Like, vec2 } from "../core/math/vec2.js";
 import { Vec3Like, vec3 } from "../core/math/vec3.js";
-import { Camera as render_Camera } from "../core/scene/Camera.js";
-import { TransformEvent } from "../core/scene/Transform.js";
+import { Camera as render_Camera } from "../core/render/scene/Camera.js";
+import { TransformEvent } from "../core/render/scene/Transform.js";
 
 const vec2_a = vec2.create();
 
@@ -93,7 +93,7 @@ export class Camera extends Component {
     }
 
     private screenToNdc(out: Vec2Like, x: number, y: number): Vec2Like {
-        y = Zero.instance.window.height - y;
+        y = device.swapchain.height - y;
 
         x -= this.viewport.x;
         y -= this.viewport.y;

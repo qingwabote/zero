@@ -20,12 +20,6 @@ namespace sugar::v8
 
     void isolate_promiseRejectCallback(_v8::PromiseRejectMessage msg);
 
-    _v8::MaybeLocal<_v8::Module> module_resolve(
-        _v8::Local<_v8::Context> context,
-        _v8::Local<_v8::String> specifier,
-        _v8::Local<_v8::FixedArray> import_assertions = _v8::Local<_v8::FixedArray>(),
-        _v8::Local<_v8::Module> referrer = _v8::Local<_v8::Module>());
-
     void module_evaluate(_v8::Local<_v8::Context> context, const std::filesystem::path &path, _v8::Local<_v8::Promise> *promise, _v8::Local<_v8::Module> *module = nullptr);
 
     _v8::Local<_v8::Value> object_get(_v8::Local<_v8::Object> object, const char *name);

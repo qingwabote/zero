@@ -10,9 +10,9 @@ import { assetLib } from "../core/assetLib.js";
 import { device, loader } from "../core/impl.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { samplers } from "../core/samplers.js";
-import { SubMesh, VertexAttribute } from "../core/scene/SubMesh.js";
-import { BufferView } from "../core/scene/buffers/BufferView.js";
+import { SubMesh, VertexAttribute } from "../core/render/scene/SubMesh.js";
+import { BufferView } from "../core/render/scene/buffers/BufferView.js";
+import { getSampler } from "../core/sc.js";
 import { AnimationClip, Channel } from "./AnimationClip.js";
 import { Effect } from "./Effect.js";
 import { Material } from "./Material.js";
@@ -82,7 +82,7 @@ export async function materialFuncDefault(macros: MaterialMacros = {}, values: M
             constants: {
                 albedo
             },
-            ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
+            ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
         }
     ]);
     return new Material(passes);

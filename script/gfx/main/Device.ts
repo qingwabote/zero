@@ -20,6 +20,8 @@ export interface Capabilities {
 
 export interface Swapchain {
     readonly colorTexture: Texture;
+    readonly width: number;
+    readonly height: number
 }
 
 export interface Device {

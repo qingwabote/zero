@@ -281,33 +281,46 @@ namespace sugar::v8
 
     _v8::MaybeLocal<_v8::Module> module_resolve(
         _v8::Local<_v8::Context> context,
-        _v8::Local<_v8::String> specifier,
-        _v8::Local<_v8::FixedArray> import_assertions,
+        _v8::Local<_v8::String> v8_specifier,
+        _v8::Local<_v8::FixedArray> /*import_assertions*/,
         _v8::Local<_v8::Module> referrer)
     {
         _v8::Isolate *isolate = context->GetIsolate();
         _v8::EscapableHandleScope handle_scope(isolate);
         _v8::Context::Scope context_scope(context);
 
-        std::string specifier_string(*_v8::String::Utf8Value(isolate, specifier));
-        auto &imports = isolate_data(isolate)->imports();
-        auto imports_it = imports.find(specifier_string);
+        const std::string specifier = *_v8::String::Utf8Value(isolate, v8_specifier);
 
-        std::filesystem::path path = imports_it != imports.end() ? imports_it->second : std::filesystem::path(specifier_string);
+        std::filesystem::path path;
+
+        auto &imports = isolate_data(isolate)->imports();
+        auto imports_it = imports.find(specifier);
+        if (imports_it != imports.end())
+        {
+            path = imports_it->second;
+        }
+        else
+        {
+            path = specifier;
+            if (!path.has_extension())
+            {
+                path.replace_extension("js");
+            }
+        }
 
         auto &module2path = isolate_data(isolate)->module2path;
         if (path.is_relative())
         {
-            std::filesystem::path &ref = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;
-            std::filesystem::current_path(ref.parent_path());
+            std::filesystem::current_path(module2path.find(Weak<_v8::Module>{isolate, referrer})->second.parent_path());
             std::error_code ec;
-            path = std::filesystem::canonical(path, ec);
+            auto res = std::filesystem::canonical(path, ec);
             if (ec)
             {
-                std::string msg{ec.message() + ": " + path.string()};
+                std::string msg{"Failed to resolve module specifier \"" + specifier + "\""};
                 isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
                 return {};
             }
+            path = std::move(res);
         }
 
         auto &path2module = isolate_data(isolate)->path2module;
@@ -321,7 +334,7 @@ namespace sugar::v8
         std::uintmax_t size = std::filesystem::file_size(path, ec);
         if (ec)
         {
-            std::string msg{"module resolve failed to read the size of file: " + path.string()};
+            std::string msg{"Failed to resolve module specifier \"" + specifier + "\""};
             isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
             return {};
         }
@@ -352,7 +365,7 @@ namespace sugar::v8
             _v8::HandleScope scope(isolate);
 
             _v8::TryCatch try_catch(isolate);
-            _v8::MaybeLocal<_v8::Module> maybeModule = module_resolve(context, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
+            _v8::MaybeLocal<_v8::Module> maybeModule = module_resolve(context, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked(), {}, {});
             if (try_catch.HasCaught())
             {
                 tryCatch_print(try_catch);

@@ -1,5 +1,5 @@
 import { Buffer, BufferUsageFlagBits, EmptyBuffer, MemoryUsage, impl } from "gfx-main";
-import { device } from "../../impl.js";
+import { device } from "../../../impl.js";
 import { BufferView } from "./BufferView.js";
 
 export interface ArrayLikeWritable<T> {
