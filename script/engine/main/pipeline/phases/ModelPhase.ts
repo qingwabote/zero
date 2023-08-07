@@ -7,13 +7,11 @@ import { Camera } from "../../core/render/scene/Camera.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { Root } from "../../core/render/scene/Root.js";
-import { hashLib } from "../../core/render/scene/hashLib.js";
 import { shaderLib } from "../../core/shaderLib.js";
+import { hashLib } from "./internal/hashLib.js";
 
 const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
-
 const pipelineLayoutCache: Record<number, PipelineLayout> = {};
-
 const pipelineCache: Record<number, Pipeline> = {};
 
 export class ModelPhase extends Phase {

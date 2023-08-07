@@ -1,6 +1,25 @@
 import { Component } from "../../core/Component.js";
+import { Node } from "../../core/Node.js";
 import { Model } from "../../core/render/scene/Model.js";
 
 export abstract class ModelRenderer extends Component {
-    abstract get model(): Model | undefined
+    protected _model: Model;
+
+    public get order(): number {
+        return this._model.order;
+    }
+    public set order(value: number) {
+        this._model.order = value;
+    }
+
+    constructor(node: Node) {
+        super(node);
+        this._model = this.createModel()
+    }
+
+    protected createModel() {
+        const model = new Model();
+        model.transform = this.node;
+        return model;
+    }
 }

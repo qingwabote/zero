@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>test</title>
+  <title>zero</title>
   <link rel="icon" href="/assets/favicon.ico" />
 </head>
 
@@ -29,32 +29,23 @@
     const currentScript = document.currentScript;
     const req = new XMLHttpRequest();
     // use synchronous request
-    req.open('GET', "/script/imports.json", false);
+    req.open('GET', "./imports.json", false);
     req.onload = function () {
-      const imports = JSON.parse(req.response);
-      for (const key in imports) {
-        imports[key] = "/script/" + imports[key];
-      }
       const im = document.createElement('script');
       im.type = 'importmap';
-      im.textContent = JSON.stringify({ imports });
+      im.textContent = `
+      {
+        "imports": ${req.response}
+      }`;
       currentScript.after(im);
     };
     req.send();
   </script>
   <script type="module">
-    import WebLoader from "./dist/script/platforms/webgl/WebLoader.js";
-    window.loader = new WebLoader;
-
-    import WebDevice from "./dist/script/platforms/webgl/gfx/WebDevice.js";
-    window.device = new WebDevice(document.getElementById("ZeroCanvas"));
-    import WebNS from "./dist/script/platforms/webgl/gfx/WebNS.js";
-    window.gfx = new WebNS;
-  </script>
-  <script type="module">
-    import App from "./dist/projects/ui/script/main/App.js";
-    import webgame from "./dist/script/platforms/webgl/webgame.js";
-    webgame.run(document.getElementById("ZeroCanvas"), App);
+    import { run } from "engine-webgl";
+    const project = document.location.pathname.split('/')[2];
+    const App = await import(`./dist/projects/${project}/script/main/App.js`);
+    run(App.default);
   </script>
 </body>
 

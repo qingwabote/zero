@@ -3,7 +3,6 @@ import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";
 import { Model } from "../../core/render/scene/Model.js";
-import { SubModel } from "../../core/render/scene/SubModel.js";
 import { Transform } from "../../core/render/scene/Transform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../../core/shaderLib.js";
@@ -26,18 +25,34 @@ export class SkinnedModel extends Model {
         return layout;
     })()
 
-    private readonly _joints: readonly Transform[];
+    private _joints?: readonly Transform[];
+
+    private _skin!: Skin;
+    public get skin(): Skin {
+        return this._skin;
+    }
+    public set skin(value: Skin) {
+        this._skin = value;
+        this._joints = undefined;
+    }
+
+    public override set transform(value: Transform) {
+        super.transform = value;
+        this._joints = undefined;
+    }
 
     private _skinBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
 
-    constructor(transform: Transform, subModels: SubModel[], private readonly _skin: Skin) {
-        super(transform, subModels);
-        this._joints = _skin.joints.map(paths => transform.getChildByPath(paths)!);
+    constructor() {
+        super();
         this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
     }
 
     override update(): void {
         super.update();
+        if (!this._joints) {
+            this._joints = this._skin.joints.map(paths => this._transform.getChildByPath(paths)!);
+        }
         for (let i = 0; i < this._joints.length; i++) {
             const joint = this._joints[i];
             this.updateModelSpace(joint);

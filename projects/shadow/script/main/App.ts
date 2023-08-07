@@ -1,34 +1,5 @@
-import { VisibilityFlagBits } from "../../../../script/main/VisibilityFlagBits.js";
-import { Effect } from "../../../../script/main/assets/Effect.js";
-import { GLTF, MaterialMacros, MaterialValues } from "../../../../script/main/assets/GLTF.js";
-import { Material } from "../../../../script/main/assets/Material.js";
-import { SpriteFrame } from "../../../../script/main/assets/SpriteFrame.js";
-import { Animation } from "../../../../script/main/components/Animation.js";
-import { Camera } from "../../../../script/main/components/Camera.js";
-import { DirectionalLight } from "../../../../script/main/components/DirectionalLight.js";
-import { SpriteRenderer } from "../../../../script/main/components/SpriteRenderer.js";
-import { CameraControlPanel } from "../../../../script/main/components/ui/CameraControlPanel.js";
-import { Profiler } from "../../../../script/main/components/ui/Profiler.js";
-import { UIDocument } from "../../../../script/main/components/ui/UIDocument.js";
-import { UIRenderer } from "../../../../script/main/components/ui/UIRenderer.js";
-import { Node } from "../../../../script/main/core/Node.js";
-import { Zero } from "../../../../script/main/core/Zero.js";
-import { assetLib } from "../../../../script/main/core/assetLib.js";
-import { ClearFlagBits } from "../../../../script/main/core/gfx/Pipeline.js";
-import { quat } from "../../../../script/main/core/math/quat.js";
-import { vec2 } from "../../../../script/main/core/math/vec2.js";
-import { Vec3, vec3 } from "../../../../script/main/core/math/vec3.js";
-import { vec4 } from "../../../../script/main/core/math/vec4.js";
-import { Flow } from "../../../../script/main/core/pipeline/Flow.js";
-import { Stage } from "../../../../script/main/core/pipeline/Stage.js";
-import { samplers } from "../../../../script/main/core/samplers.js";
-import { shaderLib } from "../../../../script/main/core/shaderLib.js";
-import { ModelPhase } from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import { stageFactory } from "../../../../script/main/pipeline/stageFactory.js";
-import { ShadowUniform } from "../../../../script/main/pipeline/uniforms/ShadowUniform.js";
-
-// const res = (globalThis as any).test_get_imageBitmap2();
-// (globalThis as any).test_set_imageBitmap(res);
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShadowUniform, SpriteFrame, SpriteRenderer, UIDocument, UIRenderer, Vec3, VisibilityFlagBits, Zero, assetLib, device, getSampler, quat, render, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine-main';
+import { ClearFlagBits } from 'gfx-main';
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;
@@ -55,7 +26,7 @@ async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues 
             constants: {
                 albedo
             },
-            ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
+            ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
         },
         {
             macros: {
@@ -64,7 +35,7 @@ async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues 
             constants: {
                 albedo
             },
-            ...texture && { samplerTextures: { albedoMap: [texture.impl, samplers.get()] } }
+            ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
         }
     ])
     return new Material(passes);
@@ -85,8 +56,8 @@ await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
 const shader_depth = await shaderLib.load('depth');
 
 export default class App extends Zero {
-    start(): Flow {
-        const { width, height } = this.window;
+    start(): render.Flow {
+        const { width, height } = device.swapchain;
 
         const lit_position: Vec3 = [4, 4, 4];
 
@@ -159,7 +130,7 @@ export default class App extends Zero {
         node.euler = vec3.create(180, 0, 180)
         up_camera.node.addChild(node);
 
-        const stages: Stage[] = [];
+        const stages: render.Stage[] = [];
         if (USE_SHADOW_MAP) {
             const stage = stageFactory.shadow(VisibilityBit_UP);
 
@@ -177,7 +148,7 @@ export default class App extends Zero {
             new ModelPhase('default', VisibilityFlagBits.UI | VisibilityBit_UP),
             new ModelPhase('down', VisibilityBit_DOWN)
         ]));
-        return new Flow(stages);
+        return new render.Flow(stages);
     }
 }
 

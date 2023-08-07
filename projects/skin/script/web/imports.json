@@ -1,0 +1,7 @@
+{
+    "gfx-main": "./dist/script/gfx/main/index.js",
+    "gfx-webgl": "./dist/script/gfx/webgl/index.js",
+    "engine-main": "./dist/script/engine/main/index.js",
+    "engine-webgl": "./dist/script/engine/webgl/index.js",
+    "yaml": "/script/engine/node_modules/yaml/browser/index.js"
+}

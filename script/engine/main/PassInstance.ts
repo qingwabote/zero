@@ -2,6 +2,7 @@ import { BufferViewWritable } from "./core/render/scene/buffers/BufferViewWritab
 import { Pass } from "./core/render/scene/Pass.js";
 import { shaderLib } from "./core/shaderLib.js";
 
+/**just reuse the uniform buffers for now*/
 export class PassInstance extends Pass {
     private _overrides: Record<string, boolean> = {};
     private _raw: Pass;
@@ -14,7 +15,7 @@ export class PassInstance extends Pass {
         this._raw = raw;
     }
 
-    setUniform(name: string, member: string, value: ArrayLike<number>): void {
+    override setUniform(name: string, member: string, value: ArrayLike<number>): void {
         if (!this._overrides[name]) {
             const block = shaderLib.getMeta(this.state.shader).blocks[name];
             const view = super.createUniformBuffer(name);

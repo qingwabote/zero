@@ -1,19 +1,8 @@
-import { VisibilityFlagBits } from "../../../../script/main/VisibilityFlagBits.js";
-import { Camera } from "../../../../script/main/components/Camera.js";
-import { Profiler } from "../../../../script/main/components/ui/Profiler.js";
-import Slider from "../../../../script/main/components/ui/Slider.js";
-import { UIDocument } from "../../../../script/main/components/ui/UIDocument.js";
-import { Node } from "../../../../script/main/core/Node.js";
-import { Zero } from "../../../../script/main/core/Zero.js";
-import { vec2 } from "../../../../script/main/core/math/vec2.js";
-import { vec3 } from "../../../../script/main/core/math/vec3.js";
-import { Flow } from "../../../../script/main/core/pipeline/Flow.js";
-import { ModelPhase } from "../../../../script/main/pipeline/phases/ModelPhase.js";
-import { stageFactory } from "../../../../script/main/pipeline/stageFactory.js";
+import { Camera, ModelPhase, Node, Profiler, Slider, UIDocument, VisibilityFlagBits, Zero, device, render, stageFactory, vec2, vec3 } from "engine-main";
 
 export default class App extends Zero {
-    start(): Flow {
-        const { width, height } = this.window;
+    start(): render.Flow {
+        const { width, height } = device.swapchain;
 
         let node: Node;
 
@@ -50,7 +39,7 @@ export default class App extends Zero {
         profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, - height / 2, 0];
 
-        return new Flow([stageFactory.forward([new ModelPhase], false)]);
+        return new render.Flow([stageFactory.forward([new ModelPhase], false)]);
     }
 }
 

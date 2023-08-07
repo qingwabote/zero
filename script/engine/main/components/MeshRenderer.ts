@@ -3,7 +3,6 @@ import { Mesh } from "../assets/Mesh.js";
 import { Zero } from "../core/Zero.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { vec3 } from "../core/math/vec3.js";
-import { Model } from "../core/render/scene/Model.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { BoundedRenderer } from "./internal/BoundedRenderer.js";
 
@@ -13,11 +12,6 @@ const vec3_b = vec3.create();
 const emptyMesh = { subMeshes: [] };
 
 export class MeshRenderer extends BoundedRenderer {
-    private _model: Model | undefined;
-    get model(): Model | undefined {
-        return this._model;
-    }
-
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
         vec3.set(vec3_a, ...this.mesh.subMeshes[0].vertexPositionMin);
@@ -34,16 +28,9 @@ export class MeshRenderer extends BoundedRenderer {
     materials: Material[] = [];
 
     override start(): void {
-        const subModels: SubModel[] = [];
         for (let i = 0; i < this.mesh.subMeshes.length; i++) {
-            subModels.push(new SubModel(this.mesh.subMeshes[i], this.materials[i].passes));
+            this._model.subModels.push(new SubModel(this.mesh.subMeshes[i], this.materials[i].passes));
         }
-        const model = this.createModel(subModels);
-        Zero.instance.scene.addModel(model);
-        this._model = model;
-    }
-
-    protected createModel(subModels: SubModel[]) {
-        return new Model(this.node, subModels);
+        Zero.instance.scene.addModel(this._model)
     }
 }

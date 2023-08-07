@@ -3,7 +3,6 @@ import { Zero } from "../core/Zero.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh, VertexAttribute, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
@@ -19,11 +18,6 @@ const shader_primitive = await shaderLib.load('primitive');
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
 export class Primitive extends BoundedRenderer {
-    private _model: Model | undefined;
-    get model(): Model | undefined {
-        return this._model;
-    }
-
     private _vertexMin = vec3.create(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
     private _vertexMax = vec3.create(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
 
@@ -37,7 +31,6 @@ export class Primitive extends BoundedRenderer {
     private _vertexCount: number = 0;
 
     private _subMesh!: SubMesh;
-
 
     drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = vec4.ONE) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
@@ -102,10 +95,9 @@ export class Primitive extends BoundedRenderer {
         state.blendState = blendState;
 
         const subModel: SubModel = new SubModel(subMesh, [new Pass(state)]);
-        const model = new Model(this.node, [subModel])
-        Zero.instance.scene.addModel(model)
+        this._model.subModels.push(subModel);
+        Zero.instance.scene.addModel(this._model)
         this._subMesh = subMesh;
-        this._model = model;
     }
 
     lateUpdate(): void {

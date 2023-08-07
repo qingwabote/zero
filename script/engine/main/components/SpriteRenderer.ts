@@ -5,7 +5,6 @@ import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { getSampler } from "../core/sc.js";
@@ -18,11 +17,6 @@ const vec2_a = vec3.create();
 const vec2_b = vec3.create();
 
 export class SpriteRenderer extends BoundedRenderer {
-    private _model: Model | undefined;
-    get model(): Model | undefined {
-        return this._model;
-    }
-
     private _bounds = aabb2d.create();
     public get bounds(): Readonly<AABB2D> {
         const mesh = this._spriteFrame.mesh;
@@ -61,8 +55,7 @@ export class SpriteRenderer extends BoundedRenderer {
         }
         pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);
-        const model = new Model(this.node, [subModel]);
-        Zero.instance.scene.addModel(model)
-        this._model = model;
+        this._model.subModels.push(subModel);
+        Zero.instance.scene.addModel(this._model)
     }
 }

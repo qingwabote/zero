@@ -35,8 +35,8 @@ export class UIDocument extends Component {
 
     private orderWalk(node: Node, order: number): number {
         const renderer = node.getComponent(ModelRenderer);
-        if (renderer?.model) {
-            renderer.model.order = order++;
+        if (renderer) {
+            renderer.order = order++;
         }
         for (const child of node.children) {
             order = this.orderWalk(child, order++)

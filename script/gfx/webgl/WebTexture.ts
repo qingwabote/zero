@@ -45,14 +45,6 @@ export default class WebTexture implements Texture {
             gl.bindTexture(gl.TEXTURE_2D, this._texture);
             gl.texStorage2D(gl.TEXTURE_2D, 1, format, info.width, info.height);
 
-            // just for rendering depth map
-            // https://community.khronos.org/t/render-to-depth-texture/53858/4
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
             gl.bindTexture(gl.TEXTURE_2D, null);
         } else {
             this._renderbuffer = gl.createRenderbuffer()!

@@ -13,6 +13,19 @@ export class Model {
         return layout;
     })();
 
+    private _localBufferInvalid = false;
+
+    protected _transform!: Transform;
+    public get transform(): Transform {
+        return this._transform;
+    }
+    public set transform(value: Transform) {
+        this._transform = value;
+        this._localBufferInvalid = true;
+    }
+
+    readonly subModels: SubModel[] = [];
+
     readonly descriptorSet: DescriptorSet;
 
     get visibilityFlag(): number {
@@ -23,9 +36,7 @@ export class Model {
 
     private _localBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
 
-    private _addingToScene = false;
-
-    constructor(protected _transform: Transform, readonly subModels: SubModel[]) {
+    constructor() {
         const ModelType = (this.constructor as typeof Model);
         const descriptorSet = device.createDescriptorSet();
         descriptorSet.initialize(ModelType.descriptorSetLayout);
@@ -34,11 +45,11 @@ export class Model {
     }
 
     onAddToScene() {
-        this._addingToScene = true;
+        this._localBufferInvalid = true;
     }
 
     update() {
-        if (this._transform.hasChanged || this._addingToScene) {
+        if (this._transform.hasChanged || this._localBufferInvalid) {
             this._localBuffer.set(this._transform.world_matrix);
             this._localBuffer.set(mat4.inverseTranspose(mat4.create(), this._transform.world_matrix), 16);
             this._localBuffer.update();
@@ -48,6 +59,6 @@ export class Model {
             subModel.update()
         }
 
-        this._addingToScene = false;
+        this._localBufferInvalid = false;
     }
 }

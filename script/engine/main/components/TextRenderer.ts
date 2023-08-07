@@ -8,7 +8,6 @@ import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexAttribute, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
@@ -31,11 +30,6 @@ enum DirtyFlagBits {
 const lineBreak = '\n'.charCodeAt(0);
 
 export class TextRenderer extends BoundedRenderer {
-    private _model: Model | undefined;
-    get model(): Model | undefined {
-        return this._model;
-    }
-
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
     private _text: string = "";
@@ -108,9 +102,8 @@ export class TextRenderer extends BoundedRenderer {
         pass.setTexture('albedoMap', this._fnt.texture.impl)
         pass.setUniform('Constants', 'albedo', vec4.ONE)
         const subModel: SubModel = new SubModel(subMesh, [pass]);
-        const model = new Model(this.node, [subModel]);
-        Zero.instance.scene.addModel(model)
-        this._model = model;
+        this._model.subModels.push(subModel);
+        Zero.instance.scene.addModel(this._model)
         this._subMesh = subMesh;
     }
 
