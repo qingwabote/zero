@@ -9,7 +9,7 @@ import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
-import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexAttribute, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { BufferViewResizable } from "../core/render/scene/buffers/BufferViewResizable.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -63,10 +63,20 @@ export class TextRenderer extends BoundedRenderer {
     private _indexCount = 0;
 
     override start(): void {
-        const vertexAttributes: VertexAttribute[] = [
-            { name: 'a_texCoord', format: Format.RG32_SFLOAT, buffer: 0, offset: 0 },
-            { name: 'a_position', format: Format.RGB32_SFLOAT, buffer: 1, offset: 0 },
-        ];
+        const vertexAttributes = new impl.VertexAttributeVector;
+        const texCoordAttribute = new impl.VertexAttribute;
+        texCoordAttribute.name = 'a_texCoord';
+        texCoordAttribute.format = Format.RG32_SFLOAT;
+        texCoordAttribute.buffer = 0;
+        texCoordAttribute.offset = 0;
+        vertexAttributes.add(texCoordAttribute);
+        const positionAttribute = new impl.VertexAttribute;
+        positionAttribute.name = 'a_position';
+        positionAttribute.format = Format.RGB32_SFLOAT;
+        positionAttribute.buffer = 1;
+        positionAttribute.offset = 0;
+        vertexAttributes.add(positionAttribute);
+
         const vertexInput: VertexInputView = {
             buffers: [this._texCoordBuffer, this._positionBuffer],
             offsets: [0, 0]

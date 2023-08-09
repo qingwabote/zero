@@ -4,7 +4,7 @@ import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
-import { SubMesh, VertexAttribute, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { BufferViewResizable } from "../core/render/scene/buffers/BufferViewResizable.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -60,13 +60,23 @@ export class Primitive extends BoundedRenderer {
     }
 
     start() {
-        const vertexAttributes: VertexAttribute[] = [];
+        const vertexAttributes = new impl.VertexAttributeVector
         let offset = 0;
         let format = Format.RGB32_SFLOAT;
-        vertexAttributes.push({ name: 'a_position', format, buffer: 0, offset });
+        const positionAttribute = new impl.VertexAttribute;
+        positionAttribute.name = 'a_position';
+        positionAttribute.format = format;
+        positionAttribute.buffer = 0;
+        positionAttribute.offset = offset;
+        vertexAttributes.add(positionAttribute);
         offset += FormatInfos[format].size;
         format = Format.RGBA32_SFLOAT;
-        vertexAttributes.push({ name: 'a_color', format, buffer: 0, offset });
+        const colorAttribute = new impl.VertexAttribute;
+        colorAttribute.name = 'a_color';
+        colorAttribute.format = format;
+        colorAttribute.buffer = 0;
+        colorAttribute.offset = offset;
+        vertexAttributes.add(colorAttribute);
         offset += FormatInfos[format].size;
 
         const vertexInput: VertexInputView = {

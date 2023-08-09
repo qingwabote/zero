@@ -166,31 +166,15 @@ namespace gfx
         std::shared_ptr<DescriptorSetLayoutVector> layouts{new DescriptorSetLayoutVector()};
     };
 
-    enum class VertexInputRate
+    struct VertexAttribute
     {
-        VERTEX = 0,
-        INSTANCE = 1
-    };
-    struct VertexInputAttributeDescription
-    {
-        uint32_t location;
+        std::string name;
         uint32_t format;
-        uint32_t binding;
+        uint32_t buffer;
         uint32_t offset;
     };
-    struct VertexInputBindingDescription
-    {
-        uint32_t binding;
-        uint32_t stride;
-        VertexInputRate inputRate;
-    };
-    using VertexInputAttributeDescriptionVector = std::vector<std::shared_ptr<VertexInputAttributeDescription>>;
-    using VertexInputBindingDescriptionVector = std::vector<std::shared_ptr<VertexInputBindingDescription>>;
-    struct VertexInputState
-    {
-        std::shared_ptr<VertexInputAttributeDescriptionVector> attributes{new VertexInputAttributeDescriptionVector()};
-        std::shared_ptr<VertexInputBindingDescriptionVector> bindings{new VertexInputBindingDescriptionVector()};
-    };
+    using VertexAttributeVector = std::vector<std::shared_ptr<VertexAttribute>>;
+
     using BufferVector = std::vector<std::shared_ptr<Buffer>>;
     struct VertexInput
     {
@@ -210,7 +194,7 @@ namespace gfx
     };
     struct InputAssemblerInfo
     {
-        std::shared_ptr<VertexInputState> vertexInputState;
+        std::shared_ptr<VertexAttributeVector> vertexAttributes;
         std::shared_ptr<VertexInput> vertexInput;
         std::shared_ptr<IndexInput> indexInput;
     };
@@ -258,6 +242,32 @@ namespace gfx
         std::shared_ptr<RasterizationState> rasterizationState;
         std::shared_ptr<DepthStencilState> depthStencilState;
         std::shared_ptr<BlendState> blendState;
+    };
+
+    enum class VertexInputRate
+    {
+        VERTEX = 0,
+        INSTANCE = 1
+    };
+    struct VertexInputAttributeDescription
+    {
+        uint32_t location;
+        uint32_t format;
+        uint32_t binding;
+        uint32_t offset;
+    };
+    struct VertexInputBindingDescription
+    {
+        uint32_t binding;
+        uint32_t stride;
+        VertexInputRate inputRate;
+    };
+    using VertexInputAttributeDescriptionVector = std::vector<std::shared_ptr<VertexInputAttributeDescription>>;
+    using VertexInputBindingDescriptionVector = std::vector<std::shared_ptr<VertexInputBindingDescription>>;
+    struct VertexInputState
+    {
+        std::shared_ptr<VertexInputAttributeDescriptionVector> attributes{new VertexInputAttributeDescriptionVector()};
+        std::shared_ptr<VertexInputBindingDescriptionVector> bindings{new VertexInputBindingDescriptionVector()};
     };
 
     struct PipelineInfo

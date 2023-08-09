@@ -1,6 +1,6 @@
-import { BufferUsageFlagBits, Format, IndexType, Texture } from "gfx-main";
+import { BufferUsageFlagBits, Format, IndexType, Texture, impl } from "gfx-main";
 import { vec3 } from "../core/math/vec3.js";
-import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexAttribute, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { Mesh } from "./Mesh.js";
 
@@ -55,10 +55,20 @@ export class SpriteFrame {
         positionBuffer.update();
         indexBuffer.update();
 
-        const vertexAttributes: VertexAttribute[] = [
-            { name: 'a_texCoord', format: Format.RG32_SFLOAT, buffer: 0, offset: 0 },
-            { name: 'a_position', format: Format.RGB32_SFLOAT, buffer: 1, offset: 0 },
-        ];
+        const vertexAttributes = new impl.VertexAttributeVector;
+        const texCoordAttribute = new impl.VertexAttribute;
+        texCoordAttribute.name = 'a_texCoord';
+        texCoordAttribute.format = Format.RG32_SFLOAT;
+        texCoordAttribute.buffer = 0;
+        texCoordAttribute.offset = 0;
+        vertexAttributes.add(texCoordAttribute);
+        const positionAttribute = new impl.VertexAttribute;
+        positionAttribute.name = 'a_position';
+        positionAttribute.format = Format.RGB32_SFLOAT;
+        positionAttribute.buffer = 1;
+        positionAttribute.offset = 0;
+        vertexAttributes.add(positionAttribute);
+
         const vertexInput: VertexInputView = {
             buffers: [texCoordBuffer, positionBuffer],
             offsets: [0, 0]

@@ -1,4 +1,4 @@
-import { AttachmentDescription, BlendFactor, Buffer, CommandBuffer, CullMode, DescriptorSet, DescriptorSetLayoutBinding, DescriptorType, Format, FormatInfos, Framebuffer, IndexType, InputAssembler, InputAssemblerInfo, LOAD_OP, Pipeline, PipelineInfo, PipelineLayout, PrimitiveTopology, RenderPass, Texture, Uint32Vector, VertexInputAttributeDescription } from "gfx-main";
+import { AttachmentDescription, BlendFactor, Buffer, CommandBuffer, CullMode, DescriptorSet, DescriptorSetLayoutBinding, DescriptorType, Format, FormatInfos, Framebuffer, IndexType, InputAssembler, InputAssemblerInfo, LOAD_OP, Pipeline, PipelineInfo, PipelineLayout, PrimitiveTopology, RenderPass, Shader, Texture, Uint32Vector, VertexInputAttributeDescription } from "gfx-main";
 import WebBuffer from "./WebBuffer.js";
 import WebDescriptorSet from "./WebDescriptorSet.js";
 import WebFramebuffer from "./WebFramebuffer.js";
@@ -19,41 +19,17 @@ function bendFactor2WebGL(factor: BlendFactor): GLenum {
     }
 }
 
-// const WebGLBlendFactors: GLenum[] = [
-//     0x0000, // WebGLRenderingContext.ZERO,
-//     0x0001, // WebGLRenderingContext.ONE,
-//     0x0302, // WebGLRenderingContext.SRC_ALPHA,
-//     0x0304, // WebGLRenderingContext.DST_ALPHA,
-//     0x0303, // WebGLRenderingContext.ONE_MINUS_SRC_ALPHA,
-//     0x0305, // WebGLRenderingContext.ONE_MINUS_DST_ALPHA,
-//     0x0300, // WebGLRenderingContext.SRC_COLOR,
-//     0x0306, // WebGLRenderingContext.DST_COLOR,
-//     0x0301, // WebGLRenderingContext.ONE_MINUS_SRC_COLOR,
-//     0x0307, // WebGLRenderingContext.ONE_MINUS_DST_COLOR,
-//     0x0308, // WebGLRenderingContext.SRC_ALPHA_SATURATE,
-//     0x8001, // WebGLRenderingContext.CONSTANT_COLOR,
-//     0x8002, // WebGLRenderingContext.ONE_MINUS_CONSTANT_COLOR,
-//     0x8003, // WebGLRenderingContext.CONSTANT_ALPHA,
-//     0x8004, // WebGLRenderingContext.ONE_MINUS_CONSTANT_ALPHA,
-// ];
-
-// function calculateOffset(attribute: VertexInputAttributeDescription, attributes: VertexInputAttributeDescription[]): number {
-//     let offset = 0;
-//     for (const iterator of attributes) {
-//         if (iterator.binding != attribute.binding) continue;
-//         if (iterator.location >= attribute.location) continue;
-//         offset += FormatInfos[iterator.format].size;
-//     }
-//     return offset;
-// }
-
-const input2vao: WeakMap<InputAssemblerInfo, WebGLVertexArrayObject> = new WeakMap;
-
+const input2vao: WeakMap<InputAssemblerInfo, WeakMap<Shader, WebGLVertexArrayObject>> = new WeakMap;
 
 export default class WebCommandBuffer implements CommandBuffer {
     private _gl: WebGL2RenderingContext;
+
     private _pipeline!: PipelineInfo;
+    private _pipeline_invalid = false;
+
     private _inputAssembler!: InputAssemblerInfo;
+    private _inputAssembler_invalid = false;
+
     private _framebuffer!: WebFramebuffer;
     private _viewport!: { x: number, y: number, width: number, height: number };
 
@@ -147,6 +123,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         this._pipeline = info;
+        this._pipeline_invalid = true;
     }
 
     bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void {
@@ -175,18 +152,87 @@ export default class WebCommandBuffer implements CommandBuffer {
     }
 
     bindInputAssembler(inputAssembler: InputAssembler): void {
+        this._inputAssembler = inputAssembler.info;
+        this._inputAssembler_invalid = true;
+    }
+
+    draw(vertexCount: number): void {
+        this.bindVertexArray();
+
         const gl = this._gl;
 
-        const inputAssemblerInfo = inputAssembler.info;
-        let vao = input2vao.get(inputAssemblerInfo);
+        let mode: GLenum;
+        switch (this._pipeline.passState.primitive) {
+            case PrimitiveTopology.LINE_LIST:
+                mode = gl.LINES;
+                break;
+            case PrimitiveTopology.TRIANGLE_LIST:
+                mode = gl.TRIANGLES;
+                break;
+            default:
+                throw `unsupported primitive: ${this._pipeline.passState.primitive}`
+        }
+        gl.drawArrays(mode, 0, vertexCount);
+        gl.bindVertexArray(null);
+    }
+
+    drawIndexed(indexCount: number) {
+        this.bindVertexArray();
+
+        const indexInput = this._inputAssembler!.indexInput!;
+
+        let type: GLenum;
+        switch (indexInput.type) {
+            case IndexType.UINT16:
+                type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                break;
+            case IndexType.UINT32:
+                type = WebGL2RenderingContext.UNSIGNED_INT;
+                break;
+            default:
+                console.error('unsupported index type');
+                return;
+        }
+
+        const gl = this._gl;
+        gl.drawElements(gl.TRIANGLES, indexCount, type, indexInput.offset);
+        gl.bindVertexArray(null);
+    }
+
+    endRenderPass() {
+        const gl = this._gl;
+
+        for (const attachment of (this._framebuffer.info.resolveAttachments as WebVector<Texture>).data) {
+            if ((attachment as WebTexture).swapchain) {
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl || null);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+                gl.blitFramebuffer(
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
+                    gl.COLOR_BUFFER_BIT, gl.LINEAR);
+            }
+        }
+    }
+
+    end(): void { }
+
+    private bindVertexArray() {
+        const gl = this._gl;
+
+        const inputAssembler = this._inputAssembler
+        const shader = this._pipeline.passState.shader;
+        const vertexInputState = this._pipeline.vertexInputState;
+
+        let vao = input2vao.get(inputAssembler)?.get(shader);
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = (inputAssemblerInfo.vertexInputState.attributes as WebVector<VertexInputAttributeDescription>).data;
+            const attributes = (vertexInputState.attributes as WebVector<VertexInputAttributeDescription>).data;
             for (const attribute of attributes) {
-                const binding = inputAssemblerInfo.vertexInputState.bindings.get(attribute.binding);
-                const buffer = (inputAssemblerInfo.vertexInput.buffers as WebVector<Buffer>).data[attribute.binding] as WebBuffer;
-                const offset = (inputAssemblerInfo.vertexInput.offsets as WebVector<number>).data[attribute.binding];
+                const binding = vertexInputState.bindings.get(attribute.binding);
+                const buffer = (inputAssembler.vertexInput.buffers as WebVector<Buffer>).data[attribute.binding] as WebBuffer;
+                const offset = (inputAssembler.vertexInput.offsets as WebVector<number>).data[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
@@ -232,73 +278,21 @@ export default class WebCommandBuffer implements CommandBuffer {
                 }
 
             }
-            if (inputAssemblerInfo.indexInput) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssemblerInfo.indexInput.buffer as WebBuffer).impl);
+            if (inputAssembler.indexInput) {
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexInput.buffer as WebBuffer).impl);
             }
-            input2vao.set(inputAssemblerInfo, vao);
+
+            let map = input2vao.get(inputAssembler);
+            if (!map) {
+                map = new Map;
+                input2vao.set(inputAssembler, map);
+            }
+            map.set(shader, vao);
 
             gl.bindVertexArray(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         }
         gl.bindVertexArray(vao);
-
-        this._inputAssembler = inputAssemblerInfo;
     }
-
-    draw(vertexCount: number): void {
-        const gl = this._gl;
-
-        let mode: GLenum;
-        switch (this._pipeline.passState.primitive) {
-            case PrimitiveTopology.LINE_LIST:
-                mode = gl.LINES;
-                break;
-            case PrimitiveTopology.TRIANGLE_LIST:
-                mode = gl.TRIANGLES;
-                break;
-            default:
-                throw `unsupported primitive: ${this._pipeline.passState.primitive}`
-        }
-        gl.drawArrays(mode, 0, vertexCount);
-    }
-
-    drawIndexed(indexCount: number) {
-        const indexInput = this._inputAssembler!.indexInput!;
-
-        let type: GLenum;
-        switch (indexInput.type) {
-            case IndexType.UINT16:
-                type = WebGL2RenderingContext.UNSIGNED_SHORT;
-                break;
-            case IndexType.UINT32:
-                type = WebGL2RenderingContext.UNSIGNED_INT;
-                break;
-            default:
-                console.error('unsupported index type');
-                return;
-        }
-
-        const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, indexCount, type, indexInput.offset);
-        gl.bindVertexArray(null);
-    }
-
-    endRenderPass() {
-        const gl = this._gl;
-
-        for (const attachment of (this._framebuffer.info.resolveAttachments as WebVector<Texture>).data) {
-            if ((attachment as WebTexture).swapchain) {
-                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl || null);
-                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-
-                gl.blitFramebuffer(
-                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
-                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
-                    gl.COLOR_BUFFER_BIT, gl.LINEAR);
-            }
-        }
-    }
-
-    end(): void { }
 }

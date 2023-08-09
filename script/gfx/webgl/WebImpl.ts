@@ -19,6 +19,7 @@ import {
     WebSubmitInfo,
     WebTextureInfo,
     WebVector,
+    WebVertexAttribute,
     WebVertexInput,
     WebVertexInputAttributeDescription,
     WebVertexInputBindingDescription,
@@ -56,9 +57,11 @@ export default class WebImpl implements Impl {
     VertexInputAttributeDescriptionVector = WebVector;
     VertexInputBindingDescriptionVector = WebVector;
     VertexInputState = WebVertexInputState;
+    VertexAttribute = WebVertexAttribute;
     BufferVector = WebVector;
     VertexInput = WebVertexInput;
     IndexInput = WebIndexInput;
+    VertexAttributeVector = WebVector;
     InputAssemblerInfo = WebInputAssemblerInfo;
 
     RasterizationState = WebRasterizationState;

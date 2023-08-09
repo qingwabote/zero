@@ -1,4 +1,4 @@
-import type { AttachmentDescription, AttachmentDescriptionVector, BlendState, BufferInfo, BufferVector, DepthStencilState, DescriptorSetLayoutBinding, DescriptorSetLayoutBindingVector, DescriptorSetLayoutInfo, DescriptorSetLayoutVector, FloatVector, FramebufferInfo, IndexInput, InputAssemblerInfo, PassState, PipelineInfo, PipelineLayoutInfo, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, StringVector, SubmitInfo, TextureInfo, Uint32Vector, VertexInput, VertexInputAttributeDescription, VertexInputAttributeDescriptionVector, VertexInputBindingDescription, VertexInputBindingDescriptionVector, VertexInputState } from "./info.js";
+import type { AttachmentDescription, AttachmentDescriptionVector, BlendState, BufferInfo, BufferVector, DepthStencilState, DescriptorSetLayoutBinding, DescriptorSetLayoutBindingVector, DescriptorSetLayoutInfo, DescriptorSetLayoutVector, FloatVector, FramebufferInfo, IndexInput, InputAssemblerInfo, PassState, PipelineInfo, PipelineLayoutInfo, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, StringVector, SubmitInfo, TextureInfo, Uint32Vector, VertexAttribute, VertexAttributeVector, VertexInput, VertexInputAttributeDescription, VertexInputAttributeDescriptionVector, VertexInputBindingDescription, VertexInputBindingDescriptionVector, VertexInputState } from "./info.js";
 
 export interface Impl {
     readonly FloatVector: new () => FloatVector;
@@ -31,9 +31,11 @@ export interface Impl {
     readonly VertexInputAttributeDescriptionVector: new () => VertexInputAttributeDescriptionVector;
     readonly VertexInputBindingDescriptionVector: new () => VertexInputBindingDescriptionVector;
     readonly VertexInputState: new () => VertexInputState;
+    readonly VertexAttribute: new () => VertexAttribute;
     readonly BufferVector: new () => BufferVector;
     readonly VertexInput: new () => VertexInput;
     readonly IndexInput: new () => IndexInput;
+    readonly VertexAttributeVector: new () => VertexAttributeVector;
     readonly InputAssemblerInfo: new () => InputAssemblerInfo;
 
     readonly RasterizationState: new () => RasterizationState;

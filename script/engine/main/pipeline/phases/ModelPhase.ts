@@ -1,4 +1,4 @@
-import { CommandBuffer, PassState, Pipeline, PipelineLayout, RenderPass, VertexInputState, impl } from "gfx-main";
+import { CommandBuffer, FormatInfos, InputAssembler, PassState, Pipeline, PipelineLayout, RenderPass, VertexInputRate, impl } from "gfx-main";
 import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
 import { Zero } from "../../core/Zero.js";
 import { device } from "../../core/impl.js";
@@ -30,18 +30,18 @@ export class ModelPhase extends Phase {
                 if (subModel.vertexOrIndexCount == 0) {
                     continue;
                 }
+                const inputAssembler = subModel.inputAssembler;
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
                     if (pass.type != this._passType) {
                         continue;
                     }
-                    const inputAssembler = subModel.inputAssemblers[i];
                     commandBuffer.bindInputAssembler(inputAssembler);
                     const layout = this.getPipelineLayout(model, pass);
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(layout, shaderLib.sets.material.index, pass.descriptorSet);
                     }
-                    const pipeline = this.getPipeline(pass.state, inputAssembler.info.vertexInputState, renderPass, layout);
+                    const pipeline = this.getPipeline(pass.state, inputAssembler, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     if (inputAssembler.info.indexInput) {
                         commandBuffer.drawIndexed(subModel.vertexOrIndexCount);
@@ -89,10 +89,53 @@ export class ModelPhase extends Phase {
     /**
      * @param renderPass a compatible renderPass
      */
-    private getPipeline(pass: PassState, vertexInputState: VertexInputState, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
-        const pipelineHash = hashLib.passState(pass) ^ hashLib.vertexInputState(vertexInputState) ^ hashLib.renderPass(renderPass);
+    private getPipeline(pass: PassState, inputAssembler: InputAssembler, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
+        const inputAssemblerInfo = inputAssembler.info;
+        const pipelineHash = hashLib.passState(pass) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
         let pipeline = pipelineCache[pipelineHash];
         if (!pipeline) {
+            const vertexInputState = new impl.VertexInputState;
+            const vertexAttributes = inputAssemblerInfo.vertexAttributes;
+            const vertexAttributesSize = vertexAttributes.size();
+            const vertexBuffers = inputAssemblerInfo.vertexInput.buffers;
+            const vertexBuffersSize = vertexBuffers.size();
+            for (let binding = 0; binding < vertexBuffersSize; binding++) {
+                const buffer = vertexBuffers.get(binding);
+                let stride = buffer.info.stride;
+                if (!stride) {
+                    let count = 0;
+                    for (let i = 0; i < vertexAttributesSize; i++) {
+                        const attribute = vertexAttributes.get(i);
+                        if (attribute.buffer == binding) {
+                            count += FormatInfos[attribute.format].size;
+                        }
+                    }
+                    stride = count;
+                }
+                const description = new impl.VertexInputBindingDescription;
+                description.binding = binding;
+                description.stride = stride;
+                description.inputRate = VertexInputRate.VERTEX;
+                vertexInputState.bindings.add(description);
+            }
+            for (let i = 0; i < vertexAttributesSize; i++) {
+                const attribute = vertexAttributes.get(i);
+                const definition = shaderLib.getMeta(pass.shader).attributes[attribute.name];
+                if (!definition) {
+                    continue;
+                }
+
+                const description = new impl.VertexInputAttributeDescription;
+                description.location = definition.location;
+                // attribute.format in buffer can be different from definition.format in shader, 
+                // use attribute.format here to make sure type conversion can be done correctly by graphics api.
+                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
+                description.format = attribute.format;
+                description.binding = attribute.buffer;
+                description.offset = attribute.offset;
+                vertexInputState.attributes.add(description);
+            }
+
             const info = new impl.PipelineInfo();
             info.passState = pass;
             info.vertexInputState = vertexInputState;

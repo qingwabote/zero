@@ -55,13 +55,11 @@
 
 %shared_ptr(gfx::ShaderInfo)
 
+%shared_ptr(gfx::VertexAttribute);
+%shared_ptr(gfx::VertexAttributeVector);
+
 %shared_ptr(gfx::Buffer);
 %shared_ptr(gfx::BufferVector)
-%shared_ptr(gfx::VertexInputAttributeDescription);
-%shared_ptr(gfx::VertexInputBindingDescription)
-%shared_ptr(gfx::VertexInputAttributeDescriptionVector)
-%shared_ptr(gfx::VertexInputBindingDescriptionVector)
-%shared_ptr(gfx::VertexInputState)
 %shared_ptr(gfx::VertexInput)
 %shared_ptr(gfx::IndexInput)
 %shared_ptr(gfx::InputAssemblerInfo)
@@ -72,6 +70,11 @@
 %shared_ptr(gfx::Shader)
 %shared_ptr(gfx::PassState)
 
+%shared_ptr(gfx::VertexInputAttributeDescription);
+%shared_ptr(gfx::VertexInputBindingDescription)
+%shared_ptr(gfx::VertexInputAttributeDescriptionVector)
+%shared_ptr(gfx::VertexInputBindingDescriptionVector)
+%shared_ptr(gfx::VertexInputState)
 %shared_ptr(gfx::PipelineInfo)
 
 %shared_ptr(gfx::CommandBuffer);
@@ -89,6 +92,8 @@
 %template(DescriptorSetLayoutBindingVector) std::vector<std::shared_ptr<gfx::DescriptorSetLayoutBinding>>;
 %template(AttachmentDescriptionVector) std::vector<std::shared_ptr<gfx::AttachmentDescription>>;
 %template(DescriptorSetLayoutVector) std::vector<std::shared_ptr<gfx::DescriptorSetLayout>>;
+%template(VertexAttributeVector) std::vector<std::shared_ptr<gfx::VertexAttribute>>;
+
 
 %ignore gfx::Capabilities::Capabilities;
 %attribute(gfx::Capabilities, uint32_t, uniformBufferOffsetAlignment, uniformBufferOffsetAlignment);

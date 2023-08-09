@@ -165,35 +165,13 @@ export interface PipelineLayoutInfo {
     layouts: DescriptorSetLayoutVector
 }
 
-// copy values from VkVertexInputRate in vulkan_core.h
-export enum VertexInputRate {
-    VERTEX = 0,
-    INSTANCE = 1
-}
-
-export interface VertexInputAttributeDescription {
-    location: number;
-    format: Format;
-    binding: number;
+export interface VertexAttribute {
+    name: string
+    format: Format
+    buffer: number
     offset: number
 }
-/**
- * stride can't be zero even if vertex buffer is tightly packed. Unlike in OpenGL, the value must be explicit in Vulkan.
- */
-export interface VertexInputBindingDescription {
-    binding: number;
-    stride: number;
-    inputRate: VertexInputRate;
-}
-export type VertexInputAttributeDescriptionVector = Vector<VertexInputAttributeDescription>;
-export type VertexInputBindingDescriptionVector = Vector<VertexInputBindingDescription>;
-/**
- * Vulkan separates binding from attribute, because multi attributes will use the same binding if vertex buffer is interleaved, I guess.
- */
-export interface VertexInputState {
-    attributes: VertexInputAttributeDescriptionVector,
-    bindings: VertexInputBindingDescriptionVector,
-}
+export type VertexAttributeVector = Vector<VertexAttribute>;
 
 export type BufferVector = Vector<Buffer>;
 export interface VertexInput {
@@ -211,7 +189,7 @@ export interface IndexInput {
     type: IndexType;
 }
 export interface InputAssemblerInfo {
-    vertexInputState: VertexInputState;
+    vertexAttributes: VertexAttributeVector;
     vertexInput: VertexInput;
     indexInput?: IndexInput;
 }
@@ -266,6 +244,36 @@ export interface PassState {
     rasterizationState: RasterizationState;
     depthStencilState?: DepthStencilState;
     blendState?: BlendState;
+}
+
+// copy values from VkVertexInputRate in vulkan_core.h
+export enum VertexInputRate {
+    VERTEX = 0,
+    INSTANCE = 1
+}
+
+export interface VertexInputAttributeDescription {
+    location: number;
+    format: Format;
+    binding: number;
+    offset: number
+}
+/**
+ * stride can't be zero even if vertex buffer is tightly packed. Unlike in OpenGL, the value must be explicit in Vulkan.
+ */
+export interface VertexInputBindingDescription {
+    binding: number;
+    stride: number;
+    inputRate: VertexInputRate;
+}
+export type VertexInputAttributeDescriptionVector = Vector<VertexInputAttributeDescription>;
+export type VertexInputBindingDescriptionVector = Vector<VertexInputBindingDescription>;
+/**
+ * Vulkan separates binding from attribute, because multi attributes will use the same binding if vertex buffer is interleaved, I guess.
+ */
+export interface VertexInputState {
+    attributes: VertexInputAttributeDescriptionVector,
+    bindings: VertexInputBindingDescriptionVector,
 }
 
 export interface PipelineInfo {

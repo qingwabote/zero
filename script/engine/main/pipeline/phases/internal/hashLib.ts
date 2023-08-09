@@ -1,10 +1,10 @@
-import type { PassState, RenderPass, RenderPassInfo, Shader, VertexInputState } from "gfx-main";
+import type { InputAssemblerInfo, PassState, RenderPassInfo, Shader } from "gfx-main";
 import { murmurhash2_32_gc } from "../../../base/murmurhash2_gc.js";
 import { shaderLib } from "../../../core/shaderLib.js";
 
 const _shader2hash: WeakMap<Shader, number> = new WeakMap;
 const _pass2hash: WeakMap<PassState, number> = new WeakMap;
-const _vertex2hash: WeakMap<VertexInputState, number> = new WeakMap;
+const _inputAssembler2hash: WeakMap<InputAssemblerInfo, number> = new WeakMap;
 const _renderPass2hash: WeakMap<RenderPassInfo, number> = new WeakMap;
 
 export const hashLib = {
@@ -36,30 +36,29 @@ export const hashLib = {
         return hash;
     },
 
-    vertexInputState(vertexInput: VertexInputState): number {
-        let hash = _vertex2hash.get(vertexInput);
+    inputAssembler(inputAssembler: InputAssemblerInfo): number {
+        let hash = _inputAssembler2hash.get(inputAssembler);
         if (!hash) {
             let key = '';
-            const attributes = vertexInput.attributes;
+            const attributes = inputAssembler.vertexAttributes
             const length = attributes.size();
             for (let i = 0; i < length; i++) {
                 const attribute = attributes.get(i);
-                key += `${attribute.location}${attribute.format}${attribute.binding}${attribute.offset}`;
+                key += `${attribute.name}${attribute.format}${attribute.buffer}${attribute.offset}`;
             }
             hash = murmurhash2_32_gc(key, 666);
-            _vertex2hash.set(vertexInput, hash);
+            _inputAssembler2hash.set(inputAssembler, hash);
         }
         return hash;
     },
 
-    renderPass(renderPass: RenderPass): number {
-        const info = renderPass.info;
-        let hash = _renderPass2hash.get(info);
+    renderPass(renderPass: RenderPassInfo): number {
+        let hash = _renderPass2hash.get(renderPass);
         if (!hash) {
             // https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
-            const key = `${info.colorAttachments.size()}1${info.resolveAttachments.size()}${info.samples}`;
+            const key = `${renderPass.colorAttachments.size()}1${renderPass.resolveAttachments.size()}${renderPass.samples}`;
             hash = murmurhash2_32_gc(key, 666);
-            _renderPass2hash.set(info, hash);
+            _renderPass2hash.set(renderPass, hash);
         }
         return hash;
     }

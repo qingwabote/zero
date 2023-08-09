@@ -1,4 +1,4 @@
-import type { AttachmentDescription, AttachmentDescriptionVector, BlendFactor, BlendState, Buffer, BufferInfo, BufferUsageFlagBits, BufferVector, CommandBuffer, CullMode, DepthStencilState, DescriptorSetLayoutBinding, DescriptorSetLayoutBindingVector, DescriptorSetLayoutInfo, DescriptorSetLayoutVector, DescriptorType, Filter, Format, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayout, PipelineLayoutInfo, PipelineStageFlagBits, PrimitiveTopology, RasterizationState, RenderPass, SampleCountFlagBits, SamplerInfo, Semaphore, Shader, ShaderInfo, ShaderStageFlagBits, StringVector, SubmitInfo, Texture, TextureInfo, TextureUsageBits, TextureVector, Uint32Vector, Vector, VertexInput, VertexInputAttributeDescription, VertexInputAttributeDescriptionVector, VertexInputBindingDescription, VertexInputBindingDescriptionVector, VertexInputRate, VertexInputState } from "gfx-main";
+import type { AttachmentDescription, AttachmentDescriptionVector, BlendFactor, BlendState, Buffer, BufferInfo, BufferUsageFlagBits, BufferVector, CommandBuffer, CullMode, DepthStencilState, DescriptorSetLayoutBinding, DescriptorSetLayoutBindingVector, DescriptorSetLayoutInfo, DescriptorSetLayoutVector, DescriptorType, Filter, Format, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayout, PipelineLayoutInfo, PipelineStageFlagBits, PrimitiveTopology, RasterizationState, RenderPass, SampleCountFlagBits, SamplerInfo, Semaphore, Shader, ShaderInfo, ShaderStageFlagBits, StringVector, SubmitInfo, Texture, TextureInfo, TextureUsageBits, TextureVector, Uint32Vector, Vector, VertexAttribute, VertexAttributeVector, VertexInput, VertexInputAttributeDescription, VertexInputAttributeDescriptionVector, VertexInputBindingDescription, VertexInputBindingDescriptionVector, VertexInputRate, VertexInputState } from "gfx-main";
 
 export class WebVector<T> implements Vector<T> {
     readonly data: Array<T> = [];
@@ -89,6 +89,12 @@ export class WebVertexInputState implements VertexInputState {
     attributes: VertexInputAttributeDescriptionVector = new WebVector;
     bindings: VertexInputBindingDescriptionVector = new WebVector;
 }
+export class WebVertexAttribute implements VertexAttribute {
+    name: string = '';
+    format: Format = 0;
+    buffer: number = 0;
+    offset: number = 0;
+}
 export class WebVertexInput implements VertexInput {
     buffers: BufferVector = new WebVector;
     offsets: Uint32Vector = new WebVector;
@@ -99,7 +105,7 @@ export class WebIndexInput implements IndexInput {
     type: IndexType = 0;
 }
 export class WebInputAssemblerInfo implements InputAssemblerInfo {
-    vertexInputState!: VertexInputState;
+    vertexAttributes: VertexAttributeVector = new WebVector;
     vertexInput!: VertexInput;
     indexInput?: IndexInput;
 }

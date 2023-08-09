@@ -1,15 +1,8 @@
-import { Format, IndexType } from "gfx-main";
+import { IndexType, VertexAttributeVector } from "gfx-main";
 import { Vec3 } from "../../math/vec3.js";
 import { BufferView } from "./buffers/BufferView.js";
 
 export const PIXELS_PER_UNIT = 100;
-
-export interface VertexAttribute {
-    readonly name: string
-    readonly format: Format
-    readonly buffer: number
-    readonly offset: number
-}
 
 export interface VertexInputView {
     readonly buffers: readonly BufferView[];
@@ -23,7 +16,7 @@ export interface IndexInputView {
 }
 
 export interface SubMesh {
-    readonly vertexAttributes: readonly VertexAttribute[],
+    readonly vertexAttributes: VertexAttributeVector,
 
     readonly vertexInput: VertexInputView;
 

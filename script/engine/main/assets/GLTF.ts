@@ -1,6 +1,6 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
-import { Buffer, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, impl } from "gfx-main";
+import { Buffer, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, VertexAttribute, VertexAttributeVector, impl } from "gfx-main";
 import { MaterialInstance } from "../MaterialInstance.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
@@ -10,7 +10,7 @@ import { assetLib } from "../core/assetLib.js";
 import { device, loader } from "../core/impl.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { SubMesh, VertexAttribute } from "../core/render/scene/SubMesh.js";
+import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { BufferView } from "../core/render/scene/buffers/BufferView.js";
 import { getSampler } from "../core/sc.js";
 import { AnimationClip, Channel } from "./AnimationClip.js";
@@ -284,7 +284,7 @@ export class GLTF extends Asset {
 
             const vertexBuffers: BufferView[] = [];
             const vertexOffsets: number[] = [];
-            const vertexAttributes: VertexAttribute[] = [];
+            const vertexAttributes: VertexAttributeVector = new impl.VertexAttributeVector;
             for (const key in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
@@ -297,13 +297,12 @@ export class GLTF extends Asset {
                     // console.log(`unknown attribute: ${key}`);
                     continue;
                 }
-                const attribute: VertexAttribute = {
-                    name,
-                    format,
-                    buffer: vertexBuffers.length,
-                    offset: 0
-                }
-                vertexAttributes.push(attribute);
+                const attribute: VertexAttribute = new impl.VertexAttribute;
+                attribute.name = name;
+                attribute.format = format;
+                attribute.buffer = vertexBuffers.length;
+                attribute.offset = 0;
+                vertexAttributes.add(attribute);
                 vertexBuffers.push({ buffer: this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX) });
                 vertexOffsets.push(accessor.byteOffset || 0);
             }
