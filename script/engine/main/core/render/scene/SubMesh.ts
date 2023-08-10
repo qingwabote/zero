@@ -11,8 +11,12 @@ export interface VertexInputView {
 
 export interface IndexInputView {
     readonly buffer: BufferView;
-    readonly offset: number;
     readonly type: IndexType;
+}
+
+export interface DrawInfo {
+    indexOrVertexCount: number;
+    firstIndexOrVertex?: number;
 }
 
 export interface SubMesh {
@@ -25,5 +29,5 @@ export interface SubMesh {
 
     readonly indexInput?: IndexInputView;
 
-    vertexOrIndexCount: number
+    readonly drawInfo: DrawInfo;
 }

@@ -1,7 +1,7 @@
 import { IndexInput, InputAssembler, impl } from "gfx-main";
 import { device } from "../../impl.js";
 import { Pass } from "./Pass.js";
-import { SubMesh } from "./SubMesh.js";
+import { DrawInfo, SubMesh } from "./SubMesh.js";
 import { BufferViewResizable, BufferViewResizableEventType } from "./buffers/BufferViewResizable.js";
 
 export class SubModel {
@@ -13,8 +13,8 @@ export class SubModel {
         return this._inputAssembler!;
     }
 
-    public get vertexOrIndexCount(): number {
-        return this._subMesh.vertexOrIndexCount;
+    public get drawInfo(): DrawInfo {
+        return this._subMesh.drawInfo;
     }
 
     constructor(private _subMesh: SubMesh, public readonly passes: Pass[]) {
@@ -45,7 +45,6 @@ export class SubModel {
         if (this._subMesh.indexInput) {
             indexInput = new impl.IndexInput
             indexInput.buffer = this._subMesh.indexInput.buffer.buffer;
-            indexInput.offset = this._subMesh.indexInput.offset;
             indexInput.type = this._subMesh.indexInput.type;
         }
         const inputAssemblerInfo = new impl.InputAssemblerInfo;

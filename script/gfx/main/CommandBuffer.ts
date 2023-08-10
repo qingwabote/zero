@@ -17,7 +17,7 @@ export interface CommandBuffer {
     bindDescriptorSet(compatiblePipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
     draw(vertexCount: number): void;
-    drawIndexed(indexCount: number): void;
+    drawIndexed(indexCount: number, firstIndex: number): void;
     endRenderPass(): void;
     end(): void;
 }

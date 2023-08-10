@@ -84,12 +84,12 @@ namespace bg
         _background->post(f);
     }
 
-    void CommandBuffer::drawIndexed(uint32_t indexCount)
+    void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex)
     {
         auto f = new auto(
             [=]()
             {
-                gfx::CommandBuffer::drawIndexed(indexCount);
+                gfx::CommandBuffer::drawIndexed(indexCount, firstIndex);
             });
         _background->post(f);
     }

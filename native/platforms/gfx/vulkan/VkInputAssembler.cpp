@@ -34,7 +34,7 @@ namespace gfx
         {
             auto indexInput = std::make_unique<InputAssembler_impl::VkIndexInput>();
             indexInput->indexBuffer = gfx_indexInput->buffer->impl();
-            indexInput->indexOffset = gfx_indexInput->offset;
+            indexInput->indexOffset = 0; // WebGL can not specify the offset of the index buffer at buffer binding
             indexInput->indexType = static_cast<VkIndexType>(gfx_indexInput->type);
             _impl->_indexInput = std::move(indexInput);
         }

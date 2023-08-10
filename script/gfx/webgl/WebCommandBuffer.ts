@@ -176,7 +176,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         gl.bindVertexArray(null);
     }
 
-    drawIndexed(indexCount: number) {
+    drawIndexed(indexCount: number, firstIndex: number) {
         this.bindVertexArray();
 
         const indexInput = this._inputAssembler!.indexInput!;
@@ -195,7 +195,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, indexCount, type, indexInput.offset);
+        gl.drawElements(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || (type == IndexType.UINT16 ? 2 : 4)) * firstIndex);
         gl.bindVertexArray(null);
     }
 
@@ -264,13 +264,13 @@ export default class WebCommandBuffer implements CommandBuffer {
                 if (isInteger) {
                     gl.vertexAttribIPointer(
                         attribute.location,
-                        formatInfo.count,
+                        formatInfo.nums,
                         type,
                         binding.stride, offset + attribute.offset);
                 } else {
                     gl.vertexAttribPointer(
                         attribute.location,
-                        formatInfo.count,
+                        formatInfo.nums,
                         type,
                         false,
                         binding.stride,

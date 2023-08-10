@@ -210,9 +210,9 @@ namespace gfx
         vkCmdDraw(_impl->_commandBuffer, vertexCount, 1, 0, 0);
     }
 
-    void CommandBuffer::drawIndexed(uint32_t indexCount)
+    void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex)
     {
-        vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, firstIndex, 0, 0);
     }
 
     void CommandBuffer::endRenderPass()

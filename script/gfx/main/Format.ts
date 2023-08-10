@@ -16,21 +16,21 @@ export enum Format {
 
 interface FormatInfo {
     readonly name: string;
-    readonly size: number
-    readonly count: number;
+    readonly bytes: number
+    readonly nums: number;
 }
 
 export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
-    [Format.UNDEFINED]: { name: "UNDEFINED", size: 0, count: 0 },
-    [Format.R8_UINT]: { name: "R8_UINT", size: 1, count: 1 },
-    [Format.RGBA8_UNORM]: { name: "RGBA8_UNORM", size: 4, count: 4 },
-    [Format.RGBA8_UINT]: { name: "RGBA8_UINT", size: 4, count: 4 },
-    [Format.RGBA8_SRGB]: { name: "RGBA8_SRGB", size: 4, count: 4 },
-    [Format.R16_UINT]: { name: "R16_UINT", size: 2, count: 1 },
-    [Format.RGBA16_UINT]: { name: "RGBA16_UINT", size: 8, count: 4 },
-    [Format.R32_UINT]: { name: "R32_UINT", size: 4, count: 1 },
-    [Format.RG32_SFLOAT]: { name: "RG32_SFLOAT", size: 8, count: 2 },
-    [Format.RGB32_SFLOAT]: { name: "RGB32_SFLOAT", size: 12, count: 3 },
-    [Format.RGBA32_UINT]: { name: "RGBA32_UINT", size: 16, count: 4 },
-    [Format.RGBA32_SFLOAT]: { name: "RGBA32_SFLOAT", size: 16, count: 4 },
+    [Format.UNDEFINED]: { name: "UNDEFINED", bytes: 0, nums: 0 },
+    [Format.R8_UINT]: { name: "R8_UINT", bytes: 1, nums: 1 },
+    [Format.RGBA8_UNORM]: { name: "RGBA8_UNORM", bytes: 4, nums: 4 },
+    [Format.RGBA8_UINT]: { name: "RGBA8_UINT", bytes: 4, nums: 4 },
+    [Format.RGBA8_SRGB]: { name: "RGBA8_SRGB", bytes: 4, nums: 4 },
+    [Format.R16_UINT]: { name: "R16_UINT", bytes: 2, nums: 1 },
+    [Format.RGBA16_UINT]: { name: "RGBA16_UINT", bytes: 8, nums: 4 },
+    [Format.R32_UINT]: { name: "R32_UINT", bytes: 4, nums: 1 },
+    [Format.RG32_SFLOAT]: { name: "RG32_SFLOAT", bytes: 8, nums: 2 },
+    [Format.RGB32_SFLOAT]: { name: "RGB32_SFLOAT", bytes: 12, nums: 3 },
+    [Format.RGBA32_UINT]: { name: "RGBA32_UINT", bytes: 16, nums: 4 },
+    [Format.RGBA32_SFLOAT]: { name: "RGBA32_SFLOAT", bytes: 16, nums: 4 },
 }

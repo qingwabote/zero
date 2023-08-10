@@ -21,7 +21,7 @@ namespace bg
         virtual void bindInputAssembler(const std::shared_ptr<gfx::InputAssembler> &inputAssembler) override;
         virtual void bindPipeline(const std::shared_ptr<gfx::Pipeline> &pipeline) override;
         virtual void draw(uint32_t count) override;
-        virtual void drawIndexed(uint32_t indexCount) override;
+        virtual void drawIndexed(uint32_t indexCount, uint32_t firstIndex) override;
         virtual void endRenderPass() override;
         virtual void end() override;
     };

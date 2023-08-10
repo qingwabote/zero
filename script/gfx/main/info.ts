@@ -185,7 +185,7 @@ export enum IndexType {
 }
 export interface IndexInput {
     buffer: Buffer;
-    offset: number;
+    // offset: number; // WebGL can not specify the offset of the index buffer at buffer binding
     type: IndexType;
 }
 export interface InputAssemblerInfo {

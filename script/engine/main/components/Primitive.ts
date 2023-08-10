@@ -69,7 +69,7 @@ export class Primitive extends BoundedRenderer {
         positionAttribute.buffer = 0;
         positionAttribute.offset = offset;
         vertexAttributes.add(positionAttribute);
-        offset += FormatInfos[format].size;
+        offset += FormatInfos[format].bytes;
         format = Format.RGBA32_SFLOAT;
         const colorAttribute = new impl.VertexAttribute;
         colorAttribute.name = 'a_color';
@@ -77,7 +77,7 @@ export class Primitive extends BoundedRenderer {
         colorAttribute.buffer = 0;
         colorAttribute.offset = offset;
         vertexAttributes.add(colorAttribute);
-        offset += FormatInfos[format].size;
+        offset += FormatInfos[format].bytes;
 
         const vertexInput: VertexInputView = {
             buffers: [this._buffer],
@@ -88,7 +88,9 @@ export class Primitive extends BoundedRenderer {
             vertexInput,
             vertexPositionMin: vec3.create(),
             vertexPositionMax: vec3.create(),
-            vertexOrIndexCount: 0
+            drawInfo: {
+                indexOrVertexCount: 0
+            }
         }
 
         const rasterizationState = new impl.RasterizationState;
@@ -112,13 +114,13 @@ export class Primitive extends BoundedRenderer {
 
     lateUpdate(): void {
         if (this._vertexCount == 0) {
-            this._subMesh.vertexOrIndexCount = 0;
+            this._subMesh.drawInfo.indexOrVertexCount = 0;
             return;
         }
 
         this._buffer.update();
 
-        this._subMesh.vertexOrIndexCount = this._vertexCount;
+        this._subMesh.drawInfo.indexOrVertexCount = this._vertexCount;
     }
 
     clear() {

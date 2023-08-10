@@ -75,7 +75,6 @@ export class SpriteFrame {
         }
         const indexInput: IndexInputView = {
             buffer: indexBuffer,
-            offset: 0,
             type: IndexType.UINT16
         }
         const subMesh: SubMesh = {
@@ -84,7 +83,9 @@ export class SpriteFrame {
             vertexPositionMin: vec3.create(pos_l, pos_b, 0),
             vertexPositionMax: vec3.create(pos_r, pos_t, 0),
             indexInput,
-            vertexOrIndexCount: indexBuffer.length
+            drawInfo: {
+                indexOrVertexCount: indexBuffer.length
+            }
         }
         this.mesh = { subMeshes: [subMesh] };
     }

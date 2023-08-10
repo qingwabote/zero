@@ -189,7 +189,6 @@ namespace gfx
     struct IndexInput
     {
         std::shared_ptr<Buffer> buffer;
-        uint32_t offset{0};
         IndexType type{0};
     };
     struct InputAssemblerInfo

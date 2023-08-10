@@ -36,7 +36,7 @@ namespace gfx
         virtual void bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler);
         virtual void bindPipeline(const std::shared_ptr<Pipeline> &pipeline);
         virtual void draw(uint32_t count);
-        virtual void drawIndexed(uint32_t indexCount);
+        virtual void drawIndexed(uint32_t indexCount, uint32_t firstIndex);
         virtual void endRenderPass();
         virtual void end();
 

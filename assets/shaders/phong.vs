@@ -7,7 +7,7 @@
     #include <skin>
 #endif
 
-layout(location = 0) in vec3 a_position;
+layout(location = 0) in vec4 a_position;
 #if USE_ALBEDO_MAP
     layout(location = 1) in vec2 a_texCoord;
 #endif
@@ -32,7 +32,7 @@ void main() {
     #endif
     v_normal = normalize((local.modelIT * vec4(a_normal, 0.0)).xyz);
 
-    vec4 pos = vec4(a_position, 1);
+    vec4 pos = a_position;
     #if USE_SKIN
         mat4 joint_matrix = 
             skin.joints[a_joints.x] * a_weights.x + 

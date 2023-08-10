@@ -338,10 +338,12 @@ export class GLTF extends Asset {
                 vertexPositionMax: posAccessor.max,
                 indexInput: {
                     buffer: { buffer: indexBuffer },
-                    offset: indexAccessor.byteOffset || 0,
                     type: indexType
                 },
-                vertexOrIndexCount: indexAccessor.count,
+                drawInfo: {
+                    indexOrVertexCount: indexAccessor.count,
+                    firstIndexOrVertex: indexAccessor.byteOffset / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
+                }
             })
         }
         return [{ subMeshes }, materials];

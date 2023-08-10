@@ -101,7 +101,6 @@ export class WebVertexInput implements VertexInput {
 }
 export class WebIndexInput implements IndexInput {
     buffer!: Buffer;
-    offset: number = 0;
     type: IndexType = 0;
 }
 export class WebInputAssemblerInfo implements InputAssemblerInfo {

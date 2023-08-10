@@ -1,15 +1,21 @@
-import { BufferViewResizable, Material, MeshRenderer, Node, Pass, SubMesh, UIElement, Vec2, VertexAttribute, shaderLib, vec2, vec3, vec4 } from "engine-main";
+import { Material, MeshRenderer, Node, UIElement, Vec2, render, shaderLib, vec2, vec3, vec4 } from "engine-main";
 import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexType, PrimitiveTopology, Texture, impl } from "gfx-main";
 import { Polygon } from "./Polygon.js";
 
 const unlit = await shaderLib.load('unlit', { USE_ALBEDO_MAP: 1 })
 
-const vertexAttributes: readonly VertexAttribute[] = [
-    { name: 'a_position', format: Format.RGB32_SFLOAT, buffer: 0, offset: 0 },
-    { name: 'a_texCoord', format: Format.RG32_SFLOAT, buffer: 0, offset: FormatInfos[Format.RGB32_SFLOAT].size },
-];
+const vertexAttributes = new impl.VertexAttributeVector;
 
-function triangulate(n: number, indexBuffer: BufferViewResizable) {
+const a_position = new impl.VertexAttribute;
+a_position.format = Format.RGB32_SFLOAT;
+vertexAttributes.add(a_position);
+
+const a_texCoord = new impl.VertexAttribute;
+a_texCoord.format = Format.RG32_SFLOAT;
+a_texCoord.offset = FormatInfos[Format.RGB32_SFLOAT].bytes;
+vertexAttributes.add(a_texCoord);
+
+function triangulate(n: number, indexBuffer: render.BufferViewResizable) {
     const triangles = n - 2;
     indexBuffer.reset(3 * triangles);
     for (let i = 0; i < triangles; i++) {
@@ -53,7 +59,7 @@ export default class PolygonsRenderer extends UIElement {
         state.shader = unlit;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
-        const pass = new Pass(state);
+        const pass = new render.Pass(state);
         pass.setUniform('Constants', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
         this._material = { passes: [pass] };
@@ -65,7 +71,7 @@ export default class PolygonsRenderer extends UIElement {
                 const polygon = this._polygons[i];
                 const renderer = this.getMeshRenderer(i);
                 const subMesh = renderer.mesh.subMeshes[0];
-                const vertexBuffer = subMesh.vertexInput.buffers[0] as BufferViewResizable;
+                const vertexBuffer = subMesh.vertexInput.buffers[0] as render.BufferViewResizable;
                 vertexBuffer.reset(5 * polygon.vertexes.length);
                 let offset = 0;
                 for (let i = 0; i < polygon.vertexes.length; i++) {
@@ -80,11 +86,11 @@ export default class PolygonsRenderer extends UIElement {
                 vec3.set(subMesh.vertexPositionMin, ...polygon.vertexPosMin, 0);
                 vec3.set(subMesh.vertexPositionMax, ...polygon.vertexPosMax, 0);
 
-                const indexBuffer = subMesh.indexInput?.buffer as BufferViewResizable;
+                const indexBuffer = subMesh.indexInput?.buffer as render.BufferViewResizable;
                 triangulate(polygon.vertexes.length, indexBuffer);
                 indexBuffer.update();
 
-                subMesh.vertexOrIndexCount = indexBuffer.length;
+                subMesh.drawInfo.indexOrVertexCount = indexBuffer.length;
 
                 renderer.node.position = vec3.create(...polygon.translation, 0)
             }
@@ -95,20 +101,22 @@ export default class PolygonsRenderer extends UIElement {
     getMeshRenderer(index: number): MeshRenderer {
         let renderer = this._meshRenderers[index];
         if (!renderer) {
-            const subMesh: SubMesh = {
+            const subMesh: render.SubMesh = {
                 vertexAttributes,
                 vertexInput: {
-                    buffers: [new BufferViewResizable('Float32', BufferUsageFlagBits.VERTEX)],
+                    buffers: [new render.BufferViewResizable('Float32', BufferUsageFlagBits.VERTEX)],
                     offsets: [0]
                 },
                 vertexPositionMin: vec3.create(),
                 vertexPositionMax: vec3.create(),
                 indexInput: {
-                    buffer: new BufferViewResizable('Uint16', BufferUsageFlagBits.INDEX),
+                    buffer: new render.BufferViewResizable('Uint16', BufferUsageFlagBits.INDEX),
                     offset: 0,
                     type: IndexType.UINT16
                 },
-                vertexOrIndexCount: 0
+                drawInfo: {
+                    indexOrVertexCount: 0
+                }
             }
             renderer = (new Node(`PolygonsRenderer${index}`)).addComponent(MeshRenderer)
             renderer.mesh = { subMeshes: [subMesh] }
