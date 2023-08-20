@@ -8,20 +8,20 @@ public:
     virtual ~FunctionHolderBase() = default;
 };
 
-template <typename T, typename Ret, typename... Args>
+template <typename Lambda, typename Ret, typename... Args>
 class FunctionHolder : public FunctionHolderBase<Ret, Args...>
 {
 private:
-    T _f;
+    Lambda _f;
 
 public:
-    FunctionHolder(T f) : _f(f) {}
+    FunctionHolder(Lambda f) : _f(f) {}
     Ret call(Args &&...args) override { return (*_f)(std::forward<Args>(args)...); }
     ~FunctionHolder() { delete _f; }
 };
 
 /**
- * A move-only lambda container, hide lambda type by polymorphism, so it can be used as type by container like vector<UniqueFunction> to store any type of lambda
+ * A move-only lambda container, hide lambda type by polymorphism, so it can be used as type by container like std::vector<UniqueFunction<...>> to store any type of lambda
  */
 template <typename Ret, typename... Args>
 class UniqueFunction
@@ -30,10 +30,10 @@ protected:
     FunctionHolderBase<Ret, Args...> *_holder{nullptr};
 
 public:
-    template <typename T>
-    static UniqueFunction create(T f)
+    template <typename Lambda>
+    static UniqueFunction create(Lambda f)
     {
-        return UniqueFunction(new FunctionHolder<T, Ret, Args...>(f));
+        return UniqueFunction(new FunctionHolder<Lambda, Ret, Args...>(f));
     }
 
     UniqueFunction() noexcept = default;
