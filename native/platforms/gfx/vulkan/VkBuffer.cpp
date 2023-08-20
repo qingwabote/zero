@@ -6,15 +6,15 @@ namespace gfx
 {
     Buffer_impl::Buffer_impl(Device_impl *device) : _device(device) {}
 
-    bool Buffer_impl::initialize(const std::shared_ptr<BufferInfo> &info)
+    bool Buffer_impl::initialize(const BufferInfo &info)
     {
         VkBufferCreateInfo bufferInfo = {};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.usage = static_cast<VkBufferUsageFlags>(info->usage);
-        bufferInfo.size = info->size;
+        bufferInfo.usage = static_cast<VkBufferUsageFlags>(info.usage);
+        bufferInfo.size = info.size;
 
         VmaAllocationCreateInfo allocationCreateInfo = {};
-        allocationCreateInfo.usage = static_cast<VmaMemoryUsage>(info->mem_usage);
+        allocationCreateInfo.usage = static_cast<VmaMemoryUsage>(info.mem_usage);
         if (allocationCreateInfo.usage == VMA_MEMORY_USAGE_CPU_TO_GPU)
         {
             allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
@@ -26,7 +26,7 @@ namespace gfx
             return true;
         }
 
-        _info = info;
+        _info = std::make_shared<BufferInfo>(info);
 
         return false;
     }
@@ -37,7 +37,7 @@ namespace gfx
         memcpy(_allocationInfo.pMappedData, start, length);
     }
 
-    void Buffer_impl::reset(const std::shared_ptr<BufferInfo> &info)
+    void Buffer_impl::reset(BufferInfo &info)
     {
         vmaDestroyBuffer(_device->allocator(), _buffer, _allocation);
         initialize(info);
@@ -49,11 +49,11 @@ namespace gfx
         vmaDestroyBuffer(_device->allocator(), _buffer, _allocation);
     }
 
-    const std::shared_ptr<BufferInfo> &Buffer::info() { return _impl->info(); }
+    const std::shared_ptr<const BufferInfo> &Buffer::info() { return _impl->info(); }
 
     Buffer::Buffer(Device_impl *device) : _impl(std::make_shared<Buffer_impl>(device)) {}
 
-    bool Buffer::initialize(const std::shared_ptr<BufferInfo> &info)
+    bool Buffer::initialize(const BufferInfo &info)
     {
         return _impl->initialize(info);
     }
@@ -65,8 +65,8 @@ namespace gfx
 
     void Buffer::resize(uint32_t size)
     {
-        auto &info = _impl->info();
-        info->size = size;
+        BufferInfo info(*_impl->info());
+        info.size = size;
         _impl->reset(info);
     }
 

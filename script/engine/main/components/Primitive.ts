@@ -6,7 +6,7 @@ import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
-import { BufferViewResizable } from "../core/render/scene/buffers/BufferViewResizable.js";
+import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 
@@ -26,7 +26,7 @@ export class Primitive extends BoundedRenderer {
         return this._bounds;
     }
 
-    private _buffer: BufferViewResizable = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
+    private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX);
 
     private _vertexCount: number = 0;
 

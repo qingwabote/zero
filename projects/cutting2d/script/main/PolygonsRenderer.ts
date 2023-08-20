@@ -15,7 +15,7 @@ a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[Format.RGB32_SFLOAT].bytes;
 vertexAttributes.add(a_texCoord);
 
-function triangulate(n: number, indexBuffer: render.BufferViewResizable) {
+function triangulate(n: number, indexBuffer: render.BufferViewWritable) {
     const triangles = n - 2;
     indexBuffer.reset(3 * triangles);
     for (let i = 0; i < triangles; i++) {
@@ -71,7 +71,7 @@ export default class PolygonsRenderer extends UIElement {
                 const polygon = this._polygons[i];
                 const renderer = this.getMeshRenderer(i);
                 const subMesh = renderer.mesh.subMeshes[0];
-                const vertexBuffer = subMesh.vertexInput.buffers[0] as render.BufferViewResizable;
+                const vertexBuffer = subMesh.vertexInput.buffers[0] as render.BufferViewWritable;
                 vertexBuffer.reset(5 * polygon.vertexes.length);
                 let offset = 0;
                 for (let i = 0; i < polygon.vertexes.length; i++) {
@@ -86,7 +86,7 @@ export default class PolygonsRenderer extends UIElement {
                 vec3.set(subMesh.vertexPositionMin, ...polygon.vertexPosMin, 0);
                 vec3.set(subMesh.vertexPositionMax, ...polygon.vertexPosMax, 0);
 
-                const indexBuffer = subMesh.indexInput?.buffer as render.BufferViewResizable;
+                const indexBuffer = subMesh.indexInput?.buffer as render.BufferViewWritable;
                 triangulate(polygon.vertexes.length, indexBuffer);
                 indexBuffer.update();
 
@@ -104,13 +104,13 @@ export default class PolygonsRenderer extends UIElement {
             const subMesh: render.SubMesh = {
                 vertexAttributes,
                 vertexInput: {
-                    buffers: [new render.BufferViewResizable('Float32', BufferUsageFlagBits.VERTEX)],
+                    buffers: [new render.BufferViewWritable('Float32', BufferUsageFlagBits.VERTEX)],
                     offsets: [0]
                 },
                 vertexPositionMin: vec3.create(),
                 vertexPositionMax: vec3.create(),
                 indexInput: {
-                    buffer: new render.BufferViewResizable('Uint16', BufferUsageFlagBits.INDEX),
+                    buffer: new render.BufferViewWritable('Uint16', BufferUsageFlagBits.INDEX),
                     offset: 0,
                     type: IndexType.UINT16
                 },

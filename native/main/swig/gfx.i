@@ -103,7 +103,7 @@
 %include "gfx/Capabilities.hpp"
 
 %ignore gfx::Buffer::Buffer;
-%attribute2(gfx::Buffer, std::shared_ptr<gfx::BufferInfo>, info, info);
+%attribute2(gfx::Buffer, std::shared_ptr<const gfx::BufferInfo>, info, info);
 %include "gfx/Buffer.hpp"
 
 %ignore gfx::RenderPass::RenderPass;

@@ -14,9 +14,9 @@ namespace sugar::v8
     typedef std::unique_ptr<_v8::Isolate, void (*)(_v8::Isolate *)> unique_isolate;
     unique_isolate isolate_create(std::filesystem::path &imports);
 
-    _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, void *ptr);
+    _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, const void *ptr);
 
-    void isolate_native2js_set(_v8::Isolate *isolate, void *ptr, _v8::Local<_v8::Object> obj);
+    void isolate_native2js_set(_v8::Isolate *isolate, const void *ptr, _v8::Local<_v8::Object> obj);
 
     void isolate_promiseRejectCallback(_v8::PromiseRejectMessage msg);
 

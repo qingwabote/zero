@@ -11,7 +11,7 @@ import { vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
-import { BufferViewResizable } from "../core/render/scene/buffers/BufferViewResizable.js";
+import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 
@@ -52,11 +52,11 @@ export class TextRenderer extends BoundedRenderer {
 
     private _fnt = fnt_zero;
 
-    private _texCoordBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
+    private _texCoordBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX);
 
-    private _positionBuffer = new BufferViewResizable("Float32", BufferUsageFlagBits.VERTEX);
+    private _positionBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX);
 
-    private _indexBuffer = new BufferViewResizable("Uint16", BufferUsageFlagBits.INDEX);
+    private _indexBuffer = new BufferViewWritable("Uint16", BufferUsageFlagBits.INDEX);
 
     private _subMesh!: SubMesh;
 

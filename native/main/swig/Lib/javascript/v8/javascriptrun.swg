@@ -331,7 +331,7 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, const std::shared_ptr<
 
   SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
   cdata->swigCObjectShared = new std::shared_ptr<T>(ptr);
-  cdata->swigCObject = ptr.get();
+  cdata->swigCObject = (void *)ptr.get();
   cdata->info = info;
 
   obj->SetAlignedPointerInInternalField(0, cdata);

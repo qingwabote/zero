@@ -47,7 +47,7 @@ namespace
         };
         std::unordered_map<sugar::v8::Weak<_v8::Module>, std::filesystem::path, module_hash> module2path;
 
-        std::unordered_map<void *, _v8::Global<_v8::Object>> native2js;
+        std::unordered_map<const void *, _v8::Global<_v8::Object>> native2js;
 
         struct promise_hash
         {
@@ -150,7 +150,7 @@ namespace sugar::v8
         return unique_isolate{isolate, isolate_deleter};
     }
 
-    _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, void *ptr)
+    _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, const void *ptr)
     {
         auto &native2js = isolate_data(isolate)->native2js;
         auto it = native2js.find(ptr);
@@ -161,12 +161,12 @@ namespace sugar::v8
         return {};
     }
 
-    void isolate_native2js_set(_v8::Isolate *isolate, void *ptr, _v8::Local<_v8::Object> obj)
+    void isolate_native2js_set(_v8::Isolate *isolate, const void *ptr, _v8::Local<_v8::Object> obj)
     {
         auto &native2js = isolate_data(isolate)->native2js;
         _v8::Global<_v8::Object> global(isolate, obj);
         global.SetWeak<void>(
-            ptr,
+            const_cast<void *>(ptr),
             [](const _v8::WeakCallbackInfo<void> &info)
             {
                 isolate_data(info.GetIsolate())->native2js.erase(info.GetParameter());

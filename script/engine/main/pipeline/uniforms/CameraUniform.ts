@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits } from "gfx-main";
 import { Zero } from "../../core/Zero.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
-import { BufferViewResizable } from "../../core/render/scene/buffers/BufferViewResizable.js";
+import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const CameraBlock = shaderLib.sets.global.uniforms.Camera;
@@ -9,17 +9,17 @@ const CameraBlock = shaderLib.sets.global.uniforms.Camera;
 export class CameraUniform implements Uniform {
     readonly definition = CameraBlock;
 
-    private _buffer: BufferViewResizable = new BufferViewResizable("Float32", BufferUsageFlagBits.UNIFORM);
+    private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);
 
-    initialize(): void { }
+    initialize(): void {
+        Zero.instance.flow.globalDescriptorSet.bindBuffer(CameraBlock.binding, this._buffer.buffer, CameraBlock.size)
+    }
 
     update(): void {
         const renderScene = Zero.instance.scene;
         const cameras = renderScene.cameras;
         const camerasUboSize = CameraBlock.size * cameras.length;
-        if (this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT)) {
-            Zero.instance.flow.globalDescriptorSet.bindBuffer(CameraBlock.binding, this._buffer.buffer, CameraBlock.size)
-        }
+        this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);
         let camerasDataOffset = 0;
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
