@@ -1,7 +1,12 @@
 #pragma once
 
-#include "VkDevice_impl.hpp"
 #include "VkDescriptorSetLayout_impl.hpp"
+#include "VkBuffer_impl.hpp"
+#include "VkTexture_impl.hpp"
+#include "VkSampler_impl.hpp"
+#include "gfx/DescriptorSetLayout.hpp"
+#include <unordered_map>
+#include <utility>
 
 namespace gfx
 {
@@ -10,13 +15,22 @@ namespace gfx
         friend class DescriptorSet;
 
     private:
-        Device_impl *_device{nullptr};
-        VkDescriptorSet _descriptorSet{nullptr};
+        Device_impl *_device = nullptr;
+        VkDescriptorSet _descriptorSet = nullptr;
+        DescriptorSetLayout_impl *_layout = nullptr;
 
-        DescriptorSetLayout_impl *_layout{nullptr};
+        std::unordered_map<uint32_t, std::pair<std::shared_ptr<Buffer_impl>, event::Handle>> _buffers;
+        std::unordered_map<uint32_t, std::shared_ptr<Texture_impl>> _textures;
+        std::unordered_map<uint32_t, std::shared_ptr<Sampler_impl>> _samplers;
 
     public:
         DescriptorSet_impl(Device_impl *device);
+
+        bool initialize(DescriptorSetLayout &layout);
+
+        void bindBuffer(uint32_t binding, const std::shared_ptr<Buffer_impl> &buffer, double range);
+
+        void bindTexture(uint32_t binding, const std::shared_ptr<Texture_impl> &texture, const std::shared_ptr<Sampler_impl> &sampler);
 
         operator VkDescriptorSet() const { return _descriptorSet; }
 

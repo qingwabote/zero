@@ -2,7 +2,6 @@ import { IndexInput, InputAssembler, impl } from "gfx-main";
 import { device } from "../../impl.js";
 import { Pass } from "./Pass.js";
 import { DrawInfo, SubMesh } from "./SubMesh.js";
-import { BufferViewResizable, BufferViewResizableEventType } from "./buffers/BufferViewResizable.js";
 
 export class SubModel {
     private _inputAssemblerInvalidated = true;
@@ -17,13 +16,7 @@ export class SubModel {
         return this._subMesh.drawInfo;
     }
 
-    constructor(private _subMesh: SubMesh, public readonly passes: Pass[]) {
-        for (const view of _subMesh.vertexInput.buffers) {
-            if (view instanceof BufferViewResizable) {
-                view.on(BufferViewResizableEventType.REALLOCATED, () => this._inputAssemblerInvalidated = true)
-            }
-        }
-    }
+    constructor(private _subMesh: SubMesh, public readonly passes: Pass[]) { }
 
     update() {
         for (const pass of this.passes) {

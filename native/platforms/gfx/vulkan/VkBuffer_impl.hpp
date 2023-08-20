@@ -1,13 +1,18 @@
 #pragma once
 
 #include "VkDevice_impl.hpp"
+#include "gfx/info.hpp"
+#include "base/event/Emitter.hpp"
 
 namespace gfx
 {
-    class Buffer_impl
+    enum class BufferEvent_impl
     {
-        friend class Buffer;
+        RESET
+    };
 
+    class Buffer_impl : public event::Emitter<BufferEvent_impl>
+    {
     private:
         Device_impl *_device = nullptr;
 
@@ -15,8 +20,18 @@ namespace gfx
         VmaAllocation _allocation = nullptr;
         VmaAllocationInfo _allocationInfo{};
 
+        std::shared_ptr<BufferInfo> _info;
+
     public:
+        const std::shared_ptr<BufferInfo> &info() { return _info; };
+
         Buffer_impl(Device_impl *device);
+
+        bool initialize(const std::shared_ptr<BufferInfo> &info);
+
+        void update(const void *data, size_t offset, size_t length);
+
+        void reset(const std::shared_ptr<BufferInfo> &info);
 
         operator VkBuffer() { return _buffer; }
 

@@ -10,14 +10,12 @@ namespace gfx
     class Texture
     {
     private:
-        std::unique_ptr<Texture_impl> _impl;
-
-        std::shared_ptr<TextureInfo> _info;
+        std::shared_ptr<Texture_impl> _impl;
 
     public:
-        Texture_impl &impl() { return *_impl.get(); }
+        const std::shared_ptr<Texture_impl> &impl() { return _impl; }
 
-        const std::shared_ptr<TextureInfo> &info() { return _info; }
+        const std::shared_ptr<TextureInfo> &info();
 
         Texture(Device_impl *device, bool swapchain = false);
 

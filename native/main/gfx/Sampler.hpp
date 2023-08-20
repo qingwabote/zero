@@ -10,10 +10,10 @@ namespace gfx
     class Sampler
     {
     private:
-        std::unique_ptr<Sampler_impl> _impl;
+        std::shared_ptr<Sampler_impl> _impl;
 
     public:
-        Sampler_impl &impl() { return *_impl.get(); }
+        const std::shared_ptr<Sampler_impl> &impl() { return _impl; }
 
         Sampler(Device_impl *device);
 

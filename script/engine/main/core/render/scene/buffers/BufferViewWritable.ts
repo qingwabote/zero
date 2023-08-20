@@ -21,8 +21,6 @@ const format2array = {
 export type TypedArrayFormat = keyof typeof format2array;
 
 export class BufferViewWritable implements BufferView {
-    static readonly EMPTY = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, 0);
-
     private _source: TypedArray = emptyArray;
 
     private _proxy: any;
@@ -45,7 +43,7 @@ export class BufferViewWritable implements BufferView {
 
     private _dirty: boolean = false;
 
-    constructor(format: TypedArrayFormat, usage: BufferUsageFlagBits, length: number) {
+    constructor(private _format: TypedArrayFormat, private _usage: BufferUsageFlagBits, length: number) {
         this._proxy = new Proxy(this, {
             get(target, p) {
                 return Reflect.get(target._source, p);
@@ -62,14 +60,7 @@ export class BufferViewWritable implements BufferView {
         if (length == 0) {
             return;
         }
-
-        this._source = new format2array[format](length);
-        this._buffer = device.createBuffer();
-        const info = new impl.BufferInfo;
-        info.usage = usage;
-        info.mem_usage = MemoryUsage.CPU_TO_GPU;
-        info.size = this._source.byteLength
-        this._buffer.initialize(info);
+        this.resize(length);
     }
 
     set(array: ArrayLike<number>, offset?: number) {
@@ -84,5 +75,19 @@ export class BufferViewWritable implements BufferView {
         const size = length ? length * this._source.BYTES_PER_ELEMENT : this._source.buffer.byteLength;
         this._buffer.update(this._source.buffer, this._source.byteOffset, size);
         this._dirty = false;
+    }
+
+    resize(length: number) {
+        this._source = new format2array[this._format](length);
+        if (this._buffer == emptyBuffer) {
+            this._buffer = device.createBuffer();
+            const info = new impl.BufferInfo;
+            info.usage = this._usage;
+            info.mem_usage = MemoryUsage.CPU_TO_GPU;
+            info.size = this._source.byteLength
+            this._buffer.initialize(info);
+        } else {
+            this._buffer.resize(this._source.byteLength);
+        }
     }
 }

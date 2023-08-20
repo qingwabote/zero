@@ -5,14 +5,16 @@ namespace gfx
 {
     Texture_impl::Texture_impl(Device_impl *device, bool swapchain) : _device(device), _swapchain(swapchain) {}
 
-    bool Texture_impl::initialize(const TextureInfo &info)
+    bool Texture_impl::initialize(const std::shared_ptr<TextureInfo> &info)
     {
+        _info = info;
+
         if (_swapchain)
         {
             return false;
         }
 
-        VkImageUsageFlagBits usage = static_cast<VkImageUsageFlagBits>(info.usage);
+        VkImageUsageFlagBits usage = static_cast<VkImageUsageFlagBits>(info->usage);
 
         auto format = VK_FORMAT_R8G8B8A8_UNORM;
         auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -27,8 +29,8 @@ namespace gfx
         }
 
         VkExtent3D extent{};
-        extent.width = info.width;
-        extent.height = info.height;
+        extent.width = info->width;
+        extent.height = info->height;
         extent.depth = 1;
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -36,7 +38,7 @@ namespace gfx
         imageInfo.extent = extent;
         imageInfo.mipLevels = 1;
         imageInfo.arrayLayers = 1;
-        imageInfo.samples = static_cast<VkSampleCountFlagBits>(info.samples);
+        imageInfo.samples = static_cast<VkSampleCountFlagBits>(info->samples);
         imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageInfo.usage = usage;
         imageInfo.format = format;
@@ -76,12 +78,13 @@ namespace gfx
         }
     }
 
-    Texture::Texture(Device_impl *device, bool swapchain) : _impl(std::make_unique<Texture_impl>(device, swapchain)) {}
+    const std::shared_ptr<TextureInfo> &Texture::info() { return _impl->info(); }
+
+    Texture::Texture(Device_impl *device, bool swapchain) : _impl(std::make_shared<Texture_impl>(device, swapchain)) {}
 
     bool Texture::initialize(const std::shared_ptr<TextureInfo> &info)
     {
-        _info = info;
-        return _impl->initialize(*info);
+        return _impl->initialize(info);
     }
 
     Texture::~Texture() {}

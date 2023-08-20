@@ -3,7 +3,6 @@
 #include "gfx/Buffer.hpp"
 #include "gfx/Texture.hpp"
 #include "gfx/Sampler.hpp"
-#include <unordered_map>
 
 namespace gfx
 {
@@ -15,9 +14,6 @@ namespace gfx
     private:
         std::unique_ptr<DescriptorSet_impl> _impl;
         std::shared_ptr<DescriptorSetLayout> _layout;
-        std::unordered_map<uint32_t, std::shared_ptr<Buffer>> _buffers;
-        std::unordered_map<uint32_t, std::shared_ptr<Texture>> _textures;
-        std::unordered_map<uint32_t, std::shared_ptr<Sampler>> _samplers;
 
     public:
         DescriptorSet_impl &impl() { return *_impl.get(); }

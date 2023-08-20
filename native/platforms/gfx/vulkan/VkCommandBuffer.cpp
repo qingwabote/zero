@@ -4,13 +4,10 @@
 #include "VkPipelineLayout_impl.hpp"
 #include "VkDescriptorSet_impl.hpp"
 #include "VkBuffer_impl.hpp"
-#include "VkInputAssembler_impl.hpp"
 #include "VkPipeline_impl.hpp"
 #include "VkTexture_impl.hpp"
 #include "VkRenderPass_impl.hpp"
 #include "VkFramebuffer_impl.hpp"
-
-// #include <chrono>
 
 namespace gfx
 {
@@ -79,7 +76,7 @@ namespace gfx
 
         VkBufferCopy copy = {};
         copy.size = length;
-        vkCmdCopyBuffer(_impl->_commandBuffer, _impl->createStagingBuffer(start, length), buffer->impl(), 1, &copy);
+        vkCmdCopyBuffer(_impl->_commandBuffer, _impl->createStagingBuffer(start, length), *buffer->impl(), 1, &copy);
     }
 
     void CommandBuffer::copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture)
@@ -99,7 +96,7 @@ namespace gfx
         imageBarrier_toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         imageBarrier_toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageBarrier_toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        imageBarrier_toTransfer.image = texture->impl();
+        imageBarrier_toTransfer.image = *texture->impl();
         imageBarrier_toTransfer.subresourceRange = range;
         imageBarrier_toTransfer.srcAccessMask = 0;
         imageBarrier_toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -116,7 +113,7 @@ namespace gfx
         copy.imageExtent.width = imageBitmap->width();
         copy.imageExtent.height = imageBitmap->height();
         copy.imageExtent.depth = 1;
-        vkCmdCopyBufferToImage(_impl->_commandBuffer, buffer, texture->impl(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+        vkCmdCopyBufferToImage(_impl->_commandBuffer, buffer, *texture->impl(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 
         VkImageMemoryBarrier imageBarrier_toReadable = imageBarrier_toTransfer;
         imageBarrier_toReadable.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -190,13 +187,27 @@ namespace gfx
 
     void CommandBuffer::bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler)
     {
-        auto vertexInput = inputAssembler->impl().vertexInput();
-        vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexInput->vertexBuffers.size(), vertexInput->vertexBuffers.data(), vertexInput->vertexOffsets.data());
+        static std::vector<VkBuffer> vertexBuffers;
+        static std::vector<VkDeviceSize> vertexOffsets;
 
-        auto indexInput = inputAssembler->impl().indexInput();
+        auto &vertexInput = inputAssembler->info()->vertexInput;
+        vertexBuffers.resize(vertexInput->buffers->size());
+        for (size_t i = 0; i < vertexBuffers.size(); i++)
+        {
+            vertexBuffers[i] = *vertexInput->buffers->at(i)->impl();
+        }
+        vertexOffsets.resize(vertexInput->offsets->size());
+        for (size_t i = 0; i < vertexOffsets.size(); i++)
+        {
+            vertexOffsets[i] = vertexInput->offsets->at(i);
+        }
+        vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), vertexOffsets.data());
+
+        auto &indexInput = inputAssembler->info()->indexInput;
         if (indexInput)
         {
-            vkCmdBindIndexBuffer(_impl->_commandBuffer, indexInput->indexBuffer, indexInput->indexOffset, indexInput->indexType);
+            // WebGL can not specify the offset of the index buffer at buffer binding
+            vkCmdBindIndexBuffer(_impl->_commandBuffer, *indexInput->buffer->impl(), 0, static_cast<VkIndexType>(indexInput->type));
         }
     }
 

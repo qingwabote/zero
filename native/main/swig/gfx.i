@@ -6,6 +6,8 @@
 %include "stdint.i"
 %include "attribute.i"
 
+%ignore *::impl;
+
 %shared_ptr(ImageBitmap)
 
 %{

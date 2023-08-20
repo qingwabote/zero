@@ -6,7 +6,7 @@ namespace gfx
     Sampler_impl::Sampler_impl(Device_impl *device) : _device(device) {}
     Sampler_impl::~Sampler_impl() {}
 
-    Sampler::Sampler(Device_impl *device) : _impl(std::make_unique<Sampler_impl>(device)) {}
+    Sampler::Sampler(Device_impl *device) : _impl(std::make_shared<Sampler_impl>(device)) {}
 
     bool Sampler::initialize(const std::shared_ptr<SamplerInfo> &info)
     {

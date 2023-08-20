@@ -25,7 +25,7 @@ namespace gfx
         for (uint32_t i = 0; i < colorAttachments->size(); i++)
         {
             auto attachment = colorAttachments->at(i).get();
-            if (attachment->impl().swapchain())
+            if (attachment->impl()->swapchain())
             {
                 swapchainAttachment = attachment;
                 break;
@@ -36,7 +36,7 @@ namespace gfx
             for (uint32_t i = 0; i < resolveAttachments->size(); i++)
             {
                 auto attachment = resolveAttachments->at(i).get();
-                if (attachment->impl().swapchain())
+                if (attachment->impl()->swapchain())
                 {
                     swapchainAttachment = attachment;
                     break;
@@ -63,12 +63,12 @@ namespace gfx
                 }
                 else
                 {
-                    attachments[attachmentIdx] = attachment->impl();
+                    attachments[attachmentIdx] = *attachment->impl();
                 }
                 attachmentIdx++;
             }
 
-            attachments[attachmentIdx] = depthStencilAttachment->impl();
+            attachments[attachmentIdx] = *depthStencilAttachment->impl();
             attachmentIdx++;
 
             for (size_t idx = 0; idx < resolveAttachments->size(); idx++)
@@ -80,7 +80,7 @@ namespace gfx
                 }
                 else
                 {
-                    attachments[attachmentIdx] = attachment->impl();
+                    attachments[attachmentIdx] = *attachment->impl();
                 }
                 attachmentIdx++;
             }

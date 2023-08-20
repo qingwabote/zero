@@ -10,17 +10,17 @@ namespace gfx
     class Buffer
     {
     private:
-        std::unique_ptr<Buffer_impl> _impl;
-        std::shared_ptr<BufferInfo> _info;
+        std::shared_ptr<Buffer_impl> _impl;
 
     public:
-        Buffer_impl &impl() { return *_impl.get(); }
-        const std::shared_ptr<BufferInfo> &info() { return _info; };
+        const std::shared_ptr<Buffer_impl> &impl() { return _impl; }
+        const std::shared_ptr<BufferInfo> &info();
 
         Buffer(Device_impl *device);
 
         bool initialize(const std::shared_ptr<BufferInfo> &info);
         void update(const std::shared_ptr<const void> &data, size_t offset, size_t length);
+        void resize(uint32_t size);
 
         ~Buffer();
     };

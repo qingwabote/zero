@@ -4,6 +4,7 @@ export interface Buffer {
     get info(): BufferInfo;
     initialize(info: BufferInfo): boolean;
     update(buffer: ArrayBuffer, offset: number, length: number): void;
+    resize(size: number): void;
 }
 
 export class EmptyBuffer implements Buffer {
@@ -16,5 +17,7 @@ export class EmptyBuffer implements Buffer {
         return false;
     }
     update(): void {
+    }
+    resize(size: number): void {
     }
 }

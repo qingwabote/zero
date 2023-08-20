@@ -1,18 +1,9 @@
 import { Buffer, BufferUsageFlagBits } from "gfx-main";
-import { EventEmitterImpl } from "../../../../base/EventEmitterImpl.js";
 import { BufferView } from "./BufferView.js";
 import { BufferViewWritable, TypedArrayFormat } from "./BufferViewWritable.js";
 
-export enum BufferViewResizableEventType {
-    REALLOCATED = 'REALLOCATED'
-}
-
-export interface BufferViewResizableEventToListener {
-    [BufferViewResizableEventType.REALLOCATED]: (buffer: Buffer) => void;
-}
-
-export class BufferViewResizable extends EventEmitterImpl<BufferViewResizableEventToListener> implements BufferView {
-    private _bufferView: BufferViewWritable = BufferViewWritable.EMPTY;
+export class BufferViewResizable implements BufferView {
+    private _bufferView: BufferViewWritable;
 
     private _data: any;
     get data(): { [n: number]: number } {
@@ -32,8 +23,7 @@ export class BufferViewResizable extends EventEmitterImpl<BufferViewResizableEve
         return this._bufferView.BYTES_PER_ELEMENT
     }
 
-    constructor(private _format: TypedArrayFormat, private _usage: BufferUsageFlagBits) {
-        super();
+    constructor(format: TypedArrayFormat, usage: BufferUsageFlagBits) {
         this._data = new Proxy(this, {
             get(target, p) {
                 return Reflect.get(target._bufferView.data, p);
@@ -42,6 +32,7 @@ export class BufferViewResizable extends EventEmitterImpl<BufferViewResizableEve
                 return Reflect.set(target._bufferView.data, p, newValue);
             }
         })
+        this._bufferView = new BufferViewWritable(format, usage, 0);
     }
 
     /**
@@ -52,8 +43,7 @@ export class BufferViewResizable extends EventEmitterImpl<BufferViewResizableEve
         if (this._bufferView.length >= length) {
             return false;
         }
-        this._bufferView = new BufferViewWritable(this._format, this._usage, length);
-        this.emit(BufferViewResizableEventType.REALLOCATED, this._bufferView.buffer)
+        this._bufferView.resize(length)
         return true;
     }
 
@@ -66,9 +56,8 @@ export class BufferViewResizable extends EventEmitterImpl<BufferViewResizableEve
             return false;
         }
         const data = this._bufferView.data;
-        this._bufferView = new BufferViewWritable(this._format, this._usage, length);
+        this._bufferView.resize(length);
         this._bufferView.set(data);
-        this.emit(BufferViewResizableEventType.REALLOCATED, this._bufferView.buffer)
         return true;
     }
 
