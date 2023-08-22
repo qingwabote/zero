@@ -12,9 +12,7 @@ function usage2target(usage: BufferUsageFlagBits): GLenum {
 }
 
 export default class WebBuffer implements Buffer {
-    private _gl: WebGL2RenderingContext;
-
-    private _impl!: WebGLBuffer;
+    private _impl: WebGLBuffer;
     get impl(): WebGLBuffer {
         return this._impl;
     }
@@ -24,22 +22,13 @@ export default class WebBuffer implements Buffer {
         return this._info;
     }
 
-    constructor(gl: WebGL2RenderingContext) {
-        this._gl = gl;
+    constructor(private _gl: WebGL2RenderingContext) {
+        this._impl = _gl.createBuffer()!
     }
 
     initialize(info: BufferInfo): boolean {
-        const gl = this._gl;
-
-        const impl = gl.createBuffer()!
-        const target = usage2target(info.usage);
-        gl.bindBuffer(target, impl);
-        gl.bufferData(target, info.size, gl.STATIC_DRAW);
-        gl.bindBuffer(target, null);
-
-        this._impl = impl;
         this._info = info;
-
+        this.resize(info.size);
         return false;
     }
 
@@ -53,6 +42,15 @@ export default class WebBuffer implements Buffer {
         gl.bindBuffer(target, this._impl);
         gl.bufferSubData(target, 0, new DataView(buffer, offset, length));
 
+        gl.bindBuffer(target, null);
+    }
+
+    resize(size: number): void {
+        const gl = this._gl;
+
+        const target = usage2target(this._info.usage);
+        gl.bindBuffer(target, this._impl);
+        gl.bufferData(target, size, gl.STATIC_DRAW);
         gl.bindBuffer(target, null);
     }
 }

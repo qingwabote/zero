@@ -1,19 +1,11 @@
-import { Buffer, BufferUsageFlagBits, EmptyBuffer, MemoryUsage, impl } from "gfx-main";
+import { Buffer, BufferUsageFlagBits, MemoryUsage, impl } from "gfx-main";
 import { device } from "../../../impl.js";
 import { BufferView } from "./BufferView.js";
 
-const emptyArray = new Float32Array(0);
-const emptyBuffer = new EmptyBuffer;
-emptyBuffer.initialize({} as any)
-
-export interface ArrayLikeWritable<T> {
+interface ArrayLikeWritable<T> {
     readonly length: number;
     [n: number]: T;
 }
-
-export type TypedArray = Uint16Array | Float32Array;
-
-export type TypedArrayFormat = keyof typeof format2array;
 
 const format2array = {
     Uint16: Uint16Array,
@@ -21,7 +13,7 @@ const format2array = {
 } as const
 
 export class BufferViewWritable implements BufferView {
-    private _source: TypedArray = emptyArray;
+    private _source: Uint16Array | Float32Array;
 
     private _proxy: any;
     get data(): ArrayLikeWritable<number> {
@@ -32,7 +24,7 @@ export class BufferViewWritable implements BufferView {
         return this._length;
     }
 
-    private _buffer: Buffer = emptyBuffer;
+    private _buffer: Buffer;
     get buffer(): Buffer {
         return this._buffer;
     }
@@ -45,7 +37,7 @@ export class BufferViewWritable implements BufferView {
 
     private _dirty: boolean = false;
 
-    constructor(private _format: TypedArrayFormat, private _usage: BufferUsageFlagBits, private _length: number = 0) {
+    constructor(private _format: keyof typeof format2array, private _usage: BufferUsageFlagBits, private _length: number = 0) {
         this._proxy = new Proxy(this, {
             get(target, p) {
                 return Reflect.get(target._source, p);
@@ -59,11 +51,16 @@ export class BufferViewWritable implements BufferView {
             }
         })
 
-        if (_length == 0) {
-            return;
-        }
+        const source = new format2array[_format](_length);
 
-        this.reset(_length);
+        const buffer = device.createBuffer();
+        const info = new impl.BufferInfo;
+        info.usage = _usage;
+        info.mem_usage = MemoryUsage.CPU_TO_GPU;
+        info.size = source.byteLength;
+        buffer.initialize(info);
+
+        [this._source, this._buffer, this._capacity] = [source, buffer, _length];
     }
 
     reset(length: number) {
@@ -87,16 +84,7 @@ export class BufferViewWritable implements BufferView {
             return;
         }
         this._source = new format2array[this._format](capacity);
-        if (this._buffer == emptyBuffer) {
-            this._buffer = device.createBuffer();
-            const info = new impl.BufferInfo;
-            info.usage = this._usage;
-            info.mem_usage = MemoryUsage.CPU_TO_GPU;
-            info.size = this._source.byteLength
-            this._buffer.initialize(info);
-        } else {
-            this._buffer.resize(this._source.byteLength);
-        }
+        this._buffer.resize(this._source.byteLength);
         this._capacity = capacity;
     }
 

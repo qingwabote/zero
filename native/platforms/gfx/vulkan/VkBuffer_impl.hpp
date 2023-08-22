@@ -31,7 +31,7 @@ namespace gfx
 
         void update(const void *data, size_t offset, size_t length);
 
-        void reset(BufferInfo &info);
+        void reset(const BufferInfo &info);
 
         operator VkBuffer() { return _buffer; }
 
