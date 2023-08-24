@@ -328,23 +328,25 @@ export class GLTF extends Asset {
             }
 
             const posAccessor = this._json.accessors[primitive.attributes['POSITION']];
-            subMeshes.push({
-                vertexAttributes,
-                vertexInput: {
-                    buffers: vertexBuffers,
-                    offsets: vertexOffsets,
-                },
-                vertexPositionMin: posAccessor.min,
-                vertexPositionMax: posAccessor.max,
-                indexInput: {
-                    buffer: { buffer: indexBuffer },
-                    type: indexType
-                },
-                drawInfo: {
-                    indexOrVertexCount: indexAccessor.count,
-                    firstIndexOrVertex: indexAccessor.byteOffset / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
-                }
-            })
+            subMeshes.push(
+                new SubMesh(
+                    vertexAttributes,
+                    {
+                        buffers: vertexBuffers,
+                        offsets: vertexOffsets,
+                    },
+                    posAccessor.min,
+                    posAccessor.max,
+                    {
+                        buffer: { buffer: indexBuffer },
+                        type: indexType
+                    },
+                    {
+                        count: indexAccessor.count,
+                        first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
+                    }
+                )
+            )
         }
         return [{ subMeshes }, materials];
     }

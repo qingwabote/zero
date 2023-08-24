@@ -1,0 +1,10 @@
+{
+  "extends": "../../../../script/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "gfx-main": ["../../../../script/gfx/main"],
+      "engine-main": ["../../../../script/engine/main"],
+      "@esotericsoftware/spine-core":["../../../../script/engine/node_modules/@esotericsoftware/spine-core/dist"]
+    }
+  }
+}

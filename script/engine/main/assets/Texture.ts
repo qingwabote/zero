@@ -11,13 +11,18 @@ export class Texture extends Asset {
         return this._impl;
     }
 
+    private _bitmap!: ImageBitmap;
+    get bitmap() {
+        return this._bitmap;
+    }
+
     async load(url: string): Promise<this> {
-        const imageBitmap = await loader.load(url, "bitmap", this.onProgress);
+        const bitmap = await loader.load(url, "bitmap", this.onProgress);
         const info = new impl.TextureInfo;
         info.samples = SampleCountFlagBits.SAMPLE_COUNT_1;
         info.usage = TextureUsageBits.SAMPLED | TextureUsageBits.TRANSFER_DST;
-        info.width = imageBitmap.width;
-        info.height = imageBitmap.height;
+        info.width = bitmap.width;
+        info.height = bitmap.height;
         const texture = device.createTexture();
         texture.initialize(info);
 
@@ -30,7 +35,7 @@ export class Texture extends Asset {
             _fence.initialize();
         }
         _commandBuffer.begin();
-        _commandBuffer.copyImageBitmapToTexture(imageBitmap, texture);
+        _commandBuffer.copyImageBitmapToTexture(bitmap, texture);
         _commandBuffer.end();
         const submitInfo = new impl.SubmitInfo;
         submitInfo.commandBuffer = _commandBuffer;
@@ -38,6 +43,7 @@ export class Texture extends Asset {
         device.queue.waitFence(_fence);
 
         this._impl = texture;
+        this._bitmap = bitmap;
         return this;
     }
     private onProgress(loaded: number, total: number, url: string) {

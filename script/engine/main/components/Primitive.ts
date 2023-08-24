@@ -83,15 +83,12 @@ export class Primitive extends BoundedRenderer {
             buffers: [this._buffer],
             offsets: [0]
         }
-        const subMesh: SubMesh = {
+        const subMesh = new SubMesh(
             vertexAttributes,
             vertexInput,
-            vertexPositionMin: vec3.create(),
-            vertexPositionMax: vec3.create(),
-            drawInfo: {
-                indexOrVertexCount: 0
-            }
-        }
+            vec3.create(),
+            vec3.create()
+        )
 
         const rasterizationState = new impl.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
@@ -114,13 +111,13 @@ export class Primitive extends BoundedRenderer {
 
     lateUpdate(): void {
         if (this._vertexCount == 0) {
-            this._subMesh.drawInfo.indexOrVertexCount = 0;
+            this._subMesh.drawInfo.count = 0;
             return;
         }
 
         this._buffer.update();
 
-        this._subMesh.drawInfo.indexOrVertexCount = this._vertexCount;
+        this._subMesh.drawInfo.count = this._vertexCount;
     }
 
     clear() {

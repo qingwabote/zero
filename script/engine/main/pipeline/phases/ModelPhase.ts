@@ -28,7 +28,7 @@ export class ModelPhase extends Phase {
             commandBuffer.bindDescriptorSet(this.getModelPipelineLayout(model), shaderLib.sets.local.index, model.descriptorSet);
             for (const subModel of model.subModels) {
                 const drawInfo = subModel.drawInfo;
-                if (!drawInfo.indexOrVertexCount) {
+                if (!drawInfo.count) {
                     continue;
                 }
                 const inputAssembler = subModel.inputAssembler;
@@ -45,9 +45,9 @@ export class ModelPhase extends Phase {
                     const pipeline = this.getPipeline(pass.state, inputAssembler, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     if (inputAssembler.info.indexInput) {
-                        commandBuffer.drawIndexed(drawInfo.indexOrVertexCount, drawInfo.firstIndexOrVertex || 0);
+                        commandBuffer.drawIndexed(drawInfo.count, drawInfo.first);
                     } else {
-                        commandBuffer.draw(drawInfo.indexOrVertexCount);
+                        commandBuffer.draw(drawInfo.count);
                     }
                     this._drawCalls++;
                 }

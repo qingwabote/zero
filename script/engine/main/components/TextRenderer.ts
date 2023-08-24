@@ -85,16 +85,13 @@ export class TextRenderer extends BoundedRenderer {
             buffer: this._indexBuffer,
             type: IndexType.UINT16
         }
-        const subMesh: SubMesh = {
+        const subMesh: SubMesh = new SubMesh(
             vertexAttributes,
             vertexInput,
-            vertexPositionMin: vec3.create(),
-            vertexPositionMax: vec3.create(),
-            indexInput,
-            drawInfo: {
-                indexOrVertexCount: 0
-            }
-        }
+            vec3.create(),
+            vec3.create(),
+            indexInput
+        )
 
         const rasterizationState = new impl.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
@@ -122,7 +119,7 @@ export class TextRenderer extends BoundedRenderer {
         this.updateData();
 
         if (this._text.length == 0) {
-            this._subMesh.drawInfo.indexOrVertexCount = 0;
+            this._subMesh.drawInfo.count = 0;
             return;
         }
 
@@ -130,7 +127,7 @@ export class TextRenderer extends BoundedRenderer {
         this._positionBuffer.update();
         this._indexBuffer.update();
 
-        this._subMesh.drawInfo.indexOrVertexCount = this._indexCount;
+        this._subMesh.drawInfo.count = this._indexCount;
     }
 
     private updateData(): void {

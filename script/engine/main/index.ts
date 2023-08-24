@@ -1,3 +1,5 @@
+export * as spine from './spine/index.js';
+
 export * from './VisibilityFlagBits.js';
 
 export * from './assets/index.js';

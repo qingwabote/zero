@@ -1,4 +1,5 @@
-import { IndexType, VertexAttributeVector } from "gfx-main";
+import { IndexType, InputAssembler, VertexAttributeVector, impl } from "gfx-main";
+import { device } from "../../impl.js";
 import { Vec3 } from "../../math/vec3.js";
 import { BufferView } from "./buffers/BufferView.js";
 
@@ -15,19 +16,43 @@ export interface IndexInputView {
 }
 
 export interface DrawInfo {
-    indexOrVertexCount: number;
-    firstIndexOrVertex?: number;
+    count: number;
+    first: number;
 }
 
-export interface SubMesh {
-    readonly vertexAttributes: VertexAttributeVector,
+export class SubMesh {
+    readonly inputAssembler: InputAssembler;
 
-    readonly vertexInput: VertexInputView;
+    constructor(
+        readonly vertexAttributes: VertexAttributeVector,
 
-    readonly vertexPositionMin: Vec3,
-    readonly vertexPositionMax: Vec3,
+        readonly vertexInput: VertexInputView,
 
-    readonly indexInput?: IndexInputView;
+        readonly vertexPositionMin: Vec3,
+        readonly vertexPositionMax: Vec3,
 
-    readonly drawInfo: DrawInfo;
+        readonly indexInput?: IndexInputView,
+
+        readonly drawInfo: DrawInfo = { count: 0, first: 0 }
+    ) {
+        const vi = new impl.VertexInput;
+        for (const view of vertexInput.buffers) {
+            vi.buffers.add(view.buffer);
+        }
+        for (const offset of vertexInput.offsets) {
+            vi.offsets.add(offset);
+        }
+        const inputAssemblerInfo = new impl.InputAssemblerInfo;
+        if (indexInput) {
+            const ii = new impl.IndexInput
+            ii.buffer = indexInput.buffer.buffer;
+            ii.type = indexInput.type;
+            inputAssemblerInfo.indexInput = ii;
+        }
+        inputAssemblerInfo.vertexAttributes = vertexAttributes;
+        inputAssemblerInfo.vertexInput = vi;
+        const inputAssembler = device.createInputAssembler();
+        inputAssembler.initialize(inputAssemblerInfo);
+        this.inputAssembler = inputAssembler;
+    }
 }
