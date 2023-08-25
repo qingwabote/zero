@@ -1,10 +1,11 @@
+import { loader } from "../core/impl.js";
 import { System } from "../core/System.js";
 import { Zero } from "../core/Zero.js";
 import Ammo from "./impl/ammo.wasm.js";
 import { PhysicsWorld } from "./PhysicsWorld.js";
 
 const ammo: any = {}
-ammo.wasmBinary = await getLoader()load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
+ammo.wasmBinary = await loader.load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
 ammo.printErr = console.log.bind(console);
 ammo.locateFile = function () { return 'not care' };
 
@@ -33,8 +34,6 @@ export class PhysicsSystem implements System {
     readonly ammo = ammo;
 
     readonly world: PhysicsWorld = new PhysicsWorld(ammo);
-
-    start(): void { }
 
     update(): void {
         this.world.stepSimulation()

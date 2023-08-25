@@ -26,12 +26,12 @@ export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Ze
 
     let requestId: number;
 
-    function mainLoop() {
-        zero.tick(name2event);
+    function mainLoop(timestamp: number) {
+        zero.tick(name2event, timestamp);
         name2event.clear();
 
         requestId = window.requestAnimationFrame(mainLoop);
     }
 
-    mainLoop();
+    mainLoop(performance.now());
 }

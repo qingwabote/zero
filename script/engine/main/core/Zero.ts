@@ -58,6 +58,8 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
     private _renderSemaphore!: Semaphore;
     private _renderFence!: Fence;
 
+    private _time: number = 0;
+
     constructor() {
         super();
 
@@ -89,10 +91,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
 
         this._flow = this.start();
         this._flow.initialize();
-
-        for (const system of this._systems) {
-            system.start();
-        }
     }
 
     abstract start(): Flow;
@@ -109,15 +107,19 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._timeScheduler.clearInterval(func);
     }
 
-    tick(name2event: Map<InputEvent, any>) {
+    tick(name2event: Map<InputEvent, any>, timestamp: number) {
         this.emit(ZeroEvent.LOGIC_START);
+
+        const delta = this._time ? ((timestamp - this._time) / 1000) : 0;
+        this._time = timestamp;
+
         for (const [name, event] of name2event) {
             this.input.emit(name, event);
         }
-        this._componentScheduler.update();
+        this._componentScheduler.update(delta);
         this._timeScheduler.update();
         for (const system of this._systems) {
-            system.update();
+            system.update(delta);
         }
         this._componentScheduler.lateUpdate();
         this.emit(ZeroEvent.LOGIC_END);

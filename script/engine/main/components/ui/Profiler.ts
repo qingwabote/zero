@@ -24,16 +24,15 @@ export class Profiler extends UIContainer {
         this.profileRender();
     }
 
-    override update(): void {
-        super.update();
-        const now = Date.now();
-        const duration = now - this._time;
-        if (duration > 1000) {
-            this._fps = this._frames * 1000 / duration;
+    override update(dt: number): void {
+        super.update(dt);
+        if (this._time > 1) {
+            this._fps = this._frames / this._time;
             this._frames = 0;
-            this._time = now;
+            this._time = 0;
         }
         this._frames++;
+        this._time += dt;
 
         this._text.impl.text = `FPS: ${this._fps.toFixed(2)}
 Draw call: ${Zero.instance.flow.drawCalls}

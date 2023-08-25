@@ -34,7 +34,7 @@ export class WebDevice implements Device {
     }
 
     constructor(canvas: HTMLCanvasElement) {
-        const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true, antialias: false })!;
+        const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
         this._capabilities = {
             uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1

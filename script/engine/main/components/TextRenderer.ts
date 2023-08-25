@@ -9,7 +9,7 @@ import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
-import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { IndexInputView, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -154,7 +154,7 @@ export class TextRenderer extends BoundedRenderer {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
-                y -= this._fnt.common.lineHeight / PIXELS_PER_UNIT;
+                y -= this._fnt.common.lineHeight / TextRenderer.PIXELS_PER_UNIT;
                 i++;
                 continue;
             }
@@ -165,10 +165,10 @@ export class TextRenderer extends BoundedRenderer {
             const tex_t = char.y / tex.height;
             const tex_b = (char.y + char.height) / tex.height;
 
-            const xoffset = char.xoffset / PIXELS_PER_UNIT;
-            const yoffset = char.yoffset / PIXELS_PER_UNIT;
-            const width = char.width / PIXELS_PER_UNIT;
-            const height = char.height / PIXELS_PER_UNIT;
+            const xoffset = char.xoffset / TextRenderer.PIXELS_PER_UNIT;
+            const yoffset = char.yoffset / TextRenderer.PIXELS_PER_UNIT;
+            const width = char.width / TextRenderer.PIXELS_PER_UNIT;
+            const height = char.height / TextRenderer.PIXELS_PER_UNIT;
 
             const pos_l = x + xoffset;
             const pos_r = x + xoffset + width;
@@ -214,7 +214,7 @@ export class TextRenderer extends BoundedRenderer {
             t = Math.max(t, pos_t);
             b = Math.min(b, pos_b);
 
-            x += char.xadvance / PIXELS_PER_UNIT;
+            x += char.xadvance / TextRenderer.PIXELS_PER_UNIT;
             i++;
         }
 

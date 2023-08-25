@@ -17,13 +17,13 @@ export class ComponentScheduler {
         this.schedule(com);
     }
 
-    update() {
+    update(dt: number) {
         for (const [com, starting] of this._components) {
             if (starting) {
                 com.start();
                 this._components.set(com, false);
             }
-            com.update();
+            com.update(dt);
         }
     }
 

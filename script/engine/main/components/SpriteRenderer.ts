@@ -17,6 +17,8 @@ const vec2_a = vec3.create();
 const vec2_b = vec3.create();
 
 export class SpriteRenderer extends BoundedRenderer {
+    static readonly PIXELS_PER_UNIT = SpriteFrame.PIXELS_PER_UNIT;
+
     private _bounds = aabb2d.create();
     public get bounds(): Readonly<AABB2D> {
         const mesh = this._spriteFrame.mesh;

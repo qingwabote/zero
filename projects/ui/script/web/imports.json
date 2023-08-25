@@ -3,5 +3,6 @@
     "gfx-webgl": "./dist/script/gfx/webgl/index.js",
     "engine-main": "./dist/script/engine/main/index.js",
     "engine-webgl": "./dist/script/engine/webgl/index.js",
-    "yaml": "/script/engine/node_modules/yaml/browser/index.js"
+    "yaml": "/script/engine/node_modules/yaml/browser/index.js",
+    "@esotericsoftware/spine-core": "/script/engine/node_modules/@esotericsoftware/spine-core/dist/index.js"
 }

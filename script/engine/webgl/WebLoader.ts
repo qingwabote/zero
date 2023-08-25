@@ -11,7 +11,7 @@ export default class WebLoader implements Loader {
             xhr.onload = () => {
                 if (xhr.status === 200 || xhr.status === 0) {
                     if (type == "bitmap") {
-                        createImageBitmap(xhr.response).then(resolve as (value: ImageBitmap) => void)
+                        createImageBitmap(xhr.response, { premultiplyAlpha: 'none' }).then(resolve as (value: ImageBitmap) => void)
                     } else {
                         resolve(xhr.response)
                     }

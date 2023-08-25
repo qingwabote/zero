@@ -182,12 +182,15 @@ export default class WebCommandBuffer implements CommandBuffer {
         const indexInput = this._inputAssembler!.indexInput!;
 
         let type: GLenum;
+        let type_bytes: number;
         switch (indexInput.type) {
             case IndexType.UINT16:
                 type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                type_bytes = 2;
                 break;
             case IndexType.UINT32:
                 type = WebGL2RenderingContext.UNSIGNED_INT;
+                type_bytes = 4;
                 break;
             default:
                 console.error('unsupported index type');
@@ -195,7 +198,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || (type == IndexType.UINT16 ? 2 : 4)) * firstIndex);
+        gl.drawElements(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || type_bytes) * firstIndex);
         gl.bindVertexArray(null);
     }
 

@@ -63,7 +63,7 @@ export class UIContainer<EventToListener extends UIEventToListener = UIEventToLi
         this._content.addChild(element.node);
     }
 
-    override update(): void {
+    override update(dt: number): void {
         if (this._layoutDirty) {
 
             aabb2d.set(aabb2d_a, vec2.ZERO, vec2.ZERO);

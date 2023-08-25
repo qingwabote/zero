@@ -1,10 +1,12 @@
 import { BufferUsageFlagBits, Format, IndexType, Texture, impl } from "gfx-main";
 import { vec3 } from "../core/math/vec3.js";
-import { IndexInputView, PIXELS_PER_UNIT, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { IndexInputView, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { Mesh } from "./Mesh.js";
 
 export class SpriteFrame {
+    static readonly PIXELS_PER_UNIT = 100;
+
     readonly mesh: Mesh;
 
     constructor(readonly texture: Texture) {
@@ -17,7 +19,7 @@ export class SpriteFrame {
         const uv_b = 1;
 
         let { width, height } = texture.info;
-        [width, height] = [width / PIXELS_PER_UNIT, height / PIXELS_PER_UNIT];
+        [width, height] = [width / SpriteFrame.PIXELS_PER_UNIT, height / SpriteFrame.PIXELS_PER_UNIT];
         const pos_l = -width / 2;
         const pos_r = width / 2;
         const pos_t = height / 2;

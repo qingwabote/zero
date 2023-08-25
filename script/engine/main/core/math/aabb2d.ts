@@ -31,6 +31,11 @@ export const aabb2d = {
         return out;
     },
 
+    fromRect(out: AABB2D, offset: Vec2Like, size: Vec2Like): AABB2D {
+        vec2.add(vec2_a, offset, size);
+        return aabb2d.fromPoints(out, offset, vec2_a);
+    },
+
     set(out: AABB2D, center: Readonly<Vec2Like>, halfExtent: Readonly<Vec2Like>): AABB2D {
         vec2.copy(out.center, center)
         vec2.copy(out.halfExtent, halfExtent)

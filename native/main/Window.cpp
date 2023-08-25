@@ -19,7 +19,7 @@ extern "C"
     void global_initialize(v8::Local<v8::Object> exports_obj);
 }
 
-#define NANOSECONDS_60FPS 16666667L
+#define NANOSECONDS_60FPS 16666667LL
 
 Window &Window::instance()
 {
@@ -138,7 +138,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         v8::Local<v8::Function> app_tick;
         v8::Local<v8::Map> name2event = v8::Map::New(isolate.get());
-        v8::Local<v8::Value> app_tick_args[] = {name2event};
 
         bool running = true;
         while (running)
@@ -263,16 +262,17 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             static std::chrono::steady_clock::time_point now;
 
             now = std::chrono::steady_clock::now();
-            auto dt = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count());
+            auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count();
             if (dt < NANOSECONDS_60FPS)
             {
-                std::this_thread::sleep_for(std::chrono::nanoseconds(NANOSECONDS_60FPS - static_cast<int64_t>(dt)));
+                std::this_thread::sleep_for(std::chrono::nanoseconds(NANOSECONDS_60FPS - dt));
                 now = std::chrono::steady_clock::now();
             }
             time = now;
 
             v8::TryCatch try_catch(isolate.get());
-            if (app_tick->Call(context, app, 1, app_tick_args).IsEmpty())
+            v8::Local<v8::Value> app_tick_args[] = {name2event, v8::Number::New(isolate.get(), std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count())};
+            if (app_tick->Call(context, app, 2, app_tick_args).IsEmpty())
             {
                 sugar::v8::tryCatch_print(try_catch);
                 return -1;

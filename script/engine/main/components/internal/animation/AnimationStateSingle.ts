@@ -1,7 +1,7 @@
-import { AnimationState } from "../../../animation/AnimationState.js";
+import { AnimationStateBase } from "./AnimationStateBase.js";
 import { ClipBinging } from "./ClipBinging.js";
 
-export class AnimationStateSingle extends AnimationState {
+export class AnimationStateSingle extends AnimationStateBase {
     public override get duration(): number {
         return this._clip.duration;
     }

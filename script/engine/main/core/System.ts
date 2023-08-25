@@ -1,4 +1,3 @@
 export interface System {
-    start(): void;
-    update(): void;
+    update(dt: number): void;
 }
