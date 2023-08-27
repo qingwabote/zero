@@ -13,11 +13,9 @@ const format2array = {
 } as const
 
 export class BufferViewWritable implements BufferView {
-    private _source: Uint16Array | Float32Array;
-
     private _proxy: any;
     get data(): ArrayLikeWritable<number> {
-        return this._proxy as any;
+        return this._proxy;
     }
 
     get length(): number {
@@ -29,13 +27,18 @@ export class BufferViewWritable implements BufferView {
         return this._buffer;
     }
 
+    private _source: Uint16Array | Float32Array;
+    get source() {
+        return this._source;
+    }
+
     get BYTES_PER_ELEMENT(): number {
         return this._source.BYTES_PER_ELEMENT;
     }
 
     private _capacity = 0;
 
-    private _dirty: boolean = false;
+    private _invalidated: boolean = false;
 
     constructor(private _format: keyof typeof format2array, private _usage: BufferUsageFlagBits, private _length: number = 0) {
         this._proxy = new Proxy(this, {
@@ -44,7 +47,7 @@ export class BufferViewWritable implements BufferView {
             },
             set(target, p, newValue) {
                 if (Reflect.set(target._source, p, newValue)) {
-                    target._dirty = true;
+                    target._invalidated = true;
                     return true;
                 }
                 return false;
@@ -92,14 +95,18 @@ export class BufferViewWritable implements BufferView {
 
     set(array: ArrayLike<number>, offset?: number) {
         this._source.set(array, offset);
-        this._dirty = true;
+        this._invalidated = true;
     }
 
     update() {
-        if (!this._dirty) {
+        if (!this._invalidated) {
             return;
         }
         this._buffer.update(this._source.buffer, this._source.byteOffset, this._length * this._source.BYTES_PER_ELEMENT);
-        this._dirty = false;
+        this._invalidated = false;
+    }
+
+    invalidate() {
+        this._invalidated = true;
     }
 }

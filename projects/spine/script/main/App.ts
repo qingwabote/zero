@@ -39,7 +39,8 @@ export default class App extends Zero {
 
         const skeleton = UIRenderer.create(SkeletonAnimation);
         skeleton.impl.skeletonData = skeletonData;
-        skeleton.impl.state.setAnimation(0, 'walk', true);
+        skeleton.impl.state.setAnimation(0, 'portal', true);
+        skeleton.node.scale = [0.5, 0.5, 1]
         doc.addElement(skeleton)
 
         node = new Node;
