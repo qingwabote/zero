@@ -1,10 +1,4 @@
-import Primitive from "../../../../script/main/components/Primitive.js";
-import { UIEventToListener, UITouchEventType } from "../../../../script/main/components/ui/internal/UIElement.js";
-import { UIContainer } from "../../../../script/main/components/ui/UIContainer.js";
-import { UIRenderer } from "../../../../script/main/components/ui/UIRenderer.js";
-import { vec2, Vec2 } from "../../../../script/main/core/math/vec2.js";
-import { vec3 } from "../../../../script/main/core/math/vec3.js";
-import { Node } from "../../../../script/main/core/Node.js";
+import { Node, Primitive, UIContainer, UIEventToListener, UIRenderer, UITouchEventType, Vec2, vec2, vec3 } from "engine-main";
 
 const vec3_a = vec3.create()
 const vec3_b = vec3.create()

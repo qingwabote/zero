@@ -1,13 +1,4 @@
-import { GLTF } from "../../../../script/main/assets/GLTF.js";
-import MeshRenderer from "../../../../script/main/components/MeshRenderer.js";
-import BoxShape from "../../../../script/main/components/physics/BoxShape.js";
-import { assetLib } from "../../../../script/main/core/assetLib.js";
-import { Component } from "../../../../script/main/core/Component.js";
-import { quat } from "../../../../script/main/core/math/quat.js";
-import { Vec3, vec3 } from "../../../../script/main/core/math/vec3.js";
-import { vec4 } from "../../../../script/main/core/math/vec4.js";
-import { Node } from "../../../../script/main/core/Node.js";
-import PhysicsSystem from "../../../../script/main/physics/PhysicsSystem.js";
+import { BoxShape, Component, GLTF, MeshRenderer, Node, PhysicsSystem, Vec3, assetLib, quat, vec3, vec4 } from "engine-main";
 
 const gltf_primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);
 

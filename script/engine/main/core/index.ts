@@ -1,3 +1,4 @@
+export * from './Component.js';
 export * from './Input.js';
 export * from './Node.js';
 export * from './Zero.js';

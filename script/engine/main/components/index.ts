@@ -10,3 +10,5 @@ export * from './TextRenderer.js';
 
 export * from './ui/index.js';
 
+export * from './physics/index.js';
+

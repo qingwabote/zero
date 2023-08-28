@@ -1,14 +1,14 @@
 # showcase
 
-[Shadow Map](https://qingwabote.github.io/zero/projects/test/script/platforms/web/app.html)
+[Shadow Map](http://202.182.103.53:8003/projects/shadow/script/web/app.html)
 
-[Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/script/platforms/web/app.html)
+[Skinned Mesh](http://202.182.103.53:8003/projects/skin/script/web/app.html)
 
-[Animation Blend](https://qingwabote.github.io/zero/projects/animation/script/platforms/web/app.html)
+[Animation Blend](http://202.182.103.53:8003/projects/animation/script/web/app.html)
 
-[SpriteRenderer](https://qingwabote.github.io/zero/projects/ui/script/platforms/web/app.html)
+[Physics](http://202.182.103.53:8003/projects/vehicle/script/web/app.html)
 
-[Physics](https://qingwabote.github.io/zero/projects/vehicle/script/platforms/web/app.html)
+[Spine](http://202.182.103.53:8003/projects/spine/script/web/app.html)
 
 # architecture
 
