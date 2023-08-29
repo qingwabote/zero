@@ -1,5 +1,5 @@
-import { System } from "../core/System.js";
-import { Zero } from "../core/Zero.js";
+import { System } from "../../core/System.js";
+import { Zero } from "../../core/Zero.js";
 import { AnimationState } from "./AnimationState.js";
 
 export class AnimationSystem implements System {

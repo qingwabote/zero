@@ -1,7 +1,7 @@
-import { TRS } from "../../../core/math/TRS.js";
-import { QuatLike, quat } from "../../../core/math/quat.js";
-import { Vec3Like, vec3 } from "../../../core/math/vec3.js";
-import { vec4 } from "../../../core/math/vec4.js";
+import { TRS } from "../../core/math/TRS.js";
+import { QuatLike, quat } from "../../core/math/quat.js";
+import { Vec3Like, vec3 } from "../../core/math/vec3.js";
+import { vec4 } from "../../core/math/vec4.js";
 import { ChannelBindingValue } from "./ChannelBinding.js";
 
 const vec4_a = vec4.create();

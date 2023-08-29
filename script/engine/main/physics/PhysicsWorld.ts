@@ -1,8 +1,15 @@
-import { vec3, Vec3 } from "../core/math/vec3.js";
-import { PhysicsSystem } from "./PhysicsSystem.js";
+import { System } from "../core/System.js";
+import { Zero } from "../core/Zero.js";
+import { Vec3, vec3 } from "../core/math/vec3.js";
 import { RayResultCallback } from "./RayResultCallback.js";
+import { ammo } from "./internal/ammo.js";
 
-export class PhysicsWorld {
+const bt_vec3_a = new ammo.btVector3(0, 0, 0);
+const bt_vec3_b = new ammo.btVector3(0, 0, 0);
+
+export class PhysicsWorld implements System {
+    static readonly instance = new PhysicsWorld();
+
     private _collisionConfiguration;
     private _broadphase;
     private _dispatcher;
@@ -12,7 +19,7 @@ export class PhysicsWorld {
 
     private _rayTestFromTo: Readonly<Vec3>[] = [vec3.ZERO, vec3.ZERO];
 
-    constructor(ammo: any) {
+    constructor() {
         this._collisionConfiguration = new ammo.btDefaultCollisionConfiguration();
         this._dispatcher = new ammo.btCollisionDispatcher(this._collisionConfiguration);
         this._broadphase = new ammo.btDbvtBroadphase();
@@ -21,30 +28,28 @@ export class PhysicsWorld {
     }
 
     rayTest(from: Vec3, to: Vec3, resultCallback: RayResultCallback): void {
-        const ps = PhysicsSystem.instance;
+        bt_vec3_a.setValue(...from);
+        bt_vec3_b.setValue(...to);
 
-        ps.bt_vec3_a.setValue(...from);
-        ps.bt_vec3_b.setValue(...to);
-
-        this.impl.rayTest(ps.bt_vec3_a, ps.bt_vec3_b, resultCallback.impl);
+        this.impl.rayTest(bt_vec3_a, bt_vec3_b, resultCallback.impl);
 
         this._rayTestFromTo = [from, to];
     }
 
-    stepSimulation() {
-        const ps = PhysicsSystem.instance;
-
+    update(dt: number): void {
         this.impl.stepSimulation(1 / 60);
 
         const drawer = this.impl.getDebugDrawer();
-        if (!ps.ammo.compare(drawer, ps.ammo.NULL)) {
+        if (!ammo.compare(drawer, ammo.NULL)) {
 
-            ps.bt_vec3_a.setValue(...this._rayTestFromTo[0]);
-            ps.bt_vec3_b.setValue(...this._rayTestFromTo[1]);
-            drawer.drawLine(ps.bt_vec3_a, ps.bt_vec3_b);
+            bt_vec3_a.setValue(...this._rayTestFromTo[0]);
+            bt_vec3_b.setValue(...this._rayTestFromTo[1]);
+            drawer.drawLine(bt_vec3_a, bt_vec3_b);
 
             this.impl.debugDrawWorld();
         }
     }
 }
+
+Zero.registerSystem(PhysicsWorld.instance, 1)
 

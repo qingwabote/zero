@@ -1,4 +1,4 @@
-export * from './SkeletonAnimation.js'
-export * from './SkeletonRenderer.js'
+export * from './Animation.js'
+export * from './Skeleton.js'
 export * from './Texture.js'
 

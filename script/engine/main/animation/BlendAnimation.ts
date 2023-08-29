@@ -1,4 +1,3 @@
-import { AnimationSystem } from "../animation/AnimationSystem.js";
 import { AnimationClip } from "../assets/AnimationClip.js";
 import { Component } from "../core/Component.js";
 import { TRS } from "../core/math/TRS.js";
@@ -6,8 +5,9 @@ import { quat } from "../core/math/quat.js";
 import { Vec3Like, vec3 } from "../core/math/vec3.js";
 import { Vec4Like } from "../core/math/vec4.js";
 import { Transform } from "../core/render/scene/Transform.js";
-import { AnimationStateBlended, BlendContext } from "./internal/animation/AnimationStateBlended.js";
-import { ClipBinging } from "./internal/animation/ClipBinging.js";
+import { AnimationStateBlended, BlendContext } from "./internal/AnimationStateBlended.js";
+import { AnimationSystem } from "./internal/AnimationSystem.js";
+import { ClipBinging } from "./internal/ClipBinging.js";
 
 class BlendTRS implements TRS {
     private _position_default = vec3.create();
@@ -137,7 +137,7 @@ class BlendContextImpl implements BlendContext {
     }
 }
 
-export class AnimationBlended extends Component {
+export class BlendAnimation extends Component {
     clips: readonly AnimationClip[] = [];
 
     thresholds: readonly number[] = [];

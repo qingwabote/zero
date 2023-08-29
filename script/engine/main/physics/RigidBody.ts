@@ -1,8 +1,13 @@
-import { Component } from "../../core/Component.js";
-import { quat } from "../../core/math/quat.js";
-import { vec3 } from "../../core/math/vec3.js";
-import { Node } from "../../core/Node.js";
-import { PhysicsSystem } from "../../physics/PhysicsSystem.js";
+import { Component } from "../core/Component.js";
+import { quat } from "../core/math/quat.js";
+import { vec3 } from "../core/math/vec3.js";
+import { Node } from "../core/Node.js";
+import { ammo } from "./internal/ammo.js";
+import { PhysicsWorld } from "./PhysicsWorld.js";
+
+const bt_vec3_a = new ammo.btVector3(0, 0, 0);
+const bt_transform_a = new ammo.btTransform();
+const bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
 
 export class RigidBody extends Component {
     readonly impl: any;
@@ -12,22 +17,17 @@ export class RigidBody extends Component {
         return this._mass;
     }
     public set mass(value: number) {
-        const context = PhysicsSystem.instance;
-        const ammo = context.ammo;
-
         const shape = ammo.castObject(this.impl.getCollisionShape(), ammo.btCompoundShape)
 
-        context.bt_vec3_a.setValue(0, 0, 0);
-        shape.calculateLocalInertia(value, context.bt_vec3_a);
-        this.impl.setMassProps(value, context.bt_vec3_a);
+        bt_vec3_a.setValue(0, 0, 0);
+        shape.calculateLocalInertia(value, bt_vec3_a);
+        this.impl.setMassProps(value, bt_vec3_a);
 
         this._mass = value;
     }
 
     constructor(node: Node) {
         super(node);
-        const context = PhysicsSystem.instance;
-        const ammo = context.ammo;
 
         const motionState = new ammo.MotionState();
         motionState.getWorldTransform = (ptr_bt_transform: number) => {
@@ -54,25 +54,23 @@ export class RigidBody extends Component {
         this.impl = new ammo.btRigidBody(info);
         ammo.destroy(info);
 
-        context.world.impl.addRigidBody(this.impl);
+        PhysicsWorld.instance.impl.addRigidBody(this.impl);
 
-        context.bt_vec3_a.setValue(0, 0, 0);
-        this.impl.setMassProps(0, context.bt_vec3_a);
+        bt_vec3_a.setValue(0, 0, 0);
+        this.impl.setMassProps(0, bt_vec3_a);
     }
 
     override update(): void {
         if (this.node.hasChanged) {
-            const ps = PhysicsSystem.instance;
+            bt_transform_a.setIdentity();
 
-            ps.bt_transform_a.setIdentity();
+            bt_vec3_a.setValue(...this.node.world_position);
+            bt_transform_a.setOrigin(bt_vec3_a);
 
-            ps.bt_vec3_a.setValue(...this.node.world_position);
-            ps.bt_transform_a.setOrigin(ps.bt_vec3_a);
+            bt_quat_a.setValue(...this.node.world_rotation);
+            bt_transform_a.setRotation(bt_quat_a);
 
-            ps.bt_quat_a.setValue(...this.node.world_rotation);
-            ps.bt_transform_a.setRotation(ps.bt_quat_a);
-
-            this.impl.setWorldTransform(ps.bt_transform_a);
+            this.impl.setWorldTransform(bt_transform_a);
         }
     }
 }

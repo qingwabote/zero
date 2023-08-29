@@ -1,4 +1,4 @@
-import { BoxShape, Component, GLTF, MeshRenderer, Node, PhysicsSystem, Vec3, assetLib, quat, vec3, vec4 } from "engine-main";
+import { BoxShape, Component, GLTF, MeshRenderer, Node, PhysicsWorld, Vec3, ammo, assetLib, quat, vec3, vec4 } from "engine-main";
 
 const gltf_primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);
 
@@ -12,6 +12,10 @@ const wheel_axis_front_position = -1.7;
 const wheel_axis_back_position = 1;
 
 const suspension_restLength = 0.6;
+
+const bt_vec3_a = new ammo.btVector3(0, 0, 0);
+const bt_vec3_b = new ammo.btVector3(0, 0, 0);
+const bt_vec3_c = new ammo.btVector3(0, 0, 0);
 
 export default class Vehicle extends Component {
     private _impl;
@@ -36,10 +40,8 @@ export default class Vehicle extends Component {
         shape.body.mass = 1;
         shape.body.impl.setActivationState(4);
 
-        const ps = PhysicsSystem.instance;
-        const ammo = PhysicsSystem.instance.ammo;
         const tuning = new ammo.btVehicleTuning();
-        const rayCaster = new ammo.btDefaultVehicleRaycaster(ps.world.impl)
+        const rayCaster = new ammo.btDefaultVehicleRaycaster(PhysicsWorld.instance.impl)
         const vehicle = new ammo.btRaycastVehicle(tuning, shape.body.impl, rayCaster);
         vehicle.setCoordinateSystem(0, 1, 2);
         this.addWheel(
@@ -62,7 +64,7 @@ export default class Vehicle extends Component {
             vec3.create(-wheel_halfTrack, wheel_axis_height, wheel_axis_back_position),
             tuning,
             false);
-        ps.world.impl.addAction(vehicle);
+        PhysicsWorld.instance.impl.addAction(vehicle);
         this._impl = vehicle;
     }
 
@@ -92,12 +94,10 @@ export default class Vehicle extends Component {
     }
 
     private addWheel(impl: any, pos: Vec3, tuning: any, isFront: boolean) {
-        const ps = PhysicsSystem.instance;
-
-        ps.bt_vec3_a.setValue(...pos);
-        ps.bt_vec3_b.setValue(0, -1, 0);
-        ps.bt_vec3_c.setValue(-1, 0, 0);
-        const wheelInfo = impl.addWheel(ps.bt_vec3_a, ps.bt_vec3_b, ps.bt_vec3_c, suspension_restLength, wheel_radius, tuning, isFront)
+        bt_vec3_a.setValue(...pos);
+        bt_vec3_b.setValue(0, -1, 0);
+        bt_vec3_c.setValue(-1, 0, 0);
+        const wheelInfo = impl.addWheel(bt_vec3_a, bt_vec3_b, bt_vec3_c, suspension_restLength, wheel_radius, tuning, isFront)
         wheelInfo.set_m_suspensionStiffness(20);
 
         const node = new Node;

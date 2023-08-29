@@ -1,6 +1,5 @@
 import * as spine_core from '@esotericsoftware/spine-core';
 import { Camera, ModelPhase, Node, Profiler, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, assetLib, device, loader, render, spine, stageFactory, vec2, vec3 } from 'engine-main';
-import { SkeletonAnimation } from '../../../../script/engine/main/spine/SkeletonAnimation.js';
 
 // const spine_atlas_src = await loader.load("assets/coin/coin-pma.atlas", "text");
 // const spine_atlas = new spine_core.TextureAtlas(spine_atlas_src);
@@ -31,14 +30,11 @@ export default class App extends Zero {
         const doc = (new Node).addComponent(UIDocument);
         doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
 
-        // const slider = (new Node).addComponent(Slider);
-        // doc.addElement(slider);
-
         const json = new spine_core.SkeletonJson(new spine_core.AtlasAttachmentLoader(spine_atlas));
         const skeletonData = json.readSkeletonData(spine_data_src);
 
-        const skeleton = UIRenderer.create(SkeletonAnimation);
-        skeleton.impl.skeletonData = skeletonData;
+        const skeleton = UIRenderer.create(spine.Animation);
+        skeleton.impl.data = skeletonData;
         skeleton.impl.state.setAnimation(0, 'portal', true);
         skeleton.node.scale = [0.5, 0.5, 1]
         doc.addElement(skeleton)

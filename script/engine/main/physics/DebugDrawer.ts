@@ -1,15 +1,14 @@
-import { Component } from "../../core/Component.js";
-import { vec3 } from "../../core/math/vec3.js";
-import { vec4 } from "../../core/math/vec4.js";
-import { PhysicsSystem } from "../../physics/PhysicsSystem.js";
-import { Primitive } from "../Primitive.js";
+import { Primitive } from "../components/Primitive.js";
+import { Component } from "../core/Component.js";
+import { vec3 } from "../core/math/vec3.js";
+import { vec4 } from "../core/math/vec4.js";
+import { PhysicsWorld } from "./PhysicsWorld.js";
+import { ammo } from "./internal/ammo.js";
 
 export class DebugDrawer extends Component {
     start(): void {
         const primitive = this.node.addComponent(Primitive);
 
-        const ps = PhysicsSystem.instance;
-        const ammo = ps.ammo;
         const bt_debugDrawer = new ammo.DebugDrawer;
         bt_debugDrawer.drawLine = (ptr_from: any, ptr_to: any, ptr_color: any) => {
             const bt_from = ammo.wrapPointer(ptr_from, ammo.btVector3);
@@ -43,7 +42,7 @@ export class DebugDrawer extends Component {
         // bt_debugDrawer.__destroy__ = () => {
 
         // }
-        ps.world.impl.setDebugDrawer(bt_debugDrawer);
+        PhysicsWorld.instance.impl.setDebugDrawer(bt_debugDrawer);
     }
 
     update(): void {

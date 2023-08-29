@@ -1,7 +1,4 @@
-import { PhysicsSystem } from "./PhysicsSystem.js";
-
 export abstract class RayResultCallback {
-    protected _context: PhysicsSystem;
 
     readonly impl: any;
 
@@ -27,8 +24,7 @@ export abstract class RayResultCallback {
         return this.impl.hasHit();
     }
 
-    constructor(context: PhysicsSystem) {
-        this._context = context;
+    constructor() {
         this.impl = this.createImpl()
     }
 

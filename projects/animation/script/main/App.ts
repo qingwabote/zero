@@ -1,6 +1,6 @@
 import {
-    AnimationBlended,
     AnimationClip,
+    BlendAnimation,
     Camera,
     CameraControlPanel,
     DirectionalLight,
@@ -45,7 +45,7 @@ export default class App extends Zero {
         node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
         node.visibilityFlag = VisibilityFlagBits.DEFAULT
         node.euler = vec3.create(0, 60, 0)
-        const animation = node.addComponent(AnimationBlended);
+        const animation = node.addComponent(BlendAnimation);
         const clips: AnimationClip[] = [];
         clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Idle')!)
         clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Walk')!)

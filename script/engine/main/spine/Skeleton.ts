@@ -40,7 +40,7 @@ const sc_color_a = new sc.Color;
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-export class SkeletonRenderer extends BoundedRenderer {
+export class Skeleton extends BoundedRenderer {
     static readonly PIXELS_PER_UNIT = 1;
 
     private _bounds = aabb2d.create();
@@ -49,10 +49,10 @@ export class SkeletonRenderer extends BoundedRenderer {
     }
 
     protected _skeleton!: sc.Skeleton;
-    public get skeletonData(): sc.SkeletonData {
+    public get data(): sc.SkeletonData {
         return this._skeleton.data;
     }
-    public set skeletonData(value: sc.SkeletonData) {
+    public set data(value: sc.SkeletonData) {
         const skeleton = new sc.Skeleton(value);
         skeleton.updateWorldTransform();
         skeleton.getBounds(sc_vec2_a, sc_vec2_b);

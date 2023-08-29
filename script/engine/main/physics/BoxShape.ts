@@ -1,8 +1,8 @@
-import { Component } from "../../core/Component.js";
-import { Vec3, vec3 } from "../../core/math/vec3.js";
-import { Node } from "../../core/Node.js";
-import { TransformBits } from "../../core/render/scene/Transform.js";
-import { PhysicsSystem } from "../../physics/PhysicsSystem.js";
+import { Component } from "../core/Component.js";
+import { Vec3, vec3 } from "../core/math/vec3.js";
+import { Node } from "../core/Node.js";
+import { TransformBits } from "../core/render/scene/Transform.js";
+import { ammo } from "./internal/ammo.js";
 import { RigidBody } from "./RigidBody.js";
 
 enum DirtyFlagBits {
@@ -11,6 +11,9 @@ enum DirtyFlagBits {
     ORIGIN = 1 << 1,
     ALL = 0xffffffff
 }
+
+const bt_vec3_a = new ammo.btVector3(0, 0, 0);
+const bt_transform_a = new ammo.btTransform();
 
 export class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;
@@ -45,47 +48,38 @@ export class BoxShape extends Component {
             body = this.node.addComponent(RigidBody);
         }
 
-        const ps = PhysicsSystem.instance;
-        const ammo = ps.ammo;
-
-        ps.bt_vec3_a.setValue(0.5, 0.5, 0.5); // using unit-scale shape https://pybullet.org/Bullet/phpBB3/viewtopic.php?p=20760#p20760
-        this._impl = new ammo.btBoxShape(ps.bt_vec3_a);
-        ps.bt_transform_a.setIdentity();
-        ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape).addChildShape(ps.bt_transform_a, this._impl);
+        bt_vec3_a.setValue(0.5, 0.5, 0.5); // using unit-scale shape https://pybullet.org/Bullet/phpBB3/viewtopic.php?p=20760#p20760
+        this._impl = new ammo.btBoxShape(bt_vec3_a);
+        bt_transform_a.setIdentity();
+        ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape).addChildShape(bt_transform_a, this._impl);
 
         this.body = body;
     }
 
     override update(): void {
-        const ps = PhysicsSystem.instance;
-        const ammo = ps.ammo;
-
         if (this.node.hasChanged & TransformBits.SCALE) {
             this._dirtyFlags |= DirtyFlagBits.SCALE;
         }
 
         if (this._dirtyFlags & DirtyFlagBits.SCALE) {
             const scale = vec3.multiply(vec3.create(), this._size, this.node.world_scale);
-            ps.bt_vec3_a.setValue(...scale);
-            this._impl.setLocalScaling(ps.bt_vec3_a);
+            bt_vec3_a.setValue(...scale);
+            this._impl.setLocalScaling(bt_vec3_a);
         }
 
         if (this._dirtyFlags & DirtyFlagBits.ORIGIN) {
-            ps.bt_vec3_a.setValue(...this._origin);
-            ps.bt_transform_a.setIdentity();
-            ps.bt_transform_a.setOrigin(ps.bt_vec3_a);
+            bt_vec3_a.setValue(...this._origin);
+            bt_transform_a.setIdentity();
+            bt_transform_a.setOrigin(bt_vec3_a);
             const body = this.node.getComponent(RigidBody)!;
             const compound = ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape);
-            compound.updateChildTransform(this.getIndex(), ps.bt_transform_a);
+            compound.updateChildTransform(this.getIndex(), bt_transform_a);
         }
 
         this._dirtyFlags = DirtyFlagBits.NONE;
     }
 
     private getIndex(): number {
-        const ps = PhysicsSystem.instance;
-        const ammo = ps.ammo;
-
         const body = this.node.getComponent(RigidBody)!;
         const compound = ammo.castObject(body.impl.getCollisionShape(), ammo.btCompoundShape);
         for (let i = 0; i < compound.getNumChildShapes(); i++) {

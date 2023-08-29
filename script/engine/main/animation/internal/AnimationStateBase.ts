@@ -1,4 +1,4 @@
-import { AnimationState } from "../../../animation/AnimationState.js";
+import { AnimationState } from "./AnimationState.js";
 
 export abstract class AnimationStateBase implements AnimationState {
     public abstract get duration(): number;
