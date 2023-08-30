@@ -2,22 +2,12 @@ import { Buffer, BufferUsageFlagBits, MemoryUsage, impl } from "gfx-main";
 import { device } from "../../../impl.js";
 import { BufferView } from "./BufferView.js";
 
-interface ArrayLikeWritable<T> {
-    readonly length: number;
-    [n: number]: T;
-}
-
 const format2array = {
     Uint16: Uint16Array,
     Float32: Float32Array
 } as const
 
 export class BufferViewWritable implements BufferView {
-    private _proxy: any;
-    get data(): ArrayLikeWritable<number> {
-        return this._proxy;
-    }
-
     get length(): number {
         return this._length;
     }
@@ -41,19 +31,6 @@ export class BufferViewWritable implements BufferView {
     private _invalidated: boolean = false;
 
     constructor(private _format: keyof typeof format2array, private _usage: BufferUsageFlagBits, private _length: number = 0) {
-        this._proxy = new Proxy(this, {
-            get(target, p) {
-                return Reflect.get(target._source, p);
-            },
-            set(target, p, newValue) {
-                if (Reflect.set(target._source, p, newValue)) {
-                    target._invalidated = true;
-                    return true;
-                }
-                return false;
-            }
-        })
-
         const source = new format2array[_format](_length);
 
         const buffer = device.createBuffer();

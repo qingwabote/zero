@@ -175,29 +175,32 @@ export class TextRenderer extends BoundedRenderer {
             const pos_t = y - yoffset;
             const pos_b = y - yoffset - height;
 
-            this._texCoordBuffer.data[2 * 4 * i + 0] = tex_l;
-            this._texCoordBuffer.data[2 * 4 * i + 1] = tex_t;
-            this._positionBuffer.data[3 * 4 * i + 0] = pos_l;
-            this._positionBuffer.data[3 * 4 * i + 1] = pos_t;
-            this._positionBuffer.data[3 * 4 * i + 2] = 0;
+            this._texCoordBuffer.source[2 * 4 * i + 0] = tex_l;
+            this._texCoordBuffer.source[2 * 4 * i + 1] = tex_t;
+            this._positionBuffer.source[3 * 4 * i + 0] = pos_l;
+            this._positionBuffer.source[3 * 4 * i + 1] = pos_t;
+            this._positionBuffer.source[3 * 4 * i + 2] = 0;
 
-            this._texCoordBuffer.data[2 * 4 * i + 2] = tex_r;
-            this._texCoordBuffer.data[2 * 4 * i + 3] = tex_t;
-            this._positionBuffer.data[3 * 4 * i + 3] = pos_r;
-            this._positionBuffer.data[3 * 4 * i + 4] = pos_t;
-            this._positionBuffer.data[3 * 4 * i + 5] = 0;
+            this._texCoordBuffer.source[2 * 4 * i + 2] = tex_r;
+            this._texCoordBuffer.source[2 * 4 * i + 3] = tex_t;
+            this._positionBuffer.source[3 * 4 * i + 3] = pos_r;
+            this._positionBuffer.source[3 * 4 * i + 4] = pos_t;
+            this._positionBuffer.source[3 * 4 * i + 5] = 0;
 
-            this._texCoordBuffer.data[2 * 4 * i + 4] = tex_r;
-            this._texCoordBuffer.data[2 * 4 * i + 5] = tex_b;
-            this._positionBuffer.data[3 * 4 * i + 6] = pos_r;
-            this._positionBuffer.data[3 * 4 * i + 7] = pos_b;
-            this._positionBuffer.data[3 * 4 * i + 8] = 0;
+            this._texCoordBuffer.source[2 * 4 * i + 4] = tex_r;
+            this._texCoordBuffer.source[2 * 4 * i + 5] = tex_b;
+            this._positionBuffer.source[3 * 4 * i + 6] = pos_r;
+            this._positionBuffer.source[3 * 4 * i + 7] = pos_b;
+            this._positionBuffer.source[3 * 4 * i + 8] = 0;
 
-            this._texCoordBuffer.data[2 * 4 * i + 6] = tex_l;
-            this._texCoordBuffer.data[2 * 4 * i + 7] = tex_b;
-            this._positionBuffer.data[3 * 4 * i + 9] = pos_l;
-            this._positionBuffer.data[3 * 4 * i + 10] = pos_b;
-            this._positionBuffer.data[3 * 4 * i + 11] = 0;
+            this._texCoordBuffer.source[2 * 4 * i + 6] = tex_l;
+            this._texCoordBuffer.source[2 * 4 * i + 7] = tex_b;
+            this._positionBuffer.source[3 * 4 * i + 9] = pos_l;
+            this._positionBuffer.source[3 * 4 * i + 10] = pos_b;
+            this._positionBuffer.source[3 * 4 * i + 11] = 0;
+
+            this._texCoordBuffer.invalidate();
+            this._positionBuffer.invalidate();
 
             // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
             this._indexBuffer.set([

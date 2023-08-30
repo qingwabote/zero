@@ -19,7 +19,7 @@ export class PassInstance extends Pass {
         if (!this._overrides[name]) {
             const block = shaderLib.getMeta(this.state.shader).blocks[name];
             const view = super.createUniformBuffer(name);
-            view.set(this._raw.uniformBuffers[name].data);
+            view.set(this._raw.uniformBuffers[name].source);
             this.descriptorSet?.bindBuffer(block.binding, view.buffer);
             this._uniformBuffers[name] = view;
             this._overrides[name] = true;

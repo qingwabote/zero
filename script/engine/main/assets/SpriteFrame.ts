@@ -25,29 +25,32 @@ export class SpriteFrame {
         const pos_t = height / 2;
         const pos_b = -height / 2;
 
-        texCoordBuffer.data[0] = uv_l;
-        texCoordBuffer.data[1] = uv_t;
-        positionBuffer.data[0] = pos_l;
-        positionBuffer.data[1] = pos_t;
-        positionBuffer.data[2] = 0;
+        texCoordBuffer.source[0] = uv_l;
+        texCoordBuffer.source[1] = uv_t;
+        positionBuffer.source[0] = pos_l;
+        positionBuffer.source[1] = pos_t;
+        positionBuffer.source[2] = 0;
 
-        texCoordBuffer.data[2] = uv_l;
-        texCoordBuffer.data[3] = uv_b;
-        positionBuffer.data[3] = pos_l;
-        positionBuffer.data[4] = pos_b;
-        positionBuffer.data[5] = 0;
+        texCoordBuffer.source[2] = uv_l;
+        texCoordBuffer.source[3] = uv_b;
+        positionBuffer.source[3] = pos_l;
+        positionBuffer.source[4] = pos_b;
+        positionBuffer.source[5] = 0;
 
-        texCoordBuffer.data[4] = uv_r;
-        texCoordBuffer.data[5] = uv_b;
-        positionBuffer.data[6] = pos_r;
-        positionBuffer.data[7] = pos_b;
-        positionBuffer.data[8] = 0;
+        texCoordBuffer.source[4] = uv_r;
+        texCoordBuffer.source[5] = uv_b;
+        positionBuffer.source[6] = pos_r;
+        positionBuffer.source[7] = pos_b;
+        positionBuffer.source[8] = 0;
 
-        texCoordBuffer.data[6] = uv_r;
-        texCoordBuffer.data[7] = uv_t;
-        positionBuffer.data[9] = pos_r;
-        positionBuffer.data[10] = pos_t;
-        positionBuffer.data[11] = 0;
+        texCoordBuffer.source[6] = uv_r;
+        texCoordBuffer.source[7] = uv_t;
+        positionBuffer.source[9] = pos_r;
+        positionBuffer.source[10] = pos_t;
+        positionBuffer.source[11] = 0;
+
+        texCoordBuffer.invalidate();
+        positionBuffer.invalidate();
 
         const indexBuffer = new BufferViewWritable("Uint16", BufferUsageFlagBits.INDEX, 6);
         // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
