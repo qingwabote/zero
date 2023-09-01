@@ -16,8 +16,6 @@ import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
 
 export class WebDevice implements Device {
-    private _gl: WebGL2RenderingContext;
-
     private _capabilities: Capabilities;
     get capabilities(): Capabilities {
         return this._capabilities;
@@ -33,14 +31,12 @@ export class WebDevice implements Device {
         return this._queue;
     }
 
-    constructor(canvas: HTMLCanvasElement) {
-        const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
+    constructor(private _gl: WebGL2RenderingContext, width: number, height: number) {
         this._capabilities = {
-            uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+            uniformBufferOffsetAlignment: _gl.getParameter(_gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1
         }
-        this._swapchain = { colorTexture: new WebTexture(gl, true), width: canvas.width, height: canvas.height };
-        this._gl = gl;
+        this._swapchain = { colorTexture: new WebTexture(_gl, true), width, height };
     }
 
     createCommandBuffer(): CommandBuffer {

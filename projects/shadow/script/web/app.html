@@ -42,10 +42,10 @@
     req.send();
   </script>
   <script type="module">
-    import { run } from "engine-webgl";
+    import { run } from "engine-web";
     const project = document.location.pathname.split('/')[2];
     const App = await import(`./dist/projects/${project}/script/main/App.js`);
-    run(App.default);
+    run(document.getElementById("ZeroCanvas"), App.default);
   </script>
 </body>
 

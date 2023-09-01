@@ -1,9 +1,7 @@
 import { InputEvent, Zero } from "engine-main";
 import "./impl.js";
 
-export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
-    const canvas = window.document.getElementById("ZeroCanvas") as HTMLCanvasElement;
-
+export function run(canvas: HTMLCanvasElement, App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
     const zero = new App();
     zero.initialize();
 

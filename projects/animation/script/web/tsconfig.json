@@ -3,7 +3,7 @@
   "include": [
     ".",
     "../main",
-    "../../../../script/engine/webgl",
+    "../../../../script/engine/web",
     "../../../../script/gfx/webgl",
   ],
   "compilerOptions": {
@@ -11,7 +11,7 @@
       "gfx-main":["../../../../script/gfx/main"],
       "gfx-webgl":["../../../../script/gfx/webgl"],
       "engine-main": ["../../../../script/engine/main"],
-      "engine-webgl": ["../../../../script/engine/webgl"],
+      "engine-web": ["../../../../script/engine/web"],
     },
     "outDir": "dist"
   }
