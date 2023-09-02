@@ -1,5 +1,7 @@
-import { InputEvent, Zero } from "engine-main";
+// load implementations first
 import "./impl.js";
+//
+import { InputEvent, Zero } from "engine-main";
 
 export function run(canvas: HTMLCanvasElement, App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
     const zero = new App();

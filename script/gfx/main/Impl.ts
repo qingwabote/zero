@@ -48,8 +48,4 @@ export interface Impl {
     readonly SubmitInfo: new () => SubmitInfo;
 }
 
-while (!(globalThis as any)._gfx_impl) {
-    await Promise.resolve();
-}
-
 export const impl: Impl = (globalThis as any)._gfx_impl;
