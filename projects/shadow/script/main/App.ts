@@ -1,5 +1,4 @@
 import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShadowUniform, SpriteFrame, SpriteRenderer, UIDocument, UIRenderer, Vec3, VisibilityFlagBits, Zero, assetLib, device, getSampler, quat, render, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine-main';
-import { ClearFlagBits } from 'gfx-main';
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;
@@ -92,7 +91,7 @@ export default class App extends Zero {
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilityFlags = VisibilityFlagBits.UI;
-        ui_camera.clearFlags = ClearFlagBits.DEPTH;
+        ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);

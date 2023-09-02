@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@esotericsoftware/spine-core": "^4.2.17",
-    "yaml": "^2.3.0"
-  }
-}

@@ -9,7 +9,7 @@
     "paths": {
       "gfx-main":["../../../../script/gfx/main"],
       "engine-main": ["../../../../script/engine/main"],
-      "@esotericsoftware/spine-core":["../../../../script/engine/node_modules/@esotericsoftware/spine-core/dist"]
+      "@esotericsoftware/spine-core":["../../../../script/engine/main/node_modules/@esotericsoftware/spine-core/dist"]
     },
     "outDir": "dist"
   }

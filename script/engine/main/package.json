@@ -1,0 +1,7 @@
+{
+    "name": "engine-main",
+    "dependencies": {
+        "@esotericsoftware/spine-core": "^4.2.18",
+        "yaml": "^2.3.2"
+    }
+}
