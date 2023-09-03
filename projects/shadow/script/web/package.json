@@ -7,9 +7,14 @@
         "engine-web": "tsc -p ../../../../script/engine/web --outDir dist/engine-web --watch",
         "server": "http-server ../../../../ -p 8003 -o projects/shadow/script/web/index.html -e js -c-1",
         "dev": "concurrently \"tsc --watch\" \"npm run gfx-main\" \"npm run gfx-webgl\" \"npm run engine-main\" \"npm run engine-web\" \"npm run server\"",
-        "bundle": "tsc && rollup -c && http-server ../../../../ -p 8003 -o projects/shadow/script/web/index-bundle.html"
+        "bundle": "tsc && rollup -c && http-server ../../../../ -p 8003 -o projects/shadow/script/web/index-bundle.html -c-1",
+        "bundle-es6": "tsc && rollup -c && babel ./dist/bundle.js --out-file ./dist/bundle-es6.js && http-server ../../../../ -p 8003 -o projects/shadow/script/web/index-bundle.html -c-1"
     },
     "devDependencies": {
+        "@babel/preset-env": "^7.22.14",
         "@rollup/plugin-alias": "^5.0.0"
+    },
+    "dependencies": {
+        "engine-web": "file:../../../../script/engine/web"
     }
 }
