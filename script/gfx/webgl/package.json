@@ -1,3 +1,6 @@
 {
-    "name": "gfx-webgl"
+    "name": "gfx-webgl",
+    "dependencies": {
+        "gfx-main": "file:../main"
+    }
 }

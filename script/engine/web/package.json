@@ -1,3 +1,7 @@
 {
-    "name": "engine-web"
+    "name": "engine-web",
+    "dependencies": {
+        "engine-main": "file:../main",
+        "gfx-webgl": "file:../../gfx/webgl"
+    }
 }
