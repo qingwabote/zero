@@ -1,4 +1,5 @@
 import { BlendFactor, BufferUsageFlagBits, CullMode, Format, FormatInfos, PrimitiveTopology, impl } from "gfx-main";
+import { ShaderStages } from "../assets/ShaderStages.js";
 import { Zero } from "../core/Zero.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
@@ -13,7 +14,8 @@ import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
-const shader_primitive = await shaderLib.load('primitive');
+const shader_primitive = new ShaderStages;
+await shader_primitive.load('primitive');
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
@@ -98,7 +100,7 @@ export class Primitive extends BoundedRenderer {
         blendState.srcAlpha = BlendFactor.ONE;
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
         const state = new impl.PassState;
-        state.shader = shader_primitive;
+        state.shader = shaderLib.getShader(shader_primitive);
         state.primitive = PrimitiveTopology.LINE_LIST;
         state.rasterizationState = rasterizationState;
         state.blendState = blendState;

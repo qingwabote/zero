@@ -40,7 +40,7 @@ function getFormat(type: string): Format {
 }
 
 export const glsl = {
-    parse(sources: string[], types: ShaderStageFlagBits[]): {
+    parse(sources: readonly string[], types: readonly ShaderStageFlagBits[]): {
         readonly attributes: Record<string, Attribute>;
         readonly blocks: Record<string, Uniform>;
         readonly samplerTextures: Record<string, Uniform>;

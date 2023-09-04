@@ -11,7 +11,7 @@ export const hashLib = {
     shader(shader: Shader): number {
         let hash = _shader2hash.get(shader);
         if (!hash) {
-            hash = murmurhash2_32_gc(shaderLib.getMeta(shader).key, 666);
+            hash = murmurhash2_32_gc(shaderLib.getShaderMeta(shader).key, 666);
             _shader2hash.set(shader, hash);
         }
         return hash;
@@ -21,7 +21,7 @@ export const hashLib = {
         let hash = _pass2hash.get(pass);
         if (!hash) {
             let key = "";
-            key += `${shaderLib.getMeta(pass.shader).key}`;
+            key += `${shaderLib.getShaderMeta(pass.shader).key}`;
             key += `${pass.primitive}`;
             key += `${pass.rasterizationState.cullMode}`;
             if (pass.depthStencilState) {

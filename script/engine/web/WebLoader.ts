@@ -1,10 +1,15 @@
 import type { Loader, LoaderTypes } from "engine-main";
 
 export default class WebLoader implements Loader {
+    private static _taskCount = 0;
+
+    get taskCount() {
+        return WebLoader._taskCount;
+    }
+
     load<T extends keyof LoaderTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]> {
         url = "../../" + url;// FIXME
         return new Promise((resolve, reject) => {
-
             const xhr = new XMLHttpRequest();
             xhr.responseType = type == "bitmap" ? "blob" : type;
             xhr.open('GET', url, true);
@@ -18,6 +23,7 @@ export default class WebLoader implements Loader {
                 } else {
                     reject(`download failed: ${url}, status: ${xhr.status}(no response)`)
                 }
+                WebLoader._taskCount--;
             };
             if (onProgress) {
                 xhr.onprogress = (event) => {
@@ -25,15 +31,20 @@ export default class WebLoader implements Loader {
                 }
             }
             xhr.onerror = () => {
-                reject(`download failed: ${url}, status: ${xhr.status}(error)`)
+                reject(`download failed: ${url}, status: ${xhr.status}(error)`);
+                WebLoader._taskCount--;
             };
             xhr.ontimeout = () => {
-                reject(`download failed: ${url}, status: ${xhr.status}(time out)`)
+                reject(`download failed: ${url}, status: ${xhr.status}(time out)`);
+                WebLoader._taskCount--;
             };
             xhr.onabort = () => {
-                reject(`download failed: ${url}, status: ${xhr.status}(abort)`)
+                reject(`download failed: ${url}, status: ${xhr.status}(abort)`);
+                WebLoader._taskCount--;
             };
             xhr.send(null);
+
+            WebLoader._taskCount++;
         })
     }
 }

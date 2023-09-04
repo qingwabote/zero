@@ -1,5 +1,6 @@
 import * as sc from '@esotericsoftware/spine-core';
 import { BlendFactor, CullMode, PrimitiveTopology, VertexAttributeVector, impl } from "gfx-main";
+import { ShaderStages } from '../../assets/ShaderStages.js';
 import { vec3 } from "../../core/math/vec3.js";
 import { vec4 } from "../../core/math/vec4.js";
 import { Pass } from "../../core/render/scene/Pass.js";
@@ -8,7 +9,8 @@ import { SubModel } from "../../core/render/scene/SubModel.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { Texture } from "../Texture.js";
 
-const shader_spine = await shaderLib.load('spine', { USE_ALBEDO_MAP: 1 });
+const shader_spine = new ShaderStages;
+await shader_spine.load('spine');
 
 class SubModelPool {
     private _free = 0;
@@ -36,7 +38,7 @@ class SubModelPool {
         const rasterizationState = new impl.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
         const state = new impl.PassState();
-        state.shader = shader_spine;
+        state.shader = shaderLib.getShader(shader_spine, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
         switch (this._blend) {

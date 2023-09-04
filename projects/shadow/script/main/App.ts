@@ -1,4 +1,4 @@
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShadowUniform, SpriteFrame, SpriteRenderer, UIDocument, UIRenderer, Vec3, VisibilityFlagBits, Zero, assetLib, device, getSampler, quat, render, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine-main';
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShaderStages, ShadowUniform, SpriteFrame, SpriteRenderer, UIDocument, UIRenderer, Vec3, VisibilityFlagBits, Zero, assetLib, device, getSampler, quat, render, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine-main';
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;
@@ -52,7 +52,8 @@ const gltf_camera = new GLTF();
 gltf_camera.materialFunc = materialFunc;
 await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
 
-const shader_depth = await shaderLib.load('depth');
+const shader_depth = new ShaderStages();
+await shader_depth.load('depth');
 
 export default class App extends Zero {
     start(): render.Flow {
@@ -135,7 +136,7 @@ export default class App extends Zero {
 
             const sprite = UIRenderer.create(SpriteRenderer);
             sprite.impl.spriteFrame = new SpriteFrame(stage.framebuffer.info.depthStencilAttachment);
-            sprite.impl.shader = shader_depth;
+            sprite.impl.shader = shaderLib.getShader(shader_depth);
             sprite.size = [height / 4, height / 4]
             sprite.anchor = [1, 0];
             sprite.node.position = [width / 2, -height / 2, 0];

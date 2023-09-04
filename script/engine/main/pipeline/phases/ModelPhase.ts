@@ -121,7 +121,7 @@ export class ModelPhase extends Phase {
             }
             for (let i = 0; i < vertexAttributesSize; i++) {
                 const attribute = vertexAttributes.get(i);
-                const definition = shaderLib.getMeta(pass.shader).attributes[attribute.name];
+                const definition = shaderLib.getShaderMeta(pass.shader).attributes[attribute.name];
                 if (!definition) {
                     continue;
                 }

@@ -8,6 +8,8 @@
 
 namespace loader
 {
+    uint32_t Loader::_taskCount = 0;
+
     void Loader::load(const std::string &path, const std::string &type, UniqueFunction<void, std::unique_ptr<Result>> &&callback)
     {
         std::filesystem::current_path(_currentPath);
@@ -66,7 +68,10 @@ namespace loader
                     [callback = std::move(callback), result = std::move(result)]() mutable
                     {
                         callback(std::move(result));
+                        Loader::_taskCount--;
                     }));
             }));
+
+        Loader::_taskCount++;
     }
 }

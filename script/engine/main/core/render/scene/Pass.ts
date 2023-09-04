@@ -38,7 +38,7 @@ export class Pass {
             const descriptorSet = device.createDescriptorSet();
             descriptorSet.initialize(descriptorSetLayout);
 
-            const blocks = shaderLib.getMeta(this.state.shader).blocks;
+            const blocks = shaderLib.getShaderMeta(this.state.shader).blocks;
             for (const name in blocks) {
                 const block = blocks[name];
                 if (block.set != shaderLib.sets.material.index) {
@@ -53,7 +53,7 @@ export class Pass {
     }
 
     hasUniform(name: string, member: string): boolean {
-        const block = shaderLib.getMeta(this.state.shader).blocks[name];
+        const block = shaderLib.getShaderMeta(this.state.shader).blocks[name];
         if (!block) {
             return false;
         }
@@ -66,7 +66,7 @@ export class Pass {
     }
 
     setUniform(name: string, member: string, value: ArrayLike<number>) {
-        const block = shaderLib.getMeta(this.state.shader).blocks[name];
+        const block = shaderLib.getShaderMeta(this.state.shader).blocks[name];
         let offset = 0;
         for (const mem of block.members!) {
             if (mem.name == member) {
@@ -78,7 +78,7 @@ export class Pass {
     }
 
     setTexture(name: string, texture: Texture, sampler: Sampler = getSampler()): void {
-        const binding = shaderLib.getMeta(this.state.shader).samplerTextures[name].binding;
+        const binding = shaderLib.getShaderMeta(this.state.shader).samplerTextures[name].binding;
         this.descriptorSet?.bindTexture(binding, texture, sampler);
         this._samplerTextures[name] = [texture, sampler];
     }
@@ -90,7 +90,7 @@ export class Pass {
     }
 
     protected createUniformBuffer(name: string): BufferViewWritable {
-        const block = shaderLib.getMeta(this.state.shader).blocks[name];
+        const block = shaderLib.getShaderMeta(this.state.shader).blocks[name];
         let length = block.members!.reduce((acc, mem) => acc + type2Length(mem.type), 0);
         return new BufferViewWritable('Float32', BufferUsageFlagBits.UNIFORM, length);
     }

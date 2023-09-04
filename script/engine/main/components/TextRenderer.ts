@@ -2,6 +2,7 @@
 
 import { BlendFactor, BufferUsageFlagBits, CullMode, Format, IndexType, PrimitiveTopology, impl } from "gfx-main";
 import { FNT } from "../assets/FNT.js";
+import { ShaderStages } from "../assets/ShaderStages.js";
 import { Zero } from "../core/Zero.js";
 import { assetLib } from "../core/assetLib.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
@@ -18,7 +19,8 @@ import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-const shader_unlit = await shaderLib.load('unlit', { USE_ALBEDO_MAP: 1 })
+const shader_unlit = new ShaderStages;
+await shader_unlit.load('unlit');
 
 const fnt_zero = await assetLib.load('../../assets/fnt/zero', FNT);
 
@@ -101,7 +103,7 @@ export class TextRenderer extends BoundedRenderer {
         blendState.srcAlpha = BlendFactor.ONE;
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
         const state = new impl.PassState;
-        state.shader = shader_unlit;
+        state.shader = shaderLib.getShader(shader_unlit, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
         state.blendState = blendState;

@@ -1,9 +1,11 @@
 import { Sampler, Texture, BlendFactor as gfx_BlendFactor, CullMode as gfx_CullMode, PrimitiveTopology as gfx_PrimitiveTopology, impl } from "gfx-main";
 import { parse } from "yaml";
 import { Asset } from "../core/Asset.js";
+import { assetLib } from "../core/assetLib.js";
 import { loader } from "../core/impl.js";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { ShaderStages } from "./ShaderStages.js";
 
 function merge<Out>(target: Out, ...sources: Out[]): Out {
     for (const source of sources) {
@@ -96,7 +98,7 @@ export class Effect extends Asset {
             }
 
             const passState = new impl.PassState;
-            passState.shader = await shaderLib.load(info.shader!, info.macros);
+            passState.shader = shaderLib.getShader(await assetLib.load(info.shader!, ShaderStages), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
                     passState.primitive = gfx_PrimitiveTopology.LINE_LIST

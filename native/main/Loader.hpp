@@ -43,12 +43,16 @@ namespace loader
     class Loader
     {
     private:
+        static uint32_t _taskCount;
+
         std::filesystem::path _currentPath;
 
         TaskRunner *_foreground{nullptr};
         TaskRunner *_background{nullptr};
 
     public:
+        uint32_t taskCount() { return Loader::_taskCount; }
+
         Loader(std::filesystem::path currentPath, TaskRunner *foreground, TaskRunner *background)
             : _currentPath(currentPath), _foreground(foreground), _background(background) {}
 

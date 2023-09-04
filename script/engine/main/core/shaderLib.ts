@@ -1,5 +1,6 @@
 import { Attribute, DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType, Shader, ShaderStageFlagBits, Uniform, glsl, impl } from "gfx-main";
-import { device, loader } from "./impl.js";
+import { ShaderStages } from "../assets/ShaderStages.js";
+import { device } from "./impl.js";
 import { preprocessor } from "./internal/preprocessor.js";
 
 function align(size: number) {
@@ -77,20 +78,9 @@ export interface Meta {
     readonly samplerTextures: Record<string, Uniform>;
 }
 
-const _name2source: Record<string, { vs: string, fs: string }> = {};
-const _name2macros: Record<string, Set<string>> = {};
 const _key2shader: Record<string, Shader> = {};
 const _shader2meta: WeakMap<Shader, Meta> = new WeakMap;
 const _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
-
-function genKey(name: string, macros: Record<string, number> = {}): string {
-    let key = name;
-    for (const macro of _name2macros[name]) {
-        const val = macros[macro] || 0;
-        key += val
-    }
-    return key;
-}
 
 export const shaderLib = {
     sets,
@@ -156,48 +146,40 @@ export const shaderLib = {
         return descriptorSetLayout;
     },
 
-    async load(name: string, macros: Record<string, number> = {}): Promise<Shader> {
-        let source = _name2source[name];
-        if (!source) {
-            const path = `../../assets/shaders/${name}`; // hard code
+    getShader(stages: ShaderStages, macros: Record<string, number> = {}): Shader {
 
-            let vs = await loader.load(`${path}.vs`, "text");
-            vs = await preprocessor.includeExpand(vs);
-
-            let fs = await loader.load(`${path}.fs`, "text");
-            fs = await preprocessor.includeExpand(fs);
-
-            _name2source[name] = { vs, fs };
-            _name2macros[name] = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)])
+        let key = stages.name;
+        for (const macro of stages.macros) {
+            const val = macros[macro] || 0;
+            key += val
         }
 
-        const key = genKey(name, macros);
         if (!_key2shader[key]) {
             const mac: Record<string, number> = {};
-            for (const macro of _name2macros[name]) {
+            for (const macro of stages.macros) {
                 mac[macro] = macros[macro] || 0;
             }
 
-            let { vs, fs } = _name2source[name];
-            vs = preprocessor.macroExpand(mac, vs);
-            fs = preprocessor.macroExpand(mac, fs);
+            const sources = stages.sources.map(src => preprocessor.macroExpand(mac, src));
+            const types = stages.types;
+
+            const info = new impl.ShaderInfo;
+            for (let i = 0; i < sources.length; i++) {
+                info.sources.add(sources[i])
+                info.types.add(types[i]);
+            }
 
             const shader = device.createShader();
-            const info = new impl.ShaderInfo;
-            info.sources.add(vs)
-            info.types.add(ShaderStageFlagBits.VERTEX);
-            info.sources.add(fs)
-            info.types.add(ShaderStageFlagBits.FRAGMENT);
             if (shader.initialize(info)) {
                 throw new Error(`failed to initialize shader: ${name}`)
             }
             _key2shader[key] = shader;
-            _shader2meta.set(shader, { key, ...glsl.parse([vs, fs], [ShaderStageFlagBits.VERTEX, ShaderStageFlagBits.FRAGMENT]) });
+            _shader2meta.set(shader, { key, ...glsl.parse(sources, types) });
         }
         return _key2shader[key];
     },
 
-    getMeta(shader: Shader): Meta {
+    getShaderMeta(shader: Shader): Meta {
         return _shader2meta.get(shader)!;
     }
 } as const
