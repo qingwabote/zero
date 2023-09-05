@@ -53,7 +53,7 @@ const format_part2: Record<number, string> = {
 }
 
 function uri2path(uri: string) {
-    return uri.replaceAll("%20", " ");
+    return uri.replace(/%20/g, " ");
 }
 
 function node2name(node: any, index: number): string {
