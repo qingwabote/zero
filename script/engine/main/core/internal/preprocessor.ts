@@ -23,8 +23,9 @@ const exp_endif = /^\s*#endif/;
 export const preprocessor = {
     macroExtract(src: string): Set<string> {
         const macros: Set<string> = new Set;
-        let matches = src.matchAll(/^\s*#if\s+(\w+)\r?\n/gm);
-        for (const match of matches) {
+        const exp = /^\s*#if\s+(\w+)\r?\n/gm;
+        let match;
+        while (match = exp.exec(src)) {
             macros.add(match[1]);
         }
         return macros;

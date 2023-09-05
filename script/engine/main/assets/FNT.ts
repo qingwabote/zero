@@ -51,20 +51,20 @@ export class FNT extends Asset {
 
             let line = res[0];
             if (exp_common.test(line)) {
-                const resAll = line.matchAll(exp_keyAndValue);
                 const common: any = {};
-                for (const res of resAll) {
-                    common[res[1]] = parseInt(res[2]);
+                let match;
+                while (match = exp_keyAndValue.exec(line)) {
+                    common[match[1]] = parseInt(match[2]);
                 }
                 this._common = common;
                 continue;
             }
 
             if (exp_char.test(line)) {
-                const resAll = line.matchAll(exp_keyAndValue);
                 const char: any = {};
-                for (const res of resAll) {
-                    char[res[1]] = parseInt(res[2]);
+                let match;
+                while (match = exp_keyAndValue.exec(line)) {
+                    char[match[1]] = parseInt(match[2]);
                 }
                 this._chars[char.id] = char;
                 continue;

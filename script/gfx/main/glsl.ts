@@ -48,8 +48,9 @@ export const glsl = {
         const vs = sources[types.indexOf(ShaderStageFlagBits.VERTEX)];
 
         const attributes: Record<string, Attribute> = {};
-        const matches = vs.matchAll(/layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g)!;
-        for (const match of matches) {
+        const exp = /layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g;
+        let match;
+        while (match = exp.exec(vs)) {
             const [_, location, type, name] = match;
             attributes[name] = { location: parseInt(location), format: getFormat(type) };
         }
@@ -57,13 +58,15 @@ export const glsl = {
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
         for (let i = 0; i < sources.length; i++) {
-            const source = sources[i];
-            const matches = source.matchAll(/layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)\s*(?:\{([^\{\}]*)\})?/g);// 非捕获括号 (?:x))!
-            for (const match of matches) {
+            const exp = /layout\s*\(\s*set\s*=\s*(\d)\s*,\s*binding\s*=\s*(\d)\s*\)\s*uniform\s*(\w*)\s+(\w+)\s*(?:\{([^\{\}]*)\})?/g // 非捕获括号 (?:x))!
+            let match;
+            while (match = exp.exec(sources[i])) {
                 const [_, set, binding, type, name, content] = match;
                 if (!type) {
                     const members: UniformMember[] = [];
-                    for (const match of content.matchAll(/(\w+)\s+(\w+)/g)) {
+                    const exp = /(\w+)\s+(\w+)/g;
+                    let match;
+                    while (match = exp.exec(content)) {
                         const [_, type, name] = match;
                         members.push({ name, type });
                     }
