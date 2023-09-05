@@ -25,7 +25,7 @@ export class SkinnedModel extends Model {
         return layout;
     })()
 
-    private _joints?: readonly Transform[];
+    private _joints?: readonly Transform[] = undefined;
 
     private _skin!: Skin;
     public get skin(): Skin {

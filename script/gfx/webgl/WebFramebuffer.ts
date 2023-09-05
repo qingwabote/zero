@@ -5,8 +5,9 @@ import { WebVector } from "./info.js";
 export default class WebFramebuffer implements Framebuffer {
     private _gl: WebGL2RenderingContext;
 
-    private _impl?: WebGLFramebuffer;
-    get impl(): WebGLFramebuffer | undefined {
+    private _impl: WebGLFramebuffer | null = null;
+    /** null for default framebuffer */
+    get impl(): WebGLFramebuffer | null {
         return this._impl;
     }
 

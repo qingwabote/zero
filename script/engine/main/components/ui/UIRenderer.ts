@@ -20,7 +20,7 @@ export class UIRenderer<T extends BoundedRenderer> extends UIElement {
 
     private _layoutDirty = true;
 
-    private _explicit_size?: Vec2;
+    private _explicit_size?: Vec2 = undefined;
     public override get size(): Readonly<Vec2> {
         if (this._explicit_size) {
             return this._explicit_size;

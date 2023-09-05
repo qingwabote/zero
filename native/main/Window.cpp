@@ -119,7 +119,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             return -1;
         }
 
-        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/App.js");
+        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/main/App.js");
         if (!std::filesystem::exists(appSrc))
         {
             ZERO_LOG_ERROR("App.js not exists: %s", appSrc.string().c_str());

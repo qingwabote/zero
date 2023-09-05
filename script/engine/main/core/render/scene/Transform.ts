@@ -31,8 +31,8 @@ const mat4_a = mat4.create();
 const quat_a = quat.create();
 
 export class Transform extends FrameChangeRecord implements TRS, EventEmitter<TransformEventToListener> {
-    private _explicit_visibilityFlag?: number;
-    private _implicit_visibilityFlag?: number;
+    private _explicit_visibilityFlag?: number = undefined;
+    private _implicit_visibilityFlag?: number = undefined;
     public get visibilityFlag(): number {
         if (this._explicit_visibilityFlag != undefined) {
             return this._explicit_visibilityFlag;
@@ -167,7 +167,7 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
         return this._world_matrix;
     }
 
-    private __emitter?: EventEmitter<TransformEventToListener>;
+    private __emitter?: EventEmitter<TransformEventToListener> = undefined;
     private get _emitter() {
         return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
     }

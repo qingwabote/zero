@@ -7,7 +7,7 @@ function modelCompareFn(a: Model, b: Model) {
 }
 
 export class Root {
-    directionalLight?: DirectionalLight;
+    directionalLight?: DirectionalLight = undefined;
 
     private _cameras: Camera[] = [];
     get cameras(): Camera[] {

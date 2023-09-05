@@ -56,7 +56,7 @@ export default class WebCommandBuffer implements CommandBuffer {
     beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, x: number, y: number, width: number, height: number) {
         const gl = this._gl;
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, (framebuffer as WebFramebuffer).impl || null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, (framebuffer as WebFramebuffer).impl);
         this._framebuffer = framebuffer as WebFramebuffer;
 
         gl.viewport(x, y, width, height);
@@ -207,7 +207,7 @@ export default class WebCommandBuffer implements CommandBuffer {
 
         for (const attachment of (this._framebuffer.info.resolveAttachments as WebVector<Texture>).data) {
             if ((attachment as WebTexture).swapchain) {
-                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl || null);
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
                 gl.blitFramebuffer(

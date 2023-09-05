@@ -17,7 +17,7 @@ function type2Length(type: string): number {
 }
 
 export class Pass {
-    readonly descriptorSet?: DescriptorSet;
+    readonly descriptorSet?: DescriptorSet = undefined;
 
     protected _uniformBuffers: Record<string, BufferViewWritable> = {};
     get uniformBuffers(): Readonly<Record<string, BufferViewWritable>> {

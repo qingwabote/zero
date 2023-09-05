@@ -20,7 +20,7 @@ export class UIContainer<EventToListener extends UIEventToListener = UIEventToLi
 
     private _layoutDirty = true;
 
-    private _explicit_size?: Vec2;
+    private _explicit_size?: Vec2 = undefined;
     private _implicit_size = vec2.create();
     public override get size(): Readonly<Vec2> {
         if (this._explicit_size) {

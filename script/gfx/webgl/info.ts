@@ -106,7 +106,7 @@ export class WebIndexInput implements IndexInput {
 export class WebInputAssemblerInfo implements InputAssemblerInfo {
     vertexAttributes: VertexAttributeVector = new WebVector;
     vertexInput!: VertexInput;
-    indexInput?: IndexInput;
+    indexInput?: IndexInput = undefined;
 }
 
 export class WebRasterizationState implements RasterizationState {
@@ -128,8 +128,8 @@ export class WebPassState implements PassState {
     shader!: Shader;
     primitive!: PrimitiveTopology;
     rasterizationState!: RasterizationState;
-    depthStencilState?: DepthStencilState;
-    blendState?: BlendState;
+    depthStencilState?: DepthStencilState = undefined;
+    blendState?: BlendState = undefined;
 }
 
 export class WebPipelineInfo implements PipelineInfo {
@@ -141,7 +141,7 @@ export class WebPipelineInfo implements PipelineInfo {
 
 export class WebSubmitInfo implements SubmitInfo {
     commandBuffer!: CommandBuffer;
-    waitSemaphore?: Semaphore;
-    waitDstStageMask?: PipelineStageFlagBits;
-    signalSemaphore?: Semaphore;
+    waitSemaphore?: Semaphore = undefined;
+    waitDstStageMask?: PipelineStageFlagBits = undefined;
+    signalSemaphore?: Semaphore = undefined;
 }

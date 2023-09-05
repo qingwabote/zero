@@ -38,7 +38,7 @@ export interface UIEventToListener {
 }
 
 export abstract class UIElement<EventToListener extends UIEventToListener = UIEventToListener> extends Component implements EventEmitter<EventToListener> {
-    private __emitter?: EventEmitter<EventToListener>;
+    private __emitter?: EventEmitter<EventToListener> = undefined;
     private get _emitter() {
         return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
     }

@@ -11,7 +11,7 @@ export class PhysicsSystem implements System {
         return ammo.loaded;
     }
 
-    private _world?: PhysicsWorld
+    private _world?: PhysicsWorld = undefined
     get world(): PhysicsWorld {
         if (!this._world) {
             this._world = new PhysicsWorld;
