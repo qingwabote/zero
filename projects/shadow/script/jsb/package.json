@@ -1,5 +1,8 @@
 {
     "scripts": {
-        "tsc": "tsc --watch"
+        "gfx-main": "tsc -p ../../../../script/gfx/main --outDir dist/gfx-main --watch",
+        "engine-main": "tsc -p ../../../../script/engine/main --outDir dist/engine-main --watch",
+        "engine-jsb": "tsc -p ../../../../script/engine/jsb --outDir dist/engine-jsb --watch",
+        "dev": "concurrently \"tsc --watch\" \"npm run gfx-main\" \"npm run engine-main\" \"npm run engine-jsb\""
     }
 }

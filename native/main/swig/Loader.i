@@ -2,6 +2,7 @@
 
 %include "attribute.i"
 %include "std_string.i"
+%include "stdint.i"
 %include "std_unique_ptr.i"
 %include "std_shared_ptr.i"
 
@@ -35,6 +36,8 @@
 
 %ignore loader::Loader::Loader;
 %ignore loader::Loader::instance;
+
+%attribute(loader::Loader, uint32_t, taskCount, taskCount);
 
 %rename(_load) loader::Loader::load;
 

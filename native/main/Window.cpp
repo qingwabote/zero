@@ -119,7 +119,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             return -1;
         }
 
-        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/projects/" + project_name + "/script/main/App.js");
+        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/App.js");
         if (!std::filesystem::exists(appSrc))
         {
             ZERO_LOG_ERROR("App.js not exists: %s", appSrc.string().c_str());
@@ -187,19 +187,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
                 {
                     v8::EscapableHandleScope scope(isolate.get());
-
-                    auto initialize = sugar::v8::object_get(app, "initialize").As<v8::Function>();
-                    if (initialize.IsEmpty())
-                    {
-                        ZERO_LOG("app: no initialize function found\n");
-                        return -1;
-                    }
-                    v8::TryCatch try_catch(isolate.get());
-                    if (initialize->Call(context, app, 0, nullptr).IsEmpty())
-                    {
-                        sugar::v8::tryCatch_print(try_catch);
-                        return -1;
-                    }
                     app_tick = scope.Escape(sugar::v8::object_get(app, "tick").As<v8::Function>());
                 }
             }

@@ -2,7 +2,7 @@ import { Primitive } from "../components/Primitive.js";
 import { Component } from "../core/Component.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { PhysicsWorld } from "./PhysicsWorld.js";
+import { PhysicsSystem } from "./PhysicsSystem.js";
 import { ammo } from "./internal/ammo.js";
 
 export class DebugDrawer extends Component {
@@ -42,7 +42,7 @@ export class DebugDrawer extends Component {
         // bt_debugDrawer.__destroy__ = () => {
 
         // }
-        PhysicsWorld.instance.impl.setDebugDrawer(bt_debugDrawer);
+        PhysicsSystem.instance.world.impl.setDebugDrawer(bt_debugDrawer);
     }
 
     update(): void {

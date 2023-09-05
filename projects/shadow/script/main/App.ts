@@ -42,21 +42,21 @@ async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues 
 
 const guardian = new GLTF();
 guardian.materialFunc = materialFunc;
-await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
+guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
 
 const plane = new GLTF();
 plane.materialFunc = materialFunc;
-await plane.load('../../assets/models/primitive/scene');
+plane.load('../../assets/models/primitive/scene');
 
 const gltf_camera = new GLTF();
 gltf_camera.materialFunc = materialFunc;
-await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
+gltf_camera.load('./assets/camera_from_poly_by_google/scene');
 
-const shader_depth = new ShaderStages();
-await shader_depth.load('depth');
+const ss_depth = new ShaderStages();
+ss_depth.load('depth');
 
 export default class App extends Zero {
-    start(): render.Flow {
+    protected override start(): render.Flow {
         const { width, height } = device.swapchain;
 
         const lit_position: Vec3 = [4, 4, 4];
@@ -136,7 +136,7 @@ export default class App extends Zero {
 
             const sprite = UIRenderer.create(SpriteRenderer);
             sprite.impl.spriteFrame = new SpriteFrame(stage.framebuffer.info.depthStencilAttachment);
-            sprite.impl.shader = shaderLib.getShader(shader_depth);
+            sprite.impl.shader = shaderLib.getShader(ss_depth);
             sprite.size = [height / 4, height / 4]
             sprite.anchor = [1, 0];
             sprite.node.position = [width / 2, -height / 2, 0];

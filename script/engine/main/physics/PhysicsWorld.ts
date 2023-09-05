@@ -1,14 +1,15 @@
-import { System } from "../core/System.js";
-import { Zero } from "../core/Zero.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { RayResultCallback } from "./RayResultCallback.js";
 import { ammo } from "./internal/ammo.js";
 
-const bt_vec3_a = new ammo.btVector3(0, 0, 0);
-const bt_vec3_b = new ammo.btVector3(0, 0, 0);
+let bt_vec3_a: any;
+let bt_vec3_b: any;
+ammo.loading.then(function () {
+    bt_vec3_a = new ammo.btVector3(0, 0, 0);
+    bt_vec3_b = new ammo.btVector3(0, 0, 0);
+})
 
-export class PhysicsWorld implements System {
-    static readonly instance = new PhysicsWorld();
+export class PhysicsWorld {
 
     private _collisionConfiguration;
     private _broadphase;
@@ -50,6 +51,3 @@ export class PhysicsWorld implements System {
         }
     }
 }
-
-Zero.registerSystem(PhysicsWorld.instance, 1)
-

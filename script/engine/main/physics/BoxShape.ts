@@ -12,8 +12,13 @@ enum DirtyFlagBits {
     ALL = 0xffffffff
 }
 
-const bt_vec3_a = new ammo.btVector3(0, 0, 0);
-const bt_transform_a = new ammo.btTransform();
+let bt_vec3_a: any;
+let bt_transform_a: any;
+
+ammo.loading.then(function () {
+    bt_vec3_a = new ammo.btVector3(0, 0, 0);
+    bt_transform_a = new ammo.btTransform();
+})
 
 export class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;

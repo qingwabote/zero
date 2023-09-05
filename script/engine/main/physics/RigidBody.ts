@@ -3,11 +3,17 @@ import { quat } from "../core/math/quat.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Node } from "../core/Node.js";
 import { ammo } from "./internal/ammo.js";
-import { PhysicsWorld } from "./PhysicsWorld.js";
+import { PhysicsSystem } from "./PhysicsSystem.js";
 
-const bt_vec3_a = new ammo.btVector3(0, 0, 0);
-const bt_transform_a = new ammo.btTransform();
-const bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
+let bt_vec3_a: any;
+let bt_transform_a: any;
+let bt_quat_a: any;
+
+ammo.loading.then(function () {
+    bt_vec3_a = new ammo.btVector3(0, 0, 0);
+    bt_transform_a = new ammo.btTransform();
+    bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
+})
 
 export class RigidBody extends Component {
     readonly impl: any;
@@ -54,7 +60,7 @@ export class RigidBody extends Component {
         this.impl = new ammo.btRigidBody(info);
         ammo.destroy(info);
 
-        PhysicsWorld.instance.impl.addRigidBody(this.impl);
+        PhysicsSystem.instance.world.impl.addRigidBody(this.impl);
 
         bt_vec3_a.setValue(0, 0, 0);
         this.impl.setMassProps(0, bt_vec3_a);

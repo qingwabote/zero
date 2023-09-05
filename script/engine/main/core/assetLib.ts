@@ -5,6 +5,10 @@ const _path2asset: Map<string, Asset> = new Map;
 const _path2pending: Map<string, Promise<any>> = new Map;
 
 export const assetLib = {
+    get taskCount() {
+        return _path2pending.size;
+    },
+
     async load<T extends Asset>(path: string, type: new () => T): Promise<T> {
         let instance = _path2asset.get(path) as T;
         if (instance) {

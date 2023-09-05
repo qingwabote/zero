@@ -9,8 +9,8 @@ import { SubModel } from "../../core/render/scene/SubModel.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { Texture } from "../Texture.js";
 
-const shader_spine = new ShaderStages;
-await shader_spine.load('spine');
+const ss_spine = new ShaderStages;
+ss_spine.load('spine');
 
 class SubModelPool {
     private _free = 0;
@@ -38,7 +38,7 @@ class SubModelPool {
         const rasterizationState = new impl.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
         const state = new impl.PassState();
-        state.shader = shaderLib.getShader(shader_spine, { USE_ALBEDO_MAP: 1 });
+        state.shader = shaderLib.getShader(ss_spine, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
         switch (this._blend) {

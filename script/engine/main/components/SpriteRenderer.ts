@@ -2,6 +2,7 @@ import { CullMode, Filter, PrimitiveTopology, impl } from "gfx-main";
 import { ShaderStages } from "../assets/ShaderStages.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { Zero } from "../core/Zero.js";
+import { assetLib } from "../core/assetLib.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
@@ -12,8 +13,10 @@ import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 
-const shader_unlit = new ShaderStages;
-await shader_unlit.load('unlit');
+let ss_unlit: ShaderStages;
+(async function () {
+    ss_unlit = await assetLib.load('unlit', ShaderStages);
+})()
 
 const vec2_a = vec3.create();
 const vec2_b = vec3.create();
@@ -33,7 +36,7 @@ export class SpriteRenderer extends BoundedRenderer {
         return aabb2d.fromPoints(this._bounds, vec2_a, vec2_b);
     }
 
-    shader = shaderLib.getShader(shader_unlit, { USE_ALBEDO_MAP: 1 });;
+    shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });;
 
     private _spriteFrame!: SpriteFrame;
     public get spriteFrame(): SpriteFrame {

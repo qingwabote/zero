@@ -7,6 +7,10 @@ export class SkeletonSystem implements System {
 
     private _states: Map<AnimationState, Skeleton> = new Map;
 
+    get ready(): boolean {
+        return true;
+    }
+
     addAnimation(state: AnimationState, skeleton: Skeleton) {
         this._states.set(state, skeleton);
     }

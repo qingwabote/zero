@@ -7,6 +7,10 @@ export class AnimationSystem implements System {
 
     private _states: Map<AnimationState, AnimationState> = new Map;
 
+    get ready(): boolean {
+        return true;
+    }
+
     addAnimation(state: AnimationState) {
         this._states.set(state, state);
     }

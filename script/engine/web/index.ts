@@ -5,7 +5,6 @@ import { InputEvent, Zero } from "engine-main";
 
 export function run(canvas: HTMLCanvasElement, App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
     const zero = new App();
-    zero.initialize();
 
     const name2event: Map<InputEvent, any> = new Map;
     canvas.addEventListener("mousedown", (mouseEvent) => {

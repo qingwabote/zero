@@ -19,10 +19,15 @@ import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-const shader_unlit = new ShaderStages;
-await shader_unlit.load('unlit');
+let ss_unlit: ShaderStages;
+(async function () {
+    ss_unlit = await assetLib.load('unlit', ShaderStages);
+})()
 
-const fnt_zero = await assetLib.load('../../assets/fnt/zero', FNT);
+let fnt_zero: FNT;
+(async function () {
+    fnt_zero = await assetLib.load('../../assets/fnt/zero', FNT);
+})()
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -103,7 +108,7 @@ export class TextRenderer extends BoundedRenderer {
         blendState.srcAlpha = BlendFactor.ONE;
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
         const state = new impl.PassState;
-        state.shader = shaderLib.getShader(shader_unlit, { USE_ALBEDO_MAP: 1 });
+        state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
         state.blendState = blendState;
