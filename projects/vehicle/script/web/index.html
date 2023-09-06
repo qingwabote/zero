@@ -11,20 +11,6 @@
   <div id="ZeroContainer">
     <canvas id="ZeroCanvas" width="640" height="960"></canvas>
   </div>
-  <div id="ControlContainer">
-    <div>
-      <input id="eulerXInput" type="range" min="-180" max="180" value="0" />
-      <label id="eulerXLabel"></label>
-    </div>
-    <div>
-      <input id="eulerYInput" type="range" min="-180" max="180" value="0" />
-      <label id="eulerYLabel"></label>
-    </div>
-    <div>
-      <input id="eulerZInput" type="range" min="-180" max="180" value="0" />
-      <label id="eulerZLabel"></label>
-    </div>
-  </div>
   <script>
     const currentScript = document.currentScript;
     const req = new XMLHttpRequest();
@@ -42,10 +28,8 @@
     req.send();
   </script>
   <script type="module">
-    import { run } from "engine-web";
-    const project = document.location.pathname.split('/')[2];
-    const App = await import(`./dist/projects/${project}/script/main/App.js`);
-    run(document.getElementById("ZeroCanvas"), App.default);
+    import { run } from './dist/web/index.js';
+    run(document.getElementById("ZeroCanvas"));
   </script>
 </body>
 

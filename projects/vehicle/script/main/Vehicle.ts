@@ -1,6 +1,7 @@
-import { BoxShape, Component, GLTF, MeshRenderer, Node, PhysicsWorld, Vec3, ammo, assetLib, quat, vec3, vec4 } from "engine-main";
+import { BoxShape, Component, GLTF, MeshRenderer, Node, PhysicsSystem, Vec3, ammo, quat, vec3, vec4 } from "engine-main";
 
-const gltf_primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);
+const gltf_primitive = new GLTF;
+gltf_primitive.load('../../assets/models/primitive/scene');
 
 const chassis_size = vec3.create(1.8, 0.6, 4);
 
@@ -13,9 +14,15 @@ const wheel_axis_back_position = 1;
 
 const suspension_restLength = 0.6;
 
-const bt_vec3_a = new ammo.btVector3(0, 0, 0);
-const bt_vec3_b = new ammo.btVector3(0, 0, 0);
-const bt_vec3_c = new ammo.btVector3(0, 0, 0);
+let bt_vec3_a: any;
+let bt_vec3_b: any;
+let bt_vec3_c: any;
+
+ammo.loading.then(function () {
+    bt_vec3_a = new ammo.btVector3(0, 0, 0);
+    bt_vec3_b = new ammo.btVector3(0, 0, 0);
+    bt_vec3_c = new ammo.btVector3(0, 0, 0);
+})
 
 export default class Vehicle extends Component {
     private _impl;
@@ -41,7 +48,7 @@ export default class Vehicle extends Component {
         shape.body.impl.setActivationState(4);
 
         const tuning = new ammo.btVehicleTuning();
-        const rayCaster = new ammo.btDefaultVehicleRaycaster(PhysicsWorld.instance.impl)
+        const rayCaster = new ammo.btDefaultVehicleRaycaster(PhysicsSystem.instance.world.impl)
         const vehicle = new ammo.btRaycastVehicle(tuning, shape.body.impl, rayCaster);
         vehicle.setCoordinateSystem(0, 1, 2);
         this.addWheel(
@@ -64,7 +71,7 @@ export default class Vehicle extends Component {
             vec3.create(-wheel_halfTrack, wheel_axis_height, wheel_axis_back_position),
             tuning,
             false);
-        PhysicsWorld.instance.impl.addAction(vehicle);
+        PhysicsSystem.instance.world.impl.addAction(vehicle);
         this._impl = vehicle;
     }
 

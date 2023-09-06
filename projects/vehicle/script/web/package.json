@@ -1,7 +1,14 @@
 {
+    "type": "module",
     "scripts": {
-        "tsc": "tsc --watch",
-        "server": "http-server ../../../../ -p 8003 -o projects/vehicle/script/web/app.html -e js -c-1",
-        "dev": "concurrently \"npm run tsc\" \"npm run server\""
+        "gfx-main": "tsc -p ../../../../script/gfx/main --outDir dist/gfx-main --watch",
+        "gfx-webgl": "tsc -p ../../../../script/gfx/webgl --outDir dist/gfx-webgl --watch",
+        "engine-main": "tsc -p ../../../../script/engine/main --outDir dist/engine-main --watch",
+        "engine-web": "tsc -p ../../../../script/engine/web --outDir dist/engine-web --watch",
+        "server": "http-server ../../../../ -p 8003 -o projects/vehicle/script/web/index.html -e js -c-1",
+        "dev": "concurrently \"tsc --watch\" \"npm run gfx-main\" \"npm run gfx-webgl\" \"npm run engine-main\" \"npm run engine-web\" \"npm run server\""
+    },
+    "dependencies": {
+        "engine-web": "file:../../../../script/engine/web"
     }
 }

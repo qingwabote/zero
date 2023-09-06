@@ -1,10 +1,10 @@
 
-import { BoxShape, Camera, CameraControlPanel, DirectionalLight, GLTF, MeshRenderer, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, assetLib, device, render, stageFactory, vec2, vec3, vec4 } from 'engine-main';
-import { ClearFlagBits } from "gfx-main";
+import { BoxShape, Camera, CameraControlPanel, DirectionalLight, GLTF, MeshRenderer, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, device, render, stageFactory, vec2, vec3, vec4 } from 'engine-main';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
-const primitive = await assetLib.load('../../assets/models/primitive/scene', GLTF);
+let primitive = new GLTF;
+primitive.load('../../assets/models/primitive/scene');
 
 export default class App extends Zero {
     start() {
@@ -74,7 +74,7 @@ export default class App extends Zero {
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilityFlags = VisibilityFlagBits.UI;
-        ui_camera.clearFlags = ClearFlagBits.DEPTH;
+        ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);

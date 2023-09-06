@@ -83,7 +83,7 @@ export class Flow {
         this.framebuffer = framebuffer;
     }
 
-    initialize() {
+    start() {
         for (const uniform of this._uniforms) {
             uniform.initialize();
         }
