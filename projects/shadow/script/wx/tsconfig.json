@@ -1,0 +1,10 @@
+{
+  "extends": "../../../../script/tsconfig.json",
+  "include": [
+    "./index.ts",
+    "../main"
+  ],
+  "compilerOptions": {
+    "outDir": "dist"
+  }
+}
