@@ -1,7 +1,8 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BufferUsageFlagBits, Format, FormatInfos, IndexType, impl } from 'gfx-main';
+import { BufferUsageFlagBits, Format, FormatInfos, IndexType } from 'gfx-main';
 import { BoundedRenderer } from "../components/internal/BoundedRenderer.js";
 import { Zero } from '../core/Zero.js';
+import { gfx } from '../core/impl.js';
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { IndexInputView, VertexInputView } from '../core/render/scene/SubMesh.js';
@@ -10,16 +11,16 @@ import { BufferViewWritable } from '../core/render/scene/buffers/BufferViewWrita
 import { Texture } from './Texture.js';
 import { SubModelPools } from './internal/SubModelPools.js';
 
-const vertexAttributes = new impl.VertexAttributeVector;
+const vertexAttributes = new gfx.VertexAttributeVector;
 let _vertexElements = 0;
 
-const a_position = new impl.VertexAttribute;
+const a_position = new gfx.VertexAttribute;
 a_position.name = 'a_position';
 a_position.format = Format.RG32_SFLOAT;
 vertexAttributes.add(a_position);
 _vertexElements += FormatInfos[a_position.format].nums;
 
-const a_texCoord = new impl.VertexAttribute;
+const a_texCoord = new gfx.VertexAttribute;
 a_texCoord.name = 'a_texCoord';
 a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[a_position.format].bytes;

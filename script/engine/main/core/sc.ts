@@ -1,5 +1,5 @@
-import { Filter, Sampler, impl } from "gfx-main";
-import { device } from "./impl.js";
+import { Filter, Sampler } from "gfx-main";
+import { device, gfx } from "./impl.js";
 
 const hash2sampler: Map<number, Sampler> = new Map;
 
@@ -8,7 +8,7 @@ export function getSampler(minFilter = Filter.LINEAR, magFilter = Filter.LINEAR)
     hash |= (magFilter << 2);
     let sampler = hash2sampler.get(hash);
     if (!sampler) {
-        const info = new impl.SamplerInfo;
+        const info = new gfx.SamplerInfo;
         info.minFilter = minFilter;
         info.magFilter = magFilter;
         sampler = device.createSampler();

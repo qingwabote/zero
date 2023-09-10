@@ -1,6 +1,7 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BlendFactor, CullMode, PrimitiveTopology, VertexAttributeVector, impl } from "gfx-main";
+import { BlendFactor, CullMode, PrimitiveTopology, VertexAttributeVector } from "gfx-main";
 import { ShaderStages } from '../../assets/ShaderStages.js';
+import { gfx } from '../../core/impl.js';
 import { vec3 } from "../../core/math/vec3.js";
 import { vec4 } from "../../core/math/vec4.js";
 import { Pass } from "../../core/render/scene/Pass.js";
@@ -35,15 +36,15 @@ class SubModelPool {
             vec3.create(),
             this._indexInput,
         )
-        const rasterizationState = new impl.RasterizationState;
+        const rasterizationState = new gfx.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
-        const state = new impl.PassState();
+        const state = new gfx.PassState();
         state.shader = shaderLib.getShader(ss_spine, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
         switch (this._blend) {
             case sc.BlendMode.Normal:
-                const blendState = new impl.BlendState;
+                const blendState = new gfx.BlendState;
                 blendState.srcRGB = BlendFactor.ONE; // premultipliedAlpha
                 blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
                 blendState.srcAlpha = BlendFactor.ONE;

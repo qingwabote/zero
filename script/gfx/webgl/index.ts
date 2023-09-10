@@ -1,3 +1,3 @@
-import './WebImpl.js';
 export * from './WebDevice.js';
+export * from './WebImpl.js';
 

@@ -1,16 +1,16 @@
 import { Material, MeshRenderer, Node, UIElement, Vec2, render, shaderLib, vec2, vec3, vec4 } from "engine-main";
-import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexType, PrimitiveTopology, Texture, impl } from "gfx-main";
+import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexType, PrimitiveTopology, Texture } from "gfx-main";
 import { Polygon } from "./Polygon.js";
 
 const unlit = await shaderLib.load('unlit', { USE_ALBEDO_MAP: 1 })
 
-const vertexAttributes = new impl.VertexAttributeVector;
+const vertexAttributes = new gfx.VertexAttributeVector;
 
-const a_position = new impl.VertexAttribute;
+const a_position = new gfx.VertexAttribute;
 a_position.format = Format.RGB32_SFLOAT;
 vertexAttributes.add(a_position);
 
-const a_texCoord = new impl.VertexAttribute;
+const a_texCoord = new gfx.VertexAttribute;
 a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[Format.RGB32_SFLOAT].bytes;
 vertexAttributes.add(a_texCoord);
@@ -53,9 +53,9 @@ export default class PolygonsRenderer extends UIElement {
     private _meshRenderers: MeshRenderer[] = [];
 
     override start(): void {
-        const rasterizationState = new impl.RasterizationState;
+        const rasterizationState = new gfx.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
-        const state = new impl.PassState();
+        const state = new gfx.PassState();
         state.shader = unlit;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;

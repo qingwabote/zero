@@ -1,5 +1,5 @@
-import { ClearFlagBits, ImageLayout, LOAD_OP, RenderPass, SampleCountFlagBits, impl } from "gfx-main";
-import { device } from "../../impl.js";
+import { ClearFlagBits, ImageLayout, LOAD_OP, RenderPass, SampleCountFlagBits } from "gfx-main";
+import { device, gfx } from "../../impl.js";
 
 const clearFlag2renderPass: Record<string, RenderPass> = {};
 
@@ -7,26 +7,26 @@ export function getRenderPass(clearFlags: ClearFlagBits, samples = SampleCountFl
     const hash = `${clearFlags}${samples}`;
     let renderPass = clearFlag2renderPass[hash];
     if (!renderPass) {
-        const info = new impl.RenderPassInfo;
+        const info = new gfx.RenderPassInfo;
         if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
-            const colorAttachmentDescription = new impl.AttachmentDescription;
+            const colorAttachmentDescription = new gfx.AttachmentDescription;
             colorAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
             colorAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
             colorAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
             info.colorAttachments.add(colorAttachmentDescription);
         } else {
-            const colorAttachmentDescription = new impl.AttachmentDescription;
+            const colorAttachmentDescription = new gfx.AttachmentDescription;
             colorAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
             colorAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
             colorAttachmentDescription.finalLayout = ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
             info.colorAttachments.add(colorAttachmentDescription);
-            const resolveAttachmentDescription = new impl.AttachmentDescription;
+            const resolveAttachmentDescription = new gfx.AttachmentDescription;
             resolveAttachmentDescription.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
             resolveAttachmentDescription.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
             resolveAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
             info.resolveAttachments.add(resolveAttachmentDescription);
         }
-        const depthStencilAttachment = new impl.AttachmentDescription();
+        const depthStencilAttachment = new gfx.AttachmentDescription();
         depthStencilAttachment.loadOp = clearFlags & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
         depthStencilAttachment.initialLayout = clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

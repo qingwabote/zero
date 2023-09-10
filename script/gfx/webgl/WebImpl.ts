@@ -26,7 +26,7 @@ import {
     WebVertexInputState
 } from "./info.js";
 
-export default class WebImpl implements Impl {
+export class WebImpl implements Impl {
     FloatVector = WebVector;
     Uint32Vector = WebVector;
     StringVector = WebVector;
@@ -73,5 +73,3 @@ export default class WebImpl implements Impl {
 
     SubmitInfo = WebSubmitInfo;
 }
-
-(globalThis as any)._gfx_impl = new WebImpl;

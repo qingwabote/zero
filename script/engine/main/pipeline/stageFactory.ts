@@ -1,6 +1,6 @@
-import { ImageLayout, LOAD_OP, SampleCountFlagBits, TextureUsageBits, impl } from "gfx-main";
+import { ImageLayout, LOAD_OP, SampleCountFlagBits, TextureUsageBits } from "gfx-main";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
-import { device } from "../core/impl.js";
+import { device, gfx } from "../core/impl.js";
 import { Phase } from "../core/render/pipeline/Phase.js";
 import { Stage } from "../core/render/pipeline/Stage.js";
 import { Uniform } from "../core/render/pipeline/Uniform.js";
@@ -24,17 +24,17 @@ export const stageFactory = {
     },
 
     shadow(visibility: VisibilityFlagBits = VisibilityFlagBits.DEFAULT) {
-        const depthStencilDescription = new impl.AttachmentDescription();
+        const depthStencilDescription = new gfx.AttachmentDescription();
         depthStencilDescription.loadOp = LOAD_OP.CLEAR;
         depthStencilDescription.initialLayout = ImageLayout.UNDEFINED;
         depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-        const renderPassInfo = new impl.RenderPassInfo;
+        const renderPassInfo = new gfx.RenderPassInfo;
         renderPassInfo.depthStencilAttachment = depthStencilDescription;
         const renderPass = device.createRenderPass();
         renderPass.initialize(renderPassInfo);
 
-        const framebufferInfo = new impl.FramebufferInfo;
-        const depthStencilAttachmentInfo = new impl.TextureInfo;
+        const framebufferInfo = new gfx.FramebufferInfo;
+        const depthStencilAttachmentInfo = new gfx.TextureInfo;
         depthStencilAttachmentInfo.samples = SampleCountFlagBits.SAMPLE_COUNT_1;
         depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
         depthStencilAttachmentInfo.width = SHADOWMAP_WIDTH;

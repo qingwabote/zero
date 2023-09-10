@@ -1,7 +1,8 @@
-import { BlendFactor, BufferUsageFlagBits, CullMode, Format, FormatInfos, PrimitiveTopology, impl } from "gfx-main";
+import { BlendFactor, BufferUsageFlagBits, CullMode, Format, FormatInfos, PrimitiveTopology } from "gfx-main";
 import { ShaderStages } from "../assets/ShaderStages.js";
 import { Zero } from "../core/Zero.js";
 import { assetLib } from "../core/assetLib.js";
+import { gfx } from "../core/impl.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
@@ -66,10 +67,10 @@ export class Primitive extends BoundedRenderer {
     }
 
     start() {
-        const vertexAttributes = new impl.VertexAttributeVector
+        const vertexAttributes = new gfx.VertexAttributeVector
         let offset = 0;
         let format = Format.RGB32_SFLOAT;
-        const positionAttribute = new impl.VertexAttribute;
+        const positionAttribute = new gfx.VertexAttribute;
         positionAttribute.name = 'a_position';
         positionAttribute.format = format;
         positionAttribute.buffer = 0;
@@ -77,7 +78,7 @@ export class Primitive extends BoundedRenderer {
         vertexAttributes.add(positionAttribute);
         offset += FormatInfos[format].bytes;
         format = Format.RGBA32_SFLOAT;
-        const colorAttribute = new impl.VertexAttribute;
+        const colorAttribute = new gfx.VertexAttribute;
         colorAttribute.name = 'a_color';
         colorAttribute.format = format;
         colorAttribute.buffer = 0;
@@ -96,14 +97,14 @@ export class Primitive extends BoundedRenderer {
             vec3.create()
         )
 
-        const rasterizationState = new impl.RasterizationState;
+        const rasterizationState = new gfx.RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
-        const blendState = new impl.BlendState;
+        const blendState = new gfx.BlendState;
         blendState.srcRGB = BlendFactor.SRC_ALPHA;
         blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
         blendState.srcAlpha = BlendFactor.ONE;
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
-        const state = new impl.PassState;
+        const state = new gfx.PassState;
         state.shader = shaderLib.getShader(ss_primitive);
         state.primitive = PrimitiveTopology.LINE_LIST;
         state.rasterizationState = rasterizationState;

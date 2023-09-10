@@ -1,6 +1,6 @@
-import { Attribute, DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType, Shader, ShaderStageFlagBits, Uniform, glsl, impl } from "gfx-main";
+import { Attribute, DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorType, Shader, ShaderStageFlagBits, Uniform, glsl } from "gfx-main";
 import { ShaderStages } from "../assets/ShaderStages.js";
-import { device } from "./impl.js";
+import { device, gfx } from "./impl.js";
 import { preprocessor } from "./internal/preprocessor.js";
 
 function align(size: number) {
@@ -86,7 +86,7 @@ export const shaderLib = {
     sets,
 
     createDescriptorSetLayoutBinding(uniform: UniformDefinition): DescriptorSetLayoutBinding {
-        const binding = new impl.DescriptorSetLayoutBinding;
+        const binding = new gfx.DescriptorSetLayoutBinding;
         binding.descriptorType = uniform.type;
         binding.stageFlags = uniform.stageFlags;
         binding.binding = uniform.binding;
@@ -95,7 +95,7 @@ export const shaderLib = {
     },
 
     createDescriptorSetLayout(uniforms: UniformDefinition[]) {
-        const info = new impl.DescriptorSetLayoutInfo;
+        const info = new gfx.DescriptorSetLayoutInfo;
         for (const uniform of uniforms) {
             info.bindings.add(this.createDescriptorSetLayoutBinding(uniform));
         }
@@ -110,14 +110,14 @@ export const shaderLib = {
         const key = `${set}:${meta.key}`;
         let descriptorSetLayout = _shader2descriptorSetLayout[key];
         if (!descriptorSetLayout) {
-            const info = new impl.DescriptorSetLayoutInfo;
+            const info = new gfx.DescriptorSetLayoutInfo;
             const samplerTextures = meta.samplerTextures;
             for (const name in samplerTextures) {
                 const samplerTexture = samplerTextures[name];
                 if (samplerTexture.set != set) {
                     continue;
                 }
-                const binding = new impl.DescriptorSetLayoutBinding;
+                const binding = new gfx.DescriptorSetLayoutBinding;
                 binding.binding = samplerTexture.binding;
                 binding.descriptorType = DescriptorType.SAMPLER_TEXTURE;
                 binding.descriptorCount = 1;
@@ -130,7 +130,7 @@ export const shaderLib = {
                 if (block.set != set) {
                     continue;
                 }
-                const binding = new impl.DescriptorSetLayoutBinding;
+                const binding = new gfx.DescriptorSetLayoutBinding;
                 binding.binding = block.binding;
                 binding.descriptorType = DescriptorType.UNIFORM_BUFFER;
                 binding.descriptorCount = 1;
@@ -163,7 +163,7 @@ export const shaderLib = {
             const sources = stages.sources.map(src => preprocessor.macroExpand(mac, src));
             const types = stages.types;
 
-            const info = new impl.ShaderInfo;
+            const info = new gfx.ShaderInfo;
             for (let i = 0; i < sources.length; i++) {
                 info.sources.add(sources[i])
                 info.types.add(types[i]);

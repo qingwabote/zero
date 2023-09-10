@@ -1,4 +1,5 @@
-import { BufferUsageFlagBits, Format, IndexType, Texture, impl } from "gfx-main";
+import { BufferUsageFlagBits, Format, IndexType, Texture } from "gfx-main";
+import { gfx } from "../core/impl.js";
 import { vec3 } from "../core/math/vec3.js";
 import { IndexInputView, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
@@ -60,14 +61,14 @@ export class SpriteFrame {
         positionBuffer.update();
         indexBuffer.update();
 
-        const vertexAttributes = new impl.VertexAttributeVector;
-        const texCoordAttribute = new impl.VertexAttribute;
+        const vertexAttributes = new gfx.VertexAttributeVector;
+        const texCoordAttribute = new gfx.VertexAttribute;
         texCoordAttribute.name = 'a_texCoord';
         texCoordAttribute.format = Format.RG32_SFLOAT;
         texCoordAttribute.buffer = 0;
         texCoordAttribute.offset = 0;
         vertexAttributes.add(texCoordAttribute);
-        const positionAttribute = new impl.VertexAttribute;
+        const positionAttribute = new gfx.VertexAttribute;
         positionAttribute.name = 'a_position';
         positionAttribute.format = Format.RGB32_SFLOAT;
         positionAttribute.buffer = 1;

@@ -1,8 +1,8 @@
-import { Sampler, Texture, BlendFactor as gfx_BlendFactor, CullMode as gfx_CullMode, PrimitiveTopology as gfx_PrimitiveTopology, impl } from "gfx-main";
+import { Sampler, Texture, BlendFactor as gfx_BlendFactor, CullMode as gfx_CullMode, PrimitiveTopology as gfx_PrimitiveTopology } from "gfx-main";
 import { parse } from "yaml";
 import { Asset } from "../core/Asset.js";
 import { assetLib } from "../core/assetLib.js";
-import { loader } from "../core/impl.js";
+import { gfx, loader } from "../core/impl.js";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { ShaderStages } from "./ShaderStages.js";
@@ -97,7 +97,7 @@ export class Effect extends Asset {
                 continue;
             }
 
-            const passState = new impl.PassState;
+            const passState = new gfx.PassState;
             passState.shader = shaderLib.getShader(await assetLib.load(info.shader!, ShaderStages), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
@@ -110,7 +110,7 @@ export class Effect extends Asset {
                     passState.primitive = gfx_PrimitiveTopology.TRIANGLE_LIST;
                     break;
             }
-            const rasterizationState = new impl.RasterizationState;
+            const rasterizationState = new gfx.RasterizationState;
             switch (info.rasterizationState?.cullMode) {
                 case 'FRONT':
                     rasterizationState.cullMode = gfx_CullMode.FRONT;
@@ -124,12 +124,12 @@ export class Effect extends Asset {
             }
             passState.rasterizationState = rasterizationState;
             if (info.depthStencilState) {
-                const depthStencilState = new impl.DepthStencilState;
+                const depthStencilState = new gfx.DepthStencilState;
                 depthStencilState.depthTestEnable = info.depthStencilState.depthTestEnable;
                 passState.depthStencilState = depthStencilState;
             }
             if (info.blendState) {
-                const blendState = new impl.BlendState;
+                const blendState = new gfx.BlendState;
                 blendState.srcRGB = gfx_toBlendFactor(info.blendState.srcRGB);
                 blendState.dstRGB = gfx_toBlendFactor(info.blendState.dstRGB);
                 blendState.srcAlpha = gfx_toBlendFactor(info.blendState.srcAlpha);

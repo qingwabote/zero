@@ -1,9 +1,9 @@
-import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, impl } from "gfx-main";
+import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore } from "gfx-main";
 import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
 import { Component } from "./Component.js";
 import { Input, InputEvent } from "./Input.js";
 import { System } from "./System.js";
-import { device, loader } from "./impl.js";
+import { device, gfx, loader } from "./impl.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Flow } from "./render/pipeline/Flow.js";
@@ -152,7 +152,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 
-        const submitInfo = new impl.SubmitInfo;
+        const submitInfo = new gfx.SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
         submitInfo.waitSemaphore = this._presentSemaphore;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;

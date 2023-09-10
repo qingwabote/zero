@@ -103,7 +103,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         Loader_initialize(global);
 
         auto gfx = v8::Object::New(isolate.get());
-        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "_gfx_impl"), gfx)
+        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "_zero_gfx"), gfx)
             .ToChecked();
         gfx_initialize(gfx);
 
@@ -119,7 +119,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             return -1;
         }
 
-        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/main/App.js");
+        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/App.js");
         if (!std::filesystem::exists(appSrc))
         {
             ZERO_LOG_ERROR("App.js not exists: %s", appSrc.string().c_str());

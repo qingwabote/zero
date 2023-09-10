@@ -1,5 +1,5 @@
-import { IndexType, InputAssembler, VertexAttributeVector, impl } from "gfx-main";
-import { device } from "../../impl.js";
+import { IndexType, InputAssembler, VertexAttributeVector } from "gfx-main";
+import { device, gfx } from "../../impl.js";
 import { Vec3 } from "../../math/vec3.js";
 import { BufferView } from "./buffers/BufferView.js";
 
@@ -33,16 +33,16 @@ export class SubMesh {
 
         readonly drawInfo: DrawInfo = { count: 0, first: 0 }
     ) {
-        const vi = new impl.VertexInput;
+        const vi = new gfx.VertexInput;
         for (const view of vertexInput.buffers) {
             vi.buffers.add(view.buffer);
         }
         for (const offset of vertexInput.offsets) {
             vi.offsets.add(offset);
         }
-        const inputAssemblerInfo = new impl.InputAssemblerInfo;
+        const inputAssemblerInfo = new gfx.InputAssemblerInfo;
         if (indexInput) {
-            const ii = new impl.IndexInput
+            const ii = new gfx.IndexInput
             ii.buffer = indexInput.buffer.buffer;
             ii.type = indexInput.type;
             inputAssemblerInfo.indexInput = ii;

@@ -47,5 +47,3 @@ export interface Impl {
 
     readonly SubmitInfo: new () => SubmitInfo;
 }
-
-export const impl: Impl = (globalThis as any)._gfx_impl;
