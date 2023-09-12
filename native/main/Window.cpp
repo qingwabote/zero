@@ -111,32 +111,21 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         console_initialize(context, global);
 
-        v8::Local<v8::Promise> engine_promise;
-        sugar::v8::module_evaluate(context, "engine-jsb", &engine_promise);
-        if (engine_promise.IsEmpty())
+        std::filesystem::path indexSrc = std::filesystem::path(project_path).append("script/jsb/dist/jsb/index.js");
+        if (!std::filesystem::exists(indexSrc))
         {
-            ZERO_LOG_ERROR("module engine-jsb load failed\n");
+            ZERO_LOG_ERROR("index.js not exists: %s", indexSrc.string().c_str());
             return -1;
         }
 
-        std::filesystem::path appSrc = std::filesystem::path(project_path).append("script/jsb/dist/App.js");
-        if (!std::filesystem::exists(appSrc))
+        v8::Local<v8::Promise> index_promise;
+        sugar::v8::module_evaluate(context, indexSrc, &index_promise);
+        if (index_promise.IsEmpty())
         {
-            ZERO_LOG_ERROR("App.js not exists: %s", appSrc.string().c_str());
+            ZERO_LOG_ERROR("index.js load failed: %s\n", indexSrc.string().c_str());
             return -1;
         }
 
-        v8::Local<v8::Object> app;
-        v8::Local<v8::Module> app_module;
-        v8::Local<v8::Promise> app_promise;
-        sugar::v8::module_evaluate(context, appSrc, &app_promise, &app_module);
-        if (app_promise.IsEmpty())
-        {
-            ZERO_LOG_ERROR("app load failed: %s\n", appSrc.string().c_str());
-            return -1;
-        }
-
-        v8::Local<v8::Function> app_tick;
         v8::Local<v8::Map> name2event = v8::Map::New(isolate.get());
 
         bool running = true;
@@ -154,41 +143,17 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             {
             }
 
-            if (app.IsEmpty())
+            if (!index_promise.IsEmpty())
             {
+                if (index_promise->State() == v8::Promise::PromiseState::kRejected)
                 {
-                    v8::EscapableHandleScope scope(isolate.get());
-
-                    if (app_promise->State() == v8::Promise::PromiseState::kRejected)
-                    {
-                        return -1;
-                    }
-                    if (app_promise->State() == v8::Promise::PromiseState::kPending)
-                    {
-                        continue;
-                    }
-
-                    v8::Local<v8::Object> ns = app_module->GetModuleNamespace().As<v8::Object>();
-                    v8::Local<v8::Function> constructor = sugar::v8::object_get(ns, "default").As<v8::Function>();
-                    if (constructor.IsEmpty())
-                    {
-                        ZERO_LOG("app: no default class found\n");
-                        return -1;
-                    }
-
-                    auto app_maybe = constructor->NewInstance(context, 0, nullptr);
-                    if (app_maybe.IsEmpty())
-                    {
-                        return -1;
-                    }
-
-                    app = scope.Escape(app_maybe.ToLocalChecked());
+                    return -1;
                 }
-
+                if (index_promise->State() == v8::Promise::PromiseState::kPending)
                 {
-                    v8::EscapableHandleScope scope(isolate.get());
-                    app_tick = scope.Escape(sugar::v8::object_get(app, "tick").As<v8::Function>());
+                    continue;
                 }
+                index_promise.Clear();
             }
 
             SDL_Event event;
@@ -257,15 +222,22 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             }
             time = now;
 
-            v8::TryCatch try_catch(isolate.get());
-            v8::Local<v8::Value> app_tick_args[] = {name2event, v8::Number::New(isolate.get(), std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count())};
-            if (app_tick->Call(context, app, 2, app_tick_args).IsEmpty())
-            {
-                sugar::v8::tryCatch_print(try_catch);
-                return -1;
-            }
+            // v8::TryCatch try_catch(isolate.get());
+            // v8::Local<v8::Value> app_tick_args[] = {name2event, v8::Number::New(isolate.get(), std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count())};
+            // if (app_tick->Call(context, app, 2, app_tick_args).IsEmpty())
+            // {
+            //     sugar::v8::tryCatch_print(try_catch);
+            //     return -1;
+            // }
             name2event->Clear();
+
+            if (_frameCb)
+            {
+                std::move(_frameCb)->call(std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count());
+            }
         }
+
+        _frameCb = nullptr;
 
         ThreadPool::shared().join();
 

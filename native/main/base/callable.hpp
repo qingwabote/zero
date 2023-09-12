@@ -23,6 +23,21 @@ namespace callable
     };
 
     template <typename Lambda, typename Ret, typename... Args>
+    class _CallableLambda<Lambda, Ret (Lambda::*)(Args...)> : public Callable<Ret, Args...>
+    {
+    private:
+        std::unique_ptr<Lambda> _lambda;
+
+    public:
+        _CallableLambda(Lambda *lambda) : _lambda(lambda) {}
+
+        Ret call(Args &&...args) override
+        {
+            return (*_lambda)(std::forward<Args>(args)...);
+        }
+    };
+
+    template <typename Lambda, typename Ret, typename... Args>
     class _CallableLambda<Lambda, Ret (Lambda::*)(Args...) const> : public Callable<Ret, Args...>
     {
     private:

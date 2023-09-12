@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SDL_video.h"
+#include "base/callable.hpp"
 #include "base/threading/ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
 #include "Loader.hpp"
@@ -14,6 +15,8 @@ private:
     std::unique_ptr<loader::Loader> _loader;
 
     std::unique_ptr<gfx::Device> _device;
+
+    std::unique_ptr<callable::Callable<void, double>> _frameCb;
 
     ThreadSafeQueue<UniqueFunction<void>> _beforeTickQueue;
 
@@ -31,6 +34,8 @@ public:
     loader::Loader &loader() { return *_loader.get(); }
 
     gfx::Device &device() { return *_device.get(); }
+
+    void requestAnimationFrame(std::unique_ptr<callable::Callable<void, double>> &&cb) { _frameCb = std::move(cb); }
 
     using TaskRunner::post;
 

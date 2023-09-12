@@ -1,4 +1,4 @@
-import { LoaderTypes } from "engine-main";
+import { LoaderTypes, Zero } from "engine-main";
 
 const Loader: Function = (globalThis as any)._zero_loader.constructor;
 
@@ -23,3 +23,15 @@ Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type
         });
     })
 };
+
+export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
+    const zero = new App();
+
+    function mainLoop(timestamp: number) {
+        zero.tick(new Map, timestamp);
+
+        requestAnimationFrame(mainLoop);
+    }
+
+    requestAnimationFrame(mainLoop);
+}
