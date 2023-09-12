@@ -1,9 +1,8 @@
 import type { Device, Impl } from "gfx-main";
 import type { Loader } from "../base/Loader.js";
 
-// Perhaps these global variables should be replaced by some module variables, but it is complex to implement in JSB
+const zero = (globalThis as any).zero;
 
-export const loader: Loader = (globalThis as any)._zero_loader;
-
-export const gfx: Impl = (globalThis as any)._zero_gfx;
-export const device: Device = (globalThis as any)._zero_device;
+export const loader: Loader = zero.loader;
+export const gfx: Impl = zero.gfx;
+export const device: Device = zero.device;

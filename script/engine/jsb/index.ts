@@ -1,37 +1,33 @@
-import { LoaderTypes, Zero } from "engine-main";
+// load implementations first
+import "./impl.js";
+//
+import { InputEvent, Zero } from "engine-main";
 
-const Loader: Function = (globalThis as any)._zero_loader.constructor;
-
-Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type: T): Promise<LoaderTypes[T]> {
-    return new Promise((resolve, reject) => {
-        this._load(url, type, (res: any) => {
-            if (res.error) {
-                reject(res.error);
-                return;
-            }
-            switch (type) {
-                case "text":
-                    resolve(res.takeText());
-                    break;
-                case "arraybuffer":
-                    resolve(res.takeBuffer());
-                    break;
-                case "bitmap":
-                    resolve(res.takeBitmap());
-                    break;
-            }
-        });
-    })
-};
+const zero = (globalThis as any).zero;
 
 export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
-    const zero = new App();
+    const app = new App();
+
+    const name2event: Map<InputEvent, any> = new Map;
+    zero.onTouchStart((event: any) => {
+        const touch = event.touches.get(0);
+        name2event.set(InputEvent.TOUCH_START, { touches: [touch] });
+    })
+    zero.onTouchMove((event: any) => {
+        const touch = event.touches.get(0);
+        name2event.set(InputEvent.TOUCH_MOVE, { touches: [touch] })
+    })
+    zero.onTouchEnd((event: any) => {
+        const touch = event.touches.get(0);
+        name2event.set(InputEvent.TOUCH_END, { touches: [touch] })
+    })
 
     function mainLoop(timestamp: number) {
-        zero.tick(new Map, timestamp);
+        app.tick(name2event, timestamp);
+        name2event.clear();
 
-        requestAnimationFrame(mainLoop);
+        zero.requestAnimationFrame(mainLoop);
     }
 
-    requestAnimationFrame(mainLoop);
+    zero.requestAnimationFrame(mainLoop);
 }

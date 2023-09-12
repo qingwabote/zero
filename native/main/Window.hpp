@@ -4,6 +4,7 @@
 #include "base/callable.hpp"
 #include "base/threading/ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
+#include "events.hpp"
 #include "Loader.hpp"
 #include "gfx/Device.hpp"
 
@@ -15,6 +16,10 @@ private:
     std::unique_ptr<loader::Loader> _loader;
 
     std::unique_ptr<gfx::Device> _device;
+
+    std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchStartCb;
+    std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchMoveCb;
+    std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchEndCb;
 
     std::unique_ptr<callable::Callable<void, double>> _frameCb;
 
@@ -34,6 +39,10 @@ public:
     loader::Loader &loader() { return *_loader.get(); }
 
     gfx::Device &device() { return *_device.get(); }
+
+    void onTouchStart(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchStartCb = std::move(cb); }
+    void onTouchMove(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchMoveCb = std::move(cb); }
+    void onTouchEnd(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchEndCb = std::move(cb); }
 
     void requestAnimationFrame(std::unique_ptr<callable::Callable<void, double>> &&cb) { _frameCb = std::move(cb); }
 

@@ -4,7 +4,7 @@ import "./impl.js";
 import { InputEvent, Zero } from "engine-main";
 
 export function run(canvas: HTMLCanvasElement, App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
-    const zero = new App();
+    const app = new App();
 
     const name2event: Map<InputEvent, any> = new Map;
     canvas.addEventListener("mousedown", (mouseEvent) => {
@@ -26,7 +26,7 @@ export function run(canvas: HTMLCanvasElement, App: new (...args: ConstructorPar
     let requestId: number;
 
     function mainLoop(timestamp: number) {
-        zero.tick(name2event, timestamp);
+        app.tick(name2event, timestamp);
         name2event.clear();
 
         requestId = window.requestAnimationFrame(mainLoop);

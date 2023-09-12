@@ -91,25 +91,19 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
         auto inspector = std::make_unique<InspectorClient>();
 
-        auto global = context->Global();
-
+        _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
         _device = std::make_unique<bg::Device>(sdl_window.get());
         _device->initialize();
 
-        _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
-
-        ImageBitmap_initialize(global);
-
-        Loader_initialize(global);
-
+        auto js_ns = v8::Object::New(isolate.get());
         auto gfx = v8::Object::New(isolate.get());
-        global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "_zero_gfx"), gfx)
-            .ToChecked();
         gfx_initialize(gfx);
-
-        global_initialize(global);
-
-        console_initialize(context, global);
+        js_ns->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), gfx).ToChecked();
+        ImageBitmap_initialize(js_ns);
+        Loader_initialize(js_ns);
+        global_initialize(js_ns);
+        console_initialize(context, js_ns);
+        context->Global()->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), js_ns).ToChecked();
 
         std::filesystem::path indexSrc = std::filesystem::path(project_path).append("script/jsb/dist/jsb/index.js");
         if (!std::filesystem::exists(indexSrc))
@@ -125,8 +119,6 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             ZERO_LOG_ERROR("index.js load failed: %s\n", indexSrc.string().c_str());
             return -1;
         }
-
-        v8::Local<v8::Map> name2event = v8::Map::New(isolate.get());
 
         bool running = true;
         while (running)
@@ -170,20 +162,33 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEMOTION:
                 {
-                    const char *name = nullptr;
-                    double x;
-                    double y;
                     if (event.type == SDL_MOUSEBUTTONDOWN)
                     {
-                        name = "TOUCH_START";
-                        x = event.button.x;
-                        y = event.button.y;
+                        if (_touchStartCb)
+                        {
+                            auto touch = std::make_shared<Touch>();
+                            touch->x = event.button.x;
+                            touch->y = event.button.y;
+                            auto touches = std::make_shared<TouchVector>();
+                            touches->emplace_back(std::move(touch));
+                            auto touchEvent = std::make_shared<TouchEvent>();
+                            touchEvent->touches = touches;
+                            _touchStartCb->call(std::move(touchEvent));
+                        }
                     }
                     else if (event.type == SDL_MOUSEBUTTONUP)
                     {
-                        name = "TOUCH_END";
-                        x = event.button.x;
-                        y = event.button.y;
+                        if (_touchEndCb)
+                        {
+                            auto touch = std::make_shared<Touch>();
+                            touch->x = event.button.x;
+                            touch->y = event.button.y;
+                            auto touches = std::make_shared<TouchVector>();
+                            touches->emplace_back(std::move(touch));
+                            auto touchEvent = std::make_shared<TouchEvent>();
+                            touchEvent->touches = touches;
+                            _touchEndCb->call(std::move(touchEvent));
+                        }
                     }
                     else if (event.type == SDL_MOUSEMOTION)
                     {
@@ -191,18 +196,19 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                         {
                             break;
                         }
-                        name = "TOUCH_MOVE";
-                        x = event.motion.x;
-                        y = event.motion.y;
+
+                        if (_touchMoveCb)
+                        {
+                            auto touch = std::make_shared<Touch>();
+                            touch->x = event.button.x;
+                            touch->y = event.button.y;
+                            auto touches = std::make_shared<TouchVector>();
+                            touches->emplace_back(std::move(touch));
+                            auto touchEvent = std::make_shared<TouchEvent>();
+                            touchEvent->touches = touches;
+                            _touchMoveCb->call(std::move(touchEvent));
+                        }
                     }
-                    auto touch = v8::Object::New(isolate.get());
-                    touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "x"), v8::Number::New(isolate.get(), x)).ToChecked();
-                    touch->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "y"), v8::Number::New(isolate.get(), y)).ToChecked();
-                    auto touches = v8::Array::New(isolate.get(), 1);
-                    touches->Set(context, 0, touch).ToChecked();
-                    auto touchEvent = v8::Object::New(isolate.get());
-                    touchEvent->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "touches"), touches).ToChecked();
-                    name2event->Set(context, v8::String::NewFromUtf8(isolate.get(), name).ToLocalChecked(), touchEvent).ToLocalChecked();
                     break;
                 }
                 default:
@@ -222,21 +228,15 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             }
             time = now;
 
-            // v8::TryCatch try_catch(isolate.get());
-            // v8::Local<v8::Value> app_tick_args[] = {name2event, v8::Number::New(isolate.get(), std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count())};
-            // if (app_tick->Call(context, app, 2, app_tick_args).IsEmpty())
-            // {
-            //     sugar::v8::tryCatch_print(try_catch);
-            //     return -1;
-            // }
-            name2event->Clear();
-
             if (_frameCb)
             {
                 std::move(_frameCb)->call(std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count());
             }
         }
 
+        _touchStartCb = nullptr;
+        _touchMoveCb = nullptr;
+        _touchEndCb = nullptr;
         _frameCb = nullptr;
 
         ThreadPool::shared().join();
