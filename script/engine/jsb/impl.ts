@@ -25,5 +25,3 @@ Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type
         });
     })
 };
-
-globalThis.console = zero.console;

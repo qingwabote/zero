@@ -1,4 +1,5 @@
 {
+  "name": "main",
   "dependencies": {
     "engine-main": "file:../../../../script/engine/main"
   }

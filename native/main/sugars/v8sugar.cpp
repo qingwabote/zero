@@ -133,18 +133,6 @@ namespace sugar::v8
         create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
         _v8::Isolate *isolate = _v8::Isolate::New(create_params);
 
-        // isolate->SetHostInitializeImportMetaObjectCallback(
-        //     [](_v8::Local<_v8::Context> context,
-        //        _v8::Local<_v8::Module> module,
-        //        _v8::Local<_v8::Object> meta)
-        //     {
-        //         _v8::Isolate *isolate = context->GetIsolate();
-
-        //         auto &module2path = isolate_data(isolate)->module2path;
-        //         std::filesystem::path &path = module2path.find(module->GetIdentityHash())->second;
-        //         object_set(meta, "url", _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
-        //     });
-
         isolate_data(isolate, new IsolateData(imports));
 
         return unique_isolate{isolate, isolate_deleter};
@@ -339,10 +327,9 @@ namespace sugar::v8
             return {};
         }
 
-        auto res = std::unique_ptr<char, decltype(free) *>{(char *)malloc(size), free};
-        std::ifstream is;
-        is.open(path.string(), std::ios::binary);
-        is.read(res.get(), size);
+        std::unique_ptr<char[]> res{new char[size]};
+        std::ifstream stream{path, std::ios::binary};
+        stream.read(res.get(), size);
 
         auto origin = _v8::ScriptOrigin(isolate, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked(), 0, 0, false, -1, _v8::Local<_v8::Value>(), false, false, true);
         _v8::ScriptCompiler::Source source(_v8::String::NewFromUtf8(isolate, res.get(), _v8::NewStringType::kNormal, size).ToLocalChecked(), origin);
@@ -436,25 +423,41 @@ namespace sugar::v8
         gc->Call(context, context->Global(), 0, nullptr).ToLocalChecked();
     }
 
-    _v8::Local<_v8::Value> run(const char *source)
+    _v8::Local<_v8::Value> run(_v8::Local<_v8::Context> context, const std::filesystem::path &path)
     {
-        _v8::Isolate *isolate = _v8::Isolate::GetCurrent();
+        std::error_code ec;
+        std::uintmax_t size = std::filesystem::file_size(path, ec);
+        if (ec)
+        {
+            ZERO_LOG_ERROR("failed to get size of %s, %s", path.string().c_str(), ec.message().c_str());
+            return {};
+        }
+
+        std::unique_ptr<char[]> data{new char[size]};
+        std::ifstream stream{path, std::ios::binary};
+        stream.read(data.get(), size);
+
+        _v8::Isolate *isolate = context->GetIsolate();
         _v8::EscapableHandleScope scope(isolate);
-        _v8::Local<_v8::Context> context = isolate->GetCurrentContext();
 
         _v8::TryCatch try_catch(isolate);
-        _v8::Local<_v8::Script> script;
-        if (!_v8::Script::Compile(context, _v8::String::NewFromUtf8(isolate, source).ToLocalChecked()).ToLocal(&script))
+        auto maybeScript = _v8::Script::Compile(
+            context,
+            _v8::String::NewFromUtf8(isolate, data.get(), _v8::NewStringType::kNormal, size).ToLocalChecked(),
+            &_v8::ScriptOrigin(isolate, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked()));
+        if (try_catch.HasCaught())
+        {
+            tryCatch_print(try_catch);
+            ZERO_LOG_ERROR("failed to compile %s", path.string().c_str());
+            return {};
+        }
+        auto script = maybeScript.ToLocalChecked();
+        auto maybeValue = script->Run(context);
+        if (try_catch.HasCaught())
         {
             tryCatch_print(try_catch);
             return {};
         }
-        _v8::Local<_v8::Value> result;
-        if (!script->Run(context).ToLocal(&result))
-        {
-            tryCatch_print(try_catch);
-            return {};
-        }
-        return scope.Escape(result);
+        return scope.Escape(maybeValue.ToLocalChecked());
     }
 }

@@ -30,5 +30,5 @@ namespace sugar::v8
 
     void gc(_v8::Local<_v8::Context> context);
 
-    _v8::Local<_v8::Value> run(const char *source);
+    _v8::Local<_v8::Value> run(_v8::Local<_v8::Context> context, const std::filesystem::path &path);
 }

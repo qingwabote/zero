@@ -55,7 +55,7 @@ gltf_camera.load('./assets/camera_from_poly_by_google/scene');
 const ss_depth = new ShaderStages();
 ss_depth.load('depth');
 
-export default class App extends Zero {
+export class App extends Zero {
     protected override start(): render.Flow {
         const { width, height } = device.swapchain;
 

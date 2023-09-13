@@ -63,7 +63,10 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
     // Isolate Scope
     {
-        sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(project_path).append("script/jsb/imports.json"));
+        const std::string script_name = bootstrap_json["script"];
+        const std::filesystem::path script_path = std::filesystem::path(project_path).append("script/" + script_name);
+
+        sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(script_path).append("imports.json"));
         if (!isolate)
         {
             return -1;
@@ -95,17 +98,29 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         _device = std::make_unique<bg::Device>(sdl_window.get());
         _device->initialize();
 
-        auto js_ns = v8::Object::New(isolate.get());
-        auto gfx = v8::Object::New(isolate.get());
-        gfx_initialize(gfx);
-        js_ns->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), gfx).ToChecked();
-        ImageBitmap_initialize(js_ns);
-        Loader_initialize(js_ns);
-        global_initialize(js_ns);
-        console_initialize(context, js_ns);
-        context->Global()->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), js_ns).ToChecked();
+        auto ns_zero = v8::Object::New(isolate.get());
+        auto ns_gfx = v8::Object::New(isolate.get());
+        gfx_initialize(ns_gfx);
+        ns_zero->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), ns_gfx).ToChecked();
+        ImageBitmap_initialize(ns_zero);
+        Loader_initialize(ns_zero);
+        global_initialize(ns_zero);
+        auto ns_global = context->Global();
+        console_initialize(context, ns_global);
+        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), ns_zero).ToChecked();
+        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "require"),
+                       v8::FunctionTemplate::New(isolate.get(),
+                                                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                                                 {
+                                                     auto isolate = info.GetIsolate();
+                                                     auto context = isolate->GetCurrentContext();
 
-        std::filesystem::path indexSrc = std::filesystem::path(project_path).append("script/jsb/dist/jsb/index.js");
+                                                     sugar::v8::run(context, *_v8::String::Utf8Value(isolate, info[0]));
+                                                 })
+                           ->GetFunction(context)
+                           .ToLocalChecked());
+
+        std::filesystem::path indexSrc = std::filesystem::path(script_path).append("dist/index.js");
         if (!std::filesystem::exists(indexSrc))
         {
             ZERO_LOG_ERROR("index.js not exists: %s", indexSrc.string().c_str());

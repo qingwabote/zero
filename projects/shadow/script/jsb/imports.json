@@ -2,6 +2,7 @@
     "gfx-main": "./dist/gfx-main/index.js",
     "engine-main": "./dist/engine-main/index.js",
     "engine-jsb": "./dist/engine-jsb/index.js",
+    "main": "./dist/main/index.js",
     "yaml": "../../../../script/engine/main/node_modules/yaml/browser/index.js",
     "@esotericsoftware/spine-core": "../../../../script/engine/main/node_modules/@esotericsoftware/spine-core/dist/index.js"
 }
