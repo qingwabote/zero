@@ -625,22 +625,22 @@
     }
     var loader = this;
     return new Promise(function (resolve, reject) {
-      try {
-        instantiateHandler(url);
-        // Note that if an error occurs that isn't caught by this if statement,
-        // that getRegister will return null and a "did not instantiate" error will be thrown.
-        if (lastWindowErrorUrl === url) {
-          reject(lastWindowError);
-        } else {
-          var register = loader.getRegister(url);
-          // Clear any auto import registration for dynamic import scripts during load
-          if (register && register[0] === lastAutoImportDeps)
-            clearTimeout(lastAutoImportTimeout);
-          resolve(register);
-        }
-      } catch (error) {
-        reject(Error(errMsg(3, [url, firstParentUrl].join(', '))));
+      // try {
+      instantiateHandler(url);
+      // Note that if an error occurs that isn't caught by this if statement,
+      // that getRegister will return null and a "did not instantiate" error will be thrown.
+      if (lastWindowErrorUrl === url) {
+        reject(lastWindowError);
+      } else {
+        var register = loader.getRegister(url);
+        // Clear any auto import registration for dynamic import scripts during load
+        if (register && register[0] === lastAutoImportDeps)
+          clearTimeout(lastAutoImportTimeout);
+        resolve(register);
       }
+      // } catch (error) {
+      //   reject(Error(errMsg(3, [url, firstParentUrl].join(', '))));
+      // }
     });
   };
 

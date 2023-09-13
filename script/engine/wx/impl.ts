@@ -1,10 +1,12 @@
 import { WebDevice, WebImpl } from "gfx-webgl";
-import WebLoader from "./WebLoader.js";
+import WXLoader from "./WXLoader.js";
 
-const canvas = window.document.getElementById("ZeroCanvas") as HTMLCanvasElement;
+declare const wx: any;
+
+const zero = (globalThis as any).zero;
+
+const canvas = wx.createCanvas()
 const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
-const device = new WebDevice(gl, canvas.width, canvas.height);
-const loader = new WebLoader;
-const gfx = new WebImpl;
-
-(globalThis as any).zero = { loader, gfx, device }
+zero.device = new WebDevice(gl, canvas.width, canvas.height);
+zero.loader = new WXLoader(zero.project_path);
+zero.gfx = new WebImpl;
