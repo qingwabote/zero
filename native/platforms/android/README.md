@@ -9,6 +9,7 @@ A SDL APP come from https://github.com/libsdl-org/SDL/tree/release-2.26.5/androi
 ```json
 {
   "root": "/storage/emulated/0/Android/data/org.libsdl.app/files/",
-  "project": "test"
+  "project": "test",
+  "script": "jsb"
 }
 ```

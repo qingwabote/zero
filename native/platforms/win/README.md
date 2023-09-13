@@ -12,7 +12,8 @@ C:\Users\name\AppData\Roaming\zero\bootstrap.json
 ```json
 {
   "root": "c:/Users/qingwabote/Documents/zero/",
-  "project": "animation"
+  "project": "shadow",
+  "script": "jsb"
 }
 ```
 
