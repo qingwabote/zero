@@ -7,6 +7,9 @@ const zero = (globalThis as any).zero;
 
 const canvas = wx.createCanvas()
 const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
+
+globalThis.WebGL2RenderingContext = gl;
+
 zero.device = new WebDevice(gl, canvas.width, canvas.height);
 zero.loader = new WXLoader(zero.project_path);
 zero.gfx = new WebImpl;

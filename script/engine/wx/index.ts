@@ -1,36 +1,38 @@
 // load implementations first
 import "./impl.js";
 //
-import type { Zero } from "engine-main";
+import { InputEvent, Touch, TouchEvent, Zero } from "engine-main";
+
+declare const wx: any;
 
 export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
-    // const zero = new App();
+    const app = new App();
 
-    // const name2event: Map<InputEvent, any> = new Map;
-    // canvas.addEventListener("mousedown", (mouseEvent) => {
-    //     name2event.set(InputEvent.TOUCH_START, { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] });
-    // })
-    // canvas.addEventListener("mousemove", (mouseEvent) => {
-    //     if (mouseEvent.buttons) {
-    //         name2event.set(InputEvent.TOUCH_MOVE, { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
-    //     }
-    // })
-    // canvas.addEventListener("mouseup", (mouseEvent) => {
-    //     name2event.set(InputEvent.TOUCH_END, { touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
-    // })
+    const name2event: Map<InputEvent, any> = new Map;
 
-    // canvas.addEventListener("wheel", (wheelEvent) => {
-    //     name2event.set(InputEvent.GESTURE_PINCH, { delta: wheelEvent.deltaY });
-    // })
+    let lastEvent: TouchEvent;
 
-    // let requestId: number;
+    wx.onTouchStart(function (event: any) {
+        const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
+        name2event.set(InputEvent.TOUCH_START, lastEvent = { touches });
+    })
+    wx.onTouchMove(function (event: any) {
+        const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
+        name2event.set(InputEvent.TOUCH_MOVE, lastEvent = { touches });
+    })
+    wx.onTouchEnd(function (event: any) {
+        name2event.set(InputEvent.TOUCH_END, lastEvent);
+    })
+    wx.onTouchCancel(function (event: any) {
+        name2event.set(InputEvent.TOUCH_END, lastEvent);
+    })
 
-    // function mainLoop(timestamp: number) {
-    //     zero.tick(name2event, timestamp);
-    //     name2event.clear();
+    function mainLoop() {
+        app.tick(name2event, performance.now());
+        name2event.clear();
 
-    //     requestId = window.requestAnimationFrame(mainLoop);
-    // }
+        requestAnimationFrame(mainLoop);
+    }
 
-    // mainLoop(performance.now());
+    mainLoop();
 }

@@ -2,6 +2,8 @@ import type { Loader, LoaderTypes } from "engine-main";
 
 declare const wx: any;
 
+const ext2txt = ['fs', 'vs', 'chunk', 'yml'];
+
 const fs = wx.getFileSystemManager();
 
 export default class WXLoader implements Loader {
@@ -15,8 +17,10 @@ export default class WXLoader implements Loader {
 
     load<T extends keyof LoaderTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]> {
         return new Promise((resolve, reject) => {
-            const res = function (value: LoaderTypes[T]) { resolve(value); WXLoader._taskCount--; }
-            const rej = function (reason: string) { reject(reason); WXLoader._taskCount--; };
+            const ext = url.substring(url.lastIndexOf('.') + 1);
+            if (ext2txt.indexOf(ext) != -1) {
+                url = url + '.txt'
+            }
 
             const heads = this._currentPath.split('/');
             const tails = url.split('/');
@@ -31,50 +35,31 @@ export default class WXLoader implements Loader {
                 }
             }
             url = heads.length ? (heads.join('/') + '/' + tails.join('/')) : tails.join('/');
-            fs.readFile({
-                filePath: url,
-                success: function (result: any) {
-                    if (type == 'bitmap') {
 
-                    } else {
-                        res(result.data)
-                    }
-                },
-                fail: function (result: any) {
-                    rej(result.errMsg);
+            const res = function (value: LoaderTypes[T]) { resolve(value); WXLoader._taskCount--; }
+            const rej = function (reason: string) { reject(reason); WXLoader._taskCount--; };
+
+            if (type == 'bitmap') {
+                const image = wx.createImage();
+                image.onload = function () {
+                    res(image);
                 }
-            });
-
-            console.log('load', url);
-            // const xhr = new XMLHttpRequest();
-            // xhr.responseType = type == "bitmap" ? "blob" : type;
-            // xhr.open('GET', url, true);
-            // xhr.onload = () => {
-            //     if (xhr.status === 200 || xhr.status === 0) {
-            //         if (type == "bitmap") {
-            //             createImageBitmap(xhr.response, { premultiplyAlpha: 'none' }).then(res as (value: ImageBitmap) => void)
-            //         } else {
-            //             res(xhr.response)
-            //         }
-            //     } else {
-            //         rej(`download failed: ${url}, status: ${xhr.status}(no response)`)
-            //     }
-            // };
-            // // if (onProgress) {
-            // //     xhr.onprogress = (event) => {
-            // //         onProgress(event.loaded, event.total, url);
-            // //     }
-            // // }
-            // xhr.onerror = () => {
-            //     rej(`download failed: ${url}, status: ${xhr.status}(error)`);
-            // };
-            // xhr.ontimeout = () => {
-            //     rej(`download failed: ${url}, status: ${xhr.status}(time out)`);
-            // };
-            // xhr.onabort = () => {
-            //     rej(`download failed: ${url}, status: ${xhr.status}(abort)`);
-            // };
-            // xhr.send(null);
+                image.onerror = function (err: string) {
+                    rej(err);
+                }
+                image.src = url;
+            } else {
+                fs.readFile({
+                    filePath: url,
+                    encoding: type == 'text' ? 'utf8' : '',
+                    success: function (result: any) {
+                        res(result.data)
+                    },
+                    fail: function (result: any) {
+                        rej(result.errMsg);
+                    }
+                });
+            }
 
             WXLoader._taskCount++;
         })
