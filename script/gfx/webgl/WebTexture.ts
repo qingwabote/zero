@@ -1,5 +1,5 @@
-import { SampleCountFlagBits, Texture, TextureInfo, TextureUsageBits } from "gfx-main";
-import { WebTextureInfo } from "./info.js";
+import { SampleCountFlagBits, Texture, TextureUsageBits } from "gfx-main";
+import { TextureInfo } from "./info.js";
 
 export default class WebTexture implements Texture {
     private _gl: WebGL2RenderingContext;
@@ -26,7 +26,7 @@ export default class WebTexture implements Texture {
 
     constructor(gl: WebGL2RenderingContext, swapchain = false) {
         if (swapchain) {
-            this._info = new WebTextureInfo;
+            this._info = new TextureInfo;
         }
         this._swapchain = swapchain;
         this._gl = gl;

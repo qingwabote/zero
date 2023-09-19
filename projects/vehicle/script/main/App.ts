@@ -6,7 +6,7 @@ import Vehicle from "./Vehicle.js";
 let primitive = new GLTF;
 primitive.load('../../assets/models/primitive/scene');
 
-export default class App extends Zero {
+export class App extends Zero {
     start() {
         const { width, height } = device.swapchain;
 

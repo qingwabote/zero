@@ -1,5 +1,5 @@
 import { Shader, ShaderInfo, ShaderStageFlagBits, glsl } from "gfx-main";
-import { WebVector } from "./info.js";
+import { Vector } from "./info.js";
 
 export default class WebShader implements Shader {
     private _gl: WebGL2RenderingContext;
@@ -26,8 +26,8 @@ export default class WebShader implements Shader {
     private compileShader(info: ShaderInfo): boolean {
         const gl = this._gl;
 
-        const sources = (info.sources as WebVector<string>).data;
-        const types = (info.types as WebVector<number>).data;
+        const sources = (info.sources as Vector<string>).data;
+        const types = (info.types as Vector<number>).data;
 
         const shaders: WebGLShader[] = [];
         for (let i = 0; i < sources.length; i++) {

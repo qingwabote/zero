@@ -1,6 +1,6 @@
 import { Framebuffer, FramebufferInfo, SampleCountFlagBits, Texture } from "gfx-main";
 import WebTexture from "./WebTexture.js";
-import { WebVector } from "./info.js";
+import { Vector } from "./info.js";
 
 export default class WebFramebuffer implements Framebuffer {
     private _gl: WebGL2RenderingContext;
@@ -23,7 +23,7 @@ export default class WebFramebuffer implements Framebuffer {
     initialize(info: FramebufferInfo): boolean {
         this._info = info;
 
-        const isDefaultFramebuffer = (info.colorAttachments as WebVector<Texture>).data.find(texture => (texture as WebTexture).swapchain) != undefined;
+        const isDefaultFramebuffer = (info.colorAttachments as Vector<Texture>).data.find(texture => (texture as WebTexture).swapchain) != undefined;
         if (isDefaultFramebuffer) {
             return false;
         }
@@ -33,8 +33,8 @@ export default class WebFramebuffer implements Framebuffer {
         const framebuffer = gl.createFramebuffer()!
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
-        for (let i = 0; i < (info.colorAttachments as WebVector<Texture>).data.length; i++) {
-            const attachment = (info.colorAttachments as WebVector<Texture>).data[i] as WebTexture;
+        for (let i = 0; i < (info.colorAttachments as Vector<Texture>).data.length; i++) {
+            const attachment = (info.colorAttachments as Vector<Texture>).data[i] as WebTexture;
             if (attachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, attachment.texture, 0);
             } else {

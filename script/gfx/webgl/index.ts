@@ -1,3 +1,3 @@
 export * from './WebDevice.js';
-export * from './WebImpl.js';
+export * as info from './info.js';
 

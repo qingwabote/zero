@@ -6,7 +6,7 @@ import WebPipeline from "./WebPipeline.js";
 import WebSampler from "./WebSampler.js";
 import WebShader from "./WebShader.js";
 import WebTexture from "./WebTexture.js";
-import { WebVector } from "./info.js";
+import { Vector } from "./info.js";
 
 function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
@@ -64,7 +64,7 @@ export default class WebCommandBuffer implements CommandBuffer {
         this._viewport = { x, y, width, height };
 
         let flag: number = 0;
-        for (const attachment of (renderPass.info.colorAttachments as WebVector<AttachmentDescription>).data) {
+        for (const attachment of (renderPass.info.colorAttachments as Vector<AttachmentDescription>).data) {
             if (attachment.loadOp == LOAD_OP.CLEAR) {
                 gl.clearColor(0, 0, 0, 1);
                 flag |= gl.COLOR_BUFFER_BIT;
@@ -130,12 +130,12 @@ export default class WebCommandBuffer implements CommandBuffer {
         const gl = this._gl;
 
         let dynamicIndex = 0;
-        for (const layoutBinding of (descriptorSet.layout.info.bindings as WebVector<DescriptorSetLayoutBinding>).data) {
+        for (const layoutBinding of (descriptorSet.layout.info.bindings as Vector<DescriptorSetLayoutBinding>).data) {
             if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
                 const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl);
             } else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
-                const offset = (dynamicOffsets! as WebVector<number>).data[dynamicIndex++];
+                const offset = (dynamicOffsets! as Vector<number>).data[dynamicIndex++];
                 const buffer = (descriptorSet as WebDescriptorSet).getBuffer(layoutBinding.binding) as WebBuffer;
                 const range = (descriptorSet as WebDescriptorSet).getBufferRange(layoutBinding.binding);
                 gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl, offset, range);
@@ -205,7 +205,7 @@ export default class WebCommandBuffer implements CommandBuffer {
     endRenderPass() {
         const gl = this._gl;
 
-        for (const attachment of (this._framebuffer.info.resolveAttachments as WebVector<Texture>).data) {
+        for (const attachment of (this._framebuffer.info.resolveAttachments as Vector<Texture>).data) {
             if ((attachment as WebTexture).swapchain) {
                 gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
@@ -231,11 +231,11 @@ export default class WebCommandBuffer implements CommandBuffer {
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = (vertexInputState.attributes as WebVector<VertexInputAttributeDescription>).data;
+            const attributes = (vertexInputState.attributes as Vector<VertexInputAttributeDescription>).data;
             for (const attribute of attributes) {
                 const binding = vertexInputState.bindings.get(attribute.binding);
-                const buffer = (inputAssembler.vertexInput.buffers as WebVector<Buffer>).data[attribute.binding] as WebBuffer;
-                const offset = (inputAssembler.vertexInput.offsets as WebVector<number>).data[attribute.binding];
+                const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.binding] as WebBuffer;
+                const offset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.binding];
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];

@@ -1,5 +1,5 @@
 import { System } from "../core/System.js";
-// import { Zero } from "../core/Zero.js";
+import { Zero } from "../core/Zero.js";
 import { PhysicsWorld } from "./PhysicsWorld.js";
 import { ammo } from "./internal/ammo.js";
 
@@ -23,4 +23,4 @@ export class PhysicsSystem implements System {
         this._world?.update(dt);
     }
 }
-// Zero.registerSystem(PhysicsSystem.instance, 1)
+Zero.registerSystem(PhysicsSystem.instance, 1)

@@ -7,10 +7,8 @@
   <link rel="icon" href="/assets/favicon.ico" />
 </head>
 
-<body style="display:flex;">
-  <div id="ZeroContainer">
-    <canvas id="ZeroCanvas" width="640" height="960"></canvas>
-  </div>
+<body>
+  <canvas id="ZeroCanvas" width="640" height="960"></canvas>
   <script>
     const currentScript = document.currentScript;
     const req = new XMLHttpRequest();
@@ -27,10 +25,7 @@
     };
     req.send();
   </script>
-  <script type="module">
-    import { run } from './dist/web/index.js';
-    run(document.getElementById("ZeroCanvas"));
-  </script>
+  <script type="module" src="./dist/index.js"></script>
 </body>
 
 </html>
