@@ -8,4 +8,11 @@ const device = new WebDevice(gl, canvas.width, canvas.height);
 const loader = new WebLoader;
 const gfx: Impl = info;
 
+// for phys ammo
+(globalThis as any).phys = {
+    getWasm: function () {
+        return loader.load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
+    }
+};
+
 (globalThis as any).zero = { loader, gfx, device }

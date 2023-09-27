@@ -3,6 +3,7 @@
     "dependencies": {
         "@esotericsoftware/spine-core": "^4.2.18",
         "gfx-main": "file:../../gfx/main",
+        "phys": "file:../../phys/declare",
         "yaml": "^2.3.2"
     }
 }

@@ -1,22 +1,18 @@
-import * as spine_core from '@esotericsoftware/spine-core';
 import { Camera, ModelPhase, Node, Profiler, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, assetLib, device, loader, render, spine, stageFactory, vec2, vec3 } from 'engine-main';
 
-// const spine_atlas_src = await loader.load("assets/coin/coin-pma.atlas", "text");
-// const spine_atlas = new spine_core.TextureAtlas(spine_atlas_src);
-// for (const page of spine_atlas.pages) {
-//     page.setTexture(new spine.Texture(await assetLib.load(`assets/coin/${page.name}`, Texture)))
-// }
-// const spine_data_src = await loader.load("assets/coin/coin-pro.json", "text");
+let spine_atlas: spine.core.TextureAtlas;
+let spine_data_src: string;
+(async function () {
+    const spine_atlas_src = await loader.load("assets/spineboy/spineboy-pma.atlas", "text");
+    spine_atlas = new spine.core.TextureAtlas(spine_atlas_src);
+    for (const page of spine_atlas.pages) {
+        page.setTexture(new spine.Texture(await assetLib.load(`assets/spineboy/${page.name}`, Texture)))
+    }
+    spine_data_src = await loader.load("assets/spineboy/spineboy-pro.json", "text");
+})()
 
-const spine_atlas_src = await loader.load("assets/spineboy/spineboy-pma.atlas", "text");
-const spine_atlas = new spine_core.TextureAtlas(spine_atlas_src);
-for (const page of spine_atlas.pages) {
-    page.setTexture(new spine.Texture(await assetLib.load(`assets/spineboy/${page.name}`, Texture)))
-}
-const spine_data_src = await loader.load("assets/spineboy/spineboy-pro.json", "text");
-
-export default class App extends Zero {
-    start(): render.Flow {
+export class App extends Zero {
+    protected override start(): render.Flow {
         const { width, height } = device.swapchain;
 
         let node: Node;
@@ -30,7 +26,7 @@ export default class App extends Zero {
         const doc = (new Node).addComponent(UIDocument);
         doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
 
-        const json = new spine_core.SkeletonJson(new spine_core.AtlasAttachmentLoader(spine_atlas));
+        const json = new spine.core.SkeletonJson(new spine.core.AtlasAttachmentLoader(spine_atlas));
         const skeletonData = json.readSkeletonData(spine_data_src);
 
         const skeleton = UIRenderer.create(spine.Animation);

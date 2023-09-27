@@ -1,42 +1,34 @@
+import * as phys from 'phys';
 import { Component } from "../core/Component.js";
+import { Node } from "../core/Node.js";
 import { quat } from "../core/math/quat.js";
 import { vec3 } from "../core/math/vec3.js";
-import { Node } from "../core/Node.js";
-import { ammo } from "./internal/ammo.js";
 import { PhysicsSystem } from "./PhysicsSystem.js";
 
-let bt_vec3_a: any;
-let bt_transform_a: any;
-let bt_quat_a: any;
-
-ammo.loading.then(function () {
-    bt_vec3_a = new ammo.btVector3(0, 0, 0);
-    bt_transform_a = new ammo.btTransform();
-    bt_quat_a = new ammo.btQuaternion(0, 0, 0, 1);
+let phys_transform_a: phys.Transform;
+let phys_vec3_a: phys.Vec3;
+let phys_quat_a: phys.Quat;
+phys.load().then(function () {
+    phys_transform_a = new phys.Transform();
+    phys_vec3_a = new phys.Vec3();
+    phys_quat_a = new phys.Quat();
 })
 
 export class RigidBody extends Component {
-    readonly impl: any;
+    readonly impl: phys.RigidBody;
 
-    private _mass: number = 0;
     public get mass(): number {
-        return this._mass;
+        return this.impl.mass;
     }
     public set mass(value: number) {
-        const shape = ammo.castObject(this.impl.getCollisionShape(), ammo.btCompoundShape)
-
-        bt_vec3_a.setValue(0, 0, 0);
-        shape.calculateLocalInertia(value, bt_vec3_a);
-        this.impl.setMassProps(value, bt_vec3_a);
-
-        this._mass = value;
+        this.impl.mass = value;
     }
 
     constructor(node: Node) {
         super(node);
 
-        const motionState = new ammo.MotionState();
-        motionState.getWorldTransform = (ptr_bt_transform: number) => {
+        const motionState = new phys.MotionState();
+        motionState.getWorldTransform = () => {
             // const bt_transform = ammo.wrapPointer(ptr_bt_transform, ammo.btTransform);
             // ps.bt_vec3_a.setValue(...node.world_position);
             // bt_transform.setOrigin(ps.bt_vec3_a);
@@ -44,39 +36,35 @@ export class RigidBody extends Component {
             // ps.bt_quat_a.setValue(...node.world_rotation);
             // bt_transform.setRotation(ps.bt_quat_a);
         }
-        motionState.setWorldTransform = (ptr_bt_transform: number) => {
+        motionState.setWorldTransform = () => {
             // const bt_transform = ammo.wrapPointer(ptr_bt_transform, ammo.btTransform);
             // https://github.com/bulletphysics/bullet3/issues/1104#issuecomment-300428776
-            const bt_transform = this.impl.getWorldTransform();
-            const origin = bt_transform.getOrigin();
-            node.world_position = vec3.create(origin.x(), origin.y(), origin.z());
-            const rotation = bt_transform.getRotation();
-            node.world_rotation = quat.create(rotation.x(), rotation.y(), rotation.z(), rotation.w());
+            const bt_transform = this.impl.worldTransform;
+            const origin = bt_transform.position;
+            node.world_position = vec3.create(origin.x, origin.y, origin.z);
+            const rotation = bt_transform.rotation
+            node.world_rotation = quat.create(rotation.x, rotation.y, rotation.z, rotation.w);
         }
 
-        const compoundShape = new ammo.btCompoundShape();
+        this.impl = new phys.RigidBody(motionState)
 
-        const info = new ammo.btRigidBodyConstructionInfo(1, motionState, compoundShape);
-        this.impl = new ammo.btRigidBody(info);
-        ammo.destroy(info);
+        PhysicsSystem.instance.world.addRigidBody(this.impl);
 
-        PhysicsSystem.instance.world.impl.addRigidBody(this.impl);
-
-        bt_vec3_a.setValue(0, 0, 0);
-        this.impl.setMassProps(0, bt_vec3_a);
+        // set after addRigidBody
+        this.impl.mass = 0;
     }
 
     override update(): void {
         if (this.node.hasChanged) {
-            bt_transform_a.setIdentity();
+            phys_transform_a.identity()
 
-            bt_vec3_a.setValue(...this.node.world_position);
-            bt_transform_a.setOrigin(bt_vec3_a);
+            phys_vec3_a.set(...this.node.world_position);
+            phys_transform_a.position = phys_vec3_a;
 
-            bt_quat_a.setValue(...this.node.world_rotation);
-            bt_transform_a.setRotation(bt_quat_a);
+            phys_quat_a.set(...this.node.world_rotation);
+            phys_transform_a.rotation = phys_quat_a;
 
-            this.impl.setWorldTransform(bt_transform_a);
+            this.impl.worldTransform = phys_transform_a;
         }
     }
 }
