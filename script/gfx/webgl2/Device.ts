@@ -13,6 +13,7 @@ import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
+import { context } from "./impl.js";
 
 export interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
@@ -45,11 +46,11 @@ export class Device implements Device {
 
     constructor() {
         this._capabilities = {
-            uniformBufferOffsetAlignment: gfx.context.getParameter(gfx.context.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+            uniformBufferOffsetAlignment: context.getParameter(context.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1
         }
-        this._swapchain = { colorTexture: new Texture(gfx.context, true), width: gfx.width, height: gfx.height };
-        this._gl = gfx.context;
+        this._swapchain = { colorTexture: new Texture(context, true), width: context.drawingBufferWidth, height: context.drawingBufferHeight };
+        this._gl = context;
     }
 
     createCommandBuffer(): CommandBuffer {

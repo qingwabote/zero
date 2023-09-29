@@ -1,5 +1,5 @@
 // load implementations first
-import "./impl.js";
+import "./impl/index.js";
 //
 import { InputEvent, Touch, TouchEvent, Zero } from "engine-main";
 
@@ -27,6 +27,7 @@ export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Ze
         name2event.set(InputEvent.TOUCH_END, lastEvent);
     })
 
+    const performance = wx.getPerformance()
     function mainLoop() {
         app.tick(name2event, performance.now());
         name2event.clear();

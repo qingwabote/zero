@@ -1,6 +1,6 @@
 import { Camera, ModelPhase, Node, Profiler, Slider, UIDocument, VisibilityFlagBits, Zero, device, render, stageFactory, vec2, vec3 } from "engine-main";
 
-export default class App extends Zero {
+export class App extends Zero {
     start(): render.Flow {
         const { width, height } = device.swapchain;
 

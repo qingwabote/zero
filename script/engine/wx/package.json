@@ -1,7 +1,7 @@
 {
     "name": "engine-wx",
     "dependencies": {
-        "engine-main": "file:../main",
-        "gfx-webgl": "file:../../gfx/webgl"
+        "gfx": "file:../../gfx/declare",
+        "engine-main": "file:../main"
     }
 }

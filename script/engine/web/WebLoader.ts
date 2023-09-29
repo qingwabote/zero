@@ -1,11 +1,15 @@
 import type { Loader, LoaderTypes } from "engine-main";
 
 export default class WebLoader implements Loader {
+    static readonly instance = new WebLoader;
+
     private static _taskCount = 0;
 
     get taskCount() {
         return WebLoader._taskCount;
     }
+
+    private constructor() { }
 
     load<T extends keyof LoaderTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]> {
         url = "../../" + url;// FIXME

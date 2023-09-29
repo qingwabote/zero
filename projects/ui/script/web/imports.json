@@ -1,8 +1,10 @@
 {
-    "gfx-main": "./dist/script/gfx/main/index.js",
-    "gfx-webgl": "./dist/script/gfx/webgl/index.js",
-    "engine-main": "./dist/script/engine/main/index.js",
-    "engine-web": "./dist/script/engine/web/index.js",
-    "yaml": "/script/engine/main/node_modules/yaml/browser/index.js",
-    "@esotericsoftware/spine-core": "/script/engine/main/node_modules/@esotericsoftware/spine-core/dist/index.js"
+    "gfx-common": "./dist/gfx-common/index.js",
+    "gfx": "./dist/gfx/index.js",
+    "phys": "./dist/phys/index.js",
+    "engine-main": "./dist/engine-main/index.js",
+    "engine-web": "./dist/engine-web/index.js",
+    "main": "./dist/main/index.js",
+    "yaml": "../../../../script/engine/main/node_modules/yaml/browser/index.js",
+    "@esotericsoftware/spine-core": "../../../../script/engine/main/node_modules/@esotericsoftware/spine-core/dist/index.js"
 }
