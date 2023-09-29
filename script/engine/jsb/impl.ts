@@ -25,3 +25,10 @@ Loader.prototype.load = function <T extends keyof LoaderTypes>(url: string, type
         });
     })
 };
+
+// for phys ammo
+(globalThis as any).phys = {
+    getWasm: function () {
+        return zero.loader.load('../../assets/physics/ammo.wasm.wasm', 'arraybuffer');
+    }
+};

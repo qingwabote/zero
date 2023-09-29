@@ -1,13 +1,13 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
-import { Buffer, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, VertexAttribute, VertexAttributeVector } from "gfx-main";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, SubmitInfo, VertexAttribute, VertexAttributeVector } from "gfx";
 import { MaterialInstance } from "../MaterialInstance.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Asset } from "../core/Asset.js";
 import { Node } from "../core/Node.js";
 import { assetLib } from "../core/assetLib.js";
-import { device, gfx, loader } from "../core/impl.js";
+import { device, loader } from "../core/impl.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
@@ -284,7 +284,7 @@ export class GLTF extends Asset {
 
             const vertexBuffers: BufferView[] = [];
             const vertexOffsets: number[] = [];
-            const vertexAttributes: VertexAttributeVector = new gfx.VertexAttributeVector;
+            const vertexAttributes: VertexAttributeVector = new VertexAttributeVector;
             for (const key in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
@@ -297,7 +297,7 @@ export class GLTF extends Asset {
                     // console.log(`unknown attribute: ${key}`);
                     continue;
                 }
-                const attribute: VertexAttribute = new gfx.VertexAttribute;
+                const attribute: VertexAttribute = new VertexAttribute;
                 attribute.name = name;
                 attribute.format = format;
                 attribute.buffer = vertexBuffers.length;
@@ -357,7 +357,7 @@ export class GLTF extends Asset {
             const viewInfo = this._json.bufferViews[index];
             buffer = device.createBuffer();
             if (usage & BufferUsageFlagBits.VERTEX) {
-                const info = new gfx.BufferInfo();
+                const info = new BufferInfo();
                 info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
                 info.mem_usage = MemoryUsage.GPU_ONLY;
                 info.stride = viewInfo.byteStride | 0;
@@ -374,12 +374,12 @@ export class GLTF extends Asset {
                 _commandBuffer.begin();
                 _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
                 _commandBuffer.end();
-                const submitInfo = new gfx.SubmitInfo;
+                const submitInfo = new SubmitInfo;
                 submitInfo.commandBuffer = _commandBuffer;
                 device.queue.submit(submitInfo, _fence);
                 device.queue.waitFence(_fence);
             } else {
-                const info = new gfx.BufferInfo();
+                const info = new BufferInfo();
                 info.usage = usage;
                 info.mem_usage = MemoryUsage.CPU_TO_GPU;
                 info.stride = viewInfo.byteStride | 0;

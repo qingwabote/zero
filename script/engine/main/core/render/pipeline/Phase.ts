@@ -1,4 +1,4 @@
-import { CommandBuffer, RenderPass } from "gfx-main";
+import { CommandBuffer, RenderPass } from "gfx";
 import { Camera } from "../scene/Camera.js";
 import { Root } from "../scene/Root.js";
 

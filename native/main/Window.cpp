@@ -98,16 +98,19 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         _device = std::make_unique<bg::Device>(sdl_window.get());
         _device->initialize();
 
-        auto ns_zero = v8::Object::New(isolate.get());
+        auto ns_global = context->Global();
+
         auto ns_gfx = v8::Object::New(isolate.get());
         gfx_initialize(ns_gfx);
-        ns_zero->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), ns_gfx).ToChecked();
+        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), ns_gfx).ToChecked();
+
+        auto ns_zero = v8::Object::New(isolate.get());
         ImageBitmap_initialize(ns_zero);
         Loader_initialize(ns_zero);
         global_initialize(ns_zero);
-        auto ns_global = context->Global();
         console_initialize(context, ns_global);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), ns_zero).ToChecked();
+
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "require"),
                        v8::FunctionTemplate::New(isolate.get(),
                                                  [](const v8::FunctionCallbackInfo<v8::Value> &info)

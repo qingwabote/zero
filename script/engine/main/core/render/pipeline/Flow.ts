@@ -1,6 +1,6 @@
-import { ClearFlagBits, CommandBuffer, DescriptorSet, Framebuffer, PipelineLayout, SampleCountFlagBits, TextureUsageBits } from "gfx-main";
+import { ClearFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Framebuffer, FramebufferInfo, PipelineLayout, PipelineLayoutInfo, SampleCountFlagBits, TextureInfo, TextureUsageBits, Uint32Vector } from "gfx";
 import { Zero } from "../../Zero.js";
-import { device, gfx } from "../../impl.js";
+import { device } from "../../impl.js";
 import { shaderLib } from "../../shaderLib.js";
 import { Root } from "../scene/Root.js";
 import { Stage } from "./Stage.js";
@@ -29,7 +29,7 @@ export class Flow {
             }
         }
 
-        const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
+        const descriptorSetLayoutInfo = new DescriptorSetLayoutInfo;
         for (const uniform of uniforms) {
             const instance = new uniform;
             descriptorSetLayoutInfo.bindings.add(shaderLib.createDescriptorSetLayoutBinding(instance.definition))
@@ -40,7 +40,7 @@ export class Flow {
         (descriptorSetLayout as any).name = "global descriptorSetLayout";
         descriptorSetLayout.initialize(descriptorSetLayoutInfo);
 
-        const pipelineLayoutInfo = new gfx.PipelineLayoutInfo;
+        const pipelineLayoutInfo = new PipelineLayoutInfo;
         pipelineLayoutInfo.layouts.add(descriptorSetLayout);
         const pipelineLayout = device.createPipelineLayout();
         pipelineLayout.initialize(pipelineLayoutInfo);
@@ -50,11 +50,11 @@ export class Flow {
         globalDescriptorSet.initialize(descriptorSetLayout);
         this.globalDescriptorSet = globalDescriptorSet;
 
-        const framebufferInfo = new gfx.FramebufferInfo;
+        const framebufferInfo = new FramebufferInfo;
         if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
             framebufferInfo.colorAttachments.add(device.swapchain.colorTexture);
         } else {
-            const colorAttachmentInfo = new gfx.TextureInfo;
+            const colorAttachmentInfo = new TextureInfo;
             colorAttachmentInfo.samples = samples;
             colorAttachmentInfo.usage = TextureUsageBits.COLOR_ATTACHMENT | TextureUsageBits.TRANSIENT_ATTACHMENT;
             colorAttachmentInfo.width = device.swapchain.width;
@@ -65,7 +65,7 @@ export class Flow {
             framebufferInfo.resolveAttachments.add(device.swapchain.colorTexture);
         }
 
-        const depthStencilAttachmentInfo = new gfx.TextureInfo;
+        const depthStencilAttachmentInfo = new TextureInfo;
         depthStencilAttachmentInfo.samples = samples;
         depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
         depthStencilAttachmentInfo.width = device.swapchain.width;
@@ -101,7 +101,7 @@ export class Flow {
         const renderScene = Zero.instance.scene;
         for (let cameraIndex = 0; cameraIndex < renderScene.cameras.length; cameraIndex++) {
             const camera = renderScene.cameras[cameraIndex];
-            const dynamicOffsets = new gfx.Uint32Vector;
+            const dynamicOffsets = new Uint32Vector;
             dynamicOffsets.add(shaderLib.sets.global.uniforms.Camera.size * cameraIndex);
             commandBuffer.bindDescriptorSet(this._globalPipelineLayout, shaderLib.sets.global.index, this.globalDescriptorSet, dynamicOffsets);
             for (const stage of this.stages) {

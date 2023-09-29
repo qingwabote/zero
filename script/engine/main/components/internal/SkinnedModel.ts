@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits } from "gfx-main";
+import { BufferUsageFlagBits } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";

@@ -1,4 +1,4 @@
-import { ClearFlagBits } from "gfx-main";
+import { ClearFlagBits } from "gfx";
 import { Mat4Like } from "../../math/mat4.js";
 import { Rect } from "../../math/rect.js";
 import { Vec3 } from "../../math/vec3.js";

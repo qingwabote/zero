@@ -1,4 +1,4 @@
-import { Buffer } from "gfx-main";
+import { Buffer } from "gfx";
 
 export interface BufferView {
     get buffer(): Buffer;

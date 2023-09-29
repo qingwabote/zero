@@ -1,7 +1,7 @@
-import { CommandBuffer, FormatInfos, InputAssembler, PassState, Pipeline, PipelineLayout, RenderPass, VertexInputRate } from "gfx-main";
+import { CommandBuffer, FormatInfos, InputAssembler, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
 import { Zero } from "../../core/Zero.js";
-import { device, gfx } from "../../core/impl.js";
+import { device } from "../../core/impl.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Camera } from "../../core/render/scene/Camera.js";
 import { Model } from "../../core/render/scene/Model.js";
@@ -59,7 +59,7 @@ export class ModelPhase extends Phase {
         const ModelType = model.constructor as typeof Model;
         let pipelineLayout = modelPipelineLayoutCache.get(ModelType);
         if (!pipelineLayout) {
-            const info = new gfx.PipelineLayoutInfo;
+            const info = new PipelineLayoutInfo;
             info.layouts.add(Zero.instance.flow.globalDescriptorSet.layout);
             info.layouts.add(ModelType.descriptorSetLayout);
             pipelineLayout = device.createPipelineLayout();
@@ -74,7 +74,7 @@ export class ModelPhase extends Phase {
         const shader_hash = hashLib.shader(shader);
         let pipelineLayout = pipelineLayoutCache[shader_hash];
         if (!pipelineLayout) {
-            const info = new gfx.PipelineLayoutInfo;
+            const info = new PipelineLayoutInfo;
             info.layouts.add(Zero.instance.flow.globalDescriptorSet.layout);
             info.layouts.add(model.descriptorSet.layout);
             if (pass.descriptorSet) {
@@ -95,7 +95,7 @@ export class ModelPhase extends Phase {
         const pipelineHash = hashLib.passState(pass) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
         let pipeline = pipelineCache[pipelineHash];
         if (!pipeline) {
-            const vertexInputState = new gfx.VertexInputState;
+            const vertexInputState = new VertexInputState;
             const vertexAttributes = inputAssemblerInfo.vertexAttributes;
             const vertexAttributesSize = vertexAttributes.size();
             const vertexBuffers = inputAssemblerInfo.vertexInput.buffers;
@@ -113,7 +113,7 @@ export class ModelPhase extends Phase {
                     }
                     stride = count;
                 }
-                const description = new gfx.VertexInputBindingDescription;
+                const description = new VertexInputBindingDescription;
                 description.binding = binding;
                 description.stride = stride;
                 description.inputRate = VertexInputRate.VERTEX;
@@ -126,7 +126,7 @@ export class ModelPhase extends Phase {
                     continue;
                 }
 
-                const description = new gfx.VertexInputAttributeDescription;
+                const description = new VertexInputAttributeDescription;
                 description.location = definition.location;
                 // attribute.format in buffer can be different from definition.format in shader, 
                 // use attribute.format here to make sure type conversion can be done correctly by graphics api.
@@ -137,7 +137,7 @@ export class ModelPhase extends Phase {
                 vertexInputState.attributes.add(description);
             }
 
-            const info = new gfx.PipelineInfo();
+            const info = new PipelineInfo();
             info.passState = pass;
             info.vertexInputState = vertexInputState;
             info.renderPass = renderPass;

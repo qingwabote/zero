@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits, DescriptorSet, PassState, Sampler, Texture } from "gfx-main";
+import { BufferUsageFlagBits, DescriptorSet, PassState, Sampler, Texture } from "gfx";
 import { device } from "../../impl.js";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";

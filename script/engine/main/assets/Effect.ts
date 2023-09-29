@@ -1,8 +1,8 @@
-import { Sampler, Texture, BlendFactor as gfx_BlendFactor, CullMode as gfx_CullMode, PrimitiveTopology as gfx_PrimitiveTopology } from "gfx-main";
+import * as gfx from "gfx";
 import { parse } from "yaml";
 import { Asset } from "../core/Asset.js";
 import { assetLib } from "../core/assetLib.js";
-import { gfx, loader } from "../core/impl.js";
+import { loader } from "../core/impl.js";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { ShaderStages } from "./ShaderStages.js";
@@ -48,27 +48,27 @@ interface Pass {
     readonly shader?: string;
     readonly macros?: Record<string, number>;
     readonly constants?: Record<string, ArrayLike<number>>;
-    readonly samplerTextures?: Record<string, [Texture, Sampler]>
+    readonly samplerTextures?: Record<string, [gfx.Texture, gfx.Sampler]>
     readonly primitive?: PrimitiveTopology;
     readonly rasterizationState?: RasterizationState;
     readonly depthStencilState?: DepthStencilState;
     readonly blendState?: BlendState;
 }
 
-function gfx_toBlendFactor(factor: BlendFactor): gfx_BlendFactor {
+function gfx_toBlendFactor(factor: BlendFactor): gfx.BlendFactor {
     switch (factor) {
         case 'ZERO':
-            return gfx_BlendFactor.ZERO;
+            return gfx.BlendFactor.ZERO;
         case "ONE":
-            return gfx_BlendFactor.ONE;
+            return gfx.BlendFactor.ONE;
         case "SRC_ALPHA":
-            return gfx_BlendFactor.SRC_ALPHA;
+            return gfx.BlendFactor.SRC_ALPHA;
         case "ONE_MINUS_SRC_ALPHA":
-            return gfx_BlendFactor.ONE_MINUS_SRC_ALPHA;
+            return gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
         case "DST_ALPHA":
-            return gfx_BlendFactor.DST_ALPHA;
+            return gfx.BlendFactor.DST_ALPHA;
         case "ONE_MINUS_DST_ALPHA":
-            return gfx_BlendFactor.ONE_MINUS_DST_ALPHA;
+            return gfx.BlendFactor.ONE_MINUS_DST_ALPHA;
     }
 }
 
@@ -101,25 +101,25 @@ export class Effect extends Asset {
             passState.shader = shaderLib.getShader(await assetLib.load(info.shader!, ShaderStages), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
-                    passState.primitive = gfx_PrimitiveTopology.LINE_LIST
+                    passState.primitive = gfx.PrimitiveTopology.LINE_LIST
                     break;
                 case 'TRIANGLE_LIST':
-                    passState.primitive = gfx_PrimitiveTopology.TRIANGLE_LIST
+                    passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST
                     break;
                 default:
-                    passState.primitive = gfx_PrimitiveTopology.TRIANGLE_LIST;
+                    passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
                     break;
             }
             const rasterizationState = new gfx.RasterizationState;
             switch (info.rasterizationState?.cullMode) {
                 case 'FRONT':
-                    rasterizationState.cullMode = gfx_CullMode.FRONT;
+                    rasterizationState.cullMode = gfx.CullMode.FRONT;
                     break;
                 case 'BACK':
-                    rasterizationState.cullMode = gfx_CullMode.BACK;
+                    rasterizationState.cullMode = gfx.CullMode.BACK;
                     break;
                 default:
-                    rasterizationState.cullMode = gfx_CullMode.BACK;
+                    rasterizationState.cullMode = gfx.CullMode.BACK;
                     break;
             }
             passState.rasterizationState = rasterizationState;

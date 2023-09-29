@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits } from "gfx-main";
+import { BufferUsageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";

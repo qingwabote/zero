@@ -1,5 +1,7 @@
 {
-    "gfx-main": "./dist/gfx-main/index.js",
+    "gfx-common": "./dist/gfx-common/index.js",
+    "gfx": "./dist/gfx/index.js",
+    "phys": "./dist/phys/index.js",
     "engine-main": "./dist/engine-main/index.js",
     "engine-jsb": "./dist/engine-jsb/index.js",
     "main": "./dist/main/index.js",

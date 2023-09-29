@@ -1,9 +1,8 @@
-import { CullMode, Filter, PrimitiveTopology } from "gfx-main";
+import { CullMode, Filter, PassState, PrimitiveTopology, RasterizationState } from "gfx";
 import { ShaderStages } from "../assets/ShaderStages.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { Zero } from "../core/Zero.js";
 import { assetLib } from "../core/assetLib.js";
-import { gfx } from "../core/impl.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
@@ -51,9 +50,9 @@ export class SpriteRenderer extends BoundedRenderer {
     color: Readonly<Vec4> = vec4.ONE;
 
     override start(): void {
-        const rasterizationState = new gfx.RasterizationState;
+        const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
-        const state = new gfx.PassState;
+        const state = new PassState;
         state.shader = this.shader;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;

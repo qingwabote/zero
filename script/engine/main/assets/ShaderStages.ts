@@ -1,4 +1,4 @@
-import { ShaderStageFlagBits } from "gfx-main";
+import { ShaderStageFlagBits } from "gfx";
 import { Asset } from "../core/Asset.js";
 import { loader } from "../core/impl.js";
 import { preprocessor } from "../core/internal/preprocessor.js";

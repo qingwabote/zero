@@ -2,7 +2,7 @@
     "name": "engine-main",
     "dependencies": {
         "@esotericsoftware/spine-core": "^4.2.18",
-        "gfx-main": "file:../../gfx/main",
+        "gfx": "file:../../gfx/declare",
         "phys": "file:../../phys/declare",
         "yaml": "^2.3.2"
     }

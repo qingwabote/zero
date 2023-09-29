@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx-main";
+import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { vec3 } from "../../core/math/vec3.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";

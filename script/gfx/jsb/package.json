@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "gfx": "file:../declare",
+    "gfx-common": "file:../common"
+  }
+}

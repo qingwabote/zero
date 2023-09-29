@@ -1,5 +1,5 @@
-import { Buffer, BufferUsageFlagBits, MemoryUsage } from "gfx-main";
-import { device, gfx } from "../../../impl.js";
+import { Buffer, BufferInfo, BufferUsageFlagBits, MemoryUsage } from "gfx";
+import { device } from "../../../impl.js";
 import { BufferView } from "./BufferView.js";
 
 const format2array = {
@@ -34,7 +34,7 @@ export class BufferViewWritable implements BufferView {
         const source = new format2array[_format](_length);
 
         const buffer = device.createBuffer();
-        const info = new gfx.BufferInfo;
+        const info = new BufferInfo;
         info.usage = _usage;
         info.mem_usage = MemoryUsage.CPU_TO_GPU;
         info.size = source.byteLength;

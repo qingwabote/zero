@@ -1,4 +1,4 @@
-import { ClearFlagBits } from "gfx-main";
+import { ClearFlagBits } from "gfx";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
 import { Component } from "../core/Component.js";
 import { Zero } from "../core/Zero.js";

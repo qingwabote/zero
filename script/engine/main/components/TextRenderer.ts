@@ -1,11 +1,10 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
-import { BlendFactor, BufferUsageFlagBits, CullMode, Format, IndexType, PrimitiveTopology } from "gfx-main";
+import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, IndexType, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { ShaderStages } from "../assets/ShaderStages.js";
 import { Zero } from "../core/Zero.js";
 import { assetLib } from "../core/assetLib.js";
-import { gfx } from "../core/impl.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
@@ -71,14 +70,14 @@ export class TextRenderer extends BoundedRenderer {
     private _indexCount = 0;
 
     override start(): void {
-        const vertexAttributes = new gfx.VertexAttributeVector;
-        const texCoordAttribute = new gfx.VertexAttribute;
+        const vertexAttributes = new VertexAttributeVector;
+        const texCoordAttribute = new VertexAttribute;
         texCoordAttribute.name = 'a_texCoord';
         texCoordAttribute.format = Format.RG32_SFLOAT;
         texCoordAttribute.buffer = 0;
         texCoordAttribute.offset = 0;
         vertexAttributes.add(texCoordAttribute);
-        const positionAttribute = new gfx.VertexAttribute;
+        const positionAttribute = new VertexAttribute;
         positionAttribute.name = 'a_position';
         positionAttribute.format = Format.RGB32_SFLOAT;
         positionAttribute.buffer = 1;
@@ -101,14 +100,14 @@ export class TextRenderer extends BoundedRenderer {
             indexInput
         )
 
-        const rasterizationState = new gfx.RasterizationState;
+        const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
-        const blendState = new gfx.BlendState;
+        const blendState = new BlendState;
         blendState.srcRGB = BlendFactor.SRC_ALPHA;
         blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
         blendState.srcAlpha = BlendFactor.ONE;
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
-        const state = new gfx.PassState;
+        const state = new PassState;
         state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;

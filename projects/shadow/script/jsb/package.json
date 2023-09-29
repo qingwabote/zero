@@ -1,10 +1,12 @@
 {
     "scripts": {
-        "gfx-main": "tsc -p ../../../../script/gfx/main --outDir dist/gfx-main --watch",
+        "gfx-common": "tsc -p ../../../../script/gfx/common --outDir dist/gfx-common --watch",
+        "gfx": "tsc -p ../../../../script/gfx/jsb --outDir dist/gfx --watch",
+        "phys": "tsc -p ../../../../script/phys/ammo --outDir dist/phys --watch",
         "engine-main": "tsc -p ../../../../script/engine/main --outDir dist/engine-main --watch",
         "engine-jsb": "tsc -p ../../../../script/engine/jsb --outDir dist/engine-jsb --watch",
         "main": "tsc -p ../main --outDir dist/main --watch",
-        "dev": "concurrently \"tsc --watch\" \"npm run gfx-main\" \"npm run engine-main\" \"npm run engine-jsb\" \"npm run main\""
+        "dev": "concurrently \"tsc --watch\" \"npm run gfx-common\" \"npm run gfx\" \"npm run phys\" \"npm run engine-main\" \"npm run engine-jsb\" \"npm run main\""
     },
     "dependencies": {
         "engine-jsb": "file:../../../../script/engine/jsb",

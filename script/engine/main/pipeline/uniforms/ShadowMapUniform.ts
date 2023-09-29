@@ -1,4 +1,4 @@
-import { DescriptorType, Filter, ShaderStageFlagBits } from "gfx-main";
+import { DescriptorType, Filter, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { getSampler } from "../../core/sc.js";

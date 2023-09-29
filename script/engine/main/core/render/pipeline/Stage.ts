@@ -1,4 +1,4 @@
-import { CommandBuffer, Framebuffer, RenderPass } from "gfx-main";
+import { CommandBuffer, Framebuffer, RenderPass } from "gfx";
 import { Zero } from "../../Zero.js";
 import { Rect } from "../../math/rect.js";
 import { Camera } from "../scene/Camera.js";

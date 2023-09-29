@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits, DescriptorSet } from "gfx-main";
+import { BufferUsageFlagBits, DescriptorSet } from "gfx";
 import { device } from "../../impl.js";
 import { mat4 } from "../../math/mat4.js";
 import { shaderLib } from "../../shaderLib.js";

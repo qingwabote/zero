@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx-main";
+import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { device } from "../../core/impl.js";
 import { mat4 } from "../../core/math/mat4.js";

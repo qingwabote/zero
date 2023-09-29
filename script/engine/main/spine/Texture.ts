@@ -1,5 +1,5 @@
 import * as spine_core from '@esotericsoftware/spine-core';
-import * as gfx from "gfx-main";
+import * as gfx from "gfx";
 import * as assets from '../assets/Texture.js';
 
 export class Texture extends spine_core.Texture {
