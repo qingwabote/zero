@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "gfx-common": "tsc -p ../../../../script/gfx/common --outDir dist/gfx-common --watch",
+    "gfx": "tsc -p ../../../../script/gfx/webgl2 --outDir dist/gfx --watch",
+    "main": "tsc -p ../main --outDir ./dist/main --watch",
+    "server": "http-server ../../../../ -p 8003 -o projects/triangle/script/web/index.html -e js -c-1",
+    "dev": "concurrently \"tsc --watch\" \"npm run gfx-common\" \"npm run gfx\" \"npm run main\" \"npm run server\""
+  },
+  "dependencies": {
+    "gfx": "file:../../../../script/gfx/declare",
+    "main": "file:../main"
+  }
+}
