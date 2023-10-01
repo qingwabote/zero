@@ -7,12 +7,6 @@ const ext2txt = ['fs', 'vs', 'chunk', 'yml'];
 const fs = wx.getFileSystemManager();
 
 export default class WXLoader implements Loader {
-    private static _taskCount = 0;
-
-    get taskCount() {
-        return WXLoader._taskCount;
-    }
-
     constructor(private _currentPath: string) { }
 
     load<T extends keyof LoaderTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]> {
@@ -36,16 +30,13 @@ export default class WXLoader implements Loader {
             }
             url = heads.length ? (heads.join('/') + '/' + tails.join('/')) : tails.join('/');
 
-            const res = function (value: LoaderTypes[T]) { resolve(value); WXLoader._taskCount--; }
-            const rej = function (reason: string) { reject(reason); WXLoader._taskCount--; };
-
             if (type == 'bitmap') {
                 const image = wx.createImage();
                 image.onload = function () {
-                    res(image);
+                    resolve(image);
                 }
                 image.onerror = function (err: string) {
-                    rej(err);
+                    reject(err);
                 }
                 image.src = url;
             } else {
@@ -53,15 +44,13 @@ export default class WXLoader implements Loader {
                     filePath: url,
                     encoding: type == 'text' ? 'utf8' : '',
                     success: function (result: any) {
-                        res(result.data)
+                        resolve(result.data)
                     },
                     fail: function (result: any) {
-                        rej(result.errMsg);
+                        reject(result.errMsg);
                     }
                 });
             }
-
-            WXLoader._taskCount++;
         })
     }
 }

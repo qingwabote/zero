@@ -1,15 +1,11 @@
 import { Camera, ModelPhase, Node, Profiler, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, assetLib, device, loader, render, spine, stageFactory, vec2, vec3 } from 'engine-main';
 
-let spine_atlas: spine.core.TextureAtlas;
-let spine_data_src: string;
-(async function () {
-    const spine_atlas_src = await loader.load("assets/spineboy/spineboy-pma.atlas", "text");
-    spine_atlas = new spine.core.TextureAtlas(spine_atlas_src);
-    for (const page of spine_atlas.pages) {
-        page.setTexture(new spine.Texture(await assetLib.load(`assets/spineboy/${page.name}`, Texture)))
-    }
-    spine_data_src = await loader.load("assets/spineboy/spineboy-pro.json", "text");
-})()
+const spine_atlas_src = await loader.load("assets/spineboy/spineboy-pma.atlas", "text");
+const spine_atlas = new spine.core.TextureAtlas(spine_atlas_src);
+for (const page of spine_atlas.pages) {
+    page.setTexture(new spine.Texture(await assetLib.load(`assets/spineboy/${page.name}`, Texture)))
+}
+const spine_data_src = await loader.load("assets/spineboy/spineboy-pro.json", "text");
 
 export class App extends Zero {
     protected override start(): render.Flow {

@@ -16,14 +16,9 @@ const suspension_restLength = 0.6;
 
 const ammo = PhysicsSystem.instance.impl;
 
-let bt_vec3_a: any;
-let bt_vec3_b: any;
-let bt_vec3_c: any;
-PhysicsSystem.instance.load().then(function () {
-    bt_vec3_a = new ammo.btVector3(0, 0, 0);
-    bt_vec3_b = new ammo.btVector3(0, 0, 0);
-    bt_vec3_c = new ammo.btVector3(0, 0, 0);
-})
+const bt_vec3_a = new ammo.btVector3(0, 0, 0);
+const bt_vec3_b = new ammo.btVector3(0, 0, 0);
+const bt_vec3_c = new ammo.btVector3(0, 0, 0);
 
 export default class Vehicle extends Component {
     private _impl;

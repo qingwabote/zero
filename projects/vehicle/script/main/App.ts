@@ -4,7 +4,7 @@ import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
 let primitive = new GLTF;
-primitive.load('../../assets/models/primitive/scene');
+await primitive.load('../../assets/models/primitive/scene');
 
 export class App extends Zero {
     start() {

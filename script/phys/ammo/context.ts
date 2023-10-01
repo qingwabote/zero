@@ -9,27 +9,16 @@ const _ammo: any = {
     locateFile: function () { return 'not care' },
 };
 
-async function _load() {
-    _ammo.wasmBinary = await phys.getWasm();
+_ammo.wasmBinary = await phys.getWasm();
 
-    const emptyObj = {};
-    if (typeof globalThis.window != 'object') {
-        (globalThis as any).window = emptyObj;
-    }
-    await _init(_ammo);
-    if ((globalThis as any).window == emptyObj) {
-        (globalThis as any).window = undefined;
-    }
+const emptyObj = {};
+if (typeof globalThis.window != 'object') {
+    (globalThis as any).window = emptyObj;
+}
+await _init(_ammo);
+if ((globalThis as any).window == emptyObj) {
+    (globalThis as any).window = undefined;
 }
 
-let promise: Promise<void>;
-
-export async function load() {
-    if (promise) {
-        return promise;
-    }
-
-    return promise = _load();
-}
 
 export const impl = _ammo;

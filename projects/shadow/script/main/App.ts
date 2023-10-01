@@ -42,18 +42,18 @@ async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues 
 
 const guardian = new GLTF();
 guardian.materialFunc = materialFunc;
-guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
+await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
 
 const plane = new GLTF();
 plane.materialFunc = materialFunc;
-plane.load('../../assets/models/primitive/scene');
+await plane.load('../../assets/models/primitive/scene');
 
 const gltf_camera = new GLTF();
 gltf_camera.materialFunc = materialFunc;
-gltf_camera.load('./assets/camera_from_poly_by_google/scene');
+await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
 
 const ss_depth = new ShaderStages();
-ss_depth.load('depth');
+await ss_depth.load('depth');
 
 export class App extends Zero {
     protected override start(): render.Flow {

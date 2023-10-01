@@ -3,7 +3,7 @@ import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
 import { Component } from "./Component.js";
 import { Input, InputEvent } from "./Input.js";
 import { System } from "./System.js";
-import { device, loader } from "./impl.js";
+import { device } from "./impl.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Flow } from "./render/pipeline/Flow.js";
@@ -60,8 +60,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
 
     private _time: number = 0;
 
-    private _initialized = false;
-
     constructor() {
         super();
 
@@ -88,6 +86,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._renderFence = renderFence;
 
         Zero._instance = this;
+
+        this._flow = this.start();
+        this._flow.start();
     }
 
     addComponent(com: Component): void {
@@ -102,30 +103,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         this._timeScheduler.clearInterval(func);
     }
 
-    tick(name2event: Map<InputEvent, any>, timestamp: number) {
-        if (!this._initialized) {
-            if (loader.taskCount) {
-                return;
-            }
-
-            for (const system of this._systems) {
-                if (!system.ready) {
-                    return;
-                }
-            }
-
-            this._flow = this.start();
-            this._flow.start();
-
-            this._initialized = true;
-        }
-
-        this.update(name2event, timestamp);
-    }
-
     protected abstract start(): Flow;
 
-    private update(name2event: Map<InputEvent, any>, timestamp: number) {
+    tick(name2event: Map<InputEvent, any>, timestamp: number) {
         this.emit(ZeroEvent.LOGIC_START);
 
         const delta = this._time ? ((timestamp - this._time) / 1000) : 0;

@@ -1,5 +1,3 @@
-export declare async function load(): Promise<void>;
-
 export declare class Vec3 {
     impl: any;
     get x(): number;

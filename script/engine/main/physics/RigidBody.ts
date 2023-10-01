@@ -5,14 +5,9 @@ import { quat } from "../core/math/quat.js";
 import { vec3 } from "../core/math/vec3.js";
 import { PhysicsSystem } from "./PhysicsSystem.js";
 
-let phys_transform_a: phys.Transform;
-let phys_vec3_a: phys.Vec3;
-let phys_quat_a: phys.Quat;
-phys.load().then(function () {
-    phys_transform_a = new phys.Transform();
-    phys_vec3_a = new phys.Vec3();
-    phys_quat_a = new phys.Quat();
-})
+const phys_transform_a = new phys.Transform();
+const phys_vec3_a = new phys.Vec3();
+const phys_quat_a = new phys.Quat();
 
 export class RigidBody extends Component {
     readonly impl: phys.RigidBody;

@@ -10,7 +10,7 @@ import { shaderLib } from "../../core/shaderLib.js";
 import { Texture } from "../Texture.js";
 
 const ss_spine = new ShaderStages;
-ss_spine.load('spine');
+ss_spine.load('unlit');
 
 class SubModelPool {
     private _free = 0;

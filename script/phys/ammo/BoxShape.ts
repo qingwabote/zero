@@ -1,11 +1,8 @@
 import { Shape } from "./Shape.js";
 import { Vec3 } from "./Vec3.js";
-import { impl, load } from "./context.js";
+import { impl } from "./context.js";
 
-let phys_vec3_a: Vec3;
-load().then(function () {
-    phys_vec3_a = new Vec3;
-})
+const phys_vec3_a = new Vec3;
 
 export class BoxShape extends Shape {
     constructor() {

@@ -5,7 +5,5 @@ export interface LoaderTypes {
 }
 
 export interface Loader {
-    get taskCount(): number;
-
     load<T extends keyof LoaderTypes>(url: String, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<LoaderTypes[T]>;
 }

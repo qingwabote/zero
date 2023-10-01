@@ -12,13 +12,8 @@ enum DirtyFlagBits {
     ALL = 0xffffffff
 }
 
-let phys_vec3_a: phys.Vec3;
-let phys_transform_a: phys.Transform;
-
-phys.load().then(function () {
-    phys_vec3_a = new phys.Vec3;
-    phys_transform_a = new phys.Transform;
-})
+const phys_vec3_a = new phys.Vec3;
+const phys_transform_a = new phys.Transform;
 
 export class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;

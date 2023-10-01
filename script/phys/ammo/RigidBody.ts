@@ -1,14 +1,10 @@
 import { MotionState } from "./MotionState.js";
 import { Shape } from "./Shape.js";
 import { Transform } from "./Transform.js";
-import { impl as ammo, load } from "./context.js";
+import { impl as ammo } from "./context.js";
 
-let bt_vec3_a: any;
-let bt_transform_a: any;
-load().then(function () {
-    bt_vec3_a = new ammo.btVector3(0, 0, 0);
-    bt_transform_a = new ammo.btTransform();
-})
+const bt_vec3_a = new ammo.btVector3(0, 0, 0);
+const bt_transform_a = new ammo.btTransform();
 
 export class RigidBody {
     readonly impl: any;

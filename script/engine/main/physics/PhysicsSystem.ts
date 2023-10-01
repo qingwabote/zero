@@ -1,19 +1,10 @@
-import { impl, load, World } from 'phys';
+import { impl, World } from 'phys';
 import { System } from "../core/System.js";
 import { Zero } from "../core/Zero.js";
-
-let ready = false;
-load().then(function () {
-    ready = true;
-})
 
 export class PhysicsSystem implements System {
 
     static readonly instance = new PhysicsSystem();
-
-    get ready(): boolean {
-        return ready;
-    }
 
     private _world?: World = undefined
     get world(): World {
@@ -24,10 +15,6 @@ export class PhysicsSystem implements System {
     }
 
     readonly impl = impl;
-
-    load() {
-        return load();
-    }
 
     update(dt: number): void {
         this._world?.update(dt);
