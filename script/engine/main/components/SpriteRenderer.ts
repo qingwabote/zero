@@ -13,10 +13,7 @@ import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 
-let ss_unlit: ShaderStages;
-(async function () {
-    ss_unlit = await assetLib.load('unlit', ShaderStages);
-})()
+const ss_unlit = await assetLib.load('unlit', ShaderStages);
 
 const vec2_a = vec3.create();
 const vec2_b = vec3.create();

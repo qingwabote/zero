@@ -1,8 +1,8 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
+import { load } from "loader";
 import { Asset } from "../core/Asset.js";
 import { assetLib } from "../core/assetLib.js";
-import { loader } from "../core/impl.js";
 import { Texture } from "./Texture.js";
 
 interface Common {
@@ -41,7 +41,7 @@ export class FNT extends Asset {
         }
         const parent = res[1];
         const name = res[2];
-        const text = await loader.load(`${parent}/${name}.fnt`, "text");
+        const text = await load(`${parent}/${name}.fnt`, "text");
 
         while (true) {
             let res = exp_lineByline.exec(text);

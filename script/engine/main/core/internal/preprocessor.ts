@@ -1,4 +1,4 @@
-import { loader } from "../impl.js";
+import { load } from "loader";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
     const promises: Promise<string>[] = []
@@ -12,7 +12,8 @@ async function string_replace(value: string, pattern: RegExp, replacer: (...args
     });
 }
 
-const chunks: Record<string, string> = {};
+const chunks: Map<string, string> = new Map;
+const chunks_pending: Map<string, Promise<string>> = new Map;
 
 const exp_lineByline = /(.+)\r?\n?/g;
 // ^\s* excludes other symbols, like //
@@ -78,10 +79,16 @@ export const preprocessor = {
 
     async includeExpand(source: string): Promise<string> {
         return string_replace(source, /#include\s+<(.+)>/g, async (_: string, path: string): Promise<string> => {
-            let chunk = chunks[path];
+            let chunk = chunks.get(path);
             if (!chunk) {
-                chunk = await loader.load(`../../assets/shaders/chunks/${path}.chunk`, "text");
-                chunks[path] = chunk;
+                let pending = chunks_pending.get(path);
+                if (!pending) {
+                    pending = load(`../../assets/shaders/chunks/${path}.chunk`, "text");
+                    chunks_pending.set(path, pending);
+                }
+                chunk = await pending;
+                chunks.set(path, chunk);
+                chunks_pending.delete(path);
             }
             return await this.includeExpand(chunk);
         });

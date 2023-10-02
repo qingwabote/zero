@@ -39,6 +39,4 @@
 
 %attribute(loader::Loader, uint32_t, taskCount, taskCount);
 
-%rename(_load) loader::Loader::load;
-
 %include "Loader.hpp"

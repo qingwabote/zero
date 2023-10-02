@@ -1,5 +1,5 @@
 // load implementations first
-import "./impl.js";
+import "./impl/index.js";
 //
 import { InputEvent, Zero } from "engine-main";
 

@@ -41,7 +41,7 @@ namespace loader
 
                     result = std::make_unique<Result>(std::move(c_str));
                 }
-                else if (type == "arraybuffer")
+                else if (type == "buffer")
                 {
                     auto buffer = std::make_unique<std::vector<char>>(size);
                     std::ifstream stream{abs_path.string(), std::ios::binary};
@@ -62,6 +62,10 @@ namespace loader
                     auto bitmap = std::make_unique<ImageBitmap>(std::move(pixels), x, y);
 
                     result = std::make_unique<Result>(std::move(bitmap));
+                }
+                else
+                {
+                    result = std::make_unique<Result>("unsupported type: " + type);
                 }
 
                 foreground->post(new auto(

@@ -19,15 +19,8 @@ import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-let ss_unlit: ShaderStages;
-(async function () {
-    ss_unlit = await assetLib.load('unlit', ShaderStages);
-})()
-
-let fnt_zero: FNT;
-(async function () {
-    fnt_zero = await assetLib.load('../../assets/fnt/zero', FNT);
-})()
+const ss_unlit = await assetLib.load('unlit', ShaderStages);
+const fnt_zero = await assetLib.load('../../assets/fnt/zero', FNT);
 
 enum DirtyFlagBits {
     NONE = 0,

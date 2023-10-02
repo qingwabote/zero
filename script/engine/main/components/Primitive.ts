@@ -15,11 +15,7 @@ import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
-let ss_primitive: ShaderStages;
-(async function () {
-    ss_primitive = await assetLib.load('primitive', ShaderStages);
-})()
-
+const ss_primitive = await assetLib.load('primitive', ShaderStages);
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 

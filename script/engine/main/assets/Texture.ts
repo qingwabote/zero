@@ -1,6 +1,7 @@
 import { CommandBuffer, Fence, Texture as GFX_Texture, SampleCountFlagBits, SubmitInfo, TextureInfo, TextureUsageBits } from "gfx";
+import { load } from "loader";
 import { Asset } from "../core/Asset.js";
-import { device, loader } from "../core/impl.js";
+import { device } from "../core/impl.js";
 
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
@@ -17,7 +18,7 @@ export class Texture extends Asset {
     }
 
     async load(url: string): Promise<this> {
-        const bitmap = await loader.load(url, "bitmap", this.onProgress);
+        const bitmap = await load(url, "bitmap", this.onProgress);
         const info = new TextureInfo;
         info.samples = SampleCountFlagBits.SAMPLE_COUNT_1;
         info.usage = TextureUsageBits.SAMPLED | TextureUsageBits.TRANSFER_DST;

@@ -1,6 +1,6 @@
 import { ShaderStageFlagBits } from "gfx";
+import { load } from "loader";
 import { Asset } from "../core/Asset.js";
-import { loader } from "../core/impl.js";
 import { preprocessor } from "../core/internal/preprocessor.js";
 
 export class ShaderStages extends Asset {
@@ -18,12 +18,12 @@ export class ShaderStages extends Asset {
     async load(name: string): Promise<this> {
         const path = `../../assets/shaders/${name}`; // hard code
 
-        let vs = await loader.load(`${path}.vs`, "text");
+        let vs = await load(`${path}.vs`, "text");
         vs = await preprocessor.includeExpand(vs);
         this.sources.push(vs)
         this.types.push(ShaderStageFlagBits.VERTEX);
 
-        let fs = await loader.load(`${path}.fs`, "text");
+        let fs = await load(`${path}.fs`, "text");
         fs = await preprocessor.includeExpand(fs);
         this.sources.push(fs)
         this.types.push(ShaderStageFlagBits.FRAGMENT);

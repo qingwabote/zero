@@ -1,6 +1,7 @@
 import * as sc from '@esotericsoftware/spine-core';
 import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState, VertexAttributeVector } from "gfx";
 import { ShaderStages } from '../../assets/ShaderStages.js';
+import { assetLib } from '../../core/assetLib.js';
 import { vec3 } from "../../core/math/vec3.js";
 import { vec4 } from "../../core/math/vec4.js";
 import { Pass } from "../../core/render/scene/Pass.js";
@@ -9,8 +10,7 @@ import { SubModel } from "../../core/render/scene/SubModel.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { Texture } from "../Texture.js";
 
-const ss_spine = new ShaderStages;
-ss_spine.load('unlit');
+const ss_spine = await assetLib.load('unlit', ShaderStages);
 
 class SubModelPool {
     private _free = 0;

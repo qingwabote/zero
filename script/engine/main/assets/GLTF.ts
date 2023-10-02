@@ -1,13 +1,14 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
 import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, SubmitInfo, VertexAttribute, VertexAttributeVector } from "gfx";
+import { load } from "loader";
 import { MaterialInstance } from "../MaterialInstance.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Asset } from "../core/Asset.js";
 import { Node } from "../core/Node.js";
 import { assetLib } from "../core/assetLib.js";
-import { device, loader } from "../core/impl.js";
+import { device } from "../core/impl.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
@@ -126,8 +127,8 @@ export class GLTF extends Asset {
         }
 
         const [, parent, name] = res;
-        const json = JSON.parse(await loader.load(`${parent}/${name}.gltf`, "text", this.onProgress));
-        const bin = await loader.load(`${parent}/${uri2path(json.buffers[0].uri)}`, "arraybuffer", this.onProgress);
+        const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text", this.onProgress));
+        const bin = await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer", this.onProgress);
         const json_images = json.images || [];
         const textures: Texture[] = await Promise.all(json_images.map((info: any) => assetLib.load(`${parent}/${uri2path(info.uri)}`, Texture)));
 

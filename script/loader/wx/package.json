@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "loader": "file:../declare"
+  }
+}

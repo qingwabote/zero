@@ -1,8 +1,8 @@
 import * as gfx from "gfx";
+import { load } from "loader";
 import { parse } from "yaml";
 import { Asset } from "../core/Asset.js";
 import { assetLib } from "../core/assetLib.js";
-import { loader } from "../core/impl.js";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { ShaderStages } from "./ShaderStages.js";
@@ -85,7 +85,7 @@ export class Effect extends Asset {
         }
 
         const [, parent, name] = res;
-        this._passes = parse(await loader.load(`${parent}/${name}.yml`, "text")).passes;
+        this._passes = parse(await load(`${parent}/${name}.yml`, "text")).passes;
         return this;
     }
 
