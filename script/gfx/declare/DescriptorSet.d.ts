@@ -6,6 +6,8 @@ import { Texture } from "./Texture.js";
 export declare class DescriptorSet {
     get layout(): DescriptorSetLayout;
 
+    private constructor(...args);
+
     initialize(layout: DescriptorSetLayout): boolean;
 
     // getBuffer(binding: number): Buffer;

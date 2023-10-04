@@ -19,8 +19,8 @@ import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-const ss_unlit = await assetLib.load('unlit', ShaderStages);
-const fnt_zero = await assetLib.load('../../assets/fnt/zero', FNT);
+const ss_unlit = await assetLib.cache('unlit', ShaderStages);
+const fnt_zero = await assetLib.cache('../../assets/fnt/zero', FNT);
 
 enum DirtyFlagBits {
     NONE = 0,

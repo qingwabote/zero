@@ -1,18 +1,11 @@
-import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { BufferUsageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { vec3 } from "../../core/math/vec3.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
+import { shaderLib } from "../../core/shaderLib.js";
 
-const LightBlock = {
-    type: DescriptorType.UNIFORM_BUFFER,
-    stageFlags: ShaderStageFlagBits.FRAGMENT,
-    binding: 0,
-    members: {
-        direction: {}
-    },
-    size: 3 * Float32Array.BYTES_PER_ELEMENT
-} as const
+const LightBlock = shaderLib.sets.global.uniforms.Light;
 
 export class LightUniform implements Uniform {
     readonly definition = LightBlock;

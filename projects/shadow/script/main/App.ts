@@ -10,7 +10,7 @@ async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues 
     const albedo = values.albedo || vec4.ONE;
     const texture = values.texture;
 
-    const effect = await assetLib.load("./assets/effects/test", Effect);
+    const effect = await assetLib.cache("./assets/effects/test", Effect);
     const passes = await effect.createPasses([
         {
             macros: { USE_SHADOW_MAP }

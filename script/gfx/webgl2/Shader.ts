@@ -78,7 +78,12 @@ export class Shader {
             const sampler = meta.samplerTextures[name];
             const loc = gl.getUniformLocation(program, name);
             if (!loc) continue;
-            gl.uniform1i(loc, sampler.binding + sampler.set * 10);
+            if (sampler.binding > 1 || sampler.set > 3) {
+                console.warn(`sampler.binding(${sampler.binding}) > 1 || sampler.set${sampler.set} > 3`)
+                continue;
+            }
+            const unit = sampler.set * 2 + sampler.binding;
+            gl.uniform1i(loc, unit);// set texture unit
         }
         gl.useProgram(null);
 

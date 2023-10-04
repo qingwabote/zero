@@ -6,7 +6,7 @@ import { device } from "../core/impl.js";
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
-export class Texture extends Asset {
+export class Texture implements Asset {
     private _impl!: GFX_Texture;
     get impl() {
         return this._impl;

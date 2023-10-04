@@ -18,7 +18,7 @@ const exp_keyAndValue = /(\w+)=(\-?\d+)/g;
 const exp_common = /common\s+/;
 const exp_char = /char\s+/;
 
-export class FNT extends Asset {
+export class FNT implements Asset {
     private _common!: Common;
     get common() {
         return this._common;
@@ -76,7 +76,7 @@ export class FNT extends Asset {
             return this;
         }
         const file = res[1];
-        this._texture = await assetLib.load(`${parent}/${file}`, Texture);
+        this._texture = await assetLib.cache(`${parent}/${file}`, Texture);
         return this;
     }
 

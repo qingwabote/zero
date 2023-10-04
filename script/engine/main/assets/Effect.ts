@@ -72,7 +72,7 @@ function gfx_toBlendFactor(factor: BlendFactor): gfx.BlendFactor {
     }
 }
 
-export class Effect extends Asset {
+export class Effect implements Asset {
     private _passes: Pass[] = [];
     // public get passes(): readonly PassInfo[] {
     //     return this._passes;
@@ -98,7 +98,7 @@ export class Effect extends Asset {
             }
 
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await assetLib.load(info.shader!, ShaderStages), info.macros);
+            passState.shader = shaderLib.getShader(await assetLib.cache(info.shader!, ShaderStages), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
                     passState.primitive = gfx.PrimitiveTopology.LINE_LIST

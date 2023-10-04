@@ -5,6 +5,19 @@ import { InputEvent, Touch, TouchEvent, Zero } from "engine-main";
 
 declare const wx: any;
 
+// copy from weapp-adapter.9568fddf
+if (wx.getPerformance) {
+    const { platform } = wx.getSystemInfoSync()
+    const wxPerf = wx.getPerformance()
+    const initTime = wxPerf.now()
+    const clientPerfAdapter = Object.assign({}, wxPerf, {
+        now: function () {
+            return (wxPerf.now() - initTime) / 1000
+        }
+    })
+    globalThis.performance = platform === 'devtools' ? wxPerf : clientPerfAdapter
+}
+
 export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Zero) {
     const app = new App();
 
@@ -27,7 +40,6 @@ export function run(App: new (...args: ConstructorParameters<typeof Zero>) => Ze
         name2event.set(InputEvent.TOUCH_END, lastEvent);
     })
 
-    const performance = wx.getPerformance()
     function mainLoop() {
         app.tick(name2event, performance.now());
         name2event.clear();

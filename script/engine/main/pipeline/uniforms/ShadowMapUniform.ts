@@ -1,14 +1,11 @@
-import { DescriptorType, Filter, ShaderStageFlagBits } from "gfx";
+import { Filter } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { getSampler } from "../../core/sc.js";
+import { shaderLib } from "../../core/shaderLib.js";
 import { ShadowUniform } from "./ShadowUniform.js";
 
-const shadowMap = {
-    type: DescriptorType.SAMPLER_TEXTURE,
-    stageFlags: ShaderStageFlagBits.FRAGMENT,
-    binding: 3,
-} as const
+const shadowMap = shaderLib.sets.global.uniforms.ShadowMap;
 
 export class ShadowMapUniform implements Uniform {
     readonly definition = shadowMap;

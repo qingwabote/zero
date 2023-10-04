@@ -1,7 +1,7 @@
 import { Camera, Flow, ModelPhase, Node, Profiler, Texture, UIDocument, VisibilityFlagBits, Zero, assetLib, stageFactory, vec2, vec3 } from "engine-main";
 import CuttingBoard from "./CuttingBoard.js";
 
-const favicon = await assetLib.load('../../assets/favicon.ico', Texture);
+const favicon = await assetLib.cache('../../assets/favicon.ico', Texture);
 
 export default class App extends Zero {
     start(): Flow {

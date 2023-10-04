@@ -3,7 +3,7 @@ import { load } from "loader";
 import { Asset } from "../core/Asset.js";
 import { preprocessor } from "../core/internal/preprocessor.js";
 
-export class ShaderStages extends Asset {
+export class ShaderStages implements Asset {
     private _name: string = '';
     public get name(): string {
         return this._name;

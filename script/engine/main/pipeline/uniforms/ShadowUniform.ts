@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { BufferUsageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { device } from "../../core/impl.js";
 import { mat4 } from "../../core/math/mat4.js";
@@ -6,21 +6,9 @@ import { quat } from "../../core/math/quat.js";
 import { vec3 } from "../../core/math/vec3.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
+import { shaderLib } from "../../core/shaderLib.js";
 
-const ShadowBlock = {
-    type: DescriptorType.UNIFORM_BUFFER,
-    stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
-    binding: 2,
-    members: {
-        view: {
-            offset: 0
-        },
-        projection: {
-            offset: 16
-        }
-    },
-    size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
-} as const
+const ShadowBlock = shaderLib.sets.global.uniforms.Shadow;
 
 export class ShadowUniform implements Uniform {
     static readonly camera = { orthoHeight: 6, aspect: 1, near: 1, far: 16 };

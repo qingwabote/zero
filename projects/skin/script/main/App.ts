@@ -1,7 +1,7 @@
 import { Camera, CameraControlPanel, DirectionalLight, GLTF, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, assetLib, device, quat, render, stageFactory, vec2, vec3 } from "engine-main";
 import { ClearFlagBits } from "gfx-main";
 
-const skin = await assetLib.load('./assets/killer-whale/scene', GLTF);
+const skin = await assetLib.cache('./assets/killer-whale/scene', GLTF);
 
 export default class App extends Zero {
     start(): render.Flow {

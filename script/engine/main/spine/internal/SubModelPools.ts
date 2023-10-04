@@ -10,7 +10,7 @@ import { SubModel } from "../../core/render/scene/SubModel.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { Texture } from "../Texture.js";
 
-const ss_spine = await assetLib.load('unlit', ShaderStages);
+const ss_spine = await assetLib.cache('unlit', ShaderStages);
 
 class SubModelPool {
     private _free = 0;

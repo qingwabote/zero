@@ -3,18 +3,21 @@
 ```js
 require("s.js");
 
-const zero = globalThis.zero || (globalThis.zero = {});
-zero.project_path = "projects/shadow";
+const PROJECT = "ui";
+
+globalThis.loader = { currentPath: `projects/${PROJECT}` };
 
 System.initialize(
-  "Fake:/projects/shadow/script/",
+  `Fake:/projects/${PROJECT}/script/`,
   function (url) {
     require(url.substring("Fake:/".length));
   },
   {
     imports: {
-      "gfx-main": "./gfx-main/index.js",
-      "gfx-webgl": "./gfx-webgl/index.js",
+      "gfx-common": "./gfx-common/index.js",
+      gfx: "./gfx/index.js",
+      loader: "./loader/index.js",
+      phys: "./phys/index.js",
       "engine-main": "./engine-main/index.js",
       "engine-wx": "./engine-wx/index.js",
       main: "./main/index.js",

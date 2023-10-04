@@ -11,7 +11,7 @@ import { UIContainer } from "./UIContainer.js";
 import { UIEventToListener, UITouchEventType } from "./UIElement.js";
 import { UIRenderer } from "./UIRenderer.js";
 
-const texture_splash = await assetLib.load('../../assets/images/splash.png', Texture);
+const texture_splash = await assetLib.cache('../../assets/images/splash.png', Texture);
 
 export enum SliderEventType {
     CHANGED = 'CHANGED'

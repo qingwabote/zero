@@ -31,6 +31,34 @@ const sets = {
                     }
                 },
                 size: align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
+            },
+            Light: {
+                type: DescriptorType.UNIFORM_BUFFER,
+                stageFlags: ShaderStageFlagBits.FRAGMENT,
+                binding: 2,
+                members: {
+                    direction: {}
+                },
+                size: 3 * Float32Array.BYTES_PER_ELEMENT
+            },
+            Shadow: {
+                type: DescriptorType.UNIFORM_BUFFER,
+                stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
+                binding: 3,
+                members: {
+                    view: {
+                        offset: 0
+                    },
+                    projection: {
+                        offset: 16
+                    }
+                },
+                size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
+            },
+            ShadowMap: {
+                type: DescriptorType.SAMPLER_TEXTURE,
+                stageFlags: ShaderStageFlagBits.FRAGMENT,
+                binding: 0,
             }
         }
     },

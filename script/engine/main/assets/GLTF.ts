@@ -68,7 +68,7 @@ export async function materialFuncDefault(macros: MaterialMacros = {}, values: M
     const albedo = values.albedo || vec4.ONE;
     const texture = values.texture;
 
-    const effect = await assetLib.load("../../assets/effects/phong", Effect);
+    const effect = await assetLib.cache("../../assets/effects/phong", Effect);
     const passes = await effect.createPasses([
         {
             macros: { USE_SHADOW_MAP }
@@ -92,7 +92,7 @@ export async function materialFuncDefault(macros: MaterialMacros = {}, values: M
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
-export class GLTF extends Asset {
+export class GLTF implements Asset {
     private _json: any;
     get json(): any {
         return this._json;
@@ -130,7 +130,7 @@ export class GLTF extends Asset {
         const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text", this.onProgress));
         const bin = await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer", this.onProgress);
         const json_images = json.images || [];
-        const textures: Texture[] = await Promise.all(json_images.map((info: any) => assetLib.load(`${parent}/${uri2path(info.uri)}`, Texture)));
+        const textures: Texture[] = await Promise.all(json_images.map((info: any) => assetLib.cache(`${parent}/${uri2path(info.uri)}`, Texture)));
 
         this._materialDefault = await this.materialFunc();
 

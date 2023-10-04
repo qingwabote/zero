@@ -1,27 +1,26 @@
 import { Asset } from "./Asset.js";
 
-const _path2asset: Map<string, Asset> = new Map;
-
-const _path2pending: Map<string, Promise<any>> = new Map;
+const _url2asset: Map<string, Asset> = new Map;
+const _url2pending: Map<string, Promise<any>> = new Map;
 
 export const assetLib = {
-    async load<T extends Asset>(path: string, type: new () => T): Promise<T> {
-        let instance = _path2asset.get(path) as T;
-        if (instance) {
-            return instance;
+    async cache<T extends Asset>(url: string, type: new () => T): Promise<T> {
+        let asset = _url2asset.get(url) as T;
+        if (asset) {
+            return asset;
         }
 
-        let pending = _path2pending.get(path);
+        let pending = _url2pending.get(url);
         if (pending) {
             return await pending;
         }
 
-        instance = new type;
-        pending = instance.load(path);
-        _path2pending.set(path, pending);
+        asset = new type;
+        pending = asset.load(url);
+        _url2pending.set(url, pending);
         await pending;
-        _path2asset.set(path, instance);
-        _path2pending.delete(path);
-        return instance;
+        _url2asset.set(url, asset);
+        _url2pending.delete(url);
+        return asset;
     }
 }

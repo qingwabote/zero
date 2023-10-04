@@ -143,7 +143,7 @@ export class CommandBuffer {
                 gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl, offset, range);
             } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
                 const texture = descriptorSet.getTexture(layoutBinding.binding);
-                const unit = layoutBinding.binding + index * 10;
+                const unit = index * 2 + layoutBinding.binding;
                 gl.activeTexture(gl.TEXTURE0 + unit);
                 gl.bindTexture(gl.TEXTURE_2D, texture.texture);
 
