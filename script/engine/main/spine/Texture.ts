@@ -13,7 +13,7 @@ export class Texture extends spine_core.Texture {
     readonly id = Texture._id++;
 
     constructor(private _texture: assets.Texture) {
-        super(_texture.bitmap);
+        super(_texture as unknown as ImageBitmap);
     }
 
     getImpl(): gfx.Texture {

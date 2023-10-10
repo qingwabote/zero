@@ -12,9 +12,14 @@ export class Texture implements Asset {
         return this._impl;
     }
 
-    private _bitmap!: ImageBitmap;
-    get bitmap() {
-        return this._bitmap;
+    private _width: number = 0;
+    public get width(): number {
+        return this._width;
+    }
+
+    private _height: number = 0;
+    public get height(): number {
+        return this._height;
     }
 
     async load(url: string): Promise<this> {
@@ -43,10 +48,13 @@ export class Texture implements Asset {
         device.queue.submit(submitInfo, _fence);
         device.queue.waitFence(_fence);
 
+        this._width = bitmap.width;
+        this._height = bitmap.height;
         this._impl = texture;
-        this._bitmap = bitmap;
+
         return this;
     }
+
     private onProgress(loaded: number, total: number, url: string) {
         console.log(`download: ${url}, progress: ${loaded / total * 100}`)
     }
