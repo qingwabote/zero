@@ -1,7 +1,7 @@
 import * as loader from 'loader';
-import * as _index from './_index.js';
+import * as idx from './idx.js';
 
-const type_checking: typeof loader = _index;
+const type_checking: typeof loader = idx;
 
-export * from './_index.js';
+export * from './idx.js';
 

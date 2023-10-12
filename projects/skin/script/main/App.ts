@@ -1,9 +1,8 @@
 import { Camera, CameraControlPanel, DirectionalLight, GLTF, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, assetLib, device, quat, render, stageFactory, vec2, vec3 } from "engine-main";
-import { ClearFlagBits } from "gfx-main";
 
 const skin = await assetLib.cache('./assets/killer-whale/scene', GLTF);
 
-export default class App extends Zero {
+export class App extends Zero {
     start(): render.Flow {
         const { width, height } = device.swapchain;
 
@@ -57,7 +56,7 @@ export default class App extends Zero {
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilityFlags = VisibilityFlagBits.UI;
-        ui_camera.clearFlags = ClearFlagBits.DEPTH;
+        ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);

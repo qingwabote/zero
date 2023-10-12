@@ -1,18 +1,9 @@
 {
   "extends": "../../../../script/tsconfig.json",
   "include": [
-    ".",
-    "../main",
-    "../../../../script/engine/web",
-    "../../../../script/gfx/webgl",
+    "./index.ts",
   ],
   "compilerOptions": {
-    "paths": {
-      "gfx-main":["../../../../script/gfx/main"],
-      "gfx-webgl":["../../../../script/gfx/webgl"],
-      "engine-main": ["../../../../script/engine/main"],
-      "engine-web": ["../../../../script/engine/web"],
-    },
     "outDir": "dist"
   }
 }

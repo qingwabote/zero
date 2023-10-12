@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>zero</title>
+  <link rel="icon" href="/assets/favicon.ico" />
+</head>
+
+<body>
+  <canvas id="ZeroCanvas" width="640" height="960"></canvas>
+  <script>
+    const currentScript = document.currentScript;
+    const req = new XMLHttpRequest();
+    // use synchronous request
+    req.open('GET', "./imports.json", false);
+    req.onload = function () {
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = `
+      {
+        "imports": ${req.response}
+      }`;
+      currentScript.after(im);
+    };
+    req.send();
+  </script>
+  <script type="module" src="./dist/index.js"></script>
+</body>
+
+</html>

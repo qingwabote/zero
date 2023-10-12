@@ -6,6 +6,6 @@
     "engine-main": "./dist/engine-main/index.js",
     "engine-web": "./dist/engine-web/index.js",
     "main": "./dist/main/index.js",
-    "yaml": "../../../../script/engine/main/node_modules/yaml/browser/index.js",
-    "@esotericsoftware/spine-core": "../../../../script/engine/main/node_modules/@esotericsoftware/spine-core/dist/index.js"
+    "yaml": "./dist/yaml.js",
+    "@esotericsoftware/spine-core": "./dist/spine-core.js"
 }
