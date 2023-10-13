@@ -1,3 +1,4 @@
+export * from 'gfx-common';
 export * from './Buffer.js';
 export * from './CommandBuffer.js';
 export * from './DescriptorSet.js';
@@ -13,7 +14,5 @@ export * from './Sampler.js';
 export * from './Semaphore.js';
 export * from './Shader.js';
 export * from './Texture.js';
-export * from './constants.js';
-export * from './glsl.js';
 export * from './info.js';
 

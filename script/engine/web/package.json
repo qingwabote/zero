@@ -1,8 +1,0 @@
-{
-    "name": "engine-web",
-    "dependencies": {
-        "engine-main": "file:../main",
-        "gfx": "file:../../gfx/declare",
-        "loader": "file:../../loader/declare"
-    }
-}

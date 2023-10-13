@@ -1,7 +1,0 @@
-{
-  "name": "engine-jsb",
-  "dependencies": {
-    "engine-main": "file:../main",
-    "loader": "file:../../loader/declare"
-  }
-}

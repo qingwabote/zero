@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "boot": "file:../declare",
+    "gfx": "file:../../gfx/declare",
+    "loader": "file:../../loader/declare"
+  }
+}

@@ -1,7 +1,0 @@
-{
-    "name": "engine-wx",
-    "dependencies": {
-        "engine-main": "file:../main",
-        "gfx": "file:../../gfx/declare"
-    }
-}

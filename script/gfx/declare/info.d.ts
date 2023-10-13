@@ -1,3 +1,4 @@
+import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageBits, VertexInputRate } from "gfx-common";
 import { Buffer } from "./Buffer.js";
 import { CommandBuffer } from "./CommandBuffer.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
@@ -6,7 +7,6 @@ import { RenderPass } from "./RenderPass.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
-import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageBits, VertexInputRate } from "./constants.js";
 
 export declare abstract class Vector<T> {
     size(): number;

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "boot": "file:../declare",
+    "loader": "file:../../loader/declare"
+  }
+}

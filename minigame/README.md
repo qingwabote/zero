@@ -3,7 +3,7 @@
 ```js
 require("s.js");
 
-const PROJECT = "ui";
+const PROJECT = "spine";
 
 globalThis.loader = { currentPath: `projects/${PROJECT}` };
 
@@ -18,9 +18,8 @@ System.initialize(
       gfx: "./gfx/index.js",
       loader: "./loader/index.js",
       phys: "./phys/index.js",
+      boot: "./boot/index.js",
       "engine-main": "./engine-main/index.js",
-      "engine-wx": "./engine-wx/index.js",
-      main: "./main/index.js",
       yaml: "./yaml.js",
       "@esotericsoftware/spine-core": "./spine-core.js",
     },

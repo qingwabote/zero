@@ -64,7 +64,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
     // Isolate Scope
     {
         const std::string script_name = bootstrap_json["script"];
-        const std::filesystem::path script_path = std::filesystem::path(project_path).append("script/" + script_name);
+        const std::filesystem::path script_path = std::filesystem::path(project_path).append(script_name);
 
         sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(script_path).append("imports.json"));
         if (!isolate)

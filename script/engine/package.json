@@ -1,0 +1,11 @@
+{
+    "name": "engine",
+    "dependencies": {
+        "@esotericsoftware/spine-core": "^4.2.18",
+        "gfx": "file:../gfx/declare",
+        "loader": "file:../loader/declare",
+        "boot": "file:../boot/declare",
+        "phys": "file:../phys/declare",
+        "yaml": "^2.3.2"
+    }
+}

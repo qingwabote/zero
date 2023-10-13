@@ -5,7 +5,7 @@ interface ResultTypes {
 }
 
 export function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]> {
-    url = "../../" + url;// FIXME
+    url = "../" + url;// FIXME
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         switch (type) {
