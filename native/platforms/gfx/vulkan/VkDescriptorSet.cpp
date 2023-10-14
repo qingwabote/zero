@@ -27,6 +27,7 @@ namespace gfx
         {
             it->second.first->off(BufferEvent_impl::RESET, it->second.second);
         }
+
         auto f = new auto(
             [=]
             {
@@ -45,7 +46,9 @@ namespace gfx
 
                 vkUpdateDescriptorSets(*_device, 1, &write, 0, nullptr);
             });
-        _buffers.emplace(binding, std::make_pair(buffer, buffer->on(BufferEvent_impl::RESET, f)));
+
+        _buffers[binding] = std::make_pair(buffer, buffer->on(BufferEvent_impl::RESET, f));
+
         (*f)();
     }
 
@@ -73,8 +76,8 @@ namespace gfx
 
         vkUpdateDescriptorSets(*_device, 1, &write, 0, nullptr);
 
-        _textures.emplace(binding, texture);
-        _samplers.emplace(binding, sampler);
+        _textures[binding] = texture;
+        _samplers[binding] = sampler;
     }
 
     DescriptorSet_impl::~DescriptorSet_impl()
