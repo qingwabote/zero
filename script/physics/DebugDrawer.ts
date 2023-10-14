@@ -1,8 +1,5 @@
+import { Component, Primitive, vec3, vec4 } from 'engine';
 import * as phys from 'phys';
-import { Primitive } from "../components/Primitive.js";
-import { Component } from "../core/Component.js";
-import { vec3 } from "../core/math/vec3.js";
-import { vec4 } from "../core/math/vec4.js";
 import { PhysicsSystem } from "./PhysicsSystem.js";
 
 export class DebugDrawer extends Component {

@@ -1,4 +1,5 @@
-import { BoxShape, Component, GLTF, MeshRenderer, Node, PhysicsSystem, Vec3, quat, vec3, vec4 } from "engine";
+import { Component, GLTF, MeshRenderer, Node, Vec3, quat, vec3, vec4 } from "engine";
+import { BoxShape, PhysicsSystem } from "physics";
 
 const gltf_primitive = new GLTF;
 gltf_primitive.load('../../assets/models/primitive/scene');

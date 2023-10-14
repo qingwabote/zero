@@ -7,6 +7,7 @@
         "boot": "tsc -p ../../../script/boot/jsb --outDir dist/boot --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
         "script": "tsc -p ../script --outDir dist --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run phys\" \"npm run boot\" \"npm run engine\" \"npm run script\""
+        "physics": "tsc -p ../../../script/physics --outDir dist/physics --watch",
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run phys\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run physics\""
     }
 }

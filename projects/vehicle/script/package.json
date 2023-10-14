@@ -1,6 +1,7 @@
 {
   "name": "main",
   "dependencies": {
-    "engine": "file:../../../script/engine"
+    "engine": "file:../../../script/engine",
+    "physics": "file:../../../script/physics"
   }
 }

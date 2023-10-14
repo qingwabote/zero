@@ -1,8 +1,5 @@
+import { Component, Node, quat, vec3 } from 'engine';
 import * as phys from 'phys';
-import { Component } from "../core/Component.js";
-import { Node } from "../core/Node.js";
-import { quat } from "../core/math/quat.js";
-import { vec3 } from "../core/math/vec3.js";
 import { PhysicsSystem } from "./PhysicsSystem.js";
 
 const phys_transform_a = new phys.Transform();

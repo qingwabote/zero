@@ -1,5 +1,6 @@
 
-import { BoxShape, Camera, CameraControlPanel, DirectionalLight, GLTF, MeshRenderer, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, device, render, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { Camera, CameraControlPanel, DirectionalLight, GLTF, MeshRenderer, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, device, render, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 

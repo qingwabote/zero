@@ -1,9 +1,6 @@
+import { Component, Node, Vec3, render, vec3 } from 'engine';
 import * as phys from 'phys';
-import { Component } from "../core/Component.js";
-import { Node } from "../core/Node.js";
-import { Vec3, vec3 } from "../core/math/vec3.js";
-import { TransformBits } from "../core/render/scene/Transform.js";
-import { RigidBody } from "./RigidBody.js";
+import { RigidBody } from './RigidBody.js';
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -55,7 +52,7 @@ export class BoxShape extends Component {
     }
 
     override update(): void {
-        if (this.node.hasChanged & TransformBits.SCALE) {
+        if (this.node.hasChanged & render.TransformBits.SCALE) {
             this._dirtyFlags |= DirtyFlagBits.SCALE;
         }
 

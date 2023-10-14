@@ -1,6 +1,5 @@
-import { impl, World } from 'phys';
-import { System } from "../core/System.js";
-import { Zero } from "../core/Zero.js";
+import { System, Zero } from 'engine';
+import { World, impl } from 'phys';
 
 export class PhysicsSystem implements System {
 
