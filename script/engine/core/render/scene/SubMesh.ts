@@ -1,5 +1,5 @@
+import { device } from "boot";
 import { IndexInput, IndexType, InputAssembler, InputAssemblerInfo, VertexAttributeVector, VertexInput } from "gfx";
-import { device } from "../../impl.js";
 import { Vec3 } from "../../math/vec3.js";
 import { BufferView } from "./buffers/BufferView.js";
 

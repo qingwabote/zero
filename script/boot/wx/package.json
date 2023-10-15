@@ -1,6 +1,6 @@
 {
   "dependencies": {
     "boot": "file:../declare",
-    "gfx": "file:../../gfx/declare"
+    "gfx": "file:../../gfx/webgl2"
   }
 }

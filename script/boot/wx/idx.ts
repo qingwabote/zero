@@ -1,5 +1,4 @@
-// load implementations first
-import "./impl/index.js";
+import { Device } from "gfx";
 
 export interface Touch {
     readonly x: number,
@@ -37,6 +36,12 @@ export interface EventListener {
     onGestureRotate(event: GestureEvent): void;
     onFrame(timestamp: number): void;
 }
+
+const canvas = wx.createCanvas()
+const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
+globalThis.WebGL2RenderingContext = gl;
+
+export const device = new Device(gl);
 
 export function listen(listener: EventListener) {
     let lastEvent: TouchEvent;

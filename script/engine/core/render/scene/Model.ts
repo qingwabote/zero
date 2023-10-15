@@ -1,5 +1,5 @@
+import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet } from "gfx";
-import { device } from "../../impl.js";
 import { mat4 } from "../../math/mat4.js";
 import { shaderLib } from "../../shaderLib.js";
 import { SubModel } from "./SubModel.js";

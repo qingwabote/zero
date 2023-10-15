@@ -1,5 +1,5 @@
 // load boot first
-import 'boot';
+export { device } from 'boot';
 //
 
 export * as loader from 'loader';

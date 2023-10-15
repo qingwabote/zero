@@ -1,5 +1,5 @@
+import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet, PassState, Sampler, Texture } from "gfx";
-import { device } from "../../impl.js";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferViewWritable } from "./buffers/BufferViewWritable.js";

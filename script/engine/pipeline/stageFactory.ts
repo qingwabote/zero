@@ -1,6 +1,6 @@
+import { device } from "boot";
 import { AttachmentDescription, FramebufferInfo, ImageLayout, LOAD_OP, RenderPassInfo, SampleCountFlagBits, TextureInfo, TextureUsageBits } from "gfx";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
-import { device } from "../core/impl.js";
 import { Phase } from "../core/render/pipeline/Phase.js";
 import { Stage } from "../core/render/pipeline/Stage.js";
 import { Uniform } from "../core/render/pipeline/Uniform.js";

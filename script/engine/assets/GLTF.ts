@@ -1,5 +1,6 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
+import { device } from "boot";
 import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, SubmitInfo, VertexAttribute, VertexAttributeVector } from "gfx";
 import { load } from "loader";
 import { MaterialInstance } from "../MaterialInstance.js";
@@ -8,7 +9,6 @@ import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Asset } from "../core/Asset.js";
 import { Node } from "../core/Node.js";
 import { assetLib } from "../core/assetLib.js";
-import { device } from "../core/impl.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";

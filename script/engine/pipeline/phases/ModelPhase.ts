@@ -1,7 +1,7 @@
+import { device } from "boot";
 import { CommandBuffer, FormatInfos, InputAssembler, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
 import { Zero } from "../../core/Zero.js";
-import { device } from "../../core/impl.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Camera } from "../../core/render/scene/Camera.js";
 import { Model } from "../../core/render/scene/Model.js";

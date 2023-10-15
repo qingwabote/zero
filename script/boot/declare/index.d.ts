@@ -1,3 +1,5 @@
+import { Device } from 'gfx';
+
 export declare interface Touch {
     readonly x: number,
     readonly y: number
@@ -19,6 +21,8 @@ export declare interface EventListener {
     onGestureRotate(event: GestureEvent): void;
     onFrame(timestamp: number): void;
 }
+
+export declare const device: Device;
 
 export declare function listen(listener: EventListener);
 

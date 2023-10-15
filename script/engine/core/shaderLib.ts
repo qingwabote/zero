@@ -1,6 +1,6 @@
+import { device } from "boot";
 import { Attribute, DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Shader, ShaderInfo, ShaderStageFlagBits, Uniform, glsl } from "gfx";
 import { ShaderStages } from "../assets/ShaderStages.js";
-import { device } from "./impl.js";
 import { preprocessor } from "./internal/preprocessor.js";
 
 function align(size: number) {

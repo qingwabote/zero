@@ -1,5 +1,5 @@
+import { device } from "boot";
 import { Filter, Sampler, SamplerInfo } from "gfx";
-import { device } from "./impl.js";
 
 const hash2sampler: Map<number, Sampler> = new Map;
 

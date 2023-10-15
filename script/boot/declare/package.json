@@ -1,3 +1,6 @@
 {
-    "name": "boot"
+    "name": "boot",
+    "dependencies": {
+        "gfx": "file:../../gfx/declare"
+    }
 }

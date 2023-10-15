@@ -14,14 +14,14 @@ System.initialize(
   },
   {
     imports: {
+      yaml: "./yaml.js",
+      "@esotericsoftware/spine-core": "./spine-core.js",
       "gfx-common": "./gfx-common/index.js",
       gfx: "./gfx/index.js",
       loader: "./loader/index.js",
       phys: "./phys/index.js",
       boot: "./boot/index.js",
-      "engine-main": "./engine-main/index.js",
-      yaml: "./yaml.js",
-      "@esotericsoftware/spine-core": "./spine-core.js",
+      engine: "./engine/index.js",
     },
   }
 );

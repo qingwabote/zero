@@ -1,5 +1,5 @@
+import { device } from "boot";
 import { Buffer, BufferInfo, BufferUsageFlagBits, MemoryUsage } from "gfx";
-import { device } from "../../../impl.js";
 import { BufferView } from "./BufferView.js";
 
 const format2array = {

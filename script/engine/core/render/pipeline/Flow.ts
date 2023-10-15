@@ -1,6 +1,6 @@
+import { device } from "boot";
 import { ClearFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Framebuffer, FramebufferInfo, PipelineLayout, PipelineLayoutInfo, SampleCountFlagBits, TextureInfo, TextureUsageBits, Uint32Vector } from "gfx";
 import { Zero } from "../../Zero.js";
-import { device } from "../../impl.js";
 import { shaderLib } from "../../shaderLib.js";
 import { Root } from "../scene/Root.js";
 import { Stage } from "./Stage.js";

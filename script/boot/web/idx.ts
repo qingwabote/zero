@@ -1,5 +1,7 @@
 // load implementations first
 import "./impl/index.js";
+//
+import { Device } from "gfx";
 
 export interface Touch {
     readonly x: number,
@@ -22,6 +24,10 @@ export interface EventListener {
     onGestureRotate(event: GestureEvent): void;
     onFrame(timestamp: number): void;
 }
+
+const canvas = document.getElementById("ZeroCanvas") as HTMLCanvasElement;
+
+export const device = new Device(canvas.getContext('webgl2', { alpha: false, antialias: false })!);
 
 export function listen(listener: EventListener) {
     const canvas = document.getElementById("ZeroCanvas") as HTMLCanvasElement;

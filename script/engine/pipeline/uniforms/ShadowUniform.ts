@@ -1,6 +1,6 @@
+import { device } from "boot";
 import { BufferUsageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { device } from "../../core/impl.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { quat } from "../../core/math/quat.js";
 import { vec3 } from "../../core/math/vec3.js";

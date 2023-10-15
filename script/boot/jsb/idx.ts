@@ -1,5 +1,6 @@
 // load implementations first
 import "./impl/index.js";
+//
 
 export interface Touch {
     readonly x: number,
@@ -23,9 +24,9 @@ export interface EventListener {
     onFrame(timestamp: number): void;
 }
 
-export function listen(listener: EventListener) {
-    const zero = (globalThis as any).zero;
+export const device = zero.device;
 
+export function listen(listener: EventListener) {
     zero.onTouchStart((event: any) => {
         const touch = event.touches.get(0);
         listener.onTouchStart({ touches: [touch] });

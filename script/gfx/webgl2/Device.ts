@@ -13,7 +13,6 @@ import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
-import { context } from "./impl.js";
 
 export interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
@@ -44,13 +43,13 @@ export class Device implements Device {
         return this._queue;
     }
 
-    constructor() {
+    constructor(gl: WebGL2RenderingContext) {
         this._capabilities = {
-            uniformBufferOffsetAlignment: context.getParameter(context.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+            uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1
         }
-        this._swapchain = { colorTexture: new Texture(context, true), width: context.drawingBufferWidth, height: context.drawingBufferHeight };
-        this._gl = context;
+        this._swapchain = { colorTexture: new Texture(gl, true), width: gl.drawingBufferWidth, height: gl.drawingBufferHeight };
+        this._gl = gl;
     }
 
     createCommandBuffer(): CommandBuffer {

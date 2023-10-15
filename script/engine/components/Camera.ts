@@ -1,8 +1,8 @@
+import { device } from "boot";
 import { ClearFlagBits } from "gfx";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
 import { Component } from "../core/Component.js";
 import { Zero } from "../core/Zero.js";
-import { device } from "../core/impl.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Rect } from "../core/math/rect.js";
 import { Vec2Like, vec2 } from "../core/math/vec2.js";

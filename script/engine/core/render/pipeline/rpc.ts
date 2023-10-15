@@ -1,5 +1,5 @@
+import { device } from "boot";
 import { AttachmentDescription, ClearFlagBits, ImageLayout, LOAD_OP, RenderPass, RenderPassInfo, SampleCountFlagBits } from "gfx";
-import { device } from "../../impl.js";
 
 const clearFlag2renderPass: Record<string, RenderPass> = {};
 

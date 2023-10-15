@@ -31,6 +31,8 @@ export declare class Device {
 
     get queue(): Queue;
 
+    constructor(...args);
+
     createDescriptorSetLayout(): DescriptorSetLayout;
 
     createDescriptorSet(): DescriptorSet;
