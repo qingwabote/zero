@@ -249,7 +249,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
             if (_frameCb)
             {
-                std::move(_frameCb)->call();
+                _frameCb->call();
             }
         }
 

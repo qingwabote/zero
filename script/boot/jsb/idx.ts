@@ -28,7 +28,9 @@ const w = zero.Window.instance();
 
 export const device = w.device();
 
-export function now() {
+export const initial: number = w.now();
+
+export function now(): number {
     return w.now();
 }
 

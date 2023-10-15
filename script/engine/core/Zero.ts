@@ -1,4 +1,4 @@
-import { EventListener, GestureEvent, TouchEvent, device, listen, now } from "boot";
+import { EventListener, GestureEvent, TouchEvent, device, initial, listen, now } from "boot";
 import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
 import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
 import { Component } from "./Component.js";
@@ -60,7 +60,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     private _inputEvents: Map<InputEventType, any> = new Map;
 
-    private _time: number = 0;
+    private _time = initial;
 
     constructor() {
         super();
@@ -128,10 +128,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     onFrame() {
         this.emit(ZeroEvent.LOGIC_START);
 
-        const timestamp = now();
-
-        const delta = this._time ? ((timestamp - this._time) / 1000) : 0;
-        this._time = timestamp;
+        const time = now();
+        const delta = (time - this._time) / 1000;
+        this._time = time;
 
         for (const [name, event] of this._inputEvents) {
             this.input.emit(name, event);

@@ -43,6 +43,8 @@ globalThis.WebGL2RenderingContext = gl;
 
 export const device = new Device(gl);
 
+export const initial = performance.now();
+
 export function now() {
     return performance.now();
 }

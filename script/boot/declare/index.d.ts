@@ -24,6 +24,8 @@ export declare interface EventListener {
 
 export declare const device: Device;
 
+export declare const initial: number;
+
 export declare function now(): number;
 
 export declare function listen(listener: EventListener);

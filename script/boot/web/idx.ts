@@ -29,6 +29,8 @@ const canvas = document.getElementById("ZeroCanvas") as HTMLCanvasElement;
 
 export const device = new Device(canvas.getContext('webgl2', { alpha: false, antialias: false })!);
 
+export const initial = performance.now();
+
 export function now() {
     return performance.now();
 }
