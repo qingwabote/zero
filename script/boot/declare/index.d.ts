@@ -19,10 +19,12 @@ export declare interface EventListener {
     onTouchEnd(event: TouchEvent): void;
     onGesturePinch(event: GestureEvent): void;
     onGestureRotate(event: GestureEvent): void;
-    onFrame(timestamp: number): void;
+    onFrame(): void;
 }
 
 export declare const device: Device;
+
+export declare function now(): number;
 
 export declare function listen(listener: EventListener);
 

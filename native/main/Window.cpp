@@ -16,7 +16,7 @@ extern "C"
     void ImageBitmap_initialize(v8::Local<v8::Object> exports_obj);
     void Loader_initialize(v8::Local<v8::Object> exports_obj);
     void gfx_initialize(v8::Local<v8::Object> exports_obj);
-    void global_initialize(v8::Local<v8::Object> exports_obj);
+    void Window_initialize(v8::Local<v8::Object> exports_obj);
 }
 
 #define NANOSECONDS_60FPS 16666667LL
@@ -27,9 +27,10 @@ Window &Window::instance()
     return instance;
 }
 
-Window::Window() {}
-
-Window::~Window() {}
+double Window::now()
+{
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() * 0.001;
+}
 
 int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 {
@@ -107,7 +108,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         auto ns_zero = v8::Object::New(isolate.get());
         ImageBitmap_initialize(ns_zero);
         Loader_initialize(ns_zero);
-        global_initialize(ns_zero);
+        Window_initialize(ns_zero);
         console_initialize(context, ns_global);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), ns_zero).ToChecked();
 
@@ -248,7 +249,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
 
             if (_frameCb)
             {
-                std::move(_frameCb)->call(std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count());
+                std::move(_frameCb)->call();
             }
         }
 

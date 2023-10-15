@@ -34,7 +34,7 @@ export interface EventListener {
     onTouchEnd(event: TouchEvent): void;
     onGesturePinch(event: GestureEvent): void;
     onGestureRotate(event: GestureEvent): void;
-    onFrame(timestamp: number): void;
+    onFrame(): void;
 }
 
 const canvas = wx.createCanvas()
@@ -42,6 +42,10 @@ const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
 globalThis.WebGL2RenderingContext = gl;
 
 export const device = new Device(gl);
+
+export function now() {
+    return performance.now();
+}
 
 export function listen(listener: EventListener) {
     let lastEvent: TouchEvent;
@@ -62,7 +66,7 @@ export function listen(listener: EventListener) {
     })
 
     function loop() {
-        listener.onFrame(performance.now());
+        listener.onFrame();
         requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

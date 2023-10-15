@@ -1,4 +1,4 @@
-import { EventListener, GestureEvent, TouchEvent, device, listen } from "boot";
+import { EventListener, GestureEvent, TouchEvent, device, listen, now } from "boot";
 import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
 import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
 import { Component } from "./Component.js";
@@ -125,8 +125,10 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._inputEvents.set(InputEventType.GESTURE_ROTATE, event)
     }
 
-    onFrame(timestamp: number) {
+    onFrame() {
         this.emit(ZeroEvent.LOGIC_START);
+
+        const timestamp = now();
 
         const delta = this._time ? ((timestamp - this._time) / 1000) : 0;
         this._time = timestamp;

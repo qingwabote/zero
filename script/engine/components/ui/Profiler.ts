@@ -1,3 +1,5 @@
+import { now } from "boot";
+import { Node } from "../../core/Node.js";
 import { Zero, ZeroEvent } from "../../core/Zero.js";
 import { TextRenderer } from "../TextRenderer.js";
 import { UIContainer } from "./UIContainer.js";
@@ -15,7 +17,9 @@ export class Profiler extends UIContainer {
 
     private _text!: UIRenderer<TextRenderer>;
 
-    override start(): void {
+    constructor(node: Node) {
+        super(node);
+
         const text = UIRenderer.create(TextRenderer);
         this.addElement(text);
         this._text = text;
@@ -45,10 +49,10 @@ Logic(ms): ${this._logic_time.toFixed(2)}`;
         let delta = 0;
         let count = 0;
         Zero.instance.on(ZeroEvent.LOGIC_START, () => {
-            time = Date.now();
+            time = now();
         })
         Zero.instance.on(ZeroEvent.LOGIC_END, () => {
-            delta += Date.now() - time;
+            delta += now() - time;
             count++;
             if (count == 60) {
                 this._logic_time = delta / count;
@@ -63,10 +67,10 @@ Logic(ms): ${this._logic_time.toFixed(2)}`;
         let delta = 0;
         let count = 0;
         Zero.instance.on(ZeroEvent.RENDER_START, () => {
-            time = Date.now();
+            time = now();
         })
         Zero.instance.on(ZeroEvent.RENDER_END, () => {
-            delta += Date.now() - time;
+            delta += now() - time;
             count++;
             if (count == 60) {
                 this._render_time = delta / count;

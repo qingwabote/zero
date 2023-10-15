@@ -14,7 +14,7 @@ set(SRC_FILES
     swig/auto/ImageBitmap_wrap.cpp
     swig/auto/Loader_wrap.cpp
     swig/auto/gfx_wrap.cpp
-    swig/auto/global_wrap.cpp
+    swig/auto/Window_wrap.cpp
     bg/Device.cpp
     bg/CommandBuffer.cpp
     bg/Queue.cpp

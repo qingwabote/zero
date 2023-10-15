@@ -35,7 +35,6 @@
 }
 
 %ignore loader::Loader::Loader;
-%ignore loader::Loader::instance;
 
 %attribute(loader::Loader, uint32_t, taskCount, taskCount);
 

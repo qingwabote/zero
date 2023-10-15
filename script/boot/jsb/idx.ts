@@ -21,28 +21,32 @@ export interface EventListener {
     onTouchEnd(event: TouchEvent): void;
     onGesturePinch(event: GestureEvent): void;
     onGestureRotate(event: GestureEvent): void;
-    onFrame(timestamp: number): void;
+    onFrame(): void;
 }
 
-export const device = zero.device;
+const w = zero.Window.instance();
+
+export const device = w.device();
+
+export function now() {
+    return w.now();
+}
 
 export function listen(listener: EventListener) {
-    zero.onTouchStart((event: any) => {
+    w.onTouchStart(function (event: any) {
         const touch = event.touches.get(0);
         listener.onTouchStart({ touches: [touch] });
     })
-    zero.onTouchMove((event: any) => {
+    w.onTouchMove(function (event: any) {
         const touch = event.touches.get(0);
         listener.onTouchMove({ touches: [touch] })
     })
-    zero.onTouchEnd((event: any) => {
+    w.onTouchEnd(function (event: any) {
         const touch = event.touches.get(0);
         listener.onTouchEnd({ touches: [touch] })
     })
 
-    function loop(timestamp: number) {
-        listener.onFrame(timestamp);
-        zero.requestAnimationFrame(loop);
-    }
-    zero.requestAnimationFrame(loop);
+    w.onFrame(function () {
+        listener.onFrame();
+    });
 }

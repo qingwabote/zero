@@ -22,34 +22,38 @@ export interface EventListener {
     onTouchEnd(event: TouchEvent): void;
     onGesturePinch(event: GestureEvent): void;
     onGestureRotate(event: GestureEvent): void;
-    onFrame(timestamp: number): void;
+    onFrame(): void;
 }
 
 const canvas = document.getElementById("ZeroCanvas") as HTMLCanvasElement;
 
 export const device = new Device(canvas.getContext('webgl2', { alpha: false, antialias: false })!);
 
+export function now() {
+    return performance.now();
+}
+
 export function listen(listener: EventListener) {
     const canvas = document.getElementById("ZeroCanvas") as HTMLCanvasElement;
 
-    canvas.addEventListener("mousedown", (mouseEvent) => {
+    canvas.addEventListener("mousedown", function (mouseEvent) {
         listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] });
     })
-    canvas.addEventListener("mousemove", (mouseEvent) => {
+    canvas.addEventListener("mousemove", function (mouseEvent) {
         if (mouseEvent.buttons) {
             listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
         }
     })
-    canvas.addEventListener("mouseup", (mouseEvent) => {
+    canvas.addEventListener("mouseup", function (mouseEvent) {
         listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
     })
 
-    canvas.addEventListener("wheel", (wheelEvent) => {
+    canvas.addEventListener("wheel", function (wheelEvent) {
         listener.onGesturePinch({ delta: wheelEvent.deltaY });
     })
 
-    function loop(timestamp: number) {
-        listener.onFrame(timestamp);
+    function loop() {
+        listener.onFrame();
         requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
