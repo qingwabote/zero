@@ -6,17 +6,17 @@ namespace gfx
 {
     Buffer_impl::Buffer_impl(Device_impl *device) : _device(device) {}
 
-    bool Buffer_impl::initialize(const BufferInfo &info)
+    bool Buffer_impl::initialize(const std::shared_ptr<const BufferInfo> &info)
     {
-        if (info.size)
+        if (info->size)
         {
             VkBufferCreateInfo bufferInfo = {};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.usage = static_cast<VkBufferUsageFlags>(info.usage);
-            bufferInfo.size = info.size;
+            bufferInfo.usage = static_cast<VkBufferUsageFlags>(info->usage);
+            bufferInfo.size = info->size;
 
             VmaAllocationCreateInfo allocationCreateInfo = {};
-            allocationCreateInfo.usage = static_cast<VmaMemoryUsage>(info.mem_usage);
+            allocationCreateInfo.usage = static_cast<VmaMemoryUsage>(info->mem_usage);
             if (allocationCreateInfo.usage == VMA_MEMORY_USAGE_CPU_TO_GPU)
             {
                 allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
@@ -28,7 +28,7 @@ namespace gfx
             }
         }
 
-        _info = std::make_shared<BufferInfo>(info);
+        _info = info;
 
         return false;
     }
@@ -39,7 +39,7 @@ namespace gfx
         memcpy(_allocationInfo.pMappedData, start, length);
     }
 
-    void Buffer_impl::reset(const BufferInfo &info)
+    void Buffer_impl::reset(const std::shared_ptr<const BufferInfo> &info)
     {
         if (_info->size)
         {
@@ -55,14 +55,14 @@ namespace gfx
 
     Buffer::Buffer(Device_impl *device) : _impl(std::make_shared<Buffer_impl>(device)) {}
 
-    bool Buffer::initialize(const BufferInfo &info) { return _impl->initialize(info); }
+    bool Buffer::initialize(const std::shared_ptr<const BufferInfo> &info) { return _impl->initialize(info); }
 
     void Buffer::update(const std::shared_ptr<const void> &data, size_t offset, size_t length) { _impl->update(data.get(), offset, length); }
 
     void Buffer::resize(uint32_t size)
     {
-        BufferInfo info(*_impl->info());
-        info.size = size;
+        auto info = std::make_shared<BufferInfo>(*_impl->info());
+        info->size = size;
         _impl->reset(info);
     }
 

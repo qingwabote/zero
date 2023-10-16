@@ -72,19 +72,15 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._systems = systems;
 
         const commandBuffer = device.createCommandBuffer();
-        commandBuffer.initialize();
         this._commandBuffer = commandBuffer;
 
         const presentSemaphore = device.createSemaphore();
-        presentSemaphore.initialize();
         this._presentSemaphore = presentSemaphore;
 
         const renderSemaphore = device.createSemaphore();
-        renderSemaphore.initialize();
         this._renderSemaphore = renderSemaphore;
 
         const renderFence = device.createFence();
-        renderFence.initialize();
         this._renderFence = renderFence;
 
         Zero._instance = this;

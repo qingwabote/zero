@@ -20,7 +20,7 @@ namespace gfx
 
         DescriptorSetLayout(Device_impl *device);
 
-        bool initialize(std::shared_ptr<DescriptorSetLayoutInfo> info);
+        bool initialize(const std::shared_ptr<DescriptorSetLayoutInfo> &info);
 
         ~DescriptorSetLayout();
     };

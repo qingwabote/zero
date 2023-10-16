@@ -8,7 +8,12 @@ namespace bg
 
     std::unique_ptr<gfx::Queue> Device::getQueue() { return std::make_unique<Queue>(_impl, _background.get()); }
 
-    gfx::CommandBuffer *Device::createCommandBuffer() { return new CommandBuffer(_impl, _background.get()); }
+    gfx::CommandBuffer *Device::createCommandBuffer()
+    {
+        auto commandBuffer = new CommandBuffer(_impl, _background.get());
+        commandBuffer->initialize();
+        return commandBuffer;
+    }
 
     void Device::finish()
     {

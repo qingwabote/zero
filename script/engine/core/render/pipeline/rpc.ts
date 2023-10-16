@@ -32,8 +32,7 @@ export function getRenderPass(clearFlags: ClearFlagBits, samples = SampleCountFl
         depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         info.depthStencilAttachment = depthStencilAttachment;
         info.samples = samples;
-        renderPass = device.createRenderPass();
-        renderPass.initialize(info);
+        renderPass = device.createRenderPass(info);
         clearFlag2renderPass[hash] = renderPass;
     }
     return renderPass;

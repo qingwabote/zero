@@ -39,8 +39,6 @@ export class CommandBuffer {
         this._gl = gl;
     }
 
-    initialize(): boolean { return false; }
-
     begin(): void { }
 
     copyBuffer(srcBuffer: ArrayBuffer, dstBuffer: Buffer, srcOffset: number, length: number): void {

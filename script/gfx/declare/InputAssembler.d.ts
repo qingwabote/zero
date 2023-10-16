@@ -6,5 +6,4 @@ import { InputAssemblerInfo } from "./info.js";
 export declare class InputAssembler {
     get info(): InputAssemblerInfo;
     private constructor(...args);
-    initialize(info: InputAssemblerInfo): boolean;
 }

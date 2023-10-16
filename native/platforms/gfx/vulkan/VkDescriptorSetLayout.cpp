@@ -13,7 +13,7 @@ namespace gfx
 
     DescriptorSetLayout::DescriptorSetLayout(Device_impl *device) : _impl(std::make_unique<DescriptorSetLayout_impl>(device)) {}
 
-    bool DescriptorSetLayout::initialize(std::shared_ptr<DescriptorSetLayoutInfo> info)
+    bool DescriptorSetLayout::initialize(const std::shared_ptr<DescriptorSetLayoutInfo> &info)
     {
         uint32_t maxSets{10};
 

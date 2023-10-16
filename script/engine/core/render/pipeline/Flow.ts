@@ -36,19 +36,14 @@ export class Flow {
             this._uniforms.push(instance);
         }
 
-        const descriptorSetLayout = device.createDescriptorSetLayout();
+        const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
         (descriptorSetLayout as any).name = "global descriptorSetLayout";
-        descriptorSetLayout.initialize(descriptorSetLayoutInfo);
 
         const pipelineLayoutInfo = new PipelineLayoutInfo;
         pipelineLayoutInfo.layouts.add(descriptorSetLayout);
-        const pipelineLayout = device.createPipelineLayout();
-        pipelineLayout.initialize(pipelineLayoutInfo);
-        this._globalPipelineLayout = pipelineLayout;
+        this._globalPipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
 
-        const globalDescriptorSet = device.createDescriptorSet();
-        globalDescriptorSet.initialize(descriptorSetLayout);
-        this.globalDescriptorSet = globalDescriptorSet;
+        this.globalDescriptorSet = device.createDescriptorSet(descriptorSetLayout);
 
         const framebufferInfo = new FramebufferInfo;
         if (samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
@@ -59,9 +54,7 @@ export class Flow {
             colorAttachmentInfo.usage = TextureUsageBits.COLOR_ATTACHMENT | TextureUsageBits.TRANSIENT_ATTACHMENT;
             colorAttachmentInfo.width = device.swapchain.width;
             colorAttachmentInfo.height = device.swapchain.height;
-            const colorAttachment = device.createTexture();
-            colorAttachment.initialize(colorAttachmentInfo);
-            framebufferInfo.colorAttachments.add(colorAttachment);
+            framebufferInfo.colorAttachments.add(device.createTexture(colorAttachmentInfo));
             framebufferInfo.resolveAttachments.add(device.swapchain.colorTexture);
         }
 
@@ -70,17 +63,13 @@ export class Flow {
         depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
         depthStencilAttachmentInfo.width = device.swapchain.width;
         depthStencilAttachmentInfo.height = device.swapchain.height;
-        const depthStencilAttachment = device.createTexture();
-        depthStencilAttachment.initialize(depthStencilAttachmentInfo);
-        framebufferInfo.depthStencilAttachment = depthStencilAttachment;
+        framebufferInfo.depthStencilAttachment = device.createTexture(depthStencilAttachmentInfo);
 
         framebufferInfo.renderPass = getRenderPass(ClearFlagBits.COLOR, samples);
         framebufferInfo.width = device.swapchain.width;
         framebufferInfo.height = device.swapchain.height;
 
-        const framebuffer = device.createFramebuffer();
-        framebuffer.initialize(framebufferInfo);
-        this.framebuffer = framebuffer;
+        this.framebuffer = device.createFramebuffer(framebufferInfo);
     }
 
     start() {

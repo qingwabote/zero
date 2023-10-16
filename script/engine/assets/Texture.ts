@@ -29,16 +29,13 @@ export class Texture implements Asset {
         info.usage = TextureUsageBits.SAMPLED | TextureUsageBits.TRANSFER_DST;
         info.width = bitmap.width;
         info.height = bitmap.height;
-        const texture = device.createTexture();
-        texture.initialize(info);
+        const texture = device.createTexture(info);
 
         if (!_commandBuffer) {
             _commandBuffer = device.createCommandBuffer();
-            _commandBuffer.initialize();
         }
         if (!_fence) {
             _fence = device.createFence();
-            _fence.initialize();
         }
         _commandBuffer.begin();
         _commandBuffer.copyImageBitmapToTexture(bitmap, texture);

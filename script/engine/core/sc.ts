@@ -11,8 +11,7 @@ export function getSampler(minFilter = Filter.LINEAR, magFilter = Filter.LINEAR)
         const info = new SamplerInfo;
         info.minFilter = minFilter;
         info.magFilter = magFilter;
-        sampler = device.createSampler();
-        sampler.initialize(info);
+        sampler = device.createSampler(info);
         hash2sampler.set(hash, sampler);
     }
     return sampler;

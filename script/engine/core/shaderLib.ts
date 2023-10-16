@@ -127,8 +127,7 @@ export const shaderLib = {
         for (const uniform of uniforms) {
             info.bindings.add(this.createDescriptorSetLayoutBinding(uniform));
         }
-        const layout = device.createDescriptorSetLayout();
-        layout.initialize(info);
+        const layout = device.createDescriptorSetLayout(info);
         return layout;
     },
 
@@ -165,9 +164,7 @@ export const shaderLib = {
                 binding.stageFlags = block.stageFlags;
                 info.bindings.add(binding);
             }
-            descriptorSetLayout = device.createDescriptorSetLayout();
-            descriptorSetLayout.initialize(info);
-
+            descriptorSetLayout = device.createDescriptorSetLayout(info);
             _shader2descriptorSetLayout[key] = descriptorSetLayout;
         }
 
@@ -197,9 +194,9 @@ export const shaderLib = {
                 info.types.add(types[i]);
             }
 
-            const shader = device.createShader();
-            if (shader.initialize(info)) {
-                throw new Error(`failed to initialize shader: ${name}`)
+            const shader = device.createShader(info);
+            if (!shader) {
+                throw new Error(`failed to initialize shader: ${key}`)
             }
             _key2shader[key] = shader;
             _shader2meta.set(shader, { key, ...glsl.parse(sources, types) });

@@ -356,21 +356,18 @@ export class GLTF implements Asset {
         let buffer = this._buffers[index];
         if (!this._buffers[index]) {
             const viewInfo = this._json.bufferViews[index];
-            buffer = device.createBuffer();
             if (usage & BufferUsageFlagBits.VERTEX) {
                 const info = new BufferInfo();
                 info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
                 info.mem_usage = MemoryUsage.GPU_ONLY;
                 info.stride = viewInfo.byteStride | 0;
                 info.size = viewInfo.byteLength;
-                buffer.initialize(info);
+                buffer = device.createBuffer(info);
                 if (!_commandBuffer) {
                     _commandBuffer = device.createCommandBuffer();
-                    _commandBuffer.initialize();
                 }
                 if (!_fence) {
                     _fence = device.createFence();
-                    _fence.initialize();
                 }
                 _commandBuffer.begin();
                 _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
@@ -385,7 +382,7 @@ export class GLTF implements Asset {
                 info.mem_usage = MemoryUsage.CPU_TO_GPU;
                 info.stride = viewInfo.byteStride | 0;
                 info.size = viewInfo.byteLength;
-                buffer.initialize(info);
+                buffer = device.createBuffer(info);
                 buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);
             }
 

@@ -38,8 +38,7 @@ export class Model {
 
     constructor() {
         const ModelType = (this.constructor as typeof Model);
-        const descriptorSet = device.createDescriptorSet();
-        descriptorSet.initialize(ModelType.descriptorSetLayout);
+        const descriptorSet = device.createDescriptorSet(ModelType.descriptorSetLayout);
         descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
         this.descriptorSet = descriptorSet;
     }

@@ -62,8 +62,7 @@ export class ModelPhase extends Phase {
             const info = new PipelineLayoutInfo;
             info.layouts.add(Zero.instance.flow.globalDescriptorSet.layout);
             info.layouts.add(ModelType.descriptorSetLayout);
-            pipelineLayout = device.createPipelineLayout();
-            pipelineLayout.initialize(info);
+            pipelineLayout = device.createPipelineLayout(info);
             modelPipelineLayoutCache.set(ModelType, pipelineLayout);
         }
         return pipelineLayout;
@@ -80,8 +79,7 @@ export class ModelPhase extends Phase {
             if (pass.descriptorSet) {
                 info.layouts.add(pass.descriptorSet.layout);
             }
-            pipelineLayout = device.createPipelineLayout();
-            pipelineLayout.initialize(info)
+            pipelineLayout = device.createPipelineLayout(info);
             pipelineLayoutCache[shader_hash] = pipelineLayout;
         }
         return pipelineLayout;
@@ -142,8 +140,7 @@ export class ModelPhase extends Phase {
             info.vertexInputState = vertexInputState;
             info.renderPass = renderPass;
             info.layout = layout;
-            pipeline = device.createPipeline();
-            pipeline.initialize(info);
+            pipeline = device.createPipeline(info);
             pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;

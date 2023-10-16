@@ -30,8 +30,7 @@ export const stageFactory = {
         depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL;
         const renderPassInfo = new RenderPassInfo;
         renderPassInfo.depthStencilAttachment = depthStencilDescription;
-        const renderPass = device.createRenderPass();
-        renderPass.initialize(renderPassInfo);
+        const renderPass = device.createRenderPass(renderPassInfo);
 
         const framebufferInfo = new FramebufferInfo;
         const depthStencilAttachmentInfo = new TextureInfo;
@@ -39,14 +38,10 @@ export const stageFactory = {
         depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
         depthStencilAttachmentInfo.width = SHADOWMAP_WIDTH;
         depthStencilAttachmentInfo.height = SHADOWMAP_HEIGHT
-        const depthStencilAttachment = device.createTexture();
-        depthStencilAttachment.initialize(depthStencilAttachmentInfo);
-        framebufferInfo.depthStencilAttachment = depthStencilAttachment;
+        framebufferInfo.depthStencilAttachment = device.createTexture(depthStencilAttachmentInfo);
         framebufferInfo.renderPass = renderPass;
         framebufferInfo.width = SHADOWMAP_WIDTH;
         framebufferInfo.height = SHADOWMAP_HEIGHT;
-        const framebuffer = device.createFramebuffer();
-        framebuffer.initialize(framebufferInfo);
-        return new Stage([ShadowUniform, ShadowMapUniform], [new ModelPhase('shadowmap', visibility)], framebuffer, renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
+        return new Stage([ShadowUniform, ShadowMapUniform], [new ModelPhase('shadowmap', visibility)], device.createFramebuffer(framebufferInfo), renderPass, { x: 0, y: 0, width: SHADOWMAP_WIDTH, height: SHADOWMAP_HEIGHT });
     }
 } as const

@@ -35,9 +35,7 @@ export class Pass {
         const descriptorSetLayout = shaderLib.getMaterialDescriptorSetLayout(this.state.shader);
         (descriptorSetLayout as any).name = "Pass descriptorSetLayout";
         if (descriptorSetLayout.info.bindings.size()) {
-            const descriptorSet = device.createDescriptorSet();
-            descriptorSet.initialize(descriptorSetLayout);
-
+            const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
             const blocks = shaderLib.getShaderMeta(this.state.shader).blocks;
             for (const name in blocks) {
                 const block = blocks[name];

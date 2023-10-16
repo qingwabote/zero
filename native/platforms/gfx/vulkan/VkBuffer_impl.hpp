@@ -27,11 +27,11 @@ namespace gfx
 
         Buffer_impl(Device_impl *device);
 
-        bool initialize(const BufferInfo &info);
+        bool initialize(const std::shared_ptr<const BufferInfo> &info);
 
         void update(const void *data, size_t offset, size_t length);
 
-        void reset(const BufferInfo &info);
+        void reset(const std::shared_ptr<const BufferInfo> &info);
 
         operator VkBuffer() { return _buffer; }
 

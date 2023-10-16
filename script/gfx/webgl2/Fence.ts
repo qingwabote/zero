@@ -1,3 +1,1 @@
-export class Fence {
-    initialize(): boolean { return false }
-}
+export class Fence { }

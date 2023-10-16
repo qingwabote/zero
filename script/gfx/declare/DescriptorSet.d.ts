@@ -8,8 +8,6 @@ export declare class DescriptorSet {
 
     private constructor(...args);
 
-    initialize(layout: DescriptorSetLayout): boolean;
-
     // getBuffer(binding: number): Buffer;
     bindBuffer(binding: number, buffer: Buffer, range?: number): void;
     // getTexture(binding: number): Texture;

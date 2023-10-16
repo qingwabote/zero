@@ -13,6 +13,7 @@ import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
+import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
 export interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
@@ -52,61 +53,83 @@ export class Device implements Device {
         this._gl = gl;
     }
 
+    acquire(semaphore: Semaphore): void { }
+
+    createBuffer(info: BufferInfo): Buffer {
+        const buffer = new Buffer(this._gl);
+        buffer.initialize(info);
+        return buffer;
+    }
+
     createCommandBuffer(): CommandBuffer {
         return new CommandBuffer(this._gl);
     }
 
-    createDescriptorSetLayout(): DescriptorSetLayout {
-        return new DescriptorSetLayout();
+    createDescriptorSet(layout: DescriptorSetLayout): DescriptorSet {
+        const descriptorSet = new DescriptorSet();
+        descriptorSet.initialize(layout);
+        return descriptorSet;
     }
 
-    createDescriptorSet(): DescriptorSet {
-        return new DescriptorSet();
+    createDescriptorSetLayout(info: DescriptorSetLayoutInfo): DescriptorSetLayout {
+        const descriptorSetLayout = new DescriptorSetLayout();
+        descriptorSetLayout.initialize(info);
+        return descriptorSetLayout;
     }
 
-    createPipelineLayout(): PipelineLayout {
-        return new PipelineLayout();
+    createFence(signaled?: boolean): Fence {
+        return new Fence;
     }
 
-    createInputAssembler(): InputAssembler {
-        return new InputAssembler;
+    createFramebuffer(info: FramebufferInfo): Framebuffer {
+        const framebuffer = new Framebuffer(this._gl);
+        framebuffer.initialize(info);
+        return framebuffer;
     }
 
-    createPipeline(): Pipeline {
-        return new Pipeline();
+    createInputAssembler(info: InputAssemblerInfo): InputAssembler {
+        const inputAssembler = new InputAssembler;
+        inputAssembler.initialize(info);
+        return inputAssembler;
     }
 
-    createShader(): Shader {
-        return new Shader(this._gl);
+    createPipeline(info: PipelineInfo): Pipeline {
+        const pipeline = new Pipeline();
+        pipeline.initialize(info);
+        return pipeline;
     }
 
-    createBuffer(): Buffer {
-        return new Buffer(this._gl);
+    createPipelineLayout(info: PipelineLayoutInfo): PipelineLayout {
+        const pipelineLayout = new PipelineLayout();
+        pipelineLayout.initialize(info);
+        return pipelineLayout;
     }
 
-    createRenderPass(): RenderPass {
-        return new RenderPass;
+    createRenderPass(info: RenderPassInfo): RenderPass {
+        const renderPass = new RenderPass
+        renderPass.initialize(info);
+        return renderPass;
     }
 
-    createFramebuffer(): Framebuffer {
-        return new Framebuffer(this._gl);
+    createSampler(info: SamplerInfo): Sampler {
+        const sampler = new Sampler(this._gl);
+        sampler.initialize(info);
+        return sampler;
     }
 
     createSemaphore(): Semaphore {
         return new Semaphore;
     }
 
-    createTexture(): Texture {
-        return new Texture(this._gl);
+    createShader(info: ShaderInfo): Shader {
+        const shader = new Shader(this._gl);
+        shader.initialize(info);
+        return shader;
     }
 
-    createSampler(): Sampler {
-        return new Sampler(this._gl);
+    createTexture(info: TextureInfo): Texture {
+        const texture = new Texture(this._gl);
+        texture.initialize(info);
+        return texture;
     }
-
-    createFence(): Fence {
-        return new Fence;
-    }
-
-    acquire(semaphore: Semaphore): void { }
 }

@@ -12,6 +12,7 @@ import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
+import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
 export declare interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
@@ -26,40 +27,25 @@ export declare interface Swapchain {
 
 export declare class Device {
     get capabilities(): Capabilities;
-
     get swapchain(): Swapchain;
-
     get queue(): Queue;
 
     constructor(...args);
 
-    createDescriptorSetLayout(): DescriptorSetLayout;
-
-    createDescriptorSet(): DescriptorSet;
-
-    createPipelineLayout(): PipelineLayout;
-
-    createInputAssembler(): InputAssembler;
-
-    createPipeline(): Pipeline;
-
-    createShader(): Shader;
-
-    createBuffer(): Buffer;
-
-    createTexture(): Texture;
-
-    createSampler(): Sampler;
-
-    createFramebuffer(): Framebuffer;
-
-    createRenderPass(): RenderPass;
-
-    createCommandBuffer(): CommandBuffer;
-
-    createSemaphore(): Semaphore;
-
-    createFence(): Fence;
-
     acquire(semaphore: Semaphore): void;
+
+    createBuffer(info: BufferInfo): Buffer;
+    createCommandBuffer(): CommandBuffer;
+    createDescriptorSet(layout: DescriptorSetLayout): DescriptorSet;
+    createDescriptorSetLayout(info: DescriptorSetLayoutInfo): DescriptorSetLayout;
+    createFence(signaled?: boolean): Fence;
+    createFramebuffer(info: FramebufferInfo): Framebuffer;
+    createInputAssembler(info: InputAssemblerInfo): InputAssembler;
+    createPipeline(info: PipelineInfo): Pipeline;
+    createPipelineLayout(info: PipelineLayoutInfo): PipelineLayout;
+    createRenderPass(info: RenderPassInfo): RenderPass;
+    createSampler(info: SamplerInfo): Sampler;
+    createSemaphore(): Semaphore;
+    createShader(info: ShaderInfo): Shader;
+    createTexture(info: TextureInfo): Texture;
 }

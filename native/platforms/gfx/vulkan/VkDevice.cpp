@@ -299,22 +299,105 @@ namespace gfx
 
     std::unique_ptr<Queue> Device::getQueue() { return std::make_unique<Queue>(_impl); }
 
-    Buffer *Device::createBuffer() { return new Buffer(_impl); }
-    Texture *Device::createTexture() { return new Texture(_impl); }
-    Sampler *Device::createSampler() { return new Sampler(_impl); }
-    Shader *Device::createShader() { return new Shader(_impl); }
-    RenderPass *Device::createRenderPass() { return new RenderPass(_impl); }
-    Framebuffer *Device::createFramebuffer() { return new Framebuffer(_impl); }
-    DescriptorSetLayout *Device::createDescriptorSetLayout() { return new DescriptorSetLayout(_impl); }
-    DescriptorSet *Device::createDescriptorSet() { return new DescriptorSet(_impl); }
-    InputAssembler *Device::createInputAssembler() { return new InputAssembler(_impl); }
-    PipelineLayout *Device::createPipelineLayout() { return new PipelineLayout(_impl); }
-    Pipeline *Device::createPipeline() { return new Pipeline(_impl); }
-    CommandBuffer *Device::createCommandBuffer() { return new CommandBuffer(_impl); }
-    Semaphore *Device::createSemaphore() { return new Semaphore(_impl); }
-    Fence *Device::createFence() { return new Fence(_impl); }
-
     void Device::acquire(const std::shared_ptr<Semaphore> &semaphore) { _impl->acquireNextImage(semaphore->impl()); }
+
+    Buffer *Device::createBuffer(const std::shared_ptr<const BufferInfo> &info)
+    {
+        auto buffer = new Buffer(_impl);
+        buffer->initialize(info);
+        return buffer;
+    }
+
+    CommandBuffer *Device::createCommandBuffer()
+    {
+        auto commandBuffer = new CommandBuffer(_impl);
+        commandBuffer->initialize();
+        return commandBuffer;
+    }
+
+    DescriptorSet *Device::createDescriptorSet(const std::shared_ptr<DescriptorSetLayout> &layout)
+    {
+        auto descriptorSet = new DescriptorSet(_impl);
+        descriptorSet->initialize(layout);
+        return descriptorSet;
+    }
+
+    DescriptorSetLayout *Device::createDescriptorSetLayout(const std::shared_ptr<DescriptorSetLayoutInfo> &info)
+    {
+        auto descriptorSetLayout = new DescriptorSetLayout(_impl);
+        descriptorSetLayout->initialize(info);
+        return descriptorSetLayout;
+    }
+
+    Fence *Device::createFence(bool signaled)
+    {
+        auto fence = new Fence(_impl);
+        fence->initialize(signaled);
+        return fence;
+    }
+
+    Framebuffer *Device::createFramebuffer(const std::shared_ptr<FramebufferInfo> &info)
+    {
+        auto framebuffer = new Framebuffer(_impl);
+        framebuffer->initialize(info);
+        return framebuffer;
+    }
+
+    InputAssembler *Device::createInputAssembler(const std::shared_ptr<InputAssemblerInfo> &info)
+    {
+        auto inputAssembler = new InputAssembler(_impl);
+        inputAssembler->initialize(info);
+        return inputAssembler;
+    }
+
+    Pipeline *Device::createPipeline(const std::shared_ptr<PipelineInfo> &info)
+    {
+        auto pipeline = new Pipeline(_impl);
+        pipeline->initialize(info);
+        return pipeline;
+    }
+
+    PipelineLayout *Device::createPipelineLayout(const std::shared_ptr<PipelineLayoutInfo> &info)
+    {
+        auto pipelineLayout = new PipelineLayout(_impl);
+        pipelineLayout->initialize(info);
+        return pipelineLayout;
+    }
+
+    RenderPass *Device::createRenderPass(const std::shared_ptr<RenderPassInfo> &info)
+    {
+        auto renderPass = new RenderPass(_impl);
+        renderPass->initialize(info);
+        return renderPass;
+    }
+
+    Sampler *Device::createSampler(const std::shared_ptr<SamplerInfo> &info)
+    {
+        auto sampler = new Sampler(_impl);
+        sampler->initialize(info);
+        return sampler;
+    }
+
+    Semaphore *Device::createSemaphore()
+    {
+        auto semaphore = new Semaphore(_impl);
+        semaphore->initialize();
+        return semaphore;
+    }
+
+    Shader *Device::createShader(const std::shared_ptr<ShaderInfo> &info)
+    {
+        auto shader = new Shader(_impl);
+        shader->initialize(info);
+        return shader;
+    }
+
+    Texture *Device::createTexture(const std::shared_ptr<TextureInfo> &info)
+    {
+        auto texture = new Texture(_impl);
+        texture->initialize(info);
+        return texture;
+    }
 
     void Device::finish() { vkDeviceWaitIdle(_impl->device()); }
 

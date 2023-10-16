@@ -9,7 +9,6 @@ import { Uint32Vector } from "./info.js";
 
 export declare class CommandBuffer {
     private constructor(...args);
-    initialize(): boolean;
     begin(): void;
     copyBuffer(srcBuffer: ArrayBuffer, dstBuffer: Buffer, srcOffset: number, length: number): void;
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;

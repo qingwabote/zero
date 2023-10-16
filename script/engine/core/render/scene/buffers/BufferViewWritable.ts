@@ -33,14 +33,12 @@ export class BufferViewWritable implements BufferView {
     constructor(private _format: keyof typeof format2array, private _usage: BufferUsageFlagBits, private _length: number = 0) {
         const source = new format2array[_format](_length);
 
-        const buffer = device.createBuffer();
         const info = new BufferInfo;
         info.usage = _usage;
         info.mem_usage = MemoryUsage.CPU_TO_GPU;
         info.size = source.byteLength;
-        buffer.initialize(info);
 
-        [this._source, this._buffer, this._capacity] = [source, buffer, _length];
+        [this._source, this._buffer, this._capacity] = [source, device.createBuffer(info), _length];
     }
 
     reset(length: number) {

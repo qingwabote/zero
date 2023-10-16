@@ -49,8 +49,6 @@ export class SubMesh {
         }
         inputAssemblerInfo.vertexAttributes = vertexAttributes;
         inputAssemblerInfo.vertexInput = vi;
-        const inputAssembler = device.createInputAssembler();
-        inputAssembler.initialize(inputAssemblerInfo);
-        this.inputAssembler = inputAssembler;
+        this.inputAssembler = device.createInputAssembler(inputAssemblerInfo);
     }
 }
