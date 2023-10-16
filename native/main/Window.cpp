@@ -144,10 +144,10 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         {
             inspector->tick();
 
-            UniqueFunction<void> f{};
+            std::unique_ptr<callable::Callable<void>> f{};
             while (_beforeTickQueue.pop(f))
             {
-                f();
+                f->call();
             }
 
             while (v8::platform::PumpMessageLoop(platform.get(), isolate.get()))

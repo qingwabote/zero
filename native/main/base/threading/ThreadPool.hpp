@@ -13,10 +13,10 @@ private:
 
     std::vector<std::unique_ptr<std::thread>> _threads;
 
-    ThreadSafeQueue<UniqueFunction<void>> _functionQueue;
+    ThreadSafeQueue<std::unique_ptr<callable::Callable<void>>> _functionQueue;
 
 protected:
-    void post(UniqueFunction<void> &&func) override;
+    void post(std::unique_ptr<callable::Callable<void>> &&callable) override;
 
 public:
     static ThreadPool &shared();

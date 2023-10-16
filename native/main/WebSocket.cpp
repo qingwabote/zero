@@ -19,8 +19,8 @@ private:
 
     std::shared_ptr<std::vector<char>> _buffer{nullptr};
 
-    UniqueFunction<void, std::unique_ptr<WebSocketEvent>> _onopen;
-    UniqueFunction<void, std::unique_ptr<WebSocketEvent>> _onmessage;
+    std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> _onopen;
+    std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> _onmessage;
 
 public:
     WebSocketImpl(const std::string &url)
@@ -47,7 +47,7 @@ public:
         case LWS_CALLBACK_ESTABLISHED:
             if (_onopen)
             {
-                _onopen(std::make_unique<WebSocketEvent>());
+                _onopen->call(std::make_unique<WebSocketEvent>());
             }
             break;
         case LWS_CALLBACK_RECEIVE:
@@ -69,7 +69,7 @@ public:
                 }
                 if (_onmessage)
                 {
-                    _onmessage(std::make_unique<WebSocketEvent>(_buffer, binary));
+                    _onmessage->call(std::make_unique<WebSocketEvent>(_buffer, binary));
                 }
             }
             break;
@@ -81,12 +81,12 @@ public:
         return 0;
     }
 
-    void onopen(UniqueFunction<void, std::unique_ptr<WebSocketEvent>> &&callback)
+    void onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
     {
         _onopen = std::move(callback);
     }
 
-    void onmessage(UniqueFunction<void, std::unique_ptr<WebSocketEvent>> &&callback)
+    void onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
     {
         _onmessage = std::move(callback);
     }
@@ -118,14 +118,14 @@ WebSocket::WebSocket(const std::string &url)
     _impl = std::make_unique<WebSocketImpl>(url);
 }
 
-void WebSocket::onopen(UniqueFunction<void, std::unique_ptr<WebSocketEvent>> &&callback)
+void WebSocket::onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
 {
-    _impl->onopen(std::forward<UniqueFunction<void, std::unique_ptr<WebSocketEvent>>>(callback));
+    _impl->onopen(std::forward<std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>>(callback));
 }
 
-void WebSocket::onmessage(UniqueFunction<void, std::unique_ptr<WebSocketEvent>> &&callback)
+void WebSocket::onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
 {
-    _impl->onmessage(std::forward<UniqueFunction<void, std::unique_ptr<WebSocketEvent>>>(callback));
+    _impl->onmessage(std::forward<std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>>(callback));
 }
 
 void WebSocket::send(const void *buffer, size_t length)

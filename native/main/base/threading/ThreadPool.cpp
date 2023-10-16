@@ -11,9 +11,9 @@ ThreadPool::ThreadPool(uint32_t size)
     _threads.resize(size);
 }
 
-void ThreadPool::post(UniqueFunction<void> &&func)
+void ThreadPool::post(std::unique_ptr<callable::Callable<void>> &&callable)
 {
-    _functionQueue.push(std::forward<UniqueFunction<void>>(func));
+    _functionQueue.push(std::forward<std::unique_ptr<callable::Callable<void>>>(callable));
 
     if (!_threadsCreated)
     {
@@ -29,9 +29,9 @@ void ThreadPool::post(UniqueFunction<void> &&func)
                         // {
                         //     func();
                         // }
-                        UniqueFunction<void> f{};
+                        std::unique_ptr<callable::Callable<void>> f{};
                         _functionQueue.pop(f, true);
-                        f();
+                        f->call();
                     }
                 });
         }

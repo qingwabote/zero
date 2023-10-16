@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
-#include "base/UniqueFunction.hpp"
 #include "base/TaskRunner.hpp"
 #include "ImageBitmap.hpp"
 
@@ -56,6 +55,6 @@ namespace loader
         Loader(std::filesystem::path currentPath, TaskRunner *foreground, TaskRunner *background)
             : _currentPath(currentPath), _foreground(foreground), _background(background) {}
 
-        void load(const std::string &path, const std::string &type, UniqueFunction<void, std::unique_ptr<Result>> &&callback);
+        void load(const std::string &path, const std::string &type, std::unique_ptr<callable::Callable<void, std::unique_ptr<Result>>> &&callback);
     };
 }

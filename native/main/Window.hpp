@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SDL_video.h"
-#include "base/callable.hpp"
 #include "base/threading/ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
 #include "events.hpp"
@@ -21,12 +20,12 @@ private:
 
     std::unique_ptr<callable::Callable<void>> _frameCb;
 
-    ThreadSafeQueue<UniqueFunction<void>> _beforeTickQueue;
+    ThreadSafeQueue<std::unique_ptr<callable::Callable<void>>> _beforeTickQueue;
 
 protected:
-    void post(UniqueFunction<void> &&func) override
+    void post(std::unique_ptr<callable::Callable<void>> &&func) override
     {
-        _beforeTickQueue.push(std::forward<UniqueFunction<void>>(func));
+        _beforeTickQueue.push(std::forward<std::unique_ptr<callable::Callable<void>>>(func));
     }
 
 public:

@@ -10,20 +10,20 @@ namespace loader
 {
     uint32_t Loader::_taskCount = 0;
 
-    void Loader::load(const std::string &path, const std::string &type, UniqueFunction<void, std::unique_ptr<Result>> &&callback)
+    void Loader::load(const std::string &path, const std::string &type, std::unique_ptr<callable::Callable<void, std::unique_ptr<Result>>> &&callback)
     {
         std::filesystem::current_path(_currentPath);
         std::error_code ec;
         std::filesystem::path abs_path = std::filesystem::canonical(path, ec);
         if (ec)
         {
-            callback(std::make_unique<Result>(ec.message() + ": " + path));
+            callback->call(std::make_unique<Result>(ec.message() + ": " + path));
             return;
         }
         std::uintmax_t size = std::filesystem::file_size(abs_path, ec);
         if (ec)
         {
-            callback(std::make_unique<Result>(ec.message() + ": " + path));
+            callback->call(std::make_unique<Result>(ec.message() + ": " + path));
             return;
         }
 
@@ -71,7 +71,7 @@ namespace loader
                 foreground->post(new auto(
                     [callback = std::move(callback), result = std::move(result)]() mutable
                     {
-                        callback(std::move(result));
+                        callback->call(std::move(result));
                         Loader::_taskCount--;
                     }));
             }));

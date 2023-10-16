@@ -13,20 +13,20 @@ InspectorClient::InspectorClient()
 
     _channel = std::make_unique<InspectorChannel>(_socket.get());
 
-    _socket->onopen(UniqueFunction<void, std::unique_ptr<WebSocketEvent>>::create(new auto(
+    _socket->onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>(new callable::CallableLambda(new auto(
         [this](std::unique_ptr<WebSocketEvent> event)
         {
             v8_inspector::StringView DummyState;
             _session = _inspector->connect(1, _channel.get(), DummyState);
-        })));
+        }))));
 
-    _socket->onmessage(UniqueFunction<void, std::unique_ptr<WebSocketEvent>>::create(new auto(
+    _socket->onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>(new callable::CallableLambda(new auto(
         [this](std::unique_ptr<WebSocketEvent> event)
         {
             // ZERO_LOG("onmessage %s", event->buffer()->data());
             v8_inspector::StringView stringView(reinterpret_cast<uint8_t *>(event->buffer()->data()), event->buffer()->size() - 1);
             _session->dispatchProtocolMessage(stringView);
-        })));
+        }))));
 }
 
 void InspectorClient::runMessageLoopOnPause(int contextGroupId)

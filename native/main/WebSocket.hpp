@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "base/UniqueFunction.hpp"
+#include "base/callable.hpp"
 
 class WebSocketEvent
 {
@@ -30,8 +30,8 @@ private:
 public:
     WebSocket(const std::string &url);
 
-    void onopen(UniqueFunction<void, std::unique_ptr<WebSocketEvent>> &&callback);
-    void onmessage(UniqueFunction<void, std::unique_ptr<WebSocketEvent>> &&callback);
+    void onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
+    void onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
 
     void send(const void *buffer, size_t length);
 

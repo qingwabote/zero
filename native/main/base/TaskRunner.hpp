@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base/UniqueFunction.hpp"
+#include "base/callable.hpp"
 
 class TaskRunner
 {
@@ -11,9 +11,9 @@ public:
     template <typename T>
     void post(T f)
     {
-        post(UniqueFunction<void>::create(f));
+        post(std::unique_ptr<callable::Callable<void>>(new callable::CallableLambda(f)));
     }
 
 protected:
-    virtual void post(UniqueFunction<void> &&func) = 0;
+    virtual void post(std::unique_ptr<callable::Callable<void>> &&callable) = 0;
 };

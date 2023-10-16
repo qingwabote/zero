@@ -18,7 +18,7 @@
 %ignore loader::Result::Result;
 
 // Loader
-%typemap(in) UniqueFunction<void, std::unique_ptr<loader::Result>> && (UniqueFunction<void, std::unique_ptr<loader::Result>> temp){
+%typemap(in) std::unique_ptr<callable::Callable<void, std::unique_ptr<loader::Result>>> && (std::unique_ptr<callable::Callable<void, std::unique_ptr<loader::Result>>> temp){
     auto js_func = $input.As<v8::Function>();
     v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
     auto c_func = new auto(
@@ -30,7 +30,7 @@
           v8::Local<v8::Value> args[] = {js_res};
           js_g_func.Get(isolate)->Call(context, context->Global(), 1, args);
         });
-    temp = std::move(UniqueFunction<void, std::unique_ptr<loader::Result>>::create(c_func));
+    temp.reset(new callable::CallableLambda(c_func));
     $1 = &temp;
 }
 

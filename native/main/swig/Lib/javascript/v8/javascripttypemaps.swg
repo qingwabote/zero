@@ -81,17 +81,3 @@
   data.reset(store->Data(), [store](void *) {});
   $1 = &data;
 }
-
-%typemap(in) UniqueFunction<void> && (UniqueFunction<void> temp){
-    auto js_func = $input.As<v8::Function>();
-    v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
-    auto c_func = new auto(
-        [js_g_func = std::move(js_g_func)]() mutable
-        {
-            v8::Isolate *isolate = v8::Isolate::GetCurrent();
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
-            js_g_func.Get(isolate)->Call(context, context->Global(), 0, nullptr);
-        });
-    temp = std::move(UniqueFunction<void>::create(c_func));
-    $1 = &temp;
-}
