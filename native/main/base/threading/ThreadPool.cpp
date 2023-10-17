@@ -2,7 +2,7 @@
 
 ThreadPool &ThreadPool::shared()
 {
-    static ThreadPool shared{1};
+    static ThreadPool shared{3};
     return shared;
 }
 

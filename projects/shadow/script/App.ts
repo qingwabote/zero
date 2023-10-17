@@ -5,55 +5,50 @@ const VisibilityBit_DOWN = 1 << 10;
 
 const USE_SHADOW_MAP = 1;
 
-async function materialFunc(macros: MaterialMacros = {}, values: MaterialValues = {}) {
-    const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
-    const albedo = values.albedo || vec4.ONE;
-    const texture = values.texture;
+class TextGLTF extends GLTF {
+    protected override async createMaterial(macros: MaterialMacros = {}, values: MaterialValues = {}): Promise<Material> {
+        const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
+        const albedo = values.albedo || vec4.ONE;
+        const texture = values.texture;
 
-    const effect = await assetLib.cache("./assets/effects/test", Effect);
-    const passes = await effect.createPasses([
-        {
-            macros: { USE_SHADOW_MAP }
-        },
-        {
-            macros: {
-                USE_ALBEDO_MAP: texture ? 1 : 0,
-                USE_SHADOW_MAP,
-                USE_SKIN,
-                CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+        const effect = await assetLib.cache("./assets/effects/test", Effect);
+        const passes = await effect.createPasses([
+            {
+                macros: { USE_SHADOW_MAP }
             },
-            constants: {
-                albedo
+            {
+                macros: {
+                    USE_ALBEDO_MAP: texture ? 1 : 0,
+                    USE_SHADOW_MAP,
+                    USE_SKIN,
+                    CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+                },
+                constants: {
+                    albedo
+                },
+                ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
             },
-            ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
-        },
-        {
-            macros: {
-                USE_ALBEDO_MAP: texture ? 1 : 0
-            },
-            constants: {
-                albedo
-            },
-            ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
-        }
-    ])
-    return new Material(passes);
+            {
+                macros: {
+                    USE_ALBEDO_MAP: texture ? 1 : 0
+                },
+                constants: {
+                    albedo
+                },
+                ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
+            }
+        ])
+        return new Material(passes);
+    }
 }
 
-const guardian = new GLTF();
-guardian.materialFunc = materialFunc;
-await guardian.load('./assets/guardian_zelda_botw_fan-art/scene');
+const [guardian, plane, gltf_camera, ss_depth] = await Promise.all([
+    assetLib.cache('./assets/guardian_zelda_botw_fan-art/scene', TextGLTF),
+    assetLib.cache('../../assets/models/primitive/scene', TextGLTF),
+    assetLib.cache('./assets/camera_from_poly_by_google/scene', TextGLTF),
+    assetLib.cache('depth', ShaderStages)
+])
 
-const plane = new GLTF();
-plane.materialFunc = materialFunc;
-await plane.load('../../assets/models/primitive/scene');
-
-const gltf_camera = new GLTF();
-gltf_camera.materialFunc = materialFunc;
-await gltf_camera.load('./assets/camera_from_poly_by_google/scene');
-
-const ss_depth = new ShaderStages();
-await ss_depth.load('depth');
 
 export class App extends Zero {
     protected override start(): render.Flow {

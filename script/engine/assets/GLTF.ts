@@ -61,34 +61,6 @@ function node2name(node: any, index: number): string {
     return node.name == undefined ? `${index}` : node.name;
 }
 
-
-export async function materialFuncDefault(macros: MaterialMacros = {}, values: MaterialValues = {}) {
-    const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
-    const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
-    const albedo = values.albedo || vec4.ONE;
-    const texture = values.texture;
-
-    const effect = await assetLib.cache("../../assets/effects/phong", Effect);
-    const passes = await effect.createPasses([
-        {
-            macros: { USE_SHADOW_MAP }
-        },
-        {
-            macros: {
-                USE_ALBEDO_MAP: texture ? 1 : 0,
-                USE_SHADOW_MAP,
-                USE_SKIN,
-                CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-            },
-            constants: {
-                albedo
-            },
-            ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
-        }
-    ]);
-    return new Material(passes);
-}
-
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
@@ -111,8 +83,6 @@ export class GLTF implements Asset {
 
     materials: Material[] = [];
 
-    materialFunc: (macros?: MaterialMacros, values?: MaterialValues) => Promise<Material> = materialFuncDefault;
-
     private _skins: Skin[] = [];
 
     private _animationClips: AnimationClip[] = [];
@@ -132,14 +102,14 @@ export class GLTF implements Asset {
         const json_images = json.images || [];
         const textures: Texture[] = await Promise.all(json_images.map((info: any) => assetLib.cache(`${parent}/${uri2path(info.uri)}`, Texture)));
 
-        this._materialDefault = await this.materialFunc();
+        this._materialDefault = await this.createMaterial();
 
         for (const info of json.materials || []) {
             let textureIdx = -1;
             if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
                 textureIdx = json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
             }
-            this.materials.push(await this.materialFunc({ USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
+            this.materials.push(await this.createMaterial({ USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
         }
         this._textures = textures;
 
@@ -215,6 +185,33 @@ export class GLTF implements Asset {
         this._bin = bin;
         this._json = json;
         return this;
+    }
+
+    protected async createMaterial(macros: MaterialMacros = {}, values: MaterialValues = {}) {
+        const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
+        const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
+        const albedo = values.albedo || vec4.ONE;
+        const texture = values.texture;
+
+        const effect = await assetLib.cache("../../assets/effects/phong", Effect);
+        const passes = await effect.createPasses([
+            {
+                macros: { USE_SHADOW_MAP }
+            },
+            {
+                macros: {
+                    USE_ALBEDO_MAP: texture ? 1 : 0,
+                    USE_SHADOW_MAP,
+                    USE_SKIN,
+                    CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+                },
+                constants: {
+                    albedo
+                },
+                ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
+            }
+        ]);
+        return new Material(passes);
     }
 
     createScene(name?: string, materialInstancing = false): Node | null {
