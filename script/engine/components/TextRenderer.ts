@@ -14,7 +14,7 @@ import { IndexInputView, SubMesh, VertexInputView } from "../core/render/scene/S
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
+import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();

@@ -1,25 +1,18 @@
 import * as sc from '@esotericsoftware/spine-core';
+import { ShaderStages, assetLib, render, shaderLib, vec3, vec4 } from 'engine';
 import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState, VertexAttributeVector } from "gfx";
-import { ShaderStages } from '../../assets/ShaderStages.js';
-import { assetLib } from '../../core/assetLib.js';
-import { vec3 } from "../../core/math/vec3.js";
-import { vec4 } from "../../core/math/vec4.js";
-import { Pass } from "../../core/render/scene/Pass.js";
-import { IndexInputView, SubMesh, VertexInputView } from "../../core/render/scene/SubMesh.js";
-import { SubModel } from "../../core/render/scene/SubModel.js";
-import { shaderLib } from "../../core/shaderLib.js";
-import { Texture } from "../Texture.js";
+import { Texture } from "./Texture.js";
 
 const ss_spine = await assetLib.cache('unlit', ShaderStages);
 
 class SubModelPool {
     private _free = 0;
-    private readonly _subModels: SubModel[] = [];
+    private readonly _subModels: render.SubModel[] = [];
 
     constructor(
         private readonly _vertexAttributes: VertexAttributeVector,
-        private readonly _vertexInput: VertexInputView,
-        private readonly _indexInput: IndexInputView,
+        private readonly _vertexInput: render.VertexInputView,
+        private readonly _indexInput: render.IndexInputView,
         private readonly _texture: Texture,
         private readonly _blend: sc.BlendMode) { }
 
@@ -28,7 +21,7 @@ class SubModelPool {
             return this._subModels[--this._free]
         }
 
-        const subMesh = new SubMesh(
+        const subMesh = new render.SubMesh(
             this._vertexAttributes,
             this._vertexInput,
             vec3.create(),
@@ -54,11 +47,11 @@ class SubModelPool {
             default:
                 break;
         }
-        const pass = new Pass(state);
+        const pass = new render.Pass(state);
         pass.setUniform('Constants', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this._texture.getImpl());
 
-        const subModel = new SubModel(subMesh, [pass]);
+        const subModel = new render.SubModel(subMesh, [pass]);
         this._subModels.push(subModel);
 
         return subModel;
@@ -74,11 +67,11 @@ export class SubModelPools {
 
     constructor(
         private readonly _vertexAttributes: VertexAttributeVector,
-        private readonly _vertexInput: VertexInputView,
-        private readonly _indexInput: IndexInputView,
+        private readonly _vertexInput: render.VertexInputView,
+        private readonly _indexInput: render.IndexInputView,
     ) { }
 
-    get(key: string, texture: Texture, blend: sc.BlendMode): SubModel {
+    get(key: string, texture: Texture, blend: sc.BlendMode): render.SubModel {
         let pool = this._pools[key];
         if (!pool) {
             pool = new SubModelPool(this._vertexAttributes, this._vertexInput, this._indexInput, texture, blend);

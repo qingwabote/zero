@@ -1,7 +1,7 @@
 import { vec2, Vec2 } from "../../core/math/vec2.js";
 import { vec3 } from "../../core/math/vec3.js";
 import { Node } from "../../core/Node.js";
-import { BoundedRenderer, BoundsEvent } from "../internal/BoundedRenderer.js";
+import { BoundedRenderer, BoundsEvent } from "../BoundedRenderer.js";
 import { UIBoundsEventType, UIElement } from "./UIElement.js";
 
 const vec3_a = vec3.create();

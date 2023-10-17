@@ -1,14 +1,8 @@
 import * as sc from '@esotericsoftware/spine-core';
+import { AABB2D, BoundedRenderer, Zero, aabb2d, render, vec2 } from "engine";
 import { BufferUsageFlagBits, Format, FormatInfos, IndexType, VertexAttribute, VertexAttributeVector } from 'gfx';
-import { BoundedRenderer } from "../components/internal/BoundedRenderer.js";
-import { Zero } from '../core/Zero.js';
-import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
-import { vec2 } from "../core/math/vec2.js";
-import { IndexInputView, VertexInputView } from '../core/render/scene/SubMesh.js';
-import { SubModel } from '../core/render/scene/SubModel.js';
-import { BufferViewWritable } from '../core/render/scene/buffers/BufferViewWritable.js';
+import { SubModelPools } from './SubModelPools.js';
 import { Texture } from './Texture.js';
-import { SubModelPools } from './internal/SubModelPools.js';
 
 const vertexAttributes = new VertexAttributeVector;
 let _vertexElements = 0;
@@ -62,18 +56,18 @@ export class Skeleton extends BoundedRenderer {
         this._skeleton = skeleton;
     }
 
-    private _vertexInput!: VertexInputView;
-    private _indexInput!: IndexInputView;
+    private _vertexInput!: render.VertexInputView;
+    private _indexInput!: render.IndexInputView;
 
     private _pools!: SubModelPools;
 
     override start(): void {
         this._vertexInput = {
-            buffers: [new BufferViewWritable('Float32', BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048)],
+            buffers: [new render.BufferViewWritable('Float32', BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048)],
             offsets: [0]
         }
         this._indexInput = {
-            buffer: new BufferViewWritable('Uint16', BufferUsageFlagBits.INDEX, 2048 * 3),
+            buffer: new render.BufferViewWritable('Uint16', BufferUsageFlagBits.INDEX, 2048 * 3),
             type: IndexType.UINT16
         }
         this._pools = new SubModelPools(vertexAttributes, this._vertexInput, this._indexInput);
@@ -84,14 +78,14 @@ export class Skeleton extends BoundedRenderer {
         this._model.subModels.length = 0;
         this._pools.recycle();
 
-        let subModel!: SubModel;
+        let subModel!: render.SubModel;
         let key = '';
         let vertex = 0;
         let index = 0;
 
-        const vertexBuffer = this._vertexInput.buffers[0] as BufferViewWritable;
+        const vertexBuffer = this._vertexInput.buffers[0] as render.BufferViewWritable;
         vertexBuffer.invalidate();
-        const indexBuffer = this._indexInput.buffer as BufferViewWritable;
+        const indexBuffer = this._indexInput.buffer as render.BufferViewWritable;
         indexBuffer.invalidate();
 
         this._skeleton.updateWorldTransform();

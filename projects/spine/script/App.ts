@@ -1,4 +1,5 @@
-import { Camera, ModelPhase, Node, Profiler, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, assetLib, device, loader, render, spine, stageFactory, vec2, vec3 } from 'engine';
+import { Camera, ModelPhase, Node, Profiler, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, assetLib, device, loader, render, stageFactory, vec2, vec3 } from 'engine';
+import * as spine from 'spine';
 
 const spine_atlas_src = await loader.load("assets/spineboy/spineboy-pma.atlas", "text");
 const spine_atlas = new spine.core.TextureAtlas(spine_atlas_src);

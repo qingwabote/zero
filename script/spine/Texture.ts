@@ -1,6 +1,6 @@
 import * as spine_core from '@esotericsoftware/spine-core';
+import { Texture as TextureAsset } from 'engine';
 import * as gfx from "gfx";
-import * as assets from '../assets/Texture.js';
 
 export class Texture extends spine_core.Texture {
     private static _id = 0;
@@ -12,7 +12,7 @@ export class Texture extends spine_core.Texture {
 
     readonly id = Texture._id++;
 
-    constructor(private _texture: assets.Texture) {
+    constructor(private _texture: TextureAsset) {
         super(_texture as unknown as ImageBitmap);
     }
 

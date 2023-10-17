@@ -9,7 +9,8 @@
         "phys": "tsc -p ../../../script/phys/null --outDir ../../../minigame/projects/spine/script/phys --module system --sourcemap false --watch",
         "boot": "tsc -p ../../../script/boot/wx --outDir ../../../minigame/projects/spine/script/boot --module system --sourcemap false --watch",
         "engine": "tsc -p ../../../script/engine --outDir ../../../minigame/projects/spine/script/engine --module system --sourcemap false --watch",
+        "spine": "tsc -p ../../../script/spine --outDir ../../../minigame/projects/spine/script/spine --module system --sourcemap false --watch",
         "script": "tsc -p ../script --outDir ../../../minigame/projects/spine/script --module system --sourcemap false --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run phys\" \"npm run boot\" \"npm run engine\" \"npm run script\""
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run phys\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run spine\""
     }
 }

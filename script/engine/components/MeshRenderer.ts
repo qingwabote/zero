@@ -4,7 +4,7 @@ import { Zero } from "../core/Zero.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { vec3 } from "../core/math/vec3.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
-import { BoundedRenderer } from "./internal/BoundedRenderer.js";
+import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();

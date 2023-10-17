@@ -1,6 +1,5 @@
 import { AnimationState, Skeleton } from "@esotericsoftware/spine-core";
-import { System } from "../../core/System.js";
-import { Zero } from "../../core/Zero.js";
+import { System, Zero } from "engine";
 
 export class SkeletonSystem implements System {
     static readonly instance = new SkeletonSystem();

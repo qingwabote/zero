@@ -11,7 +11,7 @@ import { Pass } from "../core/render/scene/Pass.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
+import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 
 const ss_unlit = await assetLib.cache('unlit', ShaderStages);
 

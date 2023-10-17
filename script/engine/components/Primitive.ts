@@ -10,7 +10,7 @@ import { SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { BoundedRenderer, BoundsEvent } from "./internal/BoundedRenderer.js";
+import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();

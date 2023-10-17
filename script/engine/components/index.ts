@@ -1,3 +1,4 @@
+export * from './BoundedRenderer.js';
 export * from './Camera.js';
 export * from './DirectionalLight.js';
 export * from './MeshRenderer.js';

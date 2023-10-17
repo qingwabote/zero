@@ -1,7 +1,7 @@
-import { EventEmitter } from "../../base/EventEmitter.js";
-import { EventEmitterImpl } from "../../base/EventEmitterImpl.js";
-import { AABB2D } from "../../core/math/aabb2d.js";
-import { ModelRenderer } from "./ModelRenderer.js";
+import { EventEmitter } from "../base/EventEmitter.js";
+import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
+import { AABB2D } from "../core/math/aabb2d.js";
+import { ModelRenderer } from "./internal/ModelRenderer.js";
 
 export enum BoundsEvent {
     BOUNDS_CHANGED = "BOUNDS_CHANGED",

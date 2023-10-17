@@ -1,6 +1,6 @@
 import * as sc from '@esotericsoftware/spine-core';
 import { Skeleton } from "./Skeleton.js";
-import { SkeletonSystem } from './internal/SkeletonSystem.js';
+import { SkeletonSystem } from './SkeletonSystem.js';
 
 export class Animation extends Skeleton {
     private _state!: sc.AnimationState;

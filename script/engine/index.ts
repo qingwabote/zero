@@ -3,7 +3,6 @@ export { device } from 'boot';
 //
 
 export * as loader from 'loader';
-export * as spine from './spine/index.js';
 
 export * from './animation/index.js';
 

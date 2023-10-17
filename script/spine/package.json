@@ -1,0 +1,8 @@
+{
+    "name": "spine",
+    "dependencies": {
+        "@esotericsoftware/spine-core": "^4.2.23",
+        "engine": "file:../engine",
+        "gfx": "file:../gfx/declare"
+    }
+}
