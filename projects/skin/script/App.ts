@@ -1,0 +1,82 @@
+import { Camera, CameraControlPanel, DirectionalLight, GLTF, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, assetLib, device, quat, render, stageFactory, vec2, vec3 } from "engine";
+
+const skin = await assetLib.cache('./assets/killer-whale/scene', GLTF);
+
+export class App extends Zero {
+    start(): render.Flow {
+        const { width, height } = device.swapchain;
+
+        let node: Node;
+
+        // light
+        node = new Node;
+        node.addComponent(DirectionalLight);
+        node.position = [0, 4, 4];
+
+        node = new Node;
+        const main_camera = node.addComponent(Camera);
+        main_camera.fov = 45;
+        main_camera.viewport = { x: 0, y: 0, width, height };
+        node.position = [0, 0, 24];
+
+        node = skin.createScene('Scene')!;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        node.position = vec3.create(0, -5, 0)
+        node.euler = vec3.create(-30, -80, 0)
+
+        const joint1 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001'])!;
+        const joint1_rotation = quat.create(...joint1.rotation)
+
+        const joint2 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001', 'Bone.002'])!;
+        const joint2_rotation = quat.create(...joint2.rotation)
+
+        const joint5 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001', 'Bone.002', 'Bone.005'])!;
+        const joint5_rotation = quat.create(...joint5.rotation)
+
+        const joint3 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.003'])!;
+        const joint3_rotation = quat.create(...joint3.rotation)
+
+        const joint4 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.003'])!;
+        const joint4_rotation = quat.create(...joint4.rotation)
+
+        let frames = 0
+        this.setInterval(() => {
+            const d = quat.fromAxisAngle(quat.create(), vec3.create(1, 0, 0), Math.sin(frames) * 0.5);
+
+            joint1.rotation = quat.multiply(quat.create(), joint1_rotation, d);
+            joint2.rotation = quat.multiply(quat.create(), joint2_rotation, d);
+            joint5.rotation = quat.multiply(quat.create(), joint5_rotation, d);
+            joint3.rotation = quat.multiply(quat.create(), joint3_rotation, d);
+            joint4.rotation = quat.multiply(quat.create(), joint4_rotation, d);
+
+            frames += 0.01;
+        })
+
+        // UI
+        node = new Node;
+        const ui_camera = node.addComponent(Camera);
+        ui_camera.visibilityFlags = VisibilityFlagBits.UI;
+        ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
+        ui_camera.orthoHeight = height / 2;
+        ui_camera.viewport = { x: 0, y: 0, width, height };
+        node.position = vec3.create(0, 0, width / 2);
+
+        const doc = (new Node).addComponent(UIDocument);
+
+        node = new Node;
+        node.visibilityFlag = VisibilityFlagBits.UI;
+        const profiler = node.addComponent(Profiler);
+        profiler.anchor = vec2.create(0, 0)
+        node.position = [-width / 2, - height / 2, 0];
+
+        node = new Node;
+        node.visibilityFlag = VisibilityFlagBits.UI;
+        const cameraControlPanel = node.addComponent(CameraControlPanel);
+        cameraControlPanel.size = vec2.create(width, height);
+        cameraControlPanel.camera = main_camera;
+        doc.addElement(cameraControlPanel);
+
+        return new render.Flow([stageFactory.forward()]);
+    }
+}
+

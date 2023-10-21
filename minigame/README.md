@@ -22,6 +22,7 @@ System.initialize(
       phys: "./phys/index.js",
       boot: "./boot/index.js",
       engine: "./engine/index.js",
+      spine: "./spine/index.js",
     },
   }
 );
