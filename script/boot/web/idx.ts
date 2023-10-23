@@ -25,7 +25,7 @@ export interface EventListener {
     onFrame(): void;
 }
 
-const canvas = document.getElementById("ZeroCanvas") as HTMLCanvasElement;
+const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
 
 export const device = new Device(canvas.getContext('webgl2', { alpha: false, antialias: false })!);
 
@@ -36,18 +36,40 @@ export function now() {
 }
 
 export function listen(listener: EventListener) {
-    const canvas = document.getElementById("ZeroCanvas") as HTMLCanvasElement;
+    let lastTouch: Touch;
+
+    canvas.addEventListener('touchstart', function (touchEvent) {
+        const touch = touchEvent.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const offsetX = touch.clientX - rect.x;
+        const offsetY = touch.clientY - rect.y;
+        listener.onTouchStart({ touches: [lastTouch = { x: offsetX, y: offsetY }] });
+        touchEvent.preventDefault(); // prevent mousedown
+    })
+    canvas.addEventListener('touchmove', function (touchEvent) {
+        const touch = touchEvent.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const offsetX = touch.clientX - rect.x;
+        const offsetY = touch.clientY - rect.y;
+        listener.onTouchMove({ touches: [lastTouch = { x: offsetX, y: offsetY }] });
+    })
+    canvas.addEventListener('touchend', function (touchEvent) {
+        listener.onTouchEnd({ touches: [lastTouch] });
+    })
+    canvas.addEventListener('touchcancel', function (touchEvent) {
+        listener.onTouchEnd({ touches: [lastTouch] });
+    })
 
     canvas.addEventListener("mousedown", function (mouseEvent) {
         listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] });
+    })
+    canvas.addEventListener("mouseup", function (mouseEvent) {
+        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
     })
     canvas.addEventListener("mousemove", function (mouseEvent) {
         if (mouseEvent.buttons) {
             listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
         }
-    })
-    canvas.addEventListener("mouseup", function (mouseEvent) {
-        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
     })
 
     canvas.addEventListener("wheel", function (wheelEvent) {

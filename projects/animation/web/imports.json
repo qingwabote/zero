@@ -1,10 +1,8 @@
 {
+    "yaml": "./dist/yaml.js",
     "gfx-common": "./dist/gfx-common/index.js",
     "gfx": "./dist/gfx/index.js",
     "loader": "./dist/loader/index.js",
-    "phys": "./dist/phys/index.js",
     "boot": "./dist/boot/index.js",
-    "engine": "./dist/engine/index.js",
-    "yaml": "./dist/yaml.js",
-    "@esotericsoftware/spine-core": "./dist/spine-core.js"
+    "engine": "./dist/engine/index.js"
 }
