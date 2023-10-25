@@ -12,45 +12,7 @@
 
 # architecture
 
-```plantuml
-skinparam handwritten true
-
-rectangle Logic {
-    rectangle Node
-    rectangle Component
-}
-
-rectangle System {
-    rectangle animation
-    rectangle physics
-}
-
-rectangle Pipeline {
-    rectangle Flow
-    rectangle Stage
-}
-
-rectangle RenderScene {
-    rectangle Camera
-    rectangle Light
-    rectangle Model
-    rectangle Pass
-}
-Camera-[hidden]>Light
-
-rectangle GFX {
-    rectangle WebGL
-    rectangle Vulkan
-}
-
-Logic-d->RenderScene
-Pipeline-r->RenderScene
-
-Logic-r->System
-
-RenderScene-d->GFX
-Pipeline-d->GFX
-```
+![](README-architecture.png)
 
 # v8 inspector
 
