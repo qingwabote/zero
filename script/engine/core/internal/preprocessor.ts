@@ -1,5 +1,4 @@
-import { Text } from "../Asset.js";
-import { assetLib } from "../assetLib.js";
+import { bundle } from "bundling";
 
 async function string_replace(value: string, pattern: RegExp, replacer: (...args: any[]) => Promise<string>): Promise<string> {
     const promises: Promise<string>[] = []
@@ -77,8 +76,8 @@ export const preprocessor = {
 
     async includeExpand(source: string): Promise<string> {
         return string_replace(source, /#include\s+<(.+)>/g, async (_: string, path: string): Promise<string> => {
-            const text = await assetLib.cache(`../../assets/shaders/chunks/${path}.chunk`, Text);
-            return await this.includeExpand(text.content);
+            const text = await bundle.raw.cache(`./shaders/chunks/${path}.chunk`, 'text')
+            return await this.includeExpand(text);
         });
     }
 }

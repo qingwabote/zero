@@ -1,4 +1,5 @@
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShaderStages, ShadowUniform, SpriteFrame, SpriteRenderer, UIDocument, UIRenderer, Vec3, VisibilityFlagBits, Zero, assetLib, device, getSampler, quat, render, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { bundle } from 'bundling';
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShaderStages, ShadowUniform, SpriteFrame, SpriteRenderer, UIDocument, UIRenderer, Vec3, VisibilityFlagBits, Zero, device, getSampler, quat, render, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;
@@ -11,7 +12,7 @@ class TextGLTF extends GLTF {
         const albedo = values.albedo || vec4.ONE;
         const texture = values.texture;
 
-        const effect = await assetLib.cache("./assets/effects/test", Effect);
+        const effect = await bundle.cache("./effects/test", Effect);
         const passes = await effect.createPasses([
             {
                 macros: { USE_SHADOW_MAP }
@@ -43,10 +44,10 @@ class TextGLTF extends GLTF {
 }
 
 const [guardian, plane, gltf_camera, ss_depth] = await Promise.all([
-    assetLib.cache('./assets/guardian_zelda_botw_fan-art/scene', TextGLTF),
-    assetLib.cache('../../assets/models/primitive/scene', TextGLTF),
-    assetLib.cache('./assets/camera_from_poly_by_google/scene', TextGLTF),
-    assetLib.cache('depth', ShaderStages)
+    bundle.cache('./guardian_zelda_botw_fan-art/scene', TextGLTF),
+    bundle.cache('../../../assets/models/primitive/scene', TextGLTF),
+    bundle.cache('./camera_from_poly_by_google/scene', TextGLTF),
+    bundle.cache('../../../assets/shaders/depth', ShaderStages)
 ])
 
 

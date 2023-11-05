@@ -1,10 +1,10 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
+import { bundle } from "bundling";
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, IndexType, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { ShaderStages } from "../assets/ShaderStages.js";
 import { Zero } from "../core/Zero.js";
-import { assetLib } from "../core/assetLib.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
@@ -19,8 +19,8 @@ import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-const ss_unlit = await assetLib.cache('unlit', ShaderStages);
-const fnt_zero = await assetLib.cache('../../assets/fnt/zero', FNT);
+const ss_unlit = await bundle.cache('./shaders/unlit', ShaderStages);
+const fnt_zero = await bundle.cache('../../assets/fnt/zero', FNT);
 
 enum DirtyFlagBits {
     NONE = 0,

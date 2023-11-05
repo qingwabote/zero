@@ -1,7 +1,7 @@
+import { Asset } from "assets";
 import { device } from "boot";
 import { CommandBuffer, Fence, Texture as GFX_Texture, SampleCountFlagBits, SubmitInfo, TextureInfo, TextureUsageBits } from "gfx";
 import { load } from "loader";
-import { Asset } from "../core/Asset.js";
 
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;

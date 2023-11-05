@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "bundling": "file:../../bundling",
     "phys": "file:../declare"
   }
 }

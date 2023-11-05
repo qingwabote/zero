@@ -1,0 +1,6 @@
+{
+    "name": "assets",
+    "dependencies": {
+        "loader": "file:../loader/declare"
+    }
+}

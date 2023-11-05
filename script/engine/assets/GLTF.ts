@@ -1,14 +1,14 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
+import { Asset, cache } from "assets";
 import { device } from "boot";
+import { bundle } from "bundling";
 import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, SubmitInfo, VertexAttribute, VertexAttributeVector } from "gfx";
 import { load } from "loader";
 import { MaterialInstance } from "../MaterialInstance.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
-import { Asset } from "../core/Asset.js";
 import { Node } from "../core/Node.js";
-import { assetLib } from "../core/assetLib.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
@@ -100,7 +100,7 @@ export class GLTF implements Asset {
         const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text", this.onProgress));
         const bin = await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer", this.onProgress);
         const json_images = json.images || [];
-        const textures: Texture[] = await Promise.all(json_images.map((info: any) => assetLib.cache(`${parent}/${uri2path(info.uri)}`, Texture)));
+        const textures: Texture[] = await Promise.all(json_images.map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture)));
 
         this._materialDefault = await this.createMaterial();
 
@@ -193,7 +193,7 @@ export class GLTF implements Asset {
         const albedo = values.albedo || vec4.ONE;
         const texture = values.texture;
 
-        const effect = await assetLib.cache("../../assets/effects/phong", Effect);
+        const effect = await bundle.cache("./effects/phong", Effect);
         const passes = await effect.createPasses([
             {
                 macros: { USE_SHADOW_MAP }

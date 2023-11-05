@@ -5,12 +5,13 @@
         "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/webgl2 --outDir dist/gfx --watch",
         "loader": "tsc -p ../../../script/loader/web --outDir dist/loader --watch",
+        "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
         "phys": "tsc -p ../../../script/phys/ammo --outDir dist/phys --watch",
         "boot": "tsc -p ../../../script/boot/web --outDir dist/boot --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
-        "script": "tsc -p ../script --outDir dist --watch",
+        "script": "tsc -p ../script --outDir dist/script --watch",
         "physics": "tsc -p ../../../script/physics --outDir dist/physics --watch",
         "server": "http-server ../../../ -p 8003 -o projects/vehicle/web/index.html -c-1",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run phys\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run physics\" \"npm run server\""
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run assets\" \"npm run phys\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run physics\" \"npm run server\""
     }
 }

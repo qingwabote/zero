@@ -1,15 +1,12 @@
+import { bundle } from 'bundling';
 import _init from "./ammo.wasm.js";
-
-declare const phys: {
-    getWasm: () => Promise<ArrayBuffer>
-};
 
 const _ammo: any = {
     printErr: console.log.bind(console),
     locateFile: function () { return 'not care' },
 };
 
-_ammo.wasmBinary = await phys.getWasm();
+_ammo.wasmBinary = await bundle.raw.once('ammo.wasm.wasm', 'buffer');
 
 const emptyObj = {};
 if (typeof globalThis.window != 'object') {

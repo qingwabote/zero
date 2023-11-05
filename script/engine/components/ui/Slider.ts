@@ -1,7 +1,7 @@
+import { bundle } from "bundling";
 import { SpriteFrame } from "../../assets/SpriteFrame.js";
 import { Texture } from "../../assets/Texture.js";
 import { Node } from "../../core/Node.js";
-import { assetLib } from "../../core/assetLib.js";
 import { AABB2D, aabb2d } from "../../core/math/aabb2d.js";
 import { Vec2, vec2 } from "../../core/math/vec2.js";
 import { vec3 } from "../../core/math/vec3.js";
@@ -11,7 +11,7 @@ import { UIContainer } from "./UIContainer.js";
 import { UIEventToListener, UITouchEventType } from "./UIElement.js";
 import { UIRenderer } from "./UIRenderer.js";
 
-const texture_splash = await assetLib.cache('../../assets/images/splash.png', Texture);
+const texture_splash = await bundle.cache('../../assets/images/splash.png', Texture);
 
 export enum SliderEventType {
     CHANGED = 'CHANGED'

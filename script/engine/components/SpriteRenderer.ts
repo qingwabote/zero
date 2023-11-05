@@ -1,8 +1,8 @@
+import { bundle } from "bundling";
 import { CullMode, Filter, PassState, PrimitiveTopology, RasterizationState } from "gfx";
 import { ShaderStages } from "../assets/ShaderStages.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { Zero } from "../core/Zero.js";
-import { assetLib } from "../core/assetLib.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
@@ -13,7 +13,7 @@ import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 
-const ss_unlit = await assetLib.cache('unlit', ShaderStages);
+const ss_unlit = await bundle.cache('./shaders/unlit', ShaderStages);
 
 const vec2_a = vec3.create();
 const vec2_b = vec3.create();

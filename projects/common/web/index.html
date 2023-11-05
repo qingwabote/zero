@@ -14,19 +14,16 @@
     const currentScript = document.currentScript;
     const req = new XMLHttpRequest();
     // use synchronous request
-    req.open('GET', "./imports.json", false);
+    req.open('GET', "./importmap.json", false);
     req.onload = function () {
       const im = document.createElement('script');
       im.type = 'importmap';
-      im.textContent = `
-      {
-        "imports": ${req.response}
-      }`;
+      im.textContent = req.response;
       currentScript.after(im);
     };
     req.send();
   </script>
-  <script type="module" src="./dist/index.js"></script>
+  <script type="module" src="./dist/script/index.js"></script>
 </body>
 
 </html>

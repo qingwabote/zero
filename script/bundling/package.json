@@ -1,0 +1,6 @@
+{
+  "name": "bundling",
+  "dependencies": {
+    "assets": "file:../assets"
+  }
+}

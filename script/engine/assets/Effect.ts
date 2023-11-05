@@ -1,8 +1,8 @@
+import { Asset } from "assets";
+import { bundle } from "bundling";
 import * as gfx from "gfx";
 import { load } from "loader";
 import { parse } from "yaml";
-import { Asset } from "../core/Asset.js";
-import { assetLib } from "../core/assetLib.js";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { ShaderStages } from "./ShaderStages.js";
@@ -98,7 +98,7 @@ export class Effect implements Asset {
             }
 
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await assetLib.cache(info.shader!, ShaderStages), info.macros);
+            passState.shader = shaderLib.getShader(await bundle.cache(info.shader!, ShaderStages), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
                     passState.primitive = gfx.PrimitiveTopology.LINE_LIST
