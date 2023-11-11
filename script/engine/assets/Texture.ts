@@ -1,7 +1,6 @@
 import { Asset } from "assets";
-import { device } from "boot";
+import { device, load } from "boot";
 import { CommandBuffer, Fence, Texture as GFX_Texture, SampleCountFlagBits, SubmitInfo, TextureInfo, TextureUsageBits } from "gfx";
-import { load } from "loader";
 
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;

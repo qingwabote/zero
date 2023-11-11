@@ -28,5 +28,13 @@ export declare const initial: number;
 
 export declare function now(): number;
 
+export declare interface ResultTypes {
+    text: string,
+    buffer: ArrayBuffer,
+    bitmap: ImageBitmap
+}
+
+export declare function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]>;
+
 export declare function listen(listener: EventListener);
 

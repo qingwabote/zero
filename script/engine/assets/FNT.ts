@@ -1,8 +1,8 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import { Asset } from "assets";
+import { load } from "boot";
 import { bundle } from "bundling";
-import { load } from "loader";
 import { Texture } from "./Texture.js";
 
 interface Common {

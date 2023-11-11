@@ -4,8 +4,6 @@ export { device } from 'boot';
 
 export * from 'bundling';
 
-export * as loader from 'loader';
-
 export * from './animation/index.js';
 
 export * from './VisibilityFlagBits.js';

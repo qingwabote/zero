@@ -1,6 +1,6 @@
 {
     "name": "assets",
     "dependencies": {
-        "loader": "file:../loader/declare"
+        "boot": "file:../boot/declare"
     }
 }

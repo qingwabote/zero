@@ -1,10 +1,9 @@
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 
 import { Asset, cache } from "assets";
-import { device } from "boot";
+import { device, load } from "boot";
 import { bundle } from "bundling";
 import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, SubmitInfo, VertexAttribute, VertexAttributeVector } from "gfx";
-import { load } from "loader";
 import { MaterialInstance } from "../MaterialInstance.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";

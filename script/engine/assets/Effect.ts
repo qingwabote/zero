@@ -1,7 +1,7 @@
 import { Asset } from "assets";
+import { load } from "boot";
 import { bundle } from "bundling";
 import * as gfx from "gfx";
-import { load } from "loader";
 import { parse } from "yaml";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";

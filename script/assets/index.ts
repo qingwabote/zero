@@ -1,4 +1,4 @@
-import { ResultTypes, load } from "loader";
+import { ResultTypes, load } from "boot";
 
 export interface Asset {
     load(url: string): Promise<this>;

@@ -5,7 +5,6 @@
         "boot": "file:../boot/declare",
         "bundling": "file:../bundling",
         "gfx": "file:../gfx/declare",
-        "loader": "file:../loader/declare",
         "yaml": "^2.3.2"
     }
 }

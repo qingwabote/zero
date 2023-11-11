@@ -1,6 +1,6 @@
 import { Asset } from "assets";
+import { load } from "boot";
 import { ShaderStageFlagBits } from "gfx";
-import { load } from "loader";
 import { preprocessor } from "../core/internal/preprocessor.js";
 
 export class ShaderStages implements Asset {
