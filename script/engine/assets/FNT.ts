@@ -1,8 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
-import { Asset } from "assets";
+import { Asset, once } from "assets";
 import { load } from "boot";
-import { bundle } from "bundling";
 import { Texture } from "./Texture.js";
 
 interface Common {
@@ -76,7 +75,7 @@ export class FNT implements Asset {
             return this;
         }
         const file = res[1];
-        this._texture = await bundle.cache(`${parent}/${file}`, Texture);
+        this._texture = await once(`${parent}/${file}`, Texture);
         return this;
     }
 

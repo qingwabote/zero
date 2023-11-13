@@ -11,7 +11,8 @@
             "disablePlugins": [],
             "outputPath": ""
         },
-        "enhance": true
+        "enhance": true,
+        "packNpmRelationList": []
     },
     "compileType": "game",
     "libVersion": "2.20.1",

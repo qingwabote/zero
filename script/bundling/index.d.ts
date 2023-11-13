@@ -1,3 +1,3 @@
 import { Bundle } from 'assets';
 
-declare export const bundle: Bundle;
+export declare const bundle: Bundle;

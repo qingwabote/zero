@@ -28,6 +28,18 @@ class Buffer implements Asset {
     }
 }
 
+class Bitmap implements Asset {
+    private _content!: ImageBitmap;
+    public get content(): ImageBitmap {
+        return this._content;
+    }
+
+    async load(url: string): Promise<this> {
+        this._content = await load(url, 'bitmap');
+        return this;
+    }
+}
+
 const _url2asset: Map<string, Asset> = new Map;
 const _url2pending: Map<string, Promise<any>> = new Map;
 
@@ -87,6 +99,8 @@ export class Raw {
                 return (await cache(resolvePath(this._root, path), Text)).content as ResultTypes[T];
             case 'buffer':
                 return (await cache(resolvePath(this._root, path), Buffer)).content as ResultTypes[T];
+            case 'bitmap':
+                return (await cache(resolvePath(this._root, path), Bitmap)).content as ResultTypes[T];
             default:
                 throw new Error(`unsupported type: ${type}`);
         }
@@ -97,6 +111,8 @@ export class Raw {
                 return (await once(resolvePath(this._root, path), Text)).content as ResultTypes[T];
             case 'buffer':
                 return (await once(resolvePath(this._root, path), Buffer)).content as ResultTypes[T];
+            case 'bitmap':
+                return (await cache(resolvePath(this._root, path), Bitmap)).content as ResultTypes[T];
             default:
                 throw new Error(`unsupported type: ${type}`);
         }

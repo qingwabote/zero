@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "boot": "file:../boot/declare",
+    "bundling": "file:../bundling",
+    "gfx": "file:../gfx/declare"
+  }
+}

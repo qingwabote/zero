@@ -1,3 +1,17 @@
 {
+    "subpackages": [
+        {
+            "name": "engine",
+            "root": "dist/subpackages/engine"
+        },
+        {
+            "name": "spine",
+            "root": "dist/subpackages/spine"
+        },
+        {
+            "name": "skeleton",
+            "root": "dist/subpackages/projects/skeleton"
+        }
+    ],
     "deviceOrientation": "portrait"
 }

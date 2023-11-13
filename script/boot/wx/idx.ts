@@ -49,8 +49,6 @@ export function now() {
     return performance.now();
 }
 
-declare const loader: { currentPath: string };
-
 const ext2txt = ['fs', 'vs', 'chunk', 'yml'];
 
 const fs = wx.getFileSystemManager();
@@ -67,20 +65,6 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
         if (ext2txt.indexOf(ext) != -1) {
             url = url + '.txt'
         }
-
-        const heads = loader.currentPath.split('/');
-        const tails = url.split('/');
-        while (tails[0]) {
-            if (tails[0] == '.') {
-                tails.shift();
-            } else if (tails[0] == '..') {
-                heads.pop();
-                tails.shift();
-            } else {
-                break;
-            }
-        }
-        url = heads.length ? (heads.join('/') + '/' + tails.join('/')) : tails.join('/');
 
         if (type == 'bitmap') {
             const image = wx.createImage();
