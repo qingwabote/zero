@@ -1,4 +1,4 @@
-import { EventListener, GestureEvent, TouchEvent, device, initial, listen, now } from "boot";
+import { EventListener, GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
 import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
 import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
 import { Component } from "./Component.js";
@@ -88,7 +88,15 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._flow = this.start();
         this._flow.start();
 
-        listen(this);
+        this.attach();
+    }
+
+    attach() {
+        attach(this);
+    }
+
+    detach() {
+        detach(this);
     }
 
     addComponent(com: Component): void {

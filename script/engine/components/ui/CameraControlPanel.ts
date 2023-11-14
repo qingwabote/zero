@@ -29,11 +29,12 @@ export class CameraControlPanel extends UIContainer {
         super(node);
         this._textRender = UIRenderer.create(TextRenderer);
         this._textRender.anchor = vec2.create(0, 1);
+        this._textRender.impl.color = [0, 1, 0, 1];
         this.addElement(this._textRender);
     }
 
     override start(): void {
-        this._textRender.node.position = vec3.create(-this.size[0] / 2, this.size[1] / 2, 0);
+        this._textRender.node.position = vec3.create(0, this.size[1], 0);
 
         this._textRender.on(UITouchEventType.TOUCH_START, event => {
             this.fixed = !this.fixed;
@@ -76,7 +77,8 @@ export class CameraControlPanel extends UIContainer {
         })
     }
 
-    override update(): void {
+    override update(dt: number): void {
+        super.update(dt);
         if (this._fiexd_changed) {
             const view = vec3.normalize(vec3.create(), this.camera.node.position);
             if (this._fixed) {

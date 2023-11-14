@@ -22,6 +22,10 @@ export declare interface EventListener {
     onFrame(): void;
 }
 
+export declare const platform: 'jsb' | 'web' | 'wx';
+
+export declare const safeArea: { x: number, y: number, width: number, height: number };
+
 export declare const device: Device;
 
 export declare const initial: number;
@@ -36,5 +40,11 @@ export declare interface ResultTypes {
 
 export declare function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]>;
 
-export declare function listen(listener: EventListener);
+export declare function loadBundle(name: string): Promise<void>;
+
+export declare function attach(listener: EventListener);
+
+export declare function detach(listener: EventListener);
+
+export declare function reboot();
 

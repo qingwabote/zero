@@ -14,7 +14,11 @@ System.initialize(
             "engine": "./dist/subpackages/engine/script/index.js",
             "@esotericsoftware/spine-core": "./dist/subpackages/spine/spine-core.js",
             "spine": "./dist/subpackages/spine/index.js",
-            "skeleton": "./dist/subpackages/projects/skeleton/script/index.js",
+            "navigation": "./dist/subpackages/projects/navigation/script/index.js",
+            "animation": "./dist/subpackages/projects/animation/script/index.js",
+            "shadow": "./dist/subpackages/projects/shadow/script/index.js",
+            "skin": "./dist/subpackages/projects/skin/script/index.js",
+            "skeleton": "./dist/subpackages/projects/skeleton/script/index.js"
         },
         scopes: {
             "./dist/splash/": {
@@ -22,6 +26,15 @@ System.initialize(
             },
             "./dist/subpackages/engine/": {
                 "bundling": "./bundling-engine.js"
+            },
+            "./dist/subpackages/projects/animation/": {
+                "bundling": "./bundling-animation.js"
+            },
+            "./dist/subpackages/projects/shadow/": {
+                "bundling": "./bundling-shadow.js"
+            },
+            "./dist/subpackages/projects/skin/": {
+                "bundling": "./bundling-skin.js"
             },
             "./dist/subpackages/projects/skeleton/": {
                 "bundling": "./bundling-skeleton.js"
@@ -32,27 +45,8 @@ System.initialize(
 
 System.import('splash');
 
-async function loadSubpackage(name) {
-    return new Promise((res, rej) => {
-        wx.loadSubpackage({
-            name,
-            success: function () {
-                console.log(`load ${name} success`);
-                res();
-            },
-            fail: function () {
-                rej(`load ${name} fail`);
-            }
-        })
-    })
-}
-
-Promise.all([loadSubpackage('engine'), loadSubpackage('spine'), loadSubpackage('skeleton')]).then(() => {
-    System.import('skeleton')
-})
-
-// loadTask.onProgressUpdate(res => {
-//     console.log('下载进度', res.progress)
-//     console.log('已经下载的数据长度', res.totalBytesWritten)
-//     console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
-// })
+(async function () {
+    const boot = await System.import('boot');
+    await Promise.all([boot.loadBundle('engine'), boot.loadBundle('navigation')]);
+    System.import('navigation')
+})()

@@ -8,7 +8,7 @@ import { Zero } from "../core/Zero.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
-import { vec4 } from "../core/math/vec4.js";
+import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { IndexInputView, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
@@ -43,6 +43,8 @@ export class TextRenderer extends BoundedRenderer {
         this._text = value;
         this._dirtyFlag |= DirtyFlagBits.TEXT;
     }
+
+    color: Readonly<Vec4> = vec4.ONE;
 
     private _bounds = aabb2d.create();
     get bounds(): Readonly<AABB2D> {
@@ -108,7 +110,7 @@ export class TextRenderer extends BoundedRenderer {
 
         const pass = new Pass(state);
         pass.setTexture('albedoMap', this._fnt.texture.impl)
-        pass.setUniform('Constants', 'albedo', vec4.ONE)
+        pass.setUniform('Constants', 'albedo', this.color)
         const subModel: SubModel = new SubModel(subMesh, [pass]);
         this._model.subModels.push(subModel);
         Zero.instance.scene.addModel(this._model)

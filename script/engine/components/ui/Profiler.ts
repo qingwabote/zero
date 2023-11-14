@@ -5,6 +5,8 @@ import { TextRenderer } from "../TextRenderer.js";
 import { UIContainer } from "./UIContainer.js";
 import { UIRenderer } from "./UIRenderer.js";
 
+let boot_time = 0;
+
 export class Profiler extends UIContainer {
     private _time: number = 0;
     private _frames: number = 0;
@@ -14,8 +16,6 @@ export class Profiler extends UIContainer {
     private _logic_time = 0
 
     private _render_time = 0;
-
-    private _boot_time = 0;
 
     private _text!: UIRenderer<TextRenderer>;
 
@@ -33,7 +33,7 @@ export class Profiler extends UIContainer {
     override update(dt: number): void {
         super.update(dt);
 
-        this._boot_time = this._boot_time || dt;
+        boot_time = boot_time || dt;
 
         if (this._time > 1) {
             this._fps = this._frames / this._time;
@@ -47,7 +47,7 @@ export class Profiler extends UIContainer {
 Draw call: ${Zero.instance.flow.drawCalls}
 Render(ms): ${this._render_time.toFixed(2)}
 Logic(ms): ${this._logic_time.toFixed(2)}
-Boot(s): ${this._boot_time.toFixed(2)}`;
+Boot(s): ${boot_time.toFixed(2)}`;
     }
 
     private profileLogic() {

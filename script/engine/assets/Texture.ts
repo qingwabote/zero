@@ -21,6 +21,11 @@ export class Texture implements Asset {
         return this._height;
     }
 
+    private _url: string = '';
+    public get url(): string {
+        return this._url;
+    }
+
     async load(url: string): Promise<this> {
         const bitmap = await load(url, "bitmap", this.onProgress);
         const info = new TextureInfo;
@@ -46,6 +51,7 @@ export class Texture implements Asset {
 
         this._width = bitmap.width;
         this._height = bitmap.height;
+        this._url = url;
         this._impl = texture;
 
         return this;

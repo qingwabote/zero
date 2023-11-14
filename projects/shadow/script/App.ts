@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShaderStages, ShadowUniform, SpriteFrame, SpriteRenderer, UIDocument, UIRenderer, Vec3, VisibilityFlagBits, Zero, device, getSampler, quat, render, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShaderStages, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, VisibilityFlagBits, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;
@@ -44,10 +44,10 @@ class TextGLTF extends GLTF {
 }
 
 const [guardian, plane, gltf_camera, ss_depth] = await Promise.all([
-    bundle.cache('./guardian_zelda_botw_fan-art/scene', TextGLTF),
-    bundle.cache('../../../assets/models/primitive/scene', TextGLTF),
-    bundle.cache('./camera_from_poly_by_google/scene', TextGLTF),
-    bundle.cache('../../../assets/shaders/depth', ShaderStages)
+    bundle.cache('guardian_zelda_botw_fan-art/scene', TextGLTF),
+    builtin.cache('models/primitive/scene', TextGLTF),
+    bundle.cache('camera_from_poly_by_google/scene', TextGLTF),
+    builtin.cache('shaders/depth', ShaderStages)
 ])
 
 
@@ -99,32 +99,8 @@ export class App extends Zero {
         node.visibilityFlag = VisibilityFlagBits.UI;
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, - height / 2, 0];
-
-        node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
-        const cameraControlPanel = node.addComponent(CameraControlPanel);
-        cameraControlPanel.size = vec2.create(width, height);
-        cameraControlPanel.camera = up_camera;
-        doc.addElement(cameraControlPanel);
-
-
-        node = guardian.createScene("Sketchfab_Scene")!;
-        const animation = node.addComponent(Animation);
-        animation.clips = guardian.animationClips;
-        animation.play('WalkCycle')
-
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
-
-        node = plane.createScene("Plane")!;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
-        node.scale = [5, 1, 5];
-
-        node = gltf_camera.createScene("Sketchfab_Scene")!;
-        node.visibilityFlag = VisibilityBit_DOWN
-        node.scale = [0.005, 0.005, 0.005];
-        node.euler = vec3.create(180, 0, 180)
-        up_camera.node.addChild(node);
+        node.position = [-width / 2, - height / 2 + 30, 0];
+        doc.addElement(profiler);
 
         const stages: render.Stage[] = [];
         if (USE_SHADOW_MAP) {
@@ -134,12 +110,55 @@ export class App extends Zero {
             sprite.impl.spriteFrame = new SpriteFrame(stage.framebuffer.info.depthStencilAttachment);
             sprite.impl.shader = shaderLib.getShader(ss_depth);
             sprite.size = [height / 4, height / 4]
-            sprite.anchor = [1, 0];
-            sprite.node.position = [width / 2, -height / 2, 0];
+            sprite.anchor = [1, 0.5];
+            sprite.node.position = [width / 2, 0, 0];
             sprite.node.visibilityFlag = VisibilityFlagBits.UI;
+            doc.addElement(sprite);
 
             stages.push(stage);
         }
+
+        node = new Node;
+        node.visibilityFlag = VisibilityFlagBits.UI;
+        const cameraControlPanel = node.addComponent(CameraControlPanel);
+        cameraControlPanel.camera = up_camera;
+        cameraControlPanel.size = vec2.create(safeArea.width, safeArea.height);
+        cameraControlPanel.anchor = [0, 0];
+        cameraControlPanel.node.position = [safeArea.x, safeArea.y, 0];
+        doc.addElement(cameraControlPanel);
+
+        if (platform == 'wx') {
+            const textRenderer = UIRenderer.create(TextRenderer);
+            textRenderer.anchor = vec2.create(1, 0);
+            textRenderer.impl.text = 'Reboot';
+            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+                reboot();
+            })
+            textRenderer.node.position = [width / 2, safeArea.y, 0];
+            textRenderer.node.visibilityFlag = VisibilityFlagBits.UI;
+            doc.addElement(textRenderer);
+        }
+
+
+        node = guardian.createScene("Sketchfab_Scene")!;
+        const animation = node.addComponent(Animation);
+        animation.clips = guardian.animationClips;
+        animation.play('WalkCycle')
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        node.position = [0, -1, 0]
+
+        node = plane.createScene("Plane")!;
+        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        node.scale = [5, 1, 5];
+        node.position = [0, -1, 0]
+
+        node = gltf_camera.createScene("Sketchfab_Scene")!;
+        node.visibilityFlag = VisibilityBit_DOWN
+        node.scale = [0.005, 0.005, 0.005];
+        node.euler = vec3.create(180, 0, 180)
+        up_camera.node.addChild(node);
+
         stages.push(stageFactory.forward([
             new ModelPhase('default', VisibilityFlagBits.UI | VisibilityBit_UP),
             new ModelPhase('down', VisibilityBit_DOWN)

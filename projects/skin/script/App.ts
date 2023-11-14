@@ -1,6 +1,7 @@
-import { Camera, CameraControlPanel, DirectionalLight, GLTF, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, assetLib, device, quat, render, stageFactory, vec2, vec3 } from "engine";
+import { bundle } from 'bundling';
+import { Camera, CameraControlPanel, DirectionalLight, GLTF, Node, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, device, platform, quat, reboot, render, safeArea, stageFactory, vec2, vec3 } from "engine";
 
-const skin = await assetLib.cache('./assets/killer-whale/scene', GLTF);
+const skin = await bundle.once('killer-whale/scene', GLTF);
 
 export class App extends Zero {
     start(): render.Flow {
@@ -67,14 +68,29 @@ export class App extends Zero {
         node.visibilityFlag = VisibilityFlagBits.UI;
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, - height / 2, 0];
+        node.position = [-width / 2, - height / 2 + 30, 0];
 
         node = new Node;
         node.visibilityFlag = VisibilityFlagBits.UI;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
-        cameraControlPanel.size = vec2.create(width, height);
         cameraControlPanel.camera = main_camera;
+        cameraControlPanel.size = vec2.create(safeArea.width, safeArea.height);
+        cameraControlPanel.anchor = [0, 0];
+        cameraControlPanel.node.position = [safeArea.x, safeArea.y, 0];
         doc.addElement(cameraControlPanel);
+
+        if (platform == 'wx') {
+            const textRenderer = UIRenderer.create(TextRenderer);
+            textRenderer.anchor = vec2.create(1, 0);
+            textRenderer.impl.text = 'Reboot';
+            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+                reboot();
+            })
+            textRenderer.node.position = [width / 2, safeArea.y, 0];
+            textRenderer.node.visibilityFlag = VisibilityFlagBits.UI;
+            doc.addElement(textRenderer);
+        }
 
         return new render.Flow([stageFactory.forward()]);
     }

@@ -1,5 +1,5 @@
 // load boot first
-export { device } from 'boot';
+export { device, loadBundle, platform, reboot, safeArea } from 'boot';
 //
 
 export * from 'bundling';

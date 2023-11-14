@@ -1,3 +1,4 @@
+import { bundle } from 'bundling';
 import {
     AnimationClip,
     BlendAnimation,
@@ -12,17 +13,20 @@ import {
     TextRenderer,
     UIDocument,
     UIRenderer,
+    UITouchEventType,
     VisibilityFlagBits,
     Zero,
     device,
+    platform,
+    reboot,
     render,
+    safeArea,
     stageFactory,
     vec2,
     vec3
 } from "engine";
 
-const walkrun_and_idle = new GLTF();
-await walkrun_and_idle.load('./assets/walkrun_and_idle/scene');
+const walkrun_and_idle = await bundle.once('walkrun_and_idle/scene', GLTF)
 
 export class App extends Zero {
     start(): render.Flow {
@@ -66,17 +70,19 @@ export class App extends Zero {
 
         const profiler = (new Node).addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
-        profiler.node.position = [-width / 2, - height / 2, 0];
+        profiler.node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
 
         const cameraControlPanel = (new Node).addComponent(CameraControlPanel);
-        cameraControlPanel.size = vec2.create(width, height);
+        cameraControlPanel.size = vec2.create(safeArea.width, safeArea.height);
+        cameraControlPanel.anchor = [0, 0];
         cameraControlPanel.camera = main_camera;
+        cameraControlPanel.node.position = [safeArea.x, safeArea.y, 0];
         doc.addElement(cameraControlPanel);
 
         const text = UIRenderer.create(TextRenderer);
         text.anchor = vec2.create(0, 0.5)
-        text.node.position = vec3.create(-width / 2, 0, 0)
+        text.node.position = vec3.create(-width / 2, 50, 0)
         doc.addElement(text);
 
         this.setInterval(() => {
@@ -100,6 +106,19 @@ Run: ${weights[2].toFixed(2)}`
         doc.addElement(slider);
 
         updateInput(slider.value)
+
+        if (platform == 'wx') {
+            const textRenderer = UIRenderer.create(TextRenderer);
+            textRenderer.anchor = vec2.create(1, 0);
+            textRenderer.impl.text = 'Reboot';
+            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+                reboot();
+            })
+            textRenderer.node.position = [width / 2, safeArea.y, 0];
+            textRenderer.node.visibilityFlag = VisibilityFlagBits.UI;
+            doc.addElement(textRenderer);
+        }
 
         return new render.Flow([stageFactory.forward()])
     }

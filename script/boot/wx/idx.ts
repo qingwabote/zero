@@ -37,6 +37,20 @@ export interface EventListener {
     onFrame(): void;
 }
 
+export const platform = 'wx';
+
+const windowInfo = wx.getWindowInfo();
+const windowWidth: number = windowInfo.windowWidth;
+const windowHeight: number = windowInfo.windowHeight;
+const _safeArea = windowInfo.safeArea;
+
+export const safeArea = {
+    x: -windowWidth / 2,
+    y: (-windowHeight / 2) + (windowHeight - _safeArea.bottom),
+    width: _safeArea.width,
+    height: _safeArea.height
+}
+
 const canvas = wx.createCanvas()
 const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
 globalThis.WebGL2RenderingContext = gl;
@@ -90,27 +104,82 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
     })
 }
 
-export function listen(listener: EventListener) {
+export function loadBundle(name: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const task = wx.loadSubpackage({
+            name,
+            success: function () {
+                console.log(`load ${name} success`);
+                resolve();
+            },
+            fail: function () {
+                reject(`load ${name} fail`);
+            }
+        });
+        task.onProgressUpdate((res: any) => {
+            console.log(`load ${name} ${res.progress}`)
+            // console.log('已经下载的数据长度', res.totalBytesWritten)
+            // console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
+        })
+    })
+}
+
+interface ListenerHandle {
+    onTouchStart: (event: any) => void;
+    onTouchMove: (event: any) => void;
+    onTouchEnd: (event: any) => void;
+    onTouchCancel: (event: any) => void;
+    onFrame: number;
+}
+
+const listener2handle: Map<EventListener, ListenerHandle> = new Map;
+
+export function attach(listener: EventListener) {
     let lastEvent: TouchEvent;
 
-    wx.onTouchStart(function (event: any) {
-        const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
-        listener.onTouchStart(lastEvent = { touches });
-    })
-    wx.onTouchMove(function (event: any) {
-        const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
-        listener.onTouchMove(lastEvent = { touches });
-    })
-    wx.onTouchEnd(function (event: any) {
-        listener.onTouchEnd(lastEvent);
-    })
-    wx.onTouchCancel(function (event: any) {
-        listener.onTouchEnd(lastEvent);
-    })
-
-    function loop() {
-        listener.onFrame();
-        requestAnimationFrame(loop);
+    const handle: ListenerHandle = {
+        onTouchStart: function (event: any) {
+            const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
+            listener.onTouchStart(lastEvent = { touches });
+        },
+        onTouchMove: function (event: any) {
+            const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
+            listener.onTouchMove(lastEvent = { touches });
+        },
+        onTouchEnd: function (event: any) {
+            listener.onTouchEnd(lastEvent);
+        },
+        onTouchCancel: function (event: any) {
+            listener.onTouchEnd(lastEvent);
+        },
+        onFrame: requestAnimationFrame(function loop() {
+            listener.onFrame();
+            if (handle.onFrame == 0) return;
+            handle.onFrame = requestAnimationFrame(loop);
+        })
     }
-    requestAnimationFrame(loop);
+
+    wx.onTouchStart(handle.onTouchStart)
+    wx.onTouchMove(handle.onTouchMove)
+    wx.onTouchEnd(handle.onTouchEnd)
+    wx.onTouchCancel(handle.onTouchCancel)
+
+    listener2handle.set(listener, handle);
+}
+
+export function detach(listener: EventListener) {
+    const handle = listener2handle.get(listener)!;
+    wx.offTouchStart(handle.onTouchStart)
+    wx.offTouchMove(handle.onTouchMove)
+    wx.offTouchEnd(handle.onTouchEnd)
+    wx.offTouchCancel(handle.onTouchCancel)
+
+    cancelAnimationFrame(handle.onFrame);
+    handle.onFrame = 0 // mark to stop the loop if in loop
+
+    listener2handle.delete(listener);
+}
+
+export function reboot() {
+    wx.restartMiniProgram();
 }

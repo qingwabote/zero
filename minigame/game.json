@@ -9,6 +9,22 @@
             "root": "dist/subpackages/spine"
         },
         {
+            "name": "navigation",
+            "root": "dist/subpackages/projects/navigation"
+        },
+        {
+            "name": "animation",
+            "root": "dist/subpackages/projects/animation"
+        },
+        {
+            "name": "shadow",
+            "root": "dist/subpackages/projects/shadow"
+        },
+        {
+            "name": "skin",
+            "root": "dist/subpackages/projects/skin"
+        },
+        {
             "name": "skeleton",
             "root": "dist/subpackages/projects/skeleton"
         }
