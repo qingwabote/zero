@@ -4,7 +4,9 @@ Zero 是一款跨平台 3D 图形引擎
 
 Web (webgl2);
 
-Android, Windows (Vulkan).
+Android, Windows (vulkan);
+
+IOS, Mac (还没有 metal 实现).
 
 # 功能
 

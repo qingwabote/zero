@@ -27,6 +27,10 @@
         {
             "name": "skeleton",
             "root": "dist/subpackages/projects/skeleton"
+        },
+        {
+            "name": "cutting2d",
+            "root": "dist/subpackages/projects/cutting2d"
         }
     ],
     "deviceOrientation": "portrait"

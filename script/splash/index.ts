@@ -2,7 +2,7 @@
 import { device } from 'boot';
 //
 import { bundle } from 'bundling';
-import { AttachmentDescription, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SampleCountFlagBits, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SampleCountFlagBits, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 
 const TEXTURE_BINDING = 0;
 
@@ -59,10 +59,17 @@ const shader = device.createShader(shaderInfo);
 const rasterizationState = new RasterizationState;
 rasterizationState.cullMode = CullMode.NONE;
 
+const blendState = new BlendState;
+blendState.srcRGB = BlendFactor.SRC_ALPHA;
+blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
+blendState.srcAlpha = BlendFactor.ONE;
+blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
+
 const passState = new PassState;
 passState.shader = shader;
 passState.primitive = PrimitiveTopology.TRIANGLE_LIST;
 passState.rasterizationState = rasterizationState;
+passState.blendState = blendState;
 
 const a_position = new VertexAttribute;
 a_position.name = 'a_position';
@@ -139,31 +146,46 @@ pipelineInfo.renderPass = renderPass;
 
 const pipeline = device.createPipeline(pipelineInfo);
 
+const { width, height } = device.swapchain;
+const ratio = width / height;
 
 const vertexes = new Float32Array([
-    0.0, 0.5, 0.0,    /**uv */ 0.5, 0.0,
-    - 0.5, -0.5, 0.0, /**uv */ 0.0, 1.0,
-    0.5, -0.5, 0.0,   /**uv */ 1.0, 1.0
+    0.8, 0.8 * ratio, 0.0, 1.0, 0.0,   // top right
+    0.8, -0.8 * ratio, 0.0, 1.0, 1.0,   // bottom right
+    -0.8, -0.8 * ratio, 0.0, 0.0, 1.0,   // bottom left
+    -0.8, 0.8 * ratio, 0.0, 0.0, 0.0    // top left 
 ]);
-const bufferInfo = new BufferInfo;
-bufferInfo.size = vertexes.byteLength;
-bufferInfo.usage = BufferUsageFlagBits.VERTEX;
-bufferInfo.mem_usage = MemoryUsage.CPU_TO_GPU;
-const buffer = device.createBuffer(bufferInfo);
-buffer.update(vertexes.buffer, 0, vertexes.byteLength);
+const vertexBufferInfo = new BufferInfo;
+vertexBufferInfo.size = vertexes.byteLength;
+vertexBufferInfo.usage = BufferUsageFlagBits.VERTEX;
+vertexBufferInfo.mem_usage = MemoryUsage.CPU_TO_GPU;
+const vertexBuffer = device.createBuffer(vertexBufferInfo);
+vertexBuffer.update(vertexes.buffer, 0, vertexes.byteLength);
+
+const indexes = new Uint16Array([0, 1, 3, 1, 2, 3])
+const indexBufferInfo = new BufferInfo;
+indexBufferInfo.size = indexes.byteLength;
+indexBufferInfo.usage = BufferUsageFlagBits.INDEX;
+indexBufferInfo.mem_usage = MemoryUsage.CPU_TO_GPU;
+const indexBuffer = device.createBuffer(indexBufferInfo);
+indexBuffer.update(indexes.buffer, 0, indexes.byteLength);
 
 const inputAssemblerInfo = new InputAssemblerInfo;
 inputAssemblerInfo.vertexAttributes.add(a_position);
 inputAssemblerInfo.vertexAttributes.add(a_texCoord);
 const vertexInput = new VertexInput;
-vertexInput.buffers.add(buffer);
+vertexInput.buffers.add(vertexBuffer);
 vertexInput.offsets.add(0);
+const indexInput = new IndexInput;
+indexInput.buffer = indexBuffer;
+indexInput.type = IndexType.UINT16;
 inputAssemblerInfo.vertexInput = vertexInput;
+inputAssemblerInfo.indexInput = indexInput;
 const inputAssembler = device.createInputAssembler(inputAssemblerInfo);
 
 const samplerInfo = new SamplerInfo;
-samplerInfo.magFilter = Filter.NEAREST;
-samplerInfo.magFilter = Filter.NEAREST;
+samplerInfo.magFilter = Filter.LINEAR;
+samplerInfo.magFilter = Filter.LINEAR;
 
 const sampler = device.createSampler(samplerInfo)
 
@@ -189,6 +211,6 @@ commandBuffer.beginRenderPass(renderPass, framebuffer, 0, 0, device.swapchain.wi
 commandBuffer.bindPipeline(pipeline);
 commandBuffer.bindInputAssembler(inputAssembler);
 commandBuffer.bindDescriptorSet(pipelineLayout, 0, descriptorSet);
-commandBuffer.draw(3);
+commandBuffer.drawIndexed(6, 0)
 
 commandBuffer.end();

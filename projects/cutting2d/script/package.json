@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "engine": "file:../../../script/engine",
+    "gfx": "file:../../../script/gfx/declare"
+  }
+}

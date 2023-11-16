@@ -18,7 +18,8 @@ System.initialize(
             "animation": "./dist/subpackages/projects/animation/script/index.js",
             "shadow": "./dist/subpackages/projects/shadow/script/index.js",
             "skin": "./dist/subpackages/projects/skin/script/index.js",
-            "skeleton": "./dist/subpackages/projects/skeleton/script/index.js"
+            "skeleton": "./dist/subpackages/projects/skeleton/script/index.js",
+            "cutting2d": "./dist/subpackages/projects/cutting2d/script/index.js"
         },
         scopes: {
             "./dist/splash/": {

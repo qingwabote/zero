@@ -15,6 +15,7 @@
         "shadow": "tsc -p ../projects/shadow/script --outDir ./dist/subpackages/projects/shadow/script --module system --watch",
         "skin": "tsc -p ../projects/skin/script --outDir ./dist/subpackages/projects/skin/script --module system --watch",
         "skeleton": "tsc -p ../projects/skeleton/script --outDir ./dist/subpackages/projects/skeleton/script --module system --watch",
+        "cutting2d": "tsc -p ../projects/cutting2d/script --outDir ./dist/subpackages/projects/cutting2d/script --module system --watch",
         "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run spine\""
     }
 }

@@ -99,7 +99,7 @@ export class App extends Zero {
         node.visibilityFlag = VisibilityFlagBits.UI;
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, - height / 2 + 30, 0];
+        node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
 
         const stages: render.Stage[] = [];
@@ -129,13 +129,13 @@ export class App extends Zero {
 
         if (platform == 'wx') {
             const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(1, 0);
+            textRenderer.anchor = vec2.create(0, 1);
             textRenderer.impl.text = 'Reboot';
             textRenderer.impl.color = [0, 1, 0, 1];
             textRenderer.on(UITouchEventType.TOUCH_START, async event => {
                 reboot();
             })
-            textRenderer.node.position = [width / 2, safeArea.y, 0];
+            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
             textRenderer.node.visibilityFlag = VisibilityFlagBits.UI;
             doc.addElement(textRenderer);
         }

@@ -27,6 +27,10 @@ export interface EventListener {
 
 const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
 
+export const platform = 'web';
+
+export const safeArea = { x: 0, y: 0, width: canvas.width, height: canvas.height };
+
 export const device = new Device(canvas.getContext('webgl2', { alpha: false, antialias: false })!);
 
 export const initial = performance.now();
@@ -86,7 +90,9 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
     })
 }
 
-export function listen(listener: EventListener) {
+export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
+
+export function attach(listener: EventListener) {
     let lastTouch: Touch;
 
     canvas.addEventListener('touchstart', function (touchEvent) {
@@ -133,3 +139,7 @@ export function listen(listener: EventListener) {
     }
     requestAnimationFrame(loop);
 }
+
+export function detach(listener: EventListener) { throw new Error("unimplemented"); }
+
+export function reboot() { throw new Error("unimplemented"); }

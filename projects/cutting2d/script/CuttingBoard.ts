@@ -1,5 +1,5 @@
-import { Node, Primitive, UIContainer, UIRenderer, UITouchEventType, Vec2, Vec4, vec2, vec3, vec4 } from "engine-main";
-import { Texture } from "gfx-main";
+import { Node, Primitive, UIContainer, UIRenderer, UITouchEventType, Vec2, Vec4, vec2, vec3, vec4 } from "engine";
+import { Texture } from "gfx";
 import { Polygon, Vertex } from "./Polygon.js";
 import PolygonsRenderer from "./PolygonsRenderer.js";
 
@@ -191,8 +191,8 @@ export default class CuttingBoard extends UIContainer {
     }
 
     private drawLine(from: Readonly<Vec2>, to: Readonly<Vec2>, color: Readonly<Vec4> = vec4.ONE) {
-        vec3.set(vec3_a, from[0] / PIXELS_PER_UNIT, from[1] / PIXELS_PER_UNIT, 0);
-        vec3.set(vec3_b, to[0] / PIXELS_PER_UNIT, to[1] / PIXELS_PER_UNIT, 0);
+        vec3.set(vec3_a, from[0] / Primitive.PIXELS_PER_UNIT, from[1] / Primitive.PIXELS_PER_UNIT, 0);
+        vec3.set(vec3_b, to[0] / Primitive.PIXELS_PER_UNIT, to[1] / Primitive.PIXELS_PER_UNIT, 0);
         this._primitive.clear();
         this._primitive.drawLine(vec3_a, vec3_b, color);
     }

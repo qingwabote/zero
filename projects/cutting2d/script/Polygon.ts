@@ -1,4 +1,4 @@
-import { Vec2 } from "engine-main";
+import { Vec2 } from "engine";
 
 export interface Vertex {
     readonly pos: Readonly<Vec2>;

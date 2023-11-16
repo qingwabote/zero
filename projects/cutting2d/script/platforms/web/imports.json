@@ -1,5 +1,0 @@
-{
-    "gfx-main": "./dist/script/gfx/main/index.js",
-    "engine-main": "./dist/script/engine/main/index.js",
-    "yaml": "../../../../../script/engine/main/node_modules/yaml/browser/index.js"
-}

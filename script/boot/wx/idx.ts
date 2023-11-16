@@ -40,6 +40,7 @@ export interface EventListener {
 export const platform = 'wx';
 
 const windowInfo = wx.getWindowInfo();
+console.log('windowInfo', windowInfo)
 const windowWidth: number = windowInfo.windowWidth;
 const windowHeight: number = windowInfo.windowHeight;
 const _safeArea = windowInfo.safeArea;
