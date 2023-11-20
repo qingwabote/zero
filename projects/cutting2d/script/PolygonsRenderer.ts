@@ -1,4 +1,4 @@
-import { Material, MeshRenderer, Node, ShaderStages, UIElement, Vec2, VisibilityFlagBits, bundle, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { Material, MeshRenderer, Node, ShaderStages, UIElement, Vec2, bundle, render, shaderLib, vec2, vec3, vec4 } from "engine";
 import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexType, PassState, PrimitiveTopology, RasterizationState, Texture, VertexAttribute, VertexAttributeVector } from "gfx";
 import { Polygon } from "./Polygon.js";
 
@@ -69,9 +69,10 @@ export default class PolygonsRenderer extends UIElement {
 
     override update(): void {
         if (this._polygons_invalidated) {
-            for (let i = 0; i < this._polygons.length; i++) {
+            let i = 0;
+            for (; i < this._polygons.length; i++) {
                 const polygon = this._polygons[i];
-                const renderer = this.getMeshRenderer(i);
+                const renderer = this.cacheMeshRenderer(i);
                 const subMesh = renderer.mesh.subMeshes[0];
                 const vertexBuffer = subMesh.vertexInput.buffers[0] as render.BufferViewWritable;
                 vertexBuffer.reset(5 * polygon.vertexes.length);
@@ -98,11 +99,16 @@ export default class PolygonsRenderer extends UIElement {
 
                 renderer.node.position = vec3.create(...polygon.translation, 0)
             }
+            for (; i < this._meshRenderers.length; i++) {
+                const renderer = this._meshRenderers[i];
+                const subMesh = renderer.mesh.subMeshes[0];
+                subMesh.drawInfo.count = 0;
+            }
             this._polygons_invalidated = false;
         }
     }
 
-    getMeshRenderer(index: number): MeshRenderer {
+    cacheMeshRenderer(index: number): MeshRenderer {
         let renderer = this._meshRenderers[index];
         if (!renderer) {
             const subMesh = new render.SubMesh(

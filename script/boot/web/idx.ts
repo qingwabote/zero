@@ -29,7 +29,9 @@ const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
 
 export const platform = 'web';
 
-export const safeArea = { x: 0, y: 0, width: canvas.width, height: canvas.height };
+const { width, height } = canvas;
+
+export const safeArea = { x: -width / 2, y: -height / 2, width, height };
 
 export const device = new Device(canvas.getContext('webgl2', { alpha: false, antialias: false })!);
 

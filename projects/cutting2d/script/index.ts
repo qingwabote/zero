@@ -1,5 +1,5 @@
 import { Camera, ModelPhase, Node, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, stageFactory, vec2, vec3 } from "engine";
-import CuttingBoard from "./CuttingBoard.js";
+import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await bundle.cache('favicon.ico', Texture);
 
@@ -26,11 +26,16 @@ export default class App extends Zero {
 
         const textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'touch and move';
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-            reboot();
-        })
         textRenderer.node.position = [0, safeArea.y + safeArea.height - 100, 0];
+        cuttingBoard.on(CuttingBoardEventType.POLYGONS_CHANGED, () => {
+            if (cuttingBoard.polygons.length > 9) {
+                cuttingBoard.reset();
+            }
+            textRenderer.impl.text = `touch and move
+polygons: ${cuttingBoard.polygons.length}
+`;
+        })
+
         doc.addElement(textRenderer);
 
         if (platform == 'wx') {
