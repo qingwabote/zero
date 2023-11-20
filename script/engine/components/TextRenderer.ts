@@ -29,6 +29,9 @@ enum DirtyFlagBits {
 
 const lineBreak = '\n'.charCodeAt(0);
 
+let g_charCount = 0;
+const g_indexBuffer = new BufferViewWritable("Uint16", BufferUsageFlagBits.INDEX);
+
 export class TextRenderer extends BoundedRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
@@ -58,11 +61,9 @@ export class TextRenderer extends BoundedRenderer {
 
     private _positionBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX);
 
-    private _indexBuffer = new BufferViewWritable("Uint16", BufferUsageFlagBits.INDEX);
-
     private _subMesh!: SubMesh;
 
-    private _indexCount = 0;
+    private _charCount = 0;
 
     override start(): void {
         const vertexAttributes = new VertexAttributeVector;
@@ -84,7 +85,7 @@ export class TextRenderer extends BoundedRenderer {
             offsets: [0, 0]
         }
         const indexInput: IndexInputView = {
-            buffer: this._indexBuffer,
+            buffer: g_indexBuffer,
             type: IndexType.UINT16
         }
         const subMesh: SubMesh = new SubMesh(
@@ -120,16 +121,11 @@ export class TextRenderer extends BoundedRenderer {
     override lateUpdate(): void {
         this.updateData();
 
-        if (this._text.length == 0) {
-            this._subMesh.drawInfo.count = 0;
-            return;
-        }
-
         this._texCoordBuffer.update();
         this._positionBuffer.update();
-        this._indexBuffer.update();
+        g_indexBuffer.update();
 
-        this._subMesh.drawInfo.count = this._indexCount;
+        this._subMesh.drawInfo.count = 6 * this._charCount;
     }
 
     private updateData(): void {
@@ -137,27 +133,29 @@ export class TextRenderer extends BoundedRenderer {
             return;
         }
 
-        if (this._text.length == 0) {
+        if (!this._text) {
+            this._charCount = 0;
+
             aabb2d.set(this._bounds, vec2.ZERO, vec2.ZERO);
-            this.emit(BoundsEvent.BOUNDS_CHANGED);
+
             this._dirtyFlag = DirtyFlagBits.NONE;
+
+            this.emit(BoundsEvent.BOUNDS_CHANGED);
+
             return;
         }
 
-        const indexCount = 6 * this._text.length;
-
+        // just a redundant size
         this._texCoordBuffer.reset(2 * 4 * this._text.length);
         this._positionBuffer.reset(3 * 4 * this._text.length);
-        this._indexBuffer.reset(indexCount);
 
         const tex = this._fnt.texture.impl.info;
-        let [x, y, l, r, t, b, i] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
-        while (i < this._text.length) {
+        let [x, y, l, r, t, b, n] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
+        for (let i = 0; i < this._text.length; i++) {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
                 y -= this._fnt.common.lineHeight / TextRenderer.PIXELS_PER_UNIT;
-                i++;
                 continue;
             }
 
@@ -177,42 +175,32 @@ export class TextRenderer extends BoundedRenderer {
             const pos_t = y - yoffset;
             const pos_b = y - yoffset - height;
 
-            this._texCoordBuffer.source[2 * 4 * i + 0] = tex_l;
-            this._texCoordBuffer.source[2 * 4 * i + 1] = tex_t;
-            this._positionBuffer.source[3 * 4 * i + 0] = pos_l;
-            this._positionBuffer.source[3 * 4 * i + 1] = pos_t;
-            this._positionBuffer.source[3 * 4 * i + 2] = 0;
+            this._texCoordBuffer.source[2 * 4 * n + 0] = tex_l;
+            this._texCoordBuffer.source[2 * 4 * n + 1] = tex_t;
+            this._positionBuffer.source[3 * 4 * n + 0] = pos_l;
+            this._positionBuffer.source[3 * 4 * n + 1] = pos_t;
+            this._positionBuffer.source[3 * 4 * n + 2] = 0;
 
-            this._texCoordBuffer.source[2 * 4 * i + 2] = tex_r;
-            this._texCoordBuffer.source[2 * 4 * i + 3] = tex_t;
-            this._positionBuffer.source[3 * 4 * i + 3] = pos_r;
-            this._positionBuffer.source[3 * 4 * i + 4] = pos_t;
-            this._positionBuffer.source[3 * 4 * i + 5] = 0;
+            this._texCoordBuffer.source[2 * 4 * n + 2] = tex_r;
+            this._texCoordBuffer.source[2 * 4 * n + 3] = tex_t;
+            this._positionBuffer.source[3 * 4 * n + 3] = pos_r;
+            this._positionBuffer.source[3 * 4 * n + 4] = pos_t;
+            this._positionBuffer.source[3 * 4 * n + 5] = 0;
 
-            this._texCoordBuffer.source[2 * 4 * i + 4] = tex_r;
-            this._texCoordBuffer.source[2 * 4 * i + 5] = tex_b;
-            this._positionBuffer.source[3 * 4 * i + 6] = pos_r;
-            this._positionBuffer.source[3 * 4 * i + 7] = pos_b;
-            this._positionBuffer.source[3 * 4 * i + 8] = 0;
+            this._texCoordBuffer.source[2 * 4 * n + 4] = tex_r;
+            this._texCoordBuffer.source[2 * 4 * n + 5] = tex_b;
+            this._positionBuffer.source[3 * 4 * n + 6] = pos_r;
+            this._positionBuffer.source[3 * 4 * n + 7] = pos_b;
+            this._positionBuffer.source[3 * 4 * n + 8] = 0;
 
-            this._texCoordBuffer.source[2 * 4 * i + 6] = tex_l;
-            this._texCoordBuffer.source[2 * 4 * i + 7] = tex_b;
-            this._positionBuffer.source[3 * 4 * i + 9] = pos_l;
-            this._positionBuffer.source[3 * 4 * i + 10] = pos_b;
-            this._positionBuffer.source[3 * 4 * i + 11] = 0;
+            this._texCoordBuffer.source[2 * 4 * n + 6] = tex_l;
+            this._texCoordBuffer.source[2 * 4 * n + 7] = tex_b;
+            this._positionBuffer.source[3 * 4 * n + 9] = pos_l;
+            this._positionBuffer.source[3 * 4 * n + 10] = pos_b;
+            this._positionBuffer.source[3 * 4 * n + 11] = 0;
 
             this._texCoordBuffer.invalidate();
             this._positionBuffer.invalidate();
-
-            // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
-            this._indexBuffer.set([
-                4 * i + 0,
-                4 * i + 2,
-                4 * i + 1,
-                4 * i + 2,
-                4 * i + 0,
-                4 * i + 3
-            ], 6 * i);
 
             l = Math.min(l, pos_l);
             r = Math.max(r, pos_r);
@@ -220,17 +208,33 @@ export class TextRenderer extends BoundedRenderer {
             b = Math.min(b, pos_b);
 
             x += char.xadvance / TextRenderer.PIXELS_PER_UNIT;
-            i++;
+
+            n++;
         }
 
-        this._indexCount = indexCount;
+        if (g_charCount < n) {
+            g_indexBuffer.resize(6 * n);
+            for (; g_charCount < n; g_charCount++) {
+                // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
+                g_indexBuffer.source[6 * g_charCount + 0] = 4 * g_charCount + 0;
+                g_indexBuffer.source[6 * g_charCount + 1] = 4 * g_charCount + 2;
+                g_indexBuffer.source[6 * g_charCount + 2] = 4 * g_charCount + 1;
+                g_indexBuffer.source[6 * g_charCount + 3] = 4 * g_charCount + 2;
+                g_indexBuffer.source[6 * g_charCount + 4] = 4 * g_charCount + 0;
+                g_indexBuffer.source[6 * g_charCount + 5] = 4 * g_charCount + 3;
+            }
+            g_indexBuffer.invalidate();
+        }
+
+        this._charCount = n;
+
         // aabb2d.set(this._bounds, 0, b, r + l, t - b);
         vec2.set(vec2_a, l, b);
         vec2.set(vec2_b, r, t);
         aabb2d.fromPoints(this._bounds, vec2_a, vec2_b);
 
-        this.emit(BoundsEvent.BOUNDS_CHANGED);
-
         this._dirtyFlag = DirtyFlagBits.NONE;
+
+        this.emit(BoundsEvent.BOUNDS_CHANGED);
     }
 }
