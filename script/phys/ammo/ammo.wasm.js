@@ -1166,15 +1166,15 @@ var tempI64;
 // === Body ===
 
 var ASM_CONSTS = {
-  106594: ($0, $1, $2, $3) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('drawLine')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::drawLine.'; self['drawLine']($1,$2,$3); },  
- 106814: ($0, $1, $2, $3, $4, $5) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('drawContactPoint')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::drawContactPoint.'; self['drawContactPoint']($1,$2,$3,$4,$5); },  
- 107064: ($0, $1) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('reportErrorWarning')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::reportErrorWarning.'; self['reportErrorWarning']($1); },  
- 107308: ($0, $1, $2) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('draw3dText')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::draw3dText.'; self['draw3dText']($1,$2); },  
- 107531: ($0, $1) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('setDebugMode')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::setDebugMode.'; self['setDebugMode']($1); },  
- 107757: ($0) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('getDebugMode')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::getDebugMode.'; return self['getDebugMode'](); },  
- 107988: ($0, $1) => { var self = Module['getCache'](Module['MotionState'])[$0]; if (!self.hasOwnProperty('getWorldTransform')) throw 'a JSImplementation must implement all functions, you forgot MotionState::getWorldTransform.'; self['getWorldTransform']($1); },  
- 108229: ($0, $1) => { var self = Module['getCache'](Module['MotionState'])[$0]; if (!self.hasOwnProperty('setWorldTransform')) throw 'a JSImplementation must implement all functions, you forgot MotionState::setWorldTransform.'; self['setWorldTransform']($1); },  
- 108470: ($0, $1, $2, $3, $4, $5, $6, $7) => { var self = Module['getCache'](Module['ConcreteContactResultCallback'])[$0]; if (!self.hasOwnProperty('addSingleResult')) throw 'a JSImplementation must implement all functions, you forgot ConcreteContactResultCallback::addSingleResult.'; return self['addSingleResult']($1,$2,$3,$4,$5,$6,$7); }
+  92698: ($0, $1, $2, $3) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('drawLine')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::drawLine.'; self['drawLine']($1,$2,$3); },  
+ 92918: ($0, $1, $2, $3, $4, $5) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('drawContactPoint')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::drawContactPoint.'; self['drawContactPoint']($1,$2,$3,$4,$5); },  
+ 93168: ($0, $1) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('reportErrorWarning')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::reportErrorWarning.'; self['reportErrorWarning']($1); },  
+ 93412: ($0, $1, $2) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('draw3dText')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::draw3dText.'; self['draw3dText']($1,$2); },  
+ 93635: ($0, $1) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('setDebugMode')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::setDebugMode.'; self['setDebugMode']($1); },  
+ 93861: ($0) => { var self = Module['getCache'](Module['DebugDrawer'])[$0]; if (!self.hasOwnProperty('getDebugMode')) throw 'a JSImplementation must implement all functions, you forgot DebugDrawer::getDebugMode.'; return self['getDebugMode'](); },  
+ 94092: ($0, $1) => { var self = Module['getCache'](Module['MotionState'])[$0]; if (!self.hasOwnProperty('getWorldTransform')) throw 'a JSImplementation must implement all functions, you forgot MotionState::getWorldTransform.'; self['getWorldTransform']($1); },  
+ 94333: ($0, $1) => { var self = Module['getCache'](Module['MotionState'])[$0]; if (!self.hasOwnProperty('setWorldTransform')) throw 'a JSImplementation must implement all functions, you forgot MotionState::setWorldTransform.'; self['setWorldTransform']($1); },  
+ 94574: ($0, $1, $2, $3, $4, $5, $6, $7) => { var self = Module['getCache'](Module['ConcreteContactResultCallback'])[$0]; if (!self.hasOwnProperty('addSingleResult')) throw 'a JSImplementation must implement all functions, you forgot ConcreteContactResultCallback::addSingleResult.'; return self['addSingleResult']($1,$2,$3,$4,$5,$6,$7); }
 };
 function array_bounds_check_error(idx,size) { throw 'Array index ' + idx + ' out of bounds: [0,' + size + ')'; }
 
@@ -1248,10 +1248,6 @@ function array_bounds_check_error(idx,size) { throw 'Array index ' + idx + ' out
         warnOnce.shown[text] = 1;
         err(text);
       }
-    }
-
-  function ___assert_fail(condition, filename, line, func) {
-      abort('Assertion failed: ' + UTF8ToString(condition) + ', at: ' + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
     }
 
   function _abort() {
@@ -1586,7 +1582,6 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var asmLibraryArg = {
-  "__assert_fail": ___assert_fail,
   "abort": _abort,
   "array_bounds_check_error": array_bounds_check_error,
   "emscripten_asm_const_double": _emscripten_asm_const_double,
@@ -6169,8 +6164,8 @@ var _emscripten_stack_get_current = Module["_emscripten_stack_get_current"] = fu
 /** @type {function(...*):?} */
 var dynCall_jiji = Module["dynCall_jiji"] = createExportWrapper("dynCall_jiji");
 
-var ___start_em_js = Module['___start_em_js'] = 106496;
-var ___stop_em_js = Module['___stop_em_js'] = 106594;
+var ___start_em_js = Module['___start_em_js'] = 92600;
+var ___stop_em_js = Module['___stop_em_js'] = 92698;
 
 
 
