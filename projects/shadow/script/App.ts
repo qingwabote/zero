@@ -94,9 +94,9 @@ export class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
+        doc.node.visibilityFlag = VisibilityFlagBits.UI;
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, safeArea.y, 0];
@@ -112,14 +112,12 @@ export class App extends Zero {
             sprite.size = [height / 4, height / 4]
             sprite.anchor = [1, 0.5];
             sprite.node.position = [width / 2, 0, 0];
-            sprite.node.visibilityFlag = VisibilityFlagBits.UI;
             doc.addElement(sprite);
 
             stages.push(stage);
         }
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.UI;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
         cameraControlPanel.camera = up_camera;
         cameraControlPanel.size = vec2.create(safeArea.width, safeArea.height);
@@ -136,7 +134,6 @@ export class App extends Zero {
                 reboot();
             })
             textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            textRenderer.node.visibilityFlag = VisibilityFlagBits.UI;
             doc.addElement(textRenderer);
         }
 

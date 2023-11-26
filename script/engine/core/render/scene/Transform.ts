@@ -60,7 +60,7 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
 
     private _changed = TransformBits.TRS;
 
-    private _eventEmitter: EventEmitterImpl<TransformEventToListener> | undefined;
+    private _eventEmitter?: EventEmitterImpl<TransformEventToListener> = undefined;
     get eventEmitter(): EventEmitterImpl<TransformEventToListener> {
         if (!this._eventEmitter) {
             this._eventEmitter = new EventEmitterImpl;
@@ -150,7 +150,7 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
         return this._children;
     }
 
-    private _parent: Transform | undefined;
+    private _parent?: Transform = undefined;
     get parent(): Transform | undefined {
         return this._parent;
     }
