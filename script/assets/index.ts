@@ -43,7 +43,7 @@ class Bitmap implements Asset {
 const _url2asset: Map<string, Asset> = new Map;
 const _url2pending: Map<string, Promise<any>> = new Map;
 
-function resolvePath(root: string, path: string) {
+function resolve(root: string, path: string) {
     const heads = root.split('/');
     const tails = path.split('/');
     while (tails[0]) {
@@ -96,11 +96,11 @@ export class Raw {
     async cache<T extends keyof ResultTypes>(path: string, type: T): Promise<ResultTypes[T]> {
         switch (type) {
             case 'text':
-                return (await cache(resolvePath(this._root, path), Text)).content as ResultTypes[T];
+                return (await cache(resolve(this._root, path), Text)).content as ResultTypes[T];
             case 'buffer':
-                return (await cache(resolvePath(this._root, path), Buffer)).content as ResultTypes[T];
+                return (await cache(resolve(this._root, path), Buffer)).content as ResultTypes[T];
             case 'bitmap':
-                return (await cache(resolvePath(this._root, path), Bitmap)).content as ResultTypes[T];
+                return (await cache(resolve(this._root, path), Bitmap)).content as ResultTypes[T];
             default:
                 throw new Error(`unsupported type: ${type}`);
         }
@@ -108,11 +108,11 @@ export class Raw {
     async once<T extends keyof ResultTypes>(path: string, type: T): Promise<ResultTypes[T]> {
         switch (type) {
             case 'text':
-                return (await once(resolvePath(this._root, path), Text)).content as ResultTypes[T];
+                return (await once(resolve(this._root, path), Text)).content as ResultTypes[T];
             case 'buffer':
-                return (await once(resolvePath(this._root, path), Buffer)).content as ResultTypes[T];
+                return (await once(resolve(this._root, path), Buffer)).content as ResultTypes[T];
             case 'bitmap':
-                return (await cache(resolvePath(this._root, path), Bitmap)).content as ResultTypes[T];
+                return (await cache(resolve(this._root, path), Bitmap)).content as ResultTypes[T];
             default:
                 throw new Error(`unsupported type: ${type}`);
         }
@@ -121,13 +121,20 @@ export class Raw {
 
 export class Bundle {
     readonly raw: Raw;
+
     constructor(private _root: string) {
         this.raw = new Raw(_root);
     }
+
     cache<T extends Asset>(path: string, type: new () => T): Promise<T> {
-        return cache(resolvePath(this._root, path), type);
+        return cache(this.resolve(path), type);
     }
+
     once<T extends Asset>(path: string, type: new () => T): Promise<T> {
-        return once(resolvePath(this._root, path), type);
+        return once(this.resolve(path), type);
+    }
+
+    resolve(path: string): string {
+        return resolve(this._root, path);
     }
 }

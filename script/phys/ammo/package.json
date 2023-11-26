@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "boot": "file:../../boot/declare",
     "bundling": "file:../../bundling",
     "phys": "file:../declare"
   }

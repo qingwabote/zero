@@ -105,6 +105,12 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
     })
 }
 
+declare const WXWebAssembly: any;
+globalThis.WebAssembly = WXWebAssembly;
+export function loadWasm(url: string, imports: WebAssembly.Imports): Promise<WebAssembly.WebAssemblyInstantiatedSource> {
+    return WXWebAssembly.instantiate(url, imports);
+}
+
 export function loadBundle(name: string): Promise<void> {
     return new Promise((resolve, reject) => {
         const task = wx.loadSubpackage({
@@ -135,23 +141,23 @@ interface ListenerHandle {
 
 const listener2handle: Map<EventListener, ListenerHandle> = new Map;
 
+let touchEvent: TouchEvent;
 export function attach(listener: EventListener) {
-    let lastEvent: TouchEvent;
 
     const handle: ListenerHandle = {
         onTouchStart: function (event: any) {
             const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
-            listener.onTouchStart(lastEvent = { touches });
+            listener.onTouchStart(touchEvent = { touches });
         },
         onTouchMove: function (event: any) {
             const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
-            listener.onTouchMove(lastEvent = { touches });
+            listener.onTouchMove(touchEvent = { touches });
         },
         onTouchEnd: function (event: any) {
-            listener.onTouchEnd(lastEvent);
+            listener.onTouchEnd(touchEvent);
         },
         onTouchCancel: function (event: any) {
-            listener.onTouchEnd(lastEvent);
+            listener.onTouchEnd(touchEvent);
         },
         onFrame: requestAnimationFrame(function loop() {
             listener.onFrame();

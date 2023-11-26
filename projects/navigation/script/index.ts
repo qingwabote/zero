@@ -65,6 +65,17 @@ class App extends Zero {
 
         textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
+        textRenderer.impl.text = 'vehicle';
+        textRenderer.impl.color = [0, 1, 0, 1];
+        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+            this.go('vehicle', 'physics');
+        })
+        textRenderer.node.position = [0, y, 0];
+        y -= d;
+        doc.addElement(textRenderer);
+
+        textRenderer = UIRenderer.create(TextRenderer);
+        textRenderer.anchor = vec2.create(0.5, 1);
         textRenderer.impl.text = 'cutting2d';
         textRenderer.impl.color = [0, 1, 0, 1];
         textRenderer.on(UITouchEventType.TOUCH_START, async event => {

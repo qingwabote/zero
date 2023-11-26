@@ -11,3 +11,5 @@ window.addEventListener('error', function (e) {
     textarea.textContent += e.message + '\n';
     textarea.scrollTop = textarea.scrollHeight;
 });
+
+export { };

@@ -53,7 +53,7 @@ polygons: ${cuttingBoard.polygons.length}
         node = new Node;
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, - height / 2, 0];
+        node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
 
         return new render.Flow([stageFactory.forward([new ModelPhase], false)]);

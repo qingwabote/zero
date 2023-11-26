@@ -9,6 +9,10 @@
             "root": "dist/subpackages/spine"
         },
         {
+            "name": "physics",
+            "root": "dist/subpackages/physics"
+        },
+        {
             "name": "navigation",
             "root": "dist/subpackages/projects/navigation"
         },
@@ -27,6 +31,10 @@
         {
             "name": "skeleton",
             "root": "dist/subpackages/projects/skeleton"
+        },
+        {
+            "name": "vehicle",
+            "root": "dist/subpackages/projects/vehicle"
         },
         {
             "name": "cutting2d",

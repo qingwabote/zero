@@ -10,11 +10,14 @@
         "engine": "tsc -p ../script/engine --outDir ./dist/subpackages/engine/script --module system --watch",
         "spine-core": "rollup -i ../script/spine/node_modules/@esotericsoftware/spine-core/dist/index.js -f system -o ./dist/subpackages/spine/spine-core.js",
         "spine": "tsc -p ../script/spine --outDir ./dist/subpackages/spine --module system --watch",
+        "phys": "tsc -p ../script/phys/ammo --outDir ./dist/subpackages/physics/phys/script --module system --watch",
+        "physics": "tsc -p ../script/physics --outDir ./dist/subpackages/physics --module system --watch",
         "navigation": "tsc -p ../projects/navigation/script --outDir ./dist/subpackages/projects/navigation/script --module system --watch",
         "animation": "tsc -p ../projects/animation/script --outDir ./dist/subpackages/projects/animation/script --module system --watch",
         "shadow": "tsc -p ../projects/shadow/script --outDir ./dist/subpackages/projects/shadow/script --module system --watch",
         "skin": "tsc -p ../projects/skin/script --outDir ./dist/subpackages/projects/skin/script --module system --watch",
         "skeleton": "tsc -p ../projects/skeleton/script --outDir ./dist/subpackages/projects/skeleton/script --module system --watch",
+        "vehicle": "tsc -p ../projects/vehicle/script --outDir ./dist/subpackages/projects/vehicle/script --module system --watch",
         "cutting2d": "tsc -p ../projects/cutting2d/script --outDir ./dist/subpackages/projects/cutting2d/script --module system --watch",
         "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run spine\""
     }

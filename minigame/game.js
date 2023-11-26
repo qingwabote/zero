@@ -14,11 +14,14 @@ System.initialize(
             "engine": "./dist/subpackages/engine/script/index.js",
             "@esotericsoftware/spine-core": "./dist/subpackages/spine/spine-core.js",
             "spine": "./dist/subpackages/spine/index.js",
+            "phys": "./dist/subpackages/physics/phys/script/index.js",
+            "physics": "./dist/subpackages/physics/index.js",
             "navigation": "./dist/subpackages/projects/navigation/script/index.js",
             "animation": "./dist/subpackages/projects/animation/script/index.js",
             "shadow": "./dist/subpackages/projects/shadow/script/index.js",
             "skin": "./dist/subpackages/projects/skin/script/index.js",
             "skeleton": "./dist/subpackages/projects/skeleton/script/index.js",
+            "vehicle": "./dist/subpackages/projects/vehicle/script/index.js",
             "cutting2d": "./dist/subpackages/projects/cutting2d/script/index.js"
         },
         scopes: {
@@ -27,6 +30,9 @@ System.initialize(
             },
             "./dist/subpackages/engine/": {
                 "bundling": "./bundling-engine.js"
+            },
+            "./dist/subpackages/physics/phys/": {
+                "bundling": "./bundling-phys.js"
             },
             "./dist/subpackages/projects/animation/": {
                 "bundling": "./bundling-animation.js"

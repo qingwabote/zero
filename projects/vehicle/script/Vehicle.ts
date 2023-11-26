@@ -1,8 +1,7 @@
-import { Component, GLTF, MeshRenderer, Node, Vec3, quat, vec3, vec4 } from "engine";
+import { Component, GLTF, MeshRenderer, Node, Vec3, bundle, quat, vec3, vec4 } from "engine";
 import { BoxShape, PhysicsSystem } from "physics";
 
-const gltf_primitive = new GLTF;
-gltf_primitive.load('../../assets/models/primitive/scene');
+const gltf_primitive = await bundle.cache('models/primitive/scene', GLTF);
 
 const chassis_size = vec3.create(1.8, 0.6, 4);
 

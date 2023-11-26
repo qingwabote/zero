@@ -1,11 +1,10 @@
 
-import { Camera, CameraControlPanel, DirectionalLight, GLTF, MeshRenderer, Node, Profiler, UIDocument, VisibilityFlagBits, Zero, device, render, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { Camera, CameraControlPanel, DirectionalLight, GLTF, MeshRenderer, Node, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, stageFactory, vec2, vec3, vec4 } from 'engine';
 import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
-let primitive = new GLTF;
-await primitive.load('../../assets/models/primitive/scene');
+const primitive = await bundle.cache('models/primitive/scene', GLTF);
 
 export class App extends Zero {
     start() {
@@ -86,7 +85,7 @@ export class App extends Zero {
         node = new Node;
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, - height / 2, 0];
+        node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler)
 
         node = new Node;
@@ -123,6 +122,18 @@ export class App extends Zero {
         joystick.size = vec2.create(height / 4, height / 4)
         node.position = vec3.create(width / 2, -height / 2, 0)
         doc.addElement(joystick);
+
+        if (platform == 'wx') {
+            const textRenderer = UIRenderer.create(TextRenderer);
+            textRenderer.anchor = vec2.create(0, 1);
+            textRenderer.impl.text = 'Reboot';
+            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+                reboot();
+            })
+            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
+            doc.addElement(textRenderer);
+        }
 
         return new render.Flow([stageFactory.forward()]);
     }

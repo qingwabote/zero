@@ -40,6 +40,8 @@ export declare interface ResultTypes {
 
 export declare function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]>;
 
+export declare function loadWasm(url: string, imports: WebAssembly.Imports): Promise<WebAssembly.WebAssemblyInstantiatedSource>;
+
 export declare function loadBundle(name: string): Promise<void>;
 
 export declare function attach(listener: EventListener);
