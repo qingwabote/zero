@@ -27,13 +27,11 @@ export default class App extends Zero {
         const textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
         textRenderer.node.position = [0, safeArea.y + safeArea.height - 100, 0];
+        textRenderer.impl.text = 'touch and move';
         cuttingBoard.on(CuttingBoardEventType.POLYGONS_CHANGED, () => {
             if (cuttingBoard.polygons.length > 9) {
                 cuttingBoard.reset();
             }
-            textRenderer.impl.text = `touch and move
-polygons: ${cuttingBoard.polygons.length}
-`;
         })
 
         doc.addElement(textRenderer);
