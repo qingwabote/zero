@@ -2,10 +2,10 @@
     "scripts": {
         "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/jsb --outDir dist/gfx --watch",
-        "loader": "tsc -p ../../../script/loader/jsb --outDir dist/loader --watch",
         "boot": "tsc -p ../../../script/boot/jsb --outDir dist/boot --watch",
+        "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
-        "script": "tsc -p ../script --outDir dist --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run boot\" \"npm run engine\" \"npm run script\""
+        "script": "tsc -p ../script --outDir dist/script --watch",
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\" \"npm run script\""
     }
 }

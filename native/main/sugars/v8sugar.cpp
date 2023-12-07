@@ -1,5 +1,6 @@
 #include "v8sugar.hpp"
 #include "internal/v8/Weak.hpp"
+#include "internal/v8/ImportMap.hpp"
 #include "log.h"
 #include <sstream>
 #include <unordered_map>
@@ -14,17 +15,16 @@ namespace
     struct IsolateData
     {
     private:
-        std::unordered_map<std::string, std::filesystem::path> _imports;
+        std::unique_ptr<sugar::v8::ImportMap> _importmap;
 
     public:
-        std::unordered_map<std::string, std::filesystem::path> &imports()
+        sugar::v8::ImportMap &importmap()
         {
-            return _imports;
+            return *_importmap;
         }
 
-        IsolateData(std::unordered_map<std::string, std::filesystem::path> &imports)
+        IsolateData(std::unique_ptr<sugar::v8::ImportMap> importmap) : _importmap(std::move(importmap))
         {
-            _imports = imports;
         }
 
         // https://cplusplus.github.io/LWG/issue3657
@@ -87,53 +87,16 @@ namespace sugar::v8
 
         isolate->Dispose();
     }
-    unique_isolate isolate_create(std::filesystem::path &imports_path)
+    unique_isolate isolate_create(std::filesystem::path &importmap_path)
     {
-        std::error_code ec;
-        std::uintmax_t size = std::filesystem::file_size(imports_path, ec);
-        if (ec)
-        {
-            ZERO_LOG_ERROR("failed to get size of %s, %s", imports_path.string().c_str(), ec.message().c_str());
-            return {nullptr, isolate_deleter};
-        }
-
-        std::unique_ptr<char[]> buffer{new char[size]};
-
-        std::ifstream stream{imports_path, std::ios::binary};
-        stream.read(buffer.get(), size);
-
-        nlohmann::json imports_json;
-        try
-        {
-            imports_json = nlohmann::json::parse(buffer.get(), buffer.get() + size);
-        }
-        catch (nlohmann::json::parse_error &e)
-        {
-            ZERO_LOG_ERROR("failed to parse %s %s", imports_path.string().c_str(), e.what());
-            return {nullptr, isolate_deleter};
-        }
-
-        std::unordered_map<std::string, std::filesystem::path> imports;
-
-        std::filesystem::current_path(imports_path.parent_path());
-        for (auto &&i : imports_json.items())
-        {
-            std::filesystem::path path = i.value();
-            std::error_code ec;
-            path = std::filesystem::canonical(path, ec);
-            if (ec)
-            {
-                ZERO_LOG_ERROR("%s", ec.message().c_str());
-                return {nullptr, isolate_deleter};
-            }
-            imports.emplace(i.key(), path);
-        }
-
         _v8::Isolate::CreateParams create_params;
         create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
         _v8::Isolate *isolate = _v8::Isolate::New(create_params);
 
-        isolate_data(isolate, new IsolateData(imports));
+        auto importmap = std::make_unique<ImportMap>();
+        importmap->initialize(importmap_path);
+
+        isolate_data(isolate, new IsolateData(std::move(importmap)));
 
         return unique_isolate{isolate, isolate_deleter};
     }
@@ -277,38 +240,32 @@ namespace sugar::v8
         _v8::EscapableHandleScope handle_scope(isolate);
         _v8::Context::Scope context_scope(context);
 
+        auto &module2path = isolate_data(isolate)->module2path;
+
         const std::string specifier = *_v8::String::Utf8Value(isolate, v8_specifier);
 
-        std::filesystem::path path;
-
-        auto &imports = isolate_data(isolate)->imports();
-        auto imports_it = imports.find(specifier);
-        if (imports_it != imports.end())
+        std::filesystem::path path = specifier;
+        if (!path.is_absolute())
         {
-            path = imports_it->second;
-        }
-        else
-        {
-            path = specifier;
-            if (!path.has_extension())
+            auto &referrer_path = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;
+            // starts_with
+            if (specifier.rfind(".", 0) != std::string::npos)
             {
-                path.replace_extension("js");
+                std::filesystem::current_path(referrer_path.parent_path());
+                std::error_code ec;
+                auto res = std::filesystem::canonical(path, ec);
+                if (ec)
+                {
+                    std::string msg{"Failed to resolve module specifier \"" + specifier + "\""};
+                    isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
+                    return {};
+                }
+                path = std::move(res);
             }
-        }
-
-        auto &module2path = isolate_data(isolate)->module2path;
-        if (path.is_relative())
-        {
-            std::filesystem::current_path(module2path.find(Weak<_v8::Module>{isolate, referrer})->second.parent_path());
-            std::error_code ec;
-            auto res = std::filesystem::canonical(path, ec);
-            if (ec)
+            else
             {
-                std::string msg{"Failed to resolve module specifier \"" + specifier + "\""};
-                isolate->ThrowException(_v8::Exception::Error(_v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
-                return {};
+                path = isolate_data(isolate)->importmap().resolve(specifier, referrer_path);
             }
-            path = std::move(res);
         }
 
         auto &path2module = isolate_data(isolate)->path2module;

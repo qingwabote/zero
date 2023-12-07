@@ -67,7 +67,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         const std::string script_name = bootstrap_json["script"];
         const std::filesystem::path script_path = std::filesystem::path(project_path).append(script_name);
 
-        sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(script_path).append("imports.json"));
+        sugar::v8::unique_isolate isolate = sugar::v8::isolate_create(std::filesystem::path(script_path).append("importmap.json"));
         if (!isolate)
         {
             return -1;
@@ -124,7 +124,7 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                            ->GetFunction(context)
                            .ToLocalChecked());
 
-        std::filesystem::path indexSrc = std::filesystem::path(script_path).append("dist/index.js");
+        std::filesystem::path indexSrc = std::filesystem::path(script_path).append("dist/script/index.js");
         if (!std::filesystem::exists(indexSrc))
         {
             ZERO_LOG_ERROR("index.js not exists: %s", indexSrc.string().c_str());

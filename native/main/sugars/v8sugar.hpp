@@ -12,7 +12,7 @@ namespace sugar::v8
     void tryCatch_print(_v8::TryCatch &tryCatch);
 
     typedef std::unique_ptr<_v8::Isolate, void (*)(_v8::Isolate *)> unique_isolate;
-    unique_isolate isolate_create(std::filesystem::path &imports);
+    unique_isolate isolate_create(std::filesystem::path &importmap);
 
     _v8::Local<_v8::Object> isolate_native2js_get(_v8::Isolate *isolate, const void *ptr);
 

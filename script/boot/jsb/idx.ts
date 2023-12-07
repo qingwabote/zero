@@ -1,3 +1,5 @@
+import { Device } from "gfx";
+
 export interface Touch {
     readonly x: number,
     readonly y: number
@@ -20,11 +22,17 @@ export interface EventListener {
     onFrame(): void;
 }
 
+export const platform = 'jsb';
+
 declare const zero: any;
 
 const w = zero.Window.instance();
 
-export const device = w.device();
+export const device: Device = w.device();
+
+const { width, height } = device.swapchain;
+
+export const safeArea = { x: -width / 2, y: -height / 2, width, height };
 
 export const initial: number = w.now();
 
@@ -62,7 +70,13 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
     })
 }
 
-export function listen(listener: EventListener) {
+export async function loadWasm(url: string, imports: WebAssembly.Imports): Promise<WebAssembly.WebAssemblyInstantiatedSource> {
+    return WebAssembly.instantiate(await load(url, 'buffer'), imports);
+}
+
+export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
+
+export function attach(listener: EventListener) {
     w.onTouchStart(function (event: any) {
         const touch = event.touches.get(0);
         listener.onTouchStart({ touches: [touch] });
@@ -80,3 +94,7 @@ export function listen(listener: EventListener) {
         listener.onFrame();
     });
 }
+
+export function detach(listener: EventListener) { throw new Error("unimplemented"); }
+
+export function reboot() { throw new Error("unimplemented"); }

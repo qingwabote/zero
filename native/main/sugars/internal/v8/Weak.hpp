@@ -1,3 +1,5 @@
+#pragma once
+
 namespace sugar::v8
 {
     template <class T>

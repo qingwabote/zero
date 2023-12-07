@@ -4,6 +4,7 @@ set(SRC_FILES
     Window.cpp
     Loader.cpp
     sugars/sdlsugar.cpp
+    sugars/internal/v8/ImportMap.cpp
     sugars/v8sugar.cpp
     WebSocket.cpp
     InspectorChannel.cpp
