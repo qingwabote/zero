@@ -27,7 +27,7 @@ export default class App extends Zero {
         const textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
         textRenderer.node.position = [0, safeArea.y + safeArea.height - 100, 0];
-        textRenderer.impl.text = 'touch and move';
+        textRenderer.impl.text = '触摸并移动';
         cuttingBoard.on(CuttingBoardEventType.POLYGONS_CHANGED, () => {
             if (cuttingBoard.polygons.length > 9) {
                 cuttingBoard.reset();
@@ -39,7 +39,7 @@ export default class App extends Zero {
         if (platform == 'wx') {
             const textRenderer = UIRenderer.create(TextRenderer);
             textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = 'Reboot';
+            textRenderer.impl.text = '重启';
             textRenderer.impl.color = [0, 1, 0, 1];
             textRenderer.on(UITouchEventType.TOUCH_START, async event => {
                 reboot();

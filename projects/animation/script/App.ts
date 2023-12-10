@@ -87,9 +87,9 @@ export class App extends Zero {
 
         this.setInterval(() => {
             const weights = animation.state.weights;
-            text.impl.text = `Idle: ${weights[0].toFixed(2)}
-Walk: ${weights[1].toFixed(2)}
-Run: ${weights[2].toFixed(2)}`
+            text.impl.text = `空闲: ${weights[0].toFixed(2)}
+行走: ${weights[1].toFixed(2)}
+跑: ${weights[2].toFixed(2)}`
         })
 
         function updateInput(value: number) {
@@ -110,7 +110,7 @@ Run: ${weights[2].toFixed(2)}`
         if (platform == 'wx') {
             const textRenderer = UIRenderer.create(TextRenderer);
             textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = 'Reboot';
+            textRenderer.impl.text = '重启';
             textRenderer.impl.color = [0, 1, 0, 1];
             textRenderer.on(UITouchEventType.TOUCH_START, async event => {
                 reboot();

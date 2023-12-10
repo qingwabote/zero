@@ -21,7 +21,7 @@ class App extends Zero {
 
         let textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'animation';
+        textRenderer.impl.text = '动画混合';
         textRenderer.impl.color = [0, 1, 0, 1];
         textRenderer.on(UITouchEventType.TOUCH_START, async event => {
             this.go('animation');
@@ -32,7 +32,7 @@ class App extends Zero {
 
         textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'shadow';
+        textRenderer.impl.text = '阴影';
         textRenderer.impl.color = [0, 1, 0, 1];
         textRenderer.on(UITouchEventType.TOUCH_START, async event => {
             this.go('shadow');
@@ -43,7 +43,7 @@ class App extends Zero {
 
         textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'skin';
+        textRenderer.impl.text = '蒙皮';
         textRenderer.impl.color = [0, 1, 0, 1];
         textRenderer.on(UITouchEventType.TOUCH_START, async event => {
             this.go('skin');
@@ -54,7 +54,7 @@ class App extends Zero {
 
         textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'skeleton';
+        textRenderer.impl.text = '骨骼';
         textRenderer.impl.color = [0, 1, 0, 1];
         textRenderer.on(UITouchEventType.TOUCH_START, async event => {
             this.go('skeleton', 'spine');
@@ -65,7 +65,7 @@ class App extends Zero {
 
         textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'vehicle';
+        textRenderer.impl.text = '载具';
         textRenderer.impl.color = [0, 1, 0, 1];
         textRenderer.on(UITouchEventType.TOUCH_START, async event => {
             this.go('vehicle', 'physics');
@@ -76,7 +76,7 @@ class App extends Zero {
 
         textRenderer = UIRenderer.create(TextRenderer);
         textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'cutting2d';
+        textRenderer.impl.text = '切割';
         textRenderer.impl.color = [0, 1, 0, 1];
         textRenderer.on(UITouchEventType.TOUCH_START, async event => {
             this.go('cutting2d');

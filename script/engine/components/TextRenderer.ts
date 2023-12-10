@@ -160,6 +160,10 @@ export class TextRenderer extends BoundedRenderer {
             }
 
             const char = this._fnt.chars[code];
+            if (!char) {
+                console.warn(`char ${this._text[i]} does not exist in fnt`);
+                continue;
+            }
             const tex_l = char.x / tex.width;
             const tex_r = (char.x + char.width) / tex.width;
             const tex_t = char.y / tex.height;
