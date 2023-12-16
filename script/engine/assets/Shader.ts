@@ -3,7 +3,7 @@ import { load } from "boot";
 import { ShaderStageFlagBits } from "gfx";
 import { preprocessor } from "../core/internal/preprocessor.js";
 
-export class ShaderStages implements Asset {
+export class Shader implements Asset {
     private _name: string = '';
     public get name(): string {
         return this._name;

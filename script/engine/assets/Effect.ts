@@ -5,7 +5,7 @@ import * as gfx from "gfx";
 import { parse } from "yaml";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { ShaderStages } from "./ShaderStages.js";
+import { Shader } from "./Shader.js";
 
 function merge<Out>(target: Out, ...sources: Out[]): Out {
     for (const source of sources) {
@@ -98,7 +98,7 @@ export class Effect implements Asset {
             }
 
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await bundle.cache(info.shader!, ShaderStages), info.macros);
+            passState.shader = shaderLib.getShader(await bundle.cache(info.shader!, Shader), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
                     passState.primitive = gfx.PrimitiveTopology.LINE_LIST

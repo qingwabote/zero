@@ -126,7 +126,7 @@ export declare class DepthStencilState {
 
 /**color(RGB) = (sourceColor * srcRGB) + (destinationColor * dstRGB)
  * color(A) = (sourceAlpha * srcAlpha) + (destinationAlpha * dstAlpha)
- * https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendFuncSeparate*/
+ * https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendFuncSeparate */
 export declare class BlendState {
     srcRGB: BlendFactor;
     dstRGB: BlendFactor;

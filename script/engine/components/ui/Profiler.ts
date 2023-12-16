@@ -44,7 +44,7 @@ export class Profiler extends UIContainer {
         this._time += dt;
 
         this._text.impl.text = `FPS: ${this._fps.toFixed(2)}
-Draw call: ${Zero.instance.flow.drawCalls}
+Draw call: ${Zero.instance.flow.drawCall}
 Render(ms): ${this._render_time.toFixed(2)}
 Logic(ms): ${this._logic_time.toFixed(2)}
 Boot(s): ${boot_time.toFixed(2)}`;

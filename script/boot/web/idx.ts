@@ -33,7 +33,7 @@ const { width, height } = canvas;
 
 export const safeArea = { x: -width / 2, y: -height / 2, width, height };
 
-export const device = new Device(canvas.getContext('webgl2', { alpha: false, antialias: false })!);
+export const device = new Device(canvas.getContext('webgl2', { antialias: false })!);
 
 export const initial = performance.now();
 
@@ -137,6 +137,7 @@ export function attach(listener: EventListener) {
 
     canvas.addEventListener("wheel", function (wheelEvent) {
         listener.onGesturePinch({ delta: wheelEvent.deltaY });
+        wheelEvent.preventDefault();
     })
 
     function loop() {

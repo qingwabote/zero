@@ -3,7 +3,7 @@
 import { bundle } from "bundling";
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, IndexType, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector } from "gfx";
 import { FNT } from "../assets/FNT.js";
-import { ShaderStages } from "../assets/ShaderStages.js";
+import { Shader } from "../assets/Shader.js";
 import { Zero } from "../core/Zero.js";
 import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
@@ -19,7 +19,7 @@ import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
-const ss_unlit = await bundle.cache('shaders/unlit', ShaderStages);
+const ss_unlit = await bundle.cache('shaders/unlit', Shader);
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
 
 enum DirtyFlagBits {

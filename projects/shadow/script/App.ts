@@ -1,12 +1,13 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, ShaderStages, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, VisibilityFlagBits, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, VisibilityFlagBits, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { SampleCountFlagBits } from 'gfx';
 
 const VisibilityBit_UP = 1 << 9;
 const VisibilityBit_DOWN = 1 << 10;
 
 const USE_SHADOW_MAP = 1;
 
-class TextGLTF extends GLTF {
+class TestGLTF extends GLTF {
     protected override async createMaterial(macros: MaterialMacros = {}, values: MaterialValues = {}): Promise<Material> {
         const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
         const albedo = values.albedo || vec4.ONE;
@@ -44,10 +45,10 @@ class TextGLTF extends GLTF {
 }
 
 const [guardian, plane, gltf_camera, ss_depth] = await Promise.all([
-    bundle.cache('guardian_zelda_botw_fan-art/scene', TextGLTF),
-    builtin.cache('models/primitive/scene', TextGLTF),
-    bundle.cache('camera_from_poly_by_google/scene', TextGLTF),
-    builtin.cache('shaders/depth', ShaderStages)
+    bundle.cache('guardian_zelda_botw_fan-art/scene', TestGLTF),
+    builtin.cache('models/primitive/scene', TestGLTF),
+    bundle.cache('camera_from_poly_by_google/scene', TestGLTF),
+    builtin.cache('shaders/depth', Shader)
 ])
 
 
@@ -158,8 +159,8 @@ export class App extends Zero {
 
         stages.push(stageFactory.forward([
             new ModelPhase('default', VisibilityFlagBits.UI | VisibilityBit_UP),
-            new ModelPhase('down', VisibilityBit_DOWN)
-        ]));
+            new ModelPhase('down', VisibilityBit_DOWN),
+        ], true, SampleCountFlagBits.SAMPLE_COUNT_1));
         return new render.Flow(stages);
     }
 }

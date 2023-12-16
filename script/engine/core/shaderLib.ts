@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { Attribute, DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Shader, ShaderInfo, ShaderStageFlagBits, Uniform, glsl } from "gfx";
-import { ShaderStages } from "../assets/ShaderStages.js";
+import { Shader as ShaderAsset } from "../assets/Shader.js";
 import { preprocessor } from "./internal/preprocessor.js";
 
 function align(size: number) {
@@ -171,22 +171,22 @@ export const shaderLib = {
         return descriptorSetLayout;
     },
 
-    getShader(stages: ShaderStages, macros: Record<string, number> = {}): Shader {
+    getShader(asset: ShaderAsset, macros: Record<string, number> = {}): Shader {
 
-        let key = stages.name;
-        for (const macro of stages.macros) {
+        let key = asset.name;
+        for (const macro of asset.macros) {
             const val = macros[macro] || 0;
             key += val
         }
 
         if (!_key2shader[key]) {
             const mac: Record<string, number> = {};
-            for (const macro of stages.macros) {
+            for (const macro of asset.macros) {
                 mac[macro] = macros[macro] || 0;
             }
 
-            const sources = stages.sources.map(src => preprocessor.macroExpand(mac, src));
-            const types = stages.types;
+            const sources = asset.sources.map(src => preprocessor.macroExpand(mac, src));
+            const types = asset.types;
 
             const info = new ShaderInfo;
             for (let i = 0; i < sources.length; i++) {

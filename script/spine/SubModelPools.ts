@@ -1,9 +1,9 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { ShaderStages, bundle, render, shaderLib, vec3, vec4 } from 'engine';
+import { Shader, bundle, render, shaderLib, vec3, vec4 } from 'engine';
 import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState, VertexAttributeVector } from "gfx";
 import { Texture } from "./Texture.js";
 
-const ss_spine = await bundle.cache('./shaders/unlit', ShaderStages);
+const ss_spine = await bundle.cache('./shaders/unlit', Shader);
 
 class SubModelPool {
     private _free = 0;

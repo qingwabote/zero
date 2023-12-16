@@ -1,6 +1,6 @@
 import { bundle } from "bundling";
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector } from "gfx";
-import { ShaderStages } from "../assets/ShaderStages.js";
+import { Shader } from "../assets/Shader.js";
 import { Zero } from "../core/Zero.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
@@ -15,7 +15,7 @@ import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
-const ss_primitive = await bundle.cache('./shaders/primitive', ShaderStages);
+const ss_primitive = await bundle.cache('./shaders/primitive', Shader);
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 

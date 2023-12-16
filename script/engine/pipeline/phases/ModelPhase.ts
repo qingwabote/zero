@@ -19,8 +19,8 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    record(commandBuffer: CommandBuffer, scene: Root, camera: Camera, renderPass: RenderPass): void {
-        this._drawCalls = 0;
+    record(commandBuffer: CommandBuffer, scene: Root, camera: Camera, renderPass: RenderPass): number {
+        let dc = 0;
         for (const model of scene.models) {
             if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
                 continue;
@@ -49,10 +49,11 @@ export class ModelPhase extends Phase {
                     } else {
                         commandBuffer.draw(drawInfo.count);
                     }
-                    this._drawCalls++;
+                    dc++;
                 }
             }
         }
+        return dc;
     }
 
     private getModelPipelineLayout(model: Model): PipelineLayout {

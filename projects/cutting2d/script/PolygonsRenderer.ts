@@ -1,8 +1,8 @@
-import { Material, MeshRenderer, Node, ShaderStages, UIElement, Vec2, bundle, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { Material, MeshRenderer, Node, Shader, UIElement, Vec2, bundle, render, shaderLib, vec2, vec3, vec4 } from "engine";
 import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexType, PassState, PrimitiveTopology, RasterizationState, Texture, VertexAttribute, VertexAttributeVector } from "gfx";
 import { Polygon } from "./Polygon.js";
 
-const ss_unlit = await bundle.cache('./shaders/unlit', ShaderStages);
+const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
 
 const vertexAttributes = new VertexAttributeVector;
 

@@ -53,7 +53,7 @@ export const safeArea = {
 }
 
 const canvas = wx.createCanvas()
-const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })!;
+const gl = canvas.getContext('webgl2', { antialias: false })!;
 globalThis.WebGL2RenderingContext = gl;
 
 export const device = new Device(gl);
