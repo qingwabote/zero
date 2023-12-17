@@ -1,12 +1,12 @@
 passes:
   - switch: USE_SHADOW_MAP
-    shader: ./shaders/shadowmap
+    shader: ../shaders/shadowmap
     type: shadowmap
     rasterizationState:
       cullMode: FRONT
     depthStencilState:
       depthTestEnable: true
-  - shader: ./shaders/phong
+  - shader: ../shaders/phong
     macros:
       SHADOW_MAP_PCF: 1
     constants:

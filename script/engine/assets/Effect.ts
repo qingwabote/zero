@@ -1,4 +1,4 @@
-import { Asset } from "assets";
+import { Asset, cache, resolve } from "assets";
 import { load } from "boot";
 import { bundle } from "bundling";
 import * as gfx from "gfx";
@@ -74,9 +74,8 @@ function gfx_toBlendFactor(factor: BlendFactor): gfx.BlendFactor {
 
 export class Effect implements Asset {
     private _passes: Pass[] = [];
-    // public get passes(): readonly PassInfo[] {
-    //     return this._passes;
-    // }
+
+    private _base: string = '';
 
     async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
@@ -84,8 +83,9 @@ export class Effect implements Asset {
             return this;
         }
 
-        const [, parent, name] = res;
-        this._passes = parse(await load(`${parent}/${name}.yml`, "text")).passes;
+        const [, base, name] = res;
+        this._passes = parse(await load(`${base}/${name}.yml`, "text")).passes;
+        this._base = base;
         return this;
     }
 
@@ -98,7 +98,7 @@ export class Effect implements Asset {
             }
 
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await bundle.cache(info.shader!, Shader), info.macros);
+            passState.shader = shaderLib.getShader(await cache(this.resolve(info.shader!), Shader), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
                     passState.primitive = gfx.PrimitiveTopology.LINE_LIST
@@ -147,5 +147,20 @@ export class Effect implements Asset {
             passes.push(pass);
         }
         return passes;
+    }
+
+    private resolve(path: string): string {
+        if (path[0] == '.') {
+            path = resolve(this._base, path);
+        }
+        path = path.replace(/\${(.+)}/g, function (_, variable) {
+            switch (variable) {
+                case 'ENGINE_ASSETS':
+                    return bundle.root;
+                default:
+                    throw `unsupported variable: ${variable}`;
+            }
+        })
+        return path;
     }
 }

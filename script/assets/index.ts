@@ -43,7 +43,7 @@ class Bitmap implements Asset {
 const _url2asset: Map<string, Asset> = new Map;
 const _url2pending: Map<string, Promise<any>> = new Map;
 
-function resolve(root: string, path: string) {
+export function resolve(root: string, path: string) {
     const heads = root.split('/');
     const tails = path.split('/');
     while (tails[0]) {
@@ -122,8 +122,8 @@ export class Raw {
 export class Bundle {
     readonly raw: Raw;
 
-    constructor(private _root: string) {
-        this.raw = new Raw(_root);
+    constructor(readonly root: string) {
+        this.raw = new Raw(root);
     }
 
     cache<T extends Asset>(path: string, type: new () => T): Promise<T> {
@@ -135,6 +135,6 @@ export class Bundle {
     }
 
     resolve(path: string): string {
-        return resolve(this._root, path);
+        return resolve(this.root, path);
     }
 }

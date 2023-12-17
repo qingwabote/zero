@@ -1,8 +1,0 @@
-{
-    "yaml": "./dist/yaml.js",
-    "gfx-common": "./dist/gfx-common/index.js",
-    "gfx": "./dist/gfx/index.js",
-    "loader": "./dist/loader/index.js",
-    "boot": "./dist/boot/index.js",
-    "engine": "./dist/engine/index.js"
-}

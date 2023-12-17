@@ -19,7 +19,7 @@
         "skeleton": "tsc -p ../projects/skeleton/script --outDir ./dist/subpackages/projects/skeleton/script --module system --watch",
         "vehicle": "tsc -p ../projects/vehicle/script --outDir ./dist/subpackages/projects/vehicle/script --module system --watch",
         "cutting2d": "tsc -p ../projects/cutting2d/script --outDir ./dist/subpackages/projects/cutting2d/script --module system --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run spine\""
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\""
     },
     "devDependencies": {
         "@babel/preset-env": "^7.23.3",
