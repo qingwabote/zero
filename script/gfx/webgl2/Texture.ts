@@ -1,4 +1,4 @@
-import { SampleCountFlagBits, TextureUsageBits } from "gfx-common";
+import { SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
 import { TextureInfo } from "./info.js";
 
 export class Texture {
@@ -36,11 +36,11 @@ export class Texture {
         const gl = this._gl;
 
         let format: GLenum = gl.RGBA8;
-        if (info.usage & TextureUsageBits.DEPTH_STENCIL_ATTACHMENT) {
+        if (info.usage & TextureUsageFlagBits.DEPTH_STENCIL) {
             format = gl.DEPTH_COMPONENT32F
         }
 
-        if (info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
+        if (info.samples == SampleCountFlagBits.X1) {
             this._texture = gl.createTexture()!
             gl.bindTexture(gl.TEXTURE_2D, this._texture);
             gl.texStorage2D(gl.TEXTURE_2D, 1, format, info.width, info.height);

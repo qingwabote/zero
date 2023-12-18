@@ -23,7 +23,7 @@ export class Framebuffer {
     initialize(info: FramebufferInfo): boolean {
         this._info = info;
 
-        const isDefaultFramebuffer = (info.colorAttachments as Vector<Texture>).data.find(texture => texture.swapchain) != undefined;
+        const isDefaultFramebuffer = (info.colors as Vector<Texture>).data.find(texture => texture.swapchain) != undefined;
         if (isDefaultFramebuffer) {
             return false;
         }
@@ -33,16 +33,16 @@ export class Framebuffer {
         const framebuffer = gl.createFramebuffer()!
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
-        for (let i = 0; i < (info.colorAttachments as Vector<Texture>).data.length; i++) {
-            const attachment = (info.colorAttachments as Vector<Texture>).data[i];
-            if (attachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
+        for (let i = 0; i < (info.colors as Vector<Texture>).data.length; i++) {
+            const attachment = (info.colors as Vector<Texture>).data[i];
+            if (attachment.info.samples == SampleCountFlagBits.X1) {
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, attachment.texture, 0);
             } else {
                 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, attachment.renderbuffer);
             }
         }
-        const depthStencilAttachment = info.depthStencilAttachment;
-        if (depthStencilAttachment.info.samples == SampleCountFlagBits.SAMPLE_COUNT_1) {
+        const depthStencilAttachment = info.depthStencil;
+        if (depthStencilAttachment.info.samples == SampleCountFlagBits.X1) {
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthStencilAttachment.texture, 0);
         } else {
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilAttachment.renderbuffer);

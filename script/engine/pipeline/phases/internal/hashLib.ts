@@ -56,7 +56,7 @@ export const hashLib = {
         let hash = _renderPass2hash.get(renderPass);
         if (!hash) {
             // https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
-            const key = `${renderPass.colorAttachments.size()}1${renderPass.resolveAttachments.size()}${renderPass.samples}`;
+            const key = `${renderPass.colors.size()}1${renderPass.resolves.size()}${renderPass.samples}`;
             hash = murmurhash2_32_gc(key, 666);
             _renderPass2hash.set(renderPass, hash);
         }

@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { ClearFlagBits, Framebuffer, FramebufferInfo, SampleCountFlagBits, TextureInfo, TextureUsageBits } from "gfx";
+import { ClearFlagBits, Framebuffer, FramebufferInfo, SampleCountFlagBits, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
 import { Phase } from "../core/render/pipeline/Phase.js";
 import { Stage } from "../core/render/pipeline/Stage.js";
@@ -15,25 +15,25 @@ const SHADOWMAP_WIDTH = 1024;
 const SHADOWMAP_HEIGHT = 1024;
 
 export const stageFactory = {
-    forward(phases: Phase[] = [new ModelPhase], lit: boolean = true, samples: SampleCountFlagBits = SampleCountFlagBits.SAMPLE_COUNT_1) {
+    forward(phases: Phase[] = [new ModelPhase], lit: boolean = true, samples: SampleCountFlagBits = SampleCountFlagBits.X1) {
         let framebuffer: Framebuffer | undefined;
-        if (samples != SampleCountFlagBits.SAMPLE_COUNT_1) {
+        if (samples != SampleCountFlagBits.X1) {
             const framebufferInfo = new FramebufferInfo;
 
             const colorAttachmentInfo = new TextureInfo;
             colorAttachmentInfo.samples = samples;
-            colorAttachmentInfo.usage = TextureUsageBits.COLOR_ATTACHMENT | TextureUsageBits.TRANSIENT_ATTACHMENT;
+            colorAttachmentInfo.usage = TextureUsageFlagBits.COLOR | TextureUsageFlagBits.TRANSIENT;
             colorAttachmentInfo.width = device.swapchain.width;
             colorAttachmentInfo.height = device.swapchain.height;
-            framebufferInfo.colorAttachments.add(device.createTexture(colorAttachmentInfo));
-            framebufferInfo.resolveAttachments.add(device.swapchain.colorTexture);
+            framebufferInfo.colors.add(device.createTexture(colorAttachmentInfo));
+            framebufferInfo.resolves.add(device.swapchain.colorTexture);
 
             const depthStencilAttachmentInfo = new TextureInfo;
             depthStencilAttachmentInfo.samples = samples;
-            depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT;
+            depthStencilAttachmentInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
             depthStencilAttachmentInfo.width = device.swapchain.width;
             depthStencilAttachmentInfo.height = device.swapchain.height;
-            framebufferInfo.depthStencilAttachment = device.createTexture(depthStencilAttachmentInfo);
+            framebufferInfo.depthStencil = device.createTexture(depthStencilAttachmentInfo);
 
             framebufferInfo.renderPass = getRenderPass(framebufferInfo);
             framebufferInfo.width = device.swapchain.width;
@@ -53,11 +53,10 @@ export const stageFactory = {
     shadow(visibility: VisibilityFlagBits = VisibilityFlagBits.DEFAULT) {
         const framebufferInfo = new FramebufferInfo;
         const depthStencilAttachmentInfo = new TextureInfo;
-        depthStencilAttachmentInfo.samples = SampleCountFlagBits.SAMPLE_COUNT_1;
-        depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT | TextureUsageBits.SAMPLED;
+        depthStencilAttachmentInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL | TextureUsageFlagBits.SAMPLED;
         depthStencilAttachmentInfo.width = SHADOWMAP_WIDTH;
         depthStencilAttachmentInfo.height = SHADOWMAP_HEIGHT
-        framebufferInfo.depthStencilAttachment = device.createTexture(depthStencilAttachmentInfo);
+        framebufferInfo.depthStencil = device.createTexture(depthStencilAttachmentInfo);
         framebufferInfo.renderPass = getRenderPass(framebufferInfo, ClearFlagBits.DEPTH);
         framebufferInfo.width = SHADOWMAP_WIDTH;
         framebufferInfo.height = SHADOWMAP_HEIGHT;

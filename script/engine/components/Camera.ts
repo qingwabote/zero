@@ -36,7 +36,7 @@ export class Camera extends Component {
     near = 1;
     far = 1000;
 
-    visibilityFlags: VisibilityFlagBits = VisibilityFlagBits.DEFAULT;
+    visibilities: VisibilityFlagBits = VisibilityFlagBits.DEFAULT;
 
     clearFlags: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
 
@@ -51,7 +51,7 @@ export class Camera extends Component {
         this.node.on(TransformEvent.TRANSFORM_CHANGED, () => this._matViewFlags = DirtyFlag.DIRTY);
 
         const camera = new render_Camera(this.node);
-        camera.visibilityFlags = this.visibilityFlags;
+        camera.visibilities = this.visibilities;
         camera.clearFlags = this.clearFlags;
         camera.viewport = this.viewport;
         Zero.instance.scene.cameras.push(camera);

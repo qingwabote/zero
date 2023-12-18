@@ -28,8 +28,8 @@ export class Model {
 
     readonly descriptorSet: DescriptorSet;
 
-    get visibilityFlag(): number {
-        return this._transform.visibilityFlag
+    get visibility(): number {
+        return this._transform.visibility
     }
 
     order: number = 0;

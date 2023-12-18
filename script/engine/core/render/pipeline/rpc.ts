@@ -1,59 +1,59 @@
 import { device } from "boot";
-import { AttachmentDescription, ClearFlagBits, FramebufferInfo, ImageLayout, LOAD_OP, RenderPass, RenderPassInfo, TextureUsageBits } from "gfx";
+import { AttachmentDescription, ClearFlagBits, FramebufferInfo, ImageLayout, LOAD_OP, RenderPass, RenderPassInfo, TextureUsageFlagBits } from "gfx";
 
 const framebuffer2clearFlags2renderPass: Map<FramebufferInfo, Record<string, RenderPass>> = new Map;
 
-export function getRenderPass(framebuffer: FramebufferInfo, clearFlags = ClearFlagBits.NONE) {
+export function getRenderPass(framebuffer: FramebufferInfo, clears = ClearFlagBits.NONE) {
     let clearFlags2renderPass = framebuffer2clearFlags2renderPass.get(framebuffer);
     if (!clearFlags2renderPass) {
         clearFlags2renderPass = {};
         framebuffer2clearFlags2renderPass.set(framebuffer, clearFlags2renderPass);
     }
 
-    let renderPass = clearFlags2renderPass[clearFlags];
+    let renderPass = clearFlags2renderPass[clears];
     if (renderPass) {
         return renderPass;
     }
 
     const info = new RenderPassInfo;
 
-    const colorAttachments = framebuffer.colorAttachments;
+    const colorAttachments = framebuffer.colors;
     for (let i = 0; i < colorAttachments.size(); i++) {
         const colorAttachment = colorAttachments.get(i);
         const description = new AttachmentDescription;
-        description.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+        description.loadOp = clears & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
         if (colorAttachment == device.swapchain.colorTexture) {
-            description.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
+            description.initialLayout = clears & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
             description.finalLayout = ImageLayout.PRESENT_SRC;
         } else {
-            description.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
-            description.finalLayout = ImageLayout.COLOR_ATTACHMENT_OPTIMAL;
+            description.initialLayout = clears & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR;
+            description.finalLayout = ImageLayout.COLOR;
         }
-        info.colorAttachments.add(description);
+        info.colors.add(description);
     }
 
-    const resolveAttachments = framebuffer.resolveAttachments;
+    const resolveAttachments = framebuffer.resolves;
     for (let i = 0; i < resolveAttachments.size(); i++) {
         // const resolveAttachment = resolveAttachments.get(i);
         const description = new AttachmentDescription;
-        description.loadOp = clearFlags & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-        description.initialLayout = clearFlags & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
+        description.loadOp = clears & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+        description.initialLayout = clears & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
         description.finalLayout = ImageLayout.PRESENT_SRC;
-        info.resolveAttachments.add(description);
+        info.resolves.add(description);
     }
 
-    const depthStencilAttachment = framebuffer.depthStencilAttachment;
+    const depthStencilAttachment = framebuffer.depthStencil;
     const depthStencilDescription = new AttachmentDescription();
-    depthStencilDescription.loadOp = clearFlags & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-    depthStencilDescription.initialLayout = clearFlags & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    if (depthStencilAttachment.info.usage & TextureUsageBits.SAMPLED) {
-        depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    depthStencilDescription.loadOp = clears & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
+    depthStencilDescription.initialLayout = clears & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL;
+    if (depthStencilAttachment.info.usage & TextureUsageFlagBits.SAMPLED) {
+        depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY;
     } else {
-        depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL;
     }
-    info.depthStencilAttachment = depthStencilDescription;
+    info.depthStencil = depthStencilDescription;
 
     info.samples = depthStencilAttachment.info.samples;
 
-    return clearFlags2renderPass[clearFlags] = renderPass = device.createRenderPass(info);
+    return clearFlags2renderPass[clears] = renderPass = device.createRenderPass(info);
 }

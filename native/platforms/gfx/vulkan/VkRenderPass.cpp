@@ -7,8 +7,8 @@ namespace gfx
 
     bool RenderPass_impl::initialize(const RenderPassInfo &info)
     {
-        auto gfx_colorAttachments = info.colorAttachments.get();
-        auto gfx_resolveAttachments = info.resolveAttachments.get();
+        auto gfx_colorAttachments = info.colors.get();
+        auto gfx_resolveAttachments = info.resolves.get();
 
         // renderpass
         VkRenderPassCreateInfo2 renderPassInfo = {};
@@ -44,9 +44,9 @@ namespace gfx
         // depthStencil
         std::unique_ptr<VkAttachmentReference2> depthAttachmentRef;
         VkImageLayout depthFinalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
-        if (info.depthStencilAttachment)
+        if (info.depthStencil)
         {
-            auto gfx_depthStencilAttachment = info.depthStencilAttachment.get();
+            auto gfx_depthStencilAttachment = info.depthStencil.get();
             depthFinalLayout = static_cast<VkImageLayout>(gfx_depthStencilAttachment->finalLayout);
 
             VkAttachmentDescription2 attachment{};

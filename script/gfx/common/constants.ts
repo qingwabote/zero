@@ -68,23 +68,20 @@ export enum DescriptorType {
 
 // copy values from VkSampleCountFlagBits in vulkan_core.h
 export enum SampleCountFlagBits {
-    SAMPLE_COUNT_1 = 0x00000001,
-    SAMPLE_COUNT_2 = 0x00000002,
-    SAMPLE_COUNT_4 = 0x00000004,
-    SAMPLE_COUNT_8 = 0x00000008,
-    SAMPLE_COUNT_16 = 0x00000010,
-    SAMPLE_COUNT_32 = 0x00000020,
-    SAMPLE_COUNT_64 = 0x00000040,
+    X1 = 0x00000001,
+    X2 = 0x00000002,
+    X4 = 0x00000004,
+    X8 = 0x00000008
 }
 
 // copy values from VkImageUsageFlagBits in vulkan_core.h
-export enum TextureUsageBits {
+export enum TextureUsageFlagBits {
     NONE = 0,
     TRANSFER_DST = 0x00000002,
     SAMPLED = 0x00000004,
-    COLOR_ATTACHMENT = 0x00000010,
-    DEPTH_STENCIL_ATTACHMENT = 0x00000020,
-    TRANSIENT_ATTACHMENT = 0x00000040,
+    COLOR = 0x00000010,
+    DEPTH_STENCIL = 0x00000020,
+    TRANSIENT = 0x00000040,
 }
 
 // copy values from VkAttachmentLoadOp in vulkan_core.h
@@ -95,9 +92,9 @@ export enum LOAD_OP {
 // copy values from VkImageLayout in vulkan_core.h
 export enum ImageLayout {
     UNDEFINED = 0,
-    COLOR_ATTACHMENT_OPTIMAL = 2,
-    DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
-    DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
+    COLOR = 2,
+    DEPTH_STENCIL = 3,
+    DEPTH_STENCIL_READ_ONLY = 4,
     PRESENT_SRC = 1000001002,
 }
 

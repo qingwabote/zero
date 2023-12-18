@@ -14,7 +14,7 @@ export class ShadowMapUniform implements Uniform {
         const shadowStage = Zero.instance.flow.stages.find((stage) => { return stage.uniforms.indexOf(ShadowUniform) != -1 })!;
         Zero.instance.flow.globalDescriptorSet.bindTexture(
             shadowMap.binding,
-            shadowStage.framebuffer.info.depthStencilAttachment,
+            shadowStage.framebuffer.info.depthStencil,
             getSampler(Filter.NEAREST, Filter.NEAREST)
         );
     }

@@ -19,7 +19,7 @@
 %ignore gfx::ShaderStageFlagBits;
 %ignore gfx::DescriptorType;
 %ignore gfx::SampleCountFlagBits;
-%ignore gfx::TextureUsageBits;
+%ignore gfx::TextureUsageFlagBits;
 %ignore gfx::LOAD_OP;
 %ignore gfx::ImageLayout;
 %ignore gfx::Filter;

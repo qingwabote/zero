@@ -31,31 +31,31 @@ const mat4_a = mat4.create();
 const quat_a = quat.create();
 
 export class Transform extends FrameChangeRecord implements TRS, EventEmitter<TransformEventToListener> {
-    private _explicit_visibilityFlag?: number = undefined;
-    private _implicit_visibilityFlag?: number = undefined;
-    public get visibilityFlag(): number {
-        if (this._explicit_visibilityFlag != undefined) {
-            return this._explicit_visibilityFlag;
+    private _explicit_visibility?: number = undefined;
+    private _implicit_visibility?: number = undefined;
+    public get visibility(): number {
+        if (this._explicit_visibility != undefined) {
+            return this._explicit_visibility;
         }
-        if (this._implicit_visibilityFlag != undefined) {
-            return this._implicit_visibilityFlag;
+        if (this._implicit_visibility != undefined) {
+            return this._implicit_visibility;
         }
         if (this._parent) {
-            return this._implicit_visibilityFlag = this._parent.visibilityFlag;
+            return this._implicit_visibility = this._parent.visibility;
         }
         return 0;
     }
-    public set visibilityFlag(value) {
+    public set visibility(value) {
         const stack = [...this.children];
         while (stack.length) {
             const child = stack.pop()!;
-            if (child._explicit_visibilityFlag != undefined) {
+            if (child._explicit_visibility != undefined) {
                 continue;
             }
-            child._implicit_visibilityFlag = value;
+            child._implicit_visibility = value;
             stack.push(...child.children);
         }
-        this._explicit_visibilityFlag = value;
+        this._explicit_visibility = value;
     }
 
     private _changed = TransformBits.TRS;
@@ -190,7 +190,7 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
     }
 
     addChild(child: this): void {
-        child._implicit_visibilityFlag = undefined;
+        child._implicit_visibility = undefined;
         child._parent = this;
 
         this._children.push(child);

@@ -64,13 +64,13 @@ export class CommandBuffer {
         this._viewport = { x, y, width, height };
 
         let flag: number = 0;
-        for (const attachment of (renderPass.info.colorAttachments as Vector<AttachmentDescription>).data) {
+        for (const attachment of (renderPass.info.colors as Vector<AttachmentDescription>).data) {
             if (attachment.loadOp == LOAD_OP.CLEAR) {
                 gl.clearColor(0, 0, 0, 1);
                 flag |= gl.COLOR_BUFFER_BIT;
             }
         }
-        if (renderPass.info.depthStencilAttachment.loadOp == LOAD_OP.CLEAR) {
+        if (renderPass.info.depthStencil.loadOp == LOAD_OP.CLEAR) {
             flag |= gl.DEPTH_BUFFER_BIT;
         }
         if (flag) {
@@ -205,7 +205,7 @@ export class CommandBuffer {
     endRenderPass() {
         const gl = this._gl;
 
-        for (const attachment of (this._framebuffer.info.resolveAttachments as Vector<Texture>).data) {
+        for (const attachment of (this._framebuffer.info.resolves as Vector<Texture>).data) {
             if ((attachment).swapchain) {
                 gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);

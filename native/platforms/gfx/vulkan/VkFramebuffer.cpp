@@ -16,9 +16,9 @@ namespace gfx
     {
         auto width = info->width;
         auto height = info->height;
-        auto colorAttachments = info->colorAttachments.get();
-        auto depthStencilAttachment = info->depthStencilAttachment.get();
-        auto resolveAttachments = info->resolveAttachments.get();
+        auto colorAttachments = info->colors.get();
+        auto depthStencilAttachment = info->depthStencil.get();
+        auto resolveAttachments = info->resolves.get();
         auto renderPass = info->renderPass;
 
         Texture *swapchainAttachment = nullptr;

@@ -1,4 +1,4 @@
-import { AttachmentDescription, BufferInfo, BufferUsageFlagBits, CullMode, Format, FormatInfos, FramebufferInfo, ImageLayout, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, ShaderInfo, ShaderStageFlagBits, TextureInfo, TextureUsageBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { AttachmentDescription, BufferInfo, BufferUsageFlagBits, CullMode, Format, FormatInfos, FramebufferInfo, ImageLayout, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, ShaderInfo, ShaderStageFlagBits, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 import { device } from "./impl.js";
 
 const vs = `
@@ -64,7 +64,7 @@ export class App {
         const depthStencilAttachment = new AttachmentDescription();
         depthStencilAttachment.loadOp = LOAD_OP.CLEAR;
         depthStencilAttachment.initialLayout = ImageLayout.UNDEFINED;
-        depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL;
 
         const renderPassInfo = new RenderPassInfo
         renderPassInfo.colorAttachments.add(colorAttachmentDescription);
@@ -115,7 +115,7 @@ export class App {
         framebufferInfo.colorAttachments.add(device.swapchain.colorTexture);
         const depthStencilTextureInfo = new TextureInfo;
         depthStencilTextureInfo.samples = 1;
-        depthStencilTextureInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT;
+        depthStencilTextureInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
         depthStencilTextureInfo.width = device.swapchain.width;
         depthStencilTextureInfo.height = device.swapchain.height;
         const depthStencilTexture = device.createTexture();

@@ -15,14 +15,14 @@ const pipelineLayoutCache: Record<number, PipelineLayout> = {};
 const pipelineCache: Record<number, Pipeline> = {};
 
 export class ModelPhase extends Phase {
-    constructor(private _passType = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
+    constructor(private _pass = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
         super(visibility);
     }
 
     record(commandBuffer: CommandBuffer, scene: Root, camera: Camera, renderPass: RenderPass): number {
         let dc = 0;
         for (const model of scene.models) {
-            if ((camera.visibilityFlags & model.visibilityFlag) == 0) {
+            if ((camera.visibilities & model.visibility) == 0) {
                 continue;
             }
             commandBuffer.bindDescriptorSet(this.getModelPipelineLayout(model), shaderLib.sets.local.index, model.descriptorSet);
@@ -34,7 +34,7 @@ export class ModelPhase extends Phase {
                 const inputAssembler = subModel.inputAssembler;
                 for (let i = 0; i < subModel.passes.length; i++) {
                     const pass = subModel.passes[i];
-                    if (pass.type != this._passType) {
+                    if (pass.type != this._pass) {
                         continue;
                     }
                     commandBuffer.bindInputAssembler(inputAssembler);

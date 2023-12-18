@@ -76,40 +76,37 @@ namespace gfx
 
     enum class SampleCountFlagBits
     {
-        SAMPLE_COUNT_1 = 0x00000001,
-        SAMPLE_COUNT_2 = 0x00000002,
-        SAMPLE_COUNT_4 = 0x00000004,
-        SAMPLE_COUNT_8 = 0x00000008,
-        SAMPLE_COUNT_16 = 0x00000010,
-        SAMPLE_COUNT_32 = 0x00000020,
-        SAMPLE_COUNT_64 = 0x00000040,
+        X1 = 0x00000001,
+        X2 = 0x00000002,
+        X4 = 0x00000004,
+        X8 = 0x00000008,
     };
 
-    enum class TextureUsageBits
+    enum class TextureUsageFlagBits
     {
         NONE = 0,
         TRANSFER_DST = 0x00000002,
         SAMPLED = 0x00000004,
-        COLOR_ATTACHMENT = 0x00000010,
-        DEPTH_STENCIL_ATTACHMENT = 0x00000020,
-        TRANSIENT_ATTACHMENT = 0x00000040,
+        COLOR = 0x00000010,
+        DEPTH_STENCIL = 0x00000020,
+        TRANSIENT = 0x00000040,
     };
 
     struct TextureInfo
     {
-        SampleCountFlagBits samples;
-        TextureUsageBits usage;
-        uint32_t width;
-        uint32_t height;
+        SampleCountFlagBits samples{SampleCountFlagBits::X1};
+        TextureUsageFlagBits usage{TextureUsageFlagBits::NONE};
+        uint32_t width{0};
+        uint32_t height{0};
     };
 
     using TextureVector = std::vector<std::shared_ptr<Texture>>;
 
     struct FramebufferInfo
     {
-        std::shared_ptr<TextureVector> colorAttachments{new TextureVector()};
-        std::shared_ptr<Texture> depthStencilAttachment;
-        std::shared_ptr<TextureVector> resolveAttachments{new TextureVector()};
+        std::shared_ptr<TextureVector> colors{new TextureVector()};
+        std::shared_ptr<Texture> depthStencil;
+        std::shared_ptr<TextureVector> resolves{new TextureVector()};
         std::shared_ptr<RenderPass> renderPass;
         uint32_t width{0};
         uint32_t height{0};
@@ -123,9 +120,9 @@ namespace gfx
     enum class ImageLayout
     {
         UNDEFINED = 0,
-        COLOR_ATTACHMENT_OPTIMAL = 2,
-        DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
-        DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
+        COLOR = 2,
+        DEPTH_STENCIL = 3,
+        DEPTH_STENCIL_READ_ONLY = 4,
         PRESENT_SRC = 1000001002,
     };
     struct AttachmentDescription
@@ -137,10 +134,10 @@ namespace gfx
     using AttachmentDescriptionVector = std::vector<std::shared_ptr<AttachmentDescription>>;
     struct RenderPassInfo
     {
-        std::shared_ptr<AttachmentDescriptionVector> colorAttachments{new AttachmentDescriptionVector()};
-        std::shared_ptr<AttachmentDescription> depthStencilAttachment;
-        std::shared_ptr<AttachmentDescriptionVector> resolveAttachments{new AttachmentDescriptionVector()};
-        SampleCountFlagBits samples{SampleCountFlagBits::SAMPLE_COUNT_1};
+        std::shared_ptr<AttachmentDescriptionVector> colors{new AttachmentDescriptionVector()};
+        std::shared_ptr<AttachmentDescription> depthStencil;
+        std::shared_ptr<AttachmentDescriptionVector> resolves{new AttachmentDescriptionVector()};
+        SampleCountFlagBits samples{SampleCountFlagBits::X1};
     };
 
     enum class Filter

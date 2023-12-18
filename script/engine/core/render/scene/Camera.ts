@@ -17,7 +17,7 @@ export class Camera extends FrameChangeRecord {
         super.hasChanged = flags;
     }
 
-    visibilityFlags = 0;
+    visibilities = 0;
 
     clearFlags: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
 

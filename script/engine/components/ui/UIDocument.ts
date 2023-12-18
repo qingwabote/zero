@@ -62,7 +62,7 @@ export class UIDocument extends Component {
     private touchWalk(element: UIElement, cameras: readonly Camera[], world_positions: readonly Readonly<Vec2>[], type: UITouchEventType) {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            if (!(element.node.visibilityFlag & camera.visibilityFlags)) {
+            if (!(element.node.visibility & camera.visibilities)) {
                 continue;
             }
 

@@ -2,7 +2,7 @@
 import { device } from 'boot';
 //
 import { bundle } from 'bundling';
-import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SampleCountFlagBits, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 
 const TEXTURE_BINDING = 0;
 
@@ -36,8 +36,7 @@ const commandBuffer = device.createCommandBuffer();
 const bitmap = await bundle.raw.once('favicon.ico', 'bitmap');
 
 const info = new TextureInfo;
-info.samples = SampleCountFlagBits.SAMPLE_COUNT_1;
-info.usage = TextureUsageBits.SAMPLED | TextureUsageBits.TRANSFER_DST;
+info.usage = TextureUsageFlagBits.SAMPLED | TextureUsageFlagBits.TRANSFER_DST;
 info.width = bitmap.width;
 info.height = bitmap.height;
 const texture = device.createTexture(info);
@@ -113,11 +112,11 @@ colorAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
 const depthStencilAttachment = new AttachmentDescription();
 depthStencilAttachment.loadOp = LOAD_OP.CLEAR;
 depthStencilAttachment.initialLayout = ImageLayout.UNDEFINED;
-depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL;
 
 const renderPassInfo = new RenderPassInfo
-renderPassInfo.colorAttachments.add(colorAttachmentDescription);
-renderPassInfo.depthStencilAttachment = depthStencilAttachment;
+renderPassInfo.colors.add(colorAttachmentDescription);
+renderPassInfo.depthStencil = depthStencilAttachment;
 renderPassInfo.samples = 1;
 
 const renderPass = device.createRenderPass(renderPassInfo);
@@ -193,14 +192,13 @@ const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
 descriptorSet.bindTexture(TEXTURE_BINDING, texture, sampler)
 
 const framebufferInfo = new FramebufferInfo;
-framebufferInfo.colorAttachments.add(device.swapchain.colorTexture);
+framebufferInfo.colors.add(device.swapchain.colorTexture);
 const depthStencilTextureInfo = new TextureInfo;
-depthStencilTextureInfo.samples = 1;
-depthStencilTextureInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT;
+depthStencilTextureInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
 depthStencilTextureInfo.width = device.swapchain.width;
 depthStencilTextureInfo.height = device.swapchain.height;
 const depthStencilTexture = device.createTexture(depthStencilTextureInfo);
-framebufferInfo.depthStencilAttachment = depthStencilTexture;
+framebufferInfo.depthStencil = depthStencilTexture;
 framebufferInfo.renderPass = renderPass;
 framebufferInfo.width = device.swapchain.width;
 framebufferInfo.height = device.swapchain.height;

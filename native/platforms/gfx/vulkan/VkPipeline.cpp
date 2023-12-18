@@ -78,7 +78,7 @@ namespace gfx
         pipelineInfo.pViewportState = &viewportState;
 
         bool swapchain = false;
-        for (auto &attachment : *info->renderPass->info()->colorAttachments)
+        for (auto &attachment : *info->renderPass->info()->colors)
         {
             if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
             {
@@ -88,7 +88,7 @@ namespace gfx
         }
         if (!swapchain)
         {
-            for (auto &attachment : *info->renderPass->info()->resolveAttachments)
+            for (auto &attachment : *info->renderPass->info()->resolves)
             {
                 if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
                 {

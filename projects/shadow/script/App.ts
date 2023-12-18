@@ -1,9 +1,12 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, VisibilityFlagBits, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
-import { SampleCountFlagBits } from 'gfx';
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
 
-const VisibilityBit_UP = 1 << 9;
-const VisibilityBit_DOWN = 1 << 10;
+const VisibilityFlagBits = {
+    UP: 1 << 1,
+    DOWN: 1 << 2,
+    UI: 1 << 29,
+    DEFAULT: 1 << 30
+} as const
 
 const USE_SHADOW_MAP = 1;
 
@@ -70,7 +73,7 @@ export class App extends Zero {
         // cameras
         node = new Node;
         const up_camera = node.addComponent(Camera);
-        up_camera.visibilityFlags = VisibilityFlagBits.DEFAULT | VisibilityBit_UP;
+        up_camera.visibilities = VisibilityFlagBits.DEFAULT | VisibilityFlagBits.UP;
         up_camera.fov = 45;
         up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
         node.position = [0, 0, 10];
@@ -78,7 +81,7 @@ export class App extends Zero {
         const down_size = Math.min(height / 2, width);
         node = new Node;
         const down_camera = node.addComponent(Camera);
-        down_camera.visibilityFlags = VisibilityFlagBits.DEFAULT | VisibilityBit_DOWN;
+        down_camera.visibilities = VisibilityFlagBits.DEFAULT | VisibilityFlagBits.DOWN;
         down_camera.orthoHeight = ShadowUniform.camera.orthoHeight;
         down_camera.far = ShadowUniform.camera.far;
         down_camera.viewport = { x: 0, y: 0, width: down_size * ShadowUniform.camera.aspect, height: down_size };
@@ -88,14 +91,14 @@ export class App extends Zero {
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
-        ui_camera.visibilityFlags = VisibilityFlagBits.UI;
+        ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibilityFlag = VisibilityFlagBits.UI;
+        doc.node.visibility = VisibilityFlagBits.UI;
 
         node = new Node;
         const profiler = node.addComponent(Profiler);
@@ -105,10 +108,10 @@ export class App extends Zero {
 
         const stages: render.Stage[] = [];
         if (USE_SHADOW_MAP) {
-            const stage = stageFactory.shadow(VisibilityBit_UP);
+            const stage = stageFactory.shadow(VisibilityFlagBits.UP);
 
             const sprite = UIRenderer.create(SpriteRenderer);
-            sprite.impl.spriteFrame = new SpriteFrame(stage.framebuffer.info.depthStencilAttachment);
+            sprite.impl.spriteFrame = new SpriteFrame(stage.framebuffer.info.depthStencil);
             sprite.impl.shader = shaderLib.getShader(ss_depth);
             sprite.size = [height / 4, height / 4]
             sprite.anchor = [1, 0.5];
@@ -143,24 +146,25 @@ export class App extends Zero {
         const animation = node.addComponent(Animation);
         animation.clips = guardian.animationClips;
         animation.play('WalkCycle')
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        node.visibility = VisibilityFlagBits.DEFAULT;
         node.position = [0, -1, 0]
 
         node = plane.createScene("Plane")!;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        node.visibility = VisibilityFlagBits.DEFAULT
         node.scale = [5, 1, 5];
         node.position = [0, -1, 0]
 
         node = gltf_camera.createScene("Sketchfab_Scene")!;
-        node.visibilityFlag = VisibilityBit_DOWN
+        node.visibility = VisibilityFlagBits.DOWN
         node.scale = [0.005, 0.005, 0.005];
         node.euler = vec3.create(180, 0, 180)
         up_camera.node.addChild(node);
 
         stages.push(stageFactory.forward([
-            new ModelPhase('default', VisibilityFlagBits.UI | VisibilityBit_UP),
-            new ModelPhase('down', VisibilityBit_DOWN),
-        ], true, SampleCountFlagBits.SAMPLE_COUNT_1));
+            new ModelPhase('default', VisibilityFlagBits.UI),
+            new ModelPhase('default', VisibilityFlagBits.UP),
+            new ModelPhase('down', VisibilityFlagBits.DOWN),
+        ]));
         return new render.Flow(stages);
     }
 }

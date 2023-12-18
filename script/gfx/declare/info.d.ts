@@ -1,4 +1,4 @@
-import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageBits, VertexInputRate } from "gfx-common";
+import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageFlagBits, VertexInputRate } from "gfx-common";
 import { Buffer } from "./Buffer.js";
 import { CommandBuffer } from "./CommandBuffer.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
@@ -47,7 +47,7 @@ export declare class DescriptorSetLayoutInfo {
 
 export declare class TextureInfo {
     samples: SampleCountFlagBits;
-    usage: TextureUsageBits;
+    usage: TextureUsageFlagBits;
     width: number;
     height: number;
 }
@@ -55,9 +55,9 @@ export declare class TextureInfo {
 export class TextureVector extends Vector<Texture>{ };
 
 export declare class FramebufferInfo {
-    colorAttachments: TextureVector;
-    depthStencilAttachment: Texture;
-    resolveAttachments: TextureVector;
+    colors: TextureVector;
+    depthStencil: Texture;
+    resolves: TextureVector;
     renderPass: RenderPass;
     width: number;
     height: number;
@@ -71,9 +71,9 @@ export declare class AttachmentDescription {
 }
 export class AttachmentDescriptionVector extends Vector<AttachmentDescription>{ };
 export declare class RenderPassInfo {
-    colorAttachments: AttachmentDescriptionVector;
-    depthStencilAttachment: AttachmentDescription;
-    resolveAttachments: AttachmentDescriptionVector;
+    colors: AttachmentDescriptionVector;
+    depthStencil: AttachmentDescription;
+    resolves: AttachmentDescriptionVector;
     samples: SampleCountFlagBits
 }
 

@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { CommandBuffer, Framebuffer, FramebufferInfo, RenderPass, SampleCountFlagBits, TextureInfo, TextureUsageBits } from "gfx";
+import { CommandBuffer, Framebuffer, FramebufferInfo, RenderPass, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Rect } from "../../math/rect.js";
 import { Camera } from "../scene/Camera.js";
 import { Root } from "../scene/Root.js";
@@ -13,14 +13,13 @@ const defaultFramebuffer = (function () {
     framebufferInfo.width = device.swapchain.width;
     framebufferInfo.height = device.swapchain.height;
 
-    framebufferInfo.colorAttachments.add(device.swapchain.colorTexture);
+    framebufferInfo.colors.add(device.swapchain.colorTexture);
 
     const depthStencilAttachmentInfo = new TextureInfo;
-    depthStencilAttachmentInfo.samples = SampleCountFlagBits.SAMPLE_COUNT_1;
-    depthStencilAttachmentInfo.usage = TextureUsageBits.DEPTH_STENCIL_ATTACHMENT;
+    depthStencilAttachmentInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
     depthStencilAttachmentInfo.width = framebufferInfo.width;
     depthStencilAttachmentInfo.height = framebufferInfo.height;
-    framebufferInfo.depthStencilAttachment = device.createTexture(depthStencilAttachmentInfo);
+    framebufferInfo.depthStencil = device.createTexture(depthStencilAttachmentInfo);
 
     framebufferInfo.renderPass = getRenderPass(framebufferInfo);
 
@@ -41,7 +40,7 @@ export class Stage {
     ) { }
 
     record(commandBuffer: CommandBuffer, scene: Root, camera: Camera): number {
-        const phases = this._phases.filter(phase => camera.visibilityFlags & phase.visibility);
+        const phases = this._phases.filter(phase => camera.visibilities & phase.visibility);
         if (phases.length == 0) {
             return 0;
         }
