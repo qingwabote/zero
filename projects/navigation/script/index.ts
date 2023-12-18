@@ -14,7 +14,7 @@ class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        doc.node.visibility = VisibilityFlagBits.DEFAULT;
 
         let y = safeArea.y + safeArea.height - 100;
         let d = 80;
@@ -86,7 +86,7 @@ class App extends Zero {
         doc.addElement(textRenderer);
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        node.visibility = VisibilityFlagBits.DEFAULT
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, safeArea.y, 0];

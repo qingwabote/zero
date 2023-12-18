@@ -27,7 +27,7 @@ export class Texture implements Asset {
     }
 
     async load(url: string): Promise<this> {
-        const bitmap = await load(url, "bitmap", this.onProgress);
+        const bitmap = await load(url, "bitmap");
         const info = new TextureInfo;
         info.usage = TextureUsageFlagBits.SAMPLED | TextureUsageFlagBits.TRANSFER_DST;
         info.width = bitmap.width;
@@ -56,7 +56,7 @@ export class Texture implements Asset {
         return this;
     }
 
-    private onProgress(loaded: number, total: number, url: string) {
-        console.log(`download: ${url}, progress: ${loaded / total * 100}`)
-    }
+    // private onProgress(loaded: number, total: number, url: string) {
+    //     console.log(`download: ${url}, progress: ${loaded / total * 100}`)
+    // }
 }

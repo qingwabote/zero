@@ -18,17 +18,15 @@ function merge<Out>(target: Out, ...sources: Out[]): Out {
     return target;
 }
 
-export type PrimitiveTopology = "LINE_LIST" | "TRIANGLE_LIST";
-
 export interface RasterizationState {
-    readonly cullMode: "NONE" | "FRONT" | "BACK";
+    readonly cullMode: keyof typeof gfx.CullMode;
 }
 
 export interface DepthStencilState {
     readonly depthTestEnable: boolean;
 }
 
-export type BlendFactor = "ZERO" | "ONE" | "SRC_ALPHA" | "ONE_MINUS_SRC_ALPHA" | "DST_ALPHA" | "ONE_MINUS_DST_ALPHA"
+export type BlendFactor = keyof typeof gfx.BlendFactor;
 
 /**color(RGB) = (sourceColor * srcRGB) + (destinationColor * dstRGB)
  * color(A) = (sourceAlpha * srcAlpha) + (destinationAlpha * dstAlpha)
@@ -47,27 +45,17 @@ interface Pass {
     readonly macros?: Record<string, number>;
     readonly constants?: Record<string, ArrayLike<number>>;
     readonly samplerTextures?: Record<string, [gfx.Texture, gfx.Sampler]>
-    readonly primitive?: PrimitiveTopology;
+    readonly primitive?: keyof typeof gfx.PrimitiveTopology;
     readonly rasterizationState?: RasterizationState;
     readonly depthStencilState?: DepthStencilState;
     readonly blendState?: BlendState;
 }
 
-function gfx_toBlendFactor(factor: BlendFactor): gfx.BlendFactor {
-    switch (factor) {
-        case 'ZERO':
-            return gfx.BlendFactor.ZERO;
-        case "ONE":
-            return gfx.BlendFactor.ONE;
-        case "SRC_ALPHA":
-            return gfx.BlendFactor.SRC_ALPHA;
-        case "ONE_MINUS_SRC_ALPHA":
-            return gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
-        case "DST_ALPHA":
-            return gfx.BlendFactor.DST_ALPHA;
-        case "ONE_MINUS_DST_ALPHA":
-            return gfx.BlendFactor.ONE_MINUS_DST_ALPHA;
+function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
+    if (factor in gfx.BlendFactor) {
+        return gfx.BlendFactor[factor];
     }
+    throw `unsupported factor: ${factor}`;
 }
 
 export class Effect extends Yml {
@@ -87,29 +75,28 @@ export class Effect extends Yml {
 
             const passState = new gfx.PassState;
             passState.shader = shaderLib.getShader(await cache(this.resolvePath(info.shader!), Shader), info.macros);
-            switch (info.primitive) {
-                case 'LINE_LIST':
-                    passState.primitive = gfx.PrimitiveTopology.LINE_LIST
-                    break;
-                case 'TRIANGLE_LIST':
-                    passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST
-                    break;
-                default:
-                    passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-                    break;
+
+            if (info.primitive) {
+                if (info.primitive in gfx.PrimitiveTopology) {
+                    passState.primitive = gfx.PrimitiveTopology[info.primitive];
+                } else {
+                    throw `unsupported primitive: ${info.primitive}`;
+                }
+            } else {
+                passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             }
+
             const rasterizationState = new gfx.RasterizationState;
-            switch (info.rasterizationState?.cullMode) {
-                case 'FRONT':
-                    rasterizationState.cullMode = gfx.CullMode.FRONT;
-                    break;
-                case 'BACK':
-                    rasterizationState.cullMode = gfx.CullMode.BACK;
-                    break;
-                default:
-                    rasterizationState.cullMode = gfx.CullMode.BACK;
-                    break;
+            if (info.rasterizationState?.cullMode) {
+                if (info.rasterizationState?.cullMode in gfx.CullMode) {
+                    rasterizationState.cullMode = gfx.CullMode[info.rasterizationState?.cullMode];
+                } else {
+                    throw `unsupported cullMode: ${info.rasterizationState?.cullMode}`;
+                }
+            } else {
+                rasterizationState.cullMode = gfx.CullMode.BACK;
             }
+
             passState.rasterizationState = rasterizationState;
             if (info.depthStencilState) {
                 const depthStencilState = new gfx.DepthStencilState;
@@ -118,10 +105,10 @@ export class Effect extends Yml {
             }
             if (info.blendState) {
                 const blendState = new gfx.BlendState;
-                blendState.srcRGB = gfx_toBlendFactor(info.blendState.srcRGB);
-                blendState.dstRGB = gfx_toBlendFactor(info.blendState.dstRGB);
-                blendState.srcAlpha = gfx_toBlendFactor(info.blendState.srcAlpha);
-                blendState.dstAlpha = gfx_toBlendFactor(info.blendState.dstAlpha);
+                blendState.srcRGB = gfx_BlendFactor(info.blendState.srcRGB);
+                blendState.dstRGB = gfx_BlendFactor(info.blendState.dstRGB);
+                blendState.srcAlpha = gfx_BlendFactor(info.blendState.srcAlpha);
+                blendState.dstAlpha = gfx_BlendFactor(info.blendState.dstAlpha);
                 passState.blendState = blendState;
             }
 

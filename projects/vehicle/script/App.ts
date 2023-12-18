@@ -1,10 +1,12 @@
 
-import { Camera, CameraControlPanel, DirectionalLight, GLTF, MeshRenderer, Node, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { Camera, CameraControlPanel, DirectionalLight, Flow, GLTF, MeshRenderer, Node, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, safeArea, vec2, vec3, vec4 } from 'engine';
 import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
 const primitive = await bundle.cache('models/primitive/scene', GLTF);
+
+const flow = await bundle.cache('flows/forward', Flow);
 
 export class App extends Zero {
     start() {
@@ -24,13 +26,13 @@ export class App extends Zero {
         node.position = [20, 20, 20];
 
         // node = new Node;
-        // node.visibilityFlag = VisibilityBit.DEFAULT;
+        // node.visibility = VisibilityBit.DEFAULT;
         // node.addComponent(DebugDrawer);
 
         const ground_size = vec3.create(30, 0.2, 30);
 
         const ground = primitive.createScene("Cube")!.children[0];
-        ground.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        ground.visibility = VisibilityFlagBits.DEFAULT;
         let shape = ground.addComponent(BoxShape);
         let aabb = ground.getComponent(MeshRenderer)!.bounds;
         shape.size = vec3.create(aabb.halfExtent[0] * 2, aabb.halfExtent[1] * 2, aabb.halfExtent[2] * 2)
@@ -53,7 +55,7 @@ export class App extends Zero {
                 const box_z = wall_pos[2];
 
                 const box = primitive.createScene("Cube", true)!.children[0];
-                box.visibilityFlag = VisibilityFlagBits.DEFAULT;
+                box.visibility = VisibilityFlagBits.DEFAULT;
                 let meshRenderer = box.getComponent(MeshRenderer)!
                 meshRenderer.materials[0].passes[0].setUniform('Constants', 'albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
@@ -67,20 +69,20 @@ export class App extends Zero {
 
         node = new Node();
         const vehicle = node.addComponent(Vehicle);
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        node.visibility = VisibilityFlagBits.DEFAULT;
         node.position = [0, 3, 0];
 
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
-        ui_camera.visibilityFlags = VisibilityFlagBits.UI;
+        ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibilityFlag = VisibilityFlagBits.UI;
+        doc.node.visibility = VisibilityFlagBits.UI;
 
         node = new Node;
         const profiler = node.addComponent(Profiler);
@@ -135,7 +137,7 @@ export class App extends Zero {
             doc.addElement(textRenderer);
         }
 
-        return new render.Flow([stageFactory.forward()]);
+        return flow.createFlow();
     }
 }
 

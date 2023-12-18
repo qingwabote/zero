@@ -13,7 +13,7 @@ export class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        doc.node.visibility = VisibilityFlagBits.DEFAULT;
 
         // const conatiner = (new Node).addComponent(UIContainer);
         // // conatiner.anchor = vec2.create(0, 0)
@@ -34,7 +34,7 @@ export class App extends Zero {
         doc.addElement(slider);
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        node.visibility = VisibilityFlagBits.DEFAULT
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, - height / 2, 0];

@@ -52,7 +52,7 @@ const [guardian, plane, gltf_camera, ss_depth, flow] = await Promise.all([
     builtin.cache('models/primitive/scene', TestGLTF),
     bundle.cache('camera_from_poly_by_google/scene', TestGLTF),
     builtin.cache('shaders/depth', Shader),
-    bundle.once('flows/flow', Flow)
+    bundle.cache('flows/flow', Flow)
 ])
 
 export class App extends Zero {

@@ -7,7 +7,6 @@
         "boot": "./dist/boot/index.js",
         "assets": "./dist/assets/index.js",
         "engine": "./dist/engine/index.js",
-        "spine": "./dist/spine/index.js",
         "bundling": "./bundling-builtin.js"
     },
     "scopes": {

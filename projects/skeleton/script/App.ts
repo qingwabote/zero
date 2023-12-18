@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, ModelPhase, Node, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, device, platform, reboot, render, safeArea, stageFactory, vec2, vec3 } from 'engine';
+import { Camera, Flow, Node, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle as builtin, device, platform, reboot, render, safeArea, vec2, vec3 } from 'engine';
 import * as spine from 'spine';
 
 const spine_atlas_src = await bundle.raw.once('spineboy/spineboy-pma.atlas', 'text');
@@ -8,6 +8,8 @@ for (const page of spine_atlas.pages) {
     page.setTexture(new spine.Texture(await bundle.once(`spineboy/${page.name}`, Texture)))
 }
 const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text');
+
+const flow = await builtin.cache('flows/unlit', Flow);
 
 export class App extends Zero {
     protected override start(): render.Flow {
@@ -22,7 +24,7 @@ export class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        doc.node.visibility = VisibilityFlagBits.DEFAULT;
 
         const json = new spine.core.SkeletonJson(new spine.core.AtlasAttachmentLoader(spine_atlas));
         const skeletonData = json.readSkeletonData(spine_data_src);
@@ -34,7 +36,7 @@ export class App extends Zero {
         doc.addElement(skeleton)
 
         node = new Node;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        node.visibility = VisibilityFlagBits.DEFAULT
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, safeArea.y, 0];
@@ -48,11 +50,11 @@ export class App extends Zero {
                 reboot();
             })
             textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            textRenderer.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+            textRenderer.node.visibility = VisibilityFlagBits.DEFAULT;
             doc.addElement(textRenderer);
         }
 
-        return new render.Flow([stageFactory.forward([new ModelPhase], false)]);
+        return flow.createFlow();
     }
 }
 

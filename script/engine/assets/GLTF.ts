@@ -96,8 +96,8 @@ export class GLTF implements Asset {
         }
 
         const [, parent, name] = res;
-        const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text", this.onProgress));
-        const bin = await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer", this.onProgress);
+        const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text"));
+        const bin = await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer");
         const json_images = json.images || [];
         const textures: Texture[] = await Promise.all(json_images.map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture)));
 
@@ -391,7 +391,7 @@ export class GLTF implements Asset {
         return buffer;
     }
 
-    private onProgress(loaded: number, total: number, url: string) {
-        console.log(`download: ${url}, progress: ${loaded / total * 100}`)
-    }
+    // private onProgress(loaded: number, total: number, url: string) {
+    //     console.log(`download: ${url}, progress: ${loaded / total * 100}`)
+    // }
 }

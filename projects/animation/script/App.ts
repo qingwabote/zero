@@ -5,6 +5,7 @@ import {
     Camera,
     CameraControlPanel,
     DirectionalLight,
+    Flow,
     GLTF,
     Node,
     Profiler,
@@ -16,17 +17,19 @@ import {
     UITouchEventType,
     VisibilityFlagBits,
     Zero,
+    bundle as builtin,
     device,
     platform,
     reboot,
     render,
     safeArea,
-    stageFactory,
     vec2,
     vec3
 } from "engine";
 
-const walkrun_and_idle = await bundle.once('walkrun_and_idle/scene', GLTF)
+const walkrun_and_idle = await bundle.cache('walkrun_and_idle/scene', GLTF);
+
+const flow = await builtin.cache('flows/forward', Flow);
 
 export class App extends Zero {
     start(): render.Flow {
@@ -46,7 +49,7 @@ export class App extends Zero {
         node.position = [0, 0, 12];
 
         node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
-        node.visibilityFlag = VisibilityFlagBits.DEFAULT
+        node.visibility = VisibilityFlagBits.DEFAULT
         node.euler = vec3.create(0, 60, 0)
         const animation = node.addComponent(BlendAnimation);
         const clips: AnimationClip[] = [];
@@ -59,14 +62,14 @@ export class App extends Zero {
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
-        ui_camera.visibilityFlags = VisibilityFlagBits.UI;
+        ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibilityFlag = VisibilityFlagBits.UI;
+        doc.node.visibility = VisibilityFlagBits.UI;
 
         const profiler = (new Node).addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
@@ -116,11 +119,10 @@ export class App extends Zero {
                 reboot();
             })
             textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            textRenderer.node.visibilityFlag = VisibilityFlagBits.UI;
             doc.addElement(textRenderer);
         }
 
-        return new render.Flow([stageFactory.forward()])
+        return flow.createFlow()
     }
 }
 
