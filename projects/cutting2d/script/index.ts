@@ -1,7 +1,9 @@
-import { Camera, ModelPhase, Node, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, stageFactory, vec2, vec3 } from "engine";
+import { Camera, Flow, Node, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, vec2, vec3 } from "engine";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await bundle.cache('favicon.ico', Texture);
+
+const flow = await bundle.cache('flows/unlit-ms', Flow);
 
 export default class App extends Zero {
     start(): render.Flow {
@@ -16,7 +18,7 @@ export default class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibilityFlag = VisibilityFlagBits.DEFAULT;
+        doc.node.visibility = VisibilityFlagBits.DEFAULT;
 
         node = new Node;
         const cuttingBoard = node.addComponent(CuttingBoard);
@@ -54,7 +56,7 @@ export default class App extends Zero {
         node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
 
-        return new render.Flow([stageFactory.forward([new ModelPhase], false)]);
+        return flow.createFlow();
     }
 }
 

@@ -1,0 +1,9 @@
+uniforms:
+  - light
+phases:
+  - pass: default
+    visibility: ${UI}
+  - pass: default
+    visibility: ${UP}
+  - pass: down
+    visibility: ${DOWN}

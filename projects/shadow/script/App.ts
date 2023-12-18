@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, ModelPhase, Node, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, stageFactory, vec2, vec3, vec4 } from 'engine';
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, Flow, GLTF, Material, MaterialMacros, MaterialValues, Node, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, vec2, vec3, vec4 } from 'engine';
 
 const VisibilityFlagBits = {
     UP: 1 << 1,
@@ -47,13 +47,13 @@ class TestGLTF extends GLTF {
     }
 }
 
-const [guardian, plane, gltf_camera, ss_depth] = await Promise.all([
+const [guardian, plane, gltf_camera, ss_depth, flow] = await Promise.all([
     bundle.cache('guardian_zelda_botw_fan-art/scene', TestGLTF),
     builtin.cache('models/primitive/scene', TestGLTF),
     bundle.cache('camera_from_poly_by_google/scene', TestGLTF),
-    builtin.cache('shaders/depth', Shader)
+    builtin.cache('shaders/depth', Shader),
+    bundle.once('flows/flow', Flow)
 ])
-
 
 export class App extends Zero {
     protected override start(): render.Flow {
@@ -106,20 +106,15 @@ export class App extends Zero {
         node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
 
-        const stages: render.Stage[] = [];
-        if (USE_SHADOW_MAP) {
-            const stage = stageFactory.shadow(VisibilityFlagBits.UP);
+        const renderFlow = flow.createFlow(VisibilityFlagBits);
 
-            const sprite = UIRenderer.create(SpriteRenderer);
-            sprite.impl.spriteFrame = new SpriteFrame(stage.framebuffer.info.depthStencil);
-            sprite.impl.shader = shaderLib.getShader(ss_depth);
-            sprite.size = [height / 4, height / 4]
-            sprite.anchor = [1, 0.5];
-            sprite.node.position = [width / 2, 0, 0];
-            doc.addElement(sprite);
-
-            stages.push(stage);
-        }
+        const sprite = UIRenderer.create(SpriteRenderer);
+        sprite.impl.spriteFrame = new SpriteFrame(renderFlow.stages[0].framebuffer.info.depthStencil);
+        sprite.impl.shader = shaderLib.getShader(ss_depth);
+        sprite.size = [height / 4, height / 4]
+        sprite.anchor = [1, 0.5];
+        sprite.node.position = [width / 2, 0, 0];
+        doc.addElement(sprite);
 
         node = new Node;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
@@ -160,12 +155,7 @@ export class App extends Zero {
         node.euler = vec3.create(180, 0, 180)
         up_camera.node.addChild(node);
 
-        stages.push(stageFactory.forward([
-            new ModelPhase('default', VisibilityFlagBits.UI),
-            new ModelPhase('default', VisibilityFlagBits.UP),
-            new ModelPhase('down', VisibilityFlagBits.DOWN),
-        ]));
-        return new render.Flow(stages);
+        return renderFlow;
     }
 }
 

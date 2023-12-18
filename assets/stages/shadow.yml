@@ -1,0 +1,18 @@
+uniforms:
+  - shadow
+  - shadowMap
+phases:
+  - pass: shadowmap
+framebuffer:
+  depthStencil:
+    usage:
+      - DEPTH_STENCIL
+      - SAMPLED
+  width: 1024
+  height: 1024
+renderPass:
+  clears:
+    - DEPTH
+viewport:
+  width: 1024
+  height: 1024

@@ -1,11 +1,9 @@
-import { Asset, cache, resolve } from "assets";
-import { load } from "boot";
-import { bundle } from "bundling";
+import { cache } from "assets";
 import * as gfx from "gfx";
-import { parse } from "yaml";
 import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { Shader } from "./Shader.js";
+import { Yml } from "./internal/Yml.js";
 
 function merge<Out>(target: Out, ...sources: Out[]): Out {
     for (const source of sources) {
@@ -72,21 +70,11 @@ function gfx_toBlendFactor(factor: BlendFactor): gfx.BlendFactor {
     }
 }
 
-export class Effect implements Asset {
+export class Effect extends Yml {
     private _passes: Pass[] = [];
 
-    private _base: string = '';
-
-    async load(url: string): Promise<this> {
-        const res = url.match(/(.+)\/(.+)$/);
-        if (!res) {
-            return this;
-        }
-
-        const [, base, name] = res;
-        this._passes = parse(await load(`${base}/${name}.yml`, "text")).passes;
-        this._base = base;
-        return this;
+    protected async onParse(res: any): Promise<void> {
+        this._passes = res.passes;
     }
 
     async createPasses(overrides: Pass[]): Promise<scene_Pass[]> {
@@ -98,7 +86,7 @@ export class Effect implements Asset {
             }
 
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await cache(this.resolve(info.shader!), Shader), info.macros);
+            passState.shader = shaderLib.getShader(await cache(this.resolvePath(info.shader!), Shader), info.macros);
             switch (info.primitive) {
                 case 'LINE_LIST':
                     passState.primitive = gfx.PrimitiveTopology.LINE_LIST
@@ -147,20 +135,5 @@ export class Effect implements Asset {
             passes.push(pass);
         }
         return passes;
-    }
-
-    private resolve(path: string): string {
-        if (path[0] == '.') {
-            path = resolve(this._base, path);
-        }
-        path = path.replace(/\${(.+)}/g, function (_, variable) {
-            switch (variable) {
-                case 'ENGINE_ASSETS':
-                    return bundle.root;
-                default:
-                    throw `unsupported variable: ${variable}`;
-            }
-        })
-        return path;
     }
 }
