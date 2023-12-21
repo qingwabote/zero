@@ -32,6 +32,7 @@ export class Stage {
     }
 
     constructor(
+        readonly name: string,
         readonly uniforms: readonly (new () => Uniform)[],
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
@@ -45,7 +46,7 @@ export class Stage {
             return 0;
         }
 
-        const renderPass = this._renderPass || getRenderPass(this._framebuffer.info, camera.clearFlags);
+        const renderPass = this._renderPass || getRenderPass(this._framebuffer.info, camera.clears);
         const viewport = this._viewport || camera.viewport;
 
         commandBuffer.beginRenderPass(renderPass, this._framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);

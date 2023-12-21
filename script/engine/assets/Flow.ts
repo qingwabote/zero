@@ -64,17 +64,20 @@ interface Stage {
 
 export class Flow extends Yml {
     private _stages: Stage[] = [];
+    private _names: string[] = [];
 
     protected async onParse(res: any): Promise<void> {
         const stages: string[] = res.stages;
         for (let path of stages) {
             this._stages.push(parse(await load(this.resolvePath(path) + '.yml', 'text')));
+            this._names.push(path.match(/(.+)\/(.+)$/)![2]);
         }
     }
 
     public createFlow(variables: Record<string, any> = {}): render.Flow {
         const stages: render.Stage[] = [];
-        for (const stage of this._stages) {
+        for (let i = 0; i < this._stages.length; i++) {
+            const stage = this._stages[i];
             const uniforms: (new () => render.Uniform)[] = [];
             if (stage.uniforms) {
                 for (const uniform of stage.uniforms) {
@@ -156,7 +159,7 @@ export class Flow extends Yml {
                     viewport = rect.create(stage.viewport.x, stage.viewport.y, stage.viewport.width, stage.viewport.height);
                 }
             }
-            stages.push(new render.Stage(uniforms, phases, framebuffer, renderPass, viewport));
+            stages.push(new render.Stage(this._names[i], uniforms, phases, framebuffer, renderPass, viewport));
         }
         return new render.Flow(stages);
     }

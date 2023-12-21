@@ -20,6 +20,8 @@ enum DirtyFlag {
 }
 
 export class Camera extends Component {
+    static readonly ClearFlagBits = ClearFlagBits;
+
     static _instances: Camera[] = [];
     static get instances(): readonly Camera[] {
         return this._instances;
@@ -38,7 +40,7 @@ export class Camera extends Component {
 
     visibilities: VisibilityFlagBits = VisibilityFlagBits.DEFAULT;
 
-    clearFlags: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
+    clears: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
 
     /**
      * x,y the lower left corner
@@ -52,7 +54,7 @@ export class Camera extends Component {
 
         const camera = new render_Camera(this.node);
         camera.visibilities = this.visibilities;
-        camera.clearFlags = this.clearFlags;
+        camera.clears = this.clears;
         camera.viewport = this.viewport;
         Zero.instance.scene.cameras.push(camera);
         this._camera = camera;

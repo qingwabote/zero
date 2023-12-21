@@ -19,7 +19,7 @@ export class Camera extends FrameChangeRecord {
 
     visibilities = 0;
 
-    clearFlags: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
+    clears: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
 
     viewport: Rect = { x: 0, y: 0, width: 0, height: 0 };
 

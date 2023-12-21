@@ -29,8 +29,8 @@ export class Pass {
         return this._samplerTextures;
     }
 
-    constructor(readonly state: PassState, readonly type = 'default', getThis?: (self: any) => void) {
-        getThis && getThis(this);
+    constructor(readonly state: PassState, readonly type = 'default', initializer?: (self: any) => void) {
+        initializer?.(this);
 
         const descriptorSetLayout = shaderLib.getMaterialDescriptorSetLayout(this.state.shader);
         (descriptorSetLayout as any).name = "Pass descriptorSetLayout";

@@ -59,7 +59,7 @@ export class App extends Zero {
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
-        ui_camera.clearFlags = 0x2 // ClearFlagBits.DEPTH;
+        ui_camera.clears = 0x2 // ClearFlagBits.DEPTH;
         ui_camera.orthoHeight = height / 2;
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
