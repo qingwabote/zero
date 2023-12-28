@@ -397,11 +397,10 @@ namespace sugar::v8
         _v8::Isolate *isolate = context->GetIsolate();
         _v8::EscapableHandleScope scope(isolate);
 
+        auto origin = _v8::ScriptOrigin(isolate, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked());
+
         _v8::TryCatch try_catch(isolate);
-        auto maybeScript = _v8::Script::Compile(
-            context,
-            _v8::String::NewFromUtf8(isolate, data.get(), _v8::NewStringType::kNormal, size).ToLocalChecked(),
-            &_v8::ScriptOrigin(isolate, _v8::String::NewFromUtf8(isolate, path.string().c_str()).ToLocalChecked()));
+        auto maybeScript = _v8::Script::Compile(context, _v8::String::NewFromUtf8(isolate, data.get(), _v8::NewStringType::kNormal, size).ToLocalChecked(), &origin);
         if (try_catch.HasCaught())
         {
             tryCatch_print(try_catch);
