@@ -4,6 +4,7 @@ import { Zero } from "../../core/Zero.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { quat } from "../../core/math/quat.js";
 import { vec3 } from "../../core/math/vec3.js";
+import { Flow } from "../../core/render/pipeline/Flow.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../../core/shaderLib.js";
@@ -17,9 +18,9 @@ export class ShadowUniform implements Uniform {
 
     private _buffer!: BufferViewWritable;
 
-    initialize(): void {
+    initialize(flow: Flow): void {
         const buffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);
-        Zero.instance.flow.globalDescriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
+        flow.descriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
         this._buffer = buffer;
     }
 

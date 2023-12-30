@@ -1,6 +1,7 @@
 import { BufferUsageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { vec3 } from "../../core/math/vec3.js";
+import { Flow } from "../../core/render/pipeline/Flow.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../../core/shaderLib.js";
@@ -12,9 +13,9 @@ export class LightUniform implements Uniform {
 
     private _buffer!: BufferViewWritable;
 
-    initialize(): void {
+    initialize(flow: Flow): void {
         const buffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
-        Zero.instance.flow.globalDescriptorSet.bindBuffer(LightBlock.binding, buffer.buffer)
+        flow.descriptorSet.bindBuffer(LightBlock.binding, buffer.buffer)
         this._buffer = buffer;
     }
 

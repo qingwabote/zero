@@ -62,6 +62,11 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     private _time = initial;
 
+    private _drawCall: number = 0;
+    get drawCall() {
+        return this._drawCall;
+    }
+
     constructor() {
         super();
 
@@ -155,7 +160,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._flow.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._flow.record(this._commandBuffer, this.scene);
+        this._drawCall = this._flow.record(this._commandBuffer, this.scene);
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 

@@ -2,7 +2,7 @@ import { device, load } from "boot";
 import * as gfx from "gfx";
 import { parse } from "yaml";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
-import { render } from "../core/index.js";
+import { render, shaderLib } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
 import { getRenderPass } from "../core/render/pipeline/rpc.js";
 import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
@@ -55,7 +55,6 @@ interface Viewport {
 }
 
 interface Stage {
-    uniforms?: Uniform[];
     phases: Phase[];
     framebuffer?: Framebuffer;
     renderPass?: RenderPass;
@@ -63,10 +62,12 @@ interface Stage {
 }
 
 export class Flow extends Yml {
+    private _uniforms?: Uniform[];
     private _stages: Stage[] = [];
     private _names: string[] = [];
 
     protected async onParse(res: any): Promise<void> {
+        this._uniforms = res.uniforms;
         const stages: string[] = res.stages;
         for (let path of stages) {
             this._stages.push(parse(await load(this.resolvePath(path) + '.yml', 'text')));
@@ -75,22 +76,28 @@ export class Flow extends Yml {
     }
 
     public createFlow(variables: Record<string, any> = {}): render.Flow {
+        const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
+        const uniforms: render.Uniform[] = [];
+        if (this._uniforms) {
+            for (const uniform of this._uniforms) {
+                if (uniform in UniformMap) {
+                    const instance = new UniformMap[uniform];
+                    descriptorSetLayoutInfo.bindings.add(shaderLib.createDescriptorSetLayoutBinding(instance.definition))
+                    uniforms.push(instance);
+                } else {
+                    throw `unsupported uniform: ${uniform}`;
+                }
+            }
+        }
+        const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
+        const pipelineLayoutInfo = new gfx.PipelineLayoutInfo;
+        pipelineLayoutInfo.layouts.add(descriptorSetLayout);
+        const pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
+        const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+
         const stages: render.Stage[] = [];
         for (let i = 0; i < this._stages.length; i++) {
             const stage = this._stages[i];
-            const uniforms: (new () => render.Uniform)[] = [];
-            if (stage.uniforms) {
-                for (const uniform of stage.uniforms) {
-                    if (uniform in UniformMap) {
-                        uniforms.push(UniformMap[uniform])
-                    } else {
-                        throw `unsupported uniform: ${uniform}`;
-                    }
-                }
-            }
-            if (!uniforms.includes(CameraUniform)) {
-                uniforms.push(CameraUniform);
-            }
 
             const phases: ModelPhase[] = [];
             for (const phase of stage.phases) {
@@ -159,8 +166,8 @@ export class Flow extends Yml {
                     viewport = rect.create(stage.viewport.x, stage.viewport.y, stage.viewport.width, stage.viewport.height);
                 }
             }
-            stages.push(new render.Stage(this._names[i], uniforms, phases, framebuffer, renderPass, viewport));
+            stages.push(new render.Stage(this._names[i], phases, framebuffer, renderPass, viewport));
         }
-        return new render.Flow(stages);
+        return new render.Flow(uniforms, pipelineLayout, descriptorSet, stages);
     }
 }

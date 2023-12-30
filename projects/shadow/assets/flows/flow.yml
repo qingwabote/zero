@@ -1,3 +1,8 @@
+uniforms:
+  - shadow
+  - camera
+  - light
+  - shadowMap
 stages:
   - ../stages/shadow
   - ../stages/forward

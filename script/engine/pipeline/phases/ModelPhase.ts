@@ -14,6 +14,36 @@ const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
 const pipelineLayoutCache: Record<number, PipelineLayout> = {};
 const pipelineCache: Record<number, Pipeline> = {};
 
+function getModelPipelineLayout(model: Model): PipelineLayout {
+    const ModelType = model.constructor as typeof Model;
+    let pipelineLayout = modelPipelineLayoutCache.get(ModelType);
+    if (!pipelineLayout) {
+        const info = new PipelineLayoutInfo;
+        info.layouts.add(Zero.instance.flow.descriptorSet.layout);
+        info.layouts.add(ModelType.descriptorSetLayout);
+        pipelineLayout = device.createPipelineLayout(info);
+        modelPipelineLayoutCache.set(ModelType, pipelineLayout);
+    }
+    return pipelineLayout;
+}
+
+function getPipelineLayout(model: Model, pass: Pass): PipelineLayout {
+    const shader = pass.state.shader;
+    const shader_hash = hashLib.shader(shader);
+    let pipelineLayout = pipelineLayoutCache[shader_hash];
+    if (!pipelineLayout) {
+        const info = new PipelineLayoutInfo;
+        info.layouts.add(Zero.instance.flow.descriptorSet.layout);
+        info.layouts.add(model.descriptorSet.layout);
+        if (pass.descriptorSet) {
+            info.layouts.add(pass.descriptorSet.layout);
+        }
+        pipelineLayout = device.createPipelineLayout(info);
+        pipelineLayoutCache[shader_hash] = pipelineLayout;
+    }
+    return pipelineLayout;
+}
+
 export class ModelPhase extends Phase {
     constructor(private _pass = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
         super(visibility);
@@ -25,7 +55,7 @@ export class ModelPhase extends Phase {
             if ((camera.visibilities & model.visibility) == 0) {
                 continue;
             }
-            commandBuffer.bindDescriptorSet(this.getModelPipelineLayout(model), shaderLib.sets.local.index, model.descriptorSet);
+            commandBuffer.bindDescriptorSet(getModelPipelineLayout(model), shaderLib.sets.local.index, model.descriptorSet);
             for (const subModel of model.subModels) {
                 const drawInfo = subModel.drawInfo;
                 if (!drawInfo.count) {
@@ -38,7 +68,7 @@ export class ModelPhase extends Phase {
                         continue;
                     }
                     commandBuffer.bindInputAssembler(inputAssembler);
-                    const layout = this.getPipelineLayout(model, pass);
+                    const layout = getPipelineLayout(model, pass);
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(layout, shaderLib.sets.material.index, pass.descriptorSet);
                     }
@@ -54,36 +84,6 @@ export class ModelPhase extends Phase {
             }
         }
         return dc;
-    }
-
-    private getModelPipelineLayout(model: Model): PipelineLayout {
-        const ModelType = model.constructor as typeof Model;
-        let pipelineLayout = modelPipelineLayoutCache.get(ModelType);
-        if (!pipelineLayout) {
-            const info = new PipelineLayoutInfo;
-            info.layouts.add(Zero.instance.flow.globalDescriptorSet.layout);
-            info.layouts.add(ModelType.descriptorSetLayout);
-            pipelineLayout = device.createPipelineLayout(info);
-            modelPipelineLayoutCache.set(ModelType, pipelineLayout);
-        }
-        return pipelineLayout;
-    }
-
-    private getPipelineLayout(model: Model, pass: Pass): PipelineLayout {
-        const shader = pass.state.shader;
-        const shader_hash = hashLib.shader(shader);
-        let pipelineLayout = pipelineLayoutCache[shader_hash];
-        if (!pipelineLayout) {
-            const info = new PipelineLayoutInfo;
-            info.layouts.add(Zero.instance.flow.globalDescriptorSet.layout);
-            info.layouts.add(model.descriptorSet.layout);
-            if (pass.descriptorSet) {
-                info.layouts.add(pass.descriptorSet.layout);
-            }
-            pipelineLayout = device.createPipelineLayout(info);
-            pipelineLayoutCache[shader_hash] = pipelineLayout;
-        }
-        return pipelineLayout;
     }
 
     /**

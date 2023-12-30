@@ -4,7 +4,6 @@ import { Rect } from "../../math/rect.js";
 import { Camera } from "../scene/Camera.js";
 import { Root } from "../scene/Root.js";
 import { Phase } from "./Phase.js";
-import { Uniform } from "./Uniform.js";
 import { getRenderPass } from "./rpc.js";
 
 const defaultFramebuffer = (function () {
@@ -33,7 +32,6 @@ export class Stage {
 
     constructor(
         readonly name: string,
-        readonly uniforms: readonly (new () => Uniform)[],
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _renderPass?: RenderPass,
