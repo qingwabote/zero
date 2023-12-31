@@ -161,7 +161,7 @@ namespace gfx
         {
             return true;
         }
-
+        _info = info;
         return false;
     }
 

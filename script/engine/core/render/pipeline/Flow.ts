@@ -33,7 +33,7 @@ export class Flow {
             const camera = renderScene.cameras[cameraIndex];
             const dynamicOffsets = new Uint32Vector;
             dynamicOffsets.add(shaderLib.sets.global.uniforms.Camera.size * cameraIndex);
-            commandBuffer.bindDescriptorSet(this.pipelineLayout, shaderLib.sets.global.index, this.descriptorSet, dynamicOffsets);
+            commandBuffer.bindDescriptorSet(shaderLib.sets.global.index, this.descriptorSet, dynamicOffsets);
             for (const stage of this.stages) {
                 drawCall += stage.record(commandBuffer, scene, camera);
             }

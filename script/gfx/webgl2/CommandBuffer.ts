@@ -4,7 +4,6 @@ import { DescriptorSet } from "./DescriptorSet.js";
 import { Framebuffer } from "./Framebuffer.js";
 import { InputAssembler } from "./InputAssembler.js";
 import { Pipeline } from "./Pipeline.js";
-import { PipelineLayout } from "./PipelineLayout.js";
 import { RenderPass } from "./RenderPass.js";
 import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
@@ -126,7 +125,7 @@ export class CommandBuffer {
         this._pipeline_invalid = true;
     }
 
-    bindDescriptorSet(pipelineLayout: PipelineLayout, index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void {
+    bindDescriptorSet(index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void {
         const gl = this._gl;
 
         let dynamicIndex = 0;

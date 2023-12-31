@@ -37,6 +37,32 @@ namespace gfx
         return buffer;
     }
 
+    void CommandBuffer_impl::bindDescriptorSets()
+    {
+        for (auto &it : _descriptorSets)
+        {
+            VkDescriptorSet descriptorSet = it.second->impl();
+            uint32_t dynamicOffsetCount = 0;
+            uint32_t *pDynamicOffsets = nullptr;
+            auto i = _dynamicOffsets.find(it.first);
+            if (i != _dynamicOffsets.end())
+            {
+                dynamicOffsetCount = i->second->size();
+                pDynamicOffsets = i->second->data();
+            }
+            vkCmdBindDescriptorSets(_commandBuffer,
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    _pipeline->info()->layout->impl(),
+                                    it.first,
+                                    1,
+                                    &descriptorSet,
+                                    dynamicOffsetCount,
+                                    pDynamicOffsets);
+        }
+        _descriptorSets.clear();
+        _dynamicOffsets.clear();
+    }
+
     CommandBuffer_impl::~CommandBuffer_impl() {}
 
     CommandBuffer::CommandBuffer(Device_impl *device) : _impl(std::make_unique<CommandBuffer_impl>(device)) {}
@@ -166,23 +192,13 @@ namespace gfx
         vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void CommandBuffer::bindDescriptorSet(const std::shared_ptr<PipelineLayout> &pipelineLayout,
-                                          uint32_t index,
-                                          const std::shared_ptr<DescriptorSet> &descriptorSet,
-                                          const std::shared_ptr<Uint32Vector> &dynamicOffsets)
+    void CommandBuffer::bindDescriptorSet(uint32_t index, const std::shared_ptr<DescriptorSet> &descriptorSet, const std::shared_ptr<Uint32Vector> &dynamicOffsets)
     {
-        VkDescriptorSet descriptorSet0 = descriptorSet->impl();
-        uint32_t dynamicOffsetCount = dynamicOffsets ? dynamicOffsets->size() : 0;
-        const uint32_t *pDynamicOffsets = dynamicOffsets ? dynamicOffsets->data() : nullptr;
-
-        vkCmdBindDescriptorSets(_impl->_commandBuffer,
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                pipelineLayout->impl(),
-                                index,
-                                1,
-                                &descriptorSet0,
-                                dynamicOffsetCount,
-                                pDynamicOffsets);
+        _impl->_descriptorSets[index] = descriptorSet;
+        if (dynamicOffsets)
+        {
+            _impl->_dynamicOffsets[index] = dynamicOffsets;
+        }
     }
 
     void CommandBuffer::bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler)
@@ -214,15 +230,18 @@ namespace gfx
     void CommandBuffer::bindPipeline(const std::shared_ptr<Pipeline> &pipeline)
     {
         vkCmdBindPipeline(_impl->_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->impl());
+        _impl->_pipeline = pipeline;
     }
 
     void CommandBuffer::draw(uint32_t vertexCount)
     {
+        _impl->bindDescriptorSets();
         vkCmdDraw(_impl->_commandBuffer, vertexCount, 1, 0, 0);
     }
 
     void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex)
     {
+        _impl->bindDescriptorSets();
         vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, firstIndex, 0, 0);
     }
 

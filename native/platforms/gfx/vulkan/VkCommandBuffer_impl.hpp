@@ -18,6 +18,13 @@ namespace gfx
 
         VkBuffer createStagingBuffer(void const *src, size_t size);
 
+        std::unordered_map<uint32_t, std::shared_ptr<DescriptorSet>> _descriptorSets;
+        std::unordered_map<uint32_t, std::shared_ptr<Uint32Vector>> _dynamicOffsets;
+
+        std::shared_ptr<Pipeline> _pipeline;
+
+        void bindDescriptorSets();
+
     public:
         CommandBuffer_impl(Device_impl *device);
 

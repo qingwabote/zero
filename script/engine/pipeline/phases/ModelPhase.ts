@@ -10,22 +10,8 @@ import { Root } from "../../core/render/scene/Root.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { hashLib } from "./internal/hashLib.js";
 
-const modelPipelineLayoutCache: Map<typeof Model, PipelineLayout> = new Map;
 const pipelineLayoutCache: Record<number, PipelineLayout> = {};
 const pipelineCache: Record<number, Pipeline> = {};
-
-function getModelPipelineLayout(model: Model): PipelineLayout {
-    const ModelType = model.constructor as typeof Model;
-    let pipelineLayout = modelPipelineLayoutCache.get(ModelType);
-    if (!pipelineLayout) {
-        const info = new PipelineLayoutInfo;
-        info.layouts.add(Zero.instance.flow.descriptorSet.layout);
-        info.layouts.add(ModelType.descriptorSetLayout);
-        pipelineLayout = device.createPipelineLayout(info);
-        modelPipelineLayoutCache.set(ModelType, pipelineLayout);
-    }
-    return pipelineLayout;
-}
 
 function getPipelineLayout(model: Model, pass: Pass): PipelineLayout {
     const shader = pass.state.shader;
@@ -55,7 +41,7 @@ export class ModelPhase extends Phase {
             if ((camera.visibilities & model.visibility) == 0) {
                 continue;
             }
-            commandBuffer.bindDescriptorSet(getModelPipelineLayout(model), shaderLib.sets.local.index, model.descriptorSet);
+            commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
             for (const subModel of model.subModels) {
                 const drawInfo = subModel.drawInfo;
                 if (!drawInfo.count) {
@@ -68,10 +54,10 @@ export class ModelPhase extends Phase {
                         continue;
                     }
                     commandBuffer.bindInputAssembler(inputAssembler);
-                    const layout = getPipelineLayout(model, pass);
                     if (pass.descriptorSet) {
-                        commandBuffer.bindDescriptorSet(layout, shaderLib.sets.material.index, pass.descriptorSet);
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                     }
+                    const layout = getPipelineLayout(model, pass);
                     const pipeline = this.getPipeline(pass.state, inputAssembler, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     if (inputAssembler.info.indexInput) {

@@ -32,7 +32,7 @@ namespace gfx
         virtual void copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<Buffer> &buffer, size_t offset, size_t length);
         virtual void copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture);
         virtual void beginRenderPass(const std::shared_ptr<RenderPass> &renderPass, const std::shared_ptr<Framebuffer> &framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height);
-        virtual void bindDescriptorSet(const std::shared_ptr<PipelineLayout> &pipelineLayout, uint32_t index, const std::shared_ptr<DescriptorSet> &descriptorSet, const std::shared_ptr<Uint32Vector> &dynamicOffsets = nullptr);
+        virtual void bindDescriptorSet(uint32_t index, const std::shared_ptr<DescriptorSet> &descriptorSet, const std::shared_ptr<Uint32Vector> &dynamicOffsets = nullptr);
         virtual void bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler);
         virtual void bindPipeline(const std::shared_ptr<Pipeline> &pipeline);
         virtual void draw(uint32_t count);

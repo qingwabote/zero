@@ -44,12 +44,12 @@ namespace bg
         _background->post(f);
     }
 
-    void CommandBuffer::bindDescriptorSet(const std::shared_ptr<gfx::PipelineLayout> &pipelineLayout, uint32_t index, const std::shared_ptr<gfx::DescriptorSet> &descriptorSet, const std::shared_ptr<gfx::Uint32Vector> &dynamicOffsets)
+    void CommandBuffer::bindDescriptorSet(uint32_t index, const std::shared_ptr<gfx::DescriptorSet> &descriptorSet, const std::shared_ptr<gfx::Uint32Vector> &dynamicOffsets)
     {
         auto f = new auto(
             [=]()
             {
-                gfx::CommandBuffer::bindDescriptorSet(pipelineLayout, index, descriptorSet, dynamicOffsets);
+                gfx::CommandBuffer::bindDescriptorSet(index, descriptorSet, dynamicOffsets);
             });
         _background->post(f);
     }
