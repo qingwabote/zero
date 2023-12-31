@@ -1,9 +1,9 @@
-import { device, load } from "boot";
+import { device } from "boot";
 import * as gfx from "gfx";
-import { parse } from "yaml";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
 import { render, shaderLib } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
+import { Context } from "../core/render/Context.js";
 import { getRenderPass } from "../core/render/pipeline/rpc.js";
 import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
 import { CameraUniform } from "../pipeline/uniforms/CameraUniform.js";
@@ -19,8 +19,11 @@ interface Phase {
 type TextureUsage = keyof typeof gfx.TextureUsageFlagBits;
 
 interface Texture {
+    name: string;
     usage: TextureUsage[];
     swapchain: boolean;
+    width: number;
+    height: number;
 }
 
 interface Framebuffer {
@@ -28,7 +31,7 @@ interface Framebuffer {
     height?: number;
     colors?: Texture[];
     resolves?: Texture[];
-    depthStencil?: Texture;
+    depthStencil?: Texture | string;
     samples?: number;
 }
 
@@ -45,7 +48,10 @@ const UniformMap = {
     shadowMap: ShadowMapUniform
 }
 
-type Uniform = keyof typeof UniformMap;
+interface Uniform {
+    name: keyof typeof UniformMap;
+    [key: string]: any;
+}
 
 interface Viewport {
     x?: number;
@@ -55,49 +61,63 @@ interface Viewport {
 }
 
 interface Stage {
+    name: string;
     phases: Phase[];
     framebuffer?: Framebuffer;
     renderPass?: RenderPass;
     viewport?: Viewport;
 }
 
+interface Resource {
+    textures?: Texture[];
+    uniforms?: Uniform[];
+    stages: Stage[];
+}
+
 export class Flow extends Yml {
-    private _uniforms?: Uniform[];
-    private _stages: Stage[] = [];
-    private _names: string[] = [];
+    private _resource!: Resource;
+
+    private _textures: Record<string, gfx.Texture> = {};
 
     protected async onParse(res: any): Promise<void> {
-        this._uniforms = res.uniforms;
-        const stages: string[] = res.stages;
-        for (let path of stages) {
-            this._stages.push(parse(await load(this.resolvePath(path) + '.yml', 'text')));
-            this._names.push(path.match(/(.+)\/(.+)$/)![2]);
-        }
+        this._resource = res;
     }
 
     public createFlow(variables: Record<string, any> = {}): render.Flow {
+        if (this._resource.textures) {
+            for (const texture of this._resource.textures) {
+                this._textures[texture.name] = this.createTexture(texture);
+            }
+        }
+
         const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
-        const uniforms: render.Uniform[] = [];
-        if (this._uniforms) {
-            for (const uniform of this._uniforms) {
-                if (uniform in UniformMap) {
-                    const instance = new UniformMap[uniform];
-                    descriptorSetLayoutInfo.bindings.add(shaderLib.createDescriptorSetLayoutBinding(instance.definition))
-                    uniforms.push(instance);
+        if (this._resource.uniforms) {
+            for (const uniform of this._resource.uniforms) {
+                if (uniform.name in UniformMap) {
+                    descriptorSetLayoutInfo.bindings.add(shaderLib.createDescriptorSetLayoutBinding(UniformMap[uniform.name].definition))
                 } else {
                     throw `unsupported uniform: ${uniform}`;
                 }
             }
         }
         const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
-        const pipelineLayoutInfo = new gfx.PipelineLayoutInfo;
-        pipelineLayoutInfo.layouts.add(descriptorSetLayout);
-        const pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
-        const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+        const context = new Context(descriptorSetLayout);
+        const uniforms: render.Uniform[] = [];
+        if (this._resource.uniforms) {
+            for (const uniform of this._resource.uniforms) {
+                let instance;
+                if (uniform.name == 'shadowMap') {
+                    instance = new UniformMap[uniform.name](context, this._textures[uniform.texture]);
+                } else {
+                    instance = new UniformMap[uniform.name](context);
+                }
+                uniforms.push(instance);
+            }
+        }
 
         const stages: render.Stage[] = [];
-        for (let i = 0; i < this._stages.length; i++) {
-            const stage = this._stages[i];
+        for (let i = 0; i < this._resource.stages.length; i++) {
+            const stage = this._resource.stages[i];
 
             const phases: ModelPhase[] = [];
             for (const phase of stage.phases) {
@@ -105,7 +125,7 @@ export class Flow extends Yml {
                 if (phase.visibility) {
                     visibility = Number(this.resolveVar(phase.visibility, variables));
                 }
-                phases.push(new ModelPhase(phase.pass, visibility))
+                phases.push(new ModelPhase(context, phase.pass, visibility))
             }
             let framebuffer: gfx.Framebuffer | undefined;
             let renderPass: gfx.RenderPass | undefined;
@@ -117,16 +137,7 @@ export class Flow extends Yml {
                 framebufferInfo.height = height;
                 if (stage.framebuffer.colors) {
                     for (const texture of stage.framebuffer.colors) {
-                        const info = new gfx.TextureInfo;
-                        if (stage.framebuffer.samples) {
-                            info.samples = stage.framebuffer.samples;
-                        }
-                        for (const usage of texture.usage) {
-                            info.usage |= gfx.TextureUsageFlagBits[usage];
-                        }
-                        info.width = width;
-                        info.height = height;
-                        framebufferInfo.colors.add(device.createTexture(info));
+                        framebufferInfo.colors.add(this.createTexture(texture, stage.framebuffer.samples, width, height));
                     }
                 }
                 if (stage.framebuffer.resolves) {
@@ -139,17 +150,9 @@ export class Flow extends Yml {
                     }
                 }
                 if (stage.framebuffer.depthStencil) {
-                    const info = new gfx.TextureInfo;
-                    if (stage.framebuffer.samples) {
-                        info.samples = stage.framebuffer.samples;
-                    }
-                    for (const usage of stage.framebuffer.depthStencil.usage) {
-                        info.usage |= gfx.TextureUsageFlagBits[usage];
-                    }
-                    info.width = width;
-                    info.height = height;
-                    framebufferInfo.depthStencil = device.createTexture(info);
+                    framebufferInfo.depthStencil = this.createTexture(stage.framebuffer.depthStencil, stage.framebuffer.samples, width, height);
                 }
+
                 let clears: gfx.ClearFlagBits | undefined;
                 if (stage.renderPass?.clears) {
                     clears = 0;
@@ -166,8 +169,26 @@ export class Flow extends Yml {
                     viewport = rect.create(stage.viewport.x, stage.viewport.y, stage.viewport.width, stage.viewport.height);
                 }
             }
-            stages.push(new render.Stage(this._names[i], phases, framebuffer, renderPass, viewport));
+            stages.push(new render.Stage(stage.name, phases, framebuffer, renderPass, viewport));
         }
-        return new render.Flow(uniforms, pipelineLayout, descriptorSet, stages);
+        context.flow = new render.Flow(context, uniforms, stages);
+        return context.flow;
+    }
+
+    private createTexture(texture: Texture | string, samples?: gfx.SampleCountFlagBits, width?: number, height?: number) {
+        if (typeof texture == 'string') {
+            return this._textures[texture];
+        }
+
+        const info = new gfx.TextureInfo;
+        for (const usage of texture.usage) {
+            info.usage |= gfx.TextureUsageFlagBits[usage];
+        }
+        if (samples) {
+            info.samples = samples;
+        }
+        info.width = texture.width | width!;
+        info.height = texture.height | height!;
+        return device.createTexture(info);
     }
 }

@@ -1,37 +1,14 @@
-import { device } from "boot";
-import { CommandBuffer, FormatInfos, InputAssembler, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { CommandBuffer, RenderPass } from "gfx";
 import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
-import { Zero } from "../../core/Zero.js";
+import { Context } from "../../core/render/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Camera } from "../../core/render/scene/Camera.js";
 import { Model } from "../../core/render/scene/Model.js";
-import { Pass } from "../../core/render/scene/Pass.js";
 import { Root } from "../../core/render/scene/Root.js";
 import { shaderLib } from "../../core/shaderLib.js";
-import { hashLib } from "./internal/hashLib.js";
-
-const pipelineLayoutCache: Record<number, PipelineLayout> = {};
-const pipelineCache: Record<number, Pipeline> = {};
-
-function getPipelineLayout(model: Model, pass: Pass): PipelineLayout {
-    const shader = pass.state.shader;
-    const shader_hash = hashLib.shader(shader);
-    let pipelineLayout = pipelineLayoutCache[shader_hash];
-    if (!pipelineLayout) {
-        const info = new PipelineLayoutInfo;
-        info.layouts.add(Zero.instance.flow.descriptorSet.layout);
-        info.layouts.add(model.descriptorSet.layout);
-        if (pass.descriptorSet) {
-            info.layouts.add(pass.descriptorSet.layout);
-        }
-        pipelineLayout = device.createPipelineLayout(info);
-        pipelineLayoutCache[shader_hash] = pipelineLayout;
-    }
-    return pipelineLayout;
-}
 
 export class ModelPhase extends Phase {
-    constructor(private _pass = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
+    constructor(private _context: Context, private _pass = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
         super(visibility);
     }
 
@@ -57,8 +34,9 @@ export class ModelPhase extends Phase {
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                     }
-                    const layout = getPipelineLayout(model, pass);
-                    const pipeline = this.getPipeline(pass.state, inputAssembler, renderPass, layout);
+                    const ModelType = (model.constructor as typeof Model);
+                    const layout = this._context.getPipelineLayout(ModelType.descriptorSetLayout, pass);
+                    const pipeline = this._context.getPipeline(pass.state, inputAssembler, renderPass, layout);
                     commandBuffer.bindPipeline(pipeline);
                     if (inputAssembler.info.indexInput) {
                         commandBuffer.drawIndexed(drawInfo.count, drawInfo.first);
@@ -70,69 +48,5 @@ export class ModelPhase extends Phase {
             }
         }
         return dc;
-    }
-
-    /**
-     * @param renderPass a compatible renderPass
-     */
-    private getPipeline(pass: PassState, inputAssembler: InputAssembler, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
-        const inputAssemblerInfo = inputAssembler.info;
-        const pipelineHash = hashLib.passState(pass) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
-        let pipeline = pipelineCache[pipelineHash];
-        if (!pipeline) {
-            const vertexInputState = new VertexInputState;
-            const vertexAttributes = inputAssemblerInfo.vertexAttributes;
-            const vertexAttributesSize = vertexAttributes.size();
-            const vertexBuffers = inputAssemblerInfo.vertexInput.buffers;
-            const vertexBuffersSize = vertexBuffers.size();
-            for (let binding = 0; binding < vertexBuffersSize; binding++) {
-                const buffer = vertexBuffers.get(binding);
-                let stride = buffer.info.stride;
-                if (!stride) {
-                    let count = 0;
-                    for (let i = 0; i < vertexAttributesSize; i++) {
-                        const attribute = vertexAttributes.get(i);
-                        if (attribute.buffer == binding) {
-                            count += FormatInfos[attribute.format].bytes;
-                        }
-                    }
-                    stride = count;
-                }
-                const description = new VertexInputBindingDescription;
-                description.binding = binding;
-                description.stride = stride;
-                description.inputRate = VertexInputRate.VERTEX;
-                vertexInputState.bindings.add(description);
-            }
-            for (let i = 0; i < vertexAttributesSize; i++) {
-                const attribute = vertexAttributes.get(i);
-                if (attribute.name == '') {
-                    throw new Error("no attribute name is provided");
-                }
-                const definition = shaderLib.getShaderMeta(pass.shader).attributes[attribute.name];
-                if (!definition) {
-                    continue;
-                }
-
-                const description = new VertexInputAttributeDescription;
-                description.location = definition.location;
-                // attribute.format in buffer can be different from definition.format in shader, 
-                // use attribute.format here to make sure type conversion can be done correctly by graphics api.
-                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
-                description.format = attribute.format;
-                description.binding = attribute.buffer;
-                description.offset = attribute.offset;
-                vertexInputState.attributes.add(description);
-            }
-
-            const info = new PipelineInfo();
-            info.passState = pass;
-            info.vertexInputState = vertexInputState;
-            info.renderPass = renderPass;
-            info.layout = layout;
-            pipeline = device.createPipeline(info);
-            pipelineCache[pipelineHash] = pipeline;
-        }
-        return pipeline;
     }
 }

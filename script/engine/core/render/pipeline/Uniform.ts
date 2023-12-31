@@ -1,8 +1,6 @@
-import { UniformDefinition } from "../../shaderLib.js";
-import { Flow } from "./Flow.js";
+import { Context } from "../Context.js";
 
-export interface Uniform {
-    readonly definition: UniformDefinition;
-    initialize(flow: Flow): void;
-    update(): void;
+export abstract class Uniform {
+    constructor(protected _context: Context) { };
+    abstract update(): void;
 }

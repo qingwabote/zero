@@ -1,19 +1,20 @@
 import { BufferUsageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { Flow } from "../../core/render/pipeline/Flow.js";
+import { Context } from "../../core/render/Context.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const CameraBlock = shaderLib.sets.global.uniforms.Camera;
 
-export class CameraUniform implements Uniform {
-    readonly definition = CameraBlock;
+export class CameraUniform extends Uniform {
+    static readonly definition = CameraBlock;
 
     private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);
 
-    initialize(flow: Flow): void {
-        flow.descriptorSet.bindBuffer(CameraBlock.binding, this._buffer.buffer, CameraBlock.size)
+    constructor(context: Context) {
+        super(context);
+        context.descriptorSet.bindBuffer(CameraBlock.binding, this._buffer.buffer, CameraBlock.size)
     }
 
     update(): void {

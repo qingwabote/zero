@@ -1,8 +1,36 @@
+textures:
+  - name: shadowmap
+    usage:
+      - DEPTH_STENCIL
+      - SAMPLED
+    width: 1024
+    height: 1024
 uniforms:
-  - shadow
-  - camera
-  - light
-  - shadowMap
+  - name: shadow
+  - name: camera
+  - name: light
+  - name: shadowMap
+    texture: shadowmap
 stages:
-  - ../stages/shadow
-  - ../stages/forward
+  - name: shadow
+    phases:
+      - pass: shadowmap
+        visibility: ${UP}
+    framebuffer:
+      depthStencil: shadowmap
+      width: 1024
+      height: 1024
+    renderPass:
+      clears:
+        - DEPTH
+    viewport:
+      width: 1024
+      height: 1024
+  - name: forward
+    phases:
+      - pass: default
+        visibility: ${UI}
+      - pass: default
+        visibility: ${UP}
+      - pass: down
+        visibility: ${DOWN}

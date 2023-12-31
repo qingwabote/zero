@@ -91,7 +91,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         Zero._instance = this;
 
         this._flow = this.start();
-        this._flow.start();
 
         this.attach();
     }

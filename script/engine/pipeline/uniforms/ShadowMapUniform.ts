@@ -1,19 +1,20 @@
-import { Filter } from "gfx";
-import { Flow } from "../../core/render/pipeline/Flow.js";
+import { Filter, Texture } from "gfx";
+import { Context } from "../../core/render/Context.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { getSampler } from "../../core/sc.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const shadowMap = shaderLib.sets.global.uniforms.ShadowMap;
 
-export class ShadowMapUniform implements Uniform {
-    readonly definition = shadowMap;
+export class ShadowMapUniform extends Uniform {
+    static readonly definition = shadowMap;
 
-    initialize(flow: Flow): void {
-        const shadowStage = flow.stages.find((stage) => { return stage.name == 'shadow' })!;
-        flow.descriptorSet.bindTexture(
+    constructor(context: Context, texture: Texture) {
+        super(context);
+
+        this._context.descriptorSet.bindTexture(
             shadowMap.binding,
-            shadowStage.framebuffer.info.depthStencil,
+            texture,
             getSampler(Filter.NEAREST, Filter.NEAREST)
         );
     }

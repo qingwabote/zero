@@ -4,23 +4,25 @@ import { Zero } from "../../core/Zero.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { quat } from "../../core/math/quat.js";
 import { vec3 } from "../../core/math/vec3.js";
-import { Flow } from "../../core/render/pipeline/Flow.js";
+import { Context } from "../../core/render/Context.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const ShadowBlock = shaderLib.sets.global.uniforms.Shadow;
 
-export class ShadowUniform implements Uniform {
+export class ShadowUniform extends Uniform {
     static readonly camera = { orthoHeight: 6, aspect: 1, near: 1, far: 16 };
 
-    readonly definition = ShadowBlock;
+    static readonly definition = ShadowBlock;
 
     private _buffer!: BufferViewWritable;
 
-    initialize(flow: Flow): void {
+    constructor(context: Context) {
+        super(context);
+
         const buffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);
-        flow.descriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
+        context.descriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
         this._buffer = buffer;
     }
 
