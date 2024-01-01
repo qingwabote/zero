@@ -8,7 +8,6 @@ interface UniformDefinition {
 
 export class Uniform {
     static readonly definition: UniformDefinition;
-    get dynamicOffset(): number { return -1 };
-    constructor(protected _context: Context, protected _binding: number) { };
+    constructor(protected _context: Context) { };
     update(): void { };
 }

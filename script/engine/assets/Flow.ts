@@ -1,9 +1,10 @@
 import { device } from "boot";
 import * as gfx from "gfx";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
-import { render } from "../core/index.js";
+import { getSampler, render } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
 import { Context } from "../core/render/Context.js";
+import { UniformBufferObject } from "../core/render/pipeline/UniformBufferObject.js";
 import { getRenderPass } from "../core/render/pipeline/rpc.js";
 import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
 import { CameraUniform } from "../pipeline/uniforms/CameraUniform.js";
@@ -79,6 +80,9 @@ export class Flow extends Yml {
     private _resource!: Resource;
 
     private _textures: Record<string, gfx.Texture> = {};
+    public get textures(): Readonly<Record<string, gfx.Texture>> {
+        return this._textures;
+    }
 
     protected async onParse(res: any): Promise<void> {
         this._resource = res;
@@ -112,11 +116,11 @@ export class Flow extends Yml {
         const uniforms: render.Uniform[] = [];
         if (this._resource.uniforms) {
             for (const uniform of this._resource.uniforms) {
-                let instance;
-                if (uniform.name == 'samplerTexture') {
-                    instance = new UniformMap[uniform.name](context, uniform.binding, this._textures[uniform.texture]);
-                } else {
-                    instance = new UniformMap[uniform.name](context, uniform.binding);
+                let instance = new UniformMap[uniform.name](context);
+                if (instance instanceof UniformBufferObject) {
+                    context.descriptorSet.bindBuffer(uniform.binding, instance.buffer, instance.range);
+                } else if (instance instanceof SamplerTextureUniform) {
+                    context.descriptorSet.bindTexture(uniform.binding, this._textures[uniform.texture], getSampler(gfx.Filter.NEAREST, gfx.Filter.NEAREST));
                 }
                 uniforms.push(instance);
             }

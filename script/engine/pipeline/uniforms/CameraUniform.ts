@@ -1,8 +1,7 @@
 import { device } from "boot";
-import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { Context } from "../../core/render/Context.js";
-import { Uniform } from "../../core/render/pipeline/Uniform.js";
+import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
 
 function align(size: number) {
@@ -27,19 +26,22 @@ const CameraBlock = {
     size: align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
 }
 
-export class CameraUniform extends Uniform {
+export class CameraUniform extends UniformBufferObject {
     static readonly definition = CameraBlock;
 
     private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);
 
+    get buffer(): Buffer {
+        return this._buffer.buffer;
+    }
+
+    get range(): number {
+        return CameraBlock.size;
+    }
+
     get dynamicOffset(): number {
         return CameraBlock.size * this._context.cameraIndex
     };
-
-    constructor(context: Context, binding: number) {
-        super(context, binding);
-        context.descriptorSet.bindBuffer(binding, this._buffer.buffer, CameraBlock.size)
-    }
 
     update(): void {
         const renderScene = Zero.instance.scene;
@@ -51,15 +53,11 @@ export class CameraUniform extends Uniform {
             const camera = cameras[i];
             if (camera.hasChanged) {
                 this._buffer.set(camera.matView, camerasDataOffset + CameraBlock.members.view.offset);
-
                 this._buffer.set(camera.matProj, camerasDataOffset + CameraBlock.members.projection.offset);
-
                 this._buffer.set(camera.position, camerasDataOffset + CameraBlock.members.position.offset);
-
             }
             camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;
         }
         this._buffer.update();
     }
-
 }

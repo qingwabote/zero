@@ -109,7 +109,7 @@ export class App extends Zero {
         const renderFlow = flow.createFlow(VisibilityFlagBits);
 
         const sprite = UIRenderer.create(SpriteRenderer);
-        sprite.impl.spriteFrame = new SpriteFrame(renderFlow.stages[0].framebuffer.info.depthStencil);
+        sprite.impl.spriteFrame = new SpriteFrame(flow.textures['shadowmap']);
         sprite.impl.shader = shaderLib.getShader(ss_depth);
         sprite.size = [height / 4, height / 4]
         sprite.anchor = [1, 0.5];
