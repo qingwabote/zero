@@ -8,7 +8,12 @@ import { Root } from "../../core/render/scene/Root.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 export class ModelPhase extends Phase {
-    constructor(private _context: Context, private _pass = 'default', visibility: VisibilityFlagBits = VisibilityFlagBits.ALL) {
+    constructor(
+        private _context: Context,
+        /**The pass type that indicates which passes should run in this phase */
+        private _pass = 'default',
+        visibility: VisibilityFlagBits = VisibilityFlagBits.ALL
+    ) {
         super(visibility);
     }
 
@@ -35,8 +40,7 @@ export class ModelPhase extends Phase {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                     }
                     const ModelType = (model.constructor as typeof Model);
-                    const layout = this._context.getPipelineLayout(ModelType.descriptorSetLayout, pass);
-                    const pipeline = this._context.getPipeline(pass.state, inputAssembler, renderPass, layout);
+                    const pipeline = this._context.getPipeline(pass, inputAssembler, renderPass, ModelType.descriptorSetLayout);
                     commandBuffer.bindPipeline(pipeline);
                     if (inputAssembler.info.indexInput) {
                         commandBuffer.drawIndexed(drawInfo.count, drawInfo.first);

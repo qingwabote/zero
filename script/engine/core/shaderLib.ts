@@ -3,65 +3,10 @@ import { Attribute, DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorS
 import { Shader as ShaderAsset } from "../assets/Shader.js";
 import { preprocessor } from "./internal/preprocessor.js";
 
-function align(size: number) {
-    const alignment = device.capabilities.uniformBufferOffsetAlignment;
-    return Math.ceil(size / alignment) * alignment;
-}
-
 /**
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
 const sets = {
-    global: {
-        index: 0,
-        uniforms: {
-            Camera: {
-                type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
-                stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
-                binding: 1,
-                members: {
-                    view: {
-                        offset: 0
-                    },
-                    projection: {
-                        offset: 16
-                    },
-                    position: {
-                        offset: 16 + 16
-                    }
-                },
-                size: align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
-            },
-            Light: {
-                type: DescriptorType.UNIFORM_BUFFER,
-                stageFlags: ShaderStageFlagBits.FRAGMENT,
-                binding: 2,
-                members: {
-                    direction: {}
-                },
-                size: 3 * Float32Array.BYTES_PER_ELEMENT
-            },
-            Shadow: {
-                type: DescriptorType.UNIFORM_BUFFER,
-                stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
-                binding: 3,
-                members: {
-                    view: {
-                        offset: 0
-                    },
-                    projection: {
-                        offset: 16
-                    }
-                },
-                size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
-            },
-            ShadowMap: {
-                type: DescriptorType.SAMPLER_TEXTURE,
-                stageFlags: ShaderStageFlagBits.FRAGMENT,
-                binding: 0,
-            }
-        }
-    },
     local: {
         index: 1,
         uniforms: {
@@ -131,9 +76,8 @@ export const shaderLib = {
         return layout;
     },
 
-    getMaterialDescriptorSetLayout(shader: Shader): DescriptorSetLayout {
+    getDescriptorSetLayout(shader: Shader, set: number): DescriptorSetLayout {
         const meta = _shader2meta.get(shader)!;
-        const set = sets.material.index;
         const key = `${set}:${meta.key}`;
         let descriptorSetLayout = _shader2descriptorSetLayout[key];
         if (!descriptorSetLayout) {

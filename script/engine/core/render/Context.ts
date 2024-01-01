@@ -1,8 +1,7 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayout, FormatInfos, InputAssembler, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
-import { hashLib } from "../../pipeline/phases/internal/hashLib.js";
+import { DescriptorSet, DescriptorSetLayout, FormatInfos, InputAssembler, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 import { shaderLib } from "../shaderLib.js";
-import { Flow } from "./pipeline/Flow.js";
+import { hashLib } from "./hashLib.js";
 import { Pass } from "./scene/Pass.js";
 
 export class Context {
@@ -11,38 +10,22 @@ export class Context {
     private _pipelineLayoutCache: Map<Shader, PipelineLayout> = new Map;
     private _pipelineCache: Record<number, Pipeline> = {};
 
-    flow!: Flow;// FIXME
+    cameraIndex: number = 0;
 
     constructor(
-        readonly descriptorSetLayout: DescriptorSetLayout
+        private _descriptorSetLayout: DescriptorSetLayout
     ) {
         const pipelineLayoutInfo = new PipelineLayoutInfo;
-        pipelineLayoutInfo.layouts.add(descriptorSetLayout);
-        this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
-    }
-
-    getPipelineLayout(layout: DescriptorSetLayout, pass: Pass): PipelineLayout {
-        const shader = pass.state.shader;
-        let pipelineLayout = this._pipelineLayoutCache.get(shader);
-        if (!pipelineLayout) {
-            const info = new PipelineLayoutInfo;
-            info.layouts.add(this.descriptorSetLayout);
-            info.layouts.add(layout);
-            if (pass.descriptorSet) {
-                info.layouts.add(pass.descriptorSet.layout);
-            }
-            pipelineLayout = device.createPipelineLayout(info);
-            this._pipelineLayoutCache.set(shader, pipelineLayout);
-        }
-        return pipelineLayout;
+        pipelineLayoutInfo.layouts.add(_descriptorSetLayout);
+        this.descriptorSet = device.createDescriptorSet(_descriptorSetLayout);
     }
 
     /**
      * @param renderPass a compatible renderPass
      */
-    getPipeline(pass: PassState, inputAssembler: InputAssembler, renderPass: RenderPass, layout: PipelineLayout): Pipeline {
+    getPipeline(pass: Pass, inputAssembler: InputAssembler, renderPass: RenderPass, layout: DescriptorSetLayout): Pipeline {
         const inputAssemblerInfo = inputAssembler.info;
-        const pipelineHash = hashLib.passState(pass) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
+        const pipelineHash = hashLib.passState(pass.state) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             const vertexInputState = new VertexInputState;
@@ -74,7 +57,7 @@ export class Context {
                 if (attribute.name == '') {
                     throw new Error("no attribute name is provided");
                 }
-                const definition = shaderLib.getShaderMeta(pass.shader).attributes[attribute.name];
+                const definition = shaderLib.getShaderMeta(pass.state.shader).attributes[attribute.name];
                 if (!definition) {
                     continue;
                 }
@@ -91,13 +74,29 @@ export class Context {
             }
 
             const info = new PipelineInfo();
-            info.passState = pass;
+            info.passState = pass.state;
             info.vertexInputState = vertexInputState;
             info.renderPass = renderPass;
-            info.layout = layout;
+            info.layout = this.getPipelineLayout(layout, pass)
             pipeline = device.createPipeline(info);
             this._pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;
+    }
+
+    private getPipelineLayout(layout: DescriptorSetLayout, pass: Pass): PipelineLayout {
+        const shader = pass.state.shader;
+        let pipelineLayout = this._pipelineLayoutCache.get(shader);
+        if (!pipelineLayout) {
+            const info = new PipelineLayoutInfo;
+            info.layouts.add(this._descriptorSetLayout);
+            info.layouts.add(layout);
+            if (pass.descriptorSet) {
+                info.layouts.add(pass.descriptorSet.layout);
+            }
+            pipelineLayout = device.createPipelineLayout(info);
+            this._pipelineLayoutCache.set(shader, pipelineLayout);
+        }
+        return pipelineLayout;
     }
 }

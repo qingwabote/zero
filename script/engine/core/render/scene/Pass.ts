@@ -32,8 +32,7 @@ export class Pass {
     constructor(readonly state: PassState, readonly type = 'default', initializer?: (self: any) => void) {
         initializer?.(this);
 
-        const descriptorSetLayout = shaderLib.getMaterialDescriptorSetLayout(this.state.shader);
-        (descriptorSetLayout as any).name = "Pass descriptorSetLayout";
+        const descriptorSetLayout = shaderLib.getDescriptorSetLayout(this.state.shader, shaderLib.sets.material.index);
         if (descriptorSetLayout.info.bindings.size()) {
             const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
             const blocks = shaderLib.getShaderMeta(this.state.shader).blocks;

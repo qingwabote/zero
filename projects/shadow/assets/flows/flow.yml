@@ -6,15 +6,19 @@ textures:
     width: 1024
     height: 1024
 uniforms:
-  - name: shadow
   - name: camera
+    binding: 1
   - name: light
-  - name: shadowMap
+    binding: 2
+  - name: shadow
+    binding: 3
+  - name: samplerTexture
     texture: shadowmap
+    binding: 0
 stages:
   - name: shadow
     phases:
-      - pass: shadowmap
+      - pass: shadow
         visibility: ${UP}
     framebuffer:
       depthStencil: shadowmap

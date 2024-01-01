@@ -49,9 +49,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private readonly _systems: readonly System[];
 
     private _flow!: Flow;
-    get flow(): Flow {
-        return this._flow;
-    }
 
     private _commandBuffer: CommandBuffer;
     private _presentSemaphore: Semaphore;

@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { BufferUsageFlagBits } from "gfx";
+import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { quat } from "../../core/math/quat.js";
@@ -7,9 +7,20 @@ import { vec3 } from "../../core/math/vec3.js";
 import { Context } from "../../core/render/Context.js";
 import { Uniform } from "../../core/render/pipeline/Uniform.js";
 import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
-import { shaderLib } from "../../core/shaderLib.js";
 
-const ShadowBlock = shaderLib.sets.global.uniforms.Shadow;
+const ShadowBlock = {
+    type: DescriptorType.UNIFORM_BUFFER,
+    stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
+    members: {
+        view: {
+            offset: 0
+        },
+        projection: {
+            offset: 16
+        }
+    },
+    size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
+}
 
 export class ShadowUniform extends Uniform {
     static readonly camera = { orthoHeight: 6, aspect: 1, near: 1, far: 16 };
@@ -18,11 +29,11 @@ export class ShadowUniform extends Uniform {
 
     private _buffer!: BufferViewWritable;
 
-    constructor(context: Context) {
-        super(context);
+    constructor(context: Context, binding: number) {
+        super(context, binding);
 
         const buffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);
-        context.descriptorSet.bindBuffer(ShadowBlock.binding, buffer.buffer);
+        context.descriptorSet.bindBuffer(binding, buffer.buffer);
         this._buffer = buffer;
     }
 

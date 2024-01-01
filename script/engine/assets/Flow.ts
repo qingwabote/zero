@@ -1,14 +1,14 @@
 import { device } from "boot";
 import * as gfx from "gfx";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
-import { render, shaderLib } from "../core/index.js";
+import { render } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
 import { Context } from "../core/render/Context.js";
 import { getRenderPass } from "../core/render/pipeline/rpc.js";
 import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
 import { CameraUniform } from "../pipeline/uniforms/CameraUniform.js";
 import { LightUniform } from "../pipeline/uniforms/LightUniform.js";
-import { ShadowMapUniform } from "../pipeline/uniforms/ShadowMapUniform.js";
+import { SamplerTextureUniform } from "../pipeline/uniforms/SamplerTextureUniform.js";
 import { Yml } from "./internal/Yml.js";
 
 interface Phase {
@@ -45,11 +45,12 @@ const UniformMap = {
     camera: CameraUniform,
     light: LightUniform,
     shadow: ShadowUniform,
-    shadowMap: ShadowMapUniform
+    samplerTexture: SamplerTextureUniform
 }
 
 interface Uniform {
     name: keyof typeof UniformMap;
+    binding: number;
     [key: string]: any;
 }
 
@@ -94,7 +95,13 @@ export class Flow extends Yml {
         if (this._resource.uniforms) {
             for (const uniform of this._resource.uniforms) {
                 if (uniform.name in UniformMap) {
-                    descriptorSetLayoutInfo.bindings.add(shaderLib.createDescriptorSetLayoutBinding(UniformMap[uniform.name].definition))
+                    const definition = UniformMap[uniform.name].definition;
+                    const binding = new gfx.DescriptorSetLayoutBinding;
+                    binding.descriptorType = definition.type;
+                    binding.stageFlags = definition.stageFlags;
+                    binding.binding = uniform.binding;
+                    binding.descriptorCount = 1;
+                    descriptorSetLayoutInfo.bindings.add(binding)
                 } else {
                     throw `unsupported uniform: ${uniform}`;
                 }
@@ -106,10 +113,10 @@ export class Flow extends Yml {
         if (this._resource.uniforms) {
             for (const uniform of this._resource.uniforms) {
                 let instance;
-                if (uniform.name == 'shadowMap') {
-                    instance = new UniformMap[uniform.name](context, this._textures[uniform.texture]);
+                if (uniform.name == 'samplerTexture') {
+                    instance = new UniformMap[uniform.name](context, uniform.binding, this._textures[uniform.texture]);
                 } else {
-                    instance = new UniformMap[uniform.name](context);
+                    instance = new UniformMap[uniform.name](context, uniform.binding);
                 }
                 uniforms.push(instance);
             }
@@ -171,8 +178,7 @@ export class Flow extends Yml {
             }
             stages.push(new render.Stage(stage.name, phases, framebuffer, renderPass, viewport));
         }
-        context.flow = new render.Flow(context, uniforms, stages);
-        return context.flow;
+        return new render.Flow(context, uniforms, stages);
     }
 
     private createTexture(texture: Texture | string, samples?: gfx.SampleCountFlagBits, width?: number, height?: number) {
