@@ -5,9 +5,9 @@ import {
     Camera,
     CameraControlPanel,
     DirectionalLight,
-    Flow,
     GLTF,
     Node,
+    Pipeline,
     Profiler,
     Slider,
     SliderEventType,
@@ -29,10 +29,10 @@ import {
 
 const walkrun_and_idle = await bundle.cache('walkrun_and_idle/scene', GLTF);
 
-const flow = await builtin.cache('flows/forward', Flow);
+const pipeline = await builtin.cache('pipelines/forward', Pipeline);
 
 export class App extends Zero {
-    start(): render.Flow {
+    start(): render.Pipeline {
         const { width, height } = device.swapchain;
 
         let node: Node;
@@ -122,7 +122,7 @@ export class App extends Zero {
             doc.addElement(textRenderer);
         }
 
-        return flow.createFlow()
+        return pipeline.createRenderPipeline()
     }
 }
 

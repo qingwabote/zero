@@ -1,8 +1,8 @@
 import { device } from "boot";
 import { CommandBuffer, Framebuffer, FramebufferInfo, RenderPass, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { Zero } from "../../Zero.js";
 import { Rect } from "../../math/rect.js";
-import { Camera } from "../scene/Camera.js";
-import { Root } from "../scene/Root.js";
+import { Context } from "../Context.js";
 import { Phase } from "./Phase.js";
 import { getRenderPass } from "./rpc.js";
 
@@ -31,14 +31,15 @@ export class Stage {
     }
 
     constructor(
-        readonly name: string,
+        private _context: Context,
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _renderPass?: RenderPass,
         private _viewport?: Rect
     ) { }
 
-    record(commandBuffer: CommandBuffer, scene: Root, camera: Camera): number {
+    record(commandBuffer: CommandBuffer): number {
+        const camera = Zero.instance.scene.cameras[this._context.cameraIndex];
         const phases = this._phases.filter(phase => camera.visibilities & phase.visibility);
         if (phases.length == 0) {
             return 0;
@@ -51,7 +52,7 @@ export class Stage {
 
         let dc = 0;
         for (const phase of phases) {
-            dc += phase.record(commandBuffer, scene, camera, renderPass);
+            dc += phase.record(commandBuffer, renderPass);
         }
 
         commandBuffer.endRenderPass();

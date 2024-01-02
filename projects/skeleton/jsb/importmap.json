@@ -1,0 +1,18 @@
+{
+    "imports": {
+        "@esotericsoftware/spine-core": "./dist/spine-core.js",
+        "yaml": "./dist/yaml.js",
+        "gfx-common": "./dist/gfx-common/index.js",
+        "gfx": "./dist/gfx/index.js",
+        "boot": "./dist/boot/index.js",
+        "assets": "./dist/assets/index.js",
+        "engine": "./dist/engine/index.js",
+        "spine": "./dist/spine/index.js",
+        "bundling": "./bundling-builtin.js"
+    },
+    "scopes": {
+        "./dist/script/": {
+            "bundling": "./bundling.js"
+        }
+    }
+}

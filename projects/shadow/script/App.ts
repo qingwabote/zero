@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, Flow, GLTF, Material, MaterialMacros, MaterialValues, Node, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, vec2, vec3, vec4 } from 'engine';
+import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, Node, Pipeline, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, vec2, vec3, vec4 } from 'engine';
 
 const VisibilityFlagBits = {
     UP: 1 << 1,
@@ -47,16 +47,16 @@ class TestGLTF extends GLTF {
     }
 }
 
-const [guardian, plane, gltf_camera, ss_depth, flow] = await Promise.all([
+const [guardian, plane, gltf_camera, ss_depth, pipeline] = await Promise.all([
     bundle.cache('guardian_zelda_botw_fan-art/scene', TestGLTF),
     builtin.cache('models/primitive/scene', TestGLTF),
     bundle.cache('camera_from_poly_by_google/scene', TestGLTF),
     builtin.cache('shaders/depth', Shader),
-    bundle.cache('flows/flow', Flow)
+    bundle.cache('pipelines/test', Pipeline)
 ])
 
 export class App extends Zero {
-    protected override start(): render.Flow {
+    protected override start(): render.Pipeline {
         const { width, height } = device.swapchain;
 
         const lit_position: Vec3 = [4, 4, 4];
@@ -106,10 +106,10 @@ export class App extends Zero {
         node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
 
-        const renderFlow = flow.createFlow(VisibilityFlagBits);
+        const renderPipeline = pipeline.createRenderPipeline(VisibilityFlagBits);
 
         const sprite = UIRenderer.create(SpriteRenderer);
-        sprite.impl.spriteFrame = new SpriteFrame(flow.textures['shadowmap']);
+        sprite.impl.spriteFrame = new SpriteFrame(pipeline.textures['shadowmap']);
         sprite.impl.shader = shaderLib.getShader(ss_depth);
         sprite.size = [height / 4, height / 4]
         sprite.anchor = [1, 0.5];
@@ -155,7 +155,7 @@ export class App extends Zero {
         node.euler = vec3.create(180, 0, 180)
         up_camera.node.addChild(node);
 
-        return renderFlow;
+        return renderPipeline;
     }
 }
 

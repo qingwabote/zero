@@ -1,12 +1,12 @@
-import { Camera, Flow, Node, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, vec2, vec3 } from "engine";
+import { Camera, Node, Pipeline, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, vec2, vec3 } from "engine";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await bundle.cache('favicon.ico', Texture);
 
-const flow = await bundle.cache('flows/unlit-ms', Flow);
+const pipeline = await bundle.cache('pipelines/unlit-ms', Pipeline);
 
 export default class App extends Zero {
-    start(): render.Flow {
+    start(): render.Pipeline {
         const { width, height } = device.swapchain;
 
         let node: Node;
@@ -56,7 +56,7 @@ export default class App extends Zero {
         node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
 
-        return flow.createFlow();
+        return pipeline.createRenderPipeline()
     }
 }
 

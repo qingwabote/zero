@@ -1,10 +1,9 @@
 import { CommandBuffer, RenderPass } from "gfx";
 import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
+import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
-import { Camera } from "../../core/render/scene/Camera.js";
 import { Model } from "../../core/render/scene/Model.js";
-import { Root } from "../../core/render/scene/Root.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 export class ModelPhase extends Phase {
@@ -17,7 +16,9 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    record(commandBuffer: CommandBuffer, scene: Root, camera: Camera, renderPass: RenderPass): number {
+    record(commandBuffer: CommandBuffer, renderPass: RenderPass): number {
+        const scene = Zero.instance.scene;
+        const camera = scene.cameras[this._context.cameraIndex];
         let dc = 0;
         for (const model of scene.models) {
             if ((camera.visibilities & model.visibility) == 0) {

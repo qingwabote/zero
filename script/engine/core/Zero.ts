@@ -6,7 +6,7 @@ import { Input, InputEventType } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
-import { Flow } from "./render/pipeline/Flow.js";
+import { Pipeline } from "./render/Pipeline.js";
 import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
 import { Root } from "./render/scene/Root.js";
 
@@ -48,7 +48,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     private readonly _systems: readonly System[];
 
-    private _flow!: Flow;
+    private _pipeline: Pipeline;
 
     private _commandBuffer: CommandBuffer;
     private _presentSemaphore: Semaphore;
@@ -87,7 +87,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
         Zero._instance = this;
 
-        this._flow = this.start();
+        this._pipeline = this.start();
 
         this.attach();
     }
@@ -112,7 +112,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._timeScheduler.clearInterval(func);
     }
 
-    protected abstract start(): Flow;
+    protected abstract start(): Pipeline;
 
     onTouchStart(event: TouchEvent) {
         this._inputEvents.set(InputEventType.TOUCH_START, event)
@@ -153,10 +153,10 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
         this.scene.update();
-        this._flow.update();
+        this._pipeline.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._drawCall = this._flow.record(this._commandBuffer, this.scene);
+        this._drawCall = this._pipeline.record(this._commandBuffer, this.scene.cameras);
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 

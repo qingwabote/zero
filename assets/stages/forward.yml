@@ -1,4 +1,0 @@
-uniforms:
-  - light
-phases:
-  - pass: default

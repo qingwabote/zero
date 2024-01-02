@@ -1,0 +1,18 @@
+flows:
+  - uniforms:
+      - name: camera
+        binding: 1
+    stages:
+      - phases:
+          - pass: default
+        framebuffer:
+          samples: 4
+          colors:
+            - usage:
+                - COLOR
+                - TRANSIENT
+          resolves:
+            - swapchain: true
+          depthStencil:
+            usage:
+              - DEPTH_STENCIL

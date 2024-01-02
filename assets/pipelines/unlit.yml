@@ -1,0 +1,7 @@
+flows:
+  - uniforms:
+      - name: camera
+        binding: 1
+    stages:
+      - phases:
+          - pass: default
