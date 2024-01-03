@@ -3,9 +3,13 @@
 #include "VkDevice_impl.hpp"
 #include <queue>
 #include <functional>
+#include <unordered_map>
 
 namespace gfx
 {
+    class DescriptorSet;
+    class Pipeline;
+
     class CommandBuffer_impl
     {
         friend class CommandBuffer;
@@ -19,7 +23,7 @@ namespace gfx
         VkBuffer createStagingBuffer(void const *src, size_t size);
 
         std::unordered_map<uint32_t, std::shared_ptr<DescriptorSet>> _descriptorSets;
-        std::unordered_map<uint32_t, std::shared_ptr<Uint32Vector>> _dynamicOffsets;
+        std::unordered_map<uint32_t, std::shared_ptr<std::vector<uint32_t>>> _dynamicOffsets;
 
         std::shared_ptr<Pipeline> _pipeline;
 

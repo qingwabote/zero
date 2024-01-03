@@ -4,6 +4,21 @@
 #include <vector>
 #include <memory>
 
+// copy from TypeDef.h in cocos
+#define GFX_ENUM_BITWISE_OPERATORS(T)                                                                                                                                             \
+    constexpr bool operator!(const T v) { return !static_cast<std::underlying_type<T>::type>(v); }                                                                                \
+    constexpr T operator~(const T v) { return static_cast<T>(~static_cast<std::underlying_type<T>::type>(v)); }                                                                   \
+    constexpr bool operator||(const T lhs, const T rhs) { return (static_cast<std::underlying_type<T>::type>(lhs) || static_cast<std::underlying_type<T>::type>(rhs)); }          \
+    constexpr bool operator&&(const T lhs, const T rhs) { return (static_cast<std::underlying_type<T>::type>(lhs) && static_cast<std::underlying_type<T>::type>(rhs)); }          \
+    constexpr T operator|(const T lhs, const T rhs) { return static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) | static_cast<std::underlying_type<T>::type>(rhs)); } \
+    constexpr T operator&(const T lhs, const T rhs) { return static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) & static_cast<std::underlying_type<T>::type>(rhs)); } \
+    constexpr T operator^(const T lhs, const T rhs) { return static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) ^ static_cast<std::underlying_type<T>::type>(rhs)); } \
+    constexpr T operator+(const T lhs, const T rhs) { return static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) + static_cast<std::underlying_type<T>::type>(rhs)); } \
+    constexpr T operator+(const T lhs, bool rhs) { return static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) + rhs); }                                                \
+    constexpr void operator|=(T &lhs, const T rhs) { lhs = static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) | static_cast<std::underlying_type<T>::type>(rhs)); }   \
+    constexpr void operator&=(T &lhs, const T rhs) { lhs = static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) & static_cast<std::underlying_type<T>::type>(rhs)); }   \
+    constexpr void operator^=(T &lhs, const T rhs) { lhs = static_cast<T>(static_cast<std::underlying_type<T>::type>(lhs) ^ static_cast<std::underlying_type<T>::type>(rhs)); }
+
 namespace gfx
 {
     class Buffer;
@@ -91,6 +106,7 @@ namespace gfx
         DEPTH_STENCIL = 0x00000020,
         TRANSIENT = 0x00000040,
     };
+    GFX_ENUM_BITWISE_OPERATORS(TextureUsageFlagBits);
 
     struct TextureInfo
     {
@@ -123,6 +139,7 @@ namespace gfx
         COLOR = 2,
         DEPTH_STENCIL = 3,
         DEPTH_STENCIL_READ_ONLY = 4,
+        SHADER_READ_ONLY = 5,
         PRESENT_SRC = 1000001002,
     };
     struct AttachmentDescription
@@ -190,7 +207,7 @@ namespace gfx
     };
     struct InputAssemblerInfo
     {
-        std::shared_ptr<VertexAttributeVector> vertexAttributes;
+        std::shared_ptr<VertexAttributeVector> vertexAttributes{new VertexAttributeVector()};
         std::shared_ptr<VertexInput> vertexInput;
         std::shared_ptr<IndexInput> indexInput;
     };

@@ -208,7 +208,7 @@ commandBuffer.begin()
 commandBuffer.beginRenderPass(renderPass, framebuffer, 0, 0, device.swapchain.width, device.swapchain.height);
 commandBuffer.bindPipeline(pipeline);
 commandBuffer.bindInputAssembler(inputAssembler);
-commandBuffer.bindDescriptorSet(pipelineLayout, 0, descriptorSet);
+commandBuffer.bindDescriptorSet(0, descriptorSet);
 commandBuffer.drawIndexed(6, 0)
 
 commandBuffer.end();

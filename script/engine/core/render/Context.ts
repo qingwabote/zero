@@ -1,8 +1,7 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayout, FormatInfos, InputAssembler, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { DescriptorSet, DescriptorSetLayout, FormatInfos, InputAssembler, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 import { shaderLib } from "../shaderLib.js";
 import { hashLib } from "./hashLib.js";
-import { Pass } from "./scene/Pass.js";
 
 export class Context {
     readonly descriptorSet: DescriptorSet;
@@ -23,9 +22,9 @@ export class Context {
     /**
      * @param renderPass a compatible renderPass
      */
-    getPipeline(pass: Pass, inputAssembler: InputAssembler, renderPass: RenderPass, layout: DescriptorSetLayout): Pipeline {
+    getPipeline(passState: PassState, inputAssembler: InputAssembler, renderPass: RenderPass, layouts: DescriptorSetLayout[] = []): Pipeline {
         const inputAssemblerInfo = inputAssembler.info;
-        const pipelineHash = hashLib.passState(pass.state) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
+        const pipelineHash = hashLib.passState(passState) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             const vertexInputState = new VertexInputState;
@@ -57,7 +56,7 @@ export class Context {
                 if (attribute.name == '') {
                     throw new Error("no attribute name is provided");
                 }
-                const definition = shaderLib.getShaderMeta(pass.state.shader).attributes[attribute.name];
+                const definition = shaderLib.getShaderMeta(passState.shader).attributes[attribute.name];
                 if (!definition) {
                     continue;
                 }
@@ -74,25 +73,23 @@ export class Context {
             }
 
             const info = new PipelineInfo();
-            info.passState = pass.state;
+            info.passState = passState;
             info.vertexInputState = vertexInputState;
             info.renderPass = renderPass;
-            info.layout = this.getPipelineLayout(layout, pass)
+            info.layout = this.getPipelineLayout(passState.shader, layouts)
             pipeline = device.createPipeline(info);
             this._pipelineCache[pipelineHash] = pipeline;
         }
         return pipeline;
     }
 
-    private getPipelineLayout(layout: DescriptorSetLayout, pass: Pass): PipelineLayout {
-        const shader = pass.state.shader;
+    private getPipelineLayout(shader: Shader, layouts: DescriptorSetLayout[]): PipelineLayout {
         let pipelineLayout = this._pipelineLayoutCache.get(shader);
         if (!pipelineLayout) {
             const info = new PipelineLayoutInfo;
             info.layouts.add(this._descriptorSetLayout);
-            info.layouts.add(layout);
-            if (pass.descriptorSet) {
-                info.layouts.add(pass.descriptorSet.layout);
+            for (const layout of layouts) {
+                info.layouts.add(layout);
             }
             pipelineLayout = device.createPipelineLayout(info);
             this._pipelineLayoutCache.set(shader, pipelineLayout);

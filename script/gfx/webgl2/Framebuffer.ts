@@ -48,8 +48,6 @@ export class Framebuffer {
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilAttachment.renderbuffer);
         }
 
-        // gl.drawBuffers([gl.NONE]);
-
         const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             switch (status) {
@@ -69,7 +67,6 @@ export class Framebuffer {
                     console.error('glCheckFramebufferStatus() - FRAMEBUFFER_UNSUPPORTED');
                     break;
                 }
-                default:
             }
         }
 

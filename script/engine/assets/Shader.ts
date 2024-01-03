@@ -4,10 +4,7 @@ import { ShaderStageFlagBits } from "gfx";
 import { preprocessor } from "../core/internal/preprocessor.js";
 
 export class Shader implements Asset {
-    private _name: string = '';
-    public get name(): string {
-        return this._name;
-    }
+    name: string = '';
 
     sources: string[] = [];
 
@@ -28,7 +25,7 @@ export class Shader implements Asset {
 
         this.macros = new Set([...preprocessor.macroExtract(vs), ...preprocessor.macroExtract(fs)]);
 
-        this._name = path;
+        this.name = path;
 
         return this;
     }

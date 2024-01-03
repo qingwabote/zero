@@ -11,8 +11,10 @@ namespace gfx
         auto gfx_resolveAttachments = info.resolves.get();
 
         // renderpass
-        VkRenderPassCreateInfo2 renderPassInfo = {};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
+        VkRenderPassCreateInfo2 renderPassInfo = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2};
+
+        VkPipelineStageFlags dependency_srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        VkPipelineStageFlags dependency_dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
         std::vector<VkAttachmentDescription2> attachments;
         // color
@@ -39,6 +41,12 @@ namespace gfx
             VkClearValue clearValue{};
             clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
             _clearValues.emplace_back(clearValue);
+
+            if (gfx_attachment->finalLayout == ImageLayout::SHADER_READ_ONLY)
+            {
+                dependency_srcStageMask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                dependency_dstStageMask |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            }
         }
 
         // depthStencil
@@ -107,6 +115,15 @@ namespace gfx
         subpass.pResolveAttachments = resolveAttachmentRefs.data();
         renderPassInfo.pSubpasses = &subpass;
         renderPassInfo.subpassCount = 1;
+
+        VkSubpassDependency2 dependency = {VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2};
+        dependency.srcSubpass = 0;
+        dependency.dstSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.srcStageMask = dependency_srcStageMask;
+        dependency.dstStageMask = dependency_dstStageMask;
+
+        renderPassInfo.pDependencies = &dependency;
+        renderPassInfo.dependencyCount = 1;
 
         vkCreateRenderPass2(*_device, &renderPassInfo, nullptr, &_renderPass);
 

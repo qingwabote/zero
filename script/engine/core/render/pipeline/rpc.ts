@@ -19,15 +19,15 @@ export function getRenderPass(framebuffer: FramebufferInfo, clears = ClearFlagBi
 
     const colorAttachments = framebuffer.colors;
     for (let i = 0; i < colorAttachments.size(); i++) {
-        const colorAttachment = colorAttachments.get(i);
+        const attachment = colorAttachments.get(i);
         const description = new AttachmentDescription;
         description.loadOp = clears & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-        if (colorAttachment == device.swapchain.colorTexture) {
+        if (attachment == device.swapchain.colorTexture) {
             description.initialLayout = clears & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
             description.finalLayout = ImageLayout.PRESENT_SRC;
         } else {
             description.initialLayout = clears & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.COLOR;
-            description.finalLayout = ImageLayout.COLOR;
+            description.finalLayout = attachment.info.usage & TextureUsageFlagBits.SAMPLED ? ImageLayout.SHADER_READ_ONLY : ImageLayout.COLOR;
         }
         info.colors.add(description);
     }
@@ -46,11 +46,7 @@ export function getRenderPass(framebuffer: FramebufferInfo, clears = ClearFlagBi
     const depthStencilDescription = new AttachmentDescription();
     depthStencilDescription.loadOp = clears & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
     depthStencilDescription.initialLayout = clears & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL;
-    if (depthStencilAttachment.info.usage & TextureUsageFlagBits.SAMPLED) {
-        depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL_READ_ONLY;
-    } else {
-        depthStencilDescription.finalLayout = ImageLayout.DEPTH_STENCIL;
-    }
+    depthStencilDescription.finalLayout = depthStencilAttachment.info.usage & TextureUsageFlagBits.SAMPLED ? ImageLayout.DEPTH_STENCIL_READ_ONLY : ImageLayout.DEPTH_STENCIL
     info.depthStencil = depthStencilDescription;
 
     info.samples = depthStencilAttachment.info.samples;

@@ -23,9 +23,8 @@ flows:
             visibility: ${UP}
         framebuffer:
           depthStencil: shadowmap
-        renderPass:
-          clears:
-            - DEPTH
+        clears:
+          - DEPTH
       - name: forward
         phases:
           - pass: default

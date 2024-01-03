@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { CommandBuffer, Framebuffer, FramebufferInfo, RenderPass, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { ClearFlagBits, CommandBuffer, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Zero } from "../../Zero.js";
 import { Rect } from "../../math/rect.js";
 import { Context } from "../Context.js";
@@ -34,7 +34,7 @@ export class Stage {
         private _context: Context,
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
-        private _renderPass?: RenderPass,
+        private _clears?: ClearFlagBits,
         private _viewport?: Rect
     ) { }
 
@@ -45,7 +45,8 @@ export class Stage {
             return 0;
         }
 
-        const renderPass = this._renderPass || getRenderPass(this._framebuffer.info, camera.clears);
+        const clears = this._clears || camera.clears;
+        const renderPass = getRenderPass(this._framebuffer.info, clears);
         const viewport = this._viewport || camera.viewport;
 
         commandBuffer.beginRenderPass(renderPass, this._framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);

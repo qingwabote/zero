@@ -95,6 +95,7 @@ export enum ImageLayout {
     COLOR = 2,
     DEPTH_STENCIL = 3,
     DEPTH_STENCIL_READ_ONLY = 4,
+    SHADER_READ_ONLY = 5,
     PRESENT_SRC = 1000001002,
 }
 

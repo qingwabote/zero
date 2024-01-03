@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { BufferUsageFlagBits, DescriptorSet, PassState, Sampler, Texture } from "gfx";
+import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, PassState, Sampler, Texture } from "gfx";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferViewWritable } from "./buffers/BufferViewWritable.js";
@@ -17,6 +17,7 @@ function type2Length(type: string): number {
 }
 
 export class Pass {
+    readonly descriptorSetLayout: DescriptorSetLayout;
     readonly descriptorSet?: DescriptorSet = undefined;
 
     protected _uniformBuffers: Record<string, BufferViewWritable> = {};
@@ -47,6 +48,7 @@ export class Pass {
             }
             this.descriptorSet = descriptorSet;
         }
+        this.descriptorSetLayout = descriptorSetLayout;
     }
 
     hasUniform(name: string, member: string): boolean {

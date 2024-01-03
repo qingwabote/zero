@@ -28,17 +28,13 @@ interface Texture {
 }
 
 interface Framebuffer {
-    colors?: Texture[];
+    colors?: (Texture | string)[];
     resolves?: Texture[];
     depthStencil?: Texture | string;
     samples?: number;
 }
 
 type Clear = keyof typeof gfx.ClearFlagBits;
-
-interface RenderPass {
-    clears: Clear[];
-}
 
 const UniformMap = {
     camera: CameraUniform,
@@ -63,7 +59,7 @@ interface Viewport {
 interface Stage {
     phases: Phase[];
     framebuffer?: Framebuffer;
-    renderPass?: RenderPass;
+    clears?: Clear[];
     viewport?: Viewport;
 }
 
@@ -139,10 +135,10 @@ export class Pipeline extends Yml {
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
                     }
-                    phases.push(new ModelPhase(context, phase.pass, visibility))
+                    phases.push(new ModelPhase(context, visibility, phase.pass))
                 }
                 let framebuffer: gfx.Framebuffer | undefined;
-                let renderPass: gfx.RenderPass | undefined;
+                let clears: gfx.ClearFlagBits | undefined;
                 let viewport: Rect | undefined;
                 if (stage.framebuffer) {
                     const framebufferInfo = new gfx.FramebufferInfo;
@@ -179,17 +175,13 @@ export class Pipeline extends Yml {
                     framebufferInfo.width = width;
                     framebufferInfo.height = height;
 
-                    let clears: gfx.ClearFlagBits | undefined;
-                    if (stage.renderPass?.clears) {
-                        clears = 0;
-                        for (const clear of stage.renderPass.clears) {
+                    if (stage.clears) {
+                        clears = gfx.ClearFlagBits.NONE;
+                        for (const clear of stage.clears) {
                             clears |= gfx.ClearFlagBits[clear];
                         }
                     }
                     framebufferInfo.renderPass = getRenderPass(framebufferInfo, clears);
-                    if (stage.renderPass) {
-                        renderPass = framebufferInfo.renderPass;
-                    }
                     framebuffer = device.createFramebuffer(framebufferInfo);
                     if (stage.viewport) {
                         viewport = rect.create(stage.viewport.x, stage.viewport.y, stage.viewport.width, stage.viewport.height);
@@ -197,7 +189,7 @@ export class Pipeline extends Yml {
                         viewport = rect.create(0, 0, width, height);
                     }
                 }
-                stages.push(new render.Stage(context, phases, framebuffer, renderPass, viewport));
+                stages.push(new render.Stage(context, phases, framebuffer, clears, viewport));
             }
             flows.push(new render.Flow(context, uniforms, stages));
         }

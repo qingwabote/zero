@@ -14,18 +14,22 @@ namespace gfx
             return false;
         }
 
-        VkImageUsageFlagBits usage = static_cast<VkImageUsageFlagBits>(info->usage);
-
-        auto format = VK_FORMAT_R8G8B8A8_UNORM;
-        auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+        auto format = VK_FORMAT_UNDEFINED;
+        auto aspectMask = VK_IMAGE_ASPECT_NONE;
+        if ((info->usage & TextureUsageFlagBits::COLOR) != TextureUsageFlagBits::NONE)
         {
             format = _device->swapchainImageFormat();
+            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         }
-        else if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        else if ((info->usage & TextureUsageFlagBits::DEPTH_STENCIL) != TextureUsageFlagBits::NONE)
         {
             format = VK_FORMAT_D32_SFLOAT;
             aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        }
+        else
+        {
+            format = VK_FORMAT_R8G8B8A8_UNORM;
+            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         }
 
         VkExtent3D extent{};
@@ -40,12 +44,11 @@ namespace gfx
         imageInfo.arrayLayers = 1;
         imageInfo.samples = static_cast<VkSampleCountFlagBits>(info->samples);
         imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageInfo.usage = usage;
+        imageInfo.usage = static_cast<VkImageUsageFlagBits>(info->usage);
         imageInfo.format = format;
         VmaAllocationCreateInfo allocationCreateInfo = {};
         allocationCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-        auto err = vmaCreateImage(_device->allocator(), &imageInfo, &allocationCreateInfo, &_image, &_allocation, &_allocationInfo);
-        if (err)
+        if (vmaCreateImage(_device->allocator(), &imageInfo, &allocationCreateInfo, &_image, &_allocation, &_allocationInfo))
         {
             return true;
         }
@@ -60,8 +63,7 @@ namespace gfx
         imageViewInfo.subresourceRange.baseArrayLayer = 0;
         imageViewInfo.subresourceRange.layerCount = 1;
         imageViewInfo.subresourceRange.aspectMask = aspectMask;
-        err = vkCreateImageView(*_device, &imageViewInfo, nullptr, &_imageView);
-        if (err)
+        if (vkCreateImageView(*_device, &imageViewInfo, nullptr, &_imageView))
         {
             return true;
         }
