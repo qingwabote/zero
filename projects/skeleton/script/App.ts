@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, Node, Pipeline, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle as builtin, device, platform, reboot, render, safeArea, vec2, vec3 } from 'engine';
+import { Camera, Node, Pipeline, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, device, platform, reboot, render, safeArea, vec2, vec3 } from 'engine';
 import * as spine from 'spine';
 
 const spine_atlas_src = await bundle.raw.once('spineboy/spineboy-pma.atlas', 'text');
@@ -9,7 +9,7 @@ for (const page of spine_atlas.pages) {
 }
 const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text');
 
-const pipeline = await builtin.cache('pipelines/unlit', Pipeline);
+const pipeline = await bundle.cache('pipelines/post', Pipeline);
 
 export class App extends Zero {
     protected override start(): render.Pipeline {

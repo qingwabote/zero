@@ -1,0 +1,25 @@
+textures:
+  - name: color
+    usage:
+      - COLOR
+      - SAMPLED
+flows:
+  - uniforms:
+      - name: camera
+        binding: 1
+    stages:
+      - phases:
+          - pass: default
+        framebuffer:
+          colors:
+            - color
+          depthStencil:
+            usage:
+              - DEPTH_STENCIL
+  - uniforms:
+      - name: samplerTexture
+        texture: color
+        binding: 0
+    stages:
+      - phases:
+          - type: post

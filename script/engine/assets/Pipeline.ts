@@ -7,14 +7,16 @@ import { Context } from "../core/render/Context.js";
 import { UniformBufferObject } from "../core/render/pipeline/UniformBufferObject.js";
 import { getRenderPass } from "../core/render/pipeline/rpc.js";
 import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
+import { PostPhase } from "../pipeline/phases/PostPhase.js";
 import { CameraUniform } from "../pipeline/uniforms/CameraUniform.js";
 import { LightUniform } from "../pipeline/uniforms/LightUniform.js";
 import { SamplerTextureUniform } from "../pipeline/uniforms/SamplerTextureUniform.js";
 import { Yml } from "./internal/Yml.js";
 
 interface Phase {
-    pass: string;
+    type?: 'post';
     visibility?: string;
+    [key: string]: any;
 }
 
 type TextureUsage = keyof typeof gfx.TextureUsageFlagBits;
@@ -129,13 +131,20 @@ export class Pipeline extends Yml {
             for (let i = 0; i < flow.stages.length; i++) {
                 const stage = flow.stages[i];
 
-                const phases: ModelPhase[] = [];
+                const phases: render.Phase[] = [];
                 for (const phase of stage.phases) {
                     let visibility: VisibilityFlagBits | undefined;
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
                     }
-                    phases.push(new ModelPhase(context, visibility, phase.pass))
+                    switch (phase.type) {
+                        case 'post':
+                            phases.push(new PostPhase(context, visibility))
+                            break;
+                        default:
+                            phases.push(new ModelPhase(context, visibility, phase.pass))
+                            break;
+                    }
                 }
                 let framebuffer: gfx.Framebuffer | undefined;
                 let clears: gfx.ClearFlagBits | undefined;
