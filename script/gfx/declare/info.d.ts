@@ -1,4 +1,4 @@
-import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageFlagBits, VertexInputRate } from "gfx-common";
+import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageFlagBits } from "gfx-common";
 import { Buffer } from "./Buffer.js";
 import { CommandBuffer } from "./CommandBuffer.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
@@ -142,33 +142,9 @@ export declare class PassState {
     blendState?: BlendState;
 }
 
-export declare class VertexInputAttributeDescription {
-    location: number;
-    format: Format;
-    binding: number;
-    offset: number
-}
-/**
- * stride can't be zero even if vertex buffer is tightly packed. Unlike in OpenGL, the value must be explicit in Vulkan.
- */
-export declare class VertexInputBindingDescription {
-    binding: number;
-    stride: number;
-    inputRate: VertexInputRate;
-}
-export class VertexInputAttributeDescriptionVector extends Vector<VertexInputAttributeDescription>{ };
-export class VertexInputBindingDescriptionVector extends Vector<VertexInputBindingDescription>{ };
-/**
- * Vulkan separates binding from attribute, because multi attributes will use the same binding if vertex buffer is interleaved, I guess.
- */
-export declare class VertexInputState {
-    attributes: VertexInputAttributeDescriptionVector;
-    bindings: VertexInputBindingDescriptionVector;
-}
-
 export declare class PipelineInfo {
-    vertexInputState: VertexInputState;
     passState: PassState;
+    inputAssembler: InputAssembler;
     layout: PipelineLayout;
     renderPass: RenderPass;
 }

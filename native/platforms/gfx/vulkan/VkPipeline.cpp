@@ -13,6 +13,11 @@
 #include "gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
 
+#include "gfx/InputAssembler.hpp"
+#include "gfx/Buffer.hpp"
+
+#include "gfx/constants.hpp"
+
 namespace gfx
 {
     Pipeline_impl::Pipeline_impl(Device_impl *device) : _device(device) {}
@@ -23,36 +28,6 @@ namespace gfx
     bool Pipeline::initialize(const std::shared_ptr<PipelineInfo> &info)
     {
         VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
-
-        // vertexInputState
-        auto &gfx_vertexInputState = info->vertexInputState;
-
-        VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
-        auto &gfx_attributes = gfx_vertexInputState->attributes;
-        std::vector<VkVertexInputAttributeDescription> attributes{gfx_attributes->size()};
-        for (uint32_t i = 0; i < gfx_attributes->size(); i++)
-        {
-            auto &gfx_attribute = gfx_attributes->at(i);
-            attributes[i].location = gfx_attribute->location;
-            attributes[i].binding = gfx_attribute->binding;
-            attributes[i].format = static_cast<VkFormat>(gfx_attribute->format);
-            attributes[i].offset = gfx_attribute->offset;
-        }
-        vertexInputState.vertexAttributeDescriptionCount = attributes.size();
-        vertexInputState.pVertexAttributeDescriptions = attributes.data();
-
-        auto &gfx_bindings = gfx_vertexInputState->bindings;
-        std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_bindings->size()};
-        for (uint32_t i = 0; i < gfx_bindings->size(); i++)
-        {
-            auto &gfx_binding = gfx_bindings->at(i);
-            bindingDescriptions[i].binding = gfx_binding->binding;
-            bindingDescriptions[i].stride = gfx_binding->stride;
-            bindingDescriptions[i].inputRate = static_cast<VkVertexInputRate>(gfx_binding->inputRate);
-        }
-        vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
-        vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();
-        pipelineInfo.pVertexInputState = &vertexInputState;
 
         // passState
         auto &gfx_passState = info->passState;
@@ -141,6 +116,54 @@ namespace gfx
         colorBlending.attachmentCount = 1;
         colorBlending.pAttachments = &colorBlendAttachment;
         pipelineInfo.pColorBlendState = &colorBlending;
+
+        // vertexInputState
+        VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
+        auto &gfx_vertexAttributes = info->inputAssembler->info()->vertexAttributes;
+        std::vector<VkVertexInputAttributeDescription> attributes;
+        for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
+        {
+            auto &gfx_attribute = gfx_vertexAttributes->at(i);
+            auto it = gfx_shader->impl()->attributeLocations().find(gfx_attribute->name);
+            if (it != gfx_shader->impl()->attributeLocations().end())
+            {
+                VkVertexInputAttributeDescription attribute;
+                attribute.location = it->second;
+                attribute.binding = gfx_attribute->buffer;
+                // the format in buffer can be different from the format in shader,
+                // use the format in buffer to make sure type conversion can be done correctly by graphics api.
+                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
+                attribute.format = static_cast<VkFormat>(gfx_attribute->format);
+                attribute.offset = gfx_attribute->offset;
+                attributes.push_back(attribute);
+            }
+        }
+        vertexInputState.vertexAttributeDescriptionCount = attributes.size();
+        vertexInputState.pVertexAttributeDescriptions = attributes.data();
+        auto &gfx_vertexBuffers = info->inputAssembler->info()->vertexInput->buffers;
+        std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_vertexBuffers->size()};
+        for (size_t binding = 0; binding < gfx_vertexBuffers->size(); binding++)
+        {
+            auto gfx_buffer = gfx_vertexBuffers->at(binding);
+            auto stride = gfx_buffer->info()->stride;
+            if (stride == 0)
+            {
+                for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
+                {
+                    auto &gfx_attribute = gfx_vertexAttributes->at(i);
+                    if (gfx_attribute->buffer == binding)
+                    {
+                        stride += FormatInfos.at(static_cast<Format>(gfx_attribute->format)).bytes;
+                    }
+                }
+            }
+            bindingDescriptions[binding].stride = stride;
+            bindingDescriptions[binding].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            bindingDescriptions[binding].binding = binding;
+        }
+        vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
+        vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();
+        pipelineInfo.pVertexInputState = &vertexInputState;
 
         // renderPass
         auto &gfx_renderPass = info->renderPass;

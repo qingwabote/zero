@@ -2,7 +2,7 @@ import { device } from "boot";
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
-import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
+import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 
 function align(size: number) {
     const alignment = device.capabilities.uniformBufferOffsetAlignment;
@@ -29,7 +29,7 @@ const CameraBlock = {
 export class CameraUniform extends UniformBufferObject {
     static readonly definition = CameraBlock;
 
-    private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);
+    private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);
 
     get buffer(): Buffer {
         return this._buffer.buffer;

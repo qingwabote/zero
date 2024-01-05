@@ -2,7 +2,7 @@ import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, PassState, Sampler, Texture } from "gfx";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";
-import { BufferViewWritable } from "./buffers/BufferViewWritable.js";
+import { BufferView } from "./buffers/BufferView.js";
 
 function type2Length(type: string): number {
     switch (type) {
@@ -20,8 +20,8 @@ export class Pass {
     readonly descriptorSetLayout: DescriptorSetLayout;
     readonly descriptorSet?: DescriptorSet = undefined;
 
-    protected _uniformBuffers: Record<string, BufferViewWritable> = {};
-    get uniformBuffers(): Readonly<Record<string, BufferViewWritable>> {
+    protected _uniformBuffers: Record<string, BufferView> = {};
+    get uniformBuffers(): Readonly<Record<string, BufferView>> {
         return this._uniformBuffers;
     }
 
@@ -88,9 +88,9 @@ export class Pass {
         }
     }
 
-    protected createUniformBuffer(name: string): BufferViewWritable {
+    protected createUniformBuffer(name: string): BufferView {
         const block = shaderLib.getShaderMeta(this.state.shader).blocks[name];
         let length = block.members!.reduce((acc, mem) => acc + type2Length(mem.type), 0);
-        return new BufferViewWritable('Float32', BufferUsageFlagBits.UNIFORM, length);
+        return new BufferView('Float32', BufferUsageFlagBits.UNIFORM, length);
     }
 }

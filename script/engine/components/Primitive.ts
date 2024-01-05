@@ -1,14 +1,15 @@
+import { device } from "boot";
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexInput } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Zero } from "../core/Zero.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
-import { SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
-import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
+import { BufferView } from "../core/render/scene/buffers/BufferView.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 
@@ -28,7 +29,7 @@ export class Primitive extends BoundedRenderer {
         return this._bounds;
     }
 
-    private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX);
+    private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
 
     private _vertexCount: number = 0;
 
@@ -62,7 +63,7 @@ export class Primitive extends BoundedRenderer {
     }
 
     start() {
-        const vertexAttributes = new VertexAttributeVector
+        const iaInfo = new InputAssemblerInfo;
         let offset = 0;
         let format = Format.RGB32_SFLOAT;
         const positionAttribute = new VertexAttribute;
@@ -70,7 +71,7 @@ export class Primitive extends BoundedRenderer {
         positionAttribute.format = format;
         positionAttribute.buffer = 0;
         positionAttribute.offset = offset;
-        vertexAttributes.add(positionAttribute);
+        iaInfo.vertexAttributes.add(positionAttribute);
         offset += FormatInfos[format].bytes;
         format = Format.RGBA32_SFLOAT;
         const colorAttribute = new VertexAttribute;
@@ -78,16 +79,16 @@ export class Primitive extends BoundedRenderer {
         colorAttribute.format = format;
         colorAttribute.buffer = 0;
         colorAttribute.offset = offset;
-        vertexAttributes.add(colorAttribute);
+        iaInfo.vertexAttributes.add(colorAttribute);
         offset += FormatInfos[format].bytes;
 
-        const vertexInput: VertexInputView = {
-            buffers: [this._buffer],
-            offsets: [0]
-        }
+        const vertexInput = new VertexInput;
+        vertexInput.buffers.add(this._buffer.buffer);
+        vertexInput.offsets.add(0);
+        iaInfo.vertexInput = vertexInput;
+
         const subMesh = new SubMesh(
-            vertexAttributes,
-            vertexInput,
+            device.createInputAssembler(iaInfo),
             vec3.create(),
             vec3.create()
         )

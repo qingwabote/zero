@@ -175,6 +175,16 @@ namespace gfx
             std::vector<uint32_t> spirv;
             glslang::GlslangToSpv(*program.getIntermediate(lang), spirv);
 
+            if (flag == VK_SHADER_STAGE_VERTEX_BIT)
+            {
+                program.buildReflection();
+                for (size_t i = 0; i < program.getNumPipeInputs(); i++)
+                {
+                    auto &input = program.getPipeInput(i);
+                    _attributeLocations.emplace(input.name, input.getType()->getQualifier().layoutLocation);
+                }
+            }
+
             VkShaderModuleCreateInfo moduleCreateInfo = {};
             moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             moduleCreateInfo.pNext = nullptr;

@@ -5,7 +5,7 @@ import { mat4 } from "../../core/math/mat4.js";
 import { quat } from "../../core/math/quat.js";
 import { vec3 } from "../../core/math/vec3.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
-import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
+import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 
 const ShadowBlock = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -26,7 +26,7 @@ export class ShadowUniform extends UniformBufferObject {
 
     static readonly definition = ShadowBlock;
 
-    private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);;
+    private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, ShadowBlock.size);;
 
     get buffer(): Buffer {
         return this._buffer.buffer;

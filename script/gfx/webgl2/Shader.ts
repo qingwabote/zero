@@ -9,9 +9,9 @@ export class Shader {
         return this._info;
     }
 
-    private _program!: WebGLProgram;
-    get program(): WebGLProgram {
-        return this._program;
+    private _impl!: WebGLProgram;
+    get impl(): WebGLProgram {
+        return this._impl;
     }
 
     constructor(gl: WebGL2RenderingContext) {
@@ -93,7 +93,7 @@ export class Shader {
             gl.deleteShader(shader);
         }
 
-        this._program = program;
+        this._impl = program;
 
         return false;
     }

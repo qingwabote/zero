@@ -14,6 +14,18 @@
 #include "gfx/Device.hpp"
 %}
 
+%ignore gfx::operator !;
+%ignore gfx::operator ~;
+%ignore gfx::operator ||;
+%ignore gfx::operator &&;
+%ignore gfx::operator |;
+%ignore gfx::operator &;
+%ignore gfx::operator ^;
+%ignore gfx::operator +;
+%ignore gfx::operator |=;
+%ignore gfx::operator &=;
+%ignore gfx::operator ^=;
+
 %ignore gfx::BufferUsageFlagBits;
 %ignore gfx::MemoryUsage;
 %ignore gfx::ShaderStageFlagBits;
@@ -72,11 +84,7 @@
 %shared_ptr(gfx::Shader)
 %shared_ptr(gfx::PassState)
 
-%shared_ptr(gfx::VertexInputAttributeDescription);
-%shared_ptr(gfx::VertexInputBindingDescription)
-%shared_ptr(gfx::VertexInputAttributeDescriptionVector)
-%shared_ptr(gfx::VertexInputBindingDescriptionVector)
-%shared_ptr(gfx::VertexInputState)
+%shared_ptr(gfx::InputAssembler);
 %shared_ptr(gfx::PipelineInfo)
 
 %shared_ptr(gfx::CommandBuffer);
@@ -145,15 +153,11 @@
 
 %ignore gfx::InputAssembler::InputAssembler;
 %attribute2(gfx::InputAssembler, std::shared_ptr<gfx::InputAssemblerInfo>, info, info);
-%shared_ptr(gfx::InputAssembler);
 %include "gfx/InputAssembler.hpp"
 
 %ignore gfx::Shader::Shader;
 %attribute2(gfx::Shader, std::shared_ptr<gfx::ShaderInfo>, info, info);
 %include "gfx/Shader.hpp"
-
-%template(VertexInputAttributeDescriptionVector) std::vector<std::shared_ptr<gfx::VertexInputAttributeDescription>>;
-%template(VertexInputBindingDescriptionVector) std::vector<std::shared_ptr<gfx::VertexInputBindingDescription>>;
 
 %ignore gfx::Pipeline::Pipeline;
 %shared_ptr(gfx::Pipeline);

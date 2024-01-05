@@ -30,6 +30,7 @@ namespace gfx
     class CommandBuffer;
     class Fence;
     class Semaphore;
+    class InputAssembler;
 
     using FloatVector = std::vector<float>;
     using Uint32Vector = std::vector<uint32_t>;
@@ -257,36 +258,10 @@ namespace gfx
         std::shared_ptr<BlendState> blendState;
     };
 
-    enum class VertexInputRate
-    {
-        VERTEX = 0,
-        INSTANCE = 1
-    };
-    struct VertexInputAttributeDescription
-    {
-        uint32_t location;
-        uint32_t format;
-        uint32_t binding;
-        uint32_t offset;
-    };
-    struct VertexInputBindingDescription
-    {
-        uint32_t binding;
-        uint32_t stride;
-        VertexInputRate inputRate;
-    };
-    using VertexInputAttributeDescriptionVector = std::vector<std::shared_ptr<VertexInputAttributeDescription>>;
-    using VertexInputBindingDescriptionVector = std::vector<std::shared_ptr<VertexInputBindingDescription>>;
-    struct VertexInputState
-    {
-        std::shared_ptr<VertexInputAttributeDescriptionVector> attributes{new VertexInputAttributeDescriptionVector()};
-        std::shared_ptr<VertexInputBindingDescriptionVector> bindings{new VertexInputBindingDescriptionVector()};
-    };
-
     struct PipelineInfo
     {
-        std::shared_ptr<VertexInputState> vertexInputState;
         std::shared_ptr<PassState> passState;
+        std::shared_ptr<InputAssembler> inputAssembler;
         std::shared_ptr<PipelineLayout> layout;
         std::shared_ptr<RenderPass> renderPass;
     };

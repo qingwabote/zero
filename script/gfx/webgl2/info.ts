@@ -1,7 +1,8 @@
-import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageFlagBits, VertexInputRate } from "gfx-common";
+import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, MemoryUsage, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageFlagBits } from "gfx-common";
 import { Buffer } from "./Buffer.js";
 import { CommandBuffer } from "./CommandBuffer.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
+import { InputAssembler } from "./InputAssembler.js";
 import { PipelineLayout } from "./PipelineLayout.js";
 import { RenderPass } from "./RenderPass.js";
 import { Semaphore } from "./Semaphore.js";
@@ -91,23 +92,6 @@ export class PipelineLayoutInfo {
     layouts: DescriptorSetLayoutVector = new DescriptorSetLayoutVector;
 }
 
-export class VertexInputBindingDescription {
-    binding: number = 0;
-    stride: number = 0;
-    inputRate: VertexInputRate = 0;
-}
-export class VertexInputAttributeDescription {
-    location: number = 0;
-    format: Format = 0;
-    binding: number = 0;
-    offset: number = 0;
-}
-export class VertexInputAttributeDescriptionVector extends Vector<VertexInputAttributeDescription>{ };
-export class VertexInputBindingDescriptionVector extends Vector<VertexInputBindingDescription>{ };
-export class VertexInputState {
-    attributes: VertexInputAttributeDescriptionVector = new VertexInputAttributeDescriptionVector;
-    bindings: VertexInputBindingDescriptionVector = new VertexInputBindingDescriptionVector;
-}
 export class VertexAttribute {
     name: string = '';
     format: Format = 0;
@@ -154,8 +138,8 @@ export class PassState {
 }
 
 export class PipelineInfo implements PipelineInfo {
-    vertexInputState!: VertexInputState;
     passState!: PassState;
+    inputAssembler!: InputAssembler;
     layout!: PipelineLayout;
     renderPass!: RenderPass;
 }

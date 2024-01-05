@@ -1,4 +1,4 @@
-import { BufferViewWritable } from "./core/render/scene/buffers/BufferViewWritable.js";
+import { BufferView } from "./core/render/scene/buffers/BufferView.js";
 import { Pass } from "./core/render/scene/Pass.js";
 import { shaderLib } from "./core/shaderLib.js";
 
@@ -26,7 +26,7 @@ export class PassInstance extends Pass {
         super.setUniform(name, member, value);
     }
 
-    protected override createUniformBuffer(name: string): BufferViewWritable {
+    protected override createUniformBuffer(name: string): BufferView {
         return this._raw.uniformBuffers[name];
     }
 }

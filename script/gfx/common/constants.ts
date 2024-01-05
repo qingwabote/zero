@@ -147,12 +147,6 @@ export enum PrimitiveTopology {
     TRIANGLE_LIST = 3
 }
 
-// copy values from VkVertexInputRate in vulkan_core.h
-export enum VertexInputRate {
-    VERTEX = 0,
-    INSTANCE = 1
-}
-
 // copy values from VkPipelineStageFlagBits in vulkan_core.h
 export enum PipelineStageFlagBits {
     PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400

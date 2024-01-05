@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexType, MemoryUsage, SubmitInfo, VertexAttribute, VertexAttributeVector } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssemblerInfo, MemoryUsage, SubmitInfo, VertexAttribute, VertexInput } from "gfx";
 import { MaterialInstance } from "../MaterialInstance.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
@@ -11,7 +11,6 @@ import { Node } from "../core/Node.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { BufferView } from "../core/render/scene/buffers/BufferView.js";
 import { getSampler } from "../core/sc.js";
 import { AnimationClip, Channel } from "./AnimationClip.js";
 import { Effect } from "./Effect.js";
@@ -279,9 +278,8 @@ export class GLTF implements Asset {
                 continue;
             }
 
-            const vertexBuffers: BufferView[] = [];
-            const vertexOffsets: number[] = [];
-            const vertexAttributes: VertexAttributeVector = new VertexAttributeVector;
+            const iaInfo = new InputAssemblerInfo;
+            const vertexInput = new VertexInput;
             for (const key in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
@@ -297,12 +295,13 @@ export class GLTF implements Asset {
                 const attribute: VertexAttribute = new VertexAttribute;
                 attribute.name = name;
                 attribute.format = format;
-                attribute.buffer = vertexBuffers.length;
+                attribute.buffer = vertexInput.buffers.size();
                 attribute.offset = 0;
-                vertexAttributes.add(attribute);
-                vertexBuffers.push({ buffer: this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX) });
-                vertexOffsets.push(accessor.byteOffset || 0);
+                iaInfo.vertexAttributes.add(attribute);
+                vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                vertexInput.offsets.add(accessor.byteOffset || 0);
             }
+            iaInfo.vertexInput = vertexInput;
 
             const indexAccessor = this._json.accessors[primitive.indices];
             const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
@@ -324,20 +323,17 @@ export class GLTF implements Asset {
                     throw new Error("unsupported index type");
             }
 
+            const indexInput = new IndexInput;
+            indexInput.buffer = indexBuffer;
+            indexInput.type = indexType;
+            iaInfo.indexInput = indexInput;
+
             const posAccessor = this._json.accessors[primitive.attributes['POSITION']];
             subMeshes.push(
                 new SubMesh(
-                    vertexAttributes,
-                    {
-                        buffers: vertexBuffers,
-                        offsets: vertexOffsets,
-                    },
+                    device.createInputAssembler(iaInfo),
                     posAccessor.min,
                     posAccessor.max,
-                    {
-                        buffer: { buffer: indexBuffer },
-                        type: indexType
-                    },
                     {
                         count: indexAccessor.count,
                         first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))

@@ -4,7 +4,7 @@ import { mat4 } from "../../core/math/mat4.js";
 import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Transform } from "../../core/render/scene/Transform.js";
-import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
+import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 class ModelSpaceTransform extends FrameChangeRecord {
@@ -25,7 +25,7 @@ export class SkinnedModel extends Model {
         return layout;
     })()
 
-    private _joints?: readonly Transform[] = undefined;
+    private _joints: readonly Transform[] | undefined = undefined;
 
     private _skin!: Skin;
     public get skin(): Skin {
@@ -41,7 +41,7 @@ export class SkinnedModel extends Model {
         this._joints = undefined;
     }
 
-    private _skinBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
+    private _skinBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
 
     constructor() {
         super();

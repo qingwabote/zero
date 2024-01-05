@@ -4,7 +4,7 @@ import { mat4 } from "../../math/mat4.js";
 import { shaderLib } from "../../shaderLib.js";
 import { SubModel } from "./SubModel.js";
 import { Transform } from "./Transform.js";
-import { BufferViewWritable } from "./buffers/BufferViewWritable.js";
+import { BufferView } from "./buffers/BufferView.js";
 
 export class Model {
     static readonly descriptorSetLayout = (function () {
@@ -34,7 +34,7 @@ export class Model {
 
     order: number = 0;
 
-    private _localBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
+    private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
 
     constructor() {
         const ModelType = (this.constructor as typeof Model);

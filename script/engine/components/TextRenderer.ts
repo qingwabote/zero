@@ -1,7 +1,8 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
+import { device } from "boot";
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, IndexType, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexInput } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Zero } from "../core/Zero.js";
@@ -10,9 +11,9 @@ import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Pass } from "../core/render/scene/Pass.js";
-import { IndexInputView, SubMesh, VertexInputView } from "../core/render/scene/SubMesh.js";
+import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
-import { BufferViewWritable } from "../core/render/scene/buffers/BufferViewWritable.js";
+import { BufferView } from "../core/render/scene/buffers/BufferView.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 
@@ -30,7 +31,7 @@ enum DirtyFlagBits {
 const lineBreak = '\n'.charCodeAt(0);
 
 let g_charCount = 0;
-const g_indexBuffer = new BufferViewWritable("Uint16", BufferUsageFlagBits.INDEX);
+const g_indexBuffer = new BufferView("Uint16", BufferUsageFlagBits.INDEX);
 
 export class TextRenderer extends BoundedRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
@@ -57,43 +58,45 @@ export class TextRenderer extends BoundedRenderer {
 
     private _fnt = fnt_zero;
 
-    private _texCoordBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX);
+    private _texCoordBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
 
-    private _positionBuffer = new BufferViewWritable("Float32", BufferUsageFlagBits.VERTEX);
+    private _positionBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
 
     private _subMesh!: SubMesh;
 
     private _charCount = 0;
 
     override start(): void {
-        const vertexAttributes = new VertexAttributeVector;
+        const iaInfo = new InputAssemblerInfo;
         const texCoordAttribute = new VertexAttribute;
         texCoordAttribute.name = 'a_texCoord';
         texCoordAttribute.format = Format.RG32_SFLOAT;
         texCoordAttribute.buffer = 0;
         texCoordAttribute.offset = 0;
-        vertexAttributes.add(texCoordAttribute);
+        iaInfo.vertexAttributes.add(texCoordAttribute);
         const positionAttribute = new VertexAttribute;
         positionAttribute.name = 'a_position';
         positionAttribute.format = Format.RGB32_SFLOAT;
         positionAttribute.buffer = 1;
         positionAttribute.offset = 0;
-        vertexAttributes.add(positionAttribute);
+        iaInfo.vertexAttributes.add(positionAttribute);
 
-        const vertexInput: VertexInputView = {
-            buffers: [this._texCoordBuffer, this._positionBuffer],
-            offsets: [0, 0]
-        }
-        const indexInput: IndexInputView = {
-            buffer: g_indexBuffer,
-            type: IndexType.UINT16
-        }
+        const vertexInput = new VertexInput;
+        vertexInput.buffers.add(this._texCoordBuffer.buffer);
+        vertexInput.offsets.add(0);
+        vertexInput.buffers.add(this._positionBuffer.buffer);
+        vertexInput.offsets.add(0);
+        iaInfo.vertexInput = vertexInput;
+
+        const indexInput = new IndexInput;
+        indexInput.buffer = g_indexBuffer.buffer;
+        indexInput.type = IndexType.UINT16;
+        iaInfo.indexInput = indexInput;
+
         const subMesh: SubMesh = new SubMesh(
-            vertexAttributes,
-            vertexInput,
+            device.createInputAssembler(iaInfo),
             vec3.create(),
             vec3.create(),
-            indexInput
         )
 
         const rasterizationState = new RasterizationState;

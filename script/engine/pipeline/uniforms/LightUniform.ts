@@ -2,7 +2,7 @@ import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from
 import { Zero } from "../../core/Zero.js";
 import { vec3 } from "../../core/math/vec3.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
-import { BufferViewWritable } from "../../core/render/scene/buffers/BufferViewWritable.js";
+import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 
 const LightBlock = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -16,7 +16,7 @@ const LightBlock = {
 export class LightUniform extends UniformBufferObject {
     static readonly definition = LightBlock;
 
-    private _buffer: BufferViewWritable = new BufferViewWritable("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
+    private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
 
     get buffer(): Buffer {
         return this._buffer.buffer;

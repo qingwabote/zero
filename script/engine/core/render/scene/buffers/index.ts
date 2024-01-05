@@ -1,2 +1,2 @@
-export * from './BufferViewWritable.js';
+export * from './BufferView.js';
 
