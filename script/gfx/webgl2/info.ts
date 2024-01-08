@@ -10,7 +10,7 @@ import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
 
 export abstract class Vector<T> {
-    readonly data: Array<T> = [];
+    data: Array<T> = [];
 
     size(): number {
         return this.data.length

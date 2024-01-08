@@ -13,8 +13,17 @@ import { LightUniform } from "../pipeline/uniforms/LightUniform.js";
 import { SamplerTextureUniform } from "../pipeline/uniforms/SamplerTextureUniform.js";
 import { Yml } from "./internal/Yml.js";
 
+const phaseCreators = {
+    model: async function (info: Phase, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+        return new ModelPhase(context, visibility, info.pass);
+    },
+    fxaa: async function (info: Phase, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+        return new PostPhase(context, visibility);
+    },
+} as const;
+
 interface Phase {
-    type?: 'post';
+    type?: 'fxaa';
     visibility?: string;
     [key: string]: any;
 }
@@ -83,11 +92,11 @@ export class Pipeline extends Yml {
         return this._textures;
     }
 
-    protected async onParse(res: any): Promise<void> {
+    protected async onParse(res: Resource): Promise<void> {
         this._resource = res;
     }
 
-    public createRenderPipeline(variables: Record<string, any> = {}): render.Pipeline {
+    public async createRenderPipeline(variables: Record<string, any> = {}): Promise<render.Pipeline> {
         if (this._resource.textures) {
             for (const texture of this._resource.textures) {
                 this._textures[texture.name] = this.createTexture(texture);
@@ -137,14 +146,7 @@ export class Pipeline extends Yml {
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
                     }
-                    switch (phase.type) {
-                        case 'post':
-                            phases.push(new PostPhase(context, visibility))
-                            break;
-                        default:
-                            phases.push(new ModelPhase(context, visibility, phase.pass))
-                            break;
-                    }
+                    phases.push(await phaseCreators[phase.type || 'model'](phase, context, visibility))
                 }
                 let framebuffer: gfx.Framebuffer | undefined;
                 let clears: gfx.ClearFlagBits | undefined;

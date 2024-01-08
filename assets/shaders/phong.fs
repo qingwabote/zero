@@ -20,9 +20,9 @@ layout(location = 2) in vec3 v_position;
     layout(set = 2, binding = 0) uniform sampler2D albedoMap;
 #endif
 
-layout(set = 2, binding = 1) uniform Constants  {
+layout(set = 2, binding = 1) uniform Props  {
     vec4 albedo;
-} constants;
+} props;
 
 layout(location = 0) out vec4 v_color;
 
@@ -54,7 +54,7 @@ layout(location = 0) out vec4 v_color;
 #endif
 
 void main() {
-    vec4 albedo = constants.albedo;
+    vec4 albedo = props.albedo;
 
     #if USE_ALBEDO_MAP
         albedo *= SRGBToLinear(texture(albedoMap, v_uv));

@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Attribute, DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Shader, ShaderInfo, ShaderStageFlagBits, Uniform, glsl } from "gfx";
+import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Shader, ShaderInfo, ShaderStageFlagBits, Uniform, glsl } from "gfx";
 import { Shader as ShaderAsset } from "../assets/Shader.js";
 import { preprocessor } from "./internal/preprocessor.js";
 
@@ -46,7 +46,6 @@ export interface UniformDefinition {
 
 export interface Meta {
     readonly key: string;
-    readonly attributes: Record<string, Attribute>;
     readonly blocks: Record<string, Uniform>;
     readonly samplerTextures: Record<string, Uniform>;
 }

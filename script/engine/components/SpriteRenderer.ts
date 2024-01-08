@@ -54,8 +54,8 @@ export class SpriteRenderer extends BoundedRenderer {
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
         const pass = new Pass(state);
-        if (pass.hasUniform('Constants', 'albedo')) {
-            pass.setUniform('Constants', 'albedo', this.color);
+        if (pass.hasUniform('Props', 'albedo')) {
+            pass.setUniform('Props', 'albedo', this.color);
         }
         pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);

@@ -48,7 +48,7 @@ class SubModelPool {
                 break;
         }
         const pass = new render.Pass(state);
-        pass.setUniform('Constants', 'albedo', vec4.ONE);
+        pass.setUniform('Props', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this._texture.getImpl());
 
         const subModel = new render.SubModel(subMesh, [pass]);

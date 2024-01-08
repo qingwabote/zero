@@ -9,13 +9,13 @@ passes:
   - shader: ${ENGINE_ASSETS}/shaders/phong
     macros:
       SHADOW_MAP_PCF: 0
-    constants:
+    props:
       albedo: [1, 1, 1, 1]
     depthStencilState:
       depthTestEnable: true
   - shader: ${ENGINE_ASSETS}/shaders/unlit
     type: down
-    constants:
+    props:
       albedo: [1, 1, 1, 1]
     rasterizationState:
       cullMode: FRONT

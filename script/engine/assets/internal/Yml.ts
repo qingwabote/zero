@@ -26,16 +26,12 @@ export abstract class Yml implements Asset {
     protected abstract onParse(res: any): Promise<void>;
 
     protected resolvePath(path: string): string {
-        return this.resolveVar(path[0] == '.' ? resolve(this._base, path) : path);
+        return path[0] == '.' ? resolve(this._base, path) : path;
     }
 
     protected resolveVar(value: string, variables: Record<string, any> = {}): string {
         return value.replace(/\${(.+)}/g, function (_, name: string) {
-            let value = variables[name];
-            if (value != undefined) {
-                return value;
-            }
-            value = _variables[name];
+            let value = variables[name] ?? _variables[name];
             if (value != undefined) {
                 return value;
             }

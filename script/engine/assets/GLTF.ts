@@ -203,7 +203,7 @@ export class GLTF implements Asset {
                     USE_SKIN,
                     CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
                 },
-                constants: {
+                props: {
                     albedo
                 },
                 ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }

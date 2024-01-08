@@ -114,7 +114,7 @@ export class TextRenderer extends BoundedRenderer {
 
         const pass = new Pass(state);
         pass.setTexture('albedoMap', this._fnt.texture.impl)
-        pass.setUniform('Constants', 'albedo', this.color)
+        pass.setUniform('Props', 'albedo', this.color)
         const subModel: SubModel = new SubModel(subMesh, [pass]);
         this._model.subModels.push(subModel);
         Zero.instance.scene.addModel(this._model)

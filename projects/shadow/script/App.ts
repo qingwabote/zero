@@ -28,7 +28,7 @@ class TestGLTF extends GLTF {
                     USE_SKIN,
                     CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
                 },
-                constants: {
+                props: {
                     albedo
                 },
                 ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
@@ -37,7 +37,7 @@ class TestGLTF extends GLTF {
                 macros: {
                     USE_ALBEDO_MAP: texture ? 1 : 0
                 },
-                constants: {
+                props: {
                     albedo
                 },
                 ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
@@ -54,6 +54,8 @@ const [guardian, plane, gltf_camera, ss_depth, pipeline] = await Promise.all([
     builtin.cache('shaders/depth', Shader),
     bundle.cache('pipelines/test', Pipeline)
 ])
+
+const renderPipeline = await pipeline.createRenderPipeline(VisibilityFlagBits);
 
 export class App extends Zero {
     protected override start(): render.Pipeline {
@@ -105,8 +107,6 @@ export class App extends Zero {
         profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, safeArea.y, 0];
         doc.addElement(profiler);
-
-        const renderPipeline = pipeline.createRenderPipeline(VisibilityFlagBits);
 
         const sprite = UIRenderer.create(SpriteRenderer);
         sprite.impl.spriteFrame = new SpriteFrame(pipeline.textures['shadowmap']);

@@ -57,7 +57,7 @@ export class App extends Zero {
                 const box = primitive.createScene("Cube", true)!.children[0];
                 box.visibility = VisibilityFlagBits.DEFAULT;
                 let meshRenderer = box.getComponent(MeshRenderer)!
-                meshRenderer.materials[0].passes[0].setUniform('Constants', 'albedo', vec4.create(0, 0, 1, 1));
+                meshRenderer.materials[0].passes[0].setUniform('Props', 'albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
                 shape.body.mass = 0.1;
                 aabb = meshRenderer.bounds;

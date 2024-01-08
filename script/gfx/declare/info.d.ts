@@ -83,8 +83,8 @@ export declare class SamplerInfo {
 }
 
 export declare class ShaderInfo {
-    readonly sources: StringVector;
-    readonly types: Vector<ShaderStageFlagBits>;
+    sources: StringVector;
+    types: Vector<ShaderStageFlagBits>;
 }
 
 export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout>{ };

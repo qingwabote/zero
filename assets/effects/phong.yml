@@ -9,7 +9,7 @@ passes:
   - shader: ../shaders/phong
     macros:
       SHADOW_MAP_PCF: 1
-    constants:
+    props:
       albedo: [1, 1, 1, 1]
     depthStencilState:
       depthTestEnable: true

@@ -43,7 +43,7 @@ interface Pass {
     readonly type?: string;
     readonly shader?: string;
     readonly macros?: Record<string, number>;
-    readonly constants?: Record<string, ArrayLike<number>>;
+    readonly props?: Record<string, ArrayLike<number>>;
     readonly samplerTextures?: Record<string, [gfx.Texture, gfx.Sampler]>
     readonly primitive?: keyof typeof gfx.PrimitiveTopology;
     readonly rasterizationState?: RasterizationState;
@@ -74,7 +74,7 @@ export class Effect extends Yml {
             }
 
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await cache(this.resolvePath(info.shader!), Shader), info.macros);
+            passState.shader = shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader!)), Shader), info.macros);
 
             if (info.primitive) {
                 if (info.primitive in gfx.PrimitiveTopology) {
@@ -113,8 +113,8 @@ export class Effect extends Yml {
             }
 
             const pass = new scene_Pass(passState, info.type);
-            for (const key in info.constants) {
-                pass.setUniform('Constants', key, info.constants[key]);
+            for (const key in info.props) {
+                pass.setUniform('Props', key, info.props[key]);
             }
             for (const key in info.samplerTextures) {
                 pass.setTexture(key, ...info.samplerTextures[key]);
