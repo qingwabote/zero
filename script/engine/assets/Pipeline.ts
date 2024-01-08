@@ -1,16 +1,17 @@
 import { device } from "boot";
+import { bundle } from "bundling";
 import * as gfx from "gfx";
 import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
-import { getSampler, render } from "../core/index.js";
+import { getSampler, render, shaderLib } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
 import { Context } from "../core/render/Context.js";
-import { UniformBufferObject } from "../core/render/pipeline/UniformBufferObject.js";
 import { getRenderPass } from "../core/render/pipeline/rpc.js";
 import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
 import { PostPhase } from "../pipeline/phases/PostPhase.js";
 import { CameraUniform } from "../pipeline/uniforms/CameraUniform.js";
 import { LightUniform } from "../pipeline/uniforms/LightUniform.js";
 import { SamplerTextureUniform } from "../pipeline/uniforms/SamplerTextureUniform.js";
+import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
 
 const phaseCreators = {
@@ -18,7 +19,24 @@ const phaseCreators = {
         return new ModelPhase(context, visibility, info.pass);
     },
     fxaa: async function (info: Phase, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
-        return new PostPhase(context, visibility);
+        const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
+        const shader = shaderLib.getShader(shaderAsset);
+        const rasterizationState = new gfx.RasterizationState;
+        rasterizationState.cullMode = gfx.CullMode.NONE;
+
+        const blendState = new gfx.BlendState;
+        blendState.srcRGB = gfx.BlendFactor.SRC_ALPHA;
+        blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
+        blendState.srcAlpha = gfx.BlendFactor.ONE;
+        blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA
+
+        const passState = new gfx.PassState;
+        passState.shader = shader;
+        passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
+        passState.rasterizationState = rasterizationState;
+        passState.blendState = blendState;
+
+        return new PostPhase(context, passState, visibility);
     },
 } as const;
 
@@ -54,11 +72,29 @@ const UniformMap = {
     samplerTexture: SamplerTextureUniform
 }
 
-interface Uniform {
-    name: keyof typeof UniformMap;
+interface UniformBase {
     binding: number;
-    [key: string]: any;
 }
+
+interface Camera extends UniformBase {
+    name: 'camera';
+}
+
+interface Light extends UniformBase {
+    name: 'light';
+}
+
+interface Shadow extends UniformBase {
+    name: 'shadow';
+}
+
+interface SamplerTexture extends UniformBase {
+    name: 'samplerTexture';
+    texture: string;
+    filter: keyof typeof gfx.Filter;
+}
+
+type Uniform = Camera | Light | Shadow | SamplerTexture
 
 interface Viewport {
     x?: number;
@@ -126,11 +162,14 @@ export class Pipeline extends Yml {
             const uniforms: render.Uniform[] = [];
             if (flow.uniforms) {
                 for (const uniform of flow.uniforms) {
-                    let instance = new UniformMap[uniform.name](context);
-                    if (instance instanceof UniformBufferObject) {
+                    let instance;
+                    if (uniform.name == 'samplerTexture') {
+                        instance = new UniformMap[uniform.name](context);
+                        const filter = uniform.filter ? gfx.Filter[uniform.filter] : gfx.Filter.NEAREST;
+                        context.descriptorSet.bindTexture(uniform.binding, this._textures[uniform.texture], getSampler(filter, filter));
+                    } else {
+                        instance = new UniformMap[uniform.name](context);
                         context.descriptorSet.bindBuffer(uniform.binding, instance.buffer, instance.range);
-                    } else if (instance instanceof SamplerTextureUniform) {
-                        context.descriptorSet.bindTexture(uniform.binding, this._textures[uniform.texture], getSampler(gfx.Filter.NEAREST, gfx.Filter.NEAREST));
                     }
                     uniforms.push(instance);
                 }
