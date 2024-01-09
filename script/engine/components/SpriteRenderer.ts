@@ -21,6 +21,8 @@ const vec2_b = vec3.create();
 export class SpriteRenderer extends BoundedRenderer {
     static readonly PIXELS_PER_UNIT = SpriteFrame.PIXELS_PER_UNIT;
 
+    static readonly Filter = Filter;
+
     private _bounds = aabb2d.create();
     public get bounds(): Readonly<AABB2D> {
         const mesh = this._spriteFrame.mesh;
@@ -44,6 +46,8 @@ export class SpriteRenderer extends BoundedRenderer {
         this.emit(BoundsEvent.BOUNDS_CHANGED);
     }
 
+    filter = Filter.NEAREST;
+
     color: Readonly<Vec4> = vec4.ONE;
 
     override start(): void {
@@ -57,7 +61,7 @@ export class SpriteRenderer extends BoundedRenderer {
         if (pass.hasUniform('Props', 'albedo')) {
             pass.setUniform('Props', 'albedo', this.color);
         }
-        pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
+        pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter))
         const subModel: SubModel = new SubModel(this._spriteFrame.mesh.subMeshes[0], [pass]);
         this._model.subModels.push(subModel);
         Zero.instance.scene.addModel(this._model)

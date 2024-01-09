@@ -1,8 +1,8 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { vec3 } from "../../core/math/vec3.js";
+import { BufferView } from "../../core/render/BufferView.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
-import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 
 const LightBlock = {
     type: DescriptorType.UNIFORM_BUFFER,

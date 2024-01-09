@@ -63,7 +63,7 @@ export class CommandBuffer {
         let flag: number = 0;
         for (const attachment of (renderPass.info.colors as Vector<AttachmentDescription>).data) {
             if (attachment.loadOp == LOAD_OP.CLEAR) {
-                gl.clearColor(0, 0, 0, 1);
+                gl.clearColor(0, 0, 0, 0);
                 flag |= gl.COLOR_BUFFER_BIT;
             }
         }

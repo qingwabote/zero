@@ -2,9 +2,9 @@ import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet } from "gfx";
 import { mat4 } from "../../math/mat4.js";
 import { shaderLib } from "../../shaderLib.js";
+import { BufferView } from "../BufferView.js";
 import { SubModel } from "./SubModel.js";
 import { Transform } from "./Transform.js";
-import { BufferView } from "./buffers/BufferView.js";
 
 export class Model {
     static readonly descriptorSetLayout = (function () {
@@ -31,6 +31,8 @@ export class Model {
     get visibility(): number {
         return this._transform.visibility
     }
+
+    type: string = 'default';
 
     order: number = 0;
 

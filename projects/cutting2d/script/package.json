@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "bundling": "file:../../../script/bundling",
     "engine": "file:../../../script/engine",
     "gfx": "file:../../../script/gfx/declare"
   }

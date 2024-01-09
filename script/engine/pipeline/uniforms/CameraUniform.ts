@@ -1,9 +1,9 @@
 import { device } from "boot";
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
+import { BufferView } from "../../core/render/BufferView.js";
 import { Context } from "../../core/render/Context.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
-import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 
 function align(size: number) {
     const alignment = device.capabilities.uniformBufferOffsetAlignment;

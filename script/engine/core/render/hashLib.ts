@@ -5,7 +5,9 @@ import { shaderLib } from "../shaderLib.js";
 const _shader2hash: WeakMap<Shader, number> = new WeakMap;
 const _pass2hash: WeakMap<PassState, number> = new WeakMap;
 const _inputAssembler2hash: WeakMap<InputAssemblerInfo, number> = new WeakMap;
-const _renderPass2hash: WeakMap<RenderPassInfo, number> = new WeakMap;
+
+let _renderPass_id = 0;
+const _renderPass2id: Map<RenderPassInfo, number> = new Map;
 
 export const hashLib = {
     shader(shader: Shader): number {
@@ -53,13 +55,11 @@ export const hashLib = {
     },
 
     renderPass(renderPass: RenderPassInfo): number {
-        let hash = _renderPass2hash.get(renderPass);
-        if (!hash) {
-            // https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#renderpass-compatibility
-            const key = `${renderPass.colors.size()}1${renderPass.resolves.size()}${renderPass.samples}`;
-            hash = murmurhash2_32_gc(key, 666);
-            _renderPass2hash.set(renderPass, hash);
+        let id = _renderPass2id.get(renderPass);
+        if (id == undefined) {
+            id = _renderPass_id++;
+            _renderPass2id.set(renderPass, id);
         }
-        return hash;
+        return id;
     }
 }

@@ -4,8 +4,8 @@ import { Zero } from "../../core/Zero.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { quat } from "../../core/math/quat.js";
 import { vec3 } from "../../core/math/vec3.js";
+import { BufferView } from "../../core/render/BufferView.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
-import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 
 const ShadowBlock = {
     type: DescriptorType.UNIFORM_BUFFER,

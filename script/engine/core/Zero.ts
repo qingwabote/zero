@@ -48,7 +48,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     private readonly _systems: readonly System[];
 
-    pipeline: Pipeline;
+    pipeline!: Pipeline;
 
     private _commandBuffer: CommandBuffer;
     private _presentSemaphore: Semaphore;
@@ -86,9 +86,10 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._renderFence = renderFence;
 
         Zero._instance = this;
+    }
 
+    initialize() {
         this.pipeline = this.start();
-
         this.attach();
     }
 

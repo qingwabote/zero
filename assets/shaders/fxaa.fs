@@ -1,25 +1,25 @@
 precision highp float;
 
-#define LUMA_THRESHOLD_ABSOLUTE (1.0/12.0)
-#define LUMA_THRESHOLD_RELATIVE (1.0/4.0)
+#define EDGE_THRESHOLD_ABSOLUTE (1.0/12.0)
+#define EDGE_THRESHOLD_RELATIVE (1.0/4.0)
 
 layout(location = 0) in vec2 v_uv;
 
-layout(set = 0, binding = 0) uniform sampler2D sceneColorMap;
+layout(set = 0, binding = 0) uniform sampler2D colorMap;
 
 layout(location = 0) out vec4 v_color;
 
 void main() {
-    ivec2 size = textureSize(sceneColorMap, 0);
+    ivec2 size = textureSize(colorMap, 0);
     vec2 step = vec2(1.0 / float(size.x), 1.0 / float(size.y));
 
-    vec3 rgbN = texture(sceneColorMap, v_uv + vec2(0, step.y)).rgb;
-    vec3 rgbS = texture(sceneColorMap, v_uv + vec2(0, -step.y)).rgb;
-    vec3 rgbW = texture(sceneColorMap, v_uv + vec2(-step.x, 0)).rgb;
-    vec3 rgbE = texture(sceneColorMap, v_uv + vec2(step.x, 0)).rgb;
+    vec3 rgbN = texture(colorMap, v_uv + vec2(0, step.y)).rgb;
+    vec3 rgbS = texture(colorMap, v_uv + vec2(0, -step.y)).rgb;
+    vec3 rgbW = texture(colorMap, v_uv + vec2(-step.x, 0)).rgb;
+    vec3 rgbE = texture(colorMap, v_uv + vec2(step.x, 0)).rgb;
 
-    vec4 rgbaM = texture(sceneColorMap, v_uv);
-    vec3 rgbM = rgbaM.rgb;
+    vec4 rgbaO = texture(colorMap, v_uv);
+    vec3 rgbM = rgbaO.rgb;
 
     vec3 luma = vec3(0.299, 0.587, 0.114);
     float lumaN = dot(rgbN, luma);
@@ -32,8 +32,8 @@ void main() {
     float lumaMax = max(lumaM, max(max(lumaN, lumaS), max(lumaW, lumaE)));
 
     float contrast = lumaMax - lumaMin;
-    if (contrast < max(LUMA_THRESHOLD_ABSOLUTE, lumaMax * LUMA_THRESHOLD_RELATIVE)) {
-        v_color = rgbaM;
+    if (contrast < max(EDGE_THRESHOLD_ABSOLUTE, lumaMax * EDGE_THRESHOLD_RELATIVE)) {
+        v_color = rgbaO;
         return;
     }
 
@@ -58,7 +58,7 @@ void main() {
 
     // v_color = vec4((normal + 1.0) * 0.5, 0.0, 1.0);
 
-    v_color = texture(sceneColorMap, v_uv + normal * blend * step);
+    v_color = texture(colorMap, v_uv + normal * blend * step);
 
     // v_color = rgbaM;
 }

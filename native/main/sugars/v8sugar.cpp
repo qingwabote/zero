@@ -248,7 +248,7 @@ namespace sugar::v8
         if (!path.is_absolute())
         {
             auto &referrer_path = module2path.find(Weak<_v8::Module>{isolate, referrer})->second;
-            // starts_with
+            // relative path starts with "."
             if (specifier.rfind(".", 0) != std::string::npos)
             {
                 std::filesystem::current_path(referrer_path.parent_path());
@@ -262,6 +262,7 @@ namespace sugar::v8
                 }
                 path = std::move(res);
             }
+            // bare path
             else
             {
                 path = isolate_data(isolate)->importmap().resolve(specifier, referrer_path);

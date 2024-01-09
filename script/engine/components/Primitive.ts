@@ -6,10 +6,10 @@ import { Zero } from "../core/Zero.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
+import { BufferView } from "../core/render/BufferView.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
-import { BufferView } from "../core/render/scene/buffers/BufferView.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 

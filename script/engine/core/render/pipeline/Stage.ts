@@ -45,7 +45,7 @@ export class Stage {
             return 0;
         }
 
-        const clears = this._clears || camera.clears;
+        const clears = this._clears ?? camera.clears;
         const renderPass = getRenderPass(this._framebuffer.info, clears);
         const viewport = this._viewport || camera.viewport;
 

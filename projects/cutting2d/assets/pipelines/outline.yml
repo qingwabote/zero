@@ -10,6 +10,9 @@ flows:
     stages:
       - phases:
           - pass: default
+      - phases:
+          - model: outline
+            pass: default
         framebuffer:
           colors:
             - color
@@ -19,8 +22,9 @@ flows:
   - uniforms:
       - type: samplerTexture
         texture: color
-        filter: LINEAR
         binding: 0
     stages:
       - phases:
-          - type: fxaa
+          - type: outline
+        clears:
+          - NONE

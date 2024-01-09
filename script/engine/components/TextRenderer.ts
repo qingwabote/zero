@@ -1,8 +1,8 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
-import { device } from "boot";
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexInput } from "gfx";
+import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState } from "gfx";
+import { PassInstance } from "../PassInstance.js";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Zero } from "../core/Zero.js";
@@ -10,18 +10,37 @@ import { AABB2D, aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
+import { quad } from "../core/render/quad.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
-import { BufferView } from "../core/render/scene/buffers/BufferView.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
 
-const vec2_a = vec2.create();
-const vec2_b = vec2.create();
-
-const ss_unlit = await bundle.cache('shaders/unlit', Shader);
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
+
+const pass = await (async function () {
+    const ss_unlit = await bundle.cache('shaders/unlit', Shader);
+
+    const rasterizationState = new RasterizationState;
+    rasterizationState.cullMode = CullMode.NONE;
+
+    const blendState = new BlendState;
+    blendState.srcRGB = BlendFactor.SRC_ALPHA;
+    blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
+    blendState.srcAlpha = BlendFactor.ONE;
+    blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
+
+    const state = new PassState;
+    state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
+    state.primitive = PrimitiveTopology.TRIANGLE_LIST;
+    state.rasterizationState = rasterizationState;
+    state.blendState = blendState;
+
+    const pass = new Pass(state);
+    pass.setTexture('albedoMap', fnt_zero.texture.impl);
+    return pass;
+})()
 
 enum DirtyFlagBits {
     NONE = 0,
@@ -30,11 +49,13 @@ enum DirtyFlagBits {
 
 const lineBreak = '\n'.charCodeAt(0);
 
-let g_charCount = 0;
-const g_indexBuffer = new BufferView("Uint16", BufferUsageFlagBits.INDEX);
+const vec2_a = vec2.create();
+const vec2_b = vec2.create();
 
 export class TextRenderer extends BoundedRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
+
+    private _pass = new PassInstance(pass);
 
     private _text: string = "";
     get text(): string {
@@ -48,7 +69,14 @@ export class TextRenderer extends BoundedRenderer {
         this._dirtyFlag |= DirtyFlagBits.TEXT;
     }
 
-    color: Readonly<Vec4> = vec4.ONE;
+    private _color: Readonly<Vec4> = vec4.ONE;
+    public get color(): Readonly<Vec4> {
+        return this._color;
+    }
+    public set color(value: Readonly<Vec4>) {
+        this._pass.setUniform('Props', 'albedo', value);
+        this._color = value;
+    }
 
     private _bounds = aabb2d.create();
     get bounds(): Readonly<AABB2D> {
@@ -56,66 +84,21 @@ export class TextRenderer extends BoundedRenderer {
         return this._bounds;
     }
 
-    private _fnt = fnt_zero;
-
-    private _texCoordBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
-
-    private _positionBuffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
+    private _vertexView = quad.createVertexBufferView();
 
     private _subMesh!: SubMesh;
 
     private _charCount = 0;
 
     override start(): void {
-        const iaInfo = new InputAssemblerInfo;
-        const texCoordAttribute = new VertexAttribute;
-        texCoordAttribute.name = 'a_texCoord';
-        texCoordAttribute.format = Format.RG32_SFLOAT;
-        texCoordAttribute.buffer = 0;
-        texCoordAttribute.offset = 0;
-        iaInfo.vertexAttributes.add(texCoordAttribute);
-        const positionAttribute = new VertexAttribute;
-        positionAttribute.name = 'a_position';
-        positionAttribute.format = Format.RGB32_SFLOAT;
-        positionAttribute.buffer = 1;
-        positionAttribute.offset = 0;
-        iaInfo.vertexAttributes.add(positionAttribute);
-
-        const vertexInput = new VertexInput;
-        vertexInput.buffers.add(this._texCoordBuffer.buffer);
-        vertexInput.offsets.add(0);
-        vertexInput.buffers.add(this._positionBuffer.buffer);
-        vertexInput.offsets.add(0);
-        iaInfo.vertexInput = vertexInput;
-
-        const indexInput = new IndexInput;
-        indexInput.buffer = g_indexBuffer.buffer;
-        indexInput.type = IndexType.UINT16;
-        iaInfo.indexInput = indexInput;
-
         const subMesh: SubMesh = new SubMesh(
-            device.createInputAssembler(iaInfo),
+            quad.createInputAssembler(this._vertexView.buffer),
             vec3.create(),
             vec3.create(),
         )
 
-        const rasterizationState = new RasterizationState;
-        rasterizationState.cullMode = CullMode.NONE;
-        const blendState = new BlendState;
-        blendState.srcRGB = BlendFactor.SRC_ALPHA;
-        blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
-        blendState.srcAlpha = BlendFactor.ONE;
-        blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
-        const state = new PassState;
-        state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
-        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        state.rasterizationState = rasterizationState;
-        state.blendState = blendState;
-
-        const pass = new Pass(state);
-        pass.setTexture('albedoMap', this._fnt.texture.impl)
-        pass.setUniform('Props', 'albedo', this.color)
-        const subModel: SubModel = new SubModel(subMesh, [pass]);
+        this._pass.setUniform('Props', 'albedo', this._color);
+        const subModel: SubModel = new SubModel(subMesh, [this._pass]);
         this._model.subModels.push(subModel);
         Zero.instance.scene.addModel(this._model)
         this._subMesh = subMesh;
@@ -124,9 +107,7 @@ export class TextRenderer extends BoundedRenderer {
     override lateUpdate(): void {
         this.updateData();
 
-        this._texCoordBuffer.update();
-        this._positionBuffer.update();
-        g_indexBuffer.update();
+        this._vertexView.update();
 
         this._subMesh.drawInfo.count = 6 * this._charCount;
     }
@@ -149,20 +130,19 @@ export class TextRenderer extends BoundedRenderer {
         }
 
         // just a redundant size
-        this._texCoordBuffer.reset(2 * 4 * this._text.length);
-        this._positionBuffer.reset(3 * 4 * this._text.length);
+        this._vertexView.reset(4 * 4 * this._text.length);
 
-        const tex = this._fnt.texture.impl.info;
+        const tex = fnt_zero.texture.impl.info;
         let [x, y, l, r, t, b, n] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
         for (let i = 0; i < this._text.length; i++) {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
-                y -= this._fnt.common.lineHeight / TextRenderer.PIXELS_PER_UNIT;
+                y -= fnt_zero.common.lineHeight / TextRenderer.PIXELS_PER_UNIT;
                 continue;
             }
 
-            const char = this._fnt.chars[code];
+            const char = fnt_zero.chars[code];
             if (!char) {
                 console.warn(`char ${this._text[i]} does not exist in fnt`);
                 continue;
@@ -182,32 +162,27 @@ export class TextRenderer extends BoundedRenderer {
             const pos_t = y - yoffset;
             const pos_b = y - yoffset - height;
 
-            this._texCoordBuffer.source[2 * 4 * n + 0] = tex_l;
-            this._texCoordBuffer.source[2 * 4 * n + 1] = tex_t;
-            this._positionBuffer.source[3 * 4 * n + 0] = pos_l;
-            this._positionBuffer.source[3 * 4 * n + 1] = pos_t;
-            this._positionBuffer.source[3 * 4 * n + 2] = 0;
+            this._vertexView.source[16 * n + 0] = pos_l;
+            this._vertexView.source[16 * n + 1] = pos_t;
+            this._vertexView.source[16 * n + 2] = tex_l;
+            this._vertexView.source[16 * n + 3] = tex_t;
 
-            this._texCoordBuffer.source[2 * 4 * n + 2] = tex_r;
-            this._texCoordBuffer.source[2 * 4 * n + 3] = tex_t;
-            this._positionBuffer.source[3 * 4 * n + 3] = pos_r;
-            this._positionBuffer.source[3 * 4 * n + 4] = pos_t;
-            this._positionBuffer.source[3 * 4 * n + 5] = 0;
+            this._vertexView.source[16 * n + 4] = pos_l;
+            this._vertexView.source[16 * n + 5] = pos_b;
+            this._vertexView.source[16 * n + 6] = tex_l;
+            this._vertexView.source[16 * n + 7] = tex_b;
 
-            this._texCoordBuffer.source[2 * 4 * n + 4] = tex_r;
-            this._texCoordBuffer.source[2 * 4 * n + 5] = tex_b;
-            this._positionBuffer.source[3 * 4 * n + 6] = pos_r;
-            this._positionBuffer.source[3 * 4 * n + 7] = pos_b;
-            this._positionBuffer.source[3 * 4 * n + 8] = 0;
+            this._vertexView.source[16 * n + 8] = pos_r;
+            this._vertexView.source[16 * n + 9] = pos_b;
+            this._vertexView.source[16 * n + 10] = tex_r;
+            this._vertexView.source[16 * n + 11] = tex_b;
 
-            this._texCoordBuffer.source[2 * 4 * n + 6] = tex_l;
-            this._texCoordBuffer.source[2 * 4 * n + 7] = tex_b;
-            this._positionBuffer.source[3 * 4 * n + 9] = pos_l;
-            this._positionBuffer.source[3 * 4 * n + 10] = pos_b;
-            this._positionBuffer.source[3 * 4 * n + 11] = 0;
+            this._vertexView.source[16 * n + 12] = pos_r;
+            this._vertexView.source[16 * n + 13] = pos_t;
+            this._vertexView.source[16 * n + 14] = tex_r;
+            this._vertexView.source[16 * n + 15] = tex_t;
 
-            this._texCoordBuffer.invalidate();
-            this._positionBuffer.invalidate();
+            this._vertexView.invalidate();
 
             l = Math.min(l, pos_l);
             r = Math.max(r, pos_r);
@@ -219,19 +194,7 @@ export class TextRenderer extends BoundedRenderer {
             n++;
         }
 
-        if (g_charCount < n) {
-            g_indexBuffer.resize(6 * n);
-            for (; g_charCount < n; g_charCount++) {
-                // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
-                g_indexBuffer.source[6 * g_charCount + 0] = 4 * g_charCount + 0;
-                g_indexBuffer.source[6 * g_charCount + 1] = 4 * g_charCount + 2;
-                g_indexBuffer.source[6 * g_charCount + 2] = 4 * g_charCount + 1;
-                g_indexBuffer.source[6 * g_charCount + 3] = 4 * g_charCount + 2;
-                g_indexBuffer.source[6 * g_charCount + 4] = 4 * g_charCount + 0;
-                g_indexBuffer.source[6 * g_charCount + 5] = 4 * g_charCount + 3;
-            }
-            g_indexBuffer.invalidate();
-        }
+        quad.indexGrowTo(6 * n);
 
         this._charCount = n;
 

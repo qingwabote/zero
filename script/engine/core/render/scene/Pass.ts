@@ -2,7 +2,7 @@ import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, PassState, Sampler, Texture } from "gfx";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";
-import { BufferView } from "./buffers/BufferView.js";
+import { BufferView } from "../BufferView.js";
 
 function type2Length(type: string): number {
     switch (type) {

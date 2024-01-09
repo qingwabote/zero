@@ -4,7 +4,7 @@ import { Camera, InputEventType, Node, Pipeline, SpriteFrame, SpriteRenderer, Te
 const screen = await bundle.cache('screen.png', Texture);
 
 const normal = await (await builtin.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
-const fxaa = await (await bundle.cache('pipelines/fxaa', Pipeline)).createRenderPipeline();
+const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).createRenderPipeline();
 
 class App extends Zero {
     protected start(): render.Pipeline {

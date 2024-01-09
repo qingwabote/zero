@@ -5,6 +5,13 @@ import { Model } from "../../core/render/scene/Model.js";
 export abstract class ModelRenderer extends Component {
     protected _model: Model;
 
+    public get type(): string {
+        return this._model.type;
+    }
+    public set type(value: string) {
+        this._model.type = value;
+    }
+
     public get order(): number {
         return this._model.order;
     }

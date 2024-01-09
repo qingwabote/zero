@@ -1,13 +1,18 @@
-import { Camera, Node, Pipeline, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, render, safeArea, vec2, vec3 } from "engine";
+import { Camera, Node, Pipeline, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle as builtin, device, platform, reboot, render, safeArea, vec2, vec3 } from "engine";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
-const favicon = await bundle.cache('favicon.ico', Texture);
+const favicon = await builtin.cache('favicon.ico', Texture);
 
-const normal = await (await bundle.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
-const msaa = await (await bundle.cache('pipelines/unlit-ms', Pipeline)).createRenderPipeline();
-const fxaa = await (await bundle.cache('pipelines/unlit-fxaa', Pipeline)).createRenderPipeline();
+const normal = await (await builtin.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
+const msaa = await (await builtin.cache('pipelines/unlit-ms', Pipeline)).createRenderPipeline();
+const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).createRenderPipeline();
+
+const text_color_normal = [0, 1, 0, 1] as const;
+const text_color_selected = [1, 0, 0, 1] as const;
 
 export default class App extends Zero {
+    private _pipelineTextSelected: TextRenderer | undefined = undefined;
+
     start(): render.Pipeline {
         const { width, height } = device.swapchain;
 
@@ -45,22 +50,24 @@ export default class App extends Zero {
             const textRenderer = UIRenderer.create(TextRenderer);
             textRenderer.anchor = vec2.create(0, 1);
             textRenderer.impl.text = 'NORMAL';
-            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.impl.color = text_color_normal;
             textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                this.pipeline = normal;
+                this.onPipelineText(normal, textRenderer.impl)
             })
             textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
             doc.addElement(textRenderer);
             text_x += textRenderer.size[0] + 30;
+
+            this.onPipelineText(msaa, textRenderer.impl);
         }
 
         {
             const textRenderer = UIRenderer.create(TextRenderer);
             textRenderer.anchor = vec2.create(0, 1);
             textRenderer.impl.text = 'MSAA';
-            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.impl.color = text_color_normal;
             textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                this.pipeline = msaa;
+                this.onPipelineText(msaa, textRenderer.impl)
             })
             textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
             doc.addElement(textRenderer);
@@ -71,9 +78,9 @@ export default class App extends Zero {
             const textRenderer = UIRenderer.create(TextRenderer);
             textRenderer.anchor = vec2.create(0, 1);
             textRenderer.impl.text = 'FXAA';
-            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.impl.color = text_color_normal;
             textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                this.pipeline = fxaa;
+                this.onPipelineText(fxaa, textRenderer.impl)
             })
             textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
             doc.addElement(textRenderer);
@@ -98,9 +105,18 @@ export default class App extends Zero {
         node.position = [-width / 2 + 8, safeArea.y, 0];
         doc.addElement(profiler);
 
-        return normal
+        return normal;
+    }
+
+    private onPipelineText(pipeline: render.Pipeline, renderer: TextRenderer) {
+        if (this._pipelineTextSelected) {
+            this._pipelineTextSelected.color = text_color_normal
+        }
+        this.pipeline = pipeline;
+        renderer.color = text_color_selected;
+        this._pipelineTextSelected = renderer;
     }
 }
 
-new App;
+(new App).initialize();
 

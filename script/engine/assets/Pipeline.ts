@@ -14,37 +14,80 @@ import { LightUniform } from "../pipeline/uniforms/LightUniform.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
 
+const post_rasterizationState = new gfx.RasterizationState;
+post_rasterizationState.cullMode = gfx.CullMode.NONE;
+
+const post_blendState = new gfx.BlendState;
+post_blendState.srcRGB = gfx.BlendFactor.ONE;
+post_blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
+post_blendState.srcAlpha = gfx.BlendFactor.ONE;
+post_blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA
+
 const phaseCreators = {
-    model: async function (info: Phase, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
-        return new ModelPhase(context, visibility, info.pass);
+    model: async function (info: ModelPhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+        return new ModelPhase(context, visibility, info.model, info.pass);
     },
-    fxaa: async function (info: Phase, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+    fxaa: async function (info: FxaaPhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
         const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
         const shader = shaderLib.getShader(shaderAsset);
-        const rasterizationState = new gfx.RasterizationState;
-        rasterizationState.cullMode = gfx.CullMode.NONE;
-
-        const blendState = new gfx.BlendState;
-        blendState.srcRGB = gfx.BlendFactor.SRC_ALPHA;
-        blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
-        blendState.srcAlpha = gfx.BlendFactor.ONE;
-        blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA
 
         const passState = new gfx.PassState;
         passState.shader = shader;
         passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-        passState.rasterizationState = rasterizationState;
-        passState.blendState = blendState;
+        passState.rasterizationState = post_rasterizationState;
+        passState.blendState = post_blendState;
+
+        return new PostPhase(context, passState, visibility);
+    },
+    outline: async function (info: OutlinePhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+        const shaderAsset = await bundle.cache('shaders/outline', Shader);
+        const shader = shaderLib.getShader(shaderAsset);
+
+        const passState = new gfx.PassState;
+        passState.shader = shader;
+        passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
+        passState.rasterizationState = post_rasterizationState;
+        passState.blendState = post_blendState;
+
+        return new PostPhase(context, passState, visibility);
+    },
+    copy: async function (info: CopyPhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+        const shaderAsset = await bundle.cache('shaders/copy', Shader);
+        const shader = shaderLib.getShader(shaderAsset);
+
+        const passState = new gfx.PassState;
+        passState.shader = shader;
+        passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
+        passState.rasterizationState = post_rasterizationState;
+        passState.blendState = post_blendState;
 
         return new PostPhase(context, passState, visibility);
     },
 } as const;
 
-interface Phase {
-    type?: 'fxaa';
+interface PhaseBase {
     visibility?: string;
-    [key: string]: any;
 }
+
+interface ModelPhaseInfo extends PhaseBase {
+    type?: 'model';
+    model?: string;
+    pass?: string;
+}
+
+interface FxaaPhaseInfo extends PhaseBase {
+    type: 'fxaa';
+}
+
+interface OutlinePhaseInfo extends PhaseBase {
+    type: 'outline';
+}
+
+interface CopyPhaseInfo extends PhaseBase {
+    type: 'copy';
+}
+
+type Phase = ModelPhaseInfo | FxaaPhaseInfo;
 
 type TextureUsage = keyof typeof gfx.TextureUsageFlagBits;
 
@@ -194,11 +237,17 @@ export class Pipeline extends Yml {
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
                     }
-                    phases.push(await phaseCreators[phase.type || 'model'](phase, context, visibility))
+                    phases.push(await phaseCreators[phase.type || 'model'](phase as any, context, visibility))
                 }
                 let framebuffer: gfx.Framebuffer | undefined;
-                let clears: gfx.ClearFlagBits | undefined;
                 let viewport: Rect | undefined;
+                let clears: gfx.ClearFlagBits | undefined;
+                if (stage.clears) {
+                    clears = gfx.ClearFlagBits.NONE;
+                    for (const clear of stage.clears) {
+                        clears |= gfx.ClearFlagBits[clear];
+                    }
+                }
                 if (stage.framebuffer) {
                     const framebufferInfo = new gfx.FramebufferInfo;
                     if (stage.framebuffer.colors) {
@@ -234,12 +283,6 @@ export class Pipeline extends Yml {
                     framebufferInfo.width = width;
                     framebufferInfo.height = height;
 
-                    if (stage.clears) {
-                        clears = gfx.ClearFlagBits.NONE;
-                        for (const clear of stage.clears) {
-                            clears |= gfx.ClearFlagBits[clear];
-                        }
-                    }
                     framebufferInfo.renderPass = getRenderPass(framebufferInfo, clears);
                     framebuffer = device.createFramebuffer(framebufferInfo);
                     if (stage.viewport) {

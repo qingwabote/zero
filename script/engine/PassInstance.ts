@@ -1,4 +1,4 @@
-import { BufferView } from "./core/render/scene/buffers/BufferView.js";
+import { BufferView } from "./core/render/BufferView.js";
 import { Pass } from "./core/render/scene/Pass.js";
 import { shaderLib } from "./core/shaderLib.js";
 

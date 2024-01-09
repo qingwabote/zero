@@ -7,5 +7,10 @@
         "assets": "./dist/assets/index.js",
         "engine": "./dist/engine/index.js",
         "bundling": "./bundling-builtin.js"
+    },
+    "scopes": {
+        "./dist/script/": {
+            "bundling": "./bundling.js"
+        }
     }
 }

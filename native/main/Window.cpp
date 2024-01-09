@@ -125,10 +125,15 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                            .ToLocalChecked());
 
         std::filesystem::path indexSrc = std::filesystem::path(script_path).append("dist/script/index.js");
-        if (!std::filesystem::exists(indexSrc))
         {
-            ZERO_LOG_ERROR("index.js not exists: %s", indexSrc.string().c_str());
-            return -1;
+            std::error_code ec;
+            auto res = std::filesystem::canonical(indexSrc, ec);
+            if (ec)
+            {
+                ZERO_LOG_ERROR("index.js not exists: %s", indexSrc.string().c_str());
+                return -1;
+            }
+            indexSrc = std::move(res);
         }
 
         v8::Local<v8::Promise> index_promise;

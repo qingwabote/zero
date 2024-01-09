@@ -10,6 +10,8 @@ export class ModelPhase extends Phase {
     constructor(
         context: Context,
         visibility: VisibilityFlagBits = VisibilityFlagBits.ALL,
+        /**The model type that indicates which models should run in this phase */
+        private _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
         private _pass = 'default',
     ) {
@@ -22,6 +24,9 @@ export class ModelPhase extends Phase {
         let dc = 0;
         for (const model of scene.models) {
             if ((camera.visibilities & model.visibility) == 0) {
+                continue;
+            }
+            if (model.type != this._model) {
                 continue;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
