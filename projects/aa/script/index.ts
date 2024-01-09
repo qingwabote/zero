@@ -1,9 +1,10 @@
 import { bundle } from 'bundling';
-import { Camera, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, device, render, vec3 } from 'engine';
+import { Camera, InputEventType, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from 'engine';
 
 const screen = await bundle.cache('screen.png', Texture);
 
-const pipeline = await (await bundle.cache('pipelines/fxaa', Pipeline)).createRenderPipeline();
+const normal = await (await builtin.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
+const fxaa = await (await bundle.cache('pipelines/fxaa', Pipeline)).createRenderPipeline();
 
 class App extends Zero {
     protected start(): render.Pipeline {
@@ -21,7 +22,11 @@ class App extends Zero {
         sprite.impl.spriteFrame = new SpriteFrame(screen.impl);
         doc.addElement(sprite);
 
-        return pipeline
+        this.input.on(InputEventType.TOUCH_END, () => {
+            this.pipeline = this.pipeline == normal ? fxaa : normal;
+        })
+
+        return normal
     }
 }
 

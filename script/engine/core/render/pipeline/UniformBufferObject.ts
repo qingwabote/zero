@@ -1,8 +1,15 @@
-import { Buffer } from "gfx";
-import { Uniform } from "../index.js";
+import { Buffer, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Context } from "../Context.js";
 
-export abstract class UniformBufferObject extends Uniform {
+interface UniformDefinition {
+    type: DescriptorType;
+    stageFlags: ShaderStageFlagBits;
+}
+
+export abstract class UniformBufferObject {
+    static readonly definition: UniformDefinition;
     abstract get buffer(): Buffer;
     get range(): number { return 0 };
-    get dynamicOffset(): number { return -1 };
+    dynamicOffset(context: Context): number { return -1 };
+    update(): void { };
 }

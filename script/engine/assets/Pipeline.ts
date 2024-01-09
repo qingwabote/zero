@@ -5,12 +5,12 @@ import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
 import { getSampler, render, shaderLib } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
 import { Context } from "../core/render/Context.js";
+import { UniformBufferObject } from "../core/render/index.js";
 import { getRenderPass } from "../core/render/pipeline/rpc.js";
 import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
 import { PostPhase } from "../pipeline/phases/PostPhase.js";
 import { CameraUniform } from "../pipeline/uniforms/CameraUniform.js";
 import { LightUniform } from "../pipeline/uniforms/LightUniform.js";
-import { SamplerTextureUniform } from "../pipeline/uniforms/SamplerTextureUniform.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
 
@@ -65,31 +65,38 @@ interface Framebuffer {
 
 type Clear = keyof typeof gfx.ClearFlagBits;
 
-const UniformMap = {
+const UniformTypes = {
     camera: CameraUniform,
     light: LightUniform,
     shadow: ShadowUniform,
-    samplerTexture: SamplerTextureUniform
+    samplerTexture: {
+        definition: {
+            type: gfx.DescriptorType.SAMPLER_TEXTURE,
+            stageFlags: gfx.ShaderStageFlagBits.FRAGMENT
+        }
+    }
 }
+
+const uniformInstances: Map<typeof UniformBufferObject, UniformBufferObject> = new Map;
 
 interface UniformBase {
     binding: number;
 }
 
 interface Camera extends UniformBase {
-    name: 'camera';
+    type: 'camera';
 }
 
 interface Light extends UniformBase {
-    name: 'light';
+    type: 'light';
 }
 
 interface Shadow extends UniformBase {
-    name: 'shadow';
+    type: 'shadow';
 }
 
 interface SamplerTexture extends UniformBase {
-    name: 'samplerTexture';
+    type: 'samplerTexture';
     texture: string;
     filter: keyof typeof gfx.Filter;
 }
@@ -144,8 +151,8 @@ export class Pipeline extends Yml {
             const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
             if (flow.uniforms) {
                 for (const uniform of flow.uniforms) {
-                    if (uniform.name in UniformMap) {
-                        const definition = UniformMap[uniform.name].definition;
+                    if (uniform.type in UniformTypes) {
+                        const definition = UniformTypes[uniform.type].definition;
                         const binding = new gfx.DescriptorSetLayoutBinding;
                         binding.descriptorType = definition.type;
                         binding.stageFlags = definition.stageFlags;
@@ -159,18 +166,20 @@ export class Pipeline extends Yml {
             }
             const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
             const context = new Context(descriptorSetLayout);
-            const uniforms: render.Uniform[] = [];
+            const uniforms: render.UniformBufferObject[] = [];
             if (flow.uniforms) {
                 for (const uniform of flow.uniforms) {
-                    let instance;
-                    if (uniform.name == 'samplerTexture') {
-                        instance = new UniformMap[uniform.name](context);
+                    if (uniform.type == 'samplerTexture') {
                         const filter = uniform.filter ? gfx.Filter[uniform.filter] : gfx.Filter.NEAREST;
                         context.descriptorSet.bindTexture(uniform.binding, this._textures[uniform.texture], getSampler(filter, filter));
-                    } else {
-                        instance = new UniformMap[uniform.name](context);
-                        context.descriptorSet.bindBuffer(uniform.binding, instance.buffer, instance.range);
+                        continue;
                     }
+                    let instance = uniformInstances.get(UniformTypes[uniform.type]);
+                    if (!instance) {
+                        instance = new UniformTypes[uniform.type]();
+                        uniformInstances.set(UniformTypes[uniform.type], instance);
+                    }
+                    context.descriptorSet.bindBuffer(uniform.binding, instance.buffer, instance.range);
                     uniforms.push(instance);
                 }
             }

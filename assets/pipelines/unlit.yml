@@ -1,6 +1,6 @@
 flows:
   - uniforms:
-      - name: camera
+      - type: camera
         binding: 1
     stages:
       - phases:

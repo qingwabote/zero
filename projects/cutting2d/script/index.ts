@@ -3,7 +3,9 @@ import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await bundle.cache('favicon.ico', Texture);
 
-const pipeline = await bundle.cache('pipelines/unlit-ms', Pipeline);
+const normal = await (await bundle.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
+const msaa = await (await bundle.cache('pipelines/unlit-ms', Pipeline)).createRenderPipeline();
+const fxaa = await (await bundle.cache('pipelines/unlit-fxaa', Pipeline)).createRenderPipeline();
 
 export default class App extends Zero {
     start(): render.Pipeline {
@@ -38,6 +40,46 @@ export default class App extends Zero {
 
         doc.addElement(textRenderer);
 
+        let text_x = -width / 2 + 8;
+        {
+            const textRenderer = UIRenderer.create(TextRenderer);
+            textRenderer.anchor = vec2.create(0, 1);
+            textRenderer.impl.text = 'NORMAL';
+            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+                this.pipeline = normal;
+            })
+            textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
+            doc.addElement(textRenderer);
+            text_x += textRenderer.size[0] + 30;
+        }
+
+        {
+            const textRenderer = UIRenderer.create(TextRenderer);
+            textRenderer.anchor = vec2.create(0, 1);
+            textRenderer.impl.text = 'MSAA';
+            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+                this.pipeline = msaa;
+            })
+            textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
+            doc.addElement(textRenderer);
+            text_x += textRenderer.size[0] + 30;
+        }
+
+        {
+            const textRenderer = UIRenderer.create(TextRenderer);
+            textRenderer.anchor = vec2.create(0, 1);
+            textRenderer.impl.text = 'FXAA';
+            textRenderer.impl.color = [0, 1, 0, 1];
+            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+                this.pipeline = fxaa;
+            })
+            textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
+            doc.addElement(textRenderer);
+            text_x += textRenderer.size[0] + 30;
+        }
+
         if (platform == 'wx') {
             const textRenderer = UIRenderer.create(TextRenderer);
             textRenderer.anchor = vec2.create(0, 1);
@@ -53,10 +95,10 @@ export default class App extends Zero {
         node = new Node;
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, safeArea.y, 0];
+        node.position = [-width / 2 + 8, safeArea.y, 0];
         doc.addElement(profiler);
 
-        return pipeline.createRenderPipeline()
+        return normal
     }
 }
 

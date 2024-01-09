@@ -7,13 +7,13 @@ textures:
     height: 1024
 flows:
   - uniforms:
-      - name: camera
+      - type: camera
         binding: 1
-      - name: light
+      - type: light
         binding: 2
-      - name: shadow
+      - type: shadow
         binding: 3
-      - name: samplerTexture
+      - type: samplerTexture
         texture: shadowmap
         binding: 0
     stages:

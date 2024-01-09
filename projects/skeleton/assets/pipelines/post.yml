@@ -5,7 +5,7 @@ textures:
       - SAMPLED
 flows:
   - uniforms:
-      - name: camera
+      - type: camera
         binding: 1
     stages:
       - phases:
@@ -17,7 +17,7 @@ flows:
             usage:
               - DEPTH_STENCIL
   - uniforms:
-      - name: samplerTexture
+      - type: samplerTexture
         texture: color
         binding: 0
     stages:

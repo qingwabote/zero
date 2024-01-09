@@ -48,7 +48,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     private readonly _systems: readonly System[];
 
-    private _pipeline: Pipeline;
+    pipeline: Pipeline;
 
     private _commandBuffer: CommandBuffer;
     private _presentSemaphore: Semaphore;
@@ -87,7 +87,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
         Zero._instance = this;
 
-        this._pipeline = this.start();
+        this.pipeline = this.start();
 
         this.attach();
     }
@@ -153,10 +153,10 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
         this.scene.update();
-        this._pipeline.update();
+        this.pipeline.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._drawCall = this._pipeline.record(this._commandBuffer, this.scene.cameras);
+        this._drawCall = this.pipeline.record(this._commandBuffer, this.scene.cameras);
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 

@@ -1,6 +1,7 @@
 import { device } from "boot";
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
+import { Context } from "../../core/render/Context.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
 import { BufferView } from "../../core/render/scene/buffers/BufferView.js";
 
@@ -39,8 +40,8 @@ export class CameraUniform extends UniformBufferObject {
         return CameraBlock.size;
     }
 
-    get dynamicOffset(): number {
-        return CameraBlock.size * this._context.cameraIndex
+    override dynamicOffset(context: Context): number {
+        return CameraBlock.size * context.cameraIndex
     };
 
     update(): void {

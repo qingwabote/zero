@@ -1,13 +1,12 @@
-import { CommandBuffer, DescriptorType, Uint32Vector } from "gfx";
+import { CommandBuffer, Uint32Vector } from "gfx";
 import { Context } from "../Context.js";
 import { Stage } from "./Stage.js";
-import { Uniform } from "./Uniform.js";
 import { UniformBufferObject } from "./UniformBufferObject.js";
 
 export class Flow {
     constructor(
         readonly context: Context,
-        private readonly _uniforms: readonly Uniform[],
+        private readonly _uniforms: readonly UniformBufferObject[],
         private readonly _stages: readonly Stage[]
     ) {
     }
@@ -22,8 +21,9 @@ export class Flow {
         let drawCall = 0;
         const dynamicOffsets = new Uint32Vector;
         for (const uniform of this._uniforms) {
-            if ((uniform.constructor as typeof Uniform).definition.type == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
-                dynamicOffsets.add((uniform as UniformBufferObject).dynamicOffset);
+            const offset = uniform.dynamicOffset(this.context);
+            if (offset != -1) {
+                dynamicOffsets.add(offset);
             }
         }
         commandBuffer.bindDescriptorSet(0, this.context.descriptorSet, dynamicOffsets);
