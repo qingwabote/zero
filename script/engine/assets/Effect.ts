@@ -1,6 +1,6 @@
 import { cache } from "assets";
 import * as gfx from "gfx";
-import { Pass as scene_Pass } from "../core/render/scene/Pass.js";
+import { render } from "../core/index.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
@@ -65,8 +65,8 @@ export class Effect extends Yml {
         this._passes = res.passes;
     }
 
-    async createPasses(overrides: Pass[]): Promise<scene_Pass[]> {
-        const passes: scene_Pass[] = [];
+    async createPasses(overrides: Pass[]): Promise<render.Pass[]> {
+        const passes: render.Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
             if (info.switch && info.macros![info.switch] != 1) {
@@ -112,7 +112,8 @@ export class Effect extends Yml {
                 passState.blendState = blendState;
             }
 
-            const pass = new scene_Pass(passState, info.type);
+            const pass = new render.Pass(passState, info.type);
+            pass.initialize();
             for (const key in info.props) {
                 pass.setUniform('Props', key, info.props[key]);
             }

@@ -30,12 +30,16 @@ export class Pass {
         return this._samplerTextures;
     }
 
-    constructor(readonly state: PassState, readonly type = 'default', initializer?: (self: any) => void) {
-        initializer?.(this);
-
+    constructor(readonly state: PassState, readonly type = 'default') {
         const descriptorSetLayout = shaderLib.getDescriptorSetLayout(this.state.shader, shaderLib.sets.material.index);
         if (descriptorSetLayout.info.bindings.size()) {
-            const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+            this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+        }
+        this.descriptorSetLayout = descriptorSetLayout;
+    }
+
+    initialize() {
+        if (this.descriptorSet) {
             const blocks = shaderLib.getShaderMeta(this.state.shader).blocks;
             for (const name in blocks) {
                 const block = blocks[name];
@@ -43,12 +47,10 @@ export class Pass {
                     continue;
                 }
                 const view = this.createUniformBuffer(name);
-                descriptorSet.bindBuffer(block.binding, view.buffer);
+                this.descriptorSet.bindBuffer(block.binding, view.buffer);
                 this._uniformBuffers[name] = view;
             }
-            this.descriptorSet = descriptorSet;
         }
-        this.descriptorSetLayout = descriptorSetLayout;
     }
 
     hasUniform(name: string, member: string): boolean {

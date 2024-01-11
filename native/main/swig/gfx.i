@@ -26,6 +26,9 @@
 %ignore gfx::operator &=;
 %ignore gfx::operator ^=;
 
+%ignore gfx::Format;
+%ignore gfx::FormatInfo;
+%ignore gfx::FormatInfos;
 %ignore gfx::BufferUsageFlagBits;
 %ignore gfx::MemoryUsage;
 %ignore gfx::ShaderStageFlagBits;

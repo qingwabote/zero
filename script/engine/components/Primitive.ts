@@ -106,7 +106,10 @@ export class Primitive extends BoundedRenderer {
         state.rasterizationState = rasterizationState;
         state.blendState = blendState;
 
-        const subModel: SubModel = new SubModel(subMesh, [new Pass(state)]);
+        const pass = new Pass(state);
+        pass.initialize();
+
+        const subModel: SubModel = new SubModel(subMesh, [pass]);
         this._model.subModels.push(subModel);
         Zero.instance.scene.addModel(this._model)
         this._subMesh = subMesh;

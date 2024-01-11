@@ -16,8 +16,6 @@
 #include "gfx/InputAssembler.hpp"
 #include "gfx/Buffer.hpp"
 
-#include "gfx/constants.hpp"
-
 namespace gfx
 {
     Pipeline_impl::Pipeline_impl(Device_impl *device) : _device(device) {}

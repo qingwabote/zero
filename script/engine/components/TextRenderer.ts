@@ -38,6 +38,7 @@ const pass = await (async function () {
     state.blendState = blendState;
 
     const pass = new Pass(state);
+    pass.initialize();
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
     return pass;
 })()
@@ -55,7 +56,11 @@ const vec2_b = vec2.create();
 export class TextRenderer extends BoundedRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
-    private _pass = new PassInstance(pass);
+    private _pass = (function () {
+        const instance = new PassInstance(pass);
+        instance.initialize();
+        return instance;
+    })();
 
     private _text: string = "";
     get text(): string {
@@ -88,7 +93,7 @@ export class TextRenderer extends BoundedRenderer {
 
     private _subMesh!: SubMesh;
 
-    private _charCount = 0;
+    private _quads = 0;
 
     override start(): void {
         const subMesh: SubMesh = new SubMesh(
@@ -109,7 +114,7 @@ export class TextRenderer extends BoundedRenderer {
 
         this._vertexView.update();
 
-        this._subMesh.drawInfo.count = 6 * this._charCount;
+        this._subMesh.drawInfo.count = 6 * this._quads;
     }
 
     private updateData(): void {
@@ -118,7 +123,7 @@ export class TextRenderer extends BoundedRenderer {
         }
 
         if (!this._text) {
-            this._charCount = 0;
+            this._quads = 0;
 
             aabb2d.set(this._bounds, vec2.ZERO, vec2.ZERO);
 
@@ -133,7 +138,7 @@ export class TextRenderer extends BoundedRenderer {
         this._vertexView.reset(4 * 4 * this._text.length);
 
         const tex = fnt_zero.texture.impl.info;
-        let [x, y, l, r, t, b, n] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
+        let [x, y, l, r, t, b, quads] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
         for (let i = 0; i < this._text.length; i++) {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
@@ -162,25 +167,25 @@ export class TextRenderer extends BoundedRenderer {
             const pos_t = y - yoffset;
             const pos_b = y - yoffset - height;
 
-            this._vertexView.source[16 * n + 0] = pos_l;
-            this._vertexView.source[16 * n + 1] = pos_t;
-            this._vertexView.source[16 * n + 2] = tex_l;
-            this._vertexView.source[16 * n + 3] = tex_t;
+            this._vertexView.source[16 * quads + 0] = pos_l;
+            this._vertexView.source[16 * quads + 1] = pos_t;
+            this._vertexView.source[16 * quads + 2] = tex_l;
+            this._vertexView.source[16 * quads + 3] = tex_t;
 
-            this._vertexView.source[16 * n + 4] = pos_l;
-            this._vertexView.source[16 * n + 5] = pos_b;
-            this._vertexView.source[16 * n + 6] = tex_l;
-            this._vertexView.source[16 * n + 7] = tex_b;
+            this._vertexView.source[16 * quads + 4] = pos_l;
+            this._vertexView.source[16 * quads + 5] = pos_b;
+            this._vertexView.source[16 * quads + 6] = tex_l;
+            this._vertexView.source[16 * quads + 7] = tex_b;
 
-            this._vertexView.source[16 * n + 8] = pos_r;
-            this._vertexView.source[16 * n + 9] = pos_b;
-            this._vertexView.source[16 * n + 10] = tex_r;
-            this._vertexView.source[16 * n + 11] = tex_b;
+            this._vertexView.source[16 * quads + 8] = pos_r;
+            this._vertexView.source[16 * quads + 9] = pos_b;
+            this._vertexView.source[16 * quads + 10] = tex_r;
+            this._vertexView.source[16 * quads + 11] = tex_b;
 
-            this._vertexView.source[16 * n + 12] = pos_r;
-            this._vertexView.source[16 * n + 13] = pos_t;
-            this._vertexView.source[16 * n + 14] = tex_r;
-            this._vertexView.source[16 * n + 15] = tex_t;
+            this._vertexView.source[16 * quads + 12] = pos_r;
+            this._vertexView.source[16 * quads + 13] = pos_t;
+            this._vertexView.source[16 * quads + 14] = tex_r;
+            this._vertexView.source[16 * quads + 15] = tex_t;
 
             this._vertexView.invalidate();
 
@@ -191,12 +196,10 @@ export class TextRenderer extends BoundedRenderer {
 
             x += char.xadvance / TextRenderer.PIXELS_PER_UNIT;
 
-            n++;
+            quads++;
         }
 
-        quad.indexGrowTo(6 * n);
-
-        this._charCount = n;
+        quad.indexGrowTo(this._quads = quads);
 
         // aabb2d.set(this._bounds, 0, b, r + l, t - b);
         vec2.set(vec2_a, l, b);

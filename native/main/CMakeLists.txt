@@ -1,7 +1,7 @@
 set(SRC_FILES
     base/threading/ThreadPool.cpp
     base/threading/Semaphore.cpp
-    gfx/constants.cpp
+    gfx/info.cpp
     Window.cpp
     Loader.cpp
     sugars/sdlsugar.cpp
