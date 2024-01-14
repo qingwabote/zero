@@ -1,8 +1,9 @@
-import { Camera, ModelPhase, Node, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, device, loadBundle, render, safeArea, stageFactory, vec2, vec3 } from "engine";
+import { Camera, Node, Pipeline, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, loadBundle, safeArea, vec2, vec3 } from "engine";
 
+const unlit = await (await bundle.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
 
 class App extends Zero {
-    start(): render.Flow {
+    start() {
         const { width, height } = device.swapchain;
 
         let node: Node;
@@ -85,13 +86,24 @@ class App extends Zero {
         y -= d;
         doc.addElement(textRenderer);
 
+        textRenderer = UIRenderer.create(TextRenderer);
+        textRenderer.anchor = vec2.create(0.5, 1);
+        textRenderer.impl.text = 'yoga';
+        textRenderer.impl.color = [0, 1, 0, 1];
+        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+            this.go('yoga');
+        })
+        textRenderer.node.position = [0, y, 0];
+        y -= d;
+        doc.addElement(textRenderer);
+
         node = new Node;
         node.visibility = VisibilityFlagBits.DEFAULT
         const profiler = node.addComponent(Profiler);
         profiler.anchor = vec2.create(0, 0)
         node.position = [-width / 2, safeArea.y, 0];
 
-        return new render.Flow([stageFactory.forward([new ModelPhase], false)]);
+        return unlit;
     }
 
     private async go(name: string, ...dependencies: string[]) {
@@ -108,4 +120,4 @@ class App extends Zero {
     }
 }
 
-new App;
+(new App).initialize();

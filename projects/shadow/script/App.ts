@@ -1,5 +1,6 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, CameraControlPanel, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, Node, Pipeline, Profiler, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, TextRenderer, UIDocument, UIRenderer, UITouchEventType, Vec3, Zero, bundle as builtin, device, getSampler, platform, quat, reboot, render, safeArea, shaderLib, vec2, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Vec3, Zero, bundle as builtin, device, getSampler, quat, render, shaderLib, vec3, vec4 } from 'engine';
+import { CameraControlPanel, Document, Edge, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
     UP: 1 << 1,
@@ -99,43 +100,33 @@ export class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibility = VisibilityFlagBits.UI;
-
         node = new Node;
-        const profiler = node.addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, safeArea.y, 0];
-        doc.addElement(profiler);
+        node.position = vec3.create(-width / 2, height / 2);
+        node.visibility = VisibilityFlagBits.UI;
+        const doc = node.addComponent(Document);
 
-        const sprite = UIRenderer.create(SpriteRenderer);
+        const sprite = Renderer.create(SpriteRenderer);
         sprite.impl.spriteFrame = new SpriteFrame(pipeline.textures['shadowmap']);
         sprite.impl.shader = shaderLib.getShader(ss_depth);
-        sprite.size = [height / 4, height / 4]
-        sprite.anchor = [1, 0.5];
-        sprite.node.position = [width / 2, 0, 0];
+        sprite.setWidth(height / 4);
+        sprite.setHeight(height / 4);
+        sprite.positionType = PositionType.Absolute;
+        sprite.setPosition(Edge.Right, 0);
+        sprite.setPosition(Edge.Bottom, 0);
         doc.addElement(sprite);
+
+        const profiler = (new Node).addComponent(Profiler)
+        profiler.positionType = PositionType.Absolute;
+        profiler.setPosition(Edge.Left, 8)
+        profiler.setPosition(Edge.Bottom, 8)
+        doc.addElement(profiler);
 
         node = new Node;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
         cameraControlPanel.camera = up_camera;
-        cameraControlPanel.size = vec2.create(safeArea.width, safeArea.height);
-        cameraControlPanel.anchor = [0, 0];
-        cameraControlPanel.node.position = [safeArea.x, safeArea.y, 0];
+        cameraControlPanel.setWidth(width);
+        cameraControlPanel.setHeight(height);
         doc.addElement(cameraControlPanel);
-
-        if (platform == 'wx') {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = '重启';
-            textRenderer.impl.color = [0, 1, 0, 1];
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                reboot();
-            })
-            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            doc.addElement(textRenderer);
-        }
-
 
         node = guardian.createScene("Sketchfab_Scene")!;
         const animation = node.addComponent(Animation);

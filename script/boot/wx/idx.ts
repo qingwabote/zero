@@ -119,8 +119,8 @@ export function loadBundle(name: string): Promise<void> {
                 console.log(`load ${name} success`);
                 resolve();
             },
-            fail: function () {
-                reject(`load ${name} fail`);
+            fail: function (res: any) {
+                reject(`load ${name} fail. ${res.errMsg}`);
             }
         });
         task.onProgressUpdate((res: any) => {

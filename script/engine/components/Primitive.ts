@@ -11,7 +11,7 @@ import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
+import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
@@ -56,7 +56,7 @@ export class Primitive extends BoundedRenderer {
             aabb3d.fromPoints(this._bounds, vec3_a, vec3_b);
             vec3.set(this._vertexMin, ...vec3_a);
             vec3.set(this._vertexMax, ...vec3_b);
-            this.emit(BoundsEvent.BOUNDS_CHANGED);
+            // this.emit(BoundsEvent.BOUNDS_CHANGED);
         }
 
         this._vertexCount += 2;

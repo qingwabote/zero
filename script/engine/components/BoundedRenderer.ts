@@ -1,5 +1,4 @@
-import { EventEmitter } from "../base/EventEmitter.js";
-import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
+import { EventEmitter, EventEmitterImpl } from "bastard";
 import { AABB2D } from "../core/math/aabb2d.js";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
 

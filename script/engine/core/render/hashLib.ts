@@ -1,5 +1,5 @@
+import { murmurhash2_32_gc } from "bastard";
 import type { InputAssemblerInfo, PassState, RenderPassInfo, Shader } from "gfx";
-import { murmurhash2_32_gc } from "../../base/murmurhash2_gc.js";
 import { shaderLib } from "../shaderLib.js";
 
 const _shader2hash: WeakMap<Shader, number> = new WeakMap;

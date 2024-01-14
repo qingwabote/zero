@@ -3,33 +3,23 @@ import {
     AnimationClip,
     BlendAnimation,
     Camera,
-    CameraControlPanel,
     DirectionalLight,
     GLTF,
     Node,
     Pipeline,
-    Profiler,
-    Slider,
-    SliderEventType,
     TextRenderer,
-    UIDocument,
-    UIRenderer,
-    UITouchEventType,
     VisibilityFlagBits,
     Zero,
     bundle as builtin,
     device,
-    platform,
-    reboot,
     render,
-    safeArea,
-    vec2,
     vec3
 } from "engine";
+import { Align, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 
 const walkrun_and_idle = await bundle.cache('walkrun_and_idle/scene', GLTF);
 
-const pipeline = await builtin.cache('pipelines/forward', Pipeline);
+const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).createRenderPipeline();
 
 export class App extends Zero {
     start(): render.Pipeline {
@@ -68,25 +58,34 @@ export class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibility = VisibilityFlagBits.UI;
+        node = new Node;
+        node.position = vec3.create(-width / 2, height / 2);
+        node.visibility = VisibilityFlagBits.UI;
+        const doc = node.addComponent(Document);
+        doc.justifyContent = Justify.Center;
+        doc.alignItems = Align.Center;
+        doc.setWidth(width);
+        doc.setHeight(height);
 
-        const profiler = (new Node).addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        profiler.node.position = [-width / 2, safeArea.y, 0];
-        doc.addElement(profiler);
+        const control = (new Node).addComponent(ElementContainer);
+        control.alignItems = Align.Center;
+        control.setPosition(Edge.Top, 60)
 
-        const cameraControlPanel = (new Node).addComponent(CameraControlPanel);
-        cameraControlPanel.size = vec2.create(safeArea.width, safeArea.height);
-        cameraControlPanel.anchor = [0, 0];
-        cameraControlPanel.camera = main_camera;
-        cameraControlPanel.node.position = [safeArea.x, safeArea.y, 0];
-        doc.addElement(cameraControlPanel);
+        function updateInput(value: number) {
+            animation.input = value;
+        }
 
-        const text = UIRenderer.create(TextRenderer);
-        text.anchor = vec2.create(0, 0.5)
-        text.node.position = vec3.create(-width / 2, 50, 0)
-        doc.addElement(text);
+        const slider = (new Node).addComponent(Slider);
+        slider.setWidth(180)
+        slider.setHeight(20)
+        slider.value = 0.1;
+        slider.emitter.on(SliderEventType.CHANGED, () => {
+            updateInput(slider.value)
+        })
+        control.addElement(slider);
+
+        const text = Renderer.create(TextRenderer);
+        control.addElement(text);
 
         this.setInterval(() => {
             const weights = animation.state.weights;
@@ -95,34 +94,17 @@ export class App extends Zero {
 跑: ${weights[2].toFixed(2)}`
         })
 
-        function updateInput(value: number) {
-            animation.input = value;
-        }
-
-        const slider = (new Node).addComponent(Slider);
-        slider.anchor = vec2.create(0.5, 1)
-        slider.size = vec2.create(180, 20)
-        slider.value = 0;
-        slider.on(SliderEventType.CHANGED, () => {
-            updateInput(slider.value)
-        })
-        doc.addElement(slider);
-
         updateInput(slider.value)
 
-        if (platform == 'wx') {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = '重启';
-            textRenderer.impl.color = [0, 1, 0, 1];
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                reboot();
-            })
-            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            doc.addElement(textRenderer);
-        }
+        doc.addElement(control)
 
-        return pipeline.createRenderPipeline()
+        const profiler = (new Node).addComponent(Profiler)
+        profiler.positionType = PositionType.Absolute;
+        profiler.setPosition(Edge.Left, 8)
+        profiler.setPosition(Edge.Bottom, 8)
+        doc.addElement(profiler);
+
+        return pipeline
     }
 }
 

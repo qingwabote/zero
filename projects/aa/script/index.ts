@@ -1,5 +1,6 @@
 import { bundle } from 'bundling';
-import { Camera, InputEventType, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, UIDocument, UIRenderer, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from 'engine';
+import { Camera, InputEventType, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from 'engine';
+import { Align, Document, Justify, Renderer } from 'flex';
 
 const screen = await bundle.cache('screen.png', Texture);
 
@@ -15,10 +16,16 @@ class App extends Zero {
         camera.viewport = { x: 0, y: 0, width, height };
         camera.node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibility = VisibilityFlagBits.DEFAULT;
+        let node = new Node;
+        node.position = vec3.create(-width / 2, height / 2);
+        node.visibility = VisibilityFlagBits.DEFAULT;
+        const doc = node.addComponent(Document);
+        doc.justifyContent = Justify.Center;
+        doc.alignItems = Align.Center;
+        doc.setWidth(width);
+        doc.setHeight(height);
 
-        const sprite = UIRenderer.create(SpriteRenderer);
+        const sprite = Renderer.create(SpriteRenderer);
         sprite.impl.spriteFrame = new SpriteFrame(screen.impl);
         doc.addElement(sprite);
 
@@ -30,4 +37,4 @@ class App extends Zero {
     }
 }
 
-new App;
+(new App).initialize();

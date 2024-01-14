@@ -39,6 +39,10 @@
         {
             "name": "cutting2d",
             "root": "dist/subpackages/projects/cutting2d"
+        },
+        {
+            "name": "yoga",
+            "root": "dist/subpackages/projects/yoga"
         }
     ],
     "deviceOrientation": "portrait"

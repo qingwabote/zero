@@ -7,5 +7,3 @@ export * from './SkinnedMeshRenderer.js';
 export * from './SpriteRenderer.js';
 export * from './TextRenderer.js';
 
-export * from './ui/index.js';
-

@@ -7,7 +7,9 @@
         "assets": "tsc -p ../script/assets --outDir ./dist/assets --module system --watch",
         "splash": "tsc -p ../script/splash --outDir ./dist/splash/script --module system --watch",
         "yaml": "rollup --config -i ../script/engine/node_modules/yaml/browser/index.js -f system -o ./dist/subpackages/engine/yaml.js",
+        "bastard": "tsc -p ../script/bastard --outDir ./dist/subpackages/engine/bastard --module system --watch",
         "engine": "tsc -p ../script/engine --outDir ./dist/subpackages/engine/script --module system --watch",
+        "flex": "tsc -p ../script/flex --outDir ./dist/subpackages/engine/flex/script --module system --watch",
         "spine-core": "rollup -i ../script/spine/node_modules/@esotericsoftware/spine-core/dist/index.js -f system -o ./dist/subpackages/spine/spine-core.js",
         "spine": "tsc -p ../script/spine --outDir ./dist/subpackages/spine --module system --watch",
         "phys": "tsc -p ../script/phys/ammo --outDir ./dist/subpackages/physics/phys/script --module system --watch",
@@ -19,7 +21,8 @@
         "skeleton": "tsc -p ../projects/skeleton/script --outDir ./dist/subpackages/projects/skeleton/script --module system --watch",
         "vehicle": "tsc -p ../projects/vehicle/script --outDir ./dist/subpackages/projects/vehicle/script --module system --watch",
         "cutting2d": "tsc -p ../projects/cutting2d/script --outDir ./dist/subpackages/projects/cutting2d/script --module system --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\""
+        "yoga": "tsc -p ../projects/yoga/script --outDir ./dist/subpackages/projects/yoga/script --module system --watch",
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\""
     },
     "devDependencies": {
         "@babel/preset-env": "^7.23.3",

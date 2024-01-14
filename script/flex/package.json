@@ -1,0 +1,9 @@
+{
+  "name": "flex",
+  "dependencies": {
+    "bastard": "file:../bastard",
+    "boot": "file:../boot/declare",
+    "engine": "file:../engine",
+    "bundling": "file:../bundling"
+  }
+}

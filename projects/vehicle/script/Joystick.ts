@@ -1,4 +1,5 @@
-import { Node, Primitive, UIContainer, UIEventToListener, UIRenderer, UITouchEventType, Vec2, vec2, vec3 } from "engine";
+import { InputEventType, Node, Primitive, Vec2, vec2, vec3 } from "engine";
+import { ElementContainer, EventToListener, Renderer } from "flex";
 
 const vec3_a = vec3.create()
 const vec3_b = vec3.create()
@@ -9,64 +10,57 @@ export enum JoystickEventType {
     CHANGED = 'CHANGED'
 }
 
-interface EventToListener extends UIEventToListener {
+interface JoystickEventToListener extends EventToListener {
     [JoystickEventType.CHANGED]: () => void;
 }
 
-export default class Joystick extends UIContainer<EventToListener> {
+export default class Joystick extends ElementContainer<JoystickEventToListener> {
     private _point = vec2.create();
     get point(): Readonly<Vec2> {
         return this._point;
     }
 
-    private _primitive: UIRenderer<Primitive>;
-
-    public get size(): Readonly<Vec2> {
-        return this._primitive.size;
-    }
-    public set size(value: Readonly<Vec2>) {
-        this._primitive.size = value;
-    }
+    private _primitive: Renderer<Primitive>;
 
     constructor(node: Node) {
         super(node);
 
-        const primitive = UIRenderer.create(Primitive);
+        const primitive = Renderer.create(Primitive);
+        primitive.setWidth('100%');
+        primitive.setHeight('100%');
         this.draw(primitive, this._point)
         this.addElement(primitive);
 
-        primitive.on(UITouchEventType.TOUCH_START, event => {
-            const scale = primitive.impl.node.scale;
+        primitive.emitter.on(InputEventType.TOUCH_START, event => {
             const local = event.touch.local;
             vec2.set(
                 this._point,
-                Math.max(Math.min(local[0] / scale[0], 1), -1),
-                Math.max(Math.min(local[1] / scale[1], 1), -1)
+                Math.max(Math.min(local[0], 1), -1),
+                Math.max(Math.min(local[1], 1), -1)
             )
             this.draw(primitive, this._point)
-            this.emit(JoystickEventType.CHANGED);
+            this.emitter.emit(JoystickEventType.CHANGED);
         });
-        primitive.on(UITouchEventType.TOUCH_MOVE, event => {
-            const scale = primitive.impl.node.scale;
+        primitive.emitter.on(InputEventType.TOUCH_MOVE, event => {
             const local = event.touch.local;
             vec2.set(
                 this._point,
-                Math.max(Math.min(local[0] / scale[0], 1), -1),
-                Math.max(Math.min(local[1] / scale[1], 1), -1)
+                Math.max(Math.min(local[0], 1), -1),
+                Math.max(Math.min(local[1], 1), -1)
             )
             this.draw(primitive, this._point)
-            this.emit(JoystickEventType.CHANGED);
+            this.emitter.emit(JoystickEventType.CHANGED);
         });
-        primitive.on(UITouchEventType.TOUCH_END, event => {
+        primitive.emitter.on(InputEventType.TOUCH_END, event => {
             vec2.set(this._point, 0, 0);
             this.draw(primitive, this._point)
-            this.emit(JoystickEventType.CHANGED);
+            this.emitter.emit(JoystickEventType.CHANGED);
         });
 
         this._primitive = primitive;
     }
 
-    draw(primitive: UIRenderer<Primitive>, point: Vec2): void {
+    draw(primitive: Renderer<Primitive>, point: Vec2): void {
         const impl = primitive.impl;
         impl.clear();
 

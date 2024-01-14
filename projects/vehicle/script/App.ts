@@ -1,12 +1,13 @@
 
-import { Camera, CameraControlPanel, DirectionalLight, Flow, GLTF, MeshRenderer, Node, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, platform, reboot, safeArea, vec2, vec3, vec4 } from 'engine';
+import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, VisibilityFlagBits, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
+import { CameraControlPanel, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
 const primitive = await bundle.cache('models/primitive/scene', GLTF);
 
-const flow = await bundle.cache('flows/forward', Flow);
+const pipeline = await (await bundle.cache('pipelines/forward', Pipeline)).createRenderPipeline();
 
 export class App extends Zero {
     start() {
@@ -81,18 +82,17 @@ export class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibility = VisibilityFlagBits.UI;
-
         node = new Node;
-        const profiler = node.addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, safeArea.y, 0];
-        doc.addElement(profiler)
+        node.position = vec3.create(-width / 2, height / 2);
+        node.visibility = VisibilityFlagBits.UI;
+        const doc = node.addComponent(Document);
+        doc.setWidth(width);
+        doc.setHeight(height);
 
         node = new Node;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
-        cameraControlPanel.size = vec2.create(width, height);
+        cameraControlPanel.setWidth(width);
+        cameraControlPanel.setHeight(height);
         cameraControlPanel.camera = main_camera;
         doc.addElement(cameraControlPanel);
 
@@ -120,24 +120,21 @@ export class App extends Zero {
             vehicle.setSteeringValue(steering, 0);
             vehicle.setSteeringValue(steering, 1);
         })
-        joystick.anchor = vec2.create(1, 0)
-        joystick.size = vec2.create(height / 4, height / 4)
-        node.position = vec3.create(width / 2, -height / 2, 0)
+        joystick.positionType = PositionType.Absolute;
+        joystick.setPosition(Edge.Right, 0);
+        joystick.setPosition(Edge.Bottom, 0);
+        joystick.setWidth(height / 4);
+        joystick.setHeight(height / 4);
         doc.addElement(joystick);
 
-        if (platform == 'wx') {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = '重启';
-            textRenderer.impl.color = [0, 1, 0, 1];
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                reboot();
-            })
-            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            doc.addElement(textRenderer);
-        }
+        node = new Node(Profiler.name)
+        const profiler = node.addComponent(Profiler)
+        profiler.positionType = PositionType.Absolute;
+        profiler.setPosition(Edge.Left, 8)
+        profiler.setPosition(Edge.Bottom, 8)
+        doc.addElement(profiler);
 
-        return flow.createFlow();
+        return pipeline;
     }
 }
 

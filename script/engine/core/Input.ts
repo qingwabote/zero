@@ -1,5 +1,5 @@
+import { EventEmitterImpl } from "bastard";
 import { GestureEvent, TouchEvent } from "boot";
-import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
 
 export enum InputEventType {
     TOUCH_START = "TOUCH_START",

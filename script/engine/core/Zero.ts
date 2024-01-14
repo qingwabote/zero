@@ -1,6 +1,6 @@
+import { EventEmitterImpl } from "bastard";
 import { EventListener, GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
 import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
-import { EventEmitterImpl } from "../base/EventEmitterImpl.js";
 import { Component } from "./Component.js";
 import { Input, InputEventType } from "./Input.js";
 import { System } from "./System.js";

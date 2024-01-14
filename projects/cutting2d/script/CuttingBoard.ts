@@ -1,4 +1,5 @@
-import { Node, Primitive, UIContainer, UIEventToListener, UIRenderer, UITouchEventType, Vec2, Vec4, vec2, vec3, vec4 } from "engine";
+import { InputEventType, Node, Primitive, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
+import { Align, ElementContainer, EventToListener, Justify, Renderer, Touch } from "flex";
 import { Texture } from "gfx";
 import { Polygon, Vertex } from "./Polygon.js";
 import PolygonsRenderer from "./PolygonsRenderer.js";
@@ -8,6 +9,8 @@ const vec2_b = vec2.create();
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
+
+const mat4_a = mat4.create();
 
 // https://www.cnblogs.com/xpvincent/p/5208994.html
 function intersect_line_line(out: Vec2, a: Readonly<Vec2>, b: Readonly<Vec2>, c: Readonly<Vec2>, d: Readonly<Vec2>): boolean {
@@ -122,11 +125,11 @@ export enum CuttingBoardEventType {
     POLYGONS_CHANGED = "POLYGONS_CHANGED",
 }
 
-export interface CuttingBoardEventToListener extends UIEventToListener {
+export interface CuttingBoardEventToListener extends EventToListener {
     [CuttingBoardEventType.POLYGONS_CHANGED]: () => void;
 }
 
-export default class CuttingBoard extends UIContainer<CuttingBoardEventToListener> {
+export default class CuttingBoard extends ElementContainer<CuttingBoardEventToListener> {
 
     texture!: Texture;
 
@@ -140,20 +143,39 @@ export default class CuttingBoard extends UIContainer<CuttingBoardEventToListene
     private _primitive!: Primitive;
 
     start(): void {
-        let point: Readonly<Vec2>;
-        this.on(UITouchEventType.TOUCH_START, event => {
-            point = event.touch.local;
+        this.justifyContent = Justify.Center;
+        this.alignItems = Align.Center;
+
+        const node = new Node;
+        this._polygonsRenderer = node.addComponent(PolygonsRenderer);
+        this.addElement(this._polygonsRenderer);
+
+        const primitive = Renderer.create(Primitive);
+        // primitive.positionType = PositionType.Absolute
+        // primitive.setWidth('100%');
+        // primitive.setHeight('100%');
+        this.addElement(primitive);
+        this._primitive = primitive.impl;
+
+        let touch: Touch;
+        this.emitter.on(InputEventType.TOUCH_START, event => {
+            touch = event.touch;
         });
-        this.on(UITouchEventType.TOUCH_MOVE, event => {
-            const local = event.touch.local;
-            this.drawLine(point, local);
+        this.emitter.on(InputEventType.TOUCH_MOVE, event => {
+            mat4.invert(mat4_a, primitive.node.world_matrix);
+            const from = vec2.transformMat4(vec2.create(), touch.world, mat4_a);
+            const to = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);
+            this.drawLine(from, to);
         });
-        this.on(UITouchEventType.TOUCH_END, event => {
-            const local = event.touch.local;
+        this.emitter.on(InputEventType.TOUCH_END, event => {
+            mat4.invert(mat4_a, this._polygonsRenderer.node.world_matrix);
+            const a = vec2.transformMat4(vec2.create(), touch.world, mat4_a);
+            const b = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);
+
             const out: Polygon[] = [];
             let cutted = false;
             for (const polygon of this._polygons) {
-                const result = intersect_line_polygon(point, local, polygon);
+                const result = intersect_line_polygon(a, b, polygon);
                 if (result.length == 2) {
                     out.push(cut(polygon, result))
                     out.push(cut(polygon, result.reverse()))
@@ -166,21 +188,9 @@ export default class CuttingBoard extends UIContainer<CuttingBoardEventToListene
                 this._polygonsRenderer.polygons = out;
                 this._polygons = out;
 
-                this.emit(CuttingBoardEventType.POLYGONS_CHANGED);
+                this.emitter.emit(CuttingBoardEventType.POLYGONS_CHANGED);
             }
         });
-
-        const node = new Node;
-        this._polygonsRenderer = node.addComponent(PolygonsRenderer);
-        this.addElement(this._polygonsRenderer);
-
-        const primitive = UIRenderer.create(Primitive);
-        this.addElement(primitive);
-        this._primitive = primitive.impl;
-
-        // set size
-        const halfSize = vec2.create(this.size[0] / 2, this.size[1] / 2);
-        this.drawLine(vec2.create(-halfSize[0], -halfSize[1]), vec2.create(halfSize[0], halfSize[1]), vec4.ZERO);
 
         this.reset();
     }
@@ -213,12 +223,12 @@ export default class CuttingBoard extends UIContainer<CuttingBoardEventToListene
 
         this._polygons = polygons;
 
-        this.emit(CuttingBoardEventType.POLYGONS_CHANGED);
+        this.emitter.emit(CuttingBoardEventType.POLYGONS_CHANGED);
     }
 
     private drawLine(from: Readonly<Vec2>, to: Readonly<Vec2>, color: Readonly<Vec4> = vec4.ONE) {
-        vec3.set(vec3_a, from[0] / Primitive.PIXELS_PER_UNIT, from[1] / Primitive.PIXELS_PER_UNIT, 0);
-        vec3.set(vec3_b, to[0] / Primitive.PIXELS_PER_UNIT, to[1] / Primitive.PIXELS_PER_UNIT, 0);
+        vec3.set(vec3_a, from[0], from[1], 0);
+        vec3.set(vec3_b, to[0], to[1], 0);
         this._primitive.clear();
         this._primitive.drawLine(vec3_a, vec3_b, color);
     }

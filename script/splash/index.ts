@@ -2,7 +2,7 @@
 import { device } from 'boot';
 //
 import { bundle } from 'bundling';
-import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput } from "gfx";
 
 const TEXTURE_BINDING = 0;
 
@@ -82,69 +82,6 @@ a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[a_position.format].bytes;
 a_texCoord.buffer = 0;
 
-const vertexInputBindingDescription = new VertexInputBindingDescription;
-vertexInputBindingDescription.inputRate = VertexInputRate.VERTEX;
-vertexInputBindingDescription.stride = FormatInfos[a_position.format].bytes + FormatInfos[a_texCoord.format].bytes;
-vertexInputBindingDescription.binding = 0;
-
-const a_position_description = new VertexInputAttributeDescription;
-a_position_description.location = 0;
-a_position_description.format = a_position.format;
-a_position_description.binding = a_position.buffer;
-a_position_description.offset = a_position.offset;
-
-const a_texCoord_description = new VertexInputAttributeDescription;
-a_texCoord_description.location = 1;
-a_texCoord_description.format = a_texCoord.format;
-a_texCoord_description.binding = a_texCoord.buffer;
-a_texCoord_description.offset = a_texCoord.offset;
-
-const vertexInputState = new VertexInputState;
-vertexInputState.attributes.add(a_position_description);
-vertexInputState.attributes.add(a_texCoord_description);
-vertexInputState.bindings.add(vertexInputBindingDescription);
-
-const colorAttachmentDescription = new AttachmentDescription;
-colorAttachmentDescription.loadOp = LOAD_OP.CLEAR;
-colorAttachmentDescription.initialLayout = ImageLayout.UNDEFINED;
-colorAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
-
-const depthStencilAttachment = new AttachmentDescription();
-depthStencilAttachment.loadOp = LOAD_OP.CLEAR;
-depthStencilAttachment.initialLayout = ImageLayout.UNDEFINED;
-depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL;
-
-const renderPassInfo = new RenderPassInfo
-renderPassInfo.colors.add(colorAttachmentDescription);
-renderPassInfo.depthStencil = depthStencilAttachment;
-renderPassInfo.samples = 1;
-
-const renderPass = device.createRenderPass(renderPassInfo);
-
-const descriptorSetLayoutBinding = new DescriptorSetLayoutBinding
-descriptorSetLayoutBinding.descriptorType = DescriptorType.SAMPLER_TEXTURE;
-descriptorSetLayoutBinding.stageFlags = ShaderStageFlagBits.FRAGMENT;
-descriptorSetLayoutBinding.binding = TEXTURE_BINDING;
-descriptorSetLayoutBinding.descriptorCount = 0;
-
-const descriptorSetLayoutInfo = new DescriptorSetLayoutInfo
-descriptorSetLayoutInfo.bindings.add(descriptorSetLayoutBinding);
-
-const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
-
-const pipelineLayoutInfo = new PipelineLayoutInfo;
-pipelineLayoutInfo.layouts.add(descriptorSetLayout);
-
-const pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
-
-const pipelineInfo = new PipelineInfo;
-pipelineInfo.layout = pipelineLayout;
-pipelineInfo.passState = passState;
-pipelineInfo.vertexInputState = vertexInputState;
-pipelineInfo.renderPass = renderPass;
-
-const pipeline = device.createPipeline(pipelineInfo);
-
 const { width, height } = device.swapchain;
 const ratio = width / height;
 
@@ -182,14 +119,46 @@ inputAssemblerInfo.vertexInput = vertexInput;
 inputAssemblerInfo.indexInput = indexInput;
 const inputAssembler = device.createInputAssembler(inputAssemblerInfo);
 
-const samplerInfo = new SamplerInfo;
-samplerInfo.magFilter = Filter.LINEAR;
-samplerInfo.magFilter = Filter.LINEAR;
+const colorAttachmentDescription = new AttachmentDescription;
+colorAttachmentDescription.loadOp = LOAD_OP.CLEAR;
+colorAttachmentDescription.initialLayout = ImageLayout.UNDEFINED;
+colorAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
 
-const sampler = device.createSampler(samplerInfo)
+const depthStencilAttachment = new AttachmentDescription();
+depthStencilAttachment.loadOp = LOAD_OP.CLEAR;
+depthStencilAttachment.initialLayout = ImageLayout.UNDEFINED;
+depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL;
 
-const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
-descriptorSet.bindTexture(TEXTURE_BINDING, texture, sampler)
+const renderPassInfo = new RenderPassInfo
+renderPassInfo.colors.add(colorAttachmentDescription);
+renderPassInfo.depthStencil = depthStencilAttachment;
+renderPassInfo.samples = 1;
+
+const renderPass = device.createRenderPass(renderPassInfo);
+
+const descriptorSetLayoutBinding = new DescriptorSetLayoutBinding
+descriptorSetLayoutBinding.descriptorType = DescriptorType.SAMPLER_TEXTURE;
+descriptorSetLayoutBinding.stageFlags = ShaderStageFlagBits.FRAGMENT;
+descriptorSetLayoutBinding.binding = TEXTURE_BINDING;
+descriptorSetLayoutBinding.descriptorCount = 0;
+
+const descriptorSetLayoutInfo = new DescriptorSetLayoutInfo
+descriptorSetLayoutInfo.bindings.add(descriptorSetLayoutBinding);
+
+const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
+
+const pipelineLayoutInfo = new PipelineLayoutInfo;
+pipelineLayoutInfo.layouts.add(descriptorSetLayout);
+
+const pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
+
+const pipelineInfo = new PipelineInfo;
+pipelineInfo.inputAssembler = inputAssembler
+pipelineInfo.layout = pipelineLayout;
+pipelineInfo.passState = passState;
+pipelineInfo.renderPass = renderPass;
+
+const pipeline = device.createPipeline(pipelineInfo);
 
 const framebufferInfo = new FramebufferInfo;
 framebufferInfo.colors.add(device.swapchain.colorTexture);
@@ -203,6 +172,13 @@ framebufferInfo.renderPass = renderPass;
 framebufferInfo.width = device.swapchain.width;
 framebufferInfo.height = device.swapchain.height;
 const framebuffer = device.createFramebuffer(framebufferInfo);
+
+const samplerInfo = new SamplerInfo;
+samplerInfo.magFilter = Filter.LINEAR;
+samplerInfo.magFilter = Filter.LINEAR;
+const sampler = device.createSampler(samplerInfo)
+const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+descriptorSet.bindTexture(TEXTURE_BINDING, texture, sampler)
 
 commandBuffer.begin()
 commandBuffer.beginRenderPass(renderPass, framebuffer, 0, 0, device.swapchain.width, device.swapchain.height);

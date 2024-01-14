@@ -1,4 +1,5 @@
-import { Material, MeshRenderer, Node, Shader, UIElement, Vec2, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { Material, MeshRenderer, Node, Shader, bundle, device, render, shaderLib, vec3, vec4 } from "engine";
+import { Element } from "flex";
 import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Polygon } from "./Polygon.js";
 
@@ -27,17 +28,7 @@ function triangulate(n: number, indexBuffer: render.BufferView) {
     }
 }
 
-export default class PolygonsRenderer extends UIElement {
-    public get size(): Readonly<Vec2> {
-        return vec2.ZERO
-    }
-    public set size(value: Readonly<Vec2>) { }
-
-    public get anchor(): Readonly<Vec2> {
-        return vec2.ZERO
-    }
-    public set anchor(value: Readonly<Vec2>) { }
-
+export default class PolygonsRenderer extends Element {
     private _polygons_invalidated = true;
     private _polygons: readonly Polygon[] = [];
     public get polygons(): readonly Polygon[] {
@@ -64,6 +55,7 @@ export default class PolygonsRenderer extends UIElement {
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
         const pass = new render.Pass(state);
+        pass.initialize()
         pass.setUniform('Props', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
         this._material = { passes: [pass] };

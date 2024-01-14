@@ -1,4 +1,5 @@
-import { Camera, Node, Pipeline, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle as builtin, device, platform, reboot, render, safeArea, vec2, vec3 } from "engine";
+import { Camera, InputEventType, Node, Pipeline, TextRenderer, Texture, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from "engine";
+import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Renderer } from "flex";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await builtin.cache('favicon.ico', Texture);
@@ -24,86 +25,65 @@ export default class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibility = VisibilityFlagBits.DEFAULT;
+        node = new Node;
+        node.position = vec3.create(-width / 2, height / 2);
+        node.visibility = VisibilityFlagBits.DEFAULT;
+        const doc = node.addComponent(Document);
+        doc.alignItems = Align.Center
+        doc.setWidth(width);
+        doc.setHeight(height);
+        doc.setPadding(Edge.Top, 8)
+
+        const pipelineBar = (new Node).addComponent(ElementContainer);
+        pipelineBar.flexDirection = FlexDirection.Row;
+        pipelineBar.setGap(Gutter.Column, 16)
+        {
+            const textRenderer = Renderer.create(TextRenderer);
+            textRenderer.impl.text = 'NORMAL';
+            textRenderer.impl.color = text_color_normal;
+            textRenderer.emitter.on(InputEventType.TOUCH_START, async event => {
+                this.onPipelineText(normal, textRenderer.impl)
+            })
+            this.onPipelineText(normal, textRenderer.impl);
+            pipelineBar.addElement(textRenderer);
+        }
+        {
+            const textRenderer = Renderer.create(TextRenderer);
+            textRenderer.impl.text = 'MSAA';
+            textRenderer.impl.color = text_color_normal;
+            textRenderer.emitter.on(InputEventType.TOUCH_START, async event => {
+                this.onPipelineText(msaa, textRenderer.impl)
+            })
+            pipelineBar.addElement(textRenderer);
+        }
+        {
+            const textRenderer = Renderer.create(TextRenderer);
+            textRenderer.impl.text = 'FXAA';
+            textRenderer.impl.color = text_color_normal;
+            textRenderer.emitter.on(InputEventType.TOUCH_START, async event => {
+                this.onPipelineText(fxaa, textRenderer.impl)
+            })
+            pipelineBar.addElement(textRenderer);
+        }
+        doc.addElement(pipelineBar);
 
         node = new Node;
         const cuttingBoard = node.addComponent(CuttingBoard);
         cuttingBoard.texture = favicon.impl;
-        cuttingBoard.size = vec2.create(width, height);
-        doc.addElement(cuttingBoard);
-
-        const textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.node.position = [0, safeArea.y + safeArea.height - 100, 0];
-        textRenderer.impl.text = '触摸并移动';
-        cuttingBoard.on(CuttingBoardEventType.POLYGONS_CHANGED, () => {
+        cuttingBoard.setWidth(width);
+        cuttingBoard.setHeight(height);
+        cuttingBoard.emitter.on(CuttingBoardEventType.POLYGONS_CHANGED, () => {
             if (cuttingBoard.polygons.length > 9) {
                 cuttingBoard.reset();
             }
         })
+        doc.addElement(cuttingBoard);
 
+        const textRenderer = Renderer.create(TextRenderer);
+        textRenderer.impl.text = '触摸并移动';
+        textRenderer.positionType = PositionType.Absolute
+        textRenderer.setPosition(Edge.Top, 80)
         doc.addElement(textRenderer);
-
-        let text_x = -width / 2 + 8;
-        {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = 'NORMAL';
-            textRenderer.impl.color = text_color_normal;
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                this.onPipelineText(normal, textRenderer.impl)
-            })
-            textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
-            doc.addElement(textRenderer);
-            text_x += textRenderer.size[0] + 30;
-
-            this.onPipelineText(msaa, textRenderer.impl);
-        }
-
-        {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = 'MSAA';
-            textRenderer.impl.color = text_color_normal;
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                this.onPipelineText(msaa, textRenderer.impl)
-            })
-            textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
-            doc.addElement(textRenderer);
-            text_x += textRenderer.size[0] + 30;
-        }
-
-        {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = 'FXAA';
-            textRenderer.impl.color = text_color_normal;
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                this.onPipelineText(fxaa, textRenderer.impl)
-            })
-            textRenderer.node.position = [text_x, safeArea.y + safeArea.height - 8, 0];
-            doc.addElement(textRenderer);
-            text_x += textRenderer.size[0] + 30;
-        }
-
-        if (platform == 'wx') {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = '重启';
-            textRenderer.impl.color = [0, 1, 0, 1];
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                reboot();
-            })
-            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            doc.addElement(textRenderer);
-        }
-
-        node = new Node;
-        const profiler = node.addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2 + 8, safeArea.y, 0];
-        doc.addElement(profiler);
 
         return normal;
     }

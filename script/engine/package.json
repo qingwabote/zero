@@ -1,6 +1,7 @@
 {
     "name": "engine",
     "dependencies": {
+        "bastard": "file:../bastard",
         "assets": "file:../assets",
         "boot": "file:../boot/declare",
         "bundling": "file:../bundling",

@@ -2,16 +2,17 @@
     "type": "module",
     "scripts": {
         "yaml": "rollup -i ../../../script/engine/node_modules/yaml/browser/index.js -o dist/yaml.js",
+        "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
+        "boot": "tsc -p ../../../script/boot/web --outDir dist/boot --watch",
         "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/webgl2 --outDir dist/gfx --watch",
-        "loader": "tsc -p ../../../script/loader/web --outDir dist/loader --watch",
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
-        "phys": "tsc -p ../../../script/phys/ammo --outDir dist/phys --watch",
-        "boot": "tsc -p ../../../script/boot/web --outDir dist/boot --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
+        "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",
+        "phys": "tsc -p ../../../script/phys/ammo --outDir dist/phys --watch",
         "physics": "tsc -p ../../../script/physics --outDir dist/physics --watch",
         "server": "http-server ../../../ -p 8003 -o projects/vehicle/web/index.html -c-1",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run loader\" \"npm run assets\" \"npm run phys\" \"npm run boot\" \"npm run engine\" \"npm run script\" \"npm run physics\" \"npm run server\""
+        "dev": "concurrently \"npm run bastard\" \"npm run boot\" \"npm run gfx-common\" \"npm run gfx\" \"npm run assets\" \"npm run engine\" \"npm run flex\" \"npm run script\" \"npm run phys\" \"npm run physics\" \"npm run server\""
     }
 }

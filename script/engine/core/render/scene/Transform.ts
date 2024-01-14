@@ -1,5 +1,4 @@
-import { EventEmitter } from "../../../base/EventEmitter.js";
-import { EventEmitterImpl } from "../../../base/EventEmitterImpl.js";
+import { EventEmitter, EventEmitterImpl } from "bastard";
 import { TRS } from "../../math/TRS.js";
 import { mat3 } from "../../math/mat3.js";
 import { Mat4Like, mat4 } from "../../math/mat4.js";

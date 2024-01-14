@@ -8,7 +8,9 @@ System.addImportMap({
         "assets": "./dist/assets/index.js",
         "splash": "./dist/splash/script/index.js",
         "yaml": "./dist/subpackages/engine/yaml.js",
+        "bastard": "./dist/subpackages/engine/bastard/index.js",
         "engine": "./dist/subpackages/engine/script/index.js",
+        "flex": "./dist/subpackages/engine/flex/script/index.js",
         "@esotericsoftware/spine-core": "./dist/subpackages/spine/spine-core.js",
         "spine": "./dist/subpackages/spine/index.js",
         "phys": "./dist/subpackages/physics/phys/script/index.js",
@@ -19,7 +21,8 @@ System.addImportMap({
         "skin": "./dist/subpackages/projects/skin/script/index.js",
         "skeleton": "./dist/subpackages/projects/skeleton/script/index.js",
         "vehicle": "./dist/subpackages/projects/vehicle/script/index.js",
-        "cutting2d": "./dist/subpackages/projects/cutting2d/script/index.js"
+        "cutting2d": "./dist/subpackages/projects/cutting2d/script/index.js",
+        "yoga": "./dist/subpackages/projects/yoga/script/index.js"
     },
     scopes: {
         "./dist/splash/": {
@@ -27,6 +30,9 @@ System.addImportMap({
         },
         "./dist/subpackages/engine/": {
             "bundling": "./bundling-engine.js"
+        },
+        "./dist/subpackages/engine/flex/": {
+            "bundling": "./bundling-flex.js"
         },
         "./dist/subpackages/physics/phys/": {
             "bundling": "./bundling-phys.js"
