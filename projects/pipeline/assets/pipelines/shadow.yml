@@ -1,0 +1,33 @@
+textures:
+  - name: shadowmap
+    usage:
+      - DEPTH_STENCIL
+      - SAMPLED
+    width: 1024
+    height: 1024
+flows:
+  - uniforms:
+      - type: camera
+        binding: 1
+      - type: light
+        binding: 2
+      - type: shadow
+        binding: 3
+      - type: samplerTexture
+        texture: shadowmap
+        binding: 0
+    stages:
+      - name: shadowmap
+        phases:
+          - pass: shadowmap
+            visibility: ${DEFAULT}
+        framebuffer:
+          depthStencil: shadowmap
+        clears:
+          - DEPTH
+      - name: forward
+        phases:
+          - pass: shadow
+            visibility: ${DEFAULT}
+          - pass: default
+            visibility: ${UI}

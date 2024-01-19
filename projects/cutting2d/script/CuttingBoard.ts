@@ -1,5 +1,5 @@
-import { InputEventType, Node, Primitive, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
-import { Align, ElementContainer, EventToListener, Justify, Renderer, Touch } from "flex";
+import { Node, Primitive, TouchEventName, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
+import { Align, ElementContainer, ElementEventToListener, Justify, Renderer, Touch } from "flex";
 import { Texture } from "gfx";
 import { Polygon, Vertex } from "./Polygon.js";
 import PolygonsRenderer from "./PolygonsRenderer.js";
@@ -125,7 +125,7 @@ export enum CuttingBoardEventType {
     POLYGONS_CHANGED = "POLYGONS_CHANGED",
 }
 
-export interface CuttingBoardEventToListener extends EventToListener {
+export interface CuttingBoardEventToListener extends ElementEventToListener {
     [CuttingBoardEventType.POLYGONS_CHANGED]: () => void;
 }
 
@@ -158,16 +158,16 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
         this._primitive = primitive.impl;
 
         let touch: Touch;
-        this.emitter.on(InputEventType.TOUCH_START, event => {
+        this.emitter.on(TouchEventName.START, event => {
             touch = event.touch;
         });
-        this.emitter.on(InputEventType.TOUCH_MOVE, event => {
+        this.emitter.on(TouchEventName.MOVE, event => {
             mat4.invert(mat4_a, primitive.node.world_matrix);
             const from = vec2.transformMat4(vec2.create(), touch.world, mat4_a);
             const to = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);
             this.drawLine(from, to);
         });
-        this.emitter.on(InputEventType.TOUCH_END, event => {
+        this.emitter.on(TouchEventName.END, event => {
             mat4.invert(mat4_a, this._polygonsRenderer.node.world_matrix);
             const a = vec2.transformMat4(vec2.create(), touch.world, mat4_a);
             const b = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);

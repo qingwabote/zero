@@ -15,7 +15,7 @@ import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
+import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
 
@@ -129,7 +129,7 @@ export class TextRenderer extends BoundedRenderer {
 
             this._dirtyFlag = DirtyFlagBits.NONE;
 
-            this.emit(BoundsEvent.BOUNDS_CHANGED);
+            this.emit(BoundsEventName.BOUNDS_CHANGED);
 
             return;
         }
@@ -208,6 +208,6 @@ export class TextRenderer extends BoundedRenderer {
 
         this._dirtyFlag = DirtyFlagBits.NONE;
 
-        this.emit(BoundsEvent.BOUNDS_CHANGED);
+        this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
 }

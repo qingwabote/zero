@@ -11,7 +11,7 @@ import { Pass } from "../core/render/scene/Pass.js";
 import { SubModel } from "../core/render/scene/SubModel.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { BoundedRenderer, BoundsEvent } from "./BoundedRenderer.js";
+import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
 
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
 
@@ -43,7 +43,7 @@ export class SpriteRenderer extends BoundedRenderer {
     }
     public set spriteFrame(value: SpriteFrame) {
         this._spriteFrame = value;
-        this.emit(BoundsEvent.BOUNDS_CHANGED);
+        this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
 
     filter = Filter.NEAREST;

@@ -17,7 +17,7 @@ import {
 } from "engine";
 import { Align, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 
-const walkrun_and_idle = await bundle.cache('walkrun_and_idle/scene', GLTF);
+const walkrun_and_idle = await (await bundle.cache('walkrun_and_idle/scene', GLTF)).instantiate();
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).createRenderPipeline();
 
@@ -43,9 +43,9 @@ export class App extends Zero {
         node.euler = vec3.create(0, 60, 0)
         const animation = node.addComponent(BlendAnimation);
         const clips: AnimationClip[] = [];
-        clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Idle')!)
-        clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Walk')!)
-        clips.push(walkrun_and_idle.animationClips.find(clip => clip.name == 'Armature|Run')!)
+        clips.push(walkrun_and_idle.gltf.animationClips.find(clip => clip.name == 'Armature|Idle')!)
+        clips.push(walkrun_and_idle.gltf.animationClips.find(clip => clip.name == 'Armature|Walk')!)
+        clips.push(walkrun_and_idle.gltf.animationClips.find(clip => clip.name == 'Armature|Run')!)
         animation.clips = clips;
         animation.thresholds = [0, 0.5, 1]
 

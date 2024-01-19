@@ -1,5 +1,5 @@
-import { InputEventType, Node, Primitive, Vec2, vec2, vec3 } from "engine";
-import { ElementContainer, EventToListener, Renderer } from "flex";
+import { Node, Primitive, TouchEventName, Vec2, vec2, vec3 } from "engine";
+import { ElementContainer, ElementEventToListener, Renderer } from "flex";
 
 const vec3_a = vec3.create()
 const vec3_b = vec3.create()
@@ -10,7 +10,7 @@ export enum JoystickEventType {
     CHANGED = 'CHANGED'
 }
 
-interface JoystickEventToListener extends EventToListener {
+interface JoystickEventToListener extends ElementEventToListener {
     [JoystickEventType.CHANGED]: () => void;
 }
 
@@ -31,7 +31,7 @@ export default class Joystick extends ElementContainer<JoystickEventToListener> 
         this.draw(primitive, this._point)
         this.addElement(primitive);
 
-        primitive.emitter.on(InputEventType.TOUCH_START, event => {
+        primitive.emitter.on(TouchEventName.START, event => {
             const local = event.touch.local;
             vec2.set(
                 this._point,
@@ -41,7 +41,7 @@ export default class Joystick extends ElementContainer<JoystickEventToListener> 
             this.draw(primitive, this._point)
             this.emitter.emit(JoystickEventType.CHANGED);
         });
-        primitive.emitter.on(InputEventType.TOUCH_MOVE, event => {
+        primitive.emitter.on(TouchEventName.MOVE, event => {
             const local = event.touch.local;
             vec2.set(
                 this._point,
@@ -51,7 +51,7 @@ export default class Joystick extends ElementContainer<JoystickEventToListener> 
             this.draw(primitive, this._point)
             this.emitter.emit(JoystickEventType.CHANGED);
         });
-        primitive.emitter.on(InputEventType.TOUCH_END, event => {
+        primitive.emitter.on(TouchEventName.END, event => {
             vec2.set(this._point, 0, 0);
             this.draw(primitive, this._point)
             this.emitter.emit(JoystickEventType.CHANGED);

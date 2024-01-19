@@ -1,0 +1,13 @@
+flows:
+  - uniforms:
+      - type: camera
+        binding: 1
+      - type: light
+        binding: 2
+    stages:
+      - name: forward
+        phases:
+          - pass: phong
+            visibility: ${DEFAULT}
+          - pass: default
+            visibility: ${UI}

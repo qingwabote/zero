@@ -1,5 +1,5 @@
 import { EventEmitter, EventEmitterImpl, SmartRef } from "bastard";
-import { AABB2D, Component, InputEventType, Node, Vec2, aabb2d, vec2, vec3 } from "engine";
+import { AABB2D, Component, GestureEventName, Node, TouchEventName, Vec2, aabb2d, vec2, vec3 } from "engine";
 import * as yoga from "./yoga/index.js";
 
 const vec3_a = vec3.create();
@@ -13,17 +13,17 @@ export interface TouchEvent {
     readonly touch: Touch
 }
 
-export interface EventToListener {
-    [InputEventType.TOUCH_START]: (event: TouchEvent) => void;
-    [InputEventType.TOUCH_MOVE]: (event: TouchEvent) => void;
-    [InputEventType.TOUCH_END]: (event: TouchEvent) => void;
-    [InputEventType.GESTURE_PINCH]: () => void;
-    [InputEventType.GESTURE_ROTATE]: () => void;
+export interface ElementEventToListener {
+    [TouchEventName.START]: (event: TouchEvent) => void;
+    [TouchEventName.MOVE]: (event: TouchEvent) => void;
+    [TouchEventName.END]: (event: TouchEvent) => void;
+    [GestureEventName.PINCH]: () => void;
+    [GestureEventName.ROTATE]: () => void;
 }
 
 function yg_node_free(node: yoga.Node) { node.free(); }
 
-export abstract class Element<T extends EventToListener = EventToListener> extends Component {
+export abstract class Element<T extends ElementEventToListener = ElementEventToListener> extends Component {
     private _emitter: EventEmitter<T> | undefined = undefined;
     public get emitter() {
         return this._emitter ? this._emitter : this._emitter = new EventEmitterImpl;

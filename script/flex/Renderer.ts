@@ -1,5 +1,5 @@
 import { SmartRef } from "bastard";
-import { AABB2D, BoundedRenderer, BoundsEvent, Node, vec3 } from "engine";
+import { AABB2D, BoundedRenderer, BoundsEventName, Node, vec3 } from "engine";
 import { Element } from "./Element.js";
 import * as yoga from "./yoga/index.js";
 
@@ -28,7 +28,7 @@ export class Renderer<T extends BoundedRenderer> extends Element {
             const halfExtent = this.impl.bounds.halfExtent;
             return { width: halfExtent[0] * 2 * PIXELS_PER_UNIT, height: halfExtent[1] * 2 * PIXELS_PER_UNIT };
         })
-        this.impl.on(BoundsEvent.BOUNDS_CHANGED, () => {
+        this.impl.on(BoundsEventName.BOUNDS_CHANGED, () => {
             this.yg_node.deref().markDirty();
         })
     }

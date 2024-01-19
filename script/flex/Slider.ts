@@ -1,6 +1,6 @@
 import { bundle } from "bundling";
-import { InputEventType, Node, SpriteFrame, SpriteRenderer, Texture, Vec2, vec4 } from "engine";
-import { EventToListener } from "./Element.js";
+import { Node, SpriteFrame, SpriteRenderer, Texture, TouchEventName, Vec2, vec4 } from "engine";
+import { ElementEventToListener } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";
 import * as yoga from "./yoga/index.js";
@@ -12,7 +12,7 @@ export enum SliderEventType {
     CHANGED = 'CHANGED'
 }
 
-export interface SliderEventToListener extends EventToListener {
+export interface SliderEventToListener extends ElementEventToListener {
     [SliderEventType.CHANGED]: () => void
 }
 
@@ -48,10 +48,10 @@ export class Slider extends ElementContainer<SliderEventToListener> {
         this.addElement(foreground);
         this._foreground = foreground;
 
-        this.emitter.on(InputEventType.TOUCH_START, (event) => {
+        this.emitter.on(TouchEventName.START, (event) => {
             this.onTouch(event.touch.local)
         })
-        this.emitter.on(InputEventType.TOUCH_MOVE, (event) => {
+        this.emitter.on(TouchEventName.MOVE, (event) => {
             this.onTouch(event.touch.local)
         })
 

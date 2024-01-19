@@ -1,6 +1,6 @@
 import { SmartRef } from "bastard";
 import { Touch } from "boot";
-import { BoundedRenderer, Camera, InputEventType, Node, Vec2, Zero, aabb2d, mat4, vec2 } from "engine";
+import { BoundedRenderer, Camera, Node, TouchEventName, Vec2, Zero, aabb2d, mat4, vec2 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -13,12 +13,12 @@ export class Document extends ElementContainer {
 
     constructor(node: Node) {
         super(node);
-        Zero.instance.input.on(InputEventType.TOUCH_START, event => {
+        Zero.instance.input.on(TouchEventName.START, event => {
             this._touchClaimed.clear();
-            this.touchHandler(event.touches[0], InputEventType.TOUCH_START);
+            this.touchHandler(event.touches[0], TouchEventName.START);
         });
-        Zero.instance.input.on(InputEventType.TOUCH_MOVE, event => this.touchHandler(event.touches[0], InputEventType.TOUCH_MOVE));
-        Zero.instance.input.on(InputEventType.TOUCH_END, event => this.touchHandler(event.touches[0], InputEventType.TOUCH_END));
+        Zero.instance.input.on(TouchEventName.MOVE, event => this.touchHandler(event.touches[0], TouchEventName.MOVE));
+        Zero.instance.input.on(TouchEventName.END, event => this.touchHandler(event.touches[0], TouchEventName.END));
 
         LayoutSystem.instance.addRoot(this.yg_node);
     }
@@ -38,7 +38,7 @@ export class Document extends ElementContainer {
         return order;
     }
 
-    private touchHandler(touch: Touch, type: InputEventType) {
+    private touchHandler(touch: Touch, type: TouchEventName) {
         const cameras = Camera.instances;
         const world_positions: Vec2[] = [];
         for (let i = 0; i < cameras.length; i++) {
@@ -52,7 +52,7 @@ export class Document extends ElementContainer {
         }
     }
 
-    private touchWalk(element: Element, cameras: readonly Camera[], world_positions: readonly Readonly<Vec2>[], type: InputEventType) {
+    private touchWalk(element: Element, cameras: readonly Camera[], world_positions: readonly Readonly<Vec2>[], type: TouchEventName) {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (!(element.node.visibility & camera.visibilities)) {
@@ -64,7 +64,7 @@ export class Document extends ElementContainer {
                 continue;
             }
 
-            if (type != InputEventType.TOUCH_START && !this._touchClaimed.has(element)) {
+            if (type != TouchEventName.START && !this._touchClaimed.has(element)) {
                 continue;
             }
 
@@ -87,7 +87,7 @@ export class Document extends ElementContainer {
                         if (element.emitter.has(type)) {
                             element.emitter.emit(type, { touch: { world: world_position, local: local_position } });
                         }
-                        if (type == InputEventType.TOUCH_START) {
+                        if (type == TouchEventName.START) {
                             this._touchClaimed.set(element, element);
                         }
                         return true;
@@ -98,7 +98,7 @@ export class Document extends ElementContainer {
             if (element.emitter.has(type)) {
                 element.emitter.emit(type, { touch: { world: world_position, local: local_position } });
             }
-            if (type == InputEventType.TOUCH_START) {
+            if (type == TouchEventName.START) {
                 this._touchClaimed.set(element, element);
             }
             return true;

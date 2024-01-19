@@ -1,4 +1,4 @@
-import { Camera, InputEventType, Vec2, Zero, quat, vec3 } from "engine";
+import { Camera, GestureEventName, TouchEventName, Vec2, Zero, quat, vec3 } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
 
 export class CameraControlPanel extends ElementContainer {
@@ -16,10 +16,10 @@ export class CameraControlPanel extends ElementContainer {
 
     override start(): void {
         let point: Readonly<Vec2>;
-        this.emitter.on(InputEventType.TOUCH_START, event => {
+        this.emitter.on(TouchEventName.START, event => {
             point = event.touch.local
         })
-        this.emitter.on(InputEventType.TOUCH_MOVE, event => {
+        this.emitter.on(TouchEventName.MOVE, event => {
             const dx = event.touch.local[0] - point[0];
             const dy = event.touch.local[1] - point[1];
 
@@ -44,7 +44,7 @@ export class CameraControlPanel extends ElementContainer {
 
             point = event.touch.local
         })
-        Zero.instance.input.on(InputEventType.GESTURE_PINCH, event => {
+        Zero.instance.input.on(GestureEventName.PINCH, event => {
             let delta_position = vec3.create(0, 0, event.delta / 1000);
             delta_position = vec3.transformQuat(vec3.create(), delta_position, this.camera.node.rotation);
             this.camera.node.position = vec3.add(vec3.create(), this.camera.node.position, delta_position);

@@ -11,23 +11,12 @@ import { Node } from "../core/Node.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { getSampler } from "../core/sc.js";
 import { AnimationClip, Channel } from "./AnimationClip.js";
 import { Effect } from "./Effect.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
-
-export interface MaterialMacros {
-    USE_SHADOW_MAP?: 0 | 1;
-    USE_SKIN?: 0 | 1;
-}
-
-export interface MaterialValues {
-    albedo?: Vec4;
-    texture?: Texture;
-}
 
 const builtinAttributes: Record<string, string> = {
     "POSITION": "a_position",
@@ -62,26 +51,57 @@ function node2name(node: any, index: number): string {
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
+export interface MaterialParams {
+    albedo: Readonly<Vec4>;
+    skin: boolean;
+    texture?: Texture;
+}
+
+async function materialFuncDefault(params: MaterialParams) {
+    const phong = await bundle.cache("./effects/phong", Effect);
+    const passes = await phong.createPasses([
+        {},
+        {
+            macros: {
+                USE_ALBEDO_MAP: params.texture ? 1 : 0,
+                USE_SKIN: params.skin ? 1 : 0
+            },
+            props: {
+                albedo: params.albedo
+            }
+        }
+    ]);
+    if (params.texture) {
+        passes[1].setTexture('albedoMap', params.texture.impl)
+    }
+    return new Material(passes);
+}
+
 export class GLTF implements Asset {
     private _json: any;
     get json(): any {
         return this._json;
     }
 
-    private _bin: ArrayBuffer | undefined;
+    private _bin!: ArrayBuffer;
+    get bin(): ArrayBuffer {
+        return this._bin;
+    }
 
     private _buffers: Buffer[] = [];
+    get buffers(): readonly Buffer[] {
+        return this._buffers;
+    }
 
-    private _textures: Texture[] = [];
+    private _textures!: Texture[];
     get textures(): Texture[] {
         return this._textures;
     }
 
-    private _materialDefault!: Material;
-
-    materials: Material[] = [];
-
     private _skins: Skin[] = [];
+    get skins(): Skin[] {
+        return this._skins;
+    }
 
     private _animationClips: AnimationClip[] = [];
     get animationClips(): readonly AnimationClip[] {
@@ -98,18 +118,7 @@ export class GLTF implements Asset {
         const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text"));
         const bin = await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer");
         const json_images = json.images || [];
-        const textures: Texture[] = await Promise.all(json_images.map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture)));
-
-        this._materialDefault = await this.createMaterial();
-
-        for (const info of json.materials || []) {
-            let textureIdx = -1;
-            if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
-                textureIdx = json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
-            }
-            this.materials.push(await this.createMaterial({ USE_SKIN: json.skins ? 1 : 0 }, { albedo: info.pbrMetallicRoughness.baseColorFactor, texture: textures[textureIdx] }));
-        }
-        this._textures = textures;
+        this._textures = await Promise.all(json_images.map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture)));
 
         const child2parent: Record<number, number> = {};
         for (let i = 0; i < json.nodes.length; i++) {
@@ -185,166 +194,27 @@ export class GLTF implements Asset {
         return this;
     }
 
-    protected async createMaterial(macros: MaterialMacros = {}, values: MaterialValues = {}) {
-        const USE_SHADOW_MAP = macros.USE_SHADOW_MAP == undefined ? 0 : macros.USE_SHADOW_MAP;
-        const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
-        const albedo = values.albedo || vec4.ONE;
-        const texture = values.texture;
-
-        const effect = await bundle.cache("./effects/phong", Effect);
-        const passes = await effect.createPasses([
-            {
-                macros: { USE_SHADOW_MAP }
-            },
-            {
-                macros: {
-                    USE_ALBEDO_MAP: texture ? 1 : 0,
-                    USE_SHADOW_MAP,
-                    USE_SKIN,
-                    CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-                },
-                props: {
-                    albedo
-                },
-                ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
+    async instantiate(materialFunc = materialFuncDefault): Promise<GLTFInstance> {
+        const materialDefault = await materialFunc({
+            albedo: vec4.ONE,
+            skin: false
+        });
+        const materials: Material[] = []
+        for (const info of this._json.materials || []) {
+            let textureIdx = -1;
+            if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
+                textureIdx = this._json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
             }
-        ]);
-        return new Material(passes);
+            materials.push(await materialFunc({
+                texture: this._textures[textureIdx],
+                albedo: info.pbrMetallicRoughness.baseColorFactor || vec4.ONE,
+                skin: this._json.skins != undefined,
+            }));
+        }
+        return new GLTFInstance(this, materials, materialDefault);
     }
 
-    createScene(name?: string, materialInstancing = false): Node | null {
-        if (!this._json || !this._bin || !this._textures) return null;
-
-        const scene = (this._json.scenes as any[]).find(scene => scene.name == name || name == undefined);
-        const node = new Node(name);
-        for (const index of scene.nodes) {
-            node.addChild(this.createNode(index, materialInstancing, node))
-        }
-        return node;
-    }
-
-    private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
-        const info = this._json.nodes[index];
-        const node = new Node(node2name(info, index));
-        if (!root) {
-            root = node;
-        }
-        if (info.matrix) {
-            mat4.toTRS(info.matrix, node.position, node.rotation, node.scale);
-        } else {
-            if (info.translation) {
-                node.position = info.translation;
-            }
-            if (info.rotation) {
-                node.rotation = info.rotation;
-            }
-            if (info.scale) {
-                node.scale = info.scale;
-            }
-        }
-
-        if (info.mesh != undefined) {
-            const [mesh, materials] = this.createMesh(this._json.meshes[info.mesh], materialInstancing);
-            const renderer = node.addComponent(info.skin != undefined ? SkinnedMeshRenderer : MeshRenderer);
-            renderer.mesh = mesh
-            renderer.materials = materials;
-            if (renderer instanceof SkinnedMeshRenderer) {
-                renderer.skin = this._skins[info.skin];
-                renderer.transform = root;
-            }
-        }
-
-        if (info.children) {
-            for (const idx of info.children) {
-                node.addChild(this.createNode(idx, materialInstancing, root));
-            }
-        }
-        return node;
-    }
-
-    private createMesh(info: any, materialInstancing: boolean): [Mesh, Material[]] {
-        const subMeshes: SubMesh[] = [];
-        const materials: Material[] = [];
-        for (const primitive of info.primitives) {
-            let material = primitive.material == undefined ? this._materialDefault : this.materials[primitive.material];
-            if (materialInstancing) {
-                material = new MaterialInstance(material);
-            }
-            // assert
-            if (primitive.material != undefined &&
-                this._json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined &&
-                primitive.attributes['TEXCOORD_0'] == undefined) {
-                console.log("not provided attribute: TEXCOORD_0")
-                continue;
-            }
-
-            const iaInfo = new InputAssemblerInfo;
-            const vertexInput = new VertexInput;
-            for (const key in primitive.attributes) {
-                const accessor = this._json.accessors[primitive.attributes[key]];
-                const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
-                if (format == undefined) {
-                    console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
-                    continue;
-                }
-                const name = builtinAttributes[key];
-                if (!name) {
-                    // console.log(`unknown attribute: ${key}`);
-                    continue;
-                }
-                const attribute: VertexAttribute = new VertexAttribute;
-                attribute.name = name;
-                attribute.format = format;
-                attribute.buffer = vertexInput.buffers.size();
-                attribute.offset = 0;
-                iaInfo.vertexAttributes.add(attribute);
-                vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
-                vertexInput.offsets.add(accessor.byteOffset || 0);
-            }
-            iaInfo.vertexInput = vertexInput;
-
-            const indexAccessor = this._json.accessors[primitive.indices];
-            const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
-
-            materials.push(material);
-
-            if (indexAccessor.type != "SCALAR") {
-                throw new Error("unsupported index type");
-            }
-            let indexType: IndexType;
-            switch (indexAccessor.componentType) {
-                case 5123:
-                    indexType = IndexType.UINT16;
-                    break;
-                case 5125:
-                    indexType = IndexType.UINT32;
-                    break;
-                default:
-                    throw new Error("unsupported index type");
-            }
-
-            const indexInput = new IndexInput;
-            indexInput.buffer = indexBuffer;
-            indexInput.type = indexType;
-            iaInfo.indexInput = indexInput;
-
-            const posAccessor = this._json.accessors[primitive.attributes['POSITION']];
-            subMeshes.push(
-                new SubMesh(
-                    device.createInputAssembler(iaInfo),
-                    posAccessor.min,
-                    posAccessor.max,
-                    {
-                        count: indexAccessor.count,
-                        first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
-                    }
-                )
-            )
-        }
-        return [{ subMeshes }, materials];
-    }
-
-    private getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
+    getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
         let buffer = this._buffers[index];
         if (!this._buffers[index]) {
             const viewInfo = this._json.bufferViews[index];
@@ -390,4 +260,140 @@ export class GLTF implements Asset {
     // private onProgress(loaded: number, total: number, url: string) {
     //     console.log(`download: ${url}, progress: ${loaded / total * 100}`)
     // }
+}
+
+export class GLTFInstance {
+    constructor(readonly gltf: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
+
+    createScene(name?: string, materialInstancing = false): Node | null {
+        if (!this.gltf.json || !this.gltf.bin || !this.gltf.textures) return null;
+
+        const scene = (this.gltf.json.scenes as any[]).find(scene => scene.name == name || name == undefined);
+        const node = new Node(name);
+        for (const index of scene.nodes) {
+            node.addChild(this.createNode(index, materialInstancing, node))
+        }
+        return node;
+    }
+
+    private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
+        const info = this.gltf.json.nodes[index];
+        const node = new Node(node2name(info, index));
+        if (!root) {
+            root = node;
+        }
+        if (info.matrix) {
+            mat4.toTRS(info.matrix, node.position, node.rotation, node.scale);
+        } else {
+            if (info.translation) {
+                node.position = info.translation;
+            }
+            if (info.rotation) {
+                node.rotation = info.rotation;
+            }
+            if (info.scale) {
+                node.scale = info.scale;
+            }
+        }
+
+        if (info.mesh != undefined) {
+            const [mesh, materials] = this.createMesh(this.gltf.json.meshes[info.mesh], materialInstancing);
+            const renderer = node.addComponent(info.skin != undefined ? SkinnedMeshRenderer : MeshRenderer);
+            renderer.mesh = mesh
+            renderer.materials = materials;
+            if (renderer instanceof SkinnedMeshRenderer) {
+                renderer.skin = this.gltf.skins[info.skin];
+                renderer.transform = root;
+            }
+        }
+
+        if (info.children) {
+            for (const idx of info.children) {
+                node.addChild(this.createNode(idx, materialInstancing, root));
+            }
+        }
+        return node;
+    }
+
+    private createMesh(info: any, materialInstancing: boolean): [Mesh, Material[]] {
+        const subMeshes: SubMesh[] = [];
+        const materials: Material[] = [];
+        for (const primitive of info.primitives) {
+            let material = primitive.material == undefined ? this._materialDefault : this._materials[primitive.material];
+            if (materialInstancing) {
+                material = new MaterialInstance(material);
+            }
+            // assert
+            if (primitive.material != undefined &&
+                this.gltf.json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined &&
+                primitive.attributes['TEXCOORD_0'] == undefined) {
+                console.log("not provided attribute: TEXCOORD_0")
+                continue;
+            }
+
+            const iaInfo = new InputAssemblerInfo;
+            const vertexInput = new VertexInput;
+            for (const key in primitive.attributes) {
+                const accessor = this.gltf.json.accessors[primitive.attributes[key]];
+                const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
+                if (format == undefined) {
+                    console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
+                    continue;
+                }
+                const name = builtinAttributes[key];
+                if (!name) {
+                    // console.log(`unknown attribute: ${key}`);
+                    continue;
+                }
+                const attribute: VertexAttribute = new VertexAttribute;
+                attribute.name = name;
+                attribute.format = format;
+                attribute.buffer = vertexInput.buffers.size();
+                attribute.offset = 0;
+                iaInfo.vertexAttributes.add(attribute);
+                vertexInput.buffers.add(this.gltf.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                vertexInput.offsets.add(accessor.byteOffset || 0);
+            }
+            iaInfo.vertexInput = vertexInput;
+
+            const indexAccessor = this.gltf.json.accessors[primitive.indices];
+            const indexBuffer = this.gltf.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
+
+            materials.push(material);
+
+            if (indexAccessor.type != "SCALAR") {
+                throw new Error("unsupported index type");
+            }
+            let indexType: IndexType;
+            switch (indexAccessor.componentType) {
+                case 5123:
+                    indexType = IndexType.UINT16;
+                    break;
+                case 5125:
+                    indexType = IndexType.UINT32;
+                    break;
+                default:
+                    throw new Error("unsupported index type");
+            }
+
+            const indexInput = new IndexInput;
+            indexInput.buffer = indexBuffer;
+            indexInput.type = indexType;
+            iaInfo.indexInput = indexInput;
+
+            const posAccessor = this.gltf.json.accessors[primitive.attributes['POSITION']];
+            subMeshes.push(
+                new SubMesh(
+                    device.createInputAssembler(iaInfo),
+                    posAccessor.min,
+                    posAccessor.max,
+                    {
+                        count: indexAccessor.count,
+                        first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
+                    }
+                )
+            )
+        }
+        return [{ subMeshes }, materials];
+    }
 }

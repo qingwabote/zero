@@ -1,4 +1,4 @@
-import { Camera, InputEventType, Node, Pipeline, TextRenderer, Texture, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from "engine";
+import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from "engine";
 import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Renderer } from "flex";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
@@ -41,7 +41,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'NORMAL';
             textRenderer.impl.color = text_color_normal;
-            textRenderer.emitter.on(InputEventType.TOUCH_START, async event => {
+            textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(normal, textRenderer.impl)
             })
             this.onPipelineText(normal, textRenderer.impl);
@@ -51,7 +51,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'MSAA';
             textRenderer.impl.color = text_color_normal;
-            textRenderer.emitter.on(InputEventType.TOUCH_START, async event => {
+            textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(msaa, textRenderer.impl)
             })
             pipelineBar.addElement(textRenderer);
@@ -60,7 +60,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'FXAA';
             textRenderer.impl.color = text_color_normal;
-            textRenderer.emitter.on(InputEventType.TOUCH_START, async event => {
+            textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(fxaa, textRenderer.impl)
             })
             pipelineBar.addElement(textRenderer);

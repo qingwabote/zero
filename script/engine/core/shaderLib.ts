@@ -54,6 +54,10 @@ const _key2shader: Record<string, Shader> = {};
 const _shader2meta: WeakMap<Shader, Meta> = new WeakMap;
 const _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
+const _macros: Readonly<Record<string, number>> = {
+    CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
+};
+
 export const shaderLib = {
     sets,
 
@@ -116,16 +120,16 @@ export const shaderLib = {
 
     getShader(asset: ShaderAsset, macros: Record<string, number> = {}): Shader {
 
-        let key = asset.name;
-        for (const macro of asset.macros) {
-            const val = macros[macro] || 0;
-            key += val
+        let shaderKey = asset.name;
+        for (const key of asset.macros) {
+            const val = macros[key] ?? _macros[key] ?? 0;
+            shaderKey += val
         }
 
-        if (!_key2shader[key]) {
+        if (!_key2shader[shaderKey]) {
             const mac: Record<string, number> = {};
-            for (const macro of asset.macros) {
-                mac[macro] = macros[macro] || 0;
+            for (const key of asset.macros) {
+                mac[key] = macros[key] ?? _macros[key] ?? 0;
             }
 
             const sources = asset.sources.map(src => preprocessor.macroExpand(mac, src));
@@ -139,12 +143,12 @@ export const shaderLib = {
 
             const shader = device.createShader(info);
             if (!shader) {
-                throw new Error(`failed to initialize shader: ${key}`)
+                throw new Error(`failed to initialize shader: ${shaderKey}`)
             }
-            _key2shader[key] = shader;
-            _shader2meta.set(shader, { key, ...glsl.parse(sources, types) });
+            _key2shader[shaderKey] = shader;
+            _shader2meta.set(shader, { key: shaderKey, ...glsl.parse(sources, types) });
         }
-        return _key2shader[key];
+        return _key2shader[shaderKey];
     },
 
     getShaderMeta(shader: Shader): Meta {

@@ -16,19 +16,22 @@ const LightBlock = {
 export class LightUniform extends UniformBufferObject {
     static readonly definition = LightBlock;
 
-    private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
-
+    private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, LightBlock.size);
     get buffer(): Buffer {
-        return this._buffer.buffer;
+        return this._view.buffer;
     }
 
+    private _dirty = true;
+
     update(): void {
-        const renderScene = Zero.instance.scene;
-        const directionalLight = renderScene.directionalLight!;
-        if (directionalLight.hasChanged) {
-            const litDir = vec3.normalize(vec3.create(), directionalLight.position);
-            this._buffer.set(litDir, 0);
-            this._buffer.update();
+        const light = Zero.instance.scene.directionalLight!;
+
+        if (this._dirty || light.hasChanged) {
+            const litDir = vec3.normalize(vec3.create(), light.position);
+            this._view.set(litDir, 0);
+            this._view.update();
+
+            this._dirty = false;
         }
     }
 }

@@ -2,7 +2,7 @@ import { EventEmitterImpl } from "bastard";
 import { EventListener, GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
 import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
-import { Input, InputEventType } from "./Input.js";
+import { GestureEventName, Input, TouchEventName } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
@@ -55,7 +55,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private _renderSemaphore: Semaphore;
     private _renderFence: Fence;
 
-    private _inputEvents: Map<InputEventType, any> = new Map;
+    private _inputEvents: Map<TouchEventName | GestureEventName, any> = new Map;
 
     private _time = initial;
 
@@ -116,19 +116,19 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     protected abstract start(): Pipeline;
 
     onTouchStart(event: TouchEvent) {
-        this._inputEvents.set(InputEventType.TOUCH_START, event)
+        this._inputEvents.set(TouchEventName.START, event)
     }
     onTouchMove(event: TouchEvent) {
-        this._inputEvents.set(InputEventType.TOUCH_MOVE, event)
+        this._inputEvents.set(TouchEventName.MOVE, event)
     }
     onTouchEnd(event: TouchEvent) {
-        this._inputEvents.set(InputEventType.TOUCH_END, event)
+        this._inputEvents.set(TouchEventName.END, event)
     }
     onGesturePinch(event: GestureEvent) {
-        this._inputEvents.set(InputEventType.GESTURE_PINCH, event)
+        this._inputEvents.set(GestureEventName.PINCH, event)
     }
     onGestureRotate(event: GestureEvent) {
-        this._inputEvents.set(InputEventType.GESTURE_ROTATE, event)
+        this._inputEvents.set(GestureEventName.ROTATE, event)
     }
 
     onFrame() {

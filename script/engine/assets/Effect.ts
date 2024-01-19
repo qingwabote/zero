@@ -38,13 +38,12 @@ export interface BlendState {
     readonly dstAlpha: BlendFactor;
 }
 
-interface Pass {
+export interface Pass {
     readonly switch?: string;
     readonly type?: string;
     readonly shader?: string;
     readonly macros?: Record<string, number>;
     readonly props?: Record<string, ArrayLike<number>>;
-    readonly samplerTextures?: Record<string, [gfx.Texture, gfx.Sampler]>
     readonly primitive?: keyof typeof gfx.PrimitiveTopology;
     readonly rasterizationState?: RasterizationState;
     readonly depthStencilState?: DepthStencilState;
@@ -65,11 +64,11 @@ export class Effect extends Yml {
         this._passes = res.passes;
     }
 
-    async createPasses(overrides: Pass[]): Promise<render.Pass[]> {
+    async createPasses(overrides: Pass[] = []): Promise<render.Pass[]> {
         const passes: render.Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
-            if (info.switch && info.macros![info.switch] != 1) {
+            if (info.switch && info.macros?.[info.switch] != 1) {
                 continue;
             }
 
@@ -116,9 +115,6 @@ export class Effect extends Yml {
             pass.initialize();
             for (const key in info.props) {
                 pass.setUniform('Props', key, info.props[key]);
-            }
-            for (const key in info.samplerTextures) {
-                pass.setTexture(key, ...info.samplerTextures[key]);
             }
             passes.push(pass);
         }
