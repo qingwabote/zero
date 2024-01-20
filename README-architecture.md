@@ -10,11 +10,13 @@ rectangle system {
     rectangle animation
     rectangle spine
     rectangle physics
+    rectangle layout
 }
 
 rectangle pipeline {
     rectangle Flow
     rectangle Stage
+    rectangle Phase
 }
 
 rectangle render_scene {

@@ -56,8 +56,8 @@ const [guardian, plane, unlit, phong, shadow] = await Promise.all([
     })(),
 ])
 
-const text_color_normal = [0, 1, 0, 1] as const;
-const text_color_selected = [1, 0, 0, 1] as const;
+const text_color_normal = [0.5, 0.5, 0.5, 1] as const;
+const text_color_selected = [0, 1, 0, 1] as const;
 
 export class App extends Zero {
     private _pipelineTextSelected: TextRenderer | undefined = undefined;
