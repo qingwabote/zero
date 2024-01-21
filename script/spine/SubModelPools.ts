@@ -1,6 +1,6 @@
 import * as sc from '@esotericsoftware/spine-core';
 import { Shader, bundle, render, shaderLib, vec3, vec4 } from 'engine';
-import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState, VertexAttributeVector } from "gfx";
+import { BlendFactor, BlendState, CullMode, InputAssembler, PassState, PrimitiveTopology, RasterizationState } from "gfx";
 import { Texture } from "./Texture.js";
 
 const ss_spine = await bundle.cache('./shaders/unlit', Shader);
@@ -10,9 +10,7 @@ class SubModelPool {
     private readonly _subModels: render.SubModel[] = [];
 
     constructor(
-        private readonly _vertexAttributes: VertexAttributeVector,
-        private readonly _vertexInput: render.VertexInputView,
-        private readonly _indexInput: render.IndexInputView,
+        private readonly _inputAssembler: InputAssembler,
         private readonly _texture: Texture,
         private readonly _blend: sc.BlendMode) { }
 
@@ -22,11 +20,9 @@ class SubModelPool {
         }
 
         const subMesh = new render.SubMesh(
-            this._vertexAttributes,
-            this._vertexInput,
+            this._inputAssembler,
             vec3.create(),
             vec3.create(),
-            this._indexInput,
         )
         const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
@@ -48,6 +44,7 @@ class SubModelPool {
                 break;
         }
         const pass = new render.Pass(state);
+        pass.initialize();
         pass.setUniform('Props', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this._texture.getImpl());
 
@@ -66,15 +63,13 @@ export class SubModelPools {
     private _pools: Record<string, SubModelPool> = {};
 
     constructor(
-        private readonly _vertexAttributes: VertexAttributeVector,
-        private readonly _vertexInput: render.VertexInputView,
-        private readonly _indexInput: render.IndexInputView,
+        private readonly _inputAssembler: InputAssembler,
     ) { }
 
     get(key: string, texture: Texture, blend: sc.BlendMode): render.SubModel {
         let pool = this._pools[key];
         if (!pool) {
-            pool = new SubModelPool(this._vertexAttributes, this._vertexInput, this._indexInput, texture, blend);
+            pool = new SubModelPool(this._inputAssembler, texture, blend);
             this._pools[key] = pool;
         }
         return pool.get();

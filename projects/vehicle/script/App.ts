@@ -5,7 +5,7 @@ import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
-const primitive = await bundle.cache('models/primitive/scene', GLTF);
+const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate();
 
 const pipeline = await (await bundle.cache('pipelines/forward', Pipeline)).createRenderPipeline();
 

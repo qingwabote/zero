@@ -52,20 +52,16 @@ export class Framebuffer {
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             switch (status) {
                 case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT: {
-                    console.error('glCheckFramebufferStatus() - FRAMEBUFFER_INCOMPLETE_ATTACHMENT');
-                    break;
+                    throw 'glCheckFramebufferStatus() - FRAMEBUFFER_INCOMPLETE_ATTACHMENT';
                 }
                 case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: {
-                    console.error('glCheckFramebufferStatus() - FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT');
-                    break;
+                    throw 'glCheckFramebufferStatus() - FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT';
                 }
                 case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS: {
-                    console.error('glCheckFramebufferStatus() - FRAMEBUFFER_INCOMPLETE_DIMENSIONS');
-                    break;
+                    throw 'glCheckFramebufferStatus() - FRAMEBUFFER_INCOMPLETE_DIMENSIONS';
                 }
                 case gl.FRAMEBUFFER_UNSUPPORTED: {
-                    console.error('glCheckFramebufferStatus() - FRAMEBUFFER_UNSUPPORTED');
-                    break;
+                    throw 'glCheckFramebufferStatus() - FRAMEBUFFER_UNSUPPORTED';
                 }
             }
         }

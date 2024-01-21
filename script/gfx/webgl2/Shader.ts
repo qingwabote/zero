@@ -45,11 +45,11 @@ export class Shader {
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error(`${types[i] == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.`);
-                console.error(gl.getShaderInfoLog(shader));
+                let err = `${types[i] == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.\n`
+                err += gl.getShaderInfoLog(shader) + '\n';
                 let lineNumber = 1;
-                console.error('Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `));
-                return true;
+                err += 'Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `)
+                throw err;
             }
             shaders.push(shader);
         }
@@ -60,9 +60,7 @@ export class Shader {
         }
         gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            console.error(`Failed to link shader.`);
-            console.error(gl.getProgramInfoLog(program));
-            return true;
+            throw 'Failed to link shader.\n' + gl.getProgramInfoLog(program)
         }
 
         const meta = glsl.parse(sources, types);

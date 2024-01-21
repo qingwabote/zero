@@ -1,6 +1,6 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { AABB2D, BoundedRenderer, Zero, aabb2d, render, vec2 } from "engine";
-import { BufferUsageFlagBits, Format, FormatInfos, IndexType, VertexAttribute, VertexAttributeVector } from 'gfx';
+import { AABB2D, BoundedRenderer, Zero, aabb2d, device, render, vec2 } from "engine";
+import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
 import { SubModelPools } from './SubModelPools.js';
 import { Texture } from './Texture.js';
 
@@ -56,21 +56,27 @@ export class Skeleton extends BoundedRenderer {
         this._skeleton = skeleton;
     }
 
-    private _vertexInput!: render.VertexInputView;
-    private _indexInput!: render.IndexInputView;
+    private _vertexView: render.BufferView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);
+    private _indexView: render.BufferView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 2048 * 3);
 
     private _pools!: SubModelPools;
 
     override start(): void {
-        this._vertexInput = {
-            buffers: [new render.BufferViewWritable('Float32', BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048)],
-            offsets: [0]
-        }
-        this._indexInput = {
-            buffer: new render.BufferViewWritable('Uint16', BufferUsageFlagBits.INDEX, 2048 * 3),
-            type: IndexType.UINT16
-        }
-        this._pools = new SubModelPools(vertexAttributes, this._vertexInput, this._indexInput);
+        const iaInfo = new InputAssemblerInfo;
+        iaInfo.vertexAttributes.add(a_position);
+        iaInfo.vertexAttributes.add(a_texCoord);
+
+        const vertexInput = new VertexInput;
+        vertexInput.buffers.add(this._vertexView.buffer);
+        vertexInput.offsets.add(0);
+        iaInfo.vertexInput = vertexInput;
+
+        const indexInput = new IndexInput;
+        indexInput.buffer = this._indexView.buffer;
+        indexInput.type = IndexType.UINT16;
+        iaInfo.indexInput = indexInput;
+
+        this._pools = new SubModelPools(device.createInputAssembler(iaInfo));
         Zero.instance.scene.addModel(this._model)
     }
 
@@ -83,10 +89,8 @@ export class Skeleton extends BoundedRenderer {
         let vertex = 0;
         let index = 0;
 
-        const vertexBuffer = this._vertexInput.buffers[0] as render.BufferViewWritable;
-        vertexBuffer.invalidate();
-        const indexBuffer = this._indexInput.buffer as render.BufferViewWritable;
-        indexBuffer.invalidate();
+        this._vertexView.invalidate();
+        this._indexView.invalidate();
 
         this._skeleton.updateWorldTransform();
 
@@ -132,11 +136,11 @@ export class Skeleton extends BoundedRenderer {
                         const j = VERTEX_ELEMENTS * (vertex + i);
                         const k = 8 * i;
 
-                        vertexBuffer.source[j] = clipper.clippedVertices[k];
-                        vertexBuffer.source[j + 1] = clipper.clippedVertices[k + 1];
+                        this._vertexView.source[j] = clipper.clippedVertices[k];
+                        this._vertexView.source[j + 1] = clipper.clippedVertices[k + 1];
 
-                        vertexBuffer.source[j + 2] = clipper.clippedVertices[k + 6];
-                        vertexBuffer.source[j + 3] = clipper.clippedVertices[k + 7];
+                        this._vertexView.source[j + 2] = clipper.clippedVertices[k + 6];
+                        this._vertexView.source[j + 3] = clipper.clippedVertices[k + 7];
                     }
 
                     attachment_triangles = clipper.clippedTriangles;
@@ -145,16 +149,16 @@ export class Skeleton extends BoundedRenderer {
                         const j = VERTEX_ELEMENTS * (vertex + i)
                         const k = 2 * i;
 
-                        vertexBuffer.source[j] = attachment_positions[k];
-                        vertexBuffer.source[j + 1] = attachment_positions[k + 1];
+                        this._vertexView.source[j] = attachment_positions[k];
+                        this._vertexView.source[j + 1] = attachment_positions[k + 1];
 
-                        vertexBuffer.source[j + 2] = attachment_uvs[k];
-                        vertexBuffer.source[j + 3] = attachment_uvs[k + 1];
+                        this._vertexView.source[j + 2] = attachment_uvs[k];
+                        this._vertexView.source[j + 3] = attachment_uvs[k + 1];
                     }
                 }
 
                 for (let i = 0; i < attachment_triangles.length; i++) {
-                    indexBuffer.source[index + i] = attachment_triangles[i] + vertex;
+                    this._indexView.source[index + i] = attachment_triangles[i] + vertex;
                 }
 
                 // const blend = slot.data.blendMode;
@@ -178,7 +182,7 @@ export class Skeleton extends BoundedRenderer {
 
         clipper.clipEnd();
 
-        vertexBuffer.update();
-        indexBuffer.update();
+        this._vertexView.update();
+        this._indexView.update();
     }
 }

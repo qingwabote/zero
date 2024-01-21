@@ -188,8 +188,7 @@ export class CommandBuffer {
                 type_bytes = 4;
                 break;
             default:
-                console.error('unsupported index type');
-                return;
+                throw 'unsupported index type';
         }
 
         const gl = this._gl;
@@ -257,8 +256,7 @@ export class CommandBuffer {
                             isInteger = true;
                             break;
                         default:
-                            console.error('unsupported vertex type');
-                            return;
+                            throw 'unsupported vertex type';
                     }
                     if (isInteger) {
                         gl.vertexAttribIPointer(
