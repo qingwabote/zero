@@ -1,5 +1,5 @@
 import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
-import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Renderer } from "flex";
+import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, Renderer } from "flex";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await builtin.cache('favicon.ico', Texture);
@@ -8,8 +8,8 @@ const normal = await (await builtin.cache('pipelines/unlit', Pipeline)).createRe
 const msaa = await (await builtin.cache('pipelines/unlit-ms', Pipeline)).createRenderPipeline();
 const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).createRenderPipeline();
 
-const text_color_normal = [0, 1, 0, 1] as const;
-const text_color_selected = [1, 0, 0, 1] as const;
+const text_color_normal = [0.5, 0.5, 0.5, 1] as const;
+const text_color_selected = [0, 1, 0, 1] as const;
 
 export default class App extends Zero {
     private _pipelineTextSelected: TextRenderer | undefined = undefined;
@@ -78,12 +78,6 @@ export default class App extends Zero {
             }
         })
         doc.addElement(cuttingBoard);
-
-        const textRenderer = Renderer.create(TextRenderer);
-        textRenderer.impl.text = '触摸并移动';
-        textRenderer.positionType = PositionType.Absolute
-        textRenderer.setPosition(Edge.Top, 80)
-        doc.addElement(textRenderer);
 
         return normal;
     }

@@ -209,14 +209,28 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
         const uv_t = 0;
         const uv_b = 1;
 
-        const polygons: Polygon[] = [];
         const vertexes: Vertex[] = [
             { pos: vec2.create(pos_l, pos_t), uv: vec2.create(uv_l, uv_t) },
             { pos: vec2.create(pos_l, pos_b), uv: vec2.create(uv_l, uv_b) },
             { pos: vec2.create(pos_r, pos_b), uv: vec2.create(uv_r, uv_b) },
             { pos: vec2.create(pos_r, pos_t), uv: vec2.create(uv_r, uv_t) },
         ];
-        polygons.push({ vertexes, vertexPosMin: vertexes[1].pos, vertexPosMax: vertexes[3].pos, translation: vec2.ZERO });
+
+        const polygon: Polygon = { vertexes, vertexPosMin: vertexes[1].pos, vertexPosMax: vertexes[3].pos, translation: vec2.ZERO };
+
+        const intersections: Intersection[] = [
+            {
+                i: 0,
+                p: vec2.lerp(vec2.create(), vertexes[0].pos, vertexes[1].pos, 0.4)
+            },
+            {
+                i: 2,
+                p: vec2.lerp(vec2.create(), vertexes[2].pos, vertexes[3].pos, 0.4)
+            }
+        ];
+
+        const polygons: Polygon[] = [];
+        polygons.push(cut(polygon, intersections), cut(polygon, intersections.reverse()));
 
         this._polygonsRenderer.texture = this.texture;
         this._polygonsRenderer.polygons = polygons;
