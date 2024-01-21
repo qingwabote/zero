@@ -2,8 +2,8 @@
     "type": "module",
     "scripts": {
         "yaml": "rollup -i ../../../script/engine/node_modules/yaml/browser/index.js -o dist/yaml.js",
-        "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
         "spine-core": "rollup -i ../../../script/spine/node_modules/@esotericsoftware/spine-core/dist/index.js -o dist/spine-core.js",
+        "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
         "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/webgl2 --outDir dist/gfx --watch",
         "boot": "tsc -p ../../../script/boot/web --outDir dist/boot --watch",

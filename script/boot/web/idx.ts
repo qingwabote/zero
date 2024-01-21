@@ -57,7 +57,6 @@ export interface ResultTypes {
 }
 
 export function load<T extends keyof ResultTypes>(url: string, type: T, onProgress: (loaded: number, total: number, url: string) => void = noop): Promise<ResultTypes[T]> {
-    url = "../" + url;// FIXME
     return new Promise((resolve, reject) => {
         function rej(reason: any) {
             log(reason);
