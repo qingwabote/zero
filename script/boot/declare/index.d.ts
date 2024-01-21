@@ -50,3 +50,5 @@ export declare function detach(listener: EventListener);
 
 export declare function reboot();
 
+export declare function log(...args: any[]);
+

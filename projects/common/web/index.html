@@ -7,10 +7,22 @@
   <link rel="icon" href="/assets/favicon.ico" />
 </head>
 
-<body style="display:flex; flex-direction:column; align-items:center;">
-  <!-- https://webgl2fundamentals.org/webgl/lessons/webgl-and-alpha.html -->
-  <canvas id="boot_canvas" width="640" height="960" style="background: black;"></canvas>
-  <textarea id="console_textarea" style="width: 640px;height: 960px;" readonly="readonly"></textarea>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+</style>
+
+<body style="display: flex; justify-content: center; align-items: center;">
+  <div style="position: relative;">
+    <!-- https://webgl2fundamentals.org/webgl/lessons/webgl-and-alpha.html -->
+    <!-- https://www.zhihu.com/question/38437397 -->
+    <canvas id="boot_canvas" width="640" height="960" style="background: black; vertical-align:middle;"></canvas>
+    <textarea id="boot_log" rows="3" readonly="true"
+      style="position: absolute; left:0px; top: 0px; width: 100%; background: transparent; color:gray;"></textarea>
+  </div>
   <script>
     const currentScript = document.currentScript;
     const req = new XMLHttpRequest();

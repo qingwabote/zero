@@ -1,7 +1,17 @@
-// load implementations first
-import "./impl/index.js";
-//
 import { Device } from "gfx";
+
+const noop = function () { };
+
+const textarea = document.getElementById("boot_log") as HTMLTextAreaElement;
+
+function log(...args: any[]) {
+    textarea.textContent += args.join(' ') + '\n';
+    textarea.scrollTop = textarea.scrollHeight;
+}
+
+window.addEventListener('error', function (e) {
+    log(e.message);
+});
 
 export interface Touch {
     readonly x: number,
@@ -41,8 +51,6 @@ export function now() {
     return performance.now();
 }
 
-const noop = function () { };
-
 export interface ResultTypes {
     text: string,
     buffer: ArrayBuffer,
@@ -52,6 +60,10 @@ export interface ResultTypes {
 export function load<T extends keyof ResultTypes>(url: string, type: T, onProgress: (loaded: number, total: number, url: string) => void = noop): Promise<ResultTypes[T]> {
     url = "../" + url;// FIXME
     return new Promise((resolve, reject) => {
+        function rej(reason: any) {
+            log(reason);
+            reject(reason);
+        }
         const xhr = new XMLHttpRequest();
         switch (type) {
             case 'text':
@@ -73,20 +85,21 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
                     resolve(xhr.response)
                 }
             } else {
-                reject(`download failed: ${url}, status: ${xhr.status}(no response)`)
+                rej(`download failed: ${url}, status: ${xhr.status}(no response)`)
             }
         };
         xhr.onprogress = (event) => {
+            log(`download: ${url}, progress: ${event.loaded / event.total * 100}`)
             onProgress(event.loaded, event.total, url);
         }
         xhr.onerror = () => {
-            reject(`download failed: ${url}, status: ${xhr.status}(error)`);
+            rej(`download failed: ${url}, status: ${xhr.status}(error)`);
         };
         xhr.ontimeout = () => {
-            reject(`download failed: ${url}, status: ${xhr.status}(time out)`);
+            rej(`download failed: ${url}, status: ${xhr.status}(time out)`);
         };
         xhr.onabort = () => {
-            reject(`download failed: ${url}, status: ${xhr.status}(abort)`);
+            rej(`download failed: ${url}, status: ${xhr.status}(abort)`);
         };
         xhr.send(null);
     })
@@ -150,3 +163,6 @@ export function attach(listener: EventListener) {
 export function detach(listener: EventListener) { throw new Error("unimplemented"); }
 
 export function reboot() { throw new Error("unimplemented"); }
+
+export { log };
+
