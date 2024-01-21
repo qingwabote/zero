@@ -1,5 +1,6 @@
 import { bundle } from 'bundling';
-import { Camera, Node, Pipeline, Profiler, TextRenderer, Texture, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, device, platform, reboot, render, safeArea, vec2, vec3 } from 'engine';
+import { Camera, Node, Pipeline, Texture, VisibilityFlagBits, Zero, device, render, vec3 } from 'engine';
+import { Align, Document, Edge, Justify, PositionType, Profiler, Renderer } from 'flex';
 import * as spine from 'spine';
 
 const spine_atlas_src = await bundle.raw.once('spineboy/spineboy-pma.atlas', 'text');
@@ -9,7 +10,7 @@ for (const page of spine_atlas.pages) {
 }
 const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text');
 
-const pipeline = await bundle.cache('pipelines/post', Pipeline);
+const pipeline = await (await bundle.cache('pipelines/post', Pipeline)).createRenderPipeline();
 
 export class App extends Zero {
     protected override start(): render.Pipeline {
@@ -23,38 +24,31 @@ export class App extends Zero {
         camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibility = VisibilityFlagBits.DEFAULT;
+        node = new Node;
+        node.position = vec3.create(-width / 2, height / 2);
+        node.visibility = VisibilityFlagBits.DEFAULT;
+        const doc = node.addComponent(Document);
+        doc.justifyContent = Justify.Center
+        doc.alignItems = Align.Center
+        doc.setWidth(width);
+        doc.setHeight(height);
 
         const json = new spine.core.SkeletonJson(new spine.core.AtlasAttachmentLoader(spine_atlas));
         const skeletonData = json.readSkeletonData(spine_data_src);
 
-        const skeleton = UIRenderer.create(spine.Animation);
+        const skeleton = Renderer.create(spine.Animation);
         skeleton.impl.data = skeletonData;
         skeleton.impl.state.setAnimation(0, 'portal', true);
-        skeleton.node.scale = [0.5, 0.5, 1]
         doc.addElement(skeleton)
 
-        node = new Node;
-        node.visibility = VisibilityFlagBits.DEFAULT
-        const profiler = node.addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, safeArea.y, 0];
+        node = new Node(Profiler.name)
+        const profiler = node.addComponent(Profiler)
+        profiler.positionType = PositionType.Absolute;
+        profiler.setPosition(Edge.Left, 8)
+        profiler.setPosition(Edge.Bottom, 8)
+        doc.addElement(profiler);
 
-        if (platform == 'wx') {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = '重启';
-            textRenderer.impl.color = [0, 1, 0, 1];
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                reboot();
-            })
-            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            textRenderer.node.visibility = VisibilityFlagBits.DEFAULT;
-            doc.addElement(textRenderer);
-        }
-
-        return pipeline.createRenderPipeline();
+        return pipeline;
     }
 }
 

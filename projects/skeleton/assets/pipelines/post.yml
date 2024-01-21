@@ -22,4 +22,4 @@ flows:
         binding: 0
     stages:
       - phases:
-          - type: post
+          - type: copy

@@ -1,12 +1,13 @@
 import { bundle } from 'bundling';
-import { Camera, CameraControlPanel, DirectionalLight, Flow, GLTF, Node, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle as builtin, device, platform, quat, reboot, render, safeArea, vec2, vec3 } from "engine";
+import { Camera, DirectionalLight, GLTF, Node, Pipeline, VisibilityFlagBits, Zero, bundle as builtin, device, quat, render, vec3 } from "engine";
+import { Align, CameraControlPanel, Document, Edge, Justify, PositionType, Profiler } from 'flex';
 
-const skin = await bundle.once('killer-whale/scene', GLTF);
+const skin = await (await bundle.once('killer-whale/scene', GLTF)).instantiate();
 
-const flow = await builtin.cache('flows/forward', Flow);
+const flow = await (await builtin.cache('pipelines/forward', Pipeline)).createRenderPipeline();
 
 export class App extends Zero {
-    start(): render.Flow {
+    start(): render.Pipeline {
         const { width, height } = device.swapchain;
 
         let node: Node;
@@ -64,37 +65,29 @@ export class App extends Zero {
         ui_camera.viewport = { x: 0, y: 0, width, height };
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
+        node = new Node;
+        node.position = vec3.create(-width / 2, height / 2);
+        node.visibility = VisibilityFlagBits.UI;
+        const doc = node.addComponent(Document);
+        doc.justifyContent = Justify.Center
+        doc.alignItems = Align.Center
+        doc.setWidth(width);
+        doc.setHeight(height);
 
         node = new Node;
-        node.visibility = VisibilityFlagBits.UI;
-        const profiler = node.addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, safeArea.y, 0];
-
-        node = new Node;
-        node.visibility = VisibilityFlagBits.UI;
         const cameraControlPanel = node.addComponent(CameraControlPanel);
         cameraControlPanel.camera = main_camera;
-        cameraControlPanel.size = vec2.create(safeArea.width, safeArea.height);
-        cameraControlPanel.anchor = [0, 0];
-        cameraControlPanel.node.position = [safeArea.x, safeArea.y, 0];
+        cameraControlPanel.setWidth(width);
+        cameraControlPanel.setHeight(height);
         doc.addElement(cameraControlPanel);
 
-        if (platform == 'wx') {
-            const textRenderer = UIRenderer.create(TextRenderer);
-            textRenderer.anchor = vec2.create(0, 1);
-            textRenderer.impl.text = '重启';
-            textRenderer.impl.color = [0, 1, 0, 1];
-            textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-                reboot();
-            })
-            textRenderer.node.position = [-width / 2, safeArea.y + safeArea.height, 0];
-            textRenderer.node.visibility = VisibilityFlagBits.UI;
-            doc.addElement(textRenderer);
-        }
+        const profiler = (new Node).addComponent(Profiler)
+        profiler.positionType = PositionType.Absolute;
+        profiler.setPosition(Edge.Left, 8)
+        profiler.setPosition(Edge.Bottom, 8)
+        doc.addElement(profiler);
 
-        return flow.createFlow();
+        return flow;
     }
 }
 

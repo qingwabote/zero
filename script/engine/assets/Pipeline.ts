@@ -237,7 +237,12 @@ export class Pipeline extends Yml {
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
                     }
-                    phases.push(await phaseCreators[phase.type || 'model'](phase as any, context, visibility))
+                    const type = phase.type || 'model';
+                    if (type in phaseCreators) {
+                        phases.push(await phaseCreators[type](phase as any, context, visibility))
+                    } else {
+                        throw `unsupported phase type: ${type}`;
+                    }
                 }
                 let framebuffer: gfx.Framebuffer | undefined;
                 let viewport: Rect | undefined;

@@ -2,11 +2,11 @@
     "type": "module",
     "scripts": {
         "yaml": "rollup -i ../../../script/engine/node_modules/yaml/browser/index.js -o dist/yaml.js",
+        "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
         "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/webgl2 --outDir dist/gfx --watch",
         "boot": "tsc -p ../../../script/boot/web --outDir dist/boot --watch",
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
-        "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
         "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",

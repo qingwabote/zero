@@ -152,9 +152,13 @@ UI 使用 **yoga** 引擎布局，因而支持 **flexbox** 布局模型
 
 - [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 
-- [Spine](https://qingwabote.github.io/zero/projects/spine/web/index.html)
+- [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
+
+- [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
+
+- [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
 
 # 基础架构
 

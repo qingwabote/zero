@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, Effect, GLTF, Material, MaterialMacros, MaterialValues, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Vec3, Zero, bundle as builtin, device, getSampler, quat, render, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, Effect, GLTF, Material, MaterialParams, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Vec3, Zero, bundle as builtin, device, quat, render, shaderLib, vec3 } from 'engine';
 import { CameraControlPanel, Document, Edge, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -11,47 +11,51 @@ const VisibilityFlagBits = {
 
 const USE_SHADOW_MAP = 1;
 
-class TestGLTF extends GLTF {
-    protected override async createMaterial(macros: MaterialMacros = {}, values: MaterialValues = {}): Promise<Material> {
-        const USE_SKIN = macros.USE_SKIN == undefined ? 0 : macros.USE_SKIN;
-        const albedo = values.albedo || vec4.ONE;
-        const texture = values.texture;
-
-        const effect = await bundle.cache("./effects/test", Effect);
-        const passes = await effect.createPasses([
-            {
-                macros: { USE_SHADOW_MAP }
+async function materialFunc(params: MaterialParams) {
+    const effect = await bundle.cache("./effects/test", Effect);
+    const passes = await effect.createPasses([
+        {
+            macros: { USE_SHADOW_MAP }
+        },
+        {
+            macros: {
+                USE_ALBEDO_MAP: params.texture ? 1 : 0,
+                USE_SHADOW_MAP,
+                USE_SKIN: params.skin ? 1 : 0
             },
-            {
-                macros: {
-                    USE_ALBEDO_MAP: texture ? 1 : 0,
-                    USE_SHADOW_MAP,
-                    USE_SKIN,
-                    CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
-                },
-                props: {
-                    albedo
-                },
-                ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
-            },
-            {
-                macros: {
-                    USE_ALBEDO_MAP: texture ? 1 : 0
-                },
-                props: {
-                    albedo
-                },
-                ...texture && { samplerTextures: { albedoMap: [texture.impl, getSampler()] } }
+            props: {
+                albedo: params.albedo
             }
-        ])
-        return new Material(passes);
+        },
+        {
+            macros: {
+                USE_ALBEDO_MAP: params.texture ? 1 : 0,
+            },
+            props: {
+                albedo: params.albedo
+            },
+        }
+    ])
+    if (params.texture) {
+        passes[1].setTexture('albedoMap', params.texture.impl)
+        passes[2].setTexture('albedoMap', params.texture.impl)
     }
+    return new Material(passes);
 }
 
 const [guardian, plane, gltf_camera, ss_depth, pipeline] = await Promise.all([
-    bundle.cache('guardian_zelda_botw_fan-art/scene', TestGLTF),
-    builtin.cache('models/primitive/scene', TestGLTF),
-    bundle.cache('camera_from_poly_by_google/scene', TestGLTF),
+    (async function () {
+        const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
+        return gltf.instantiate(materialFunc);
+    })(),
+    (async function () {
+        const gltf = await builtin.cache('models/primitive/scene', GLTF);
+        return gltf.instantiate(materialFunc);
+    })(),
+    (async function () {
+        const gltf = await bundle.cache('camera_from_poly_by_google/scene', GLTF);
+        return gltf.instantiate(materialFunc);
+    })(),
     builtin.cache('shaders/depth', Shader),
     bundle.cache('pipelines/test', Pipeline)
 ])
@@ -130,7 +134,7 @@ export class App extends Zero {
 
         node = guardian.createScene("Sketchfab_Scene")!;
         const animation = node.addComponent(Animation);
-        animation.clips = guardian.animationClips;
+        animation.clips = guardian.gltf.animationClips;
         animation.play('WalkCycle')
         node.visibility = VisibilityFlagBits.DEFAULT;
         node.position = [0, -1, 0]
