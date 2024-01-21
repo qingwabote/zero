@@ -18,7 +18,6 @@ export function now() {
     return performance.now();
 }
 export function load(url, type, onProgress = noop) {
-    url = "../" + url; // FIXME
     return new Promise((resolve, reject) => {
         function rej(reason) {
             log(reason);
