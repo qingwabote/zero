@@ -152,7 +152,7 @@ UI 使用 **yoga** 引擎布局，因而支持 **flexbox** 布局模型
 
 - [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 
-- [Spine](https://qingwabote.github.io/zero/projects/spine/web/index.html)
+- [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 
