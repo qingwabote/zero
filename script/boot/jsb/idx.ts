@@ -32,7 +32,7 @@ export const device: Device = w.device();
 
 const { width, height } = device.swapchain;
 
-export const safeArea = { x: -width / 2, y: -height / 2, width, height };
+export const safeArea = { left: 0, right: 0, top: 0, bottom: 0, width, height: height };
 
 export const initial: number = w.now();
 

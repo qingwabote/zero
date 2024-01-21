@@ -1,5 +1,11 @@
 import { Device } from "gfx";
 
+const windowInfo = wx.getWindowInfo();
+
+export const safeArea = windowInfo.safeArea;
+
+export const platform = 'wx';
+
 export interface Touch {
     readonly x: number,
     readonly y: number
@@ -35,21 +41,6 @@ export interface EventListener {
     onGesturePinch(event: GestureEvent): void;
     onGestureRotate(event: GestureEvent): void;
     onFrame(): void;
-}
-
-export const platform = 'wx';
-
-const windowInfo = wx.getWindowInfo();
-console.log('windowInfo', windowInfo)
-const windowWidth: number = windowInfo.windowWidth;
-const windowHeight: number = windowInfo.windowHeight;
-const _safeArea = windowInfo.safeArea;
-
-export const safeArea = {
-    x: -windowWidth / 2,
-    y: (-windowHeight / 2) + (windowHeight - _safeArea.bottom),
-    width: _safeArea.width,
-    height: _safeArea.height
 }
 
 const canvas = wx.createCanvas()

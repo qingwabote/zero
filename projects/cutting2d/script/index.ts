@@ -1,4 +1,4 @@
-import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from "engine";
+import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
 import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Renderer } from "flex";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
@@ -32,7 +32,7 @@ export default class App extends Zero {
         doc.alignItems = Align.Center
         doc.setWidth(width);
         doc.setHeight(height);
-        doc.setPadding(Edge.Top, 8)
+        doc.setPadding(Edge.Top, safeArea.top);
 
         const pipelineBar = (new Node).addComponent(ElementContainer);
         pipelineBar.flexDirection = FlexDirection.Row;

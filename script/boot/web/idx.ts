@@ -2,6 +2,7 @@ import { Device } from "gfx";
 
 const noop = function () { };
 
+const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
 const textarea = document.getElementById("boot_log") as HTMLTextAreaElement;
 
 function log(...args: any[]) {
@@ -12,6 +13,12 @@ function log(...args: any[]) {
 window.addEventListener('error', function (e) {
     log(e.message);
 });
+
+const { width, height } = canvas;
+
+export const safeArea = { left: 0, right: 0, top: textarea.clientHeight, bottom: 0, width, height: height - textarea.clientHeight };
+
+export const platform = 'web';
 
 export interface Touch {
     readonly x: number,
@@ -34,14 +41,6 @@ export interface EventListener {
     onGestureRotate(event: GestureEvent): void;
     onFrame(): void;
 }
-
-const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
-
-export const platform = 'web';
-
-const { width, height } = canvas;
-
-export const safeArea = { x: -width / 2, y: -height / 2, width, height };
 
 export const device = new Device(canvas.getContext('webgl2', { antialias: false })!);
 
@@ -163,6 +162,3 @@ export function attach(listener: EventListener) {
 export function detach(listener: EventListener) { throw new Error("unimplemented"); }
 
 export function reboot() { throw new Error("unimplemented"); }
-
-export { log };
-

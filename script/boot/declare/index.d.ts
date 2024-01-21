@@ -24,7 +24,14 @@ export declare interface EventListener {
 
 export declare const platform: 'jsb' | 'web' | 'wx';
 
-export declare const safeArea: { x: number, y: number, width: number, height: number };
+export declare const safeArea: {
+    readonly left: number,
+    readonly right: number,
+    readonly top: number,
+    readonly bottom: number,
+    readonly width: number,
+    readonly height: number
+};
 
 export declare const device: Device;
 
@@ -49,6 +56,3 @@ export declare function attach(listener: EventListener);
 export declare function detach(listener: EventListener);
 
 export declare function reboot();
-
-export declare function log(...args: any[]);
-
