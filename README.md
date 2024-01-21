@@ -156,6 +156,10 @@ UI 使用 **yoga** 引擎布局，因而支持 **flexbox** 布局模型
 
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 
+- [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
+
+- [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
+
 # 基础架构
 
 ![](https://www.plantuml.com/plantuml/svg/RP51JiGm34NtEKKkqCqSO3OZmMP0I4YmG0YPnYJH94uKfvgf47SdfODQNBBBi_t_byqdJnaAHEs0pBduMf5qBGCgLR2lG3QW3idwNdygtTv2xvD1WGufvaH8LNsjvtdaYd4Z0EGZL9z8SCwUf79s8_kU1Gqmfa6OPPynD86DtKr8Pu4UArZfzE20yQzaGJ9OthZ7VsGF4B60W4TlNHNihkqhI3DWRbwpHlVYl358h_jvV9N0Vbmsni_uVdlS2VWqX1FG5F_dQ9tfzklqwdSxNH65Qt_3yxKczwKywRGCo_Zr_mq0)
