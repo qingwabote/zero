@@ -64,7 +64,13 @@ const renderPipeline = await pipeline.createRenderPipeline(VisibilityFlagBits);
 
 export class App extends Zero {
     protected override start(): render.Pipeline {
-        const { width, height } = device.swapchain;
+        const width = 640;
+        const height = 960;
+
+        const swapchain = device.swapchain;
+        const scaleX = swapchain.width / width;
+        const scaleY = swapchain.height / height;
+        const scale = scaleX < scaleY ? scaleX : scaleY;
 
         const lit_position: Vec3 = [4, 4, 4];
 
@@ -82,10 +88,10 @@ export class App extends Zero {
         const up_camera = node.addComponent(Camera);
         up_camera.visibilities = VisibilityFlagBits.DEFAULT | VisibilityFlagBits.UP;
         up_camera.fov = 45;
-        up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
+        up_camera.viewport = { x: 0, y: swapchain.height / 2, width: swapchain.width, height: swapchain.height / 2 };
         node.position = [0, 0, 10];
 
-        const down_size = Math.min(height / 2, width);
+        const down_size = Math.min(swapchain.height / 2, swapchain.width);
         node = new Node;
         const down_camera = node.addComponent(Camera);
         down_camera.visibilities = VisibilityFlagBits.DEFAULT | VisibilityFlagBits.DOWN;
@@ -100,8 +106,8 @@ export class App extends Zero {
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = Camera.ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = height / 2;
-        ui_camera.viewport = { x: 0, y: 0, width, height };
+        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
@@ -112,8 +118,8 @@ export class App extends Zero {
         const sprite = Renderer.create(SpriteRenderer);
         sprite.impl.spriteFrame = new SpriteFrame(pipeline.textures['shadowmap']);
         sprite.impl.shader = shaderLib.getShader(ss_depth);
-        sprite.setWidth(height / 4);
-        sprite.setHeight(height / 4);
+        sprite.setWidth(200);
+        sprite.setHeight(200);
         sprite.positionType = PositionType.Absolute;
         sprite.setPosition(Edge.Right, 0);
         sprite.setPosition(Edge.Bottom, 0);
