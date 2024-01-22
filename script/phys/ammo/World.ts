@@ -12,7 +12,7 @@ export class World {
 
     readonly impl: any;
 
-    private _debugDrawer?: DebugDrawer = undefined;
+    private _debugDrawer: DebugDrawer | undefined = undefined;
     get debugDrawer(): DebugDrawer | undefined {
         return this._debugDrawer;
     }

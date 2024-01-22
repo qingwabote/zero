@@ -2,6 +2,7 @@
 <html>
 
 <head>
+  <meta name="viewport" content="width=device-width">
   <meta charset="utf-8">
   <title>zero</title>
   <link rel="icon" href="/assets/favicon.ico" />
@@ -15,18 +16,11 @@
   }
 </style>
 
-<body style="width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center;">
+<body style=" display: flex; justify-content: center;">
   <div style="position: relative;">
     <!-- https://webgl2fundamentals.org/webgl/lessons/webgl-and-alpha.html -->
     <!-- https://www.zhihu.com/question/38437397 -->
-    <canvas id="boot_canvas" style="background: black; vertical-align:middle;">
-      <script>
-        // set initial size that doesn't change later
-        const canvas = document.getElementById('boot_canvas');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      </script>
-    </canvas>
+    <canvas id="boot_canvas" style="width: 0px; height: 0px; background: black; vertical-align:middle;"></canvas>
     <textarea id="boot_log" rows="3" readonly="true"
       style="position: absolute; left:0px; top: 0px; width: 100%; background: transparent; color:gray;"></textarea>
   </div>
