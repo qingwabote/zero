@@ -1,22 +1,26 @@
+// load console first
+import { log } from "./console.js";
+//
 import { Device } from "gfx";
 
 const noop = function () { };
 
+// set initial size that doesn't change later
+// High DPI
+const documentElement = document.documentElement;
+const width = documentElement.clientWidth * window.devicePixelRatio;
+const height = documentElement.clientHeight * window.devicePixelRatio;
+
 const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
+canvas.width = width;
+canvas.height = height;
+canvas.style.width = `${documentElement.clientWidth}px`;
+canvas.style.height = `${documentElement.clientHeight}px`;
+
 const textarea = document.getElementById("boot_log") as HTMLTextAreaElement;
+const safeArea_top = textarea.clientHeight * window.devicePixelRatio;
 
-function log(...args: any[]) {
-    textarea.textContent += args.join(' ') + '\n';
-    textarea.scrollTop = textarea.scrollHeight;
-}
-
-window.addEventListener('error', function (e) {
-    log(e.message);
-});
-
-const { width, height } = canvas;
-
-export const safeArea = { left: 0, right: 0, top: textarea.clientHeight, bottom: 0, width, height: height - textarea.clientHeight };
+export const safeArea = { left: 0, right: 0, top: safeArea_top, bottom: 0, width, height: height - safeArea_top };
 
 export const platform = 'web';
 
@@ -117,7 +121,7 @@ export function attach(listener: EventListener) {
         const rect = canvas.getBoundingClientRect();
         const offsetX = touch.clientX - rect.x;
         const offsetY = touch.clientY - rect.y;
-        listener.onTouchStart({ touches: [lastTouch = { x: offsetX, y: offsetY }] });
+        listener.onTouchStart({ touches: [lastTouch = { x: offsetX * window.devicePixelRatio, y: offsetY * window.devicePixelRatio }] });
         touchEvent.preventDefault(); // prevent mousedown
     })
     canvas.addEventListener('touchmove', function (touchEvent) {
@@ -125,7 +129,7 @@ export function attach(listener: EventListener) {
         const rect = canvas.getBoundingClientRect();
         const offsetX = touch.clientX - rect.x;
         const offsetY = touch.clientY - rect.y;
-        listener.onTouchMove({ touches: [lastTouch = { x: offsetX, y: offsetY }] });
+        listener.onTouchMove({ touches: [lastTouch = { x: offsetX * window.devicePixelRatio, y: offsetY * window.devicePixelRatio }] });
     })
     canvas.addEventListener('touchend', function (touchEvent) {
         listener.onTouchEnd({ touches: [lastTouch] });
@@ -135,14 +139,14 @@ export function attach(listener: EventListener) {
     })
 
     canvas.addEventListener("mousedown", function (mouseEvent) {
-        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] });
+        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX * window.devicePixelRatio, y: mouseEvent.offsetY * window.devicePixelRatio }] });
     })
     canvas.addEventListener("mouseup", function (mouseEvent) {
-        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
+        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX * window.devicePixelRatio, y: mouseEvent.offsetY * window.devicePixelRatio }] })
     })
     canvas.addEventListener("mousemove", function (mouseEvent) {
         if (mouseEvent.buttons) {
-            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX, y: mouseEvent.offsetY }] })
+            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX * window.devicePixelRatio, y: mouseEvent.offsetY * window.devicePixelRatio }] })
         }
     })
 

@@ -58,7 +58,7 @@ export declare class DebugDrawer {
 
 export declare class World {
     readonly impl: any;
-    debugDrawer?: DebugDrawer;
+    debugDrawer: DebugDrawer | undefined;
     addRigidBody(body: RigidBody): void;
     rayTest(from: Vec3, to: Vec3, resultCallback: RayResultCallback): void;
     update(dt: number): void;
