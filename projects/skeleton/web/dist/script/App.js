@@ -11,12 +11,17 @@ const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text
 const pipeline = await (await bundle.cache('pipelines/post', Pipeline)).createRenderPipeline();
 export class App extends Zero {
     start() {
-        const { width, height } = device.swapchain;
+        const width = 640;
+        const height = 960;
+        const swapchain = device.swapchain;
+        const scaleX = swapchain.width / width;
+        const scaleY = swapchain.height / height;
+        const scale = scaleX < scaleY ? scaleX : scaleY;
         let node;
         node = new Node;
         const camera = node.addComponent(Camera);
-        camera.orthoHeight = height / 2;
-        camera.viewport = { x: 0, y: 0, width, height };
+        camera.orthoHeight = swapchain.height / scale / 2;
+        camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;
         node.position = vec3.create(-width / 2, height / 2);

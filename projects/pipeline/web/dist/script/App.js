@@ -59,7 +59,12 @@ export class App extends Zero {
         this._pipelineTextSelected = undefined;
     }
     start() {
-        const { width, height } = device.swapchain;
+        const width = 640;
+        const height = 960;
+        const swapchain = device.swapchain;
+        const scaleX = swapchain.width / width;
+        const scaleY = swapchain.height / height;
+        const scale = scaleX < scaleY ? scaleX : scaleY;
         const lit_position = [4, 4, 4];
         let node;
         // light
@@ -72,15 +77,15 @@ export class App extends Zero {
         const up_camera = node.addComponent(Camera);
         up_camera.visibilities = VisibilityFlagBits.DEFAULT;
         up_camera.fov = 45;
-        up_camera.viewport = { x: 0, y: height / 2, width, height: height / 2 };
+        up_camera.viewport = { x: 0, y: swapchain.height / 2, width: swapchain.width, height: swapchain.height / 2 };
         node.position = [0, 0, 10];
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = Camera.ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = height / 2;
-        ui_camera.viewport = { x: 0, y: 0, width, height };
+        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;
         node.position = vec3.create(-width / 2, height / 2);

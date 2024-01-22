@@ -7,7 +7,12 @@ const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).ins
 const pipeline = await (await bundle.cache('pipelines/forward', Pipeline)).createRenderPipeline();
 export class App extends Zero {
     start() {
-        const { width, height } = device.swapchain;
+        const width = 640;
+        const height = 960;
+        const swapchain = device.swapchain;
+        const scaleX = swapchain.width / width;
+        const scaleY = swapchain.height / height;
+        const scale = scaleX < scaleY ? scaleX : scaleY;
         let node;
         // light
         node = new Node;
@@ -16,7 +21,7 @@ export class App extends Zero {
         node = new Node;
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
-        main_camera.viewport = { x: 0, y: 0, width, height };
+        main_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = [20, 20, 20];
         // node = new Node;
         // node.visibility = VisibilityBit.DEFAULT;
@@ -62,8 +67,8 @@ export class App extends Zero {
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = 0x2; // ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = height / 2;
-        ui_camera.viewport = { x: 0, y: 0, width, height };
+        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;
         node.position = vec3.create(-width / 2, height / 2);
