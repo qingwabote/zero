@@ -2,7 +2,7 @@
 
 # 支持的平台
 
-- Web (WebGL2)
+- Web/微信小游戏 (WebGL2)
 
 - Android, Windows (Vulkan)
 

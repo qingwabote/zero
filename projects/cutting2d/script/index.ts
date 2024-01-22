@@ -1,5 +1,5 @@
 import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
-import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, Renderer } from "flex";
+import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Profiler, Renderer } from "flex";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await builtin.cache('favicon.ico', Texture);
@@ -15,14 +15,20 @@ export default class App extends Zero {
     private _pipelineTextSelected: TextRenderer | undefined = undefined;
 
     start(): render.Pipeline {
-        const { width, height } = device.swapchain;
+        const width = 640;
+        const height = 960;
+
+        const swapchain = device.swapchain;
+        const scaleX = swapchain.width / width;
+        const scaleY = swapchain.height / height;
+        const scale = scaleX < scaleY ? scaleX : scaleY;
 
         let node: Node;
 
         node = new Node;
-        const ui_camera = node.addComponent(Camera);
-        ui_camera.orthoHeight = height / 2;
-        ui_camera.viewport = { x: 0, y: 0, width, height };
+        const camera = node.addComponent(Camera);
+        camera.orthoHeight = swapchain.height / scale / 2;
+        camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
@@ -32,7 +38,7 @@ export default class App extends Zero {
         doc.alignItems = Align.Center
         doc.setWidth(width);
         doc.setHeight(height);
-        doc.setPadding(Edge.Top, safeArea.top);
+        doc.setPadding(Edge.Top, safeArea.top / scale);
 
         const pipelineBar = (new Node).addComponent(ElementContainer);
         pipelineBar.flexDirection = FlexDirection.Row;
@@ -78,6 +84,12 @@ export default class App extends Zero {
             }
         })
         doc.addElement(cuttingBoard);
+
+        const profiler = (new Node).addComponent(Profiler)
+        profiler.positionType = PositionType.Absolute;
+        profiler.setPosition(Edge.Left, 8)
+        profiler.setPosition(Edge.Bottom, 8)
+        doc.addElement(profiler);
 
         return normal;
     }
