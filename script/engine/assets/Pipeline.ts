@@ -182,7 +182,7 @@ export class Pipeline extends Yml {
         this._resource = res;
     }
 
-    public async createRenderPipeline(variables: Record<string, any> = {}): Promise<render.Pipeline> {
+    public async instantiate(variables: Record<string, any> = {}): Promise<render.Pipeline> {
         if (this._resource.textures) {
             for (const texture of this._resource.textures) {
                 this._textures[texture.name] = this.createTexture(texture);

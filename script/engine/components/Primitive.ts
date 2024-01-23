@@ -29,13 +29,15 @@ export class Primitive extends BoundedRenderer {
         return this._bounds;
     }
 
+    color: Readonly<Vec4> = vec4.ONE;
+
     private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
 
     private _vertexCount: number = 0;
 
     private _subMesh!: SubMesh;
 
-    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = vec4.ONE) {
+    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = this.color) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
         this._buffer.resize(length)
 

@@ -1,6 +1,6 @@
 passes:
   - switch: USE_SHADOW_MAP
-    shader: ../shaders/shadowmap
+    shader: ../shaders/shadow
     type: shadowmap
     rasterizationState:
       cullMode: FRONT

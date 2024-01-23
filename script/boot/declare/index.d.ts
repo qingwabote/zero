@@ -9,7 +9,7 @@ export declare interface TouchEvent {
     readonly touches: readonly Touch[]
 }
 
-export declare interface GestureEvent {
+export declare interface GestureEvent extends TouchEvent {
     readonly delta: number
 }
 

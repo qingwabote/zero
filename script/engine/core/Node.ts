@@ -7,6 +7,10 @@ type AbstractConstructor<T> = abstract new (...args: ConstructorParameters<typeo
 
 export class Node extends Transform {
 
+    static build<T extends Component>(constructor: ComponentConstructor<T>): T {
+        return (new Node(constructor.name).addComponent(constructor));
+    }
+
     private _components: Component[] = [];
 
     constructor(name: string = '') {

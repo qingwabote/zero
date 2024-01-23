@@ -33,7 +33,7 @@ export interface TouchEvent {
     readonly touches: readonly Touch[]
 }
 
-export interface GestureEvent {
+export interface GestureEvent extends TouchEvent {
     readonly delta: number
 }
 
@@ -151,7 +151,7 @@ export function attach(listener: EventListener) {
     })
 
     canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onGesturePinch({ delta: wheelEvent.deltaY });
+        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * window.devicePixelRatio, y: wheelEvent.offsetY * window.devicePixelRatio }], delta: wheelEvent.deltaY });
         wheelEvent.preventDefault();
     })
 

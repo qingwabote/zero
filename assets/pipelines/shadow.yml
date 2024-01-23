@@ -17,10 +17,9 @@ flows:
         texture: shadowmap
         binding: 0
     stages:
-      - name: shadow
+      - name: shadowmap
         phases:
           - pass: shadowmap
-            visibility: ${UP}
         framebuffer:
           depthStencil: shadowmap
         clears:
@@ -28,8 +27,3 @@ flows:
       - name: forward
         phases:
           - pass: default
-            visibility: ${UI}
-          - pass: default
-            visibility: ${UP}
-          - pass: default
-            visibility: ${DOWN}

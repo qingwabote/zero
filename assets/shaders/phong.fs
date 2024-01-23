@@ -5,7 +5,7 @@ precision highp float;
 #include <global/light>
 #include <global/camera>
 #if USE_SHADOW_MAP
-    #include <global/shadowMap>
+    layout(set = 0, binding = 0) uniform sampler2D shadowMap;
 #endif
 
 #if USE_ALBEDO_MAP
@@ -28,25 +28,28 @@ layout(location = 0) out vec4 v_color;
 
 #if USE_SHADOW_MAP
     float shadowFactor(vec4 position) {
+        float factor = 0.0;
+
         #if CLIP_SPACE_MIN_Z_0
             vec3 pos = position.xyz * vec3(0.5, 0.5, 1.0) + vec3(0.5, 0.5, 0.0);
         #else
             vec3 pos = position.xyz * 0.5 + 0.5;
         #endif
 
-        float factor = 0.0;
+        if (pos.x < 0.0 || pos.x > 1.0 || pos.y < 0.0 || pos.y > 1.0 || pos.z < 0.0 || pos.z > 1.0) {
+            return factor;
+        }
+
         #if SHADOW_MAP_PCF
             vec2 texelSize = 1.0 / vec2(textureSize(shadowMap, 0));
             for(int x = -1; x <= 1; ++x) {
                 for(int y = -1; y <= 1; ++y) {
-                    float depth = texture(shadowMap, pos.xy + vec2(x, y) * texelSize).r; 
-                    factor += pos.z > depth ? 1.0 : 0.0;
+                    factor += step(texture(shadowMap, pos.xy + vec2(x, y) * texelSize).r, pos.z);
                 }
             }
             factor /= 9.0;
         #else
-            float depth = texture(shadowMap, pos.xy).r;
-            factor = pos.z > depth ? 1.0 : 0.0;
+            factor = step(texture(shadowMap, pos.xy).r, pos.z);
         #endif
         
         return factor;
@@ -69,7 +72,7 @@ void main() {
     vec3 halfwayDir = normalize(light.direction + viewDir);
     vec3 specular = specularStrength * pow(max(dot(v_normal, halfwayDir), 0.0), 16.0) * litColor;
 
-    float ambientStrength = 0.1;
+    float ambientStrength = 0.3;
     vec3 ambient = ambientStrength * litColor;
 
     float shadow = 0.0;

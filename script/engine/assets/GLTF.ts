@@ -12,7 +12,7 @@ import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { AnimationClip, Channel } from "./AnimationClip.js";
-import { Effect } from "./Effect.js";
+import { Effect, PassOverridden } from "./Effect.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Skin } from "./Skin.js";
@@ -57,24 +57,41 @@ export interface MaterialParams {
     texture?: Texture;
 }
 
-async function materialFuncDefault(params: MaterialParams) {
-    const phong = await bundle.cache("./effects/phong", Effect);
-    const passes = await phong.createPasses([
-        {},
-        {
-            macros: {
-                USE_ALBEDO_MAP: params.texture ? 1 : 0,
-                USE_SKIN: params.skin ? 1 : 0
-            },
-            props: {
-                albedo: params.albedo
+export type MaterialFunc = (params: MaterialParams) => [string, PassOverridden[]];
+
+const materialFuncPhong: MaterialFunc = function (params: MaterialParams): [string, PassOverridden[]] {
+    return [
+        bundle.resolve("./effects/phong"),
+        [
+            {},
+            {
+                macros: {
+                    USE_ALBEDO_MAP: params.texture ? 1 : 0,
+                    USE_SKIN: params.skin ? 1 : 0
+                },
+                props: {
+                    albedo: params.albedo
+                },
+                ...params.texture &&
+                {
+                    textures: {
+                        'albedoMap': params.texture.impl
+                    }
+                }
             }
-        }
-    ]);
-    if (params.texture) {
-        passes[1].setTexture('albedoMap', params.texture.impl)
+        ]
+    ]
+}
+
+let materialFuncId = 0;
+const materialFuncIds: Map<MaterialFunc, number> = new Map;
+function materialFuncHash(func: MaterialFunc): number {
+    let id = materialFuncIds.get(func);
+    if (id == undefined) {
+        id = materialFuncId++;
+        materialFuncIds.set(func, id);
     }
-    return new Material(passes);
+    return id;
 }
 
 export class GLTF implements Asset {
@@ -107,6 +124,8 @@ export class GLTF implements Asset {
     get animationClips(): readonly AnimationClip[] {
         return this._animationClips;
     }
+
+    private _instances: Record<string, GLTFInstance> = {};
 
     async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
@@ -194,24 +213,45 @@ export class GLTF implements Asset {
         return this;
     }
 
-    async instantiate(materialFunc = materialFuncDefault): Promise<GLTFInstance> {
-        const materialDefault = await materialFunc({
-            albedo: vec4.ONE,
-            skin: false
-        });
-        const materials: Material[] = []
-        for (const info of this._json.materials || []) {
-            let textureIdx = -1;
-            if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
-                textureIdx = this._json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
+    async instantiate(macros?: Record<string, number>, materialFunc = materialFuncPhong): Promise<GLTFInstance> {
+        let instanceKey = materialFuncHash(materialFunc).toString();
+        if (macros) {
+            const names = Object.keys(macros).sort();
+            for (const name of names) {
+                instanceKey += name + macros[name];
             }
-            materials.push(await materialFunc({
-                texture: this._textures[textureIdx],
-                albedo: info.pbrMetallicRoughness.baseColorFactor || vec4.ONE,
-                skin: this._json.skins != undefined,
-            }));
         }
-        return new GLTFInstance(this, materials, materialDefault);
+        let instance = this._instances[instanceKey];
+        if (!instance) {
+            const materialDefault = await this.materialLoad(...materialFunc({ albedo: vec4.ONE, skin: false }), macros);
+            const materials: Material[] = []
+            for (const info of this._json.materials || []) {
+                let textureIdx = -1;
+                if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
+                    textureIdx = this._json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
+                }
+                materials.push(await this.materialLoad(...materialFunc({
+                    texture: this._textures[textureIdx],
+                    albedo: info.pbrMetallicRoughness.baseColorFactor || vec4.ONE,
+                    skin: this._json.skins != undefined
+                }), macros));
+            }
+            instance = new GLTFInstance(this, materials, materialDefault);
+            this._instances[instanceKey] = instance;
+        }
+        return instance;
+    }
+
+    private async materialLoad(effectUrl: string, passOverriddens: PassOverridden[], macros?: Record<string, number>) {
+        const effect = await cache(effectUrl, Effect)
+        if (macros) {
+            for (const pass of passOverriddens) {
+                pass.macros = pass.macros || {};
+                Object.assign(pass.macros, macros);
+            }
+        }
+        const passes = await effect.createPasses(passOverriddens);
+        return new Material(passes);
     }
 
     getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {

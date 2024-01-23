@@ -1,7 +1,7 @@
 import { Component, GLTF, MeshRenderer, Node, Vec3, bundle, quat, vec3, vec4 } from "engine";
 import { BoxShape, PhysicsSystem } from "physics";
 
-const gltf_primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate();
+const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1 });
 
 const chassis_size = vec3.create(1.8, 0.6, 4);
 
@@ -32,9 +32,9 @@ export default class Vehicle extends Component {
     constructor(node: Node) {
         super(node);
 
-        const cube = gltf_primitive.createScene("Cube", true)!.children[0];
+        const cube = primitive.createScene("Cube", true)!.children[0];
         let meshRenderer = cube.getComponent(MeshRenderer)!;
-        meshRenderer.materials[0].passes[0].setUniform('Props', 'albedo', vec4.create(1, 0, 0, 1));
+        meshRenderer.materials[0].passes[1].setUniform('Props', 'albedo', vec4.create(1, 0, 0, 1));
         cube.scale = vec3.scale(vec3.create(), chassis_size, 0.5)
         node.addChild(cube);
 
@@ -104,14 +104,14 @@ export default class Vehicle extends Component {
         wheelInfo.set_m_suspensionStiffness(20);
 
         const node = new Node;
-        const cylinder = gltf_primitive.createScene("Cylinder")!.children[0];
+        const cylinder = primitive.createScene("Cylinder")!.children[0];
         cylinder.scale = vec3.create(wheel_radius, wheel_width / 2, wheel_radius)
         cylinder.euler = vec3.create(0, 0, 90)
         node.addChild(cylinder)
-        const cube = gltf_primitive.createScene("Cube", true)!.children[0];
+        const cube = primitive.createScene("Cube", true)!.children[0];
         cube.scale = vec3.create(wheel_width / 2 + 0.01, wheel_radius - 0.01, wheel_radius / 3)
         let meshRenderer = cube.getComponent(MeshRenderer)!;
-        meshRenderer.materials[0].passes[0].setUniform('Props', 'albedo', vec4.create(1, 0, 0, 1));
+        meshRenderer.materials[0].passes[1].setUniform('Props', 'albedo', vec4.create(1, 0, 0, 1));
         node.addChild(cube)
         this.node.addChild(node);
         this._wheels.push(node);
