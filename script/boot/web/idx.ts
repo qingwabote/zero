@@ -16,6 +16,10 @@ canvas.width = width;
 canvas.height = height;
 canvas.style.width = `${documentElement.clientWidth}px`;
 canvas.style.height = `${documentElement.clientHeight}px`;
+log(`canvas style size ${canvas.style.width} ${canvas.style.height}
+canvas size ${canvas.width} ${canvas.height}
+devicePixelRatio ${window.devicePixelRatio}
+`);
 
 const textarea = document.getElementById("boot_log") as HTMLTextAreaElement;
 const safeArea_top = textarea.clientHeight * window.devicePixelRatio;

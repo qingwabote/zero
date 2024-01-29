@@ -10,6 +10,8 @@
 class Window : public TaskRunner
 {
 private:
+    SDL_Window *_sdl_window{nullptr};
+
     std::unique_ptr<loader::Loader> _loader;
 
     std::unique_ptr<gfx::Device> _device;
@@ -31,13 +33,13 @@ protected:
 public:
     static Window &instance();
 
-    Window(){};
-
     loader::Loader &loader() { return *_loader.get(); }
 
     gfx::Device &device() { return *_device.get(); }
 
     double now();
+
+    Window(){};
 
     void onTouchStart(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchStartCb = std::move(cb); }
     void onTouchMove(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchMoveCb = std::move(cb); }
@@ -47,7 +49,7 @@ public:
 
     using TaskRunner::post;
 
-    int loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window);
+    int loop(SDL_Window *sdl_window);
 
     ~Window(){};
 };

@@ -38,20 +38,15 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    // SDL_DisplayMode displayMode;
-    // SDL_GetCurrentDisplayMode(0, &displayMode);
-
-    std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window{
-        SDL_CreateWindow("zero",                                   // window title
-                         SDL_WINDOWPOS_UNDEFINED,                  // initial x position
-                         SDL_WINDOWPOS_UNDEFINED,                  // initial y position
-                         0,                                        // width, in pixels
-                         0,                                        // height, in pixels
-                         SDL_WINDOW_FULLSCREEN | SDL_WINDOW_VULKAN // flags
-                         ),
-        windowDeleter};
-
-    Window::instance().loop(std::move(sdl_window));
+    SDL_Window *sdl_window = SDL_CreateWindow("zero",
+                                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                              0, 0, // If the window is set fullscreen, the width and height parameters `w` and `h` will not be used
+                                              SDL_WINDOW_VULKAN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN);
+    Window::instance().loop(sdl_window);
     // tests::triangle::draw(std::move(sdl_window));
+
+    SDL_DestroyWindow(sdl_window);
+    SDL_Quit();
+
     return 0;
 }

@@ -4,9 +4,9 @@ import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
 const favicon = await builtin.cache('favicon.ico', Texture);
 
-const normal = await (await builtin.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
-const msaa = await (await builtin.cache('pipelines/unlit-ms', Pipeline)).createRenderPipeline();
-const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).createRenderPipeline();
+const normal = await (await builtin.cache('pipelines/unlit', Pipeline)).instantiate();
+const msaa = await (await builtin.cache('pipelines/unlit-ms', Pipeline)).instantiate();
+const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).instantiate();
 
 const text_color_normal = [0.5, 0.5, 0.5, 1] as const;
 const text_color_selected = [0, 1, 0, 1] as const;
@@ -27,7 +27,7 @@ export default class App extends Zero {
 
         node = new Node;
         const camera = node.addComponent(Camera);
-        camera.orthoHeight = swapchain.height / scale / 2;
+        camera.orthoSize = swapchain.height / scale / 2;
         camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
 
