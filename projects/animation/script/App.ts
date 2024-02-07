@@ -1,25 +1,14 @@
 import { bundle } from 'bundling';
-import {
-    AnimationClip,
-    BlendAnimation,
-    Camera,
-    DirectionalLight,
-    GLTF,
-    Node,
-    Pipeline,
-    TextRenderer,
-    VisibilityFlagBits,
-    Zero,
-    bundle as builtin,
-    device,
-    render,
-    vec3
-} from "engine";
-import { Align, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
+import { BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from "engine";
+import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 
-const walkrun_and_idle = await (await bundle.cache('walkrun_and_idle/scene', GLTF)).instantiate();
+const Polyart = await (await bundle.cache('SciFiWarriorPBRHPPolyart/Polyart', GLTF)).instantiate();
 
-const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).createRenderPipeline();
+const WalkFront_Shoot_ar = await bundle.cache('SciFiWarriorPBRHPPolyart/WalkFront_Shoot_ar', GLTF);
+const Run_gunMiddle_AR = await bundle.cache('SciFiWarriorPBRHPPolyart/Run_gunMiddle_AR', GLTF);
+const Idle_Shoot_ar = await bundle.cache('SciFiWarriorPBRHPPolyart/Idle_Shoot_ar', GLTF);
+
+const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 
 export class App extends Zero {
     start(): render.Pipeline {
@@ -42,25 +31,26 @@ export class App extends Zero {
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
         main_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
-        node.position = [0, 0, 12];
+        node.position = [0, 0, 8];
 
-        node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
-        node.visibility = VisibilityFlagBits.DEFAULT
+        node = Polyart.createScene("Scene")!;
+        node.visibility = VisibilityFlagBits.DEFAULT;
         node.euler = vec3.create(0, 60, 0)
+        node.scale = [0.01, 0.01, 0.01]
         const animation = node.addComponent(BlendAnimation);
-        const clips: AnimationClip[] = [];
-        clips.push(walkrun_and_idle.gltf.animationClips.find(clip => clip.name == 'Armature|Idle')!)
-        clips.push(walkrun_and_idle.gltf.animationClips.find(clip => clip.name == 'Armature|Walk')!)
-        clips.push(walkrun_and_idle.gltf.animationClips.find(clip => clip.name == 'Armature|Run')!)
-        animation.clips = clips;
+        animation.clips = [
+            Idle_Shoot_ar.animationClips[0],
+            WalkFront_Shoot_ar.animationClips[0],
+            Run_gunMiddle_AR.animationClips[0],
+        ];
         animation.thresholds = [0, 0.5, 1]
 
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
-        ui_camera.clears = 0x2 // ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.clears = Camera.ClearFlagBits.DEPTH;
+        ui_camera.orthoSize = swapchain.height / scale / 2;
         ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
 
@@ -73,25 +63,32 @@ export class App extends Zero {
         doc.setWidth(width);
         doc.setHeight(height);
 
-        const control = (new Node).addComponent(ElementContainer);
-        control.alignItems = Align.Center;
-        control.setPosition(Edge.Top, 60)
+        const cameraControl = Node.build(CameraControlPanel);
+        cameraControl.camera = main_camera;
+        cameraControl.setWidth('100%');
+        cameraControl.setHeight('100%');
+        cameraControl.positionType = PositionType.Absolute;
+        doc.addElement(cameraControl);
+
+        const panel = Node.build(ElementContainer);
+        panel.alignItems = Align.Center;
+        panel.setPosition(Edge.Top, 210);
 
         function updateInput(value: number) {
             animation.input = value;
         }
 
-        const slider = (new Node).addComponent(Slider);
-        slider.setWidth(180)
-        slider.setHeight(20)
-        slider.value = 0.1;
+        const slider = Node.build(Slider);
+        slider.setWidth(180);
+        slider.setHeight(20);
+        slider.value = 0;
         slider.emitter.on(SliderEventType.CHANGED, () => {
-            updateInput(slider.value)
+            updateInput(slider.value);
         })
-        control.addElement(slider);
+        panel.addElement(slider);
 
         const text = Renderer.create(TextRenderer);
-        control.addElement(text);
+        panel.addElement(text);
 
         this.setInterval(() => {
             const weights = animation.state.weights;
@@ -100,17 +97,17 @@ export class App extends Zero {
 跑: ${weights[2].toFixed(2)}`
         })
 
-        updateInput(slider.value)
+        updateInput(slider.value);
 
-        doc.addElement(control)
+        doc.addElement(panel);
 
-        const profiler = (new Node).addComponent(Profiler)
+        const profiler = Node.build(Profiler);
         profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
+        profiler.setPosition(Edge.Left, 8);
+        profiler.setPosition(Edge.Bottom, 8);
         doc.addElement(profiler);
 
-        return pipeline
+        return pipeline;
     }
 }
 

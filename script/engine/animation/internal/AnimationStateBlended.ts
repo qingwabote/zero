@@ -54,7 +54,7 @@ export class AnimationStateBlended extends AnimationStateBase {
     }
 
     private updateWeights(): void {
-        const { _weights: weights, _thresholds: thresholds, input } = this;
+        const { _weights: weights, _thresholds: thresholds, _input: input } = this;
 
         weights.fill(0);
         if (input <= thresholds[0]) {

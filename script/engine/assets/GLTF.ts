@@ -105,18 +105,13 @@ export class GLTF implements Asset {
         return this._bin;
     }
 
-    private _buffers: Buffer[] = [];
-    get buffers(): readonly Buffer[] {
-        return this._buffers;
-    }
-
     private _textures!: Texture[];
-    get textures(): Texture[] {
+    get textures(): readonly Texture[] {
         return this._textures;
     }
 
     private _skins: Skin[] = [];
-    get skins(): Skin[] {
+    get skins(): readonly Skin[] {
         return this._skins;
     }
 
@@ -124,6 +119,8 @@ export class GLTF implements Asset {
     get animationClips(): readonly AnimationClip[] {
         return this._animationClips;
     }
+
+    private _buffers: Buffer[] = [];
 
     private _instances: Record<string, GLTFInstance> = {};
 
@@ -176,34 +173,41 @@ export class GLTF implements Asset {
             const channels: Channel[] = []
             for (const channel of animation.channels) {
                 const sampler = animation.samplers[channel.sampler];
+
                 // the input/output pair: 
                 // a set of floating-point scalar values representing linear time in seconds; 
                 // and a set of vectors or scalars representing the animated property. 
-                let accessor = json.accessors[sampler.input];
-                let bufferView = json.bufferViews[accessor.bufferView];
-                if (bufferView.byteStride != undefined) {
-                    throw new Error;
+                let input: Float32Array;
+                {
+                    const accessor = json.accessors[sampler.input];
+                    const bufferView = json.bufferViews[accessor.bufferView];
+                    if (bufferView.byteStride != undefined) {
+                        throw new Error;
+                    }
+                    input = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
                 }
-                const input = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
-                accessor = json.accessors[sampler.output];
-                bufferView = json.bufferViews[accessor.bufferView];
-                let components: number;
-                switch (accessor.type) {
-                    case 'VEC3':
-                        components = 3;
-                        break;
-                    case 'VEC4':
-                        components = 4;
-                        break;
-                    default:
-                        throw new Error(`unsupported accessor type: ${accessor.type}`);
+                let output: Float32Array;
+                {
+                    const accessor = json.accessors[sampler.output];
+                    const bufferView = json.bufferViews[accessor.bufferView];
+                    let components: number;
+                    switch (accessor.type) {
+                        case 'VEC3':
+                            components = 3;
+                            break;
+                        case 'VEC4':
+                            components = 4;
+                            break;
+                        default:
+                            throw `unsupported accessor type: ${accessor.type}`;
+                    }
+                    output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
+                    // if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
+                    //     throw new Error;
+                    // }
                 }
-                const output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
-                const interpolation = sampler.interpolation;
-                if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
-                    throw new Error;
-                }
-                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation } })
+
+                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation: sampler.interpolation } })
             }
             this._animationClips.push({ name: animation.name, channels });
         }
@@ -240,18 +244,6 @@ export class GLTF implements Asset {
             this._instances[instanceKey] = instance;
         }
         return instance;
-    }
-
-    private async materialLoad(effectUrl: string, passOverriddens: PassOverridden[], macros?: Record<string, number>) {
-        const effect = await cache(effectUrl, Effect)
-        if (macros) {
-            for (const pass of passOverriddens) {
-                pass.macros = pass.macros || {};
-                Object.assign(pass.macros, macros);
-            }
-        }
-        const passes = await effect.createPasses(passOverriddens);
-        return new Material(passes);
     }
 
     getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
@@ -297,18 +289,27 @@ export class GLTF implements Asset {
         return buffer;
     }
 
-    // private onProgress(loaded: number, total: number, url: string) {
-    //     console.log(`download: ${url}, progress: ${loaded / total * 100}`)
-    // }
+    private async materialLoad(effectUrl: string, passOverriddens: PassOverridden[], macros?: Record<string, number>) {
+        const effect = await cache(effectUrl, Effect)
+        if (macros) {
+            for (const pass of passOverriddens) {
+                pass.macros = pass.macros || {};
+                Object.assign(pass.macros, macros);
+            }
+        }
+        const passes = await effect.createPasses(passOverriddens);
+        return new Material(passes);
+    }
 }
 
 export class GLTFInstance {
-    constructor(readonly gltf: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
+    constructor(readonly proto: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
 
     createScene(name?: string, materialInstancing = false): Node | null {
-        if (!this.gltf.json || !this.gltf.bin || !this.gltf.textures) return null;
-
-        const scene = (this.gltf.json.scenes as any[]).find(scene => scene.name == name || name == undefined);
+        const scene = name ? (this.proto.json.scenes as any[]).find(scene => scene.name == name) : this.proto.json.scenes[0];
+        if (!scene) {
+            return null;
+        }
         const node = new Node(name);
         for (const index of scene.nodes) {
             node.addChild(this.createNode(index, materialInstancing, node))
@@ -317,7 +318,7 @@ export class GLTFInstance {
     }
 
     private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
-        const info = this.gltf.json.nodes[index];
+        const info = this.proto.json.nodes[index];
         const node = new Node(node2name(info, index));
         if (!root) {
             root = node;
@@ -337,12 +338,12 @@ export class GLTFInstance {
         }
 
         if (info.mesh != undefined) {
-            const [mesh, materials] = this.createMesh(this.gltf.json.meshes[info.mesh], materialInstancing);
+            const [mesh, materials] = this.createMesh(this.proto.json.meshes[info.mesh], materialInstancing);
             const renderer = node.addComponent(info.skin != undefined ? SkinnedMeshRenderer : MeshRenderer);
             renderer.mesh = mesh
             renderer.materials = materials;
             if (renderer instanceof SkinnedMeshRenderer) {
-                renderer.skin = this.gltf.skins[info.skin];
+                renderer.skin = this.proto.skins[info.skin];
                 renderer.transform = root;
             }
         }
@@ -365,7 +366,7 @@ export class GLTFInstance {
             }
             // assert
             if (primitive.material != undefined &&
-                this.gltf.json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined &&
+                this.proto.json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined &&
                 primitive.attributes['TEXCOORD_0'] == undefined) {
                 console.log("not provided attribute: TEXCOORD_0")
                 continue;
@@ -374,7 +375,7 @@ export class GLTFInstance {
             const iaInfo = new InputAssemblerInfo;
             const vertexInput = new VertexInput;
             for (const key in primitive.attributes) {
-                const accessor = this.gltf.json.accessors[primitive.attributes[key]];
+                const accessor = this.proto.json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
                 if (format == undefined) {
                     console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
@@ -391,13 +392,13 @@ export class GLTFInstance {
                 attribute.buffer = vertexInput.buffers.size();
                 attribute.offset = 0;
                 iaInfo.vertexAttributes.add(attribute);
-                vertexInput.buffers.add(this.gltf.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                vertexInput.buffers.add(this.proto.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 vertexInput.offsets.add(accessor.byteOffset || 0);
             }
             iaInfo.vertexInput = vertexInput;
 
-            const indexAccessor = this.gltf.json.accessors[primitive.indices];
-            const indexBuffer = this.gltf.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
+            const indexAccessor = this.proto.json.accessors[primitive.indices];
+            const indexBuffer = this.proto.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
 
             materials.push(material);
 
@@ -421,7 +422,7 @@ export class GLTFInstance {
             indexInput.type = indexType;
             iaInfo.indexInput = indexInput;
 
-            const posAccessor = this.gltf.json.accessors[primitive.attributes['POSITION']];
+            const posAccessor = this.proto.json.accessors[primitive.attributes['POSITION']];
             subMeshes.push(
                 new SubMesh(
                     device.createInputAssembler(iaInfo),
