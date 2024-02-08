@@ -1,4 +1,4 @@
-import { AnimationStateBase } from "./AnimationStateBase.js";
+import { AnimationState } from "./AnimationState.js";
 import { ClipBinging } from "./ClipBinging.js";
 
 export interface BlendContext {
@@ -6,7 +6,7 @@ export interface BlendContext {
     flush(): void;
 }
 
-export class AnimationStateBlended extends AnimationStateBase {
+export class AnimationStateBlended extends AnimationState {
     private _weights: number[];
     public get weights(): readonly number[] {
         return this._weights;

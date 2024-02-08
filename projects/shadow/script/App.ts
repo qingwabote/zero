@@ -65,7 +65,7 @@ export class App extends Zero {
 
         node = guardian.createScene("Sketchfab_Scene")!;
         const animation = node.addComponent(Animation);
-        animation.clips = guardian.gltf.animationClips;
+        animation.clips = guardian.proto.animationClips;
         animation.play('WalkCycle')
         node.visibility = VisibilityFlagBits.DEFAULT;
         node.position = [0, -1, 0]

@@ -1,10 +1,10 @@
-import { AnimationClip } from "../assets/AnimationClip.js";
 import { Component } from "../core/Component.js";
 import { TRS } from "../core/math/TRS.js";
 import { quat } from "../core/math/quat.js";
 import { Vec3Like, vec3 } from "../core/math/vec3.js";
 import { Vec4Like } from "../core/math/vec4.js";
 import { Transform } from "../core/render/scene/Transform.js";
+import { AnimationClip } from "./AnimationClip.js";
 import { AnimationStateBlended, BlendContext } from "./internal/AnimationStateBlended.js";
 import { AnimationSystem } from "./internal/AnimationSystem.js";
 import { ClipBinging } from "./internal/ClipBinging.js";

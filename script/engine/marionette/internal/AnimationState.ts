@@ -1,6 +1,4 @@
-import { AnimationState } from "./AnimationState.js";
-
-export abstract class AnimationStateBase implements AnimationState {
+export abstract class AnimationState {
     public abstract get duration(): number;
 
     /**When set new time, we should ensure the frame at the specified time being played at next update.*/

@@ -1,4 +1,3 @@
-export * from './AnimationClip.js';
 export * from './Effect.js';
 export * from './FNT.js';
 export * from './GLTF.js';

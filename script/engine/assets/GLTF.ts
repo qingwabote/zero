@@ -11,7 +11,7 @@ import { Node } from "../core/Node.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { AnimationClip, Channel } from "./AnimationClip.js";
+import { AnimationClip, Channel } from "../marionette/AnimationClip.js";
 import { Effect, PassOverridden } from "./Effect.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
