@@ -1,7 +1,7 @@
 import { System, Zero } from 'engine';
 import { World, impl } from 'phys';
 
-export class PhysicsSystem implements System {
+export class PhysicsSystem extends System {
 
     static readonly instance = new PhysicsSystem();
 
@@ -15,7 +15,7 @@ export class PhysicsSystem implements System {
 
     readonly impl = impl;
 
-    update(dt: number): void {
+    override update(dt: number): void {
         this._world?.update(dt);
     }
 }

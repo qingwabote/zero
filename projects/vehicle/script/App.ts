@@ -42,10 +42,12 @@ export class App extends Zero {
 
         const ground_size = vec3.create(30, 0.2, 30);
 
-        const ground = primitive.createScene("Cube")!.children[0];
+        const ground = primitive.createScene("Cube", true)!.children[0];
+        let meshRenderer = ground.getComponent(MeshRenderer)!
+        meshRenderer.materials[0].passes[1].setUniform('Props', 'albedo', vec4.create(0.5, 0.5, 0.5, 1));
         ground.visibility = VisibilityFlagBits.DEFAULT;
         let shape = ground.addComponent(BoxShape);
-        let aabb = ground.getComponent(MeshRenderer)!.bounds;
+        let aabb = meshRenderer.bounds;
         shape.size = vec3.create(aabb.halfExtent[0] * 2, aabb.halfExtent[1] * 2, aabb.halfExtent[2] * 2)
         ground.scale = [ground_size[0] / (aabb.halfExtent[0] * 2), ground_size[1] / (aabb.halfExtent[1] * 2), ground_size[2] / (aabb.halfExtent[2] * 2)]
         ground.position = [0, -ground_size[1] / 2, 0];

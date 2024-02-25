@@ -1,10 +1,8 @@
-import { SmartRef } from "bastard";
 import { GestureEvent, TouchEvent } from "boot";
 import { BoundedRenderer, Camera, Node, TouchEventName, Vec2, Zero, aabb2d, mat4, vec2 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
-import * as yoga from "./yoga/index.js";
 
 const mat4_a = mat4.create();
 
@@ -107,5 +105,5 @@ export class Document extends ElementContainer {
         return false;
     }
 
-    protected override layout_update(yg_node: SmartRef<yoga.Node>): void { }
+    override layout_update(): void { }
 }

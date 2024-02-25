@@ -1,5 +1,5 @@
 import { Element, ElementEventToListener } from "./Element.js";
-import * as yoga from "./yoga/index.js";
+import type * as yoga from "./yoga/index.js";
 
 export class ElementContainer<T extends ElementEventToListener = ElementEventToListener> extends Element<T> {
     public get flexDirection(): yoga.FlexDirection {

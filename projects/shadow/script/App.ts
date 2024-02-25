@@ -150,14 +150,14 @@ export class App extends Zero {
             down_container.addElement(controlPanel);
 
             function updateValue(value: number) {
-                shadow.orthoSize = 5 * value;
+                shadow.orthoSize = 10 * value;
                 lit_frustum.orthoSize = shadow.orthoSize;
             }
 
             const slider = Node.build(Slider)
             slider.setWidth(180)
             slider.setHeight(20)
-            slider.value = 1;
+            slider.value = 0.5;
             slider.emitter.on(SliderEventType.CHANGED, () => {
                 updateValue(slider.value)
             })

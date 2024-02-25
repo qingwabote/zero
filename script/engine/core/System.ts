@@ -1,3 +1,4 @@
-export interface System {
-    update(dt: number): void;
+export abstract class System {
+    update(dt: number): void { };
+    lateUpdate(dt: number): void { };
 }

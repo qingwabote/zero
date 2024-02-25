@@ -1,4 +1,3 @@
-import { SmartRef } from "bastard";
 import { AABB2D, BoundedRenderer, BoundsEventName, Node, vec3 } from "engine";
 import { Element } from "./Element.js";
 import * as yoga from "./yoga/index.js";
@@ -33,8 +32,8 @@ export class Renderer<T extends BoundedRenderer> extends Element {
         })
     }
 
-    protected override layout_update(yg_node: SmartRef<yoga.Node>): void {
-        const layout = yg_node.deref().getComputedLayout();
+    override layout_update(): void {
+        const layout = this.yg_node.deref().getComputedLayout();
         // console.log('layout_update layout', this.node.name, layout)
         const bounds = this.impl.bounds;
 

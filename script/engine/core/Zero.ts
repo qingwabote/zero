@@ -149,6 +149,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
             system.update(delta);
         }
         this._componentScheduler.lateUpdate();
+        for (const system of this._systems) {
+            system.lateUpdate(delta);
+        }
         this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);

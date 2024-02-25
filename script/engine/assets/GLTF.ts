@@ -9,12 +9,13 @@ import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
+import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
+import { Material } from "../core/render/scene/Material.js";
+import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { AnimationClip, Channel } from "../marionette/AnimationClip.js";
 import { Effect, PassOverridden } from "./Effect.js";
-import { Material } from "./Material.js";
-import { Mesh } from "./Mesh.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
 
@@ -93,6 +94,9 @@ function materialFuncHash(func: MaterialFunc): number {
     }
     return id;
 }
+
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 
 export class GLTF implements Asset {
     private _json: any;
@@ -359,6 +363,8 @@ export class GLTFInstance {
     private createMesh(info: any, materialInstancing: boolean): [Mesh, Material[]] {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
+        vec3.set(vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+        vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
         for (const primitive of info.primitives) {
             let material = primitive.material == undefined ? this._materialDefault : this._materials[primitive.material];
             if (materialInstancing) {
@@ -422,19 +428,20 @@ export class GLTFInstance {
             indexInput.type = indexType;
             iaInfo.indexInput = indexInput;
 
-            const posAccessor = this.proto.json.accessors[primitive.attributes['POSITION']];
             subMeshes.push(
                 new SubMesh(
                     device.createInputAssembler(iaInfo),
-                    posAccessor.min,
-                    posAccessor.max,
                     {
                         count: indexAccessor.count,
                         first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
                     }
                 )
             )
+
+            const posAccessor = this.proto.json.accessors[primitive.attributes['POSITION']];
+            vec3.min(vec3_a, vec3_a, posAccessor.min);
+            vec3.max(vec3_b, vec3_b, posAccessor.max);
         }
-        return [{ subMeshes }, materials];
+        return [new Mesh(subMeshes, vec3_a, vec3_b), materials];
     }
 }

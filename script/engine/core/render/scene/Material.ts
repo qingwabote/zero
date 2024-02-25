@@ -1,4 +1,4 @@
-import { Pass } from "../core/render/scene/Pass.js";
+import { Pass } from "./Pass.js";
 
 export class Material {
     constructor(readonly passes: Pass[]) { }

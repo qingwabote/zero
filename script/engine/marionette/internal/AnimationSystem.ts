@@ -2,7 +2,7 @@ import { System } from "../../core/System.js";
 import { Zero } from "../../core/Zero.js";
 import { AnimationState } from "./AnimationState.js";
 
-export class AnimationSystem implements System {
+export class AnimationSystem extends System {
     static readonly instance = new AnimationSystem();
 
     private _states: Map<AnimationState, AnimationState> = new Map;
@@ -11,7 +11,7 @@ export class AnimationSystem implements System {
         this._states.set(state, state);
     }
 
-    update(dt: number): void {
+    override update(dt: number): void {
         for (const state of this._states.keys()) {
             state.update(dt);
         }
