@@ -1,7 +1,7 @@
 import { EventEmitterImpl } from "bastard";
 import { attach, detach, device, initial, now } from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
-import { GestureEventName, Input, TouchEventName } from "./Input.js";
+import { Input, TouchEventName } from "./Input.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
@@ -76,10 +76,10 @@ export class Zero extends EventEmitterImpl {
         this._inputEvents.set(TouchEventName.END, event);
     }
     onGesturePinch(event) {
-        this._inputEvents.set(GestureEventName.PINCH, event);
+        this._inputEvents.set(TouchEventName.PINCH, event);
     }
     onGestureRotate(event) {
-        this._inputEvents.set(GestureEventName.ROTATE, event);
+        this._inputEvents.set(TouchEventName.ROTATE, event);
     }
     onFrame() {
         this.emit(ZeroEvent.LOGIC_START);
@@ -96,6 +96,9 @@ export class Zero extends EventEmitterImpl {
             system.update(delta);
         }
         this._componentScheduler.lateUpdate();
+        for (const system of this._systems) {
+            system.lateUpdate(delta);
+        }
         this.emit(ZeroEvent.LOGIC_END);
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);

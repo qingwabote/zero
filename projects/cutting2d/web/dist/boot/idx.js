@@ -13,6 +13,10 @@ canvas.width = width;
 canvas.height = height;
 canvas.style.width = `${documentElement.clientWidth}px`;
 canvas.style.height = `${documentElement.clientHeight}px`;
+log(`canvas style size ${canvas.style.width} ${canvas.style.height}
+canvas size ${canvas.width} ${canvas.height}
+devicePixelRatio ${window.devicePixelRatio}
+`);
 const textarea = document.getElementById("boot_log");
 const safeArea_top = textarea.clientHeight * window.devicePixelRatio;
 export const safeArea = { left: 0, right: 0, top: safeArea_top, bottom: 0, width, height: height - safeArea_top };
@@ -109,7 +113,7 @@ export function attach(listener) {
         }
     });
     canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onGesturePinch({ delta: wheelEvent.deltaY });
+        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * window.devicePixelRatio, y: wheelEvent.offsetY * window.devicePixelRatio }], delta: wheelEvent.deltaY });
         wheelEvent.preventDefault();
     });
     function loop() {

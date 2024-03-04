@@ -24,10 +24,6 @@ function gfx_BlendFactor(factor) {
     throw `unsupported factor: ${factor}`;
 }
 export class Effect extends Yml {
-    constructor() {
-        super(...arguments);
-        this._passes = [];
-    }
     async onParse(res) {
         this._passes = res.passes;
     }
@@ -82,6 +78,9 @@ export class Effect extends Yml {
             pass.initialize();
             for (const key in info.props) {
                 pass.setUniform('Props', key, info.props[key]);
+            }
+            for (const key in info.textures) {
+                pass.setTexture(key, info.textures[key]);
             }
             passes.push(pass);
         }

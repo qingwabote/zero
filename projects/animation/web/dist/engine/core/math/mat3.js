@@ -1,4 +1,18 @@
 import { vec3 } from "./vec3.js";
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
+function set(out, m00, m01, m02, m03, m04, m05, m06, m07, m08) {
+    out[0] = m00;
+    out[1] = m01;
+    out[2] = m02;
+    out[3] = m03;
+    out[4] = m04;
+    out[5] = m05;
+    out[6] = m06;
+    out[7] = m07;
+    out[8] = m08;
+    return out;
+}
 export const mat3 = {
     create() {
         return [
@@ -7,6 +21,7 @@ export const mat3 = {
             0, 0, 1
         ];
     },
+    set,
     identity(out) {
         out[0] = 1;
         out[1] = 0;
@@ -20,44 +35,27 @@ export const mat3 = {
         return out;
     },
     determinant(a) {
-        const a00 = a[0];
-        const a01 = a[1];
-        const a02 = a[2];
-        const a10 = a[3];
-        const a11 = a[4];
-        const a12 = a[5];
-        const a20 = a[6];
-        const a21 = a[7];
-        const a22 = a[8];
-        return a00 * (a22 * a11 - a12 * a21) + a01 * (-a22 * a10 + a12 * a20) + a02 * (a21 * a10 - a11 * a20);
+        return a[0] * (a[8] * a[4] - a[5] * a[7]) + a[1] * (-a[8] * a[3] + a[5] * a[6]) + a[2] * (a[7] * a[3] - a[4] * a[6]);
     },
     /**
      * @param view The view direction, it's must be normalized.
+     * @param up The up direction, it's must be normalized, default value is (0, 1, 0).
      */
-    fromViewUp(out, view) {
+    fromViewUp(out, view, up = vec3.UP) {
         const EPSILON = 0.000001;
         if (vec3.lengthSqr(view) < EPSILON * EPSILON) {
             this.identity(out);
             return out;
         }
-        const up = vec3.create(0, 1, 0);
-        const v3_1 = vec3.create();
-        vec3.normalize(v3_1, vec3.cross(v3_1, up, view));
-        if (vec3.lengthSqr(v3_1) < EPSILON * EPSILON) {
+        const x = vec3_a;
+        vec3.normalize(x, vec3.cross(x, up, view));
+        if (vec3.lengthSqr(x) < EPSILON * EPSILON) {
             this.identity(out);
             return out;
         }
-        const v3_2 = vec3.create();
-        vec3.cross(v3_2, view, v3_1);
-        out[0] = v3_1[0];
-        out[1] = v3_1[1];
-        out[2] = v3_1[2];
-        out[3] = v3_2[0];
-        out[4] = v3_2[1];
-        out[5] = v3_2[2];
-        out[6] = view[0];
-        out[7] = view[1];
-        out[8] = view[2];
+        const y = vec3_b;
+        vec3.cross(y, view, x);
+        set(out, ...x, ...y, view[0], view[1], view[2]);
         return out;
     },
     fromQuat(out, q) {

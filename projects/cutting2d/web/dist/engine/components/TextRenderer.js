@@ -5,14 +5,13 @@ import { PassInstance } from "../PassInstance.js";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Zero } from "../core/Zero.js";
-import { aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
+import { Material, Mesh } from "../core/render/index.js";
 import { quad } from "../core/render/quad.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { SubModel } from "../core/render/scene/SubModel.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
@@ -41,23 +40,9 @@ var DirtyFlagBits;
     DirtyFlagBits[DirtyFlagBits["TEXT"] = 1] = "TEXT";
 })(DirtyFlagBits || (DirtyFlagBits = {}));
 const lineBreak = '\n'.charCodeAt(0);
-const vec2_a = vec2.create();
-const vec2_b = vec2.create();
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 export class TextRenderer extends BoundedRenderer {
-    constructor() {
-        super(...arguments);
-        this._dirtyFlag = DirtyFlagBits.TEXT;
-        this._pass = (function () {
-            const instance = new PassInstance(pass);
-            instance.initialize();
-            return instance;
-        })();
-        this._text = "";
-        this._color = vec4.ONE;
-        this._bounds = aabb2d.create();
-        this._vertexView = quad.createVertexBufferView();
-        this._quads = 0;
-    }
     get text() {
         return this._text;
     }
@@ -75,22 +60,33 @@ export class TextRenderer extends BoundedRenderer {
         this._pass.setUniform('Props', 'albedo', value);
         this._color = value;
     }
-    get bounds() {
-        this.updateData();
-        return this._bounds;
+    constructor(node) {
+        super(node);
+        this._dirtyFlag = DirtyFlagBits.TEXT;
+        this._pass = (function () {
+            const instance = new PassInstance(pass);
+            instance.initialize();
+            return instance;
+        })();
+        this._text = "";
+        this._color = vec4.ONE;
+        this._quads = 0;
+        const vertexView = quad.createVertexBufferView();
+        const subMesh = new SubMesh(quad.createInputAssembler(vertexView.buffer));
+        const mesh = new Mesh([subMesh]);
+        this._model.mesh = mesh;
+        this._mesh = mesh;
+        this._vertexView = vertexView;
     }
     start() {
-        const subMesh = new SubMesh(quad.createInputAssembler(this._vertexView.buffer), vec3.create(), vec3.create());
         this._pass.setUniform('Props', 'albedo', this._color);
-        const subModel = new SubModel(subMesh, [this._pass]);
-        this._model.subModels.push(subModel);
+        this._model.materials = [new Material([this._pass])];
         Zero.instance.scene.addModel(this._model);
-        this._subMesh = subMesh;
     }
     lateUpdate() {
         this.updateData();
         this._vertexView.update();
-        this._subMesh.drawInfo.count = 6 * this._quads;
+        this._mesh.subMeshes[0].drawInfo.count = 6 * this._quads;
     }
     updateData() {
         if (this._dirtyFlag == DirtyFlagBits.NONE) {
@@ -98,7 +94,7 @@ export class TextRenderer extends BoundedRenderer {
         }
         if (!this._text) {
             this._quads = 0;
-            aabb2d.set(this._bounds, vec2.ZERO, vec2.ZERO);
+            this._mesh.setBoundsByPoints(vec3.ZERO, vec3.ZERO);
             this._dirtyFlag = DirtyFlagBits.NONE;
             this.emit(BoundsEventName.BOUNDS_CHANGED);
             return;
@@ -157,9 +153,9 @@ export class TextRenderer extends BoundedRenderer {
         }
         quad.indexGrowTo(this._quads = quads);
         // aabb2d.set(this._bounds, 0, b, r + l, t - b);
-        vec2.set(vec2_a, l, b);
-        vec2.set(vec2_b, r, t);
-        aabb2d.fromPoints(this._bounds, vec2_a, vec2_b);
+        vec2.set(vec3_a, l, b);
+        vec2.set(vec3_b, r, t);
+        this._mesh.setBoundsByPoints(vec3_a, vec3_b);
         this._dirtyFlag = DirtyFlagBits.NONE;
         this.emit(BoundsEventName.BOUNDS_CHANGED);
     }

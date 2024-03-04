@@ -1,6 +1,7 @@
 export * from './BoundedRenderer.js';
 export * from './Camera.js';
 export * from './DirectionalLight.js';
+export * from './Frustum.js';
 export * from './MeshRenderer.js';
 export * from './Primitive.js';
 export * from './SkinnedMeshRenderer.js';

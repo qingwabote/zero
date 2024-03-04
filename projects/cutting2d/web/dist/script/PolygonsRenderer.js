@@ -21,6 +21,8 @@ function triangulate(n, indexBuffer) {
         indexBuffer.source[i * 3 + 2] = i + 2;
     }
 }
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 export default class PolygonsRenderer extends Element {
     constructor() {
         super(...arguments);
@@ -69,8 +71,9 @@ export default class PolygonsRenderer extends Element {
                 }
                 vertexBuffer.invalidate();
                 vertexBuffer.update();
-                vec3.set(subMesh.vertexPositionMin, ...polygon.vertexPosMin, 0);
-                vec3.set(subMesh.vertexPositionMax, ...polygon.vertexPosMax, 0);
+                vec3.set(vec3_a, ...polygon.vertexPosMin, 0);
+                vec3.set(vec3_b, ...polygon.vertexPosMax, 0);
+                renderer.mesh.setBoundsByPoints(vec3_a, vec3_b);
                 const indexBuffer = this._indexViews[i];
                 triangulate(polygon.vertexes.length, indexBuffer);
                 indexBuffer.invalidate();
@@ -101,9 +104,9 @@ export default class PolygonsRenderer extends Element {
             indexInput.buffer = indexView.buffer;
             indexInput.type = IndexType.UINT16;
             iaInfo.indexInput = indexInput;
-            const subMesh = new render.SubMesh(device.createInputAssembler(iaInfo), vec3.create(), vec3.create());
+            const subMesh = new render.SubMesh(device.createInputAssembler(iaInfo));
             renderer = (new Node(`PolygonsRenderer${index}`)).addComponent(MeshRenderer);
-            renderer.mesh = { subMeshes: [subMesh] };
+            renderer.mesh = new render.Mesh([subMesh]);
             renderer.materials = [this._material];
             this.node.addChild(renderer.node);
             this._meshRenderers[index] = renderer;
