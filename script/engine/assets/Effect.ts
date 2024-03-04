@@ -70,16 +70,17 @@ export class Effect extends Yml {
         this._passes = res.passes;
     }
 
-    async createPasses(overrides: PassOverridden[] = []): Promise<render.Pass[]> {
+    async createPasses(overrides: readonly Readonly<PassOverridden>[], macros?: Record<string, number>): Promise<render.Pass[]> {
         const passes: render.Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
-            if (info.switch && info.macros?.[info.switch] != 1) {
+            const mac = Object.assign({}, info.macros, macros);
+            if (info.switch && mac[info.switch] != 1) {
                 continue;
             }
 
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader!)), Shader), info.macros);
+            passState.shader = shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader!)), Shader), mac);
 
             if (info.primitive) {
                 if (info.primitive in gfx.PrimitiveTopology) {

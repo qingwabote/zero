@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, Effect, GLTF, Material, MaterialParams, Node, Pass, Pipeline, TextRenderer, TouchEventName, Vec3, Zero, bundle as builtin, device, render, vec3 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, TextRenderer, TouchEventName, Vec3, Zero, bundle as builtin, device, render, vec3 } from 'engine';
 import { Align, CameraControlPanel, Document, Edge, ElementContainer, FlexDirection, Gutter, Justify, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -7,52 +7,48 @@ const VisibilityFlagBits = {
     DEFAULT: 1 << 30
 } as const
 
-
-async function materialFunc(params: MaterialParams) {
-    const effect = await bundle.cache("./effects/test", Effect);
-    const pass: Pass = {
+const materialFunc: MaterialFunc = function (params: MaterialParams): [string, PassOverridden[]] {
+    const pass: PassOverridden = {
         macros: {
             USE_ALBEDO_MAP: params.texture ? 1 : 0,
             USE_SKIN: params.skin ? 1 : 0
         },
         props: {
             albedo: params.albedo
+        },
+        ...params.texture &&
+        {
+            textures: {
+                'albedoMap': params.texture.impl
+            }
         }
     }
-    const passes = await effect.createPasses([
-        {},
-        pass,
-        pass,
-        pass
-    ]);
-    if (params.texture) {
-        passes[1].setTexture('albedoMap', params.texture.impl)
-        passes[2].setTexture('albedoMap', params.texture.impl)
-        passes[3].setTexture('albedoMap', params.texture.impl)
-    }
-    return new Material(passes);
+    return [
+        bundle.resolve("./effects/test"),
+        [{}, pass, pass, pass]
+    ]
 }
 
 const [guardian, plane, unlit, phong, shadow] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
-        return gltf.instantiate(materialFunc);
+        return gltf.instantiate(undefined, materialFunc);
     })(),
     (async function () {
         const gltf = await builtin.cache('models/primitive/scene', GLTF);
-        return gltf.instantiate(materialFunc);
+        return gltf.instantiate(undefined, materialFunc);
     })(),
     (async function () {
         const pipeline = await bundle.cache('pipelines/unlit', Pipeline)
-        return pipeline.createRenderPipeline(VisibilityFlagBits);
+        return pipeline.instantiate(VisibilityFlagBits);
     })(),
     (async function () {
         const pipeline = await bundle.cache('pipelines/phong', Pipeline)
-        return pipeline.createRenderPipeline(VisibilityFlagBits);
+        return pipeline.instantiate(VisibilityFlagBits);
     })(),
     (async function () {
         const pipeline = await bundle.cache('pipelines/shadow', Pipeline)
-        return pipeline.createRenderPipeline(VisibilityFlagBits);
+        return pipeline.instantiate(VisibilityFlagBits);
     })(),
 ])
 
@@ -95,7 +91,7 @@ export class App extends Zero {
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = Camera.ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.orthoSize = swapchain.height / scale / 2;
         ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
 
@@ -147,6 +143,7 @@ export class App extends Zero {
             })
             pipelineBar.addElement(textRenderer);
         }
+        pipelineBar.setPosition(Edge.Top, 30)
         doc.addElement(pipelineBar);
 
         const profiler = (new Node).addComponent(Profiler)
@@ -157,7 +154,7 @@ export class App extends Zero {
 
         node = guardian.createScene("Sketchfab_Scene")!;
         const animation = node.addComponent(Animation);
-        animation.clips = guardian.gltf.animationClips;
+        animation.clips = guardian.proto.animationClips;
         animation.play('WalkCycle')
         node.visibility = VisibilityFlagBits.DEFAULT;
         node.position = [0, -1, 0]
