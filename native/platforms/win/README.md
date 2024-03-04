@@ -1,11 +1,13 @@
-# create visual studio project
+# 使用 cmake 创建 visual studio 项目
 
 ```ps
 cd native\platforms\win
 cmake -G "Visual Studio 17 2022" -A x64 -S . -B build
 ```
 
-# create bootstrap.json
+# bootstrap.json
+
+App 启动时读取此配置文件，将其放置于如下目录：
 
 C:\Users\name\AppData\Roaming\zero\bootstrap.json
 
