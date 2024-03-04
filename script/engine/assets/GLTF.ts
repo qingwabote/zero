@@ -58,9 +58,9 @@ export interface MaterialParams {
     texture?: Texture;
 }
 
-export type MaterialFunc = (params: MaterialParams) => [string, PassOverridden[]];
+export type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<PassOverridden>[]];
 
-const materialFuncPhong: MaterialFunc = function (params: MaterialParams): [string, PassOverridden[]] {
+const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
     return [
         bundle.resolve("./effects/phong"),
         [
@@ -293,15 +293,9 @@ export class GLTF implements Asset {
         return buffer;
     }
 
-    private async materialLoad(effectUrl: string, passOverriddens: PassOverridden[], macros?: Record<string, number>) {
+    private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<PassOverridden>[], macros?: Record<string, number>) {
         const effect = await cache(effectUrl, Effect)
-        if (macros) {
-            for (const pass of passOverriddens) {
-                pass.macros = pass.macros || {};
-                Object.assign(pass.macros, macros);
-            }
-        }
-        const passes = await effect.createPasses(passOverriddens);
+        const passes = await effect.createPasses(passOverriddens, macros);
         return new Material(passes);
     }
 }
