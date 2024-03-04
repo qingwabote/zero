@@ -251,13 +251,7 @@ export class GLTF {
     }
     async materialLoad(effectUrl, passOverriddens, macros) {
         const effect = await cache(effectUrl, Effect);
-        if (macros) {
-            for (const pass of passOverriddens) {
-                pass.macros = pass.macros || {};
-                Object.assign(pass.macros, macros);
-            }
-        }
-        const passes = await effect.createPasses(passOverriddens);
+        const passes = await effect.createPasses(passOverriddens, macros);
         return new Material(passes);
     }
 }

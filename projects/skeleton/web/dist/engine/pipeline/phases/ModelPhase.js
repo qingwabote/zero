@@ -17,7 +17,7 @@ export class ModelPhase extends Phase {
         const camera = scene.cameras[this._context.cameraIndex];
         let dc = 0;
         for (const model of scene.models) {
-            if ((camera.visibilities & model.visibility) == 0) {
+            if ((camera.visibilities & model.transform.visibility) == 0) {
                 continue;
             }
             if (model.type != this._model) {
@@ -25,14 +25,15 @@ export class ModelPhase extends Phase {
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
             const ModelType = model.constructor;
-            for (const subModel of model.subModels) {
-                const drawInfo = subModel.drawInfo;
+            for (let i = 0; i < model.mesh.subMeshes.length; i++) {
+                const subMesh = model.mesh.subMeshes[i];
+                const drawInfo = subMesh.drawInfo;
                 if (!drawInfo.count) {
                     continue;
                 }
-                const inputAssembler = subModel.inputAssembler;
-                for (let i = 0; i < subModel.passes.length; i++) {
-                    const pass = subModel.passes[i];
+                const material = model.materials[i];
+                for (let i = 0; i < material.passes.length; i++) {
+                    const pass = material.passes[i];
                     if (pass.type != this._pass) {
                         continue;
                     }
@@ -41,10 +42,10 @@ export class ModelPhase extends Phase {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                         layouts.push(pass.descriptorSetLayout);
                     }
-                    const pipeline = this._context.getPipeline(pass.state, inputAssembler, renderPass, layouts);
+                    const pipeline = this._context.getPipeline(pass.state, subMesh.inputAssembler, renderPass, layouts);
                     commandBuffer.bindPipeline(pipeline);
-                    commandBuffer.bindInputAssembler(inputAssembler);
-                    if (inputAssembler.info.indexInput) {
+                    commandBuffer.bindInputAssembler(subMesh.inputAssembler);
+                    if (subMesh.inputAssembler.info.indexInput) {
                         commandBuffer.drawIndexed(drawInfo.count, drawInfo.first);
                     }
                     else {

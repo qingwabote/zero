@@ -1,4 +1,4 @@
-import { GestureEventName, TouchEventName, Zero, quat, vec3 } from "engine";
+import { TouchEventName, quat, vec3 } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
 export class CameraControlPanel extends ElementContainer {
     constructor() {
@@ -42,7 +42,7 @@ export class CameraControlPanel extends ElementContainer {
             }
             point = event.touch.local;
         });
-        Zero.instance.input.on(GestureEventName.PINCH, event => {
+        this.emitter.on(TouchEventName.PINCH, event => {
             let delta_position = vec3.create(0, 0, event.delta / 1000);
             delta_position = vec3.transformQuat(vec3.create(), delta_position, this.camera.node.rotation);
             this.camera.node.position = vec3.add(vec3.create(), this.camera.node.position, delta_position);

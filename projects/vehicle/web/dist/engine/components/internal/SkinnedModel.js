@@ -20,6 +20,9 @@ export class SkinnedModel extends Model {
         this._skin = value;
         this._joints = undefined;
     }
+    get transform() {
+        return this._transform;
+    }
     set transform(value) {
         super.transform = value;
         this._joints = undefined;

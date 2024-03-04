@@ -1,13 +1,14 @@
+function create(x = 0, y = 0, z = 0) {
+    return [x, y, z];
+}
 export const vec3 = {
-    UNIT_X: [1, 0, 0],
-    UNIT_Y: [0, 1, 0],
-    UNIT_Z: [0, 0, 1],
-    ZERO: [0, 0, 0],
-    UP: [0, 1, 0],
-    FORWARD: [0, 0, -1],
-    create(x = 0, y = 0, z = 0) {
-        return [x, y, z];
-    },
+    UNIT_X: Object.freeze(create(1, 0, 0)),
+    UNIT_Y: Object.freeze(create(0, 1, 0)),
+    UNIT_Z: Object.freeze(create(0, 0, 1)),
+    ZERO: Object.freeze(create(0, 0, 0)),
+    UP: Object.freeze(create(0, 1, 0)),
+    FORWARD: Object.freeze(create(0, 0, -1)),
+    create,
     set(out, x, y, z) {
         out[0] = x;
         out[1] = y;
@@ -38,6 +39,15 @@ export const vec3 = {
     },
     lengthSqr(v) {
         return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+    },
+    transformMat3(out, a, m) {
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        out[0] = x * m[0] + y * m[3] + z * m[6];
+        out[1] = x * m[1] + y * m[4] + z * m[7];
+        out[2] = x * m[2] + y * m[5] + z * m[8];
+        return out;
     },
     transformMat4(out, a, m) {
         const x = a[0];
@@ -91,11 +101,9 @@ export const vec3 = {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },
     cross(out, a, b) {
-        const [ax, ay, az] = [a[0], a[1], a[2]];
-        const [bx, by, bz] = [b[0], b[1], b[2]];
-        out[0] = ay * bz - az * by;
-        out[1] = az * bx - ax * bz;
-        out[2] = ax * by - ay * bx;
+        out[0] = a[1] * b[2] - a[2] * b[1];
+        out[1] = a[2] * b[0] - a[0] * b[2];
+        out[2] = a[0] * b[1] - a[1] * b[0];
         return out;
     },
     negate(out, a) {

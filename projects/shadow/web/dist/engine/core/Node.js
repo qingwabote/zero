@@ -1,6 +1,9 @@
 import { Zero } from "./Zero.js";
 import { Transform } from "./render/scene/Transform.js";
 export class Node extends Transform {
+    static build(constructor) {
+        return (new Node(constructor.name).addComponent(constructor));
+    }
     constructor(name = '') {
         super(name);
         this._components = [];

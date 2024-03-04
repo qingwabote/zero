@@ -1,19 +1,19 @@
 import { Uint32Vector } from "gfx";
 export class Flow {
-    constructor(context, _uniforms, _stages) {
+    constructor(context, uniforms, _stages) {
         this.context = context;
-        this._uniforms = _uniforms;
+        this.uniforms = uniforms;
         this._stages = _stages;
     }
     update() {
-        for (const uniform of this._uniforms) {
+        for (const uniform of this.uniforms) {
             uniform.update();
         }
     }
     record(commandBuffer) {
         let drawCall = 0;
         const dynamicOffsets = new Uint32Vector;
-        for (const uniform of this._uniforms) {
+        for (const uniform of this.uniforms) {
             const offset = uniform.dynamicOffset(this.context);
             if (offset != -1) {
                 dynamicOffsets.add(offset);

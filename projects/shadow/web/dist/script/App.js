@@ -1,61 +1,25 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, Effect, GLTF, Material, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, quat, shaderLib, vec3 } from 'engine';
-import { CameraControlPanel, Document, Edge, PositionType, Profiler, Renderer } from 'flex';
+import { Animation, Camera, DirectionalLight, Frustum, GLTF, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, quat, shaderLib, vec3 } from 'engine';
+import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 const VisibilityFlagBits = {
     UP: 1 << 1,
     DOWN: 1 << 2,
     UI: 1 << 29,
     DEFAULT: 1 << 30
 };
-const USE_SHADOW_MAP = 1;
-async function materialFunc(params) {
-    const effect = await bundle.cache("./effects/test", Effect);
-    const passes = await effect.createPasses([
-        {
-            macros: { USE_SHADOW_MAP }
-        },
-        {
-            macros: {
-                USE_ALBEDO_MAP: params.texture ? 1 : 0,
-                USE_SHADOW_MAP,
-                USE_SKIN: params.skin ? 1 : 0
-            },
-            props: {
-                albedo: params.albedo
-            }
-        },
-        {
-            macros: {
-                USE_ALBEDO_MAP: params.texture ? 1 : 0,
-            },
-            props: {
-                albedo: params.albedo
-            },
-        }
-    ]);
-    if (params.texture) {
-        passes[1].setTexture('albedoMap', params.texture.impl);
-        passes[2].setTexture('albedoMap', params.texture.impl);
-    }
-    return new Material(passes);
-}
-const [guardian, plane, gltf_camera, ss_depth, pipeline] = await Promise.all([
+const [guardian, plane, ss_depth, pipeline] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
-        return gltf.instantiate(materialFunc);
+        return gltf.instantiate({ USE_SHADOW_MAP: 1 });
     })(),
     (async function () {
         const gltf = await builtin.cache('models/primitive/scene', GLTF);
-        return gltf.instantiate(materialFunc);
-    })(),
-    (async function () {
-        const gltf = await bundle.cache('camera_from_poly_by_google/scene', GLTF);
-        return gltf.instantiate(materialFunc);
+        return gltf.instantiate({ USE_SHADOW_MAP: 1 });
     })(),
     builtin.cache('shaders/depth', Shader),
     bundle.cache('pipelines/test', Pipeline)
 ]);
-const renderPipeline = await pipeline.createRenderPipeline(VisibilityFlagBits);
+const renderPipeline = await pipeline.instantiate(VisibilityFlagBits);
 export class App extends Zero {
     start() {
         const width = 640;
@@ -76,23 +40,51 @@ export class App extends Zero {
         const up_camera = node.addComponent(Camera);
         up_camera.visibilities = VisibilityFlagBits.DEFAULT | VisibilityFlagBits.UP;
         up_camera.fov = 45;
+        up_camera.far = 16;
         up_camera.viewport = { x: 0, y: swapchain.height / 2, width: swapchain.width, height: swapchain.height / 2 };
         node.position = [0, 0, 10];
-        const down_size = Math.min(swapchain.height / 2, swapchain.width);
         node = new Node;
         const down_camera = node.addComponent(Camera);
         down_camera.visibilities = VisibilityFlagBits.DEFAULT | VisibilityFlagBits.DOWN;
-        down_camera.orthoHeight = ShadowUniform.camera.orthoHeight;
-        down_camera.far = ShadowUniform.camera.far;
-        down_camera.viewport = { x: 0, y: 0, width: down_size * ShadowUniform.camera.aspect, height: down_size };
-        node.position = lit_position;
-        node.rotation = quat.rotationTo(quat.create(), vec3.create(0, 0, -1), vec3.normalize(vec3.create(), vec3.negate(vec3.create(), lit_position)));
+        down_camera.orthoSize = 8;
+        down_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height / 2 };
+        node.position = [-8, 8, 8];
+        let view = vec3.normalize(vec3.create(), node.position);
+        node.rotation = quat.fromViewUp(quat.create(), view);
+        node = guardian.createScene("Sketchfab_Scene");
+        const animation = node.addComponent(Animation);
+        animation.clips = guardian.proto.animationClips;
+        animation.play('WalkCycle');
+        node.visibility = VisibilityFlagBits.DEFAULT;
+        node.position = [0, -1, 0];
+        node = plane.createScene("Plane");
+        node.visibility = VisibilityFlagBits.DEFAULT;
+        node.scale = [5, 1, 5];
+        node.position = [0, -1, 0];
+        const shadow = renderPipeline.flows[0].uniforms.find(uniform => uniform instanceof ShadowUniform);
+        const lit_frustum = Node.build(Frustum);
+        lit_frustum.orthoSize = shadow.orthoSize;
+        lit_frustum.aspect = shadow.aspect;
+        lit_frustum.near = shadow.near;
+        lit_frustum.far = shadow.far;
+        lit_frustum.color = [1, 1, 0, 1];
+        view = vec3.normalize(vec3.create(), lit_position);
+        lit_frustum.node.rotation = quat.fromViewUp(quat.create(), view);
+        lit_frustum.node.position = lit_position;
+        lit_frustum.node.visibility = VisibilityFlagBits.DOWN;
+        const up_frustum = Node.build(Frustum);
+        up_frustum.fov = up_camera.fov;
+        up_frustum.aspect = up_camera.viewport.width / up_camera.viewport.height;
+        up_frustum.near = up_camera.near;
+        up_frustum.far = up_camera.far;
+        up_frustum.node.visibility = VisibilityFlagBits.DOWN;
+        up_camera.node.addChild(up_frustum.node);
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = Camera.ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.orthoSize = swapchain.height / scale / 2;
         ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;
@@ -113,27 +105,42 @@ export class App extends Zero {
         profiler.setPosition(Edge.Left, 8);
         profiler.setPosition(Edge.Bottom, 8);
         doc.addElement(profiler);
-        node = new Node;
-        const cameraControlPanel = node.addComponent(CameraControlPanel);
-        cameraControlPanel.camera = up_camera;
-        cameraControlPanel.setWidth(width);
-        cameraControlPanel.setHeight(height);
-        doc.addElement(cameraControlPanel);
-        node = guardian.createScene("Sketchfab_Scene");
-        const animation = node.addComponent(Animation);
-        animation.clips = guardian.gltf.animationClips;
-        animation.play('WalkCycle');
-        node.visibility = VisibilityFlagBits.DEFAULT;
-        node.position = [0, -1, 0];
-        node = plane.createScene("Plane");
-        node.visibility = VisibilityFlagBits.DEFAULT;
-        node.scale = [5, 1, 5];
-        node.position = [0, -1, 0];
-        node = gltf_camera.createScene("Sketchfab_Scene");
-        node.visibility = VisibilityFlagBits.DOWN;
-        node.scale = [0.005, 0.005, 0.005];
-        node.euler = vec3.create(180, 0, 180);
-        up_camera.node.addChild(node);
+        const up_container = Node.build(ElementContainer);
+        up_container.setWidth(width);
+        up_container.setHeight(height / 2);
+        {
+            const controlPanel = Node.build(CameraControlPanel);
+            controlPanel.camera = up_camera;
+            controlPanel.setWidth('100%');
+            controlPanel.setHeight('100%');
+            up_container.addElement(controlPanel);
+        }
+        doc.addElement(up_container);
+        const down_container = Node.build(ElementContainer);
+        down_container.setWidth(width);
+        down_container.setHeight(height / 2);
+        {
+            const controlPanel = Node.build(CameraControlPanel);
+            controlPanel.camera = down_camera;
+            controlPanel.positionType = PositionType.Absolute;
+            controlPanel.setWidth('100%');
+            controlPanel.setHeight('100%');
+            down_container.addElement(controlPanel);
+            function updateValue(value) {
+                shadow.orthoSize = 10 * value;
+                lit_frustum.orthoSize = shadow.orthoSize;
+            }
+            const slider = Node.build(Slider);
+            slider.setWidth(180);
+            slider.setHeight(20);
+            slider.value = 0.5;
+            slider.emitter.on(SliderEventType.CHANGED, () => {
+                updateValue(slider.value);
+            });
+            updateValue(slider.value);
+            down_container.addElement(slider);
+        }
+        doc.addElement(down_container);
         return renderPipeline;
     }
 }

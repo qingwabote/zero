@@ -1,7 +1,8 @@
-import { Zero } from 'engine';
+import { System, Zero } from 'engine';
 import { World, impl } from 'phys';
-export class PhysicsSystem {
+export class PhysicsSystem extends System {
     constructor() {
+        super(...arguments);
         this._world = undefined;
         this.impl = impl;
     }

@@ -24,23 +24,20 @@ function gfx_BlendFactor(factor) {
     throw `unsupported factor: ${factor}`;
 }
 export class Effect extends Yml {
-    constructor() {
-        super(...arguments);
-        this._passes = [];
-    }
     async onParse(res) {
         this._passes = res.passes;
     }
-    async createPasses(overrides = []) {
-        var _a, _b, _c, _d, _e;
+    async createPasses(overrides, macros) {
+        var _a, _b, _c, _d;
         const passes = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
-            if (info.switch && ((_a = info.macros) === null || _a === void 0 ? void 0 : _a[info.switch]) != 1) {
+            const mac = Object.assign({}, info.macros, macros);
+            if (info.switch && mac[info.switch] != 1) {
                 continue;
             }
             const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader)), Shader), info.macros);
+            passState.shader = shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader)), Shader), mac);
             if (info.primitive) {
                 if (info.primitive in gfx.PrimitiveTopology) {
                     passState.primitive = gfx.PrimitiveTopology[info.primitive];
@@ -53,12 +50,12 @@ export class Effect extends Yml {
                 passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             }
             const rasterizationState = new gfx.RasterizationState;
-            if ((_b = info.rasterizationState) === null || _b === void 0 ? void 0 : _b.cullMode) {
-                if (((_c = info.rasterizationState) === null || _c === void 0 ? void 0 : _c.cullMode) in gfx.CullMode) {
-                    rasterizationState.cullMode = gfx.CullMode[(_d = info.rasterizationState) === null || _d === void 0 ? void 0 : _d.cullMode];
+            if ((_a = info.rasterizationState) === null || _a === void 0 ? void 0 : _a.cullMode) {
+                if (((_b = info.rasterizationState) === null || _b === void 0 ? void 0 : _b.cullMode) in gfx.CullMode) {
+                    rasterizationState.cullMode = gfx.CullMode[(_c = info.rasterizationState) === null || _c === void 0 ? void 0 : _c.cullMode];
                 }
                 else {
-                    throw `unsupported cullMode: ${(_e = info.rasterizationState) === null || _e === void 0 ? void 0 : _e.cullMode}`;
+                    throw `unsupported cullMode: ${(_d = info.rasterizationState) === null || _d === void 0 ? void 0 : _d.cullMode}`;
                 }
             }
             else {
@@ -82,6 +79,9 @@ export class Effect extends Yml {
             pass.initialize();
             for (const key in info.props) {
                 pass.setUniform('Props', key, info.props[key]);
+            }
+            for (const key in info.textures) {
+                pass.setTexture(key, info.textures[key]);
             }
             passes.push(pass);
         }

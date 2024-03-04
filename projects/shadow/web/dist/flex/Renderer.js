@@ -25,8 +25,8 @@ export class Renderer extends Element {
             this.yg_node.deref().markDirty();
         });
     }
-    layout_update(yg_node) {
-        const layout = yg_node.deref().getComputedLayout();
+    layout_update() {
+        const layout = this.yg_node.deref().getComputedLayout();
         // console.log('layout_update layout', this.node.name, layout)
         const bounds = this.impl.bounds;
         let offsetX = 0;

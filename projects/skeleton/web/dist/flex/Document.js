@@ -9,10 +9,11 @@ export class Document extends ElementContainer {
         this._touchClaimed = new Map;
         Zero.instance.input.on(TouchEventName.START, event => {
             this._touchClaimed.clear();
-            this.touchHandler(event.touches[0], TouchEventName.START);
+            this.eventHandler(event, TouchEventName.START);
         });
-        Zero.instance.input.on(TouchEventName.MOVE, event => this.touchHandler(event.touches[0], TouchEventName.MOVE));
-        Zero.instance.input.on(TouchEventName.END, event => this.touchHandler(event.touches[0], TouchEventName.END));
+        Zero.instance.input.on(TouchEventName.MOVE, event => this.eventHandler(event, TouchEventName.MOVE));
+        Zero.instance.input.on(TouchEventName.END, event => this.eventHandler(event, TouchEventName.END));
+        Zero.instance.input.on(TouchEventName.PINCH, event => this.eventHandler(event, TouchEventName.PINCH));
         LayoutSystem.instance.addRoot(this.yg_node);
     }
     lateUpdate() {
@@ -28,30 +29,30 @@ export class Document extends ElementContainer {
         }
         return order;
     }
-    touchHandler(touch, type) {
+    eventHandler(event, name) {
         const cameras = Camera.instances;
         const world_positions = [];
         for (let i = 0; i < cameras.length; i++) {
-            world_positions[i] = cameras[i].screenToWorld(vec2.create(), touch.x, touch.y);
+            world_positions[i] = cameras[i].screenToWorld(vec2.create(), event.touches[0].x, event.touches[0].y);
         }
         const children = this.node.children;
         for (let i = children.length - 1; i > -1; i--) {
-            if (this.touchWalk(children[i].getComponent(Element), cameras, world_positions, type)) {
+            if (this.touchWalk(children[i].getComponent(Element), cameras, world_positions, name, event)) {
                 return;
             }
         }
     }
-    touchWalk(element, cameras, world_positions, type) {
+    touchWalk(element, cameras, world_positions, name, event) {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (!(element.node.visibility & camera.visibilities)) {
                 continue;
             }
             const isContainer = element instanceof ElementContainer;
-            if (!isContainer && !element.emitter.has(type)) {
+            if (!isContainer && !element.emitter.has(name)) {
                 continue;
             }
-            if (type != TouchEventName.START && !this._touchClaimed.has(element)) {
+            if ((name == TouchEventName.MOVE || name == TouchEventName.END) && !this._touchClaimed.has(element)) {
                 continue;
             }
             // hit test
@@ -68,12 +69,12 @@ export class Document extends ElementContainer {
             if (isContainer) {
                 const children = element.node.children;
                 for (let j = children.length - 1; j > -1; j--) {
-                    if (this.touchWalk(children[j].getComponent(Element), cameras, world_positions, type)) {
+                    if (this.touchWalk(children[j].getComponent(Element), cameras, world_positions, name, event)) {
                         // bubbling
-                        if (element.emitter.has(type)) {
-                            element.emitter.emit(type, { touch: { world: world_position, local: local_position } });
+                        if (element.emitter.has(name)) {
+                            element.emitter.emit(name, Object.assign({ touch: { world: world_position, local: local_position } }, name == TouchEventName.PINCH && { delta: event.delta }));
                         }
-                        if (type == TouchEventName.START) {
+                        if (name == TouchEventName.START) {
                             this._touchClaimed.set(element, element);
                         }
                         return true;
@@ -81,15 +82,15 @@ export class Document extends ElementContainer {
                 }
             }
             // target
-            if (element.emitter.has(type)) {
-                element.emitter.emit(type, { touch: { world: world_position, local: local_position } });
+            if (element.emitter.has(name)) {
+                element.emitter.emit(name, Object.assign({ touch: { world: world_position, local: local_position } }, name == TouchEventName.PINCH && { delta: event.delta }));
             }
-            if (type == TouchEventName.START) {
+            if (name == TouchEventName.START) {
                 this._touchClaimed.set(element, element);
             }
             return true;
         }
         return false;
     }
-    layout_update(yg_node) { }
+    layout_update() { }
 }

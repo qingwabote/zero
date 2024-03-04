@@ -1,6 +1,7 @@
-import { Zero } from "engine";
-export class SkeletonSystem {
+import { System, Zero } from "engine";
+export class SkeletonSystem extends System {
     constructor() {
+        super(...arguments);
         this._states = new Map;
     }
     addAnimation(state, skeleton) {

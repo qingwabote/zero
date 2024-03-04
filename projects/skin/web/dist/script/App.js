@@ -2,7 +2,7 @@ import { bundle } from 'bundling';
 import { Camera, DirectionalLight, GLTF, Node, Pipeline, VisibilityFlagBits, Zero, bundle as builtin, device, quat, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, Justify, PositionType, Profiler } from 'flex';
 const skin = await (await bundle.once('killer-whale/scene', GLTF)).instantiate();
-const flow = await (await builtin.cache('pipelines/forward', Pipeline)).createRenderPipeline();
+const flow = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 export class App extends Zero {
     start() {
         const width = 640;
@@ -50,7 +50,7 @@ export class App extends Zero {
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = 0x2; // ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.orthoSize = swapchain.height / scale / 2;
         ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;

@@ -76,7 +76,7 @@ export class Pipeline extends Yml {
     async onParse(res) {
         this._resource = res;
     }
-    async createRenderPipeline(variables = {}) {
+    async instantiate(variables = {}) {
         if (this._resource.textures) {
             for (const texture of this._resource.textures) {
                 this._textures[texture.name] = this.createTexture(texture);
