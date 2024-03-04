@@ -1,164 +1,41 @@
-**Zero** 是一款跨平台 3D 图形引擎
+**Zero** 是一款跨平台 3D 游戏引擎
+
+# 示例 (web)
+
+- [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
+- [Shadow Map](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
+- [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
+- [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
+- [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
+- [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
+- [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
 
 # 支持的平台
 
-- Web/微信小游戏 (WebGL2)
-
-- Android, Windows (Vulkan)
-
+- Web/[微信小游戏](minigame/README.md) (WebGL2)
+- [Android](native/platforms/android/README.md), [Windows](native/platforms/win/README.md) (Vulkan)
 - ~~IOS, Mac (还没有 Metal 实现)~~
 
 # 基础功能
 
 - 3D 模型渲染 (gltf)
-
 - 冯氏光照与阴影 (shadow map)
-
 - 动画混合 (一维)
-
 - 蒙皮动画
-
 - 骨骼动画 (spine)
-
 - 物理引擎 (ammo)
 
-# 特色功能
+# 可配置渲染管线
 
-## 可配置渲染管线
+- [无光照](assets/pipelines/unlit.yml)
+- [光照](assets/pipelines/forward.yml)
+- [阴影](assets/pipelines/shadow.yml)
+- [MSAA](assets/pipelines/unlit-ms.yml)
+- [FXAA](assets/pipelines/unlit-fxaa.yml)
 
-### 无光照
+# 集成布局引擎
 
-```yml
-flows:
-  - uniforms:
-      - type: camera
-        binding: 1
-    stages:
-      - phases:
-          - pass: default
-```
-
-### 光照
-
-```yml
-flows:
-  - uniforms:
-      - type: camera
-        binding: 1
-      - type: light
-        binding: 2
-    stages:
-      - phases:
-          - pass: default
-```
-
-### 阴影
-
-```yml
-textures:
-  - name: shadowmap
-    usage:
-      - DEPTH_STENCIL
-      - SAMPLED
-    width: 1024
-    height: 1024
-flows:
-  - uniforms:
-      - type: camera
-        binding: 1
-      - type: light
-        binding: 2
-      - type: shadow
-        binding: 3
-      - type: samplerTexture
-        texture: shadowmap
-        binding: 0
-    stages:
-      - name: shadow
-        phases:
-          - pass: shadow
-        framebuffer:
-          depthStencil: shadowmap
-        clears:
-          - DEPTH
-      - name: forward
-        phases:
-          - pass: default
-```
-
-### MSAA
-
-```yml
-flows:
-  - uniforms:
-      - type: camera
-        binding: 1
-    stages:
-      - phases:
-          - pass: default
-        framebuffer:
-          samples: 4
-          colors:
-            - usage:
-                - COLOR
-                - TRANSIENT
-          resolves:
-            - swapchain: true
-          depthStencil:
-            usage:
-              - DEPTH_STENCIL
-```
-
-### FXAA
-
-```yml
-textures:
-  - name: color
-    usage:
-      - COLOR
-      - SAMPLED
-flows:
-  - uniforms:
-      - type: camera
-        binding: 1
-    stages:
-      - phases:
-          - pass: default
-        framebuffer:
-          colors:
-            - color
-          depthStencil:
-            usage:
-              - DEPTH_STENCIL
-  - uniforms:
-      - type: samplerTexture
-        texture: color
-        filter: LINEAR
-        binding: 0
-    stages:
-      - phases:
-          - type: fxaa
-```
-
-## 布局引擎 (yoga)
-
-UI 使用 **yoga** 引擎布局，因而支持 **flexbox** 布局模型
-
-# 示例 (web)
-
-- [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
-
-- [Shadow Map](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
-
-- [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
-
-- [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
-
-- [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
-
-- [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
-
-- [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
+UI 使用 **Yoga** 引擎布局，从而支持 **Flexbox**
 
 # 基础架构
 
