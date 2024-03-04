@@ -1,13 +1,13 @@
 
-import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, VisibilityFlagBits, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
+import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, ShadowUniform, VisibilityFlagBits, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
-const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate();
+const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1 });
 
-const pipeline = await (await bundle.cache('pipelines/forward', Pipeline)).createRenderPipeline();
+const pipeline = await (await bundle.cache('pipelines/shadow', Pipeline)).instantiate();
 
 export class App extends Zero {
     start() {
@@ -22,13 +22,17 @@ export class App extends Zero {
         let node: Node;
 
         // light
-        node = new Node;
-        node.addComponent(DirectionalLight);
-        node.position = [0, 4, 4];
+        const light = Node.build(DirectionalLight)
+        light.node.position = [-12, 12, -12];
+
+        const shadow = pipeline.flows[0].uniforms.find(uniform => uniform instanceof ShadowUniform) as ShadowUniform;
+        shadow.orthoSize = 24
+        shadow.far = 40
 
         node = new Node;
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
+        // main_camera.orthoSize = 32
         main_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = [20, 20, 20];
 
@@ -38,10 +42,12 @@ export class App extends Zero {
 
         const ground_size = vec3.create(30, 0.2, 30);
 
-        const ground = primitive.createScene("Cube")!.children[0];
+        const ground = primitive.createScene("Cube", true)!.children[0];
+        let meshRenderer = ground.getComponent(MeshRenderer)!
+        meshRenderer.materials[0].passes[1].setUniform('Props', 'albedo', vec4.create(0.5, 0.5, 0.5, 1));
         ground.visibility = VisibilityFlagBits.DEFAULT;
         let shape = ground.addComponent(BoxShape);
-        let aabb = ground.getComponent(MeshRenderer)!.bounds;
+        let aabb = meshRenderer.bounds;
         shape.size = vec3.create(aabb.halfExtent[0] * 2, aabb.halfExtent[1] * 2, aabb.halfExtent[2] * 2)
         ground.scale = [ground_size[0] / (aabb.halfExtent[0] * 2), ground_size[1] / (aabb.halfExtent[1] * 2), ground_size[2] / (aabb.halfExtent[2] * 2)]
         ground.position = [0, -ground_size[1] / 2, 0];
@@ -64,7 +70,7 @@ export class App extends Zero {
                 const box = primitive.createScene("Cube", true)!.children[0];
                 box.visibility = VisibilityFlagBits.DEFAULT;
                 let meshRenderer = box.getComponent(MeshRenderer)!
-                meshRenderer.materials[0].passes[0].setUniform('Props', 'albedo', vec4.create(0, 0, 1, 1));
+                meshRenderer.materials[0].passes[1].setUniform('Props', 'albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
                 shape.body.mass = 0.1;
                 aabb = meshRenderer.bounds;
@@ -79,12 +85,23 @@ export class App extends Zero {
         node.visibility = VisibilityFlagBits.DEFAULT;
         node.position = [0, 3, 0];
 
+        // const lit_frustum = Node.build(Frustum);
+        // lit_frustum.orthoSize = shadow.orthoSize;
+        // lit_frustum.aspect = shadow.aspect;
+        // lit_frustum.near = shadow.near;
+        // lit_frustum.far = shadow.far;
+        // lit_frustum.color = [1, 1, 0, 1];
+        // const view = vec3.normalize(vec3.create(), light.node.position);
+        // lit_frustum.node.rotation = quat.fromViewUp(quat.create(), view);
+        // lit_frustum.node.position = light.node.position;
+        // lit_frustum.node.visibility = VisibilityFlagBits.DEFAULT;
+
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = 0x2 // ClearFlagBits.DEPTH;
-        ui_camera.orthoHeight = swapchain.height / scale / 2;
+        ui_camera.orthoSize = swapchain.height / scale / 2;
         ui_camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
 

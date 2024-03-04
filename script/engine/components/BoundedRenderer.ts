@@ -1,5 +1,5 @@
 import { EventEmitter, EventEmitterImpl } from "bastard";
-import { AABB2D } from "../core/math/aabb2d.js";
+import { AABB3D } from "../core/math/aabb3d.js";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
 
 export enum BoundsEventName {
@@ -30,5 +30,7 @@ export abstract class BoundedRenderer extends ModelRenderer implements EventEmit
         this.__emitter?.emit(name, event);
     }
 
-    public abstract get bounds(): Readonly<AABB2D>;
+    public get bounds(): Readonly<AABB3D> {
+        return this._model.mesh.bounds;
+    }
 }

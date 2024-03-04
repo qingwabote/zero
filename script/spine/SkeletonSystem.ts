@@ -1,7 +1,7 @@
 import { AnimationState, Skeleton } from "@esotericsoftware/spine-core";
 import { System, Zero } from "engine";
 
-export class SkeletonSystem implements System {
+export class SkeletonSystem extends System {
     static readonly instance = new SkeletonSystem();
 
     private _states: Map<AnimationState, Skeleton> = new Map;

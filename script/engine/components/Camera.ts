@@ -33,7 +33,13 @@ export class Camera extends Component {
     private _matProj: Mat4Like = mat4.create();
     private _matProjFlags: DirtyFlag = DirtyFlag.DIRTY;
 
-    orthoHeight = -1;
+    /**
+     * half size of the vertical viewing volume
+     */
+    orthoSize = -1;
+    /**
+     * the vertical field of view
+     */
     fov = -1;
     near = 1;
     far = 1000;
@@ -113,7 +119,7 @@ export class Camera extends Component {
         if (this.fov != -1) {
             return true;
         }
-        if (this.orthoHeight != -1) {
+        if (this.orthoSize != -1) {
             return false;
         }
         throw new Error("can't recognize projection type");
@@ -133,8 +139,8 @@ export class Camera extends Component {
             if (this.isPerspective()) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
             } else {
-                const x = this.orthoHeight * aspect;
-                const y = this.orthoHeight;
+                const x = this.orthoSize * aspect;
+                const y = this.orthoSize;
                 mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
             }
 

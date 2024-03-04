@@ -5,7 +5,9 @@ import { shaderLib } from "../core/shaderLib.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
 
-function merge<Out>(target: Out, ...sources: Out[]): Out {
+function merge<T extends {}, U>(target: T, source: U): T & U;
+function merge<T extends {}, U, V>(target: T, source1: U, source2: V): T & U & V;
+function merge(target: any, ...sources: any[]): any {
     for (const source of sources) {
         for (const key in source) {
             if (target[key] != undefined && Object.getPrototypeOf(target[key]) == Object.prototype) {
@@ -39,15 +41,19 @@ export interface BlendState {
 }
 
 export interface Pass {
-    readonly switch?: string;
-    readonly type?: string;
-    readonly shader?: string;
-    readonly macros?: Record<string, number>;
-    readonly props?: Record<string, ArrayLike<number>>;
-    readonly primitive?: keyof typeof gfx.PrimitiveTopology;
-    readonly rasterizationState?: RasterizationState;
-    readonly depthStencilState?: DepthStencilState;
-    readonly blendState?: BlendState;
+    switch?: string;
+    type?: string;
+    shader?: string;
+    macros?: Record<string, number>;
+    props?: Record<string, ArrayLike<number>>;
+    primitive?: keyof typeof gfx.PrimitiveTopology;
+    rasterizationState?: RasterizationState;
+    depthStencilState?: DepthStencilState;
+    blendState?: BlendState;
+}
+
+export interface PassOverridden extends Pass {
+    textures?: Record<string, gfx.Texture>;
 }
 
 function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
@@ -58,13 +64,13 @@ function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
 }
 
 export class Effect extends Yml {
-    private _passes: Pass[] = [];
+    private _passes!: readonly Readonly<Pass>[];
 
     protected async onParse(res: any): Promise<void> {
         this._passes = res.passes;
     }
 
-    async createPasses(overrides: Pass[] = []): Promise<render.Pass[]> {
+    async createPasses(overrides: PassOverridden[] = []): Promise<render.Pass[]> {
         const passes: render.Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i]);
@@ -115,6 +121,9 @@ export class Effect extends Yml {
             pass.initialize();
             for (const key in info.props) {
                 pass.setUniform('Props', key, info.props[key]);
+            }
+            for (const key in info.textures) {
+                pass.setTexture(key, info.textures[key]);
             }
             passes.push(pass);
         }

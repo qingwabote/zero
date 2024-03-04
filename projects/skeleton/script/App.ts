@@ -10,7 +10,7 @@ for (const page of spine_atlas.pages) {
 }
 const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text');
 
-const pipeline = await (await bundle.cache('pipelines/post', Pipeline)).createRenderPipeline();
+const pipeline = await (await bundle.cache('pipelines/post', Pipeline)).instantiate()
 
 export class App extends Zero {
     protected override start(): render.Pipeline {
@@ -26,7 +26,7 @@ export class App extends Zero {
 
         node = new Node;
         const camera = node.addComponent(Camera);
-        camera.orthoHeight = swapchain.height / scale / 2;
+        camera.orthoSize = swapchain.height / scale / 2;
         camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
         node.position = vec3.create(0, 0, width / 2);
 

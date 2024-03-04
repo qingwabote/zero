@@ -16,6 +16,10 @@ canvas.width = width;
 canvas.height = height;
 canvas.style.width = `${documentElement.clientWidth}px`;
 canvas.style.height = `${documentElement.clientHeight}px`;
+log(`canvas style size ${canvas.style.width} ${canvas.style.height}
+canvas size ${canvas.width} ${canvas.height}
+devicePixelRatio ${window.devicePixelRatio}
+`);
 
 const textarea = document.getElementById("boot_log") as HTMLTextAreaElement;
 const safeArea_top = textarea.clientHeight * window.devicePixelRatio;
@@ -33,7 +37,7 @@ export interface TouchEvent {
     readonly touches: readonly Touch[]
 }
 
-export interface GestureEvent {
+export interface GestureEvent extends TouchEvent {
     readonly delta: number
 }
 
@@ -151,7 +155,7 @@ export function attach(listener: EventListener) {
     })
 
     canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onGesturePinch({ delta: wheelEvent.deltaY });
+        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * window.devicePixelRatio, y: wheelEvent.offsetY * window.devicePixelRatio }], delta: wheelEvent.deltaY });
         wheelEvent.preventDefault();
     })
 

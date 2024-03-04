@@ -6,13 +6,13 @@ import { UniformBufferObject } from "./UniformBufferObject.js";
 export class Flow {
     constructor(
         readonly context: Context,
-        private readonly _uniforms: readonly UniformBufferObject[],
+        readonly uniforms: readonly UniformBufferObject[],
         private readonly _stages: readonly Stage[]
     ) {
     }
 
     update() {
-        for (const uniform of this._uniforms) {
+        for (const uniform of this.uniforms) {
             uniform.update();
         }
     }
@@ -20,7 +20,7 @@ export class Flow {
     record(commandBuffer: CommandBuffer): number {
         let drawCall = 0;
         const dynamicOffsets = new Uint32Vector;
-        for (const uniform of this._uniforms) {
+        for (const uniform of this.uniforms) {
             const offset = uniform.dynamicOffset(this.context);
             if (offset != -1) {
                 dynamicOffsets.add(offset);

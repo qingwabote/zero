@@ -28,6 +28,7 @@ export default class Joystick extends ElementContainer<JoystickEventToListener> 
         const primitive = Renderer.create(Primitive);
         primitive.setWidth('100%');
         primitive.setHeight('100%');
+        primitive.impl.color = [0, 1, 0, 1];
         this.draw(primitive, this._point)
         this.addElement(primitive);
 

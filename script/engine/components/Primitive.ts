@@ -1,15 +1,15 @@
 import { device } from "boot";
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexInput } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Shader } from "../assets/Shader.js";
+import { Node } from "../core/Node.js";
 import { Zero } from "../core/Zero.js";
-import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
+import { Material, Mesh } from "../core/render/index.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { SubModel } from "../core/render/scene/SubModel.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 
@@ -20,78 +20,52 @@ const ss_primitive = await bundle.cache('./shaders/primitive', Shader);
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
-export class Primitive extends BoundedRenderer {
-    private _vertexMin = vec3.create(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-    private _vertexMax = vec3.create(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+const VERTEX_ATTRIBUTES = (function () {
+    const attributes = new VertexAttributeVector;
+    let offset = 0;
+    let format = Format.RGB32_SFLOAT;
+    const positionAttribute = new VertexAttribute;
+    positionAttribute.name = 'a_position';
+    positionAttribute.format = format;
+    positionAttribute.buffer = 0;
+    positionAttribute.offset = offset;
+    attributes.add(positionAttribute);
+    offset += FormatInfos[format].bytes;
+    format = Format.RGBA32_SFLOAT;
+    const colorAttribute = new VertexAttribute;
+    colorAttribute.name = 'a_color';
+    colorAttribute.format = format;
+    colorAttribute.buffer = 0;
+    colorAttribute.offset = offset;
+    attributes.add(colorAttribute);
+    offset += FormatInfos[format].bytes;
+    return attributes;
+})()
 
-    private _bounds = aabb3d.create();
-    public get bounds(): Readonly<AABB3D> {
-        return this._bounds;
-    }
+
+export class Primitive extends BoundedRenderer {
+    color: Readonly<Vec4> = vec4.ONE;
 
     private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
 
     private _vertexCount: number = 0;
 
-    private _subMesh!: SubMesh;
+    private _mesh: Mesh;
 
-    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = vec4.ONE) {
-        const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
-        this._buffer.resize(length)
+    private _vertexMin = vec3.create();
+    private _vertexMax = vec3.create();
 
-        let offset = this._vertexCount * VERTEX_COMPONENTS;
-        this._buffer.set(from, offset);
-        offset += 3
-        this._buffer.set(color, offset)
-        offset += 4
-        this._buffer.set(to, offset);
-        offset += 3
-        this._buffer.set(color, offset);
+    constructor(node: Node) {
+        super(node);
 
-        vec3.min(vec3_a, this._vertexMin, from);
-        vec3.min(vec3_a, vec3_a, to);
-        vec3.max(vec3_b, this._vertexMax, from);
-        vec3.max(vec3_b, vec3_b, to);
-        if (!vec3.equals(vec3_a, this._vertexMin) || !vec3.equals(vec3_b, this._vertexMax)) {
-            aabb3d.fromPoints(this._bounds, vec3_a, vec3_b);
-            vec3.set(this._vertexMin, ...vec3_a);
-            vec3.set(this._vertexMax, ...vec3_b);
-            // this.emit(BoundsEvent.BOUNDS_CHANGED);
-        }
-
-        this._vertexCount += 2;
-    }
-
-    start() {
         const iaInfo = new InputAssemblerInfo;
-        let offset = 0;
-        let format = Format.RGB32_SFLOAT;
-        const positionAttribute = new VertexAttribute;
-        positionAttribute.name = 'a_position';
-        positionAttribute.format = format;
-        positionAttribute.buffer = 0;
-        positionAttribute.offset = offset;
-        iaInfo.vertexAttributes.add(positionAttribute);
-        offset += FormatInfos[format].bytes;
-        format = Format.RGBA32_SFLOAT;
-        const colorAttribute = new VertexAttribute;
-        colorAttribute.name = 'a_color';
-        colorAttribute.format = format;
-        colorAttribute.buffer = 0;
-        colorAttribute.offset = offset;
-        iaInfo.vertexAttributes.add(colorAttribute);
-        offset += FormatInfos[format].bytes;
-
+        iaInfo.vertexAttributes = VERTEX_ATTRIBUTES;
         const vertexInput = new VertexInput;
         vertexInput.buffers.add(this._buffer.buffer);
         vertexInput.offsets.add(0);
         iaInfo.vertexInput = vertexInput;
 
-        const subMesh = new SubMesh(
-            device.createInputAssembler(iaInfo),
-            vec3.create(),
-            vec3.create()
-        )
+        const subMesh = new SubMesh(device.createInputAssembler(iaInfo))
 
         const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
@@ -109,21 +83,59 @@ export class Primitive extends BoundedRenderer {
         const pass = new Pass(state);
         pass.initialize();
 
-        const subModel: SubModel = new SubModel(subMesh, [pass]);
-        this._model.subModels.push(subModel);
+        const mesh = new Mesh([subMesh]);
+
+        this._model.mesh = mesh;
+        this._model.materials = [new Material([pass])];
+
+        this._mesh = mesh;
+    }
+
+    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = this.color) {
+        if (this._vertexCount == 0) {
+            vec3.set(this._vertexMin, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+            vec3.set(this._vertexMax, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+        }
+
+        const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
+        this._buffer.resize(length)
+
+        let offset = this._vertexCount * VERTEX_COMPONENTS;
+        this._buffer.set(from, offset);
+        offset += 3
+        this._buffer.set(color, offset)
+        offset += 4
+        this._buffer.set(to, offset);
+        offset += 3
+        this._buffer.set(color, offset);
+
+        vec3.min(vec3_a, this._vertexMin, from);
+        vec3.min(vec3_a, vec3_a, to);
+        vec3.max(vec3_b, this._vertexMax, from);
+        vec3.max(vec3_b, vec3_b, to);
+        if (!vec3.equals(vec3_a, this._vertexMin) || !vec3.equals(vec3_b, this._vertexMax)) {
+            this._mesh.setBoundsByPoints(vec3_a, vec3_b);
+            vec3.set(this._vertexMin, ...vec3_a);
+            vec3.set(this._vertexMax, ...vec3_b);
+            // this.emit(BoundsEvent.BOUNDS_CHANGED);
+        }
+
+        this._vertexCount += 2;
+    }
+
+    start() {
         Zero.instance.scene.addModel(this._model)
-        this._subMesh = subMesh;
     }
 
     lateUpdate(): void {
         if (this._vertexCount == 0) {
-            this._subMesh.drawInfo.count = 0;
+            this._mesh.subMeshes[0].drawInfo.count = 0;
             return;
         }
 
         this._buffer.update();
 
-        this._subMesh.drawInfo.count = this._vertexCount;
+        this._mesh.subMeshes[0].drawInfo.count = this._vertexCount;
     }
 
     clear() {

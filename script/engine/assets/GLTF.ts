@@ -9,12 +9,13 @@ import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
 import { Mat4Like, mat4 } from "../core/math/mat4.js";
+import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
+import { Material } from "../core/render/scene/Material.js";
+import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { AnimationClip, Channel } from "./AnimationClip.js";
-import { Effect } from "./Effect.js";
-import { Material } from "./Material.js";
-import { Mesh } from "./Mesh.js";
+import { AnimationClip, Channel } from "../marionette/AnimationClip.js";
+import { Effect, PassOverridden } from "./Effect.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
 
@@ -57,25 +58,45 @@ export interface MaterialParams {
     texture?: Texture;
 }
 
-async function materialFuncDefault(params: MaterialParams) {
-    const phong = await bundle.cache("./effects/phong", Effect);
-    const passes = await phong.createPasses([
-        {},
-        {
-            macros: {
-                USE_ALBEDO_MAP: params.texture ? 1 : 0,
-                USE_SKIN: params.skin ? 1 : 0
-            },
-            props: {
-                albedo: params.albedo
+export type MaterialFunc = (params: MaterialParams) => [string, PassOverridden[]];
+
+const materialFuncPhong: MaterialFunc = function (params: MaterialParams): [string, PassOverridden[]] {
+    return [
+        bundle.resolve("./effects/phong"),
+        [
+            {},
+            {
+                macros: {
+                    USE_ALBEDO_MAP: params.texture ? 1 : 0,
+                    USE_SKIN: params.skin ? 1 : 0
+                },
+                props: {
+                    albedo: params.albedo
+                },
+                ...params.texture &&
+                {
+                    textures: {
+                        'albedoMap': params.texture.impl
+                    }
+                }
             }
-        }
-    ]);
-    if (params.texture) {
-        passes[1].setTexture('albedoMap', params.texture.impl)
-    }
-    return new Material(passes);
+        ]
+    ]
 }
+
+let materialFuncId = 0;
+const materialFuncIds: Map<MaterialFunc, number> = new Map;
+function materialFuncHash(func: MaterialFunc): number {
+    let id = materialFuncIds.get(func);
+    if (id == undefined) {
+        id = materialFuncId++;
+        materialFuncIds.set(func, id);
+    }
+    return id;
+}
+
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 
 export class GLTF implements Asset {
     private _json: any;
@@ -88,18 +109,13 @@ export class GLTF implements Asset {
         return this._bin;
     }
 
-    private _buffers: Buffer[] = [];
-    get buffers(): readonly Buffer[] {
-        return this._buffers;
-    }
-
     private _textures!: Texture[];
-    get textures(): Texture[] {
+    get textures(): readonly Texture[] {
         return this._textures;
     }
 
     private _skins: Skin[] = [];
-    get skins(): Skin[] {
+    get skins(): readonly Skin[] {
         return this._skins;
     }
 
@@ -107,6 +123,10 @@ export class GLTF implements Asset {
     get animationClips(): readonly AnimationClip[] {
         return this._animationClips;
     }
+
+    private _buffers: Buffer[] = [];
+
+    private _instances: Record<string, GLTFInstance> = {};
 
     async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
@@ -157,34 +177,41 @@ export class GLTF implements Asset {
             const channels: Channel[] = []
             for (const channel of animation.channels) {
                 const sampler = animation.samplers[channel.sampler];
+
                 // the input/output pair: 
                 // a set of floating-point scalar values representing linear time in seconds; 
                 // and a set of vectors or scalars representing the animated property. 
-                let accessor = json.accessors[sampler.input];
-                let bufferView = json.bufferViews[accessor.bufferView];
-                if (bufferView.byteStride != undefined) {
-                    throw new Error;
+                let input: Float32Array;
+                {
+                    const accessor = json.accessors[sampler.input];
+                    const bufferView = json.bufferViews[accessor.bufferView];
+                    if (bufferView.byteStride != undefined) {
+                        throw new Error;
+                    }
+                    input = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
                 }
-                const input = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
-                accessor = json.accessors[sampler.output];
-                bufferView = json.bufferViews[accessor.bufferView];
-                let components: number;
-                switch (accessor.type) {
-                    case 'VEC3':
-                        components = 3;
-                        break;
-                    case 'VEC4':
-                        components = 4;
-                        break;
-                    default:
-                        throw new Error(`unsupported accessor type: ${accessor.type}`);
+                let output: Float32Array;
+                {
+                    const accessor = json.accessors[sampler.output];
+                    const bufferView = json.bufferViews[accessor.bufferView];
+                    let components: number;
+                    switch (accessor.type) {
+                        case 'VEC3':
+                            components = 3;
+                            break;
+                        case 'VEC4':
+                            components = 4;
+                            break;
+                        default:
+                            throw `unsupported accessor type: ${accessor.type}`;
+                    }
+                    output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
+                    // if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
+                    //     throw new Error;
+                    // }
                 }
-                const output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
-                const interpolation = sampler.interpolation;
-                if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
-                    throw new Error;
-                }
-                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation } })
+
+                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation: sampler.interpolation } })
             }
             this._animationClips.push({ name: animation.name, channels });
         }
@@ -194,24 +221,33 @@ export class GLTF implements Asset {
         return this;
     }
 
-    async instantiate(materialFunc = materialFuncDefault): Promise<GLTFInstance> {
-        const materialDefault = await materialFunc({
-            albedo: vec4.ONE,
-            skin: false
-        });
-        const materials: Material[] = []
-        for (const info of this._json.materials || []) {
-            let textureIdx = -1;
-            if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
-                textureIdx = this._json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
+    async instantiate(macros?: Record<string, number>, materialFunc = materialFuncPhong): Promise<GLTFInstance> {
+        let instanceKey = materialFuncHash(materialFunc).toString();
+        if (macros) {
+            const names = Object.keys(macros).sort();
+            for (const name of names) {
+                instanceKey += name + macros[name];
             }
-            materials.push(await materialFunc({
-                texture: this._textures[textureIdx],
-                albedo: info.pbrMetallicRoughness.baseColorFactor || vec4.ONE,
-                skin: this._json.skins != undefined,
-            }));
         }
-        return new GLTFInstance(this, materials, materialDefault);
+        let instance = this._instances[instanceKey];
+        if (!instance) {
+            const materialDefault = await this.materialLoad(...materialFunc({ albedo: vec4.ONE, skin: false }), macros);
+            const materials: Material[] = []
+            for (const info of this._json.materials || []) {
+                let textureIdx = -1;
+                if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
+                    textureIdx = this._json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
+                }
+                materials.push(await this.materialLoad(...materialFunc({
+                    texture: this._textures[textureIdx],
+                    albedo: info.pbrMetallicRoughness.baseColorFactor || vec4.ONE,
+                    skin: this._json.skins != undefined
+                }), macros));
+            }
+            instance = new GLTFInstance(this, materials, materialDefault);
+            this._instances[instanceKey] = instance;
+        }
+        return instance;
     }
 
     getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
@@ -257,18 +293,27 @@ export class GLTF implements Asset {
         return buffer;
     }
 
-    // private onProgress(loaded: number, total: number, url: string) {
-    //     console.log(`download: ${url}, progress: ${loaded / total * 100}`)
-    // }
+    private async materialLoad(effectUrl: string, passOverriddens: PassOverridden[], macros?: Record<string, number>) {
+        const effect = await cache(effectUrl, Effect)
+        if (macros) {
+            for (const pass of passOverriddens) {
+                pass.macros = pass.macros || {};
+                Object.assign(pass.macros, macros);
+            }
+        }
+        const passes = await effect.createPasses(passOverriddens);
+        return new Material(passes);
+    }
 }
 
 export class GLTFInstance {
-    constructor(readonly gltf: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
+    constructor(readonly proto: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
 
     createScene(name?: string, materialInstancing = false): Node | null {
-        if (!this.gltf.json || !this.gltf.bin || !this.gltf.textures) return null;
-
-        const scene = (this.gltf.json.scenes as any[]).find(scene => scene.name == name || name == undefined);
+        const scene = name ? (this.proto.json.scenes as any[]).find(scene => scene.name == name) : this.proto.json.scenes[0];
+        if (!scene) {
+            return null;
+        }
         const node = new Node(name);
         for (const index of scene.nodes) {
             node.addChild(this.createNode(index, materialInstancing, node))
@@ -277,7 +322,7 @@ export class GLTFInstance {
     }
 
     private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
-        const info = this.gltf.json.nodes[index];
+        const info = this.proto.json.nodes[index];
         const node = new Node(node2name(info, index));
         if (!root) {
             root = node;
@@ -297,12 +342,12 @@ export class GLTFInstance {
         }
 
         if (info.mesh != undefined) {
-            const [mesh, materials] = this.createMesh(this.gltf.json.meshes[info.mesh], materialInstancing);
+            const [mesh, materials] = this.createMesh(this.proto.json.meshes[info.mesh], materialInstancing);
             const renderer = node.addComponent(info.skin != undefined ? SkinnedMeshRenderer : MeshRenderer);
             renderer.mesh = mesh
             renderer.materials = materials;
             if (renderer instanceof SkinnedMeshRenderer) {
-                renderer.skin = this.gltf.skins[info.skin];
+                renderer.skin = this.proto.skins[info.skin];
                 renderer.transform = root;
             }
         }
@@ -318,6 +363,8 @@ export class GLTFInstance {
     private createMesh(info: any, materialInstancing: boolean): [Mesh, Material[]] {
         const subMeshes: SubMesh[] = [];
         const materials: Material[] = [];
+        vec3.set(vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+        vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
         for (const primitive of info.primitives) {
             let material = primitive.material == undefined ? this._materialDefault : this._materials[primitive.material];
             if (materialInstancing) {
@@ -325,7 +372,7 @@ export class GLTFInstance {
             }
             // assert
             if (primitive.material != undefined &&
-                this.gltf.json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined &&
+                this.proto.json.materials[primitive.material].pbrMetallicRoughness.baseColorTexture?.index != undefined &&
                 primitive.attributes['TEXCOORD_0'] == undefined) {
                 console.log("not provided attribute: TEXCOORD_0")
                 continue;
@@ -334,7 +381,7 @@ export class GLTFInstance {
             const iaInfo = new InputAssemblerInfo;
             const vertexInput = new VertexInput;
             for (const key in primitive.attributes) {
-                const accessor = this.gltf.json.accessors[primitive.attributes[key]];
+                const accessor = this.proto.json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
                 if (format == undefined) {
                     console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
@@ -351,13 +398,13 @@ export class GLTFInstance {
                 attribute.buffer = vertexInput.buffers.size();
                 attribute.offset = 0;
                 iaInfo.vertexAttributes.add(attribute);
-                vertexInput.buffers.add(this.gltf.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                vertexInput.buffers.add(this.proto.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 vertexInput.offsets.add(accessor.byteOffset || 0);
             }
             iaInfo.vertexInput = vertexInput;
 
-            const indexAccessor = this.gltf.json.accessors[primitive.indices];
-            const indexBuffer = this.gltf.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
+            const indexAccessor = this.proto.json.accessors[primitive.indices];
+            const indexBuffer = this.proto.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
 
             materials.push(material);
 
@@ -381,19 +428,20 @@ export class GLTFInstance {
             indexInput.type = indexType;
             iaInfo.indexInput = indexInput;
 
-            const posAccessor = this.gltf.json.accessors[primitive.attributes['POSITION']];
             subMeshes.push(
                 new SubMesh(
                     device.createInputAssembler(iaInfo),
-                    posAccessor.min,
-                    posAccessor.max,
                     {
                         count: indexAccessor.count,
                         first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
                     }
                 )
             )
+
+            const posAccessor = this.proto.json.accessors[primitive.attributes['POSITION']];
+            vec3.min(vec3_a, vec3_a, posAccessor.min);
+            vec3.max(vec3_b, vec3_b, posAccessor.max);
         }
-        return [{ subMeshes }, materials];
+        return [new Mesh(subMeshes, vec3_a, vec3_b), materials];
     }
 }

@@ -1,4 +1,4 @@
-import { Material, MeshRenderer, Node, Shader, bundle, device, render, shaderLib, vec3, vec4 } from "engine";
+import { MeshRenderer, Node, Shader, bundle, device, render, shaderLib, vec3, vec4 } from "engine";
 import { Element } from "flex";
 import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Polygon } from "./Polygon.js";
@@ -28,6 +28,9 @@ function triangulate(n: number, indexBuffer: render.BufferView) {
     }
 }
 
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
+
 export default class PolygonsRenderer extends Element {
     private _polygons_invalidated = true;
     private _polygons: readonly Polygon[] = [];
@@ -41,7 +44,7 @@ export default class PolygonsRenderer extends Element {
 
     texture!: Texture;
 
-    private _material!: Material;
+    private _material!: render.Material;
 
     private _meshRenderers: MeshRenderer[] = [];
     private _vertexViews: render.BufferView[] = [];
@@ -80,8 +83,9 @@ export default class PolygonsRenderer extends Element {
                 }
                 vertexBuffer.invalidate();
                 vertexBuffer.update();
-                vec3.set(subMesh.vertexPositionMin, ...polygon.vertexPosMin, 0);
-                vec3.set(subMesh.vertexPositionMax, ...polygon.vertexPosMax, 0);
+                vec3.set(vec3_a, ...polygon.vertexPosMin, 0);
+                vec3.set(vec3_b, ...polygon.vertexPosMax, 0);
+                renderer.mesh.setBoundsByPoints(vec3_a, vec3_b);
 
                 const indexBuffer = this._indexViews[i];
                 triangulate(polygon.vertexes.length, indexBuffer);
@@ -119,12 +123,9 @@ export default class PolygonsRenderer extends Element {
             indexInput.type = IndexType.UINT16;
             iaInfo.indexInput = indexInput;
 
-            const subMesh = new render.SubMesh(
-                device.createInputAssembler(iaInfo),
-                vec3.create(), vec3.create()
-            )
+            const subMesh = new render.SubMesh(device.createInputAssembler(iaInfo));
             renderer = (new Node(`PolygonsRenderer${index}`)).addComponent(MeshRenderer)
-            renderer.mesh = { subMeshes: [subMesh] }
+            renderer.mesh = new render.Mesh([subMesh]);
             renderer.materials = [this._material];
             this.node.addChild(renderer.node)
             this._meshRenderers[index] = renderer;

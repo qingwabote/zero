@@ -1,5 +1,6 @@
 import { EventEmitter, EventEmitterImpl, SmartRef } from "bastard";
-import { AABB2D, Component, GestureEventName, Node, TouchEventName, Vec2, aabb2d, vec2, vec3 } from "engine";
+import { AABB2D, Component, Node, TouchEventName, Vec2, aabb2d, vec2, vec3 } from "engine";
+import { LayoutSystem } from "./LayoutSystem.js";
 import * as yoga from "./yoga/index.js";
 
 const vec3_a = vec3.create();
@@ -10,15 +11,20 @@ export interface Touch {
 }
 
 export interface TouchEvent {
-    readonly touch: Touch
+    readonly touch: Touch;
+}
+
+export interface GestureEvent extends TouchEvent {
+    readonly touch: Touch;
+    readonly delta: number;
 }
 
 export interface ElementEventToListener {
     [TouchEventName.START]: (event: TouchEvent) => void;
     [TouchEventName.MOVE]: (event: TouchEvent) => void;
     [TouchEventName.END]: (event: TouchEvent) => void;
-    [GestureEventName.PINCH]: () => void;
-    [GestureEventName.ROTATE]: () => void;
+    [TouchEventName.PINCH]: (event: GestureEvent) => void;
+    [TouchEventName.ROTATE]: (event: GestureEvent) => void;
 }
 
 function yg_node_free(node: yoga.Node) { node.free(); }
@@ -36,8 +42,6 @@ export abstract class Element<T extends ElementEventToListener = ElementEventToL
         return this._bounds;
     }
 
-    private _layout_dirty = true;
-
     public get positionType(): yoga.PositionType {
         return this.yg_node.deref().getPositionType();
     }
@@ -47,9 +51,9 @@ export abstract class Element<T extends ElementEventToListener = ElementEventToL
 
     constructor(node: Node) {
         super(node);
-        this.yg_node.deref().setDirtiedFunc(() => {
-            this._layout_dirty = true;
-        })
+        const dirtiedFunc = () => { LayoutSystem.instance.markDirty(this); };
+        this.yg_node.deref().setDirtiedFunc(dirtiedFunc);
+        dirtiedFunc();
     }
 
     setWidth(value: number | 'auto' | `${number}%` | undefined) {
@@ -72,17 +76,9 @@ export abstract class Element<T extends ElementEventToListener = ElementEventToL
         this.yg_node.deref().setGap(gutter, value);
     }
 
-    lateUpdate(): void {
-        if (this._layout_dirty) {
-            this.layout_update(this.yg_node)
-            this._layout_dirty = false;
-        }
-    }
-
-    protected layout_update(yg_node: SmartRef<yoga.Node>) {
-        const layout = yg_node.deref().getComputedLayout();
-        vec3.set(vec3_a, layout.left, -layout.top, 0);
-        this.node.position = vec3_a;
+    layout_update() {
+        const layout = this.yg_node.deref().getComputedLayout();
+        this.node.position = vec2.set(vec3_a, layout.left, -layout.top);
         vec2.set(this._bounds.halfExtent, layout.width / 2, layout.height / 2);
         vec2.set(this._bounds.center, layout.width / 2, -layout.height / 2);
     }

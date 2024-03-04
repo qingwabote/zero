@@ -19,7 +19,7 @@ flows:
     stages:
       - name: shadow
         phases:
-          - pass: shadow
+          - pass: shadowmap
             visibility: ${UP}
         framebuffer:
           depthStencil: shadowmap
@@ -31,5 +31,5 @@ flows:
             visibility: ${UI}
           - pass: default
             visibility: ${UP}
-          - pass: down
+          - pass: default
             visibility: ${DOWN}

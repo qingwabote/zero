@@ -1,26 +1,29 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { AABB2D, BoundedRenderer, Zero, aabb2d, device, render, vec2 } from "engine";
-import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
-import { SubModelPools } from './SubModelPools.js';
+import { BoundedRenderer, BoundsEventName, Node, Shader, Zero, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
 import { Texture } from './Texture.js';
 
-const vertexAttributes = new VertexAttributeVector;
-let _vertexElements = 0;
+const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
+    const attributes = new VertexAttributeVector;
+    let elements = 0;
 
-const a_position = new VertexAttribute;
-a_position.name = 'a_position';
-a_position.format = Format.RG32_SFLOAT;
-vertexAttributes.add(a_position);
-_vertexElements += FormatInfos[a_position.format].nums;
+    const a_position = new VertexAttribute;
+    a_position.name = 'a_position';
+    a_position.format = Format.RG32_SFLOAT;
+    attributes.add(a_position);
+    elements += FormatInfos[a_position.format].nums;
 
-const a_texCoord = new VertexAttribute;
-a_texCoord.name = 'a_texCoord';
-a_texCoord.format = Format.RG32_SFLOAT;
-a_texCoord.offset = FormatInfos[a_position.format].bytes;
-vertexAttributes.add(a_texCoord);
-_vertexElements += FormatInfos[a_texCoord.format].nums;
+    const a_texCoord = new VertexAttribute;
+    a_texCoord.name = 'a_texCoord';
+    a_texCoord.format = Format.RG32_SFLOAT;
+    a_texCoord.offset = FormatInfos[a_position.format].bytes;
+    attributes.add(a_texCoord);
+    elements += FormatInfos[a_texCoord.format].nums;
 
-const VERTEX_ELEMENTS = _vertexElements;
+    return [attributes, elements];
+})()
+
+const ss_spine = await bundle.cache('./shaders/unlit', Shader);
 
 const clipper = new sc.SkeletonClipping;
 
@@ -31,16 +34,13 @@ const sc_vec2_b = new sc.Vector2;
 
 const sc_color_a = new sc.Color;
 
-const vec2_a = vec2.create();
-const vec2_b = vec2.create();
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
 
 export class Skeleton extends BoundedRenderer {
     static readonly PIXELS_PER_UNIT = 1;
 
-    private _bounds = aabb2d.create();
-    get bounds(): Readonly<AABB2D> {
-        return this._bounds;
-    }
+    private _mesh: render.Mesh;
 
     protected _skeleton!: sc.Skeleton;
     public get data(): sc.SkeletonData {
@@ -50,21 +50,23 @@ export class Skeleton extends BoundedRenderer {
         const skeleton = new sc.Skeleton(value);
         skeleton.updateWorldTransform();
         skeleton.getBounds(sc_vec2_a, sc_vec2_b);
-        vec2.set(vec2_a, sc_vec2_a.x, sc_vec2_a.y);
-        vec2.set(vec2_b, sc_vec2_b.x, sc_vec2_b.y);
-        aabb2d.fromRect(this._bounds, vec2_a, vec2_b);
+        vec2.set(vec3_a, sc_vec2_a.x, sc_vec2_a.y);
+        vec2.set(vec3_b, sc_vec2_b.x, sc_vec2_b.y);
+        this._mesh.setBoundsByRect(vec3_a, vec3_b)
         this._skeleton = skeleton;
+        this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
 
-    private _vertexView: render.BufferView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);
-    private _indexView: render.BufferView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 2048 * 3);
+    private _vertexView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);
+    private _indexView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 2048 * 3);
 
-    private _pools!: SubModelPools;
+    private _materials: Record<string, render.Material> = {};
 
-    override start(): void {
+    constructor(node: Node) {
+        super(node);
+
         const iaInfo = new InputAssemblerInfo;
-        iaInfo.vertexAttributes.add(a_position);
-        iaInfo.vertexAttributes.add(a_texCoord);
+        iaInfo.vertexAttributes = VERTEX_ATTRIBUTES;
 
         const vertexInput = new VertexInput;
         vertexInput.buffers.add(this._vertexView.buffer);
@@ -76,15 +78,18 @@ export class Skeleton extends BoundedRenderer {
         indexInput.type = IndexType.UINT16;
         iaInfo.indexInput = indexInput;
 
-        this._pools = new SubModelPools(device.createInputAssembler(iaInfo));
+        const mesh = new render.Mesh([new render.SubMesh(device.createInputAssembler(iaInfo))]);
+        this._model.mesh = mesh;
+        this._mesh = mesh;
+    }
+
+    override start(): void {
         Zero.instance.scene.addModel(this._model)
     }
 
     override lateUpdate(): void {
-        this._model.subModels.length = 0;
-        this._pools.recycle();
+        const materials: render.Material[] = [];
 
-        let subModel!: render.SubModel;
         let key = '';
         let vertex = 0;
         let index = 0;
@@ -165,16 +170,23 @@ export class Skeleton extends BoundedRenderer {
                 const blend = sc.BlendMode.Normal;
                 const k = `${attachment_texture.id}:${blend}`;
                 if (key != k) {
-                    subModel = this._pools.get(k, attachment_texture, blend);
-                    subModel.drawInfo.count = 0;
-                    subModel.drawInfo.first = index;
-                    this._model.subModels.push(subModel);
+                    let material = this._materials[k];
+                    if (!material) {
+                        material = this.createMaterial(blend, attachment_texture);
+                        this._materials[k] = material;
+                    }
+                    materials.push(material);
+
+                    const drawInfo = this._mesh.subMeshes[0].drawInfo;
+                    drawInfo.count = 0;
+                    drawInfo.first = index;
+
                     key = k;
                 }
 
                 vertex += attachment_vertex;
                 index += attachment_triangles.length;
-                subModel.drawInfo.count += attachment_triangles.length;
+                this._mesh.subMeshes[0].drawInfo.count += attachment_triangles.length;
             }
 
             clipper.clipEndWithSlot(slot);
@@ -184,5 +196,35 @@ export class Skeleton extends BoundedRenderer {
 
         this._vertexView.update();
         this._indexView.update();
+
+        this._model.materials = materials;
+    }
+
+    private createMaterial(blend: sc.BlendMode, texture: Texture): render.Material {
+        const rasterizationState = new RasterizationState;
+        rasterizationState.cullMode = CullMode.NONE;
+        const state = new PassState();
+        state.shader = shaderLib.getShader(ss_spine, { USE_ALBEDO_MAP: 1 });
+        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
+        state.rasterizationState = rasterizationState;
+        switch (blend) {
+            case sc.BlendMode.Normal:
+                const blendState = new BlendState;
+                blendState.srcRGB = BlendFactor.ONE; // premultipliedAlpha
+                blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
+                blendState.srcAlpha = BlendFactor.ONE;
+                blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
+                state.blendState = blendState;
+                break;
+
+            default:
+                break;
+        }
+        const pass = new render.Pass(state);
+        pass.initialize();
+        pass.setUniform('Props', 'albedo', vec4.ONE);
+        pass.setTexture('albedoMap', texture.getImpl());
+
+        return new render.Material([pass]);
     }
 }

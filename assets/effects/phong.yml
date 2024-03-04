@@ -1,14 +1,12 @@
 passes:
   - switch: USE_SHADOW_MAP
-    shader: ../shaders/shadowmap
+    shader: ../shaders/shadow
     type: shadowmap
     rasterizationState:
       cullMode: FRONT
     depthStencilState:
       depthTestEnable: true
   - shader: ../shaders/phong
-    macros:
-      SHADOW_MAP_PCF: 1
     props:
       albedo: [1, 1, 1, 1]
     depthStencilState:

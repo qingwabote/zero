@@ -1,3 +1,4 @@
+import { Mat3Like } from "./mat3.js";
 import { Mat4Like } from "./mat4.js";
 import { QuatLike } from "./quat.js";
 import { Vec2Like } from "./vec2.js";
@@ -8,19 +9,21 @@ export interface Vec3Like extends Vec2Like {
     2: number;
 }
 
+function create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
+    return [x, y, z]
+}
+
 export const vec3 = {
-    UNIT_X: [1, 0, 0],
-    UNIT_Y: [0, 1, 0],
-    UNIT_Z: [0, 0, 1],
+    UNIT_X: Object.freeze(create(1, 0, 0)),
+    UNIT_Y: Object.freeze(create(0, 1, 0)),
+    UNIT_Z: Object.freeze(create(0, 0, 1)),
 
-    ZERO: [0, 0, 0],
+    ZERO: Object.freeze(create(0, 0, 0)),
 
-    UP: [0, 1, 0],
-    FORWARD: [0, 0, -1],
+    UP: Object.freeze(create(0, 1, 0)),
+    FORWARD: Object.freeze(create(0, 0, -1)),
 
-    create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
-        return [x, y, z]
-    },
+    create,
 
     set<Out extends Vec3Like>(out: Out, x: number, y: number, z: number) {
         out[0] = x;
@@ -57,6 +60,16 @@ export const vec3 = {
 
     lengthSqr(v: Vec3Like) {
         return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+    },
+
+    transformMat3<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, m: Readonly<Mat3Like>) {
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        out[0] = x * m[0] + y * m[3] + z * m[6];
+        out[1] = x * m[1] + y * m[4] + z * m[7];
+        out[2] = x * m[2] + y * m[5] + z * m[8];
+        return out;
     },
 
     transformMat4<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, m: Readonly<Mat4Like>) {
@@ -115,16 +128,14 @@ export const vec3 = {
         return out;
     },
 
-    dot<Out extends Vec3Like>(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>): number {
+    dot(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>): number {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },
 
     cross<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
-        const [ax, ay, az] = [a[0], a[1], a[2]];
-        const [bx, by, bz] = [b[0], b[1], b[2]];
-        out[0] = ay * bz - az * by;
-        out[1] = az * bx - ax * bz;
-        out[2] = ax * by - ay * bx;
+        out[0] = a[1] * b[2] - a[2] * b[1];
+        out[1] = a[2] * b[0] - a[0] * b[2];
+        out[2] = a[0] * b[1] - a[1] * b[0];
         return out;
     },
 

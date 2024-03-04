@@ -32,7 +32,7 @@ double Window::now()
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() * 0.001;
 }
 
-int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
+int Window::loop(SDL_Window *sdl_window)
 {
     const char *err = nullptr;
     std::string bootstrap_path = env::bootstrap(&err);
@@ -96,8 +96,9 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
         auto inspector = std::make_unique<InspectorClient>();
 
         _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
-        _device = std::make_unique<bg::Device>(sdl_window.get());
+        _device = std::make_unique<bg::Device>(sdl_window);
         _device->initialize();
+        _sdl_window = sdl_window;
 
         auto ns_global = context->Global();
 
@@ -144,6 +145,17 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
             return -1;
         }
 
+        float pixelRatio{1};
+        {
+            int size{0};
+            SDL_GetWindowSize(_sdl_window, &size, nullptr);
+
+            int sizeInPixels{0};
+            SDL_GetWindowSizeInPixels(_sdl_window, &sizeInPixels, nullptr);
+
+            pixelRatio = static_cast<float>(sizeInPixels) / size;
+        }
+
         bool running = true;
         while (running)
         {
@@ -186,33 +198,15 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEMOTION:
                 {
+                    callable::Callable<void, std::shared_ptr<TouchEvent>> *touchCb{nullptr};
+
                     if (event.type == SDL_MOUSEBUTTONDOWN)
                     {
-                        if (_touchStartCb)
-                        {
-                            auto touch = std::make_shared<Touch>();
-                            touch->x = event.button.x;
-                            touch->y = event.button.y;
-                            auto touches = std::make_shared<TouchVector>();
-                            touches->emplace_back(std::move(touch));
-                            auto touchEvent = std::make_shared<TouchEvent>();
-                            touchEvent->touches = touches;
-                            _touchStartCb->call(std::move(touchEvent));
-                        }
+                        touchCb = _touchStartCb.get();
                     }
                     else if (event.type == SDL_MOUSEBUTTONUP)
                     {
-                        if (_touchEndCb)
-                        {
-                            auto touch = std::make_shared<Touch>();
-                            touch->x = event.button.x;
-                            touch->y = event.button.y;
-                            auto touches = std::make_shared<TouchVector>();
-                            touches->emplace_back(std::move(touch));
-                            auto touchEvent = std::make_shared<TouchEvent>();
-                            touchEvent->touches = touches;
-                            _touchEndCb->call(std::move(touchEvent));
-                        }
+                        touchCb = _touchEndCb.get();
                     }
                     else if (event.type == SDL_MOUSEMOTION)
                     {
@@ -221,17 +215,19 @@ int Window::loop(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
                             break;
                         }
 
-                        if (_touchMoveCb)
-                        {
-                            auto touch = std::make_shared<Touch>();
-                            touch->x = event.button.x;
-                            touch->y = event.button.y;
-                            auto touches = std::make_shared<TouchVector>();
-                            touches->emplace_back(std::move(touch));
-                            auto touchEvent = std::make_shared<TouchEvent>();
-                            touchEvent->touches = touches;
-                            _touchMoveCb->call(std::move(touchEvent));
-                        }
+                        touchCb = _touchMoveCb.get();
+                    }
+
+                    if (touchCb)
+                    {
+                        auto touch = std::make_shared<Touch>();
+                        touch->x = event.button.x * pixelRatio;
+                        touch->y = event.button.y * pixelRatio;
+                        auto touches = std::make_shared<TouchVector>();
+                        touches->emplace_back(std::move(touch));
+                        auto touchEvent = std::make_shared<TouchEvent>();
+                        touchEvent->touches = touches;
+                        touchCb->call(std::move(touchEvent));
                     }
                     break;
                 }

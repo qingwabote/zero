@@ -2,7 +2,7 @@ import { EventEmitterImpl } from "bastard";
 import { EventListener, GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
 import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
-import { GestureEventName, Input, TouchEventName } from "./Input.js";
+import { Input, TouchEventName } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
@@ -55,7 +55,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private _renderSemaphore: Semaphore;
     private _renderFence: Fence;
 
-    private _inputEvents: Map<TouchEventName | GestureEventName, any> = new Map;
+    private _inputEvents: Map<TouchEventName, any> = new Map;
 
     private _time = initial;
 
@@ -125,10 +125,10 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._inputEvents.set(TouchEventName.END, event)
     }
     onGesturePinch(event: GestureEvent) {
-        this._inputEvents.set(GestureEventName.PINCH, event)
+        this._inputEvents.set(TouchEventName.PINCH, event)
     }
     onGestureRotate(event: GestureEvent) {
-        this._inputEvents.set(GestureEventName.ROTATE, event)
+        this._inputEvents.set(TouchEventName.ROTATE, event)
     }
 
     onFrame() {
@@ -149,6 +149,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
             system.update(delta);
         }
         this._componentScheduler.lateUpdate();
+        for (const system of this._systems) {
+            system.lateUpdate(delta);
+        }
         this.emit(ZeroEvent.LOGIC_END);
 
         this.emit(ZeroEvent.RENDER_START);

@@ -36,6 +36,9 @@ export class SkinnedModel extends Model {
         this._joints = undefined;
     }
 
+    public override get transform(): Transform {
+        return this._transform;
+    }
     public override set transform(value: Transform) {
         super.transform = value;
         this._joints = undefined;
