@@ -39,8 +39,7 @@ export class SpriteRenderer extends BoundedRenderer {
         state.shader = this.shader;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
-        const pass = new Pass(state);
-        pass.initialize();
+        const pass = Pass.Pass(state);
         if (pass.hasUniform('Props', 'albedo')) {
             pass.setUniform('Props', 'albedo', this.color);
         }

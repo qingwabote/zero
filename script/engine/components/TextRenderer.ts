@@ -37,8 +37,7 @@ const pass = await (async function () {
     state.rasterizationState = rasterizationState;
     state.blendState = blendState;
 
-    const pass = new Pass(state);
-    pass.initialize();
+    const pass = Pass.Pass(state);
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
     return pass;
 })()
@@ -56,11 +55,7 @@ const vec3_b = vec3.create();
 export class TextRenderer extends BoundedRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
-    private _pass = (function () {
-        const instance = new PassInstance(pass);
-        instance.initialize();
-        return instance;
-    })();
+    private _pass = PassInstance.PassInstance(pass);
 
     private _text: string = "";
     get text(): string {

@@ -220,8 +220,7 @@ export class Skeleton extends BoundedRenderer {
             default:
                 break;
         }
-        const pass = new render.Pass(state);
-        pass.initialize();
+        const pass = render.Pass.Pass(state);
         pass.setUniform('Props', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', texture.getImpl());
 

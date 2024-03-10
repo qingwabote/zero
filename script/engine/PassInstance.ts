@@ -4,9 +4,15 @@ import { shaderLib } from "./core/shaderLib.js";
 
 /**just reuse the uniform buffers for now*/
 export class PassInstance extends Pass {
+    static PassInstance(raw: Pass) {
+        const instance = new PassInstance(raw);
+        instance.initialize();
+        return instance;
+    }
+
     private _overrides: Record<string, boolean> = {};
 
-    constructor(private _raw: Pass) {
+    protected constructor(private _raw: Pass) {
         super(_raw.state, _raw.type);
         for (const name in _raw.samplerTextures) {
             this.setTexture(name, ..._raw.samplerTextures[name]);

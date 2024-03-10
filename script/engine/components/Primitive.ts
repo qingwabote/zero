@@ -80,13 +80,10 @@ export class Primitive extends BoundedRenderer {
         state.rasterizationState = rasterizationState;
         state.blendState = blendState;
 
-        const pass = new Pass(state);
-        pass.initialize();
-
         const mesh = new Mesh([subMesh]);
 
         this._model.mesh = mesh;
-        this._model.materials = [new Material([pass])];
+        this._model.materials = [new Material([Pass.Pass(state)])];
 
         this._mesh = mesh;
     }

@@ -17,6 +17,12 @@ function type2Length(type: string): number {
 }
 
 export class Pass {
+    static Pass(state: PassState, type = 'default') {
+        const pass = new Pass(state, type);
+        pass.initialize();
+        return pass;
+    }
+
     readonly descriptorSetLayout: DescriptorSetLayout;
     readonly descriptorSet?: DescriptorSet = undefined;
 
@@ -30,7 +36,7 @@ export class Pass {
         return this._samplerTextures;
     }
 
-    constructor(readonly state: PassState, readonly type = 'default') {
+    protected constructor(readonly state: PassState, readonly type: string) {
         const descriptorSetLayout = shaderLib.getDescriptorSetLayout(this.state.shader, shaderLib.sets.material.index);
         if (descriptorSetLayout.info.bindings.size()) {
             this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
@@ -38,7 +44,7 @@ export class Pass {
         this.descriptorSetLayout = descriptorSetLayout;
     }
 
-    initialize() {
+    protected initialize() {
         if (this.descriptorSet) {
             const blocks = shaderLib.getShaderMeta(this.state.shader).blocks;
             for (const name in blocks) {
