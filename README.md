@@ -1,6 +1,6 @@
 **Zero** 是一款跨平台 3D 游戏引擎
 
-# 示例 (web)
+# 示例(H5)
 
 - [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
 - [Shadow Map](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
@@ -10,11 +10,17 @@
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
 
-# 支持的平台
+# 支持的平台（后端）
 
-- Web/[微信小游戏](minigame/README.md) (WebGL2)
-- [Android](native/platforms/android/README.md), [Windows](native/platforms/win/README.md) (Vulkan)
-- ~~IOS, Mac (还没有 Metal 实现)~~
+## WebGL2
+
+- H5
+- [微信小游戏](minigame/README.md)
+
+## [Vulkan](native/README.md)
+
+- [Android](native/platforms/android/README.md)
+- [Windows](native/platforms/win/README.md)
 
 # 基础功能
 
@@ -35,7 +41,7 @@
 
 # 集成布局引擎
 
-UI 使用 **Yoga** 引擎布局，从而支持 **Flexbox**
+使用 [Yoga](https://github.com/facebook/yoga) 引擎布局 UI，提供 **Flexbox** 支持
 
 # 基础架构
 
