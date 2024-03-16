@@ -1,3 +1,4 @@
+export * from './Camera.js';
 export * from './Material.js';
 export * from './Mesh.js';
 export * from './Pass.js';

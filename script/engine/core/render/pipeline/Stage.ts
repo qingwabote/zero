@@ -35,7 +35,7 @@ export class Stage {
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _clears?: ClearFlagBits,
-        private _viewport?: Rect
+        private _viewport?: Readonly<Rect>
     ) { }
 
     record(commandBuffer: CommandBuffer): number {

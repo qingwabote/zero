@@ -1,7 +1,6 @@
 import { device } from "boot";
 import { bundle } from "bundling";
 import * as gfx from "gfx";
-import { VisibilityFlagBits } from "../VisibilityFlagBits.js";
 import { getSampler, render, shaderLib } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
 import { Context } from "../core/render/Context.js";
@@ -24,10 +23,10 @@ post_blendState.srcAlpha = gfx.BlendFactor.ONE;
 post_blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA
 
 const phaseCreators = {
-    model: async function (info: ModelPhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+    model: async function (info: ModelPhaseInfo, context: Context, visibility: number): Promise<render.Phase> {
         return new ModelPhase(context, visibility, info.model, info.pass);
     },
-    fxaa: async function (info: FxaaPhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+    fxaa: async function (info: FxaaPhaseInfo, context: Context, visibility: number): Promise<render.Phase> {
         const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
         const shader = shaderLib.getShader(shaderAsset);
 
@@ -39,7 +38,7 @@ const phaseCreators = {
 
         return new PostPhase(context, passState, visibility);
     },
-    outline: async function (info: OutlinePhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+    outline: async function (info: OutlinePhaseInfo, context: Context, visibility: number): Promise<render.Phase> {
         const shaderAsset = await bundle.cache('shaders/outline', Shader);
         const shader = shaderLib.getShader(shaderAsset);
 
@@ -51,7 +50,7 @@ const phaseCreators = {
 
         return new PostPhase(context, passState, visibility);
     },
-    copy: async function (info: CopyPhaseInfo, context: Context, visibility?: VisibilityFlagBits): Promise<render.Phase> {
+    copy: async function (info: CopyPhaseInfo, context: Context, visibility: number): Promise<render.Phase> {
         const shaderAsset = await bundle.cache('shaders/copy', Shader);
         const shader = shaderLib.getShader(shaderAsset);
 
@@ -157,7 +156,6 @@ interface Stage {
     phases: Phase[];
     framebuffer?: Framebuffer;
     clears?: Clear[];
-    viewport?: Viewport;
 }
 
 interface Flow {
@@ -233,7 +231,7 @@ export class Pipeline extends Yml {
 
                 const phases: render.Phase[] = [];
                 for (const phase of stage.phases) {
-                    let visibility: VisibilityFlagBits | undefined;
+                    let visibility = 0xffffffff;
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
                     }
@@ -290,11 +288,7 @@ export class Pipeline extends Yml {
 
                     framebufferInfo.renderPass = getRenderPass(framebufferInfo, clears);
                     framebuffer = device.createFramebuffer(framebufferInfo);
-                    if (stage.viewport) {
-                        viewport = rect.create(stage.viewport.x, stage.viewport.y, stage.viewport.width, stage.viewport.height);
-                    } else {
-                        viewport = rect.create(0, 0, width, height);
-                    }
+                    viewport = rect.create(0, 0, width, height);
                 }
                 stages.push(new render.Stage(context, phases, framebuffer, clears, viewport));
             }

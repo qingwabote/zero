@@ -46,3 +46,7 @@
 # 基础架构
 
 ![](https://www.plantuml.com/plantuml/svg/RP51JiGm34NtEKKkqCqSO3OZmMP0I4YmG0YPnYJH94uKfvgf47SdfODQNBBBi_t_byqdJnaAHEs0pBduMf5qBGCgLR2lG3QW3idwNdygtTv2xvD1WGufvaH8LNsjvtdaYd4Z0EGZL9z8SCwUf79s8_kU1Gqmfa6OPPynD86DtKr8Pu4UArZfzE20yQzaGJ9OthZ7VsGF4B60W4TlNHNihkqhI3DWRbwpHlVYl358h_jvV9N0Vbmsni_uVdlS2VWqX1FG5F_dQ9tfzklqwdSxNH65Qt_3yxKczwKywRGCo_Zr_mq0)
+
+# Bundleless
+
+无需使用 module bundler 打包引擎 javascript 源码, 引擎使用 [import-maps](https://github.com/WICG/import-maps) 实现 bare import specifiers, 依赖的 npm packages 则使用 rollup 打包

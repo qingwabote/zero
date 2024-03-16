@@ -15,6 +15,14 @@ export const rect = {
         return out;
     },
 
+    copy(out: Rect, a: Readonly<Rect>): Rect {
+        out.x = a.x;
+        out.y = a.y;
+        out.width = a.width;
+        out.height = a.height;
+        return out;
+    },
+
     contains(rect: Rect, point: Vec2Like) {
         return (rect.x <= point[0]
             && rect.x + rect.width >= point[0]

@@ -1,4 +1,4 @@
-原生端使用 [SWIG](https://www.swig.org/) 将 [C++ 绑定到 JS](main/swig/README.md)
+原生端使用 [SWIG](https://qingwabote.github.io/ink/#/cpp/swig) 将 [C++ 绑定到 JS](main/swig/README.md)
 
 使用 [v8 作为 JS 运行时](https://qingwabote.github.io/ink/#/js/v8/embedding)
 

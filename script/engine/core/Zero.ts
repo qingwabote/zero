@@ -48,8 +48,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     private readonly _systems: readonly System[];
 
-    pipeline!: Pipeline;
-
     private _commandBuffer: CommandBuffer;
     private _presentSemaphore: Semaphore;
     private _renderSemaphore: Semaphore;
@@ -60,11 +58,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private _time = initial;
 
     private _drawCall: number = 0;
-    get drawCall() {
-        return this._drawCall;
-    }
+    get drawCall() { return this._drawCall; }
 
-    constructor() {
+    constructor(public pipeline: Pipeline) {
         super();
 
         const systems: System[] = [...Zero._system2priority.keys()];
@@ -89,9 +85,11 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     }
 
     initialize() {
-        this.pipeline = this.start();
-        this.attach();
+        this.start();
+        return this;
     }
+
+    protected abstract start(): void;
 
     attach() {
         attach(this);
@@ -112,8 +110,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     clearInterval(func: () => void) {
         this._timeScheduler.clearInterval(func);
     }
-
-    protected abstract start(): Pipeline;
 
     onTouchStart(event: TouchEvent) {
         this._inputEvents.set(TouchEventName.START, event)

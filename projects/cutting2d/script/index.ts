@@ -1,4 +1,4 @@
-import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
+import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
 import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Profiler, Renderer } from "flex";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 
@@ -11,10 +11,17 @@ const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).insta
 const text_color_normal = [0.5, 0.5, 0.5, 1] as const;
 const text_color_selected = [0, 1, 0, 1] as const;
 
+enum VisibilityFlagBits {
+    NONE = 0,
+    UI = 1 << 29,
+    WORLD = 1 << 30,
+    ALL = 0xffffffff
+}
+
 export default class App extends Zero {
     private _pipelineTextSelected: TextRenderer | undefined = undefined;
 
-    start(): render.Pipeline {
+    start() {
         const width = 640;
         const height = 960;
 
@@ -28,12 +35,12 @@ export default class App extends Zero {
         node = new Node;
         const camera = node.addComponent(Camera);
         camera.orthoSize = swapchain.height / scale / 2;
-        camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
+        camera.visibilities = VisibilityFlagBits.UI;
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
         node.position = vec3.create(-width / 2, height / 2);
-        node.visibility = VisibilityFlagBits.DEFAULT;
+        node.visibility = VisibilityFlagBits.UI;
         const doc = node.addComponent(Document);
         doc.alignItems = Align.Center
         doc.setWidth(width);
@@ -90,8 +97,6 @@ export default class App extends Zero {
         profiler.setPosition(Edge.Left, 8)
         profiler.setPosition(Edge.Bottom, 8)
         doc.addElement(profiler);
-
-        return normal;
     }
 
     private onPipelineText(pipeline: render.Pipeline, renderer: TextRenderer) {
@@ -104,5 +109,5 @@ export default class App extends Zero {
     }
 }
 
-(new App).initialize();
+(new App(normal)).initialize().attach();
 

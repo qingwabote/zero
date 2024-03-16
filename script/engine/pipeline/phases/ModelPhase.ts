@@ -1,5 +1,4 @@
 import { CommandBuffer, DescriptorSetLayout, RenderPass } from "gfx";
-import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
@@ -9,7 +8,7 @@ import { shaderLib } from "../../core/shaderLib.js";
 export class ModelPhase extends Phase {
     constructor(
         context: Context,
-        visibility: VisibilityFlagBits = VisibilityFlagBits.ALL,
+        visibility: number,
         /**The model type that indicates which models should run in this phase */
         private _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
