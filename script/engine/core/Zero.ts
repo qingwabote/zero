@@ -1,5 +1,5 @@
 import { EventEmitterImpl } from "bastard";
-import { EventListener, GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
+import { GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
 import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
 import { Input, TouchEventName } from "./Input.js";
@@ -26,7 +26,7 @@ interface EventToListener {
     [ZeroEvent.RENDER_END]: () => void;
 }
 
-export abstract class Zero extends EventEmitterImpl<EventToListener> implements EventListener {
+export abstract class Zero extends EventEmitterImpl<EventToListener> {
     private static _instance: Zero;
     public static get instance(): Zero {
         return Zero._instance;

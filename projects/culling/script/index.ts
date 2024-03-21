@@ -1,5 +1,5 @@
-import { Camera, DirectionalLight, GLTF, Node, Pipeline, Zero, bundle as builtin, device, safeArea, vec3 } from "engine";
-import { CameraControlPanel, Document, Edge, PositionType, Profiler } from "flex";
+import { Camera, DirectionalLight, Frustum, GLTF, Node, Pipeline, Zero, bundle as builtin, device, vec3 } from "engine";
+import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler } from "flex";
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 
@@ -7,8 +7,9 @@ const primitive = await (await builtin.cache('models/primitive/scene', GLTF)).in
 
 enum VisibilityFlagBits {
     NONE = 0,
-    UI = 1 << 29,
-    WORLD = 1 << 30,
+    UI = 1 << 28,
+    UP = 1 << 29,
+    DOWN = 1 << 30,
     ALL = 0xffffffff
 }
 
@@ -21,12 +22,27 @@ class App extends Zero {
 
         const up_camera = Node.build(Camera);
         up_camera.fov = 45;
+        up_camera.far = 10
         up_camera.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
-        up_camera.visibilities = VisibilityFlagBits.WORLD;
+        up_camera.visibilities = VisibilityFlagBits.UP;
         up_camera.node.position = [0, 0, 6];
 
+        const down_camera = Node.build(Camera);
+        down_camera.orthoSize = 6;
+        down_camera.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
+        down_camera.visibilities = VisibilityFlagBits.DOWN;
+        down_camera.node.position = [8, 8, 8]
+
         const cube = primitive.createScene("Cube")!;
-        cube.visibility = VisibilityFlagBits.WORLD;
+        cube.visibility = VisibilityFlagBits.UP | VisibilityFlagBits.DOWN;
+
+        const frustum = Node.build(Frustum);
+        frustum.fov = up_camera.fov;
+        frustum.aspect = up_camera.aspect;
+        frustum.near = up_camera.near;
+        frustum.far = up_camera.far;
+        frustum.node.visibility = VisibilityFlagBits.DOWN;
+        up_camera.node.addChild(frustum.node);
 
 
         const width = 640;
@@ -47,15 +63,34 @@ class App extends Zero {
         const doc = Node.build(Document);
         doc.setWidth(width);
         doc.setHeight(height);
-        doc.setPadding(Edge.Top, safeArea.top / scale);
+        // doc.setPadding(Edge.Top, safeArea.top / scale);
         doc.node.position = vec3.create(-width / 2, height / 2);
         doc.node.visibility = VisibilityFlagBits.UI;
 
-        const cameraControlPanel = Node.build(CameraControlPanel);
-        cameraControlPanel.setWidth(width);
-        cameraControlPanel.setHeight(height);
-        cameraControlPanel.camera = up_camera;
-        doc.addElement(cameraControlPanel);
+        const up_container = Node.build(ElementContainer)
+        up_container.setWidth(width);
+        up_container.setHeight(height / 2);
+        {
+            const controlPanel = Node.build(CameraControlPanel);
+            controlPanel.camera = up_camera;
+            controlPanel.setWidth('100%');
+            controlPanel.setHeight('100%');
+            up_container.addElement(controlPanel);
+        }
+        doc.addElement(up_container)
+
+        const down_container = Node.build(ElementContainer)
+        down_container.setWidth(width);
+        down_container.setHeight(height / 2);
+        {
+            const controlPanel = Node.build(CameraControlPanel);
+            controlPanel.camera = down_camera;
+            controlPanel.positionType = PositionType.Absolute;
+            controlPanel.setWidth('100%');
+            controlPanel.setHeight('100%');
+            down_container.addElement(controlPanel);
+        }
+        doc.addElement(down_container)
 
         const profiler = Node.build(Profiler);
         profiler.positionType = PositionType.Absolute;

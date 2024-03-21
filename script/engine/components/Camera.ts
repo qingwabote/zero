@@ -58,7 +58,7 @@ export class Camera extends Component {
     }
 
     /**
-     * x,y the lower left corner
+     * the bottom-left of the swapchain is (0,0) and the top-right of the swapchain is (1,1)
      */
     get viewport(): Readonly<Rect> {
         const { width, height } = device.swapchain;
@@ -70,6 +70,10 @@ export class Camera extends Component {
         const { width, height } = device.swapchain;
         rect.set(rect_a, width * value.x, height * value.y, width * value.width, height * value.height);
         this._camera.viewport = rect_a;
+    }
+
+    get aspect(): number {
+        return this._camera.aspect;
     }
 
     private _camera: render_Camera = new render_Camera(this.node);

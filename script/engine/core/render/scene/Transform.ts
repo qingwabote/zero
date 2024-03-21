@@ -1,7 +1,6 @@
-import { EventEmitter, EventEmitterImpl } from "bastard";
 import { TRS } from "../../math/TRS.js";
 import { mat3 } from "../../math/mat3.js";
-import { Mat4Like, mat4 } from "../../math/mat4.js";
+import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
@@ -12,16 +11,7 @@ export enum TransformBits {
     POSITION = (1 << 0),
     ROTATION = (1 << 1),
     SCALE = (1 << 2),
-    RS = TransformBits.ROTATION | TransformBits.SCALE,
     TRS = TransformBits.POSITION | TransformBits.ROTATION | TransformBits.SCALE,
-}
-
-export enum TransformEvent {
-    TRANSFORM_CHANGED = "TRANSFORM_CHANGED",
-}
-
-interface TransformEventToListener {
-    [TransformEvent.TRANSFORM_CHANGED]: (flag: TransformBits) => void;
 }
 
 const vec3_a = vec3.create();
@@ -29,25 +19,16 @@ const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
 
-export class Transform extends FrameChangeRecord implements TRS, EventEmitter<TransformEventToListener> {
+export class Transform extends FrameChangeRecord implements TRS {
     private _explicit_visibility: number | undefined = undefined;
     private _implicit_visibility: number | undefined = undefined;
     public get visibility(): number {
-        if (this._explicit_visibility != undefined) {
-            return this._explicit_visibility;
-        }
-        if (this._implicit_visibility != undefined) {
-            return this._implicit_visibility;
-        }
-        if (this._parent) {
-            return this._implicit_visibility = this._parent.visibility;
-        }
-        return 0;
+        return this._explicit_visibility ?? this._implicit_visibility ?? (this._implicit_visibility = this._parent?.visibility) ?? 0;
     }
     public set visibility(value) {
         const stack = [...this.children];
-        while (stack.length) {
-            const child = stack.pop()!;
+        let child;
+        while (child = stack.pop()) {
             if (child._explicit_visibility != undefined) {
                 continue;
             }
@@ -58,14 +39,6 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
     }
 
     private _changed = TransformBits.TRS;
-
-    private _eventEmitter?: EventEmitterImpl<TransformEventToListener> = undefined;
-    get eventEmitter(): EventEmitterImpl<TransformEventToListener> {
-        if (!this._eventEmitter) {
-            this._eventEmitter = new EventEmitterImpl;
-        }
-        return this._eventEmitter;
-    }
 
     private _position = vec3.create();
     get position(): Readonly<Vec3> {
@@ -139,25 +112,28 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
     }
 
     private _world_scale = vec3.create(1, 1, 1);
-    public get world_scale(): Vec3 {
+    public get world_scale(): Readonly<Vec3> {
         return this._world_scale;
     }
 
     private _children: this[] = [];
-
     get children(): readonly this[] {
         return this._children;
     }
 
-    private _parent?: Transform = undefined;
-    get parent(): Transform | undefined {
+    private _parent?: this = undefined;
+    get parent(): this | undefined {
         return this._parent;
     }
 
     private _matrix = mat4.create();
-    public get matrix() {
+    public get matrix(): Mat4 {
         this.updateTransform();
         return this._matrix;
+    }
+    public set matrix(value: Readonly<Mat4Like>) {
+        mat4.toTRS(value, this._position, this._rotation, this._scale);
+        this.dirty(TransformBits.TRS);
     }
 
     private _world_matrix = mat4.create();
@@ -166,51 +142,39 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
         return this._world_matrix;
     }
 
-    private __emitter?: EventEmitter<TransformEventToListener> = undefined;
-    private get _emitter() {
-        return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
-    }
-
     constructor(public readonly name: string = '') {
         super(0xffffffff);
-    }
-
-    has<K extends TransformEvent>(name: K): boolean {
-        return this.__emitter ? this.__emitter.has(name) : false;
-    }
-    on<K extends TransformEvent>(name: K, listener: TransformEventToListener[K] extends (event: any) => void ? TransformEventToListener[K] : (event: any) => void): void {
-        this._emitter.on(name, listener);
-    }
-    off<K extends TransformEvent>(name: K, listener: TransformEventToListener[K] extends (event: any) => void ? TransformEventToListener[K] : (event: any) => void): void {
-        this._emitter.off(name, listener);
-    }
-    emit<K extends TransformEvent>(name: K, event?: Parameters<TransformEventToListener[K] extends (event: any) => void ? TransformEventToListener[K] : (event: any) => void>[0] | undefined): void {
-        this.__emitter?.emit(name, event);
     }
 
     addChild(child: this): void {
         child._implicit_visibility = undefined;
         child._parent = this;
+        child.dirty(TransformBits.TRS);
 
         this._children.push(child);
     }
 
-    getChildByPath(paths: readonly string[]): Transform | undefined {
-        let current: Transform | undefined = this;
-        for (let i = 0; i < paths.length; i++) {
+    getChildByPath(paths: readonly string[]): this | undefined {
+        let current: this | undefined = this;
+        for (const path of paths) {
             if (!current) {
                 break;
             }
-            current = current.children.find(child => child.name == paths[i]);
+            const children: readonly this[] = current.children;
+            current = undefined;
+            for (const child of children) {
+                if (child.name == path) {
+                    current = child;
+                    break;
+                }
+            }
         }
-
         return current;
     }
 
     private dirty(flag: TransformBits): void {
         this._changed |= flag;
         this.hasChanged |= flag;
-        this.emit(TransformEvent.TRANSFORM_CHANGED, this._changed);
         for (const child of this._children) {
             child.dirty(flag);
         }
@@ -220,7 +184,7 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
         if (this._changed == TransformBits.NONE) return;
 
         if (!this._parent) {
-            mat4.fromTRS(this._matrix, this._rotation, this._position, this._scale);
+            mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
             this._world_matrix.splice(0, this._matrix.length, ...this._matrix);
 
             this._world_position.splice(0, this._position.length, ...this._position);
@@ -231,7 +195,7 @@ export class Transform extends FrameChangeRecord implements TRS, EventEmitter<Tr
             return;
         }
 
-        mat4.fromTRS(this._matrix, this._rotation, this._position, this._scale);
+        mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
         mat4.multiply(this._world_matrix, this._parent.world_matrix, this._matrix);
 
         vec3.transformMat4(this._world_position, vec3.ZERO, this._world_matrix);

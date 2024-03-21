@@ -49,6 +49,10 @@ export class Camera extends FrameChangeRecord {
         rect.copy(this._viewport, value);
     }
 
+    get aspect(): number {
+        return this._viewport.width / this._viewport.height;
+    }
+
     private _matView = mat4.create();
     get matView(): Readonly<Mat4> {
         return this._matView;
@@ -72,9 +76,9 @@ export class Camera extends FrameChangeRecord {
             mat4.invert(this._matView, this._transform.world_matrix);
 
             if (this.fov != -1) {
-                mat4.perspective(this._matProj, Math.PI / 180 * this.fov, this._viewport.width / this._viewport.height, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                mat4.perspective(this._matProj, Math.PI / 180 * this.fov, this.aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
             } else {
-                const x = this.orthoSize * (this._viewport.width / this._viewport.height);
+                const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
                 mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
             }

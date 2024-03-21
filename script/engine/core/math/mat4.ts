@@ -4,6 +4,8 @@ import { mat3 } from "./mat3.js";
 import { quat, QuatLike } from "./quat.js";
 import { Vec3Like } from "./vec3.js";
 
+const mat3_a = mat3.create();
+
 function vec3_length(x: number, y: number, z: number) {
     return Math.sqrt(x * x + y * y + z * z);
 }
@@ -47,7 +49,7 @@ export const mat4 = {
         ]
     },
 
-    fromTRS<Out extends Mat4Like>(out: Out, r: Readonly<QuatLike>, t: Readonly<Vec3Like>, s: Readonly<Vec3Like>) {
+    fromTRS<Out extends Mat4Like>(out: Out, t: Readonly<Vec3Like>, r: Readonly<QuatLike>, s: Readonly<Vec3Like>) {
         const x = r[0]; const y = r[1]; const z = r[2]; const w = r[3];
         const x2 = x + x;
         const y2 = y + y;
@@ -86,27 +88,26 @@ export const mat4 = {
         return out;
     },
 
-    toTRS<Out extends Mat4Like>(m: Out, v: Vec3Like, q: QuatLike, s: Vec3Like) {
+    toTRS(m: Readonly<Mat4Like>, t: Vec3Like, r: QuatLike, s: Vec3Like) {
         s[0] = vec3_length(m[0], m[1], m[2])
 
-        const m3_1 = mat3.create();
-        m3_1[0] = m[0] / s[0];
-        m3_1[1] = m[1] / s[0];
-        m3_1[2] = m[2] / s[0];
+        mat3_a[0] = m[0] / s[0];
+        mat3_a[1] = m[1] / s[0];
+        mat3_a[2] = m[2] / s[0];
         s[1] = vec3_length(m[4], m[5], m[6])
-        m3_1[3] = m[4] / s[1];
-        m3_1[4] = m[5] / s[1];
-        m3_1[5] = m[6] / s[1];
+        mat3_a[3] = m[4] / s[1];
+        mat3_a[4] = m[5] / s[1];
+        mat3_a[5] = m[6] / s[1];
         s[2] = vec3_length(m[8], m[9], m[10])
-        m3_1[6] = m[8] / s[2];
-        m3_1[7] = m[9] / s[2];
-        m3_1[8] = m[10] / s[2];
-        const det = mat3.determinant(m3_1);
-        if (det < 0) { s[0] *= -1; m3_1[0] *= -1; m3_1[1] *= -1; m3_1[2] *= -1; }
-        quat.fromMat3(q, m3_1); // already normalized
-        v[0] = m[12];
-        v[1] = m[13];
-        v[2] = m[14];
+        mat3_a[6] = m[8] / s[2];
+        mat3_a[7] = m[9] / s[2];
+        mat3_a[8] = m[10] / s[2];
+        const det = mat3.determinant(mat3_a);
+        if (det < 0) { s[0] *= -1; mat3_a[0] *= -1; mat3_a[1] *= -1; mat3_a[2] *= -1; }
+        quat.fromMat3(r, mat3_a); // already normalized
+        t[0] = m[12];
+        t[1] = m[13];
+        t[2] = m[14];
     },
 
     fromXRotation(radian: number): Mat4 {

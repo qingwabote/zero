@@ -32,7 +32,7 @@ function yg_node_free(node: yoga.Node) { node.free(); }
 export abstract class Element<T extends ElementEventToListener = ElementEventToListener> extends Component {
     private _emitter: EventEmitter<T> | undefined = undefined;
     public get emitter() {
-        return this._emitter ? this._emitter : this._emitter = new EventEmitterImpl;
+        return this._emitter ?? (this._emitter = new EventEmitterImpl);
     }
 
     readonly yg_node = new SmartRef(yoga.impl.Node.create(), yg_node_free);
