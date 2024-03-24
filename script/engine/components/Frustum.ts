@@ -13,6 +13,7 @@ export class Frustum extends Primitive {
     far = 1000;
 
     override update(dt: number): void {
+        super.update(dt);
         if (this.isPerspective()) {
             this.drawPerspective();
         } else {

@@ -13,8 +13,8 @@ export interface AABB3D extends AABB2D {
     halfExtent: Vec3Like;
 }
 
-function create() {
-    return { center: vec3.create(), halfExtent: vec3.create() };
+function create(center = vec3.ZERO, halfExtent = vec3.ZERO) {
+    return { center: vec3.create(...center), halfExtent: vec3.create(...halfExtent) };
 }
 
 function set(out: AABB3D, center: Readonly<Vec3Like>, halfExtent: Readonly<Vec3Like>) {
@@ -60,4 +60,6 @@ function transform(out: AABB3D, a: Readonly<AABB3D>, m: Readonly<Mat4Like>) {
     return out;
 }
 
-export const aabb3d = { create, set, fromPoints, fromRect, transform } as const
+const ZERO = Object.freeze({ center: vec3.ZERO, halfExtent: vec3.ZERO })
+
+export const aabb3d = { create, set, fromPoints, fromRect, transform, ZERO } as const

@@ -10,6 +10,9 @@ interface BoundsEventToListener {
     [BoundsEventName.BOUNDS_CHANGED]: () => void;
 }
 
+/**
+ * Provides a bounds for ui system
+ */
 export abstract class BoundedRenderer extends ModelRenderer implements EventEmitter<BoundsEventToListener> {
     static readonly PIXELS_PER_UNIT: number = 100;
 
@@ -30,7 +33,5 @@ export abstract class BoundedRenderer extends ModelRenderer implements EventEmit
         this.__emitter?.emit(name, ...args);
     }
 
-    public get bounds(): Readonly<AABB3D> {
-        return this._model.mesh.bounds;
-    }
+    public abstract get bounds(): Readonly<AABB3D>;
 }

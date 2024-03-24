@@ -1,5 +1,6 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BoundedRenderer, BoundsEventName, Node, Shader, Zero, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { BoundedRenderer, BoundsEventName, Node, Shader, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { AABB3D } from 'engine/core/math/aabb3d.js';
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
 import { Texture } from './Texture.js';
 
@@ -41,6 +42,11 @@ export class Skeleton extends BoundedRenderer {
     static readonly PIXELS_PER_UNIT = 1;
 
     private _mesh: render.Mesh;
+    private _materials: render.Material[] = [];
+
+    public get bounds(): Readonly<AABB3D> {
+        return this._mesh.bounds;
+    }
 
     protected _skeleton!: sc.Skeleton;
     public get data(): sc.SkeletonData {
@@ -60,7 +66,7 @@ export class Skeleton extends BoundedRenderer {
     private _vertexView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);
     private _indexView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 2048 * 3);
 
-    private _materials: Record<string, render.Material> = {};
+    private _materialCache: Record<string, render.Material> = {};
 
     constructor(node: Node) {
         super(node);
@@ -78,24 +84,21 @@ export class Skeleton extends BoundedRenderer {
         indexInput.type = IndexType.UINT16;
         iaInfo.indexInput = indexInput;
 
-        const mesh = new render.Mesh([new render.SubMesh(device.createInputAssembler(iaInfo))]);
-        this._model.mesh = mesh;
-        this._mesh = mesh;
+        this._mesh = new render.Mesh([new render.SubMesh(device.createInputAssembler(iaInfo))]);;
     }
 
-    override start(): void {
-        Zero.instance.scene.addModel(this._model)
+    protected createModel(): render.Model | null {
+        return new render.Model(this.node, this._mesh, this._materials);
     }
 
     override lateUpdate(): void {
-        const materials: render.Material[] = [];
-
         let key = '';
         let vertex = 0;
         let index = 0;
 
         this._vertexView.invalidate();
         this._indexView.invalidate();
+        this._materials.length = 0;
 
         this._skeleton.updateWorldTransform();
 
@@ -170,12 +173,12 @@ export class Skeleton extends BoundedRenderer {
                 const blend = sc.BlendMode.Normal;
                 const k = `${attachment_texture.id}:${blend}`;
                 if (key != k) {
-                    let material = this._materials[k];
+                    let material = this._materialCache[k];
                     if (!material) {
                         material = this.createMaterial(blend, attachment_texture);
-                        this._materials[k] = material;
+                        this._materialCache[k] = material;
                     }
-                    materials.push(material);
+                    this._materials.push(material);
 
                     const drawInfo = this._mesh.subMeshes[0].drawInfo;
                     drawInfo.count = 0;
@@ -196,8 +199,6 @@ export class Skeleton extends BoundedRenderer {
 
         this._vertexView.update();
         this._indexView.update();
-
-        this._model.materials = materials;
     }
 
     private createMaterial(blend: sc.BlendMode, texture: Texture): render.Material {

@@ -8,19 +8,12 @@ import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";
 
-const NULL_MATERIALS: readonly Material[] = Object.freeze([]);
-
 export class Model {
-    static readonly descriptorSetLayout = (function () {
-        const layout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
-        (layout as any).name = "Model descriptorSetLayout";
-        return layout;
-    })();
+    static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
 
     private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
     private _localBuffer_invalid = false;
 
-    protected _transform!: Transform;
     public get transform(): Transform {
         return this._transform;
     }
@@ -39,7 +32,6 @@ export class Model {
         return this._world_bounds;
     }
 
-    private _mesh = Mesh.NULL;
     public get mesh() {
         return this._mesh;
     }
@@ -48,15 +40,13 @@ export class Model {
         this._world_bounds_invalid = true;
     }
 
-    materials = NULL_MATERIALS;
-
     type: string = 'default';
 
     order: number = 0;
 
     readonly descriptorSet: DescriptorSet;
 
-    constructor() {
+    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
         const ModelType = (this.constructor as typeof Model);
         const descriptorSet = device.createDescriptorSet(ModelType.descriptorSetLayout);
         descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);

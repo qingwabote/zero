@@ -3,6 +3,8 @@ import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
 import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";
+import { Material } from "../../core/render/scene/Material.js";
+import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Transform } from "../../core/render/scene/Transform.js";
 import { shaderLib } from "../../core/shaderLib.js";
@@ -16,18 +18,13 @@ const mat4_a = mat4.create();
 const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
 
 export class SkinnedModel extends Model {
-    static readonly descriptorSetLayout = (function () {
-        const layout = shaderLib.createDescriptorSetLayout([
-            shaderLib.sets.local.uniforms.Local,
-            shaderLib.sets.local.uniforms.Skin
-        ]);
-        (layout as any).name = "SkinnedModel descriptorSetLayout";
-        return layout;
-    })()
+    static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([
+        shaderLib.sets.local.uniforms.Local,
+        shaderLib.sets.local.uniforms.Skin
+    ]);
 
     private _joints: readonly Transform[] | undefined = undefined;
 
-    private _skin!: Skin;
     public get skin(): Skin {
         return this._skin;
     }
@@ -37,7 +34,7 @@ export class SkinnedModel extends Model {
     }
 
     public override get transform(): Transform {
-        return this._transform;
+        return super.transform;
     }
     public override set transform(value: Transform) {
         super.transform = value;
@@ -46,15 +43,15 @@ export class SkinnedModel extends Model {
 
     private _skinBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
 
-    constructor() {
-        super();
+    constructor(transform: Transform, mesh: Mesh, materials: readonly Material[], private _skin: Skin) {
+        super(transform, mesh, materials);
         this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
     }
 
     override update(): void {
         super.update();
         if (!this._joints) {
-            this._joints = this._skin.joints.map(paths => this._transform.getChildByPath(paths)!);
+            this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths)!);
         }
         for (let i = 0; i < this._joints.length; i++) {
             const joint = this._joints[i];
@@ -74,7 +71,7 @@ export class SkinnedModel extends Model {
             return;
         }
         const parent = joint.parent!;
-        if (parent == this._transform) {
+        if (parent == this.transform) {
             modelSpace.matrix.splice(0, joint.matrix.length, ...joint.matrix)
         } else {
             this.updateModelSpace(parent);

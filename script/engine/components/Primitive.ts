@@ -3,11 +3,12 @@ import { bundle } from "bundling";
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
-import { Zero } from "../core/Zero.js";
+import { AABB3D } from "../core/math/aabb3d.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
 import { Material, Mesh } from "../core/render/index.js";
+import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -52,6 +53,10 @@ export class Primitive extends BoundedRenderer {
 
     private _mesh: Mesh;
 
+    public get bounds(): Readonly<AABB3D> {
+        return this._mesh.bounds;
+    }
+
     private _vertexMin = vec3.create();
     private _vertexMax = vec3.create();
 
@@ -65,8 +70,10 @@ export class Primitive extends BoundedRenderer {
         vertexInput.offsets.add(0);
         iaInfo.vertexInput = vertexInput;
 
-        const subMesh = new SubMesh(device.createInputAssembler(iaInfo))
+        this._mesh = new Mesh([new SubMesh(device.createInputAssembler(iaInfo))]);;
+    }
 
+    protected createModel(): Model | null {
         const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
         const blendState = new BlendState;
@@ -79,13 +86,7 @@ export class Primitive extends BoundedRenderer {
         state.primitive = PrimitiveTopology.LINE_LIST;
         state.rasterizationState = rasterizationState;
         state.blendState = blendState;
-
-        const mesh = new Mesh([subMesh]);
-
-        this._model.mesh = mesh;
-        this._model.materials = [new Material([Pass.Pass(state)])];
-
-        this._mesh = mesh;
+        return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])])
     }
 
     drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = this.color) {
@@ -118,10 +119,6 @@ export class Primitive extends BoundedRenderer {
         }
 
         this._vertexCount += 2;
-    }
-
-    start() {
-        Zero.instance.scene.addModel(this._model)
     }
 
     lateUpdate(): void {

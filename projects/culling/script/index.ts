@@ -1,4 +1,4 @@
-import { Camera, DirectionalLight, Frustum, GLTF, Node, Pipeline, Zero, bundle as builtin, device, vec3 } from "engine";
+import { Camera, DirectionalLight, Frustum, GLTF, Node, Pipeline, Primitive, Zero, bundle as builtin, device, vec3 } from "engine";
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler } from "flex";
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
@@ -44,6 +44,13 @@ class App extends Zero {
         frustum.node.visibility = VisibilityFlagBits.DOWN;
         up_camera.node.addChild(frustum.node);
 
+        const debugDrawer = Node.build(Primitive);
+        debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
+        this.setInterval(() => {
+            for (const model of this.scene.models) {
+                model.world_bounds
+            }
+        })
 
         const width = 640;
         const height = 960;

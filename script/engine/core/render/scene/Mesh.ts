@@ -4,8 +4,6 @@ import { FrameChangeRecord } from "./FrameChangeRecord.js";
 import { SubMesh } from "./SubMesh.js";
 
 export class Mesh extends FrameChangeRecord {
-    static NULL = Object.freeze(new Mesh([]));
-
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
         return this._bounds;
