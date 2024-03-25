@@ -1,4 +1,4 @@
-import { Camera, DirectionalLight, Frustum, GLTF, Node, Pipeline, Primitive, Zero, bundle as builtin, device, vec3 } from "engine";
+import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Zero, bundle as builtin, device, frustum, vec3 } from "engine";
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler } from "flex";
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
@@ -6,49 +6,49 @@ const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).inst
 const primitive = await (await builtin.cache('models/primitive/scene', GLTF)).instantiate();
 
 enum VisibilityFlagBits {
-    NONE = 0,
-    UI = 1 << 28,
-    UP = 1 << 29,
-    DOWN = 1 << 30,
-    ALL = 0xffffffff
+    UP = 1 << 1,
+    DOWN = 1 << 2,
+    UI = 1 << 29,
+    WORLD = 1 << 30
 }
 
 class App extends Zero {
     protected start(): void {
-        {
-            const light = Node.build(DirectionalLight)
-            light.node.position = [-12, 12, -12];
-        }
+        const light = Node.build(DirectionalLight)
+        light.node.position = [-12, 12, -12];
 
         const up_camera = Node.build(Camera);
         up_camera.fov = 45;
         up_camera.far = 10
         up_camera.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
-        up_camera.visibilities = VisibilityFlagBits.UP;
+        up_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.UP;
         up_camera.node.position = [0, 0, 6];
 
         const down_camera = Node.build(Camera);
         down_camera.orthoSize = 6;
         down_camera.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
-        down_camera.visibilities = VisibilityFlagBits.DOWN;
+        down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
         down_camera.node.position = [8, 8, 8]
 
         const cube = primitive.createScene("Cube")!;
-        cube.visibility = VisibilityFlagBits.UP | VisibilityFlagBits.DOWN;
+        cube.visibility = VisibilityFlagBits.WORLD;
 
-        const frustum = Node.build(Frustum);
-        frustum.fov = up_camera.fov;
-        frustum.aspect = up_camera.aspect;
-        frustum.near = up_camera.near;
-        frustum.far = up_camera.far;
-        frustum.node.visibility = VisibilityFlagBits.DOWN;
-        up_camera.node.addChild(frustum.node);
+        const perspective = frustum.fromPerspective(frustum.create(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far)
+        const perspectiveDrawer = Node.build(GeometryRenderer);
+        perspectiveDrawer.drawFrustum(perspective);
+        perspectiveDrawer.node.visibility = VisibilityFlagBits.DOWN;
+        up_camera.node.addChild(perspectiveDrawer.node);
 
-        const debugDrawer = Node.build(Primitive);
+        const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
+        debugDrawer.color = [1, 0, 0, 1];
         this.setInterval(() => {
+            debugDrawer.clear()
             for (const model of this.scene.models) {
-                model.world_bounds
+                if (model.transform.visibility != VisibilityFlagBits.WORLD) {
+                    continue;
+                }
+                debugDrawer.drawAABB(model.world_bounds);
             }
         })
 

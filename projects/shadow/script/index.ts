@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, Frustum, GLTF, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Vec3, Zero, bundle as builtin, device, quat, shaderLib, vec3 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Vec3, Zero, bundle as builtin, device, frustum, quat, shaderLib, vec3 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 
 const VisibilityFlagBits = {
@@ -75,26 +75,22 @@ export class App extends Zero {
         node.scale = [5, 1, 5];
         node.position = [0, -1, 0];
 
-        const shadow = renderPipeline.flows[0].uniforms.find(uniform => uniform instanceof ShadowUniform) as ShadowUniform
+        const shadow = renderPipeline.flows[0].uniforms.find(uniform => uniform instanceof ShadowUniform) as ShadowUniform;
 
-        const lit_frustum = Node.build(Frustum);
-        lit_frustum.orthoSize = shadow.orthoSize;
-        lit_frustum.aspect = shadow.aspect;
-        lit_frustum.near = shadow.near;
-        lit_frustum.far = shadow.far;
-        lit_frustum.color = [1, 1, 0, 1];
+        const lit_frustum = frustum.fromOrthographic(frustum.create(), shadow.orthoSize, shadow.aspect, shadow.near, shadow.far);
+        const lit_frustumRenderer = Node.build(GeometryRenderer);
+        lit_frustumRenderer.color = [1, 1, 0, 1];
+        lit_frustumRenderer.drawFrustum(lit_frustum);
         view = vec3.normalize(vec3.create(), lit_position);
-        lit_frustum.node.rotation = quat.fromViewUp(quat.create(), view);
-        lit_frustum.node.position = lit_position;
-        lit_frustum.node.visibility = VisibilityFlagBits.DOWN;
+        lit_frustumRenderer.node.rotation = quat.fromViewUp(quat.create(), view);
+        lit_frustumRenderer.node.position = lit_position;
+        lit_frustumRenderer.node.visibility = VisibilityFlagBits.DOWN;
 
-        const up_frustum = Node.build(Frustum);
-        up_frustum.fov = up_camera.fov;
-        up_frustum.aspect = up_camera.viewport.width / up_camera.viewport.height;
-        up_frustum.near = up_camera.near;
-        up_frustum.far = up_camera.far;
-        up_frustum.node.visibility = VisibilityFlagBits.DOWN;
-        up_camera.node.addChild(up_frustum.node);
+        const up_frustum = frustum.fromPerspective(frustum.create(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far);
+        const up_frustumRenderer = Node.build(GeometryRenderer);
+        up_frustumRenderer.drawFrustum(up_frustum);
+        up_frustumRenderer.node.visibility = VisibilityFlagBits.DOWN;
+        up_camera.node.addChild(up_frustumRenderer.node);
 
         // UI
         node = new Node;
@@ -150,7 +146,9 @@ export class App extends Zero {
 
             function updateValue(value: number) {
                 shadow.orthoSize = 10 * value;
-                lit_frustum.orthoSize = shadow.orthoSize;
+                frustum.fromOrthographic(lit_frustum, shadow.orthoSize, shadow.aspect, shadow.near, shadow.far);
+                lit_frustumRenderer.clear();
+                lit_frustumRenderer.drawFrustum(lit_frustum);
             }
 
             const slider = Node.build(Slider)

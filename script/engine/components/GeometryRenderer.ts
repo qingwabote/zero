@@ -4,6 +4,7 @@ import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatI
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
 import { AABB3D } from "../core/math/aabb3d.js";
+import { Frustum } from "../core/math/frustum.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
@@ -14,8 +15,21 @@ import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 
-const vec3_a = vec3.create();
-const vec3_b = vec3.create();
+const drawLine = {
+    vec3_a: vec3.create(),
+    vec3_b: vec3.create(),
+} as const
+
+const drawAABB = {
+    vec3_a: vec3.create(),
+    vec3_b: vec3.create(),
+    vec3_c: vec3.create(),
+    vec3_d: vec3.create(),
+    vec3_e: vec3.create(),
+    vec3_f: vec3.create(),
+    vec3_g: vec3.create(),
+    vec3_h: vec3.create(),
+} as const
 
 const ss_primitive = await bundle.cache('./shaders/primitive', Shader);
 
@@ -44,7 +58,7 @@ const VERTEX_ATTRIBUTES = (function () {
 })()
 
 
-export class Primitive extends BoundedRenderer {
+export class GeometryRenderer extends BoundedRenderer {
     color: Readonly<Vec4> = vec4.ONE;
 
     private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
@@ -107,18 +121,74 @@ export class Primitive extends BoundedRenderer {
         offset += 3
         this._buffer.set(color, offset);
 
-        vec3.min(vec3_a, this._vertexMin, from);
-        vec3.min(vec3_a, vec3_a, to);
-        vec3.max(vec3_b, this._vertexMax, from);
-        vec3.max(vec3_b, vec3_b, to);
-        if (!vec3.equals(vec3_a, this._vertexMin) || !vec3.equals(vec3_b, this._vertexMax)) {
-            this._mesh.setBoundsByPoints(vec3_a, vec3_b);
-            vec3.set(this._vertexMin, ...vec3_a);
-            vec3.set(this._vertexMax, ...vec3_b);
+        vec3.min(drawLine.vec3_a, this._vertexMin, from);
+        vec3.min(drawLine.vec3_a, drawLine.vec3_a, to);
+        vec3.max(drawLine.vec3_b, this._vertexMax, from);
+        vec3.max(drawLine.vec3_b, drawLine.vec3_b, to);
+        if (!vec3.equals(drawLine.vec3_a, this._vertexMin) || !vec3.equals(drawLine.vec3_b, this._vertexMax)) {
+            this._mesh.setBoundsByPoints(drawLine.vec3_a, drawLine.vec3_b);
+            vec3.set(this._vertexMin, ...drawLine.vec3_a);
+            vec3.set(this._vertexMax, ...drawLine.vec3_b);
             // this.emit(BoundsEvent.BOUNDS_CHANGED);
         }
 
         this._vertexCount += 2;
+    }
+
+    drawAABB(aabb: Readonly<AABB3D>, color: Readonly<Vec4> = this.color) {
+        const left_up_far = drawAABB.vec3_a;
+        const left_up_near = drawAABB.vec3_b;
+        const right_up_near = drawAABB.vec3_c;
+        const right_up_far = drawAABB.vec3_d;
+
+        const left_down_far = drawAABB.vec3_e;
+        const left_down_near = drawAABB.vec3_f;
+        const right_down_near = drawAABB.vec3_g;
+        const right_down_far = drawAABB.vec3_h;
+
+        vec3.set(left_down_far, aabb.center[0] - aabb.halfExtent[0], aabb.center[1] - aabb.halfExtent[1], aabb.center[2] - aabb.halfExtent[2]);
+        vec3.set(right_up_near, aabb.center[0] + aabb.halfExtent[0], aabb.center[1] + aabb.halfExtent[1], aabb.center[2] + aabb.halfExtent[2]);
+
+        vec3.set(left_up_far, left_down_far[0], right_up_near[1], left_down_far[2]);
+        vec3.set(left_up_near, left_down_far[0], right_up_near[1], right_up_near[2]);
+        vec3.set(right_up_far, right_up_near[0], right_up_near[1], left_down_far[2]);
+        vec3.set(left_down_near, left_down_far[0], left_down_far[1], right_up_near[2]);
+        vec3.set(right_down_near, right_up_near[0], left_down_far[1], right_up_near[2]);
+        vec3.set(right_down_far, right_up_near[0], left_down_far[1], left_down_far[2]);
+
+        this.drawLine(left_up_far, left_up_near, color);
+        this.drawLine(left_up_near, right_up_near, color);
+        this.drawLine(right_up_near, right_up_far, color);
+        this.drawLine(right_up_far, left_up_far, color);
+
+        this.drawLine(left_down_far, left_down_near, color);
+        this.drawLine(left_down_near, right_down_near, color);
+        this.drawLine(right_down_near, right_down_far, color);
+        this.drawLine(right_down_far, left_down_far, color);
+
+        this.drawLine(left_up_far, left_down_far, color);
+        this.drawLine(left_up_near, left_down_near, color);
+        this.drawLine(right_up_near, right_down_near, color);
+        this.drawLine(right_up_far, right_down_far, color);
+    }
+
+    drawFrustum(frustum: Frustum, color: Readonly<Vec4> = this.color) {
+        const vertices = frustum.vertices;
+
+        this.drawLine(vertices[0], vertices[1], color);
+        this.drawLine(vertices[1], vertices[2], color);
+        this.drawLine(vertices[2], vertices[3], color);
+        this.drawLine(vertices[3], vertices[0], color);
+
+        this.drawLine(vertices[4], vertices[5], color);
+        this.drawLine(vertices[5], vertices[6], color);
+        this.drawLine(vertices[6], vertices[7], color);
+        this.drawLine(vertices[7], vertices[4], color);
+
+        this.drawLine(vertices[0], vertices[4], color);
+        this.drawLine(vertices[1], vertices[5], color);
+        this.drawLine(vertices[2], vertices[6], color);
+        this.drawLine(vertices[3], vertices[7], color);
     }
 
     lateUpdate(): void {
