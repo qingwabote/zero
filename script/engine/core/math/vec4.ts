@@ -13,6 +13,7 @@ function create(x = 0, y = 0, z = 0, w = 0): Vec4 {
 export const vec4 = {
     ZERO: Object.freeze(create(0, 0, 0, 0)),
     ONE: Object.freeze(create(1, 1, 1, 1)),
+    RED: Object.freeze(create(1, 0, 0, 1)),
 
     create,
 

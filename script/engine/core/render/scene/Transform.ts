@@ -137,7 +137,7 @@ export class Transform extends FrameChangeRecord implements TRS {
     }
 
     private _world_matrix = mat4.create();
-    get world_matrix(): Readonly<Mat4Like> {
+    get world_matrix(): Readonly<Mat4> {
         this.updateTransform();
         return this._world_matrix;
     }

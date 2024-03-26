@@ -1,4 +1,4 @@
-import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Zero, bundle as builtin, device, frustum, vec3 } from "engine";
+import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Zero, bundle as builtin, device, frustum, vec3, vec4 } from "engine";
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler } from "flex";
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
@@ -11,6 +11,8 @@ enum VisibilityFlagBits {
     UI = 1 << 29,
     WORLD = 1 << 30
 }
+
+const frustum_a = frustum.create();
 
 class App extends Zero {
     protected start(): void {
@@ -33,22 +35,30 @@ class App extends Zero {
         const cube = primitive.createScene("Cube")!;
         cube.visibility = VisibilityFlagBits.WORLD;
 
-        const perspective = frustum.fromPerspective(frustum.create(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far)
+        const perspective = frustum.fromPerspective(frustum.create(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far);
+
         const perspectiveDrawer = Node.build(GeometryRenderer);
-        perspectiveDrawer.drawFrustum(perspective);
         perspectiveDrawer.node.visibility = VisibilityFlagBits.DOWN;
-        up_camera.node.addChild(perspectiveDrawer.node);
 
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
-        debugDrawer.color = [1, 0, 0, 1];
+
         this.setInterval(() => {
+            frustum.transform(frustum_a, perspective, up_camera.node.world_matrix)
+
+            perspectiveDrawer.clear();
+            perspectiveDrawer.drawFrustum(frustum_a);
+
             debugDrawer.clear()
             for (const model of this.scene.models) {
                 if (model.transform.visibility != VisibilityFlagBits.WORLD) {
                     continue;
                 }
-                debugDrawer.drawAABB(model.world_bounds);
+                if (frustum.aabb(frustum_a, model.world_bounds)) {
+                    debugDrawer.drawAABB(model.world_bounds, vec4.RED);
+                } else {
+                    debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
+                }
             }
         })
 

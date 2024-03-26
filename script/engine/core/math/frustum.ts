@@ -1,34 +1,40 @@
+import { AABB3D } from "./aabb3d.js";
+import { Mat4 } from "./mat4.js";
 import { Plane, plane } from "./plane.js";
 import { Vec3, vec3 } from "./vec3.js";
 
 type FrustumVertices = [Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3];
-type FrustumPlanes = [Plane, Plane, Plane, Plane, Plane, Plane];
+type FrustumFaces = [Plane, Plane, Plane, Plane, Plane, Plane];
 
 export interface Frustum {
     vertices: FrustumVertices;
-    planes: FrustumPlanes;
+    faces: FrustumFaces;
 }
 
 function create(): Frustum {
     return {
         vertices: [vec3.create(), vec3.create(), vec3.create(), vec3.create(), vec3.create(), vec3.create(), vec3.create(), vec3.create()],
-        planes: [plane.create(), plane.create(), plane.create(), plane.create(), plane.create(), plane.create()]
+        faces: [plane.create(), plane.create(), plane.create(), plane.create(), plane.create(), plane.create()]
     }
 }
 
-function toPlanes(planes: FrustumPlanes, vertices: Readonly<FrustumVertices>) {
-    // left plane
-    plane.fromPoints(planes[0], vertices[1], vertices[6], vertices[5]);
-    // right plane
-    plane.fromPoints(planes[1], vertices[3], vertices[4], vertices[7]);
-    // bottom plane
-    plane.fromPoints(planes[2], vertices[6], vertices[3], vertices[7]);
-    // top plane
-    plane.fromPoints(planes[3], vertices[0], vertices[5], vertices[4]);
-    // near plane
-    plane.fromPoints(planes[4], vertices[2], vertices[0], vertices[3]);
-    // far plane
-    plane.fromPoints(planes[5], vertices[7], vertices[5], vertices[6]);
+/**
+ * 
+ * The normal of plane points inwards
+ */
+function toFaces(faces: FrustumFaces, vertices: Readonly<FrustumVertices>) {
+    // left 
+    plane.fromPoints(faces[0], vertices[1], vertices[6], vertices[5]);
+    // right 
+    plane.fromPoints(faces[1], vertices[3], vertices[4], vertices[7]);
+    // bottom 
+    plane.fromPoints(faces[2], vertices[6], vertices[3], vertices[7]);
+    // top 
+    plane.fromPoints(faces[3], vertices[0], vertices[5], vertices[4]);
+    // near 
+    plane.fromPoints(faces[4], vertices[2], vertices[0], vertices[3]);
+    // far 
+    plane.fromPoints(faces[5], vertices[7], vertices[5], vertices[6]);
 }
 
 function fromOrthographic(out: Frustum, orthoSize: number, aspect: number, near: number, far: number): Frustum {
@@ -45,7 +51,7 @@ function fromOrthographic(out: Frustum, orthoSize: number, aspect: number, near:
     vec3.set(out.vertices[6], -halfW, -halfH, -far);
     vec3.set(out.vertices[7], halfW, -halfH, -far);
 
-    toPlanes(out.planes, out.vertices);
+    toFaces(out.faces, out.vertices);
 
     return out;
 }
@@ -70,13 +76,31 @@ function fromPerspective(out: Frustum, fov: number, aspect: number, near: number
     vec3.set(out.vertices[6], -halfFarW, -halfFarH, -far);
     vec3.set(out.vertices[7], halfFarW, -halfFarH, -far);
 
-    toPlanes(out.planes, out.vertices);
+    toFaces(out.faces, out.vertices);
 
     return out;
+}
+function transform(out: Frustum, a: Readonly<Frustum>, m: Readonly<Mat4>) {
+    for (let i = 0; i < out.vertices.length; i++) {
+        vec3.transformMat4(out.vertices[i], a.vertices[i], m);
+    }
+    toFaces(out.faces, out.vertices);
+    return out;
+}
+
+function aabb(frustum: Readonly<Frustum>, aabb: Readonly<AABB3D>): number {
+    for (const face of frustum.faces) {
+        if (plane.aabb(face, aabb) == -1) {
+            return 0;
+        }
+    }
+    return 1
 }
 
 export const frustum = {
     create,
     fromOrthographic,
-    fromPerspective
+    fromPerspective,
+    transform,
+    aabb
 } as const

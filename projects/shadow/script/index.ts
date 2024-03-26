@@ -79,8 +79,7 @@ export class App extends Zero {
 
         const lit_frustum = frustum.fromOrthographic(frustum.create(), shadow.orthoSize, shadow.aspect, shadow.near, shadow.far);
         const lit_frustumRenderer = Node.build(GeometryRenderer);
-        lit_frustumRenderer.color = [1, 1, 0, 1];
-        lit_frustumRenderer.drawFrustum(lit_frustum);
+        lit_frustumRenderer.drawFrustum(lit_frustum, [1, 1, 0, 1]);
         view = vec3.normalize(vec3.create(), lit_position);
         lit_frustumRenderer.node.rotation = quat.fromViewUp(quat.create(), view);
         lit_frustumRenderer.node.position = lit_position;

@@ -6,7 +6,7 @@ import { Node } from "../core/Node.js";
 import { AABB3D } from "../core/math/aabb3d.js";
 import { Frustum } from "../core/math/frustum.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
-import { Vec4, vec4 } from "../core/math/vec4.js";
+import { vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
 import { Material, Mesh } from "../core/render/index.js";
 import { Model } from "../core/render/scene/Model.js";
@@ -59,8 +59,6 @@ const VERTEX_ATTRIBUTES = (function () {
 
 
 export class GeometryRenderer extends BoundedRenderer {
-    color: Readonly<Vec4> = vec4.ONE;
-
     private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
 
     private _vertexCount: number = 0;
@@ -103,7 +101,7 @@ export class GeometryRenderer extends BoundedRenderer {
         return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])])
     }
 
-    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4> = this.color) {
+    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color = vec4.ONE) {
         if (this._vertexCount == 0) {
             vec3.set(this._vertexMin, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
             vec3.set(this._vertexMax, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
@@ -135,7 +133,7 @@ export class GeometryRenderer extends BoundedRenderer {
         this._vertexCount += 2;
     }
 
-    drawAABB(aabb: Readonly<AABB3D>, color: Readonly<Vec4> = this.color) {
+    drawAABB(aabb: Readonly<AABB3D>, color = vec4.ONE) {
         const left_up_far = drawAABB.vec3_a;
         const left_up_near = drawAABB.vec3_b;
         const right_up_near = drawAABB.vec3_c;
@@ -172,7 +170,7 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(right_up_far, right_down_far, color);
     }
 
-    drawFrustum(frustum: Frustum, color: Readonly<Vec4> = this.color) {
+    drawFrustum(frustum: Frustum, color = vec4.ONE) {
         const vertices = frustum.vertices;
 
         this.drawLine(vertices[0], vertices[1], color);
