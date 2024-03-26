@@ -10,12 +10,12 @@ layout(set = 2, binding = 1) uniform Props  {
     vec4 albedo;
 } props;
 
-layout(location = 0) out vec4 v_color;
+layout(location = 0) out vec4 fragColor;
 
 void main() {
     vec4 albedo = props.albedo;
     #if USE_ALBEDO_MAP
         albedo *= texture(albedoMap, v_uv);
     #endif
-    v_color = albedo;
+    fragColor = albedo;
 }

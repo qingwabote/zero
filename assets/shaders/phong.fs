@@ -24,7 +24,7 @@ layout(set = 2, binding = 1) uniform Props  {
     vec4 albedo;
 } props;
 
-layout(location = 0) out vec4 v_color;
+layout(location = 0) out vec4 fragColor;
 
 #if USE_SHADOW_MAP
     float shadowFactor(vec4 position) {
@@ -80,5 +80,5 @@ void main() {
         shadow = shadowFactor(v_shadow_position);
     #endif
     
-    v_color = LinearToSRGB(albedo * vec4(ambient + (diffuse + specular) * (1.0 - shadow), 1.0));
+    fragColor = LinearToSRGB(albedo * vec4(ambient + (diffuse + specular) * (1.0 - shadow), 1.0));
 }

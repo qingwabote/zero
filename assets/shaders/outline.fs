@@ -4,12 +4,12 @@ layout(location = 0) in vec2 v_uv;
 
 layout(set = 0, binding = 0) uniform sampler2D colorMap;
 
-layout(location = 0) out vec4 v_color;
+layout(location = 0) out vec4 fragColor;
 
 void main() {
     vec4 color = texture(colorMap, v_uv);
     if(color.a > 0.5) {
-        v_color = color;
+        fragColor = color;
         return;
     }
 
@@ -23,9 +23,9 @@ void main() {
 
     float average = (n + s + w + e) / 4.0;
     if (average == 0.0) {
-        v_color = color;
+        fragColor = color;
         return;
     }
 
-    v_color = vec4(1.0, 0.0, 0.0 ,1.0);
+    fragColor = vec4(1.0, 0.0, 0.0 ,1.0);
 }
