@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, frustum, quat, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, frustum, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 
 const VisibilityFlagBits = {
@@ -39,7 +39,7 @@ export class App extends Zero {
 
         const light = Node.build(DirectionalLight);
         light.node.position = [4, 4, 4];
-        light.node.rotation = quat.fromViewUp(quat.create(), vec3.normalize(vec3.create(), light.node.position));
+        light.node.lookAt(vec3.ZERO)
         // node.visibility = Visibility_Up;
 
 
@@ -60,8 +60,6 @@ export class App extends Zero {
         down_camera.orthoSize = 8;
         down_camera.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
         node.position = [-8, 8, 8];
-        let view = vec3.normalize(vec3.create(), node.position);
-        node.rotation = quat.fromViewUp(quat.create(), view);
 
         node = guardian.createScene("Sketchfab_Scene")!;
         const animation = node.addComponent(Animation);

@@ -106,9 +106,9 @@ export class Transform extends FrameChangeRecord implements TRS {
             return;
         }
 
-        quat.conjugate(quat_a, this._parent.world_rotation);
-        quat.multiply(quat_a, quat_a, value);
-        this.rotation = quat_a;
+        quat.conjugate(this._rotation, this._parent.world_rotation);
+        quat.multiply(this._rotation, this._rotation, value);
+        this.dirty(TransformBits.ROTATION);
     }
 
     private _world_scale = vec3.create(1, 1, 1);
@@ -170,6 +170,14 @@ export class Transform extends FrameChangeRecord implements TRS {
             }
         }
         return current;
+    }
+
+    // https://medium.com/@carmencincotti/lets-look-at-magic-lookat-matrices-c77e53ebdf78
+    lookAt(tar: Readonly<Vec3>) {
+        vec3.subtract(vec3_a, this.world_position, tar);
+        vec3.normalize(vec3_a, vec3_a);
+        quat.fromViewUp(quat_a, vec3_a);
+        this.world_rotation = quat_a;
     }
 
     private dirty(flag: TransformBits): void {
