@@ -12,7 +12,8 @@ enum VisibilityFlagBits {
     WORLD = 1 << 30
 }
 
-const frustum_a = frustum.create();
+const frustumVertices_a = frustum.vertices()
+const frustumFaces_a = frustum.faces()
 
 class App extends Zero {
     protected start(): void {
@@ -35,26 +36,23 @@ class App extends Zero {
         const cube = primitive.createScene("Cube")!;
         cube.visibility = VisibilityFlagBits.WORLD;
 
-        const perspective = frustum.fromPerspective(frustum.create(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far);
-
-        const perspectiveDrawer = Node.build(GeometryRenderer);
-        perspectiveDrawer.node.visibility = VisibilityFlagBits.DOWN;
+        const perspective = frustum.fromPerspective(frustum.vertices(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far);
 
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
         this.setInterval(() => {
-            frustum.transform(frustum_a, perspective, up_camera.node.world_matrix)
+            frustum.transform(frustumVertices_a, perspective, up_camera.node.world_matrix);
+            frustum.toFaces(frustumFaces_a, frustumVertices_a);
 
-            perspectiveDrawer.clear();
-            perspectiveDrawer.drawFrustum(frustum_a);
+            debugDrawer.clear();
+            debugDrawer.drawFrustum(frustumVertices_a);
 
-            debugDrawer.clear()
             for (const model of this.scene.models) {
                 if (model.transform.visibility != VisibilityFlagBits.WORLD) {
                     continue;
                 }
-                if (frustum.aabb(frustum_a, model.world_bounds)) {
+                if (frustum.aabb(frustumFaces_a, model.world_bounds)) {
                     debugDrawer.drawAABB(model.world_bounds, vec4.RED);
                 } else {
                     debugDrawer.drawAABB(model.world_bounds, vec4.ONE);

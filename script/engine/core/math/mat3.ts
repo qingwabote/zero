@@ -59,7 +59,7 @@ export const mat3 = {
     },
 
     /**
-     * @param view The view direction, it's must be normalized.
+     * @param view The view(z-axis) direction, it's must be normalized.
      * @param up The up direction, it's must be normalized, default value is (0, 1, 0).
      */
     fromViewUp<Out extends Mat3Like>(out: Out, view: Vec3Like, up: Vec3Like = vec3.UP) {

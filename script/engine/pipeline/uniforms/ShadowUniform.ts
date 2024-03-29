@@ -52,7 +52,7 @@ export class ShadowUniform extends UniformBufferObject {
         if (this._dirty || light.hasChanged) {
             const view = vec3.normalize(vec3.create(), light.position);
             const rotation = quat.fromViewUp(quat.create(), view);
-            const model = mat4.fromTRS(mat4.create(), light.position, rotation, vec3.create(1, 1, 1));
+            const model = mat4.fromTRS(mat4.create(), light.position, rotation, vec3.ONE);
             this._view.set(mat4.invert(mat4.create(), model), ShadowBlock.members.view.offset);
 
             const halfH = this._orthoSize;

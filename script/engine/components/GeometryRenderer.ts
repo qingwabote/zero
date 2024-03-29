@@ -3,8 +3,8 @@ import { bundle } from "bundling";
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
+import { FrustumVertices } from "../core/index.js";
 import { AABB3D } from "../core/math/aabb3d.js";
-import { Frustum } from "../core/math/frustum.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
@@ -170,23 +170,21 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(right_up_far, right_down_far, color);
     }
 
-    drawFrustum(frustum: Frustum, color = vec4.ONE) {
-        const vertices = frustum.vertices;
+    drawFrustum(frustum: Readonly<FrustumVertices>, color = vec4.ONE) {
+        this.drawLine(frustum[0], frustum[1], color);
+        this.drawLine(frustum[1], frustum[2], color);
+        this.drawLine(frustum[2], frustum[3], color);
+        this.drawLine(frustum[3], frustum[0], color);
 
-        this.drawLine(vertices[0], vertices[1], color);
-        this.drawLine(vertices[1], vertices[2], color);
-        this.drawLine(vertices[2], vertices[3], color);
-        this.drawLine(vertices[3], vertices[0], color);
+        this.drawLine(frustum[4], frustum[5], color);
+        this.drawLine(frustum[5], frustum[6], color);
+        this.drawLine(frustum[6], frustum[7], color);
+        this.drawLine(frustum[7], frustum[4], color);
 
-        this.drawLine(vertices[4], vertices[5], color);
-        this.drawLine(vertices[5], vertices[6], color);
-        this.drawLine(vertices[6], vertices[7], color);
-        this.drawLine(vertices[7], vertices[4], color);
-
-        this.drawLine(vertices[0], vertices[4], color);
-        this.drawLine(vertices[1], vertices[5], color);
-        this.drawLine(vertices[2], vertices[6], color);
-        this.drawLine(vertices[3], vertices[7], color);
+        this.drawLine(frustum[0], frustum[4], color);
+        this.drawLine(frustum[1], frustum[5], color);
+        this.drawLine(frustum[2], frustum[6], color);
+        this.drawLine(frustum[3], frustum[7], color);
     }
 
     lateUpdate(): void {
