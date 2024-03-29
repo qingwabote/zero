@@ -75,8 +75,9 @@ export class App extends Zero {
 
         const shadow = renderPipeline.flows[0].uniforms.find(uniform => uniform instanceof ShadowUniform) as ShadowUniform;
 
-        const lit_frustum = frustum.fromOrthographic(frustum.vertices(), shadow.orthoSize, shadow.aspect, shadow.near, shadow.far);
-        const up_frustum = frustum.fromPerspective(frustum.vertices(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far);
+        const x = shadow.orthoSize * shadow.aspect;
+        const y = shadow.orthoSize;
+        const light_frustum = frustum.fromOrthographic(frustum.vertices(), -x, x, -y, y, shadow.near, shadow.far);
 
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
@@ -84,28 +85,20 @@ export class App extends Zero {
         this.setInterval(() => {
             debugDrawer.clear()
 
-            frustum.transform(frustumVertices_a, lit_frustum, light.node.world_matrix);
+            frustum.transform(frustumVertices_a, light_frustum, light.node.world_matrix);
             debugDrawer.drawFrustum(frustumVertices_a, vec4.YELLOW);
 
-
-            frustum.transform(frustumVertices_a, up_frustum, up_camera.node.world_matrix);
-            debugDrawer.drawFrustum(frustumVertices_a, vec4.ONE);
-
-            // frustum.toFaces(frustumFaces_a, frustumVertices_a);
-
-            // perspectiveDrawer.clear();
-            // perspectiveDrawer.drawFrustum(frustumVertices_a);
+            debugDrawer.drawFrustum(up_camera.frustum_vertices, vec4.ONE);
 
             for (const model of this.scene.models) {
                 if (model.transform.visibility != VisibilityFlagBits.WORLD) {
                     continue;
                 }
-                // if (frustum.aabb(frustumFaces_a, model.world_bounds)) {
-                //     aabbDrawer.drawAABB(model.world_bounds, vec4.RED);
-                // } else {
-                //     aabbDrawer.drawAABB(model.world_bounds, vec4.ONE);
-                // }
-                debugDrawer.drawAABB(model.world_bounds, vec4.RED);
+                if (frustum.aabb(up_camera.frustum_faces, model.world_bounds)) {
+                    debugDrawer.drawAABB(model.world_bounds, vec4.RED);
+                } else {
+                    debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
+                }
             }
         })
 
@@ -163,7 +156,9 @@ export class App extends Zero {
 
             function updateValue(value: number) {
                 shadow.orthoSize = 10 * value;
-                frustum.fromOrthographic(lit_frustum, shadow.orthoSize, shadow.aspect, shadow.near, shadow.far);
+                const x = shadow.orthoSize * shadow.aspect;
+                const y = shadow.orthoSize;
+                frustum.fromOrthographic(light_frustum, -x, x, -y, y, shadow.near, shadow.far);
             }
 
             const slider = Node.build(Slider)

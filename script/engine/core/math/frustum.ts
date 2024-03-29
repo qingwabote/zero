@@ -35,19 +35,16 @@ function toFaces(out: FrustumFaces, vertices: Readonly<FrustumVertices>) {
     return out;
 }
 
-function fromOrthographic(out: FrustumVertices, orthoSize: number, aspect: number, near: number, far: number) {
-    const halfH = orthoSize;
-    const halfW = halfH * aspect;
+function fromOrthographic(out: FrustumVertices, left: number, right: number, bottom: number, top: number, near: number, far: number) {
+    vec3.set(out[0], right, top, - near);
+    vec3.set(out[1], left, top, - near);
+    vec3.set(out[2], left, bottom, - near);
+    vec3.set(out[3], right, bottom, - near);
 
-    vec3.set(out[0], halfW, halfH, - near);
-    vec3.set(out[1], -halfW, halfH, - near);
-    vec3.set(out[2], -halfW, -halfH, - near);
-    vec3.set(out[3], halfW, -halfH, - near);
-
-    vec3.set(out[4], halfW, halfH, -far);
-    vec3.set(out[5], -halfW, halfH, -far);
-    vec3.set(out[6], -halfW, -halfH, -far);
-    vec3.set(out[7], halfW, -halfH, -far);
+    vec3.set(out[4], right, top, -far);
+    vec3.set(out[5], left, top, -far);
+    vec3.set(out[6], left, bottom, -far);
+    vec3.set(out[7], right, bottom, -far);
 
     return out;
 }

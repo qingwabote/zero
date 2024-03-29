@@ -1,5 +1,6 @@
 import { CommandBuffer, DescriptorSetLayout, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
+import { frustum } from "../../core/math/frustum.js";
 import { Context } from "../../core/render/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Model } from "../../core/render/scene/Model.js";
@@ -26,6 +27,9 @@ export class ModelPhase extends Phase {
                 continue;
             }
             if (model.type != this._model) {
+                continue;
+            }
+            if (!frustum.aabb(camera.frustum_faces, model.world_bounds)) {
                 continue;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);

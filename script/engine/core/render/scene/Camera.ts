@@ -1,5 +1,6 @@
 import { device } from "boot";
 import { ClearFlagBits } from "gfx";
+import { FrustumFaces, FrustumVertices, frustum } from "../../math/frustum.js";
 import { Mat4, mat4 } from "../../math/mat4.js";
 import { Rect, rect } from "../../math/rect.js";
 import { Vec2Like, vec2 } from "../../math/vec2.js";
@@ -67,9 +68,17 @@ export class Camera extends FrameChangeRecord {
         return this._transform.world_position;
     }
 
-    constructor(private _transform: Transform) {
-        super();
+    private _frustum_vertices = frustum.vertices();
+    public get frustum_vertices(): Readonly<FrustumVertices> {
+        return this._frustum_vertices;
     }
+
+    private _frustum_faces = frustum.faces();
+    public get frustum_faces(): Readonly<FrustumFaces> {
+        return this._frustum_faces;
+    }
+
+    constructor(private _transform: Transform) { super(); }
 
     update() {
         if (this.hasChanged) {
@@ -77,11 +86,15 @@ export class Camera extends FrameChangeRecord {
 
             if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, this.aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                frustum.fromPerspective(this._frustum_vertices, this.fov, this.aspect, this.near, this.far);
             } else {
                 const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
                 mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                frustum.fromOrthographic(this._frustum_vertices, -x, x, -y, y, this.near, this.far);
             }
+            frustum.transform(this._frustum_vertices, this._frustum_vertices, this._transform.world_matrix);
+            frustum.toFaces(this._frustum_faces, this._frustum_vertices);
         }
     }
 

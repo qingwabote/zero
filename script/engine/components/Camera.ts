@@ -10,6 +10,7 @@ const rect_a = rect.create();
 export class Camera extends Component {
     static readonly ClearFlagBits = ClearFlagBits;
 
+    private _camera: render_Camera = new render_Camera(this.node);
     /**
      * half size of the vertical viewing volume
      */
@@ -76,7 +77,13 @@ export class Camera extends Component {
         return this._camera.aspect;
     }
 
-    private _camera: render_Camera = new render_Camera(this.node);
+    get frustum_vertices() {
+        return this._camera.frustum_vertices;
+    }
+
+    get frustum_faces() {
+        return this._camera.frustum_faces;
+    }
 
     override start(): void {
         Zero.instance.scene.cameras.push(this._camera);
