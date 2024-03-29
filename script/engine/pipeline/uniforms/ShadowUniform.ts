@@ -2,8 +2,6 @@ import { device } from "boot";
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { mat4 } from "../../core/math/mat4.js";
-import { quat } from "../../core/math/quat.js";
-import { vec3 } from "../../core/math/vec3.js";
 import { BufferView } from "../../core/render/BufferView.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
 
@@ -20,6 +18,8 @@ const ShadowBlock = {
     },
     size: (16 + 16) * Float32Array.BYTES_PER_ELEMENT,
 }
+
+const mat4_a = mat4.create();
 
 export class ShadowUniform extends UniformBufferObject {
     static readonly definition = ShadowBlock;
@@ -49,15 +49,12 @@ export class ShadowUniform extends UniformBufferObject {
     update(): void {
         const light = Zero.instance.scene.directionalLight!;
 
-        if (this._dirty || light.hasChanged) {
-            const view = vec3.normalize(vec3.create(), light.position);
-            const rotation = quat.fromViewUp(quat.create(), view);
-            const model = mat4.fromTRS(mat4.create(), light.position, rotation, vec3.ONE);
-            this._view.set(mat4.invert(mat4.create(), model), ShadowBlock.members.view.offset);
+        if (this._dirty || light.hasChanged || light.transform.hasChanged) {
+            this._view.set(mat4.invert(mat4_a, light.transform.world_matrix), ShadowBlock.members.view.offset);
 
             const halfH = this._orthoSize;
             const halfW = halfH * this.aspect;
-            const lightProjection = mat4.ortho(mat4.create(), -halfW, halfW, -halfH, halfH, this.near, this.far, device.capabilities.clipSpaceMinZ);
+            const lightProjection = mat4.ortho(mat4_a, -halfW, halfW, -halfH, halfH, this.near, this.far, device.capabilities.clipSpaceMinZ);
             this._view.set(lightProjection, ShadowBlock.members.projection.offset);
             this._view.update();
 

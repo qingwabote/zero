@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Vec3, Zero, bundle as builtin, device, frustum, mat4, quat, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, frustum, quat, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 
 const VisibilityFlagBits = {
@@ -37,18 +37,13 @@ export class App extends Zero {
         const scaleY = swapchain.height / height;
         const scale = scaleX < scaleY ? scaleX : scaleY;
 
-        const lit_position: Vec3 = [4, 4, 4];
-
-        let node: Node;
-
-        // light
-        node = new Node;
-        node.addComponent(DirectionalLight);
-        node.position = lit_position;
+        const light = Node.build(DirectionalLight);
+        light.node.position = [4, 4, 4];
+        light.node.rotation = quat.fromViewUp(quat.create(), vec3.normalize(vec3.create(), light.node.position));
         // node.visibility = Visibility_Up;
 
 
-
+        let node: Node;
 
         // cameras
         node = new Node;
@@ -90,16 +85,14 @@ export class App extends Zero {
 
         this.setInterval(() => {
             debugDrawer.clear()
-            {
-                const rotation = quat.fromViewUp(quat.create(), vec3.normalize(vec3.create(), lit_position));
-                const transform = mat4.fromTRS(mat4.create(), lit_position, rotation, vec3.ONE);
-                frustum.transform(frustumVertices_a, lit_frustum, transform);
-                debugDrawer.drawFrustum(frustumVertices_a, vec4.YELLOW);
-            }
-            {
-                frustum.transform(frustumVertices_a, up_frustum, up_camera.node.world_matrix);
-                debugDrawer.drawFrustum(frustumVertices_a, vec4.ONE);
-            }
+
+            frustum.transform(frustumVertices_a, lit_frustum, light.node.world_matrix);
+            debugDrawer.drawFrustum(frustumVertices_a, vec4.YELLOW);
+
+
+            frustum.transform(frustumVertices_a, up_frustum, up_camera.node.world_matrix);
+            debugDrawer.drawFrustum(frustumVertices_a, vec4.ONE);
+
             // frustum.toFaces(frustumFaces_a, frustumVertices_a);
 
             // perspectiveDrawer.clear();

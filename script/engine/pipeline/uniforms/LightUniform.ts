@@ -26,8 +26,8 @@ export class LightUniform extends UniformBufferObject {
     update(): void {
         const light = Zero.instance.scene.directionalLight!;
 
-        if (this._dirty || light.hasChanged) {
-            const lightSrcDir = vec3.normalize(vec3.create(), light.position);
+        if (this._dirty || light.hasChanged || light.transform.hasChanged) {
+            const lightSrcDir = vec3.normalize(vec3.create(), light.transform.world_position);
             this._view.set(lightSrcDir, 0);
             this._view.update();
 
