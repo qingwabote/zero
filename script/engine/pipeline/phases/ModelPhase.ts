@@ -18,9 +18,9 @@ export class ModelPhase extends Phase {
         super(context, visibility);
     }
 
-    record(commandBuffer: CommandBuffer, renderPass: RenderPass): number {
+    record(commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number): number {
         const scene = Zero.instance.scene;
-        const camera = scene.cameras[this._context.cameraIndex];
+        const camera = scene.cameras[cameraIndex];
         let dc = 0;
         for (const model of scene.models) {
             if ((camera.visibilities & model.transform.visibility) == 0) {

@@ -1,11 +1,12 @@
 import { CommandBuffer, Uint32Vector } from "gfx";
 import { Context } from "../Context.js";
+import { Parameters } from "./Parameters.js";
 import { Stage } from "./Stage.js";
 import { UniformBufferObject } from "./UniformBufferObject.js";
 
 export class Flow {
     constructor(
-        readonly context: Context,
+        private readonly _context: Context,
         readonly uniforms: readonly UniformBufferObject[],
         private readonly _stages: readonly Stage[]
     ) {
@@ -17,20 +18,22 @@ export class Flow {
         }
     }
 
-    record(commandBuffer: CommandBuffer): number {
-        let drawCall = 0;
+    record(commandBuffer: CommandBuffer, cameraIndex: number): number {
+        const params: Parameters = { cameraIndex };
+
         const dynamicOffsets = new Uint32Vector;
         for (const uniform of this.uniforms) {
-            const offset = uniform.dynamicOffset(this.context);
-            if (offset != -1) {
+            const offset = uniform.dynamicOffset(params);
+            if (offset > 0) {
                 dynamicOffsets.add(offset);
             }
         }
-        commandBuffer.bindDescriptorSet(0, this.context.descriptorSet, dynamicOffsets);
+        commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
+        let dc = 0;
         for (const stage of this._stages) {
-            drawCall += stage.record(commandBuffer);
+            dc += stage.record(commandBuffer, cameraIndex);
         }
 
-        return drawCall;
+        return dc;
     }
 }

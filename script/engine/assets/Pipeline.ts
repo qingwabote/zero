@@ -290,7 +290,7 @@ export class Pipeline extends Yml {
                     framebuffer = device.createFramebuffer(framebufferInfo);
                     viewport = rect.create(0, 0, width, height);
                 }
-                stages.push(new render.Stage(context, phases, framebuffer, clears, viewport));
+                stages.push(new render.Stage(phases, framebuffer, clears, viewport));
             }
             flows.push(new render.Flow(context, uniforms, stages));
         }

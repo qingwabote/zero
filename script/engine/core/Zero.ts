@@ -156,7 +156,13 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         this.pipeline.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._drawCall = this.pipeline.record(this._commandBuffer, this.scene.cameras);
+
+        let dc = 0;
+        for (let i = 0; i < this.scene.cameras.length; i++) {
+            dc += this.pipeline.record(this._commandBuffer, i);
+        }
+        this._drawCall = dc;
+
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 

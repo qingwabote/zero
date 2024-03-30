@@ -2,7 +2,7 @@ import { device } from "boot";
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { Context } from "../../core/render/Context.js";
+import { Parameters } from "../../core/render/pipeline/Parameters.js";
 import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
 
 function align(size: number) {
@@ -40,8 +40,8 @@ export class CameraUniform extends UniformBufferObject {
         return CameraBlock.size;
     }
 
-    override dynamicOffset(context: Context): number {
-        return CameraBlock.size * context.cameraIndex
+    override dynamicOffset(params: Parameters): number {
+        return CameraBlock.size * params.cameraIndex
     };
 
     update(): void {
