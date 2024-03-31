@@ -8,9 +8,9 @@ export class Flow {
     constructor(
         private readonly _context: Context,
         readonly uniforms: readonly UniformBufferObject[],
-        private readonly _stages: readonly Stage[]
-    ) {
-    }
+        private readonly _stages: readonly Stage[],
+        private readonly _loops?: Function[]
+    ) { }
 
     update() {
         for (const uniform of this.uniforms) {
@@ -19,21 +19,24 @@ export class Flow {
     }
 
     record(commandBuffer: CommandBuffer, cameraIndex: number): number {
-        const params: Parameters = { cameraIndex };
+        let dc = 0;
+        for (let i = 0; i < (this._loops?.length ?? 1); i++) {
+            this._loops?.[i]();
 
-        const dynamicOffsets = new Uint32Vector;
-        for (const uniform of this.uniforms) {
-            const offset = uniform.dynamicOffset(params);
-            if (offset > 0) {
-                dynamicOffsets.add(offset);
+            const params: Parameters = { cameraIndex };
+
+            const dynamicOffsets = new Uint32Vector;
+            for (const uniform of this.uniforms) {
+                const offset = uniform.dynamicOffset(params);
+                if (offset > 0) {
+                    dynamicOffsets.add(offset);
+                }
+            }
+            commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
+            for (const stage of this._stages) {
+                dc += stage.record(commandBuffer, cameraIndex);
             }
         }
-        commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
-        let dc = 0;
-        for (const stage of this._stages) {
-            dc += stage.record(commandBuffer, cameraIndex);
-        }
-
         return dc;
     }
 }

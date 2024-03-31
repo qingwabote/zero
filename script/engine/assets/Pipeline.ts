@@ -145,22 +145,20 @@ interface SamplerTexture extends UniformBase {
 
 type Uniform = Camera | Light | Shadow | SamplerTexture
 
-interface Viewport {
-    x?: number;
-    y?: number;
-    width: number;
-    height: number;
-}
-
 interface Stage {
-    phases: Phase[];
+    phases?: Phase[];
     framebuffer?: Framebuffer;
     clears?: Clear[];
+    viewport?: Rect;
 }
 
-interface Flow {
+interface FlowLoop {
     uniforms?: Uniform[];
-    stages: Stage[];
+    stages?: Stage[];
+}
+
+interface Flow extends FlowLoop {
+    loops?: FlowLoop[]
 }
 
 interface Resource {
@@ -226,11 +224,11 @@ export class Pipeline extends Yml {
             }
 
             const stages: render.Stage[] = [];
-            for (let i = 0; i < flow.stages.length; i++) {
-                const stage = flow.stages[i];
+            for (let i = 0; i < flow.stages!.length; i++) {
+                const stage = flow.stages![i];
 
                 const phases: render.Phase[] = [];
-                for (const phase of stage.phases) {
+                for (const phase of stage.phases!) {
                     let visibility = 0xffffffff;
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
@@ -288,11 +286,34 @@ export class Pipeline extends Yml {
 
                     framebufferInfo.renderPass = getRenderPass(framebufferInfo, clears);
                     framebuffer = device.createFramebuffer(framebufferInfo);
-                    viewport = rect.create(0, 0, width, height);
+                    viewport = rect.create(0, 0, 1, 1);
                 }
                 stages.push(new render.Stage(phases, framebuffer, clears, viewport));
             }
-            flows.push(new render.Flow(context, uniforms, stages));
+            let loops: Function[] | undefined;
+            if (flow.loops) {
+                loops = [];
+                for (let flow_i = 0; flow_i < flow.loops.length; flow_i++) {
+                    const loop = flow.loops[flow_i];
+                    const setters: Function[] = [];
+                    if (loop.stages) {
+                        for (let stage_i = 0; stage_i < loop.stages.length; stage_i++) {
+                            const stage = loop.stages[stage_i];
+                            if (stage.viewport) {
+                                setters.push(function () {
+                                    stages[stage_i].rect = stage.viewport;
+                                })
+                            }
+                        }
+                    }
+                    loops.push(function () {
+                        for (const setter of setters) {
+                            setter();
+                        }
+                    })
+                }
+            }
+            flows.push(new render.Flow(context, uniforms, stages, loops));
         }
 
         return new render.Pipeline(flows);

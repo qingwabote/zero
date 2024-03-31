@@ -29,7 +29,7 @@ export class Stage {
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _clears?: ClearFlagBits,
-        private _viewport?: Readonly<Rect>
+        public rect?: Readonly<Rect>
     ) { }
 
     record(commandBuffer: CommandBuffer, cameraIndex: number): number {
@@ -40,9 +40,12 @@ export class Stage {
         }
 
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
-        const viewport = this._viewport || camera.viewport;
-
-        commandBuffer.beginRenderPass(renderPass, this._framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);
+        if (this.rect) {
+            const { width, height } = this._framebuffer.info;
+            commandBuffer.beginRenderPass(renderPass, this._framebuffer, this.rect.x * width, this.rect.y * height, this.rect.width * width, this.rect.height * height);
+        } else {
+            commandBuffer.beginRenderPass(renderPass, this._framebuffer, camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
+        }
 
         let dc = 0;
         for (const phase of phases) {
