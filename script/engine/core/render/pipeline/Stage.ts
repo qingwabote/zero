@@ -2,6 +2,7 @@ import { device } from "boot";
 import { ClearFlagBits, CommandBuffer, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Zero } from "../../Zero.js";
 import { Rect } from "../../math/rect.js";
+import { CommandCalls } from "./CommandCalls.js";
 import { Phase } from "./Phase.js";
 import { getRenderPass } from "./rpc.js";
 
@@ -25,19 +26,23 @@ const defaultFramebuffer = (function () {
 })();
 
 export class Stage {
+    readonly visibilities: number;
+
     constructor(
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _clears?: ClearFlagBits,
         public rect?: Readonly<Rect>
-    ) { }
-
-    record(commandBuffer: CommandBuffer, cameraIndex: number): number {
-        const camera = Zero.instance.scene.cameras[cameraIndex];
-        const phases = this._phases.filter(phase => camera.visibilities & phase.visibility);
-        if (phases.length == 0) {
-            return 0;
+    ) {
+        let visibilities = 0;
+        for (const phase of _phases) {
+            visibilities |= phase.visibility;
         }
+        this.visibilities = visibilities;
+    }
+
+    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {
+        const camera = Zero.instance.scene.cameras[cameraIndex];
 
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         if (this.rect) {
@@ -47,13 +52,13 @@ export class Stage {
             commandBuffer.beginRenderPass(renderPass, this._framebuffer, camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
         }
 
-        let dc = 0;
-        for (const phase of phases) {
-            dc += phase.record(commandBuffer, renderPass, cameraIndex);
+        for (const phase of this._phases) {
+            if (camera.visibilities & phase.visibility) {
+                phase.record(commandCalls, commandBuffer, renderPass, cameraIndex);
+            }
         }
 
         commandBuffer.endRenderPass();
-
-        return dc;
+        commandCalls.renderPasses++;
     }
 }

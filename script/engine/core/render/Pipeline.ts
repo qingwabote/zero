@@ -1,5 +1,6 @@
 import { CommandBuffer } from "gfx";
-import { Flow } from "./pipeline/index.js";
+import { CommandCalls } from "./pipeline/CommandCalls.js";
+import { Flow } from "./pipeline/Flow.js";
 
 export class Pipeline {
     constructor(readonly flows: readonly Flow[]) { }
@@ -10,11 +11,9 @@ export class Pipeline {
         }
     }
 
-    record(commandBuffer: CommandBuffer, cameraIndex: number): number {
-        let dc = 0;
+    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {
         for (const flow of this.flows) {
-            dc += flow.record(commandBuffer, cameraIndex);
+            flow.record(commandCalls, commandBuffer, cameraIndex);
         }
-        return dc;
     }
 }

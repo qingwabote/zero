@@ -7,6 +7,25 @@ textures:
     height: 1024
 flows:
   - uniforms:
+      - type: shadow
+        binding: 3
+    stages:
+      - name: shadow
+        phases:
+          - pass: shadowmap
+            visibility: ${UP}
+        framebuffer:
+          depthStencil: shadowmap
+        clears:
+          - DEPTH
+    loops:
+      - stages:
+          - viewport:
+              x: 0
+              y: 0
+              width: 1
+              height: 1
+  - uniforms:
       - type: camera
         binding: 1
       - type: light
@@ -17,26 +36,15 @@ flows:
         texture: shadowmap
         binding: 0
     stages:
-      - name: shadow
+      - name: forward
         phases:
-          - pass: shadowmap
-            visibility: ${UP}
-        framebuffer:
-          depthStencil: shadowmap
-        clears:
-          - DEPTH
+          - pass: default
+            visibility: ${WORLD}
+  - uniforms:
+      - type: camera
+        binding: 1
+    stages:
       - name: forward
         phases:
           - pass: default
             visibility: ${UI}
-          - pass: default
-            visibility: ${UP}
-          - pass: default
-            visibility: ${DOWN}
-    loops:
-      - stages:
-          - viewport:
-              x: 0
-              y: 0
-              width: 1
-              height: 1

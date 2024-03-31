@@ -7,6 +7,7 @@ import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
+import { CommandCalls } from "./render/pipeline/CommandCalls.js";
 import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
 import { Root } from "./render/scene/Root.js";
 
@@ -57,8 +58,10 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
 
     private _time = initial;
 
-    private _drawCall: number = 0;
-    get drawCall() { return this._drawCall; }
+    private _commandCalls: CommandCalls = { renderPasses: 0, draws: 0 };
+    public get commandCalls(): Readonly<CommandCalls> {
+        return this._commandCalls;
+    }
 
     constructor(public pipeline: Pipeline) {
         super();
@@ -157,11 +160,11 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
 
-        let dc = 0;
+        this._commandCalls.renderPasses = 0;
+        this._commandCalls.draws = 0;
         for (let i = 0; i < this.scene.cameras.length; i++) {
-            dc += this.pipeline.record(this._commandBuffer, i);
+            this.pipeline.record(this._commandCalls, this._commandBuffer, i);
         }
-        this._drawCall = dc;
 
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);

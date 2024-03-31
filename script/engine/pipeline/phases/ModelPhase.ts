@@ -2,6 +2,7 @@ import { CommandBuffer, DescriptorSetLayout, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { frustum } from "../../core/math/frustum.js";
 import { Context } from "../../core/render/Context.js";
+import { CommandCalls } from "../../core/render/pipeline/CommandCalls.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { shaderLib } from "../../core/shaderLib.js";
@@ -18,7 +19,7 @@ export class ModelPhase extends Phase {
         super(context, visibility);
     }
 
-    record(commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number): number {
+    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
         const scene = Zero.instance.scene;
         const camera = scene.cameras[cameraIndex];
         let dc = 0;
@@ -59,10 +60,9 @@ export class ModelPhase extends Phase {
                     } else {
                         commandBuffer.draw(drawInfo.count);
                     }
-                    dc++;
+                    commandCalls.draws++;
                 }
             }
         }
-        return dc;
     }
 }
