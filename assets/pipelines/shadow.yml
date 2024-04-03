@@ -17,9 +17,9 @@ flows:
         texture: shadowmap
         binding: 0
     stages:
-      - name: shadowmap
+      - name: shadow
         phases:
-          - pass: shadowmap
+          - pass: shadow
         framebuffer:
           depthStencil: shadowmap
         clears:

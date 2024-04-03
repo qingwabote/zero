@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, TextRenderer, TouchEventName, Vec3, Zero, bundle as builtin, device, render, vec3 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, TextRenderer, TouchEventName, Zero, bundle as builtin, device, render, vec3 } from 'engine';
 import { Align, CameraControlPanel, Document, Edge, ElementContainer, FlexDirection, Gutter, Justify, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -67,15 +67,11 @@ export class App extends Zero {
         const scaleY = swapchain.height / height;
         const scale = scaleX < scaleY ? scaleX : scaleY;
 
-        const lit_position: Vec3 = [4, 4, 4];
-
         let node: Node;
 
-        // light
-        node = new Node;
-        node.addComponent(DirectionalLight);
-        node.position = lit_position;
-        // node.visibility = Visibility_Up;
+        const light = Node.build(DirectionalLight);
+        light.node.position = [4, 4, 4];
+        light.node.lookAt(vec3.ZERO)
 
 
         // cameras
@@ -83,7 +79,7 @@ export class App extends Zero {
         const up_camera = node.addComponent(Camera);
         up_camera.visibilities = VisibilityFlagBits.DEFAULT;
         up_camera.fov = 45;
-        up_camera.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
+        up_camera.rect = { x: 0, y: 0.5, width: 1, height: 0.5 };
         node.position = [0, 0, 10];
 
         // UI

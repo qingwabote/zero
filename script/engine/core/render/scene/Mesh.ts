@@ -19,7 +19,7 @@ export class Mesh extends FrameChangeRecord {
     }
 
     setBoundsByPoints(min: Readonly<Vec3>, max: Readonly<Vec3>) {
-        aabb3d.fromPoints(this._bounds, min, max);
+        aabb3d.fromExtremes(this._bounds, min, max);
         this.hasChanged = 1;
     }
 

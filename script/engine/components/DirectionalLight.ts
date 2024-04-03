@@ -1,17 +1,21 @@
 import { Component } from "../core/Component.js";
-import { Node } from "../core/Node.js";
-import { Zero } from "../core/Zero.js";
 import { DirectionalLight as render_DirectionalLight } from "../core/render/scene/DirectionalLight.js";
+import { DirectionalLightShadow } from "../core/render/scene/DirectionalLightShadow.js";
 
 export class DirectionalLight extends Component {
-    private _light: render_DirectionalLight;
+    static readonly Event = render_DirectionalLight.Event;
 
-    constructor(node: Node) {
-        super(node);
-        this._light = new render_DirectionalLight(node);
+    public get emitter() {
+        return this._light.emitter;
     }
 
-    override start(): void {
-        Zero.instance.scene.directionalLight = this._light;
+    private _light: render_DirectionalLight = new render_DirectionalLight(this.node);
+
+    public get shadows(): Readonly<Record<number, DirectionalLightShadow>> {
+        return this._light.shadows;
+    }
+
+    public get shadow_cameras(): readonly number[] {
+        return this._light.shadow_cameras;
     }
 }

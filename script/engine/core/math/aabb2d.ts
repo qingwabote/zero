@@ -11,29 +11,29 @@ export interface AABB2D {
 }
 
 export const aabb2d = {
-    toPoints(minPos: Vec2Like, maxPos: Vec2Like, a: Readonly<AABB2D>) {
-        vec2.subtract(minPos, a.center, a.halfExtent);
-        vec2.add(maxPos, a.center, a.halfExtent);
-    },
-
     create(): AABB2D {
         return { center: vec2.create(), halfExtent: vec2.create() };
     },
 
-    fromPoints(out: AABB2D, minPos: Vec2Like, maxPos: Vec2Like): AABB2D {
-        vec2.add(vec2_a, maxPos, minPos);
+    fromExtremes(out: AABB2D, min: Vec2Like, max: Vec2Like): AABB2D {
+        vec2.add(vec2_a, max, min);
         vec2.scale(vec2_a, vec2_a, 0.5);
 
-        vec2.subtract(vec2_b, maxPos, minPos);
+        vec2.subtract(vec2_b, max, min);
         vec2.scale(vec2_b, vec2_b, 0.5);
 
         this.set(out, vec2_a, vec2_b);
         return out;
     },
 
+    toExtremes(min: Vec2Like, max: Vec2Like, a: Readonly<AABB2D>) {
+        vec2.subtract(min, a.center, a.halfExtent);
+        vec2.add(max, a.center, a.halfExtent);
+    },
+
     fromRect(out: AABB2D, offset: Vec2Like, size: Vec2Like): AABB2D {
         vec2.add(vec2_a, offset, size);
-        return aabb2d.fromPoints(out, offset, vec2_a);
+        return aabb2d.fromExtremes(out, offset, vec2_a);
     },
 
     set(out: AABB2D, center: Readonly<Vec2Like>, halfExtent: Readonly<Vec2Like>): AABB2D {
@@ -49,11 +49,11 @@ export const aabb2d = {
         vec2.add(vec2_d, b.center, b.halfExtent);
         vec2.max(vec2_d, vec2_c, vec2_d);
         vec2.min(vec2_c, vec2_a, vec2_b);
-        return this.fromPoints(out, vec2_c, vec2_d);
+        return this.fromExtremes(out, vec2_c, vec2_d);
     },
 
     contains(a: Readonly<AABB2D>, point: Vec2Like) {
-        this.toPoints(vec2_a, vec2_b, a);
+        this.toExtremes(vec2_a, vec2_b, a);
         return (vec2_a[0] <= point[0]
             && vec2_b[0] >= point[0]
             && vec2_a[1] <= point[1]

@@ -45,12 +45,10 @@ export class Stage {
         const camera = Zero.instance.scene.cameras[cameraIndex];
 
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
-        if (this.rect) {
-            const { width, height } = this._framebuffer.info;
-            commandBuffer.beginRenderPass(renderPass, this._framebuffer, this.rect.x * width, this.rect.y * height, this.rect.width * width, this.rect.height * height);
-        } else {
-            commandBuffer.beginRenderPass(renderPass, this._framebuffer, camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
-        }
+        const rect = this.rect ?? camera.rect;
+
+        const { width, height } = this._framebuffer.info;
+        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect.x, height * rect.y, width * rect.width, height * rect.height);
 
         for (const phase of this._phases) {
             if (camera.visibilities & phase.visibility) {

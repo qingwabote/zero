@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, ShadowUniform, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, frustum, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, frustum, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
 
 const VisibilityFlagBits = {
@@ -51,14 +51,14 @@ export class App extends Zero {
         up_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.UP;
         up_camera.fov = 45;
         up_camera.far = 16;
-        up_camera.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
+        up_camera.rect = { x: 0, y: 0.5, width: 1, height: 0.5 };
         node.position = [0, 0, 10];
 
         node = new Node;
         const down_camera = node.addComponent(Camera);
         down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
-        down_camera.orthoSize = 8;
-        down_camera.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
+        down_camera.orthoSize = 16;
+        down_camera.rect = { x: 0, y: 0, width: 1, height: 0.5 };
         node.position = [-8, 8, 8];
 
         node = guardian.createScene("Sketchfab_Scene")!;
@@ -73,22 +73,16 @@ export class App extends Zero {
         node.scale = [5, 1, 5];
         node.position = [0, -1, 0];
 
-        const shadow = renderPipeline.flows[0].uniforms.find(uniform => uniform instanceof ShadowUniform) as ShadowUniform;
-
-        const x = shadow.orthoSize * shadow.aspect;
-        const y = shadow.orthoSize;
-        const light_frustum = frustum.fromOrthographic(frustum.vertices(), -x, x, -y, y, shadow.near, shadow.far);
-
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
-        this.setInterval(() => {
+        light.emitter.on(DirectionalLight.Event.UPDATE, () => {
             debugDrawer.clear()
 
-            frustum.transform(frustumVertices_a, light_frustum, light.node.world_matrix);
-            debugDrawer.drawFrustum(frustumVertices_a, vec4.YELLOW);
+            const shadow = light.shadows[light.shadow_cameras[0]];
+            debugDrawer.drawFrustum(shadow.frustum_vertices, vec4.YELLOW);
 
-            debugDrawer.drawFrustum(up_camera.frustum_vertices, vec4.ONE);
+            debugDrawer.drawFrustum(this.scene.cameras[light.shadow_cameras[0]].frustum_vertices, vec4.ONE);
 
             for (const model of this.scene.models) {
                 if (model.transform.visibility != VisibilityFlagBits.WORLD) {
@@ -155,10 +149,10 @@ export class App extends Zero {
             down_container.addElement(controlPanel);
 
             function updateValue(value: number) {
-                shadow.orthoSize = 10 * value;
-                const x = shadow.orthoSize * shadow.aspect;
-                const y = shadow.orthoSize;
-                frustum.fromOrthographic(light_frustum, -x, x, -y, y, shadow.near, shadow.far);
+                // shadow.orthoSize = 10 * value;
+                // const x = shadow.orthoSize * shadow.aspect;
+                // const y = shadow.orthoSize;
+                // frustum.fromOrthographic(light_frustum, -x, x, -y, y, shadow.near, shadow.far);
             }
 
             const slider = Node.build(Slider)

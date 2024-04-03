@@ -25,6 +25,12 @@ export class Root {
     }
 
     update() {
+        for (const camera of this._cameras) {
+            camera.update();
+        }
+
+        this.directionalLight?.update();
+
         this._models.sort(modelCompareFn);
         for (const model of this._models) {
             model.update();

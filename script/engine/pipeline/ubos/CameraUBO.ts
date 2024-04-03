@@ -1,14 +1,8 @@
-import { device } from "boot";
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/BufferView.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
-import { UniformBufferObject } from "../../core/render/pipeline/UniformBufferObject.js";
-
-function align(size: number) {
-    const alignment = device.capabilities.uniformBufferOffsetAlignment;
-    return Math.ceil(size / alignment) * alignment;
-}
+import { UBO } from "../../core/render/pipeline/UBO.js";
 
 const CameraBlock = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -24,10 +18,10 @@ const CameraBlock = {
             offset: 16 + 16
         }
     },
-    size: align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
+    size: UBO.align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
 }
 
-export class CameraUniform extends UniformBufferObject {
+export class CameraUBO extends UBO {
     static readonly definition = CameraBlock;
 
     private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);

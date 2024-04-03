@@ -1,6 +1,6 @@
 import { EventEmitterImpl } from "bastard";
 import { GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
-import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
+import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
 import { Input, TouchEventName } from "./Input.js";
 import { System } from "./System.js";
@@ -49,12 +49,12 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
 
     private readonly _systems: readonly System[];
 
-    private _commandBuffer: CommandBuffer;
-    private _presentSemaphore: Semaphore;
-    private _renderSemaphore: Semaphore;
-    private _renderFence: Fence;
+    private readonly _commandBuffer = device.createCommandBuffer();
+    private readonly _presentSemaphore = device.createSemaphore();
+    private readonly _renderSemaphore = device.createSemaphore();
+    private readonly _renderFence = device.createFence();
 
-    private _inputEvents: Map<TouchEventName, any> = new Map;
+    private readonly _inputEvents: Map<TouchEventName, any> = new Map;
 
     private _time = initial;
 
@@ -63,7 +63,16 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         return this._commandCalls;
     }
 
-    constructor(public pipeline: Pipeline) {
+    private _pipeline_changed = true;
+    public get pipeline(): Pipeline {
+        return this._pipeline;
+    }
+    public set pipeline(value: Pipeline) {
+        this._pipeline = value;
+        this._pipeline_changed = true;
+    }
+
+    constructor(private _pipeline: Pipeline) {
         super();
 
         const systems: System[] = [...Zero._system2priority.keys()];
@@ -71,18 +80,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
             return Zero._system2priority.get(b)! - Zero._system2priority.get(a)!;
         })
         this._systems = systems;
-
-        const commandBuffer = device.createCommandBuffer();
-        this._commandBuffer = commandBuffer;
-
-        const presentSemaphore = device.createSemaphore();
-        this._presentSemaphore = presentSemaphore;
-
-        const renderSemaphore = device.createSemaphore();
-        this._renderSemaphore = renderSemaphore;
-
-        const renderFence = device.createFence();
-        this._renderFence = renderFence;
 
         Zero._instance = this;
     }
@@ -155,15 +152,19 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
 
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
+        if (this._pipeline_changed) {
+            this._pipeline.use();
+            this._pipeline_changed = false;
+        }
         this.scene.update();
-        this.pipeline.update();
+        this._pipeline.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
 
         this._commandCalls.renderPasses = 0;
         this._commandCalls.draws = 0;
         for (let i = 0; i < this.scene.cameras.length; i++) {
-            this.pipeline.record(this._commandCalls, this._commandBuffer, i);
+            this._pipeline.record(this._commandCalls, this._commandBuffer, i);
         }
 
         this._commandBuffer.end();

@@ -23,20 +23,20 @@ class App extends Zero {
         const up_camera = Node.build(Camera);
         up_camera.fov = 45;
         up_camera.far = 10
-        up_camera.viewport = { x: 0, y: 0.5, width: 1, height: 0.5 };
+        up_camera.rect = { x: 0, y: 0.5, width: 1, height: 0.5 };
         up_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.UP;
         up_camera.node.position = [0, 0, 6];
 
         const down_camera = Node.build(Camera);
         down_camera.orthoSize = 6;
-        down_camera.viewport = { x: 0, y: 0, width: 1, height: 0.5 };
+        down_camera.rect = { x: 0, y: 0, width: 1, height: 0.5 };
         down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
         down_camera.node.position = [8, 8, 8]
 
         const cube = primitive.createScene("Cube")!;
         cube.visibility = VisibilityFlagBits.WORLD;
 
-        const perspective = frustum.fromPerspective(frustum.vertices(), up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far);
+        const perspective = frustum.fromPerspective(frustum.vertices(), Math.PI / 180 * up_camera.fov, up_camera.aspect, up_camera.near, up_camera.far);
 
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
