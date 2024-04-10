@@ -13,6 +13,8 @@ const LightBlock = {
     size: 3 * Float32Array.BYTES_PER_ELEMENT
 }
 
+const vec3_a = vec3.create();
+
 export class LightUBO extends UBO {
     static readonly definition = LightBlock;
 
@@ -26,9 +28,10 @@ export class LightUBO extends UBO {
     update(): void {
         const light = Zero.instance.scene.directionalLight!;
 
-        if (this._dirty || light.hasChanged || light.transform.hasChanged) {
-            const lightSrcDir = vec3.normalize(vec3.create(), light.transform.world_position);
-            this._view.set(lightSrcDir, 0);
+        if (this._dirty || light.transform.hasChanged) {
+            vec3.transformQuat(vec3_a, vec3.FORWARD, light.transform.world_rotation);
+            vec3.negate(vec3_a, vec3_a);
+            this._view.set(vec3_a, 0);
             this._view.update();
 
             this._dirty = false;

@@ -71,6 +71,7 @@ function fromPerspective(out: FrustumVertices, fov: number, aspect: number, near
 
     return out;
 }
+
 function transform(out: FrustumVertices, a: Readonly<FrustumVertices>, m: Readonly<Mat4>) {
     for (let i = 0; i < out.length; i++) {
         vec3.transformMat4(out[i], a[i], m);

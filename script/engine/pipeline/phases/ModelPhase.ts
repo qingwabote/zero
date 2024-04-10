@@ -1,6 +1,5 @@
 import { CommandBuffer, DescriptorSetLayout, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { frustum } from "../../core/math/frustum.js";
 import { Context } from "../../core/render/Context.js";
 import { CommandCalls } from "../../core/render/pipeline/CommandCalls.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
@@ -22,6 +21,8 @@ export class ModelPhase extends Phase {
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
         const scene = Zero.instance.scene;
         const camera = scene.cameras[cameraIndex];
+        // hard code
+        const frustum = this._pass == 'shadow' ? scene.directionalLight!.shadows[cameraIndex].frustum : camera.frustum;
         for (const model of scene.models) {
             if ((camera.visibilities & model.transform.visibility) == 0) {
                 continue;
@@ -29,7 +30,7 @@ export class ModelPhase extends Phase {
             if (model.type != this._model) {
                 continue;
             }
-            if (!frustum.aabb(camera.frustum_faces, model.world_bounds)) {
+            if (!frustum.aabb(model.world_bounds)) {
                 continue;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);

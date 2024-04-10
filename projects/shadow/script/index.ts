@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, frustum, shaderLib, vec3, vec4 } from 'engine';
-import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, shaderLib, vec3, vec4 } from 'engine';
+import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
     UP: 1 << 1,
@@ -23,9 +23,6 @@ const [guardian, plane, ss_depth, pipeline] = await Promise.all([
 ])
 
 const renderPipeline = await pipeline.instantiate(VisibilityFlagBits);
-
-const frustumVertices_a = frustum.vertices()
-const frustumFaces_a = frustum.faces()
 
 export class App extends Zero {
     protected override start() {
@@ -80,20 +77,20 @@ export class App extends Zero {
             debugDrawer.clear()
 
             const shadow = light.shadows[light.shadow_cameras[0]];
-            debugDrawer.drawFrustum(shadow.frustum_vertices, vec4.YELLOW);
+            debugDrawer.drawFrustum(shadow.frustum.vertices, vec4.YELLOW);
 
-            debugDrawer.drawFrustum(this.scene.cameras[light.shadow_cameras[0]].frustum_vertices, vec4.ONE);
+            debugDrawer.drawFrustum(this.scene.cameras[light.shadow_cameras[0]].frustum.vertices, vec4.ONE);
 
-            for (const model of this.scene.models) {
-                if (model.transform.visibility != VisibilityFlagBits.WORLD) {
-                    continue;
-                }
-                if (frustum.aabb(up_camera.frustum_faces, model.world_bounds)) {
-                    debugDrawer.drawAABB(model.world_bounds, vec4.RED);
-                } else {
-                    debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
-                }
-            }
+            // for (const model of this.scene.models) {
+            //     if (model.transform.visibility != VisibilityFlagBits.WORLD) {
+            //         continue;
+            //     }
+            //     if (frustum.aabb(up_camera.frustum_faces, model.world_bounds)) {
+            //         debugDrawer.drawAABB(model.world_bounds, vec4.RED);
+            //     } else {
+            //         debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
+            //     }
+            // }
         })
 
         // UI
@@ -147,23 +144,6 @@ export class App extends Zero {
             controlPanel.setWidth('100%');
             controlPanel.setHeight('100%');
             down_container.addElement(controlPanel);
-
-            function updateValue(value: number) {
-                // shadow.orthoSize = 10 * value;
-                // const x = shadow.orthoSize * shadow.aspect;
-                // const y = shadow.orthoSize;
-                // frustum.fromOrthographic(light_frustum, -x, x, -y, y, shadow.near, shadow.far);
-            }
-
-            const slider = Node.build(Slider)
-            slider.setWidth(180)
-            slider.setHeight(20)
-            slider.value = 0.5;
-            slider.emitter.on(SliderEventType.CHANGED, () => {
-                updateValue(slider.value)
-            })
-            updateValue(slider.value)
-            down_container.addElement(slider);
         }
         doc.addElement(down_container)
     }

@@ -1,10 +1,10 @@
-import { Component, Primitive, vec3, vec4 } from 'engine';
+import { Component, GeometryRenderer, vec3, vec4 } from 'engine';
 import * as phys from 'phys';
 import { PhysicsSystem } from "./PhysicsSystem.js";
 
 export class DebugDrawer extends Component {
     start(): void {
-        const primitive = this.node.addComponent(Primitive);
+        const primitive = this.node.addComponent(GeometryRenderer);
 
         const debugDrawer = new phys.DebugDrawer;
         debugDrawer.drawLine = (from: phys.Vec3, to: phys.Vec3, color: phys.Vec3) => {
@@ -14,6 +14,6 @@ export class DebugDrawer extends Component {
     }
 
     update(): void {
-        this.node.getComponent(Primitive)?.clear();
+        this.node.getComponent(GeometryRenderer)?.clear();
     }
 }

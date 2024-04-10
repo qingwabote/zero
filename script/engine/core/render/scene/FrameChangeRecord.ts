@@ -1,7 +1,7 @@
 export class FrameChangeRecord {
     static frameId = 0;
 
-    private _frameId = 0;
+    private _frameId = FrameChangeRecord.frameId;
 
     get hasChanged(): number {
         return this._frameId == FrameChangeRecord.frameId ? this._hasChanged : 0;

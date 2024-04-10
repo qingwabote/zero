@@ -1,11 +1,11 @@
 import { device } from "boot";
 import { aabb3d } from "../../math/aabb3d.js";
-import { FrustumFaces, FrustumVertices, frustum } from "../../math/frustum.js";
+import { frustum } from "../../math/frustum.js";
 import { Mat4, mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { Camera } from "./Camera.js";
 import { DirectionalLight } from "./DirectionalLight.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { Frustum } from "./Frustum.js";
 
 const vec3_a = vec3.create();
 const mat4_a = mat4.create();
@@ -16,7 +16,7 @@ const aabb_a = aabb3d.create();
 export class DirectionalLightShadow extends FrameChangeRecord {
 
     override get hasChanged(): number {
-        return super.hasChanged || this._camera.hasChanged || this._light.hasChanged || this._light.transform.hasChanged;
+        return super.hasChanged || this._furstum.hasChanged || this._light.transform.hasChanged;
     }
     override set hasChanged(flags: number) {
         super.hasChanged = flags;
@@ -32,19 +32,11 @@ export class DirectionalLightShadow extends FrameChangeRecord {
         return this._proj;
     }
 
-    private _frustum_vertices = frustum.vertices();
-    public get frustum_vertices(): Readonly<FrustumVertices> {
-        return this._frustum_vertices;
-    }
-
-    private _frustum_faces = frustum.faces();
-    public get frustum_faces(): Readonly<FrustumFaces> {
-        return this._frustum_faces;
-    }
+    readonly frustum: Readonly<Frustum> = new Frustum;
 
     index: number = 0;
 
-    constructor(private _light: DirectionalLight, private _camera: Camera) {
+    constructor(private _light: DirectionalLight, private _furstum: Readonly<Frustum>) {
         super(1);
     }
 
@@ -55,7 +47,7 @@ export class DirectionalLightShadow extends FrameChangeRecord {
 
         mat4.fromTRS(mat4_a, vec3.ZERO, this._light.transform.world_rotation, vec3.ONE);
 
-        frustum.transform(frustum_a, this._camera.frustum_vertices, mat4.invert(mat4_b, mat4_a));
+        frustum.transform(frustum_a, this._furstum.vertices, mat4.invert(mat4_b, mat4_a));
 
         aabb3d.fromPoints(aabb_a, frustum_a);
 
@@ -72,8 +64,7 @@ export class DirectionalLightShadow extends FrameChangeRecord {
         const near = 0;
         const far = aabb_a.halfExtent[2] * 2;
         mat4.ortho(this._proj, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
-        frustum.fromOrthographic(this._frustum_vertices, left, right, bottom, top, near, far);
-        frustum.transform(this._frustum_vertices, this._frustum_vertices, this._model);
-        frustum.toFaces(this._frustum_faces, this._frustum_vertices);
+        this.frustum.fromOrthographic(left, right, bottom, top, near, far);
+        this.frustum.transform(this._model);
     }
 }

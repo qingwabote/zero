@@ -1,5 +1,5 @@
 
-import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, ShadowUniform, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
+import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
@@ -7,14 +7,14 @@ import Vehicle from "./Vehicle.js";
 
 const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1 });
 
-const pipeline = await (await bundle.cache('pipelines/shadow', Pipeline)).instantiate();
-
 enum VisibilityFlagBits {
     NONE = 0,
     UI = 1 << 29,
     WORLD = 1 << 30,
     ALL = 0xffffffff
 }
+
+const pipeline = await (await bundle.cache('pipelines/shadow', Pipeline)).instantiate(VisibilityFlagBits);
 
 export class App extends Zero {
     start() {
@@ -31,17 +31,14 @@ export class App extends Zero {
         // light
         const light = Node.build(DirectionalLight)
         light.node.position = [-12, 12, -12];
-
-        const shadow = pipeline.flows[0].uniforms.find(uniform => uniform instanceof ShadowUniform) as ShadowUniform;
-        shadow.orthoSize = 24
-        shadow.far = 40
+        light.node.lookAt(vec3.ZERO)
 
         node = new Node;
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
-        // main_camera.orthoSize = 32
+        main_camera.far = 64
         main_camera.visibilities = VisibilityFlagBits.WORLD;
-        node.position = [20, 20, 20];
+        node.position = [16, 16, 16];
 
         // node = new Node;
         // node.visibility = VisibilityBit.DEFAULT;

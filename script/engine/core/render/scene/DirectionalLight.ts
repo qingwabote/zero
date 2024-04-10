@@ -1,7 +1,6 @@
 import { EventEmitter, EventEmitterImpl } from "bastard";
 import { Zero } from "../../Zero.js";
 import { DirectionalLightShadow } from "./DirectionalLightShadow.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
 import { Transform } from "./Transform.js";
 
 enum Event {
@@ -12,7 +11,7 @@ interface EventToListener {
     [Event.UPDATE]: () => void;
 }
 
-export class DirectionalLight extends FrameChangeRecord {
+export class DirectionalLight {
     static readonly Event = Event;
 
     private _emitter?: EventEmitter<EventToListener> = undefined;
@@ -33,14 +32,13 @@ export class DirectionalLight extends FrameChangeRecord {
         const cameras = Zero.instance.scene.cameras;
         for (let i = 0; i < value.length; i++) {
             const camera = cameras[value[i]];
-            const shadow = this._shadows[value[i]] || (this._shadows[value[i]] = new DirectionalLightShadow(this, camera));
+            const shadow = this._shadows[value[i]] || (this._shadows[value[i]] = new DirectionalLightShadow(this, camera.frustum));
             shadow.index = i;
         }
         this._shadow_cameras = value;
     }
 
     constructor(public transform: Transform) {
-        super();
         Zero.instance.scene.directionalLight = this;
     }
 

@@ -35,7 +35,6 @@ export class ShadowUBO extends UBO {
     }
 
     override use(): void {
-        const light = Zero.instance.scene.directionalLight!;
         const cameras = Zero.instance.scene.cameras;
         const indexes: number[] = []
         for (let i = 0; i < cameras.length; i++) {
@@ -43,7 +42,7 @@ export class ShadowUBO extends UBO {
                 indexes.push(i);
             }
         }
-        light.shadow_cameras = indexes;
+        Zero.instance.scene.directionalLight!.shadow_cameras = indexes;
     }
 
     update(): void {

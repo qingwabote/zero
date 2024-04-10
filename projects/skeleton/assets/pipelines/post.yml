@@ -3,9 +3,13 @@ textures:
     usage:
       - COLOR
       - SAMPLED
+ubos:
+  - name: camera
+    type: Camera
+
 flows:
-  - uniforms:
-      - type: camera
+  - bindings:
+      - ubo: camera
         binding: 1
     stages:
       - phases:
@@ -16,9 +20,8 @@ flows:
           depthStencil:
             usage:
               - DEPTH_STENCIL
-  - uniforms:
-      - type: samplerTexture
-        texture: color
+  - bindings:
+      - texture: color
         binding: 0
     stages:
       - phases:

@@ -68,11 +68,7 @@ export class Camera extends Component {
         return this._camera.aspect;
     }
 
-    get frustum_vertices() {
-        return this._camera.frustum_vertices;
-    }
-
-    get frustum_faces() {
-        return this._camera.frustum_faces;
+    get frustum() {
+        return this._camera.frustum;
     }
 }
