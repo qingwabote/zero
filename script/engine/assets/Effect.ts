@@ -1,6 +1,6 @@
 import { cache } from "assets";
 import * as gfx from "gfx";
-import { render } from "../core/index.js";
+import * as render from "../core/render/index.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";

@@ -42,8 +42,7 @@ export class ModelPhase extends Phase {
                     continue;
                 }
                 const material = model.materials[i];
-                for (let i = 0; i < material.passes.length; i++) {
-                    const pass = material.passes[i];
+                for (const pass of material.passes) {
                     if (pass.type != this._pass) {
                         continue;
                     }

@@ -1,8 +1,10 @@
 import { device } from "boot";
 import { bundle } from "bundling";
 import * as gfx from "gfx";
-import { getSampler, render, shaderLib } from "../core/index.js";
 import { Rect, rect } from "../core/math/rect.js";
+import * as render from '../core/render/index.js';
+import { getSampler } from "../core/sc.js";
+import { shaderLib } from "../core/shaderLib.js";
 import * as pipeline from "../pipeline/index.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
