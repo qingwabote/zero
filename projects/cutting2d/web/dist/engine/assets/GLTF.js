@@ -7,7 +7,6 @@ import { MaterialInstance } from "../MaterialInstance.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
-import { mat4 } from "../core/math/mat4.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { Material } from "../core/render/scene/Material.js";
@@ -279,7 +278,7 @@ export class GLTFInstance {
             root = node;
         }
         if (info.matrix) {
-            mat4.toTRS(info.matrix, node.position, node.rotation, node.scale);
+            node.matrix = info.matrix;
         }
         else {
             if (info.translation) {

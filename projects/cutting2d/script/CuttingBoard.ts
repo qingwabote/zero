@@ -1,4 +1,4 @@
-import { Node, Primitive, TouchEventName, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
+import { GeometryRenderer, Node, TouchEventName, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
 import { Align, ElementContainer, ElementEventToListener, Justify, Renderer, Touch } from "flex";
 import { Texture } from "gfx";
 import { Polygon, Vertex } from "./Polygon.js";
@@ -140,7 +140,7 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
 
     private _polygonsRenderer!: PolygonsRenderer;
 
-    private _primitive!: Primitive;
+    private _primitive!: GeometryRenderer;
 
     start(): void {
         this.justifyContent = Justify.Center;
@@ -150,7 +150,7 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
         this._polygonsRenderer = node.addComponent(PolygonsRenderer);
         this.addElement(this._polygonsRenderer);
 
-        const primitive = Renderer.create(Primitive);
+        const primitive = Renderer.create(GeometryRenderer);
         // primitive.positionType = PositionType.Absolute
         // primitive.setWidth('100%');
         // primitive.setHeight('100%');

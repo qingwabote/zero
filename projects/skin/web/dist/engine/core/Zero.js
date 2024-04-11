@@ -20,36 +20,41 @@ export class Zero extends EventEmitterImpl {
     static registerSystem(system, priority) {
         this._system2priority.set(system, priority);
     }
-    get drawCall() {
-        return this._drawCall;
+    get commandCalls() {
+        return this._commandCalls;
     }
-    constructor() {
+    get pipeline() {
+        return this._pipeline;
+    }
+    set pipeline(value) {
+        this._pipeline = value;
+        this._pipeline_changed = true;
+    }
+    constructor(_pipeline) {
         super();
+        this._pipeline = _pipeline;
         this.input = new Input;
         this.scene = new Root;
         this._componentScheduler = new ComponentScheduler;
         this._timeScheduler = new TimeScheduler;
+        this._commandBuffer = device.createCommandBuffer();
+        this._presentSemaphore = device.createSemaphore();
+        this._renderSemaphore = device.createSemaphore();
+        this._renderFence = device.createFence();
         this._inputEvents = new Map;
         this._time = initial;
-        this._drawCall = 0;
+        this._commandCalls = { renderPasses: 0, draws: 0 };
+        this._pipeline_changed = true;
         const systems = [...Zero._system2priority.keys()];
         systems.sort(function (a, b) {
             return Zero._system2priority.get(b) - Zero._system2priority.get(a);
         });
         this._systems = systems;
-        const commandBuffer = device.createCommandBuffer();
-        this._commandBuffer = commandBuffer;
-        const presentSemaphore = device.createSemaphore();
-        this._presentSemaphore = presentSemaphore;
-        const renderSemaphore = device.createSemaphore();
-        this._renderSemaphore = renderSemaphore;
-        const renderFence = device.createFence();
-        this._renderFence = renderFence;
         Zero._instance = this;
     }
     initialize() {
-        this.pipeline = this.start();
-        this.attach();
+        this.start();
+        return this;
     }
     attach() {
         attach(this);
@@ -102,11 +107,19 @@ export class Zero extends EventEmitterImpl {
         this.emit(ZeroEvent.LOGIC_END);
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
+        if (this._pipeline_changed) {
+            this._pipeline.use();
+            this._pipeline_changed = false;
+        }
         this.scene.update();
-        this.pipeline.update();
+        this._pipeline.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._drawCall = this.pipeline.record(this._commandBuffer, this.scene.cameras);
+        this._commandCalls.renderPasses = 0;
+        this._commandCalls.draws = 0;
+        for (let i = 0; i < this.scene.cameras.length; i++) {
+            this._pipeline.record(this._commandCalls, this._commandBuffer, i);
+        }
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
         const submitInfo = new SubmitInfo;

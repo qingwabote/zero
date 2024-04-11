@@ -1,6 +1,9 @@
+ubos:
+  - name: camera
+    type: Camera
 flows:
-  - uniforms:
-      - type: camera
+  - bindings:
+      - ubo: camera
         binding: 1
     stages:
       - name: forward

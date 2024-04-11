@@ -18,6 +18,11 @@ export class Root {
         model.onAddToScene();
     }
     update() {
+        var _a;
+        for (const camera of this._cameras) {
+            camera.update();
+        }
+        (_a = this.directionalLight) === null || _a === void 0 ? void 0 : _a.update();
         this._models.sort(modelCompareFn);
         for (const model of this._models) {
             model.update();

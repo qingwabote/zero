@@ -3,68 +3,69 @@ import { bundle } from "bundling";
 import * as gfx from "gfx";
 import { getSampler, render, shaderLib } from "../core/index.js";
 import { rect } from "../core/math/rect.js";
-import { Context } from "../core/render/Context.js";
-import { getRenderPass } from "../core/render/pipeline/rpc.js";
-import { ModelPhase, ShadowUniform } from "../pipeline/index.js";
-import { PostPhase } from "../pipeline/phases/PostPhase.js";
-import { CameraUniform } from "../pipeline/uniforms/CameraUniform.js";
-import { LightUniform } from "../pipeline/uniforms/LightUniform.js";
+import * as pipeline from "../pipeline/index.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
-const post_rasterizationState = new gfx.RasterizationState;
-post_rasterizationState.cullMode = gfx.CullMode.NONE;
-const post_blendState = new gfx.BlendState;
-post_blendState.srcRGB = gfx.BlendFactor.ONE;
-post_blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
-post_blendState.srcAlpha = gfx.BlendFactor.ONE;
-post_blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
-const phaseCreators = {
-    model: async function (info, context, visibility) {
-        return new ModelPhase(context, visibility, info.model, info.pass);
-    },
-    fxaa: async function (info, context, visibility) {
-        const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
-        const shader = shaderLib.getShader(shaderAsset);
-        const passState = new gfx.PassState;
-        passState.shader = shader;
-        passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-        passState.rasterizationState = post_rasterizationState;
-        passState.blendState = post_blendState;
-        return new PostPhase(context, passState, visibility);
-    },
-    outline: async function (info, context, visibility) {
-        const shaderAsset = await bundle.cache('shaders/outline', Shader);
-        const shader = shaderLib.getShader(shaderAsset);
-        const passState = new gfx.PassState;
-        passState.shader = shader;
-        passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-        passState.rasterizationState = post_rasterizationState;
-        passState.blendState = post_blendState;
-        return new PostPhase(context, passState, visibility);
-    },
-    copy: async function (info, context, visibility) {
-        const shaderAsset = await bundle.cache('shaders/copy', Shader);
-        const shader = shaderLib.getShader(shaderAsset);
-        const passState = new gfx.PassState;
-        passState.shader = shader;
-        passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-        passState.rasterizationState = post_rasterizationState;
-        passState.blendState = post_blendState;
-        return new PostPhase(context, passState, visibility);
-    },
-};
+const phaseCreators = (function () {
+    const rasterizationState = new gfx.RasterizationState;
+    rasterizationState.cullMode = gfx.CullMode.NONE;
+    const blendState = new gfx.BlendState;
+    blendState.srcRGB = gfx.BlendFactor.ONE;
+    blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
+    blendState.srcAlpha = gfx.BlendFactor.ONE;
+    blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
+    return {
+        model: async function (info, context, visibility) {
+            return new pipeline.ModelPhase(context, visibility, info.model, info.pass);
+        },
+        fxaa: async function (info, context, visibility) {
+            const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
+            const shader = shaderLib.getShader(shaderAsset);
+            const passState = new gfx.PassState;
+            passState.shader = shader;
+            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
+            passState.rasterizationState = rasterizationState;
+            passState.blendState = blendState;
+            return new pipeline.PostPhase(context, passState, visibility);
+        },
+        outline: async function (info, context, visibility) {
+            const shaderAsset = await bundle.cache('shaders/outline', Shader);
+            const shader = shaderLib.getShader(shaderAsset);
+            const passState = new gfx.PassState;
+            passState.shader = shader;
+            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
+            passState.rasterizationState = rasterizationState;
+            passState.blendState = blendState;
+            return new pipeline.PostPhase(context, passState, visibility);
+        },
+        copy: async function (info, context, visibility) {
+            const shaderAsset = await bundle.cache('shaders/copy', Shader);
+            const shader = shaderLib.getShader(shaderAsset);
+            const passState = new gfx.PassState;
+            passState.shader = shader;
+            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
+            passState.rasterizationState = rasterizationState;
+            passState.blendState = blendState;
+            return new pipeline.PostPhase(context, passState, visibility);
+        },
+    };
+})();
 const UniformTypes = {
-    camera: CameraUniform,
-    light: LightUniform,
-    shadow: ShadowUniform,
-    samplerTexture: {
-        definition: {
-            type: gfx.DescriptorType.SAMPLER_TEXTURE,
-            stageFlags: gfx.ShaderStageFlagBits.FRAGMENT
-        }
-    }
+    Camera: pipeline.CameraUBO,
+    Light: pipeline.LightUBO,
+    Shadow: pipeline.ShadowUBO,
 };
-const uniformInstances = new Map;
+const ubo_cache = (function () {
+    const ubos = {};
+    return function (info) {
+        let instance = ubos[info.type];
+        if (!instance) {
+            instance = new UniformTypes[info.type]();
+            ubos[info.type] = instance;
+        }
+        return instance;
+    };
+})();
 export class Pipeline extends Yml {
     constructor() {
         super(...arguments);
@@ -74,50 +75,63 @@ export class Pipeline extends Yml {
         return this._textures;
     }
     async onParse(res) {
-        this._resource = res;
+        this._info = res;
     }
     async instantiate(variables = {}) {
-        if (this._resource.textures) {
-            for (const texture of this._resource.textures) {
+        if (this._info.textures) {
+            for (const texture of this._info.textures) {
                 this._textures[texture.name] = this.createTexture(texture);
             }
         }
+        const uboMap = new Map;
+        for (const ubo of this._info.ubos) {
+            uboMap.set(ubo.name, ubo_cache(ubo));
+        }
         const flows = [];
-        for (const flow of this._resource.flows) {
+        for (const flow of this._info.flows) {
             const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
-            if (flow.uniforms) {
-                for (const uniform of flow.uniforms) {
-                    if (uniform.type in UniformTypes) {
-                        const definition = UniformTypes[uniform.type].definition;
-                        const binding = new gfx.DescriptorSetLayoutBinding;
+            if (flow.bindings) {
+                for (const bindingInfo of flow.bindings) {
+                    const binding = new gfx.DescriptorSetLayoutBinding;
+                    binding.descriptorCount = 1;
+                    if ('ubo' in bindingInfo) {
+                        const ubo = uboMap.get(bindingInfo.ubo);
+                        if (!ubo) {
+                            throw new Error(`undefined ubo: ${bindingInfo.ubo}`);
+                        }
+                        const definition = ubo.constructor.definition;
                         binding.descriptorType = definition.type;
                         binding.stageFlags = definition.stageFlags;
-                        binding.binding = uniform.binding;
-                        binding.descriptorCount = 1;
-                        descriptorSetLayoutInfo.bindings.add(binding);
+                        binding.binding = bindingInfo.binding;
+                    }
+                    else if ('texture' in bindingInfo) {
+                        binding.descriptorType = gfx.DescriptorType.SAMPLER_TEXTURE;
+                        binding.stageFlags = gfx.ShaderStageFlagBits.FRAGMENT;
+                        binding.binding = bindingInfo.binding;
                     }
                     else {
-                        throw `unsupported uniform: ${uniform}`;
+                        throw new Error('ubo or texture?');
                     }
+                    descriptorSetLayoutInfo.bindings.add(binding);
                 }
             }
             const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
-            const context = new Context(descriptorSetLayout);
-            const uniforms = [];
-            if (flow.uniforms) {
-                for (const uniform of flow.uniforms) {
-                    if (uniform.type == 'samplerTexture') {
-                        const filter = uniform.filter ? gfx.Filter[uniform.filter] : gfx.Filter.NEAREST;
-                        context.descriptorSet.bindTexture(uniform.binding, this._textures[uniform.texture], getSampler(filter, filter));
-                        continue;
+            const context = new render.Context(descriptorSetLayout);
+            const ubos = [];
+            if (flow.bindings) {
+                for (const binding of flow.bindings) {
+                    if ('ubo' in binding) {
+                        const ubo = uboMap.get(binding.ubo);
+                        if (!ubo) {
+                            throw new Error(`undefined ubo: ${binding.ubo}`);
+                        }
+                        context.descriptorSet.bindBuffer(binding.binding, ubo.buffer, ubo.range);
+                        ubos.push(ubo);
                     }
-                    let instance = uniformInstances.get(UniformTypes[uniform.type]);
-                    if (!instance) {
-                        instance = new UniformTypes[uniform.type]();
-                        uniformInstances.set(UniformTypes[uniform.type], instance);
+                    else if ('texture' in binding) {
+                        const filter = binding.filter ? gfx.Filter[binding.filter] : gfx.Filter.NEAREST;
+                        context.descriptorSet.bindTexture(binding.binding, this._textures[binding.texture], getSampler(filter, filter));
                     }
-                    context.descriptorSet.bindBuffer(uniform.binding, instance.buffer, instance.range);
-                    uniforms.push(instance);
                 }
             }
             const stages = [];
@@ -125,7 +139,7 @@ export class Pipeline extends Yml {
                 const stage = flow.stages[i];
                 const phases = [];
                 for (const phase of stage.phases) {
-                    let visibility;
+                    let visibility = 0xffffffff;
                     if (phase.visibility) {
                         visibility = Number(this.resolveVar(phase.visibility, variables));
                     }
@@ -134,7 +148,7 @@ export class Pipeline extends Yml {
                         phases.push(await phaseCreators[type](phase, context, visibility));
                     }
                     else {
-                        throw `unsupported phase type: ${type}`;
+                        throw new Error(`unsupported phase type: ${type}`);
                     }
                 }
                 let framebuffer;
@@ -159,7 +173,7 @@ export class Pipeline extends Yml {
                                 framebufferInfo.resolves.add(device.swapchain.colorTexture);
                             }
                             else {
-                                throw 'not implemented';
+                                throw new Error('not implemented');
                             }
                         }
                     }
@@ -180,20 +194,38 @@ export class Pipeline extends Yml {
                     }
                     framebufferInfo.width = width;
                     framebufferInfo.height = height;
-                    framebufferInfo.renderPass = getRenderPass(framebufferInfo, clears);
+                    framebufferInfo.renderPass = render.getRenderPass(framebufferInfo, clears);
                     framebuffer = device.createFramebuffer(framebufferInfo);
-                    if (stage.viewport) {
-                        viewport = rect.create(stage.viewport.x, stage.viewport.y, stage.viewport.width, stage.viewport.height);
-                    }
-                    else {
-                        viewport = rect.create(0, 0, width, height);
-                    }
+                    viewport = rect.create(0, 0, 1, 1);
                 }
-                stages.push(new render.Stage(context, phases, framebuffer, clears, viewport));
+                stages.push(new render.Stage(phases, framebuffer, clears, viewport));
             }
-            flows.push(new render.Flow(context, uniforms, stages));
+            let loops;
+            if (flow.loops) {
+                loops = [];
+                for (let flow_i = 0; flow_i < flow.loops.length; flow_i++) {
+                    const loop = flow.loops[flow_i];
+                    const setters = [];
+                    if (loop.stages) {
+                        for (let stage_i = 0; stage_i < loop.stages.length; stage_i++) {
+                            const stage = loop.stages[stage_i];
+                            if (stage.viewport) {
+                                setters.push(function () {
+                                    stages[stage_i].rect = stage.viewport;
+                                });
+                            }
+                        }
+                    }
+                    loops.push(function () {
+                        for (const setter of setters) {
+                            setter();
+                        }
+                    });
+                }
+            }
+            flows.push(new render.Flow(context, ubos, stages, loops));
         }
-        return new render.Pipeline(flows);
+        return new render.Pipeline([...uboMap.values()], flows);
     }
     createTexture(texture, samples) {
         if (typeof texture == 'string') {

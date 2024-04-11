@@ -46,8 +46,7 @@ export default class PolygonsRenderer extends Element {
         state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
-        const pass = new render.Pass(state);
-        pass.initialize();
+        const pass = render.Pass.Pass(state);
         pass.setUniform('Props', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
         this._material = { passes: [pass] };

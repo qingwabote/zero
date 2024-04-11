@@ -1,23 +1,51 @@
-import { Vec3Like } from "../../math/vec3.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { EventEmitter, EventEmitterImpl } from "bastard";
+import { Zero } from "../../Zero.js";
+import { DirectionalLightShadow } from "./DirectionalLightShadow.js";
 import { Transform } from "./Transform.js";
 
-export class DirectionalLight extends FrameChangeRecord {
-    override get hasChanged(): number {
-        if (super.hasChanged || this._transform.hasChanged) {
-            return 1;
+enum Event {
+    UPDATE = 'UPDATE'
+}
+
+interface EventToListener {
+    [Event.UPDATE]: () => void;
+}
+
+export class DirectionalLight {
+    static readonly Event = Event;
+
+    private _emitter?: EventEmitter<EventToListener> = undefined;
+    public get emitter() {
+        return this._emitter ?? (this._emitter = new EventEmitterImpl);
+    }
+
+    private _shadows: Record<number, DirectionalLightShadow> = {};
+    public get shadows(): Readonly<Record<number, DirectionalLightShadow>> {
+        return this._shadows;
+    }
+
+    private _shadow_cameras: readonly number[] = [];
+    public get shadow_cameras(): readonly number[] {
+        return this._shadow_cameras;
+    }
+    public set shadow_cameras(value: readonly number[]) {
+        const cameras = Zero.instance.scene.cameras;
+        for (let i = 0; i < value.length; i++) {
+            const camera = cameras[value[i]];
+            const shadow = this._shadows[value[i]] || (this._shadows[value[i]] = new DirectionalLightShadow(this, camera.frustum));
+            shadow.index = i;
         }
-        return 0;
-    }
-    override set hasChanged(flags: number) {
-        super.hasChanged = flags;
+        this._shadow_cameras = value;
     }
 
-    get position(): Readonly<Vec3Like> {
-        return this._transform.world_position;
+    constructor(public transform: Transform) {
+        Zero.instance.scene.directionalLight = this;
     }
 
-    constructor(private _transform: Transform) {
-        super();
+    update() {
+        for (let i = 0; i < this._shadow_cameras.length; i++) {
+            this._shadows[this._shadow_cameras[i]].update();
+        }
+        this._emitter?.emit(Event.UPDATE);
     }
 }

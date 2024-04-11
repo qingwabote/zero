@@ -1,24 +1,37 @@
 import { CommandBuffer } from "gfx";
-import { Flow } from "./pipeline/index.js";
-import { Camera } from "./scene/Camera.js";
+import { Zero } from "../Zero.js";
+import { CommandCalls } from "./pipeline/CommandCalls.js";
+import { Flow } from "./pipeline/Flow.js";
+import { UBO } from "./pipeline/UBO.js";
 
 export class Pipeline {
-    constructor(readonly flows: readonly Flow[]) { }
+    constructor(readonly ubos: readonly UBO[], private readonly _flows: readonly Flow[]) { }
 
-    update() {
-        for (const flow of this.flows) {
-            flow.update();
+    use() {
+        for (const ubo of this.ubos) {
+            ubo.visibilities = 0;
+        }
+        for (const flow of this._flows) {
+            flow.use();
+        }
+        for (const ubo of this.ubos) {
+            ubo.use();
         }
     }
 
-    record(commandBuffer: CommandBuffer, cameras: readonly Camera[]): number {
-        let dc = 0;
-        for (let i = 0; i < cameras.length; i++) {
-            for (const flow of this.flows) {
-                flow.context.cameraIndex = i;
-                dc += flow.record(commandBuffer);
+    update() {
+        for (const ubo of this.ubos) {
+            ubo.update();
+        }
+    }
+
+    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {
+        const camera = Zero.instance.scene.cameras[cameraIndex];
+
+        for (const flow of this._flows) {
+            if (camera.visibilities & flow.visibilities) {
+                flow.record(commandCalls, commandBuffer, cameraIndex);
             }
         }
-        return dc;
     }
 }

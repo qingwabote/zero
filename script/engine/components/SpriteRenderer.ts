@@ -2,9 +2,10 @@ import { bundle } from "bundling";
 import { CullMode, Filter, PassState, PrimitiveTopology, RasterizationState } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
-import { Zero } from "../core/Zero.js";
+import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Material } from "../core/render/scene/Material.js";
+import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -19,34 +20,38 @@ export class SpriteRenderer extends BoundedRenderer {
 
     shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });;
 
-    private _spriteFrame!: SpriteFrame;
-    public get spriteFrame(): SpriteFrame {
+    private _spriteFrame: SpriteFrame | null = null;
+    public get spriteFrame() {
         return this._spriteFrame;
     }
-    public set spriteFrame(value: SpriteFrame) {
+    public set spriteFrame(value) {
         this._spriteFrame = value;
         this.emit(BoundsEventName.BOUNDS_CHANGED);
+    }
+
+    public get bounds(): Readonly<AABB3D> {
+        return this._spriteFrame?.mesh.bounds ?? aabb3d.ZERO;
     }
 
     filter = Filter.NEAREST;
 
     color: Readonly<Vec4> = vec4.ONE;
 
-    override start(): void {
+    protected createModel(): Model | null {
+        if (!this._spriteFrame) {
+            return null;
+        }
         const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
         const state = new PassState;
         state.shader = this.shader;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
-        const pass = new Pass(state);
-        pass.initialize();
+        const pass = Pass.Pass(state);
         if (pass.hasUniform('Props', 'albedo')) {
             pass.setUniform('Props', 'albedo', this.color);
         }
-        pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter))
-        this._model.mesh = this._spriteFrame.mesh;
-        this._model.materials = [new Material([pass])];
-        Zero.instance.scene.addModel(this._model)
+        pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter));
+        return new Model(this.node, this._spriteFrame.mesh, [new Material([pass])])
     }
 }

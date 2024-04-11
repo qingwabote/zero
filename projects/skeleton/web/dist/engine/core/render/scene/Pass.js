@@ -14,13 +14,18 @@ function type2Length(type) {
     }
 }
 export class Pass {
+    static Pass(state, type = 'default') {
+        const pass = new Pass(state, type);
+        pass.initialize();
+        return pass;
+    }
     get uniformBuffers() {
         return this._uniformBuffers;
     }
     get samplerTextures() {
         return this._samplerTextures;
     }
-    constructor(state, type = 'default') {
+    constructor(state, type) {
         this.state = state;
         this.type = type;
         this.descriptorSet = undefined;

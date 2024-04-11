@@ -6,18 +6,21 @@ import { PassInstance } from "../PassInstance.js";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
-import { Zero } from "../core/Zero.js";
+import { AABB3D } from "../core/math/aabb3d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { BufferView, Material, Mesh } from "../core/render/index.js";
 import { quad } from "../core/render/quad.js";
+import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
+
+const default_color = vec4.ONE;
 
 const pass = await (async function () {
     const ss_unlit = await bundle.cache('shaders/unlit', Shader);
@@ -37,9 +40,9 @@ const pass = await (async function () {
     state.rasterizationState = rasterizationState;
     state.blendState = blendState;
 
-    const pass = new Pass(state);
-    pass.initialize();
+    const pass = Pass.Pass(state);
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
+    pass.setUniform('Props', 'albedo', default_color);
     return pass;
 })()
 
@@ -56,11 +59,7 @@ const vec3_b = vec3.create();
 export class TextRenderer extends BoundedRenderer {
     private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
 
-    private _pass = (function () {
-        const instance = new PassInstance(pass);
-        instance.initialize();
-        return instance;
-    })();
+    private _pass = PassInstance.PassInstance(pass);
 
     private _text: string = "";
     get text(): string {
@@ -74,7 +73,7 @@ export class TextRenderer extends BoundedRenderer {
         this._dirtyFlag |= DirtyFlagBits.TEXT;
     }
 
-    private _color: Readonly<Vec4> = vec4.ONE;
+    private _color = default_color;
     public get color(): Readonly<Vec4> {
         return this._color;
     }
@@ -89,23 +88,22 @@ export class TextRenderer extends BoundedRenderer {
 
     private _quads = 0;
 
+    public get bounds(): Readonly<AABB3D> {
+        return this._mesh.bounds;
+    }
+
     constructor(node: Node) {
         super(node);
 
         const vertexView = quad.createVertexBufferView();
         const subMesh: SubMesh = new SubMesh(quad.createInputAssembler(vertexView.buffer));
-        const mesh = new Mesh([subMesh]);
 
-        this._model.mesh = mesh;
-
-        this._mesh = mesh;
+        this._mesh = new Mesh([subMesh]);;
         this._vertexView = vertexView;
     }
 
-    override start(): void {
-        this._pass.setUniform('Props', 'albedo', this._color);
-        this._model.materials = [new Material([this._pass])];
-        Zero.instance.scene.addModel(this._model)
+    protected createModel(): Model | null {
+        return new Model(this.node, this._mesh, [new Material([this._pass])])
     }
 
     override lateUpdate(): void {

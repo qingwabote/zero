@@ -10,27 +10,28 @@ interface BoundsEventToListener {
     [BoundsEventName.BOUNDS_CHANGED]: () => void;
 }
 
+/**
+ * Provides a bounds for ui system
+ */
 export abstract class BoundedRenderer extends ModelRenderer implements EventEmitter<BoundsEventToListener> {
     static readonly PIXELS_PER_UNIT: number = 100;
 
     private __emitter?: EventEmitter<BoundsEventToListener> = undefined;
     private get _emitter() {
-        return this.__emitter ? this.__emitter : this.__emitter = new EventEmitterImpl;
+        return this.__emitter ?? (this.__emitter = new EventEmitterImpl);
     }
-    has<K extends BoundsEventName>(name: K): boolean {
+    has<K extends keyof BoundsEventToListener>(name: K): boolean {
         return this.__emitter ? this.__emitter.has(name) : false;
     }
-    on<K extends BoundsEventName>(name: K, listener: BoundsEventToListener[K] extends (event: any) => void ? BoundsEventToListener[K] : (event: any) => void): void {
+    on<K extends keyof BoundsEventToListener>(name: K, listener: BoundsEventToListener[K]): void {
         this._emitter.on(name, listener);
     }
-    off<K extends BoundsEventName>(name: K, listener: BoundsEventToListener[K] extends (event: any) => void ? BoundsEventToListener[K] : (event: any) => void): void {
+    off<K extends keyof BoundsEventToListener>(name: K, listener: BoundsEventToListener[K]): void {
         this._emitter.off(name, listener);
     }
-    emit<K extends BoundsEventName>(name: K, event?: Parameters<BoundsEventToListener[K] extends (event: any) => void ? BoundsEventToListener[K] : (event: any) => void>[0] | undefined): void {
-        this.__emitter?.emit(name, event);
+    emit<K extends keyof BoundsEventToListener>(name: K, ...args: Parameters<BoundsEventToListener[K]>): void {
+        this.__emitter?.emit(name, ...args);
     }
 
-    public get bounds(): Readonly<AABB3D> {
-        return this._model.mesh.bounds;
-    }
+    public abstract get bounds(): Readonly<AABB3D>;
 }

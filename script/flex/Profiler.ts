@@ -40,10 +40,11 @@ export class Profiler extends ElementContainer {
         this._time += dt;
 
         this._text.impl.text = `FPS: ${this._fps.toFixed(2)}
-Draw call: ${Zero.instance.drawCall}
-Render(ms): ${this._render_time.toFixed(2)}
-Logic(ms): ${this._logic_time.toFixed(2)}
-Boot(s): ${boot_time.toFixed(2)}`;
+draws: ${Zero.instance.commandCalls.draws}
+render passes: ${Zero.instance.commandCalls.renderPasses}
+render: ${this._render_time.toFixed(2)}ms
+logic: ${this._logic_time.toFixed(2)}ms
+boot: ${boot_time.toFixed(2)}s`;
     }
 
     private profileLogic() {

@@ -1,12 +1,12 @@
 passes:
   - shader: ${ENGINE_ASSETS}/shaders/shadow
-    type: shadowmap
+    type: shadow
     rasterizationState:
       cullMode: FRONT
     depthStencilState:
       depthTestEnable: true
   - shader: ${ENGINE_ASSETS}/shaders/phong
-    type: shadow
+    type: phong-shadow
     macros:
       USE_SHADOW_MAP: 1
       SHADOW_MAP_PCF: 0

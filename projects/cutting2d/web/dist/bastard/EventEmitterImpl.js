@@ -18,8 +18,8 @@ export class EventEmitterImpl {
         let callbacks = this._event2callbacks.get(name);
         callbacks === null || callbacks === void 0 ? void 0 : callbacks.delete(listener);
     }
-    emit(name, event) {
+    emit(name, ...args) {
         const callbacks = this._event2callbacks.get(name);
-        callbacks === null || callbacks === void 0 ? void 0 : callbacks.call(event);
+        callbacks === null || callbacks === void 0 ? void 0 : callbacks.call(...args);
     }
 }

@@ -1,5 +1,5 @@
 import { GestureEvent, TouchEvent } from "boot";
-import { BoundedRenderer, Camera, Node, TouchEventName, Vec2, Zero, aabb2d, mat4, vec2 } from "engine";
+import { BoundedRenderer, Node, TouchEventName, Vec2, Zero, aabb2d, mat4, render, vec2 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -38,7 +38,7 @@ export class Document extends ElementContainer {
     }
 
     private eventHandler(event: TouchEvent, name: TouchEventName) {
-        const cameras = Camera.instances;
+        const cameras = Zero.instance.scene.cameras;
         const world_positions: Vec2[] = [];
         for (let i = 0; i < cameras.length; i++) {
             world_positions[i] = cameras[i].screenToWorld(vec2.create(), event.touches[0].x, event.touches[0].y);
@@ -51,7 +51,7 @@ export class Document extends ElementContainer {
         }
     }
 
-    private touchWalk(element: Element, cameras: readonly Camera[], world_positions: readonly Readonly<Vec2>[], name: TouchEventName, event: TouchEvent) {
+    private touchWalk(element: Element, cameras: readonly render.Camera[], world_positions: readonly Readonly<Vec2>[], name: TouchEventName, event: TouchEvent) {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (!(element.node.visibility & camera.visibilities)) {

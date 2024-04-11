@@ -7,12 +7,14 @@ export interface Vec2Like {
     1: number;
 }
 
-export const vec2 = {
-    ZERO: [0, 0],
+function create(x: number = 0, y: number = 0): Vec2 {
+    return [x, y];
+}
 
-    create(x: number = 0, y: number = 0): Vec2 {
-        return [x, y];
-    },
+export const vec2 = {
+    ZERO: Object.freeze(create(0, 0)),
+
+    create,
 
     set<Out extends Vec2Like>(out: Out, x: number, y: number) {
         out[0] = x;

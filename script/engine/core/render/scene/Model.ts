@@ -2,29 +2,18 @@ import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { mat4 } from "../../math/mat4.js";
-import { vec3 } from "../../math/vec3.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferView } from "../BufferView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";
 
-const NULL_MATERIALS: readonly Material[] = Object.freeze([]);
-
-const vec3_a = vec3.create();
-const vec3_b = vec3.create();
-
 export class Model {
-    static readonly descriptorSetLayout = (function () {
-        const layout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
-        (layout as any).name = "Model descriptorSetLayout";
-        return layout;
-    })();
+    static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
 
     private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
     private _localBuffer_invalid = false;
 
-    protected _transform!: Transform;
     public get transform(): Transform {
         return this._transform;
     }
@@ -43,7 +32,6 @@ export class Model {
         return this._world_bounds;
     }
 
-    private _mesh = Mesh.NULL;
     public get mesh() {
         return this._mesh;
     }
@@ -52,15 +40,13 @@ export class Model {
         this._world_bounds_invalid = true;
     }
 
-    materials = NULL_MATERIALS;
-
     type: string = 'default';
 
     order: number = 0;
 
     readonly descriptorSet: DescriptorSet;
 
-    constructor() {
+    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
         const ModelType = (this.constructor as typeof Model);
         const descriptorSet = device.createDescriptorSet(ModelType.descriptorSetLayout);
         descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
@@ -82,6 +68,7 @@ export class Model {
 
         if (this._localBuffer_invalid) {
             this._localBuffer.set(this._transform.world_matrix);
+            // http://www.lighthouse3d.com/tutorials/glsl-tutorial/the-normal-matrix/ or https://paroj.github.io/gltut/Illumination/Tut09%20Normal%20Transformation.html
             this._localBuffer.set(mat4.inverseTranspose(mat4.create(), this._transform.world_matrix), 16);
             this._localBuffer.update();
             this._localBuffer_invalid = false;

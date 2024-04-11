@@ -75,8 +75,7 @@ export class Effect extends Yml {
                 blendState.dstAlpha = gfx_BlendFactor(info.blendState.dstAlpha);
                 passState.blendState = blendState;
             }
-            const pass = new render.Pass(passState, info.type);
-            pass.initialize();
+            const pass = render.Pass.Pass(passState, info.type);
             for (const key in info.props) {
                 pass.setUniform('Props', key, info.props[key]);
             }

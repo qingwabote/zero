@@ -1,4 +1,4 @@
-import { BoundedRenderer, Camera, TouchEventName, Zero, aabb2d, mat4, vec2 } from "engine";
+import { BoundedRenderer, TouchEventName, Zero, aabb2d, mat4, vec2 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -30,7 +30,7 @@ export class Document extends ElementContainer {
         return order;
     }
     eventHandler(event, name) {
-        const cameras = Camera.instances;
+        const cameras = Zero.instance.scene.cameras;
         const world_positions = [];
         for (let i = 0; i < cameras.length; i++) {
             world_positions[i] = cameras[i].screenToWorld(vec2.create(), event.touches[0].x, event.touches[0].y);

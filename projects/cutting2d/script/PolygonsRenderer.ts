@@ -57,8 +57,7 @@ export default class PolygonsRenderer extends Element {
         state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
-        const pass = new render.Pass(state);
-        pass.initialize()
+        const pass = render.Pass.Pass(state);
         pass.setUniform('Props', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
         this._material = { passes: [pass] };
@@ -70,7 +69,7 @@ export default class PolygonsRenderer extends Element {
             for (; i < this._polygons.length; i++) {
                 const polygon = this._polygons[i];
                 const renderer = this.cacheMeshRenderer(i);
-                const subMesh = renderer.mesh.subMeshes[0];
+                const subMesh = renderer.mesh!.subMeshes[0];
                 const vertexBuffer = this._vertexViews[i];
                 vertexBuffer.reset(5 * polygon.vertexes.length);
                 let offset = 0;
@@ -85,7 +84,7 @@ export default class PolygonsRenderer extends Element {
                 vertexBuffer.update();
                 vec3.set(vec3_a, ...polygon.vertexPosMin, 0);
                 vec3.set(vec3_b, ...polygon.vertexPosMax, 0);
-                renderer.mesh.setBoundsByPoints(vec3_a, vec3_b);
+                renderer.mesh!.setBoundsByPoints(vec3_a, vec3_b);
 
                 const indexBuffer = this._indexViews[i];
                 triangulate(polygon.vertexes.length, indexBuffer);
@@ -98,7 +97,7 @@ export default class PolygonsRenderer extends Element {
             }
             for (; i < this._meshRenderers.length; i++) {
                 const renderer = this._meshRenderers[i];
-                const subMesh = renderer.mesh.subMeshes[0];
+                const subMesh = renderer.mesh!.subMeshes[0];
                 subMesh.drawInfo.count = 0;
             }
             this._polygons_invalidated = false;

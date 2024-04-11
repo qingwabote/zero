@@ -1,25 +1,31 @@
 import { Component } from "../../core/Component.js";
-import { Model } from "../../core/render/scene/Model.js";
+import { Zero } from "../../core/Zero.js";
 export class ModelRenderer extends Component {
+    constructor() {
+        super(...arguments);
+        this._model = null;
+        this._type = 'default';
+        this._order = 0;
+    }
     get type() {
-        return this._model.type;
+        return this._type;
     }
     set type(value) {
-        this._model.type = value;
+        this._type = value;
     }
     get order() {
-        return this._model.order;
+        return this._order;
     }
     set order(value) {
-        this._model.order = value;
+        this._order = value;
     }
-    constructor(node) {
-        super(node);
-        this._model = this.createModel();
-    }
-    createModel() {
-        const model = new Model();
-        model.transform = this.node;
-        return model;
+    update(dt) {
+        if (!this._model) {
+            (this._model = this.createModel()) && Zero.instance.scene.addModel(this._model);
+        }
+        if (this._model) {
+            this._model.type = this._type;
+            this._model.order = this._order;
+        }
     }
 }

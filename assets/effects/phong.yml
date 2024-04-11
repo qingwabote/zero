@@ -1,7 +1,7 @@
 passes:
   - switch: USE_SHADOW_MAP
     shader: ../shaders/shadow
-    type: shadowmap
+    type: shadow
     rasterizationState:
       cullMode: FRONT
     depthStencilState:

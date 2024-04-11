@@ -2,9 +2,10 @@ import { bundle } from "bundling";
 import { CullMode, Filter, PassState, PrimitiveTopology, RasterizationState } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
-import { Zero } from "../core/Zero.js";
+import { aabb3d } from "../core/math/aabb3d.js";
 import { vec4 } from "../core/math/vec4.js";
 import { Material } from "../core/render/scene/Material.js";
+import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -14,6 +15,7 @@ export class SpriteRenderer extends BoundedRenderer {
     constructor() {
         super(...arguments);
         this.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
+        this._spriteFrame = null;
         this.filter = Filter.NEAREST;
         this.color = vec4.ONE;
     }
@@ -25,22 +27,26 @@ export class SpriteRenderer extends BoundedRenderer {
         this._spriteFrame = value;
         this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
-    start() {
+    get bounds() {
+        var _a, _b;
+        return (_b = (_a = this._spriteFrame) === null || _a === void 0 ? void 0 : _a.mesh.bounds) !== null && _b !== void 0 ? _b : aabb3d.ZERO;
+    }
+    createModel() {
+        if (!this._spriteFrame) {
+            return null;
+        }
         const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
         const state = new PassState;
         state.shader = this.shader;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         state.rasterizationState = rasterizationState;
-        const pass = new Pass(state);
-        pass.initialize();
+        const pass = Pass.Pass(state);
         if (pass.hasUniform('Props', 'albedo')) {
             pass.setUniform('Props', 'albedo', this.color);
         }
         pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter));
-        this._model.mesh = this._spriteFrame.mesh;
-        this._model.materials = [new Material([pass])];
-        Zero.instance.scene.addModel(this._model);
+        return new Model(this.node, this._spriteFrame.mesh, [new Material([pass])]);
     }
 }
 SpriteRenderer.PIXELS_PER_UNIT = SpriteFrame.PIXELS_PER_UNIT;

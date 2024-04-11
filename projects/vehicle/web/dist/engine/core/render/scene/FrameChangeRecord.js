@@ -8,7 +8,7 @@ export class FrameChangeRecord {
     }
     constructor(_hasChanged = 0) {
         this._hasChanged = _hasChanged;
-        this._frameId = 0;
+        this._frameId = FrameChangeRecord.frameId;
     }
 }
 FrameChangeRecord.frameId = 0;

@@ -1,4 +1,4 @@
-import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, safeArea, vec3 } from "engine";
+import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, Zero, bundle as builtin, device, safeArea, vec3 } from "engine";
 import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Profiler, Renderer } from "flex";
 import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
 const favicon = await builtin.cache('favicon.ico', Texture);
@@ -7,6 +7,13 @@ const msaa = await (await builtin.cache('pipelines/unlit-ms', Pipeline)).instant
 const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).instantiate();
 const text_color_normal = [0.5, 0.5, 0.5, 1];
 const text_color_selected = [0, 1, 0, 1];
+var VisibilityFlagBits;
+(function (VisibilityFlagBits) {
+    VisibilityFlagBits[VisibilityFlagBits["NONE"] = 0] = "NONE";
+    VisibilityFlagBits[VisibilityFlagBits["UI"] = 536870912] = "UI";
+    VisibilityFlagBits[VisibilityFlagBits["WORLD"] = 1073741824] = "WORLD";
+    VisibilityFlagBits[VisibilityFlagBits["ALL"] = 4294967295] = "ALL";
+})(VisibilityFlagBits || (VisibilityFlagBits = {}));
 export default class App extends Zero {
     constructor() {
         super(...arguments);
@@ -23,11 +30,11 @@ export default class App extends Zero {
         node = new Node;
         const camera = node.addComponent(Camera);
         camera.orthoSize = swapchain.height / scale / 2;
-        camera.viewport = { x: 0, y: 0, width: swapchain.width, height: swapchain.height };
+        camera.visibilities = VisibilityFlagBits.UI;
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;
         node.position = vec3.create(-width / 2, height / 2);
-        node.visibility = VisibilityFlagBits.DEFAULT;
+        node.visibility = VisibilityFlagBits.UI;
         const doc = node.addComponent(Document);
         doc.alignItems = Align.Center;
         doc.setWidth(width);
@@ -81,7 +88,6 @@ export default class App extends Zero {
         profiler.setPosition(Edge.Left, 8);
         profiler.setPosition(Edge.Bottom, 8);
         doc.addElement(profiler);
-        return normal;
     }
     onPipelineText(pipeline, renderer) {
         if (this._pipelineTextSelected) {
@@ -92,4 +98,4 @@ export default class App extends Zero {
         this._pipelineTextSelected = renderer;
     }
 }
-(new App).initialize();
+(new App(normal)).initialize().attach();

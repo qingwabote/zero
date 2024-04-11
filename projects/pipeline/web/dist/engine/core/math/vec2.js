@@ -1,8 +1,9 @@
+function create(x = 0, y = 0) {
+    return [x, y];
+}
 export const vec2 = {
-    ZERO: [0, 0],
-    create(x = 0, y = 0) {
-        return [x, y];
-    },
+    ZERO: Object.freeze(create(0, 0)),
+    create,
     set(out, x, y) {
         out[0] = x;
         out[1] = y;

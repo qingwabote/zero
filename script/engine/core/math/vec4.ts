@@ -6,13 +6,17 @@ export interface Vec4Like extends Vec3Like {
     3: number;
 }
 
-export const vec4 = {
-    ZERO: [0, 0, 0, 0],
-    ONE: [1, 1, 1, 1],
+function create(x = 0, y = 0, z = 0, w = 0): Vec4 {
+    return [x, y, z, w];
+}
 
-    create(x = 0, y = 0, z = 0, w = 0): Vec4 {
-        return [x, y, z, w];
-    },
+export const vec4 = {
+    ZERO: Object.freeze(create(0, 0, 0, 0)),
+    ONE: Object.freeze(create(1, 1, 1, 1)),
+    RED: Object.freeze(create(1, 0, 0, 1)),
+    YELLOW: Object.freeze(create(1, 1, 0, 1)),
+
+    create,
 
     set<Out extends Vec4Like>(out: Out, x: number, y: number, z: number, w: number) {
         out[0] = x;

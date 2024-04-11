@@ -6,8 +6,6 @@ export * from 'bundling';
 
 export * from './marionette/index.js';
 
-export * from './VisibilityFlagBits.js';
-
 export * from './assets/index.js';
 export * from './components/index.js';
 export * from './core/index.js';

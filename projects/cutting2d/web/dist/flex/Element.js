@@ -6,7 +6,8 @@ const vec3_a = vec3.create();
 function yg_node_free(node) { node.free(); }
 export class Element extends Component {
     get emitter() {
-        return this._emitter ? this._emitter : this._emitter = new EventEmitterImpl;
+        var _a;
+        return (_a = this._emitter) !== null && _a !== void 0 ? _a : (this._emitter = new EventEmitterImpl);
     }
     get bounds() {
         return this._bounds;

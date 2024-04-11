@@ -2,31 +2,29 @@
 import { log } from "./console.js";
 //
 import { Device } from "gfx";
-const noop = function () { };
 // set initial size that doesn't change later
 // High DPI
 const documentElement = document.documentElement;
-const width = documentElement.clientWidth * window.devicePixelRatio;
-const height = documentElement.clientHeight * window.devicePixelRatio;
+const bufferWidth = documentElement.clientWidth * devicePixelRatio;
+const bufferHeight = documentElement.clientHeight * devicePixelRatio;
 const canvas = document.getElementById('boot_canvas');
-canvas.width = width;
-canvas.height = height;
+canvas.width = bufferWidth;
+canvas.height = bufferHeight;
 canvas.style.width = `${documentElement.clientWidth}px`;
 canvas.style.height = `${documentElement.clientHeight}px`;
 log(`canvas style size ${canvas.style.width} ${canvas.style.height}
 canvas size ${canvas.width} ${canvas.height}
-devicePixelRatio ${window.devicePixelRatio}
+devicePixelRatio ${devicePixelRatio}
 `);
-const textarea = document.getElementById("boot_log");
-const safeArea_top = textarea.clientHeight * window.devicePixelRatio;
-export const safeArea = { left: 0, right: 0, top: safeArea_top, bottom: 0, width, height: height - safeArea_top };
+export const safeArea = (function () {
+    const top = document.getElementById("boot_log").clientHeight * devicePixelRatio;
+    return { left: 0, right: 0, top, bottom: 0, width: bufferWidth, height: bufferHeight - top };
+})();
 export const platform = 'web';
 export const device = new Device(canvas.getContext('webgl2', { antialias: false }));
 export const initial = performance.now();
-export function now() {
-    return performance.now();
-}
-export function load(url, type, onProgress = noop) {
+export function now() { return performance.now(); }
+export function load(url, type, onProgress) {
     return new Promise((resolve, reject) => {
         function rej(reason) {
             log(reason);
@@ -60,7 +58,7 @@ export function load(url, type, onProgress = noop) {
         };
         xhr.onprogress = (event) => {
             log(`download: ${url}, progress: ${event.loaded / event.total * 100}`);
-            onProgress(event.loaded, event.total, url);
+            onProgress === null || onProgress === void 0 ? void 0 : onProgress(event.loaded, event.total, url);
         };
         xhr.onerror = () => {
             rej(`download failed: ${url}, status: ${xhr.status}(error)`);

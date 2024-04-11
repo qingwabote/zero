@@ -2,13 +2,8 @@ import { device } from "boot";
 import { BufferUsageFlagBits } from "gfx";
 import { aabb3d } from "../../math/aabb3d.js";
 import { mat4 } from "../../math/mat4.js";
-import { vec3 } from "../../math/vec3.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferView } from "../BufferView.js";
-import { Mesh } from "./Mesh.js";
-const NULL_MATERIALS = Object.freeze([]);
-const vec3_a = vec3.create();
-const vec3_b = vec3.create();
 export class Model {
     get transform() {
         return this._transform;
@@ -31,13 +26,14 @@ export class Model {
         this._mesh = value;
         this._world_bounds_invalid = true;
     }
-    constructor() {
+    constructor(_transform, _mesh, materials) {
+        this._transform = _transform;
+        this._mesh = _mesh;
+        this.materials = materials;
         this._localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
         this._localBuffer_invalid = false;
         this._world_bounds_invalid = false;
         this._world_bounds = aabb3d.create();
-        this._mesh = Mesh.NULL;
-        this.materials = NULL_MATERIALS;
         this.type = 'default';
         this.order = 0;
         const ModelType = this.constructor;
@@ -57,6 +53,7 @@ export class Model {
         }
         if (this._localBuffer_invalid) {
             this._localBuffer.set(this._transform.world_matrix);
+            // http://www.lighthouse3d.com/tutorials/glsl-tutorial/the-normal-matrix/ or https://paroj.github.io/gltut/Illumination/Tut09%20Normal%20Transformation.html
             this._localBuffer.set(mat4.inverseTranspose(mat4.create(), this._transform.world_matrix), 16);
             this._localBuffer.update();
             this._localBuffer_invalid = false;
@@ -68,8 +65,4 @@ export class Model {
         }
     }
 }
-Model.descriptorSetLayout = (function () {
-    const layout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
-    layout.name = "Model descriptorSetLayout";
-    return layout;
-})();
+Model.descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);

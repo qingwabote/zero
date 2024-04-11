@@ -38,7 +38,7 @@ export const mat3 = {
         return a[0] * (a[8] * a[4] - a[5] * a[7]) + a[1] * (-a[8] * a[3] + a[5] * a[6]) + a[2] * (a[7] * a[3] - a[4] * a[6]);
     },
     /**
-     * @param view The view direction, it's must be normalized.
+     * @param view The view(z-axis) direction, it's must be normalized.
      * @param up The up direction, it's must be normalized, default value is (0, 1, 0).
      */
     fromViewUp(out, view, up = vec3.UP) {

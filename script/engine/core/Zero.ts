@@ -1,12 +1,13 @@
 import { EventEmitterImpl } from "bastard";
-import { EventListener, GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
-import { CommandBuffer, Fence, PipelineStageFlagBits, Semaphore, SubmitInfo } from "gfx";
+import { GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
+import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
 import { Input, TouchEventName } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
+import { CommandCalls } from "./render/pipeline/CommandCalls.js";
 import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
 import { Root } from "./render/scene/Root.js";
 
@@ -26,7 +27,7 @@ interface EventToListener {
     [ZeroEvent.RENDER_END]: () => void;
 }
 
-export abstract class Zero extends EventEmitterImpl<EventToListener> implements EventListener {
+export abstract class Zero extends EventEmitterImpl<EventToListener> {
     private static _instance: Zero;
     public static get instance(): Zero {
         return Zero._instance;
@@ -48,23 +49,30 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     private readonly _systems: readonly System[];
 
-    pipeline!: Pipeline;
+    private readonly _commandBuffer = device.createCommandBuffer();
+    private readonly _presentSemaphore = device.createSemaphore();
+    private readonly _renderSemaphore = device.createSemaphore();
+    private readonly _renderFence = device.createFence();
 
-    private _commandBuffer: CommandBuffer;
-    private _presentSemaphore: Semaphore;
-    private _renderSemaphore: Semaphore;
-    private _renderFence: Fence;
-
-    private _inputEvents: Map<TouchEventName, any> = new Map;
+    private readonly _inputEvents: Map<TouchEventName, any> = new Map;
 
     private _time = initial;
 
-    private _drawCall: number = 0;
-    get drawCall() {
-        return this._drawCall;
+    private _commandCalls: CommandCalls = { renderPasses: 0, draws: 0 };
+    public get commandCalls(): Readonly<CommandCalls> {
+        return this._commandCalls;
     }
 
-    constructor() {
+    private _pipeline_changed = true;
+    public get pipeline(): Pipeline {
+        return this._pipeline;
+    }
+    public set pipeline(value: Pipeline) {
+        this._pipeline = value;
+        this._pipeline_changed = true;
+    }
+
+    constructor(private _pipeline: Pipeline) {
         super();
 
         const systems: System[] = [...Zero._system2priority.keys()];
@@ -73,25 +81,15 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         })
         this._systems = systems;
 
-        const commandBuffer = device.createCommandBuffer();
-        this._commandBuffer = commandBuffer;
-
-        const presentSemaphore = device.createSemaphore();
-        this._presentSemaphore = presentSemaphore;
-
-        const renderSemaphore = device.createSemaphore();
-        this._renderSemaphore = renderSemaphore;
-
-        const renderFence = device.createFence();
-        this._renderFence = renderFence;
-
         Zero._instance = this;
     }
 
     initialize() {
-        this.pipeline = this.start();
-        this.attach();
+        this.start();
+        return this;
     }
+
+    protected abstract start(): void;
 
     attach() {
         attach(this);
@@ -112,8 +110,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     clearInterval(func: () => void) {
         this._timeScheduler.clearInterval(func);
     }
-
-    protected abstract start(): Pipeline;
 
     onTouchStart(event: TouchEvent) {
         this._inputEvents.set(TouchEventName.START, event)
@@ -156,11 +152,21 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
+        if (this._pipeline_changed) {
+            this._pipeline.use();
+            this._pipeline_changed = false;
+        }
         this.scene.update();
-        this.pipeline.update();
+        this._pipeline.update();
         FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._drawCall = this.pipeline.record(this._commandBuffer, this.scene.cameras);
+
+        this._commandCalls.renderPasses = 0;
+        this._commandCalls.draws = 0;
+        for (let i = 0; i < this.scene.cameras.length; i++) {
+            this._pipeline.record(this._commandCalls, this._commandBuffer, i);
+        }
+
         this._commandBuffer.end();
         this.emit(ZeroEvent.RENDER_END);
 

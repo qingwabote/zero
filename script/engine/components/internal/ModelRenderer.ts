@@ -1,32 +1,36 @@
 import { Component } from "../../core/Component.js";
-import { Node } from "../../core/Node.js";
+import { Zero } from "../../core/Zero.js";
 import { Model } from "../../core/render/scene/Model.js";
 
 export abstract class ModelRenderer extends Component {
-    protected _model: Model;
+    protected _model: Model | null = null;
 
+    private _type: string = 'default';
     public get type(): string {
-        return this._model.type;
+        return this._type;
     }
     public set type(value: string) {
-        this._model.type = value;
+        this._type = value;
     }
 
+    private _order: number = 0;
     public get order(): number {
-        return this._model.order;
+        return this._order;
     }
     public set order(value: number) {
-        this._model.order = value;
+        this._order = value;
     }
 
-    constructor(node: Node) {
-        super(node);
-        this._model = this.createModel()
+    update(dt: number): void {
+        if (!this._model) {
+            (this._model = this.createModel()) && Zero.instance.scene.addModel(this._model);
+        }
+
+        if (this._model) {
+            this._model.type = this._type;
+            this._model.order = this._order;
+        }
     }
 
-    protected createModel() {
-        const model = new Model();
-        model.transform = this.node;
-        return model;
-    }
+    protected abstract createModel(): Model | null;
 }

@@ -2,7 +2,7 @@ import { device } from "boot";
 import { ClearFlagBits, CommandBuffer, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Zero } from "../../Zero.js";
 import { Rect } from "../../math/rect.js";
-import { Context } from "../Context.js";
+import { CommandCalls } from "./CommandCalls.js";
 import { Phase } from "./Phase.js";
 import { getRenderPass } from "./rpc.js";
 
@@ -26,38 +26,37 @@ const defaultFramebuffer = (function () {
 })();
 
 export class Stage {
-    get framebuffer(): Framebuffer {
-        return this._framebuffer;
-    }
+    readonly visibilities: number;
 
     constructor(
-        private _context: Context,
         private _phases: Phase[],
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _clears?: ClearFlagBits,
-        private _viewport?: Rect
-    ) { }
-
-    record(commandBuffer: CommandBuffer): number {
-        const camera = Zero.instance.scene.cameras[this._context.cameraIndex];
-        const phases = this._phases.filter(phase => camera.visibilities & phase.visibility);
-        if (phases.length == 0) {
-            return 0;
+        public rect?: Readonly<Rect>
+    ) {
+        let visibilities = 0;
+        for (const phase of _phases) {
+            visibilities |= phase.visibility;
         }
+        this.visibilities = visibilities;
+    }
 
-        const clears = this._clears ?? camera.clears;
-        const renderPass = getRenderPass(this._framebuffer.info, clears);
-        const viewport = this._viewport || camera.viewport;
+    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {
+        const camera = Zero.instance.scene.cameras[cameraIndex];
 
-        commandBuffer.beginRenderPass(renderPass, this._framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);
+        const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
+        const rect = this.rect ?? camera.rect;
 
-        let dc = 0;
-        for (const phase of phases) {
-            dc += phase.record(commandBuffer, renderPass);
+        const { width, height } = this._framebuffer.info;
+        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect.x, height * rect.y, width * rect.width, height * rect.height);
+
+        for (const phase of this._phases) {
+            if (camera.visibilities & phase.visibility) {
+                phase.record(commandCalls, commandBuffer, renderPass, cameraIndex);
+            }
         }
 
         commandBuffer.endRenderPass();
-
-        return dc;
+        commandCalls.renderPasses++;
     }
 }

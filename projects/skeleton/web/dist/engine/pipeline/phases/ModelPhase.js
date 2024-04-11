@@ -1,9 +1,8 @@
-import { VisibilityFlagBits } from "../../VisibilityFlagBits.js";
 import { Zero } from "../../core/Zero.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { shaderLib } from "../../core/shaderLib.js";
 export class ModelPhase extends Phase {
-    constructor(context, visibility = VisibilityFlagBits.ALL, 
+    constructor(context, visibility, 
     /**The model type that indicates which models should run in this phase */
     _model = 'default', 
     /**The pass type that indicates which passes should run in this phase */
@@ -12,15 +11,19 @@ export class ModelPhase extends Phase {
         this._model = _model;
         this._pass = _pass;
     }
-    record(commandBuffer, renderPass) {
+    record(commandCalls, commandBuffer, renderPass, cameraIndex) {
         const scene = Zero.instance.scene;
-        const camera = scene.cameras[this._context.cameraIndex];
-        let dc = 0;
+        const camera = scene.cameras[cameraIndex];
+        // hard code
+        const frustum = this._pass == 'shadow' ? scene.directionalLight.shadows[cameraIndex].frustum : camera.frustum;
         for (const model of scene.models) {
             if ((camera.visibilities & model.transform.visibility) == 0) {
                 continue;
             }
             if (model.type != this._model) {
+                continue;
+            }
+            if (!frustum.aabb(model.world_bounds)) {
                 continue;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
@@ -51,10 +54,9 @@ export class ModelPhase extends Phase {
                     else {
                         commandBuffer.draw(drawInfo.count);
                     }
-                    dc++;
+                    commandCalls.draws++;
                 }
             }
         }
-        return dc;
     }
 }

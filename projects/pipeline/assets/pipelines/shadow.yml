@@ -5,21 +5,27 @@ textures:
       - SAMPLED
     width: 1024
     height: 1024
+ubos:
+  - name: camera
+    type: Camera
+  - name: light
+    type: Light
+  - name: shadow
+    type: Shadow
 flows:
-  - uniforms:
-      - type: camera
+  - bindings:
+      - ubo: camera
         binding: 1
-      - type: light
+      - ubo: light
         binding: 2
-      - type: shadow
+      - ubo: shadow
         binding: 3
-      - type: samplerTexture
-        texture: shadowmap
+      - texture: shadowmap
         binding: 0
     stages:
-      - name: shadowmap
+      - name: shadow
         phases:
-          - pass: shadowmap
+          - pass: shadow
             visibility: ${DEFAULT}
         framebuffer:
           depthStencil: shadowmap
@@ -27,7 +33,7 @@ flows:
           - DEPTH
       - name: forward
         phases:
-          - pass: shadow
+          - pass: phong-shadow
             visibility: ${DEFAULT}
           - pass: default
             visibility: ${UI}

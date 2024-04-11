@@ -9,6 +9,13 @@ export const rect = {
         out.height = height;
         return out;
     },
+    copy(out, a) {
+        out.x = a.x;
+        out.y = a.y;
+        out.width = a.width;
+        out.height = a.height;
+        return out;
+    },
     contains(rect, point) {
         return (rect.x <= point[0]
             && rect.x + rect.width >= point[0]

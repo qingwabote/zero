@@ -4,17 +4,18 @@ import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, Raster
 import { PassInstance } from "../PassInstance.js";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
-import { Zero } from "../core/Zero.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { Material, Mesh } from "../core/render/index.js";
 import { quad } from "../core/render/quad.js";
+import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
+const default_color = vec4.ONE;
 const pass = await (async function () {
     const ss_unlit = await bundle.cache('shaders/unlit', Shader);
     const rasterizationState = new RasterizationState;
@@ -29,9 +30,9 @@ const pass = await (async function () {
     state.primitive = PrimitiveTopology.TRIANGLE_LIST;
     state.rasterizationState = rasterizationState;
     state.blendState = blendState;
-    const pass = new Pass(state);
-    pass.initialize();
+    const pass = Pass.Pass(state);
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
+    pass.setUniform('Props', 'albedo', default_color);
     return pass;
 })();
 var DirtyFlagBits;
@@ -60,28 +61,24 @@ export class TextRenderer extends BoundedRenderer {
         this._pass.setUniform('Props', 'albedo', value);
         this._color = value;
     }
+    get bounds() {
+        return this._mesh.bounds;
+    }
     constructor(node) {
         super(node);
         this._dirtyFlag = DirtyFlagBits.TEXT;
-        this._pass = (function () {
-            const instance = new PassInstance(pass);
-            instance.initialize();
-            return instance;
-        })();
+        this._pass = PassInstance.PassInstance(pass);
         this._text = "";
-        this._color = vec4.ONE;
+        this._color = default_color;
         this._quads = 0;
         const vertexView = quad.createVertexBufferView();
         const subMesh = new SubMesh(quad.createInputAssembler(vertexView.buffer));
-        const mesh = new Mesh([subMesh]);
-        this._model.mesh = mesh;
-        this._mesh = mesh;
+        this._mesh = new Mesh([subMesh]);
+        ;
         this._vertexView = vertexView;
     }
-    start() {
-        this._pass.setUniform('Props', 'albedo', this._color);
-        this._model.materials = [new Material([this._pass])];
-        Zero.instance.scene.addModel(this._model);
+    createModel() {
+        return new Model(this.node, this._mesh, [new Material([this._pass])]);
     }
     lateUpdate() {
         this.updateData();

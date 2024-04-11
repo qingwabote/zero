@@ -12,7 +12,7 @@ export class Mesh extends FrameChangeRecord {
         this.setBoundsByPoints(pointMin, pointMax);
     }
     setBoundsByPoints(min, max) {
-        aabb3d.fromPoints(this._bounds, min, max);
+        aabb3d.fromExtremes(this._bounds, min, max);
         this.hasChanged = 1;
     }
     setBoundsByRect(offset, size) {
@@ -20,4 +20,3 @@ export class Mesh extends FrameChangeRecord {
         this.hasChanged = 1;
     }
 }
-Mesh.NULL = Object.freeze(new Mesh([]));

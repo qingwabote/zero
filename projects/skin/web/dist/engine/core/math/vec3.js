@@ -6,6 +6,7 @@ export const vec3 = {
     UNIT_Y: Object.freeze(create(0, 1, 0)),
     UNIT_Z: Object.freeze(create(0, 0, 1)),
     ZERO: Object.freeze(create(0, 0, 0)),
+    ONE: Object.freeze(create(1, 1, 1)),
     UP: Object.freeze(create(0, 1, 0)),
     FORWARD: Object.freeze(create(0, 0, -1)),
     create,

@@ -21,14 +21,15 @@ export class SkinnedModel extends Model {
         this._joints = undefined;
     }
     get transform() {
-        return this._transform;
+        return super.transform;
     }
     set transform(value) {
         super.transform = value;
         this._joints = undefined;
     }
-    constructor() {
-        super();
+    constructor(transform, mesh, materials, _skin) {
+        super(transform, mesh, materials);
+        this._skin = _skin;
         this._joints = undefined;
         this._skinBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
         this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
@@ -36,7 +37,7 @@ export class SkinnedModel extends Model {
     update() {
         super.update();
         if (!this._joints) {
-            this._joints = this._skin.joints.map(paths => this._transform.getChildByPath(paths));
+            this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths));
         }
         for (let i = 0; i < this._joints.length; i++) {
             const joint = this._joints[i];
@@ -55,7 +56,7 @@ export class SkinnedModel extends Model {
             return;
         }
         const parent = joint.parent;
-        if (parent == this._transform) {
+        if (parent == this.transform) {
             modelSpace.matrix.splice(0, joint.matrix.length, ...joint.matrix);
         }
         else {
@@ -65,11 +66,7 @@ export class SkinnedModel extends Model {
         modelSpace.hasChanged = 1;
     }
 }
-SkinnedModel.descriptorSetLayout = (function () {
-    const layout = shaderLib.createDescriptorSetLayout([
-        shaderLib.sets.local.uniforms.Local,
-        shaderLib.sets.local.uniforms.Skin
-    ]);
-    layout.name = "SkinnedModel descriptorSetLayout";
-    return layout;
-})();
+SkinnedModel.descriptorSetLayout = shaderLib.createDescriptorSetLayout([
+    shaderLib.sets.local.uniforms.Local,
+    shaderLib.sets.local.uniforms.Skin
+]);

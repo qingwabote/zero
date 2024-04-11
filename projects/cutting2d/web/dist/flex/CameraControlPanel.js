@@ -24,8 +24,7 @@ export class CameraControlPanel extends ElementContainer {
             if (this.fixed) {
                 const rotation = quat.fromEuler(quat.create(), -dy, dx, 0);
                 this.camera.node.position = vec3.transformQuat(vec3.create(), this.camera.node.position, rotation);
-                const view = vec3.normalize(vec3.create(), this.camera.node.position);
-                this.camera.node.rotation = quat.fromViewUp(quat.create(), view);
+                this.camera.node.lookAt(vec3.ZERO);
             }
             else {
                 if (Math.abs(dx) > Math.abs(dy)) {

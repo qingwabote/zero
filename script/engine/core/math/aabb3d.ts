@@ -3,18 +3,18 @@ import { mat3 } from "./mat3.js";
 import { Mat4Like } from "./mat4.js";
 import { Vec3Like, vec3 } from "./vec3.js";
 
-const vec3_a = vec3.create();
-const vec3_b = vec3.create();
-
-const mat3_a = mat3.create();
-
 export interface AABB3D extends AABB2D {
     center: Vec3Like;
     halfExtent: Vec3Like;
 }
 
-function create() {
-    return { center: vec3.create(), halfExtent: vec3.create() };
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
+
+const mat3_a = mat3.create();
+
+function create(center = vec3.ZERO, halfExtent = vec3.ZERO) {
+    return { center: vec3.create(...center), halfExtent: vec3.create(...halfExtent) };
 }
 
 function set(out: AABB3D, center: Readonly<Vec3Like>, halfExtent: Readonly<Vec3Like>) {
@@ -23,20 +23,20 @@ function set(out: AABB3D, center: Readonly<Vec3Like>, halfExtent: Readonly<Vec3L
     return out;
 }
 
-function fromPoints(out: AABB3D, minPos: Vec3Like, maxPos: Vec3Like) {
-    vec3.add(vec3_a, maxPos, minPos);
+function fromExtremes(out: AABB3D, min: Readonly<Vec3Like>, max: Readonly<Vec3Like>) {
+    vec3.add(vec3_a, max, min);
     vec3.scale(vec3_a, vec3_a, 0.5);
 
-    vec3.subtract(vec3_b, maxPos, minPos);
+    vec3.subtract(vec3_b, max, min);
     vec3.scale(vec3_b, vec3_b, 0.5);
 
     set(out, vec3_a, vec3_b);
     return out;
 }
 
-function fromRect(out: AABB3D, offset: Vec3Like, size: Vec3Like) {
-    vec3.add(vec3_a, offset, size);
-    return fromPoints(out, offset, vec3_a);
+function toExtremes(min: Vec3Like, max: Vec3Like, a: Readonly<AABB3D>) {
+    vec3.subtract(min, a.center, a.halfExtent);
+    vec3.add(max, a.center, a.halfExtent);
 }
 
 // https://zeux.io/2010/10/17/aabb-from-obb-with-component-wise-abs/
@@ -60,4 +60,25 @@ function transform(out: AABB3D, a: Readonly<AABB3D>, m: Readonly<Mat4Like>) {
     return out;
 }
 
-export const aabb3d = { create, set, fromPoints, fromRect, transform } as const
+const vec3_c = vec3.create();
+const vec3_d = vec3.create();
+
+function fromPoints(out: AABB3D, points: readonly Readonly<Vec3Like>[]) {
+    vec3.set(vec3_c, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+    vec3.set(vec3_d, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+    for (const point of points) {
+        vec3.min(vec3_c, vec3_c, point);
+        vec3.max(vec3_d, vec3_d, point);
+    }
+    fromExtremes(out, vec3_c, vec3_d);
+    return out;
+}
+
+function fromRect(out: AABB3D, offset: Vec3Like, size: Vec3Like) {
+    vec3.add(vec3_c, offset, size);
+    return fromExtremes(out, offset, vec3_c);
+}
+
+const ZERO = Object.freeze({ center: vec3.ZERO, halfExtent: vec3.ZERO })
+
+export const aabb3d = { create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, ZERO } as const

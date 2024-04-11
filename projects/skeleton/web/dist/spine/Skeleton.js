@@ -1,5 +1,5 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BoundedRenderer, BoundsEventName, Shader, Zero, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { BoundedRenderer, BoundsEventName, Shader, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
 const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
     const attributes = new VertexAttributeVector;
@@ -26,6 +26,9 @@ const sc_color_a = new sc.Color;
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 export class Skeleton extends BoundedRenderer {
+    get bounds() {
+        return this._mesh.bounds;
+    }
     get data() {
         return this._skeleton.data;
     }
@@ -41,9 +44,10 @@ export class Skeleton extends BoundedRenderer {
     }
     constructor(node) {
         super(node);
+        this._materials = [];
         this._vertexView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);
         this._indexView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 2048 * 3);
-        this._materials = {};
+        this._materialCache = {};
         const iaInfo = new InputAssemblerInfo;
         iaInfo.vertexAttributes = VERTEX_ATTRIBUTES;
         const vertexInput = new VertexInput;
@@ -54,20 +58,19 @@ export class Skeleton extends BoundedRenderer {
         indexInput.buffer = this._indexView.buffer;
         indexInput.type = IndexType.UINT16;
         iaInfo.indexInput = indexInput;
-        const mesh = new render.Mesh([new render.SubMesh(device.createInputAssembler(iaInfo))]);
-        this._model.mesh = mesh;
-        this._mesh = mesh;
+        this._mesh = new render.Mesh([new render.SubMesh(device.createInputAssembler(iaInfo))]);
+        ;
     }
-    start() {
-        Zero.instance.scene.addModel(this._model);
+    createModel() {
+        return new render.Model(this.node, this._mesh, this._materials);
     }
     lateUpdate() {
-        const materials = [];
         let key = '';
         let vertex = 0;
         let index = 0;
         this._vertexView.invalidate();
         this._indexView.invalidate();
+        this._materials.length = 0;
         this._skeleton.updateWorldTransform();
         for (const slot of this._skeleton.drawOrder) {
             const attachment = slot.getAttachment();
@@ -132,12 +135,12 @@ export class Skeleton extends BoundedRenderer {
                 const blend = sc.BlendMode.Normal;
                 const k = `${attachment_texture.id}:${blend}`;
                 if (key != k) {
-                    let material = this._materials[k];
+                    let material = this._materialCache[k];
                     if (!material) {
                         material = this.createMaterial(blend, attachment_texture);
-                        this._materials[k] = material;
+                        this._materialCache[k] = material;
                     }
-                    materials.push(material);
+                    this._materials.push(material);
                     const drawInfo = this._mesh.subMeshes[0].drawInfo;
                     drawInfo.count = 0;
                     drawInfo.first = index;
@@ -152,7 +155,6 @@ export class Skeleton extends BoundedRenderer {
         clipper.clipEnd();
         this._vertexView.update();
         this._indexView.update();
-        this._model.materials = materials;
     }
     createMaterial(blend, texture) {
         const rasterizationState = new RasterizationState;
@@ -173,8 +175,7 @@ export class Skeleton extends BoundedRenderer {
             default:
                 break;
         }
-        const pass = new render.Pass(state);
-        pass.initialize();
+        const pass = render.Pass.Pass(state);
         pass.setUniform('Props', 'albedo', vec4.ONE);
         pass.setTexture('albedoMap', texture.getImpl());
         return new render.Material([pass]);

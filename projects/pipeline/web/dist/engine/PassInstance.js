@@ -2,6 +2,11 @@ import { Pass } from "./core/render/scene/Pass.js";
 import { shaderLib } from "./core/shaderLib.js";
 /**just reuse the uniform buffers for now*/
 export class PassInstance extends Pass {
+    static PassInstance(raw) {
+        const instance = new PassInstance(raw);
+        instance.initialize();
+        return instance;
+    }
     constructor(_raw) {
         super(_raw.state, _raw.type);
         this._raw = _raw;

@@ -1,4 +1,4 @@
-import { Node, Primitive, TouchEventName, mat4, vec2, vec3, vec4 } from "engine";
+import { GeometryRenderer, Node, TouchEventName, mat4, vec2, vec3, vec4 } from "engine";
 import { Align, ElementContainer, Justify, Renderer } from "flex";
 import PolygonsRenderer from "./PolygonsRenderer.js";
 const vec2_a = vec2.create();
@@ -114,7 +114,7 @@ export default class CuttingBoard extends ElementContainer {
         const node = new Node;
         this._polygonsRenderer = node.addComponent(PolygonsRenderer);
         this.addElement(this._polygonsRenderer);
-        const primitive = Renderer.create(Primitive);
+        const primitive = Renderer.create(GeometryRenderer);
         // primitive.positionType = PositionType.Absolute
         // primitive.setWidth('100%');
         // primitive.setHeight('100%');
