@@ -1,7 +1,6 @@
 import { AABB3D } from "../../math/aabb3d.js";
 import { FrustumFaces, FrustumVertices, frustum } from "../../math/frustum.js";
 import { Mat4 } from "../../math/mat4.js";
-import { plane } from "../../math/plane.js";
 import { vec3 } from "../../math/vec3.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
 
@@ -42,12 +41,7 @@ export class Frustum extends FrameChangeRecord {
         this.hasChanged = 1;
     }
 
-    aabb(aabb: Readonly<AABB3D>): number {
-        for (const face of this.faces) {
-            if (plane.aabb(face, aabb) == -1) {
-                return 0;
-            }
-        }
-        return 1
+    aabb(aabb: Readonly<AABB3D>): boolean {
+        return frustum.aabb(this.faces, aabb);
     }
 }

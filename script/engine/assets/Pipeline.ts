@@ -15,6 +15,7 @@ interface PhaseBase {
 
 interface ModelPhase extends PhaseBase {
     type?: 'model';
+    culling?: string;
     model?: string;
     pass?: string;
 }
@@ -41,9 +42,21 @@ const phaseCreators = (function () {
     blendState.srcAlpha = gfx.BlendFactor.ONE;
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
+    const CullingInstances = {
+        Shadow: new pipeline.ShadowCulling,
+        View: new pipeline.ViewCulling
+    }
+
     return {
         model: async function (info: ModelPhase, context: render.Context, visibility: number): Promise<render.Phase> {
-            return new pipeline.ModelPhase(context, visibility, info.model, info.pass);
+            let culling = CullingInstances.View;
+            if (info.culling) {
+                culling = CullingInstances[info.culling as keyof typeof CullingInstances];
+                if (!culling) {
+                    throw new Error(`unknown culling type: ${info.culling}`);
+                }
+            }
+            return new pipeline.ModelPhase(context, visibility, culling, info.model, info.pass);
         },
         fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);

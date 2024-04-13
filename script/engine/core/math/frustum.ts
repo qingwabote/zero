@@ -79,13 +79,13 @@ function transform(out: FrustumVertices, a: Readonly<FrustumVertices>, m: Readon
     return out;
 }
 
-function aabb(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): number {
+function aabb(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): boolean {
     for (const face of frustum) {
         if (plane.aabb(face, aabb) == -1) {
-            return 0;
+            return false;
         }
     }
-    return 1
+    return true;
 }
 
 export const frustum = {

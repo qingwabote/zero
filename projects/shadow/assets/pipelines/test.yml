@@ -20,7 +20,8 @@ flows:
     stages:
       - name: shadow
         phases:
-          - pass: shadow
+          - culling: Shadow
+            pass: shadow
             visibility: ${UP}
         framebuffer:
           depthStencil: shadowmap
