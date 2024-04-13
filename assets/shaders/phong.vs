@@ -44,7 +44,7 @@ void main() {
     vec4 posWorld = local.model * pos;
     v_position = posWorld.xyz;
     #if USE_SHADOW_MAP
-        v_shadow_position = shadow.projection * shadow.view * posWorld;
+        v_shadow_position = shadow.viewProj * posWorld;
     #endif
     gl_Position = camera.projection * camera.view * posWorld;
 }

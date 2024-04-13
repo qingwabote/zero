@@ -1,6 +1,5 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
@@ -11,15 +10,10 @@ const ShadowBlock = {
     members: {
         view: {
             offset: 0
-        },
-        projection: {
-            offset: 16
         }
     },
-    size: UBO.align((16 + 16) * Float32Array.BYTES_PER_ELEMENT),
+    size: UBO.align(16 * Float32Array.BYTES_PER_ELEMENT),
 }
-
-const mat4_a = mat4.create();
 
 export class ShadowUBO extends UBO {
     static readonly definition = ShadowBlock;
@@ -54,13 +48,10 @@ export class ShadowUBO extends UBO {
             const shadow = light.shadows[light.shadow_cameras[i]];
             if (shadow.hasChanged) {
                 const offset = (ShadowBlock.size / this._view.source.BYTES_PER_ELEMENT) * i;
-
-                mat4.invert(mat4_a, shadow.model);
-                this._view.set(mat4_a, offset + ShadowBlock.members.view.offset);
-                this._view.set(shadow.proj, offset + ShadowBlock.members.projection.offset);
-                this._view.update();
+                this._view.set(shadow.viewProj, offset);
             }
         }
+        this._view.update();
     }
 
 }

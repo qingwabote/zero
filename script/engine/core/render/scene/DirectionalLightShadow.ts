@@ -22,14 +22,9 @@ export class DirectionalLightShadow extends FrameChangeRecord {
         super.hasChanged = flags;
     }
 
-    private _model = mat4.create();
-    public get model(): Readonly<Mat4> {
-        return this._model;
-    }
-
-    private _proj = mat4.create();
-    public get proj(): Readonly<Mat4> {
-        return this._proj;
+    private _viewProj = mat4.create();
+    public get viewProj(): Readonly<Mat4> {
+        return this._viewProj;
     }
 
     readonly frustum: Readonly<Frustum> = new Frustum;
@@ -55,7 +50,7 @@ export class DirectionalLightShadow extends FrameChangeRecord {
 
         vec3.transformMat4(vec3_a, vec3_a, mat4_a);
 
-        mat4.fromTRS(this._model, vec3_a, this._light.transform.world_rotation, vec3.ONE);
+        mat4.fromTRS(mat4_a, vec3_a, this._light.transform.world_rotation, vec3.ONE);
 
         const left = -aabb_a.halfExtent[0];
         const right = aabb_a.halfExtent[0];
@@ -63,8 +58,10 @@ export class DirectionalLightShadow extends FrameChangeRecord {
         const top = aabb_a.halfExtent[1];
         const near = 0;
         const far = aabb_a.halfExtent[2] * 2;
-        mat4.ortho(this._proj, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
+        mat4.ortho(mat4_b, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
         this.frustum.fromOrthographic(left, right, bottom, top, near, far);
-        this.frustum.transform(this._model);
+        this.frustum.transform(mat4_a);
+
+        mat4.multiply(this._viewProj, mat4_b, mat4.invert(mat4_a, mat4_a));
     }
 }
