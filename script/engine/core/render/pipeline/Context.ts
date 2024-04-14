@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { DescriptorSet, DescriptorSetLayout, InputAssembler, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader } from "gfx";
-import { hashLib } from "./hashLib.js";
+import { hashLib } from "../hashLib.js";
 
 const null_array = Object.freeze([]);
 
@@ -9,8 +9,6 @@ export class Context {
 
     private _pipelineLayoutCache: Map<Shader, PipelineLayout> = new Map;
     private _pipelineCache: Record<number, Pipeline> = {};
-
-    cameraIndex: number = 0;
 
     constructor(
         private _descriptorSetLayout: DescriptorSetLayout

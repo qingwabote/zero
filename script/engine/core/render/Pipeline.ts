@@ -5,24 +5,19 @@ import { Flow } from "./pipeline/Flow.js";
 import { UBO } from "./pipeline/UBO.js";
 
 export class Pipeline {
+    private _dumping = false;
+
     constructor(readonly ubos: readonly UBO[], private readonly _flows: readonly Flow[]) { }
 
-    use() {
-        for (const ubo of this.ubos) {
-            ubo.visibilities = 0;
-        }
-        for (const flow of this._flows) {
-            flow.use();
-        }
-        for (const ubo of this.ubos) {
-            ubo.use();
-        }
+    dump() {
+        this._dumping = true;
     }
 
     update() {
         for (const ubo of this.ubos) {
-            ubo.update();
+            ubo.update(this._dumping);
         }
+        this._dumping = false;
     }
 
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {

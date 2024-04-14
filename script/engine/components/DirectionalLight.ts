@@ -1,6 +1,6 @@
 import { Component } from "../core/Component.js";
 import { DirectionalLight as render_DirectionalLight } from "../core/render/scene/DirectionalLight.js";
-import { DirectionalLightShadow } from "../core/render/scene/DirectionalLightShadow.js";
+import { DirectionalLightFurstum } from "../core/render/scene/DirectionalLightFurstum.js";
 
 export class DirectionalLight extends Component {
     static readonly Event = render_DirectionalLight.Event;
@@ -11,7 +11,7 @@ export class DirectionalLight extends Component {
 
     private _light: render_DirectionalLight = new render_DirectionalLight(this.node);
 
-    public get shadows(): Readonly<Record<number, DirectionalLightShadow>> {
+    public get shadows(): Readonly<Record<number, DirectionalLightFurstum>> {
         return this._light.shadows;
     }
 

@@ -1,6 +1,5 @@
 import { device } from "boot";
 import { ClearFlagBits } from "gfx";
-import { Zero } from "../../Zero.js";
 import { Mat4, mat4 } from "../../math/mat4.js";
 import { Rect, rect } from "../../math/rect.js";
 import { Vec2Like, vec2 } from "../../math/vec2.js";
@@ -74,7 +73,6 @@ export class Camera extends FrameChangeRecord {
 
     constructor(readonly transform: Transform) {
         super();
-        Zero.instance.scene.cameras.push(this);
     }
 
     update() {

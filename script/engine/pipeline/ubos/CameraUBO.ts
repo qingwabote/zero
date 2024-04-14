@@ -24,10 +24,10 @@ const CameraBlock = {
 export class CameraUBO extends UBO {
     static readonly definition = CameraBlock;
 
-    private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);
+    private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
 
     get buffer(): Buffer {
-        return this._buffer.buffer;
+        return this._view.buffer;
     }
 
     get range(): number {
@@ -38,21 +38,18 @@ export class CameraUBO extends UBO {
         return CameraBlock.size * params.cameraIndex
     };
 
-    update(): void {
-        const renderScene = Zero.instance.scene;
-        const cameras = renderScene.cameras;
-        const camerasUboSize = CameraBlock.size * cameras.length;
-        this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);
-        let camerasDataOffset = 0;
+    update(dumping: boolean): void {
+        const cameras = Zero.instance.scene.cameras;
+        this._view.resize(CameraBlock.size * cameras.length / this._view.BYTES_PER_ELEMENT);
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            if (camera.hasChanged) {
-                this._buffer.set(camera.matView, camerasDataOffset + CameraBlock.members.view.offset);
-                this._buffer.set(camera.matProj, camerasDataOffset + CameraBlock.members.projection.offset);
-                this._buffer.set(camera.position, camerasDataOffset + CameraBlock.members.position.offset);
+            if (dumping || camera.hasChanged) {
+                const offset = (CameraBlock.size / this._view.source.BYTES_PER_ELEMENT) * i;
+                this._view.set(camera.matView, offset + CameraBlock.members.view.offset);
+                this._view.set(camera.matProj, offset + CameraBlock.members.projection.offset);
+                this._view.set(camera.position, offset + CameraBlock.members.position.offset);
             }
-            camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;
         }
-        this._buffer.update();
+        this._view.update();
     }
 }

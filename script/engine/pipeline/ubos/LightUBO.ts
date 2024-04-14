@@ -23,18 +23,14 @@ export class LightUBO extends UBO {
         return this._view.buffer;
     }
 
-    private _dirty = true;
-
-    update(): void {
+    update(dumping: boolean): void {
         const light = Zero.instance.scene.directionalLight!;
 
-        if (this._dirty || light.transform.hasChanged) {
+        if (dumping || light.transform.hasChanged) {
             vec3.transformQuat(vec3_a, vec3.FORWARD, light.transform.world_rotation);
             vec3.negate(vec3_a, vec3_a);
             this._view.set(vec3_a, 0);
             this._view.update();
-
-            this._dirty = false;
         }
     }
 }

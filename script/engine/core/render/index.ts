@@ -1,6 +1,6 @@
 export * from './BufferView.js';
-export * from './Context.js';
 export * from './Pipeline.js';
+export * from './pipeline/Context.js';
 export * from './quad.js';
 
 export * from './pipeline/Flow.js';

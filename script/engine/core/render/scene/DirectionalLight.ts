@@ -1,6 +1,6 @@
 import { EventEmitter, EventEmitterImpl } from "bastard";
 import { Zero } from "../../Zero.js";
-import { DirectionalLightShadow } from "./DirectionalLightShadow.js";
+import { DirectionalLightFurstum } from "./DirectionalLightFurstum.js";
 import { Transform } from "./Transform.js";
 
 enum Event {
@@ -15,12 +15,12 @@ export class DirectionalLight {
     static readonly Event = Event;
 
     private _emitter?: EventEmitter<EventToListener> = undefined;
-    public get emitter() {
+    public get emitter(): EventEmitter<EventToListener> {
         return this._emitter ?? (this._emitter = new EventEmitterImpl);
     }
 
-    private _shadows: Record<number, DirectionalLightShadow> = {};
-    public get shadows(): Readonly<Record<number, DirectionalLightShadow>> {
+    private _shadows: Record<number, DirectionalLightFurstum> = {};
+    public get shadows(): Readonly<Record<number, DirectionalLightFurstum>> {
         return this._shadows;
     }
 
@@ -32,7 +32,7 @@ export class DirectionalLight {
         const cameras = Zero.instance.scene.cameras;
         for (let i = 0; i < value.length; i++) {
             const camera = cameras[value[i]];
-            const shadow = this._shadows[value[i]] || (this._shadows[value[i]] = new DirectionalLightShadow(this, camera.frustum));
+            const shadow = this._shadows[value[i]] || (this._shadows[value[i]] = new DirectionalLightFurstum(this, camera.frustum));
             shadow.index = i;
         }
         this._shadow_cameras = value;

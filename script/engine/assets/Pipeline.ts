@@ -118,7 +118,7 @@ interface Framebuffer {
 
 type Clear = keyof typeof gfx.ClearFlagBits;
 
-const UniformTypes: Record<string, new () => render.UBO> = {
+const UniformTypes: Record<string, new (visibilities: number) => render.UBO> = {
     Camera: pipeline.CameraUBO,
     Light: pipeline.LightUBO,
     Shadow: pipeline.ShadowUBO,
@@ -128,18 +128,6 @@ interface UBO {
     name: string;
     type: string;
 }
-
-const ubo_cache = (function () {
-    const ubos: Record<string, render.UBO> = {};
-    return function (info: UBO) {
-        let instance = ubos[info.type];
-        if (!instance) {
-            instance = new UniformTypes[info.type]();
-            ubos[info.type] = instance;
-        }
-        return instance;
-    }
-})()
 
 interface Stage {
     phases?: Phase[];
@@ -188,17 +176,28 @@ export class Pipeline extends Yml {
         this._info = res;
     }
 
-    public async instantiate(variables: Record<string, any> = {}): Promise<render.Pipeline> {
+    public async instantiate(variables?: Record<string, any>): Promise<render.Pipeline> {
         if (this._info.textures) {
             for (const texture of this._info.textures) {
                 this._textures[texture.name] = this.createTexture(texture);
             }
         }
 
+        const uboVisibilities: Record<string, number> = {};
+        for (const flow of this._info.flows) {
+            const visibilities = this.flow_visibilities(flow, variables);
+            for (const binding of flow.bindings!) {
+                if ('ubo' in binding) {
+                    uboVisibilities[binding.ubo] = (uboVisibilities[binding.ubo] || 0) | visibilities;
+                }
+            }
+        }
+
         const uboMap: Map<string, render.UBO> = new Map;
         for (const ubo of this._info.ubos) {
-            uboMap.set(ubo.name, ubo_cache(ubo));
+            uboMap.set(ubo.name, new UniformTypes[ubo.type](uboVisibilities[ubo.name]));
         }
+
         const flows: render.Flow[] = [];
         for (const flow of this._info.flows) {
             const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
@@ -338,6 +337,24 @@ export class Pipeline extends Yml {
         }
 
         return new render.Pipeline([...uboMap.values()], flows);
+    }
+
+    private flow_visibilities(flow: Flow, variables?: Record<string, any>) {
+        let res = 0;
+        for (const stage of flow.stages!) {
+            res |= this.stage_visibilities(stage, variables);
+        }
+        return res;
+    }
+
+    private stage_visibilities(stage: Stage, variables?: Record<string, any>) {
+        let res = 0;
+        for (const phase of stage.phases!) {
+            if (phase.visibility) {
+                res |= Number(this.resolveVar(phase.visibility, variables));
+            }
+        }
+        return res;
     }
 
     private createTexture(texture: Texture | string, samples?: gfx.SampleCountFlagBits) {

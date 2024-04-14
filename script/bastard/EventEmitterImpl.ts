@@ -8,14 +8,14 @@ export class EventEmitterImpl<EventToListener extends Record<string, any>> imple
         return this._event2callbacks.has(name);
     }
 
-    on<K extends keyof EventToListener>(name: K, listener: EventToListener[K]): void {
+    on<K extends keyof EventToListener>(name: K, listener: EventToListener[K]) {
         let callbacks = this._event2callbacks.get(name);
         if (!callbacks) {
             callbacks = new CallbackCollection;
             this._event2callbacks.set(name, callbacks);
         }
-
         callbacks.set(listener);
+        return listener;
     }
 
     off<K extends keyof EventToListener>(name: K, listener: EventToListener[K]): void {

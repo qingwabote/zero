@@ -13,7 +13,7 @@ const mat4_b = mat4.create();
 const frustum_a = frustum.vertices();
 const aabb_a = aabb3d.create();
 
-export class DirectionalLightShadow extends FrameChangeRecord {
+export class DirectionalLightFurstum extends FrameChangeRecord {
 
     override get hasChanged(): number {
         return super.hasChanged || this._furstum.hasChanged || this._light.transform.hasChanged;

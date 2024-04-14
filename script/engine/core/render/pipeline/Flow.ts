@@ -1,7 +1,7 @@
 import { CommandBuffer, Uint32Vector } from "gfx";
 import { Zero } from "../../Zero.js";
-import { Context } from "../Context.js";
 import { CommandCalls } from "./CommandCalls.js";
+import { Context } from "./Context.js";
 import { Parameters } from "./Parameters.js";
 import { Stage } from "./Stage.js";
 import { UBO } from "./UBO.js";
@@ -20,12 +20,6 @@ export class Flow {
             visibilities |= stages.visibilities;
         }
         this.visibilities = visibilities;
-    }
-
-    use() {
-        for (const ubo of this._ubos) {
-            ubo.visibilities |= this.visibilities;
-        }
     }
 
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {

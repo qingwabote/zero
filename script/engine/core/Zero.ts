@@ -1,5 +1,5 @@
 import { EventEmitterImpl } from "bastard";
-import { GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
+import { EventListener, GestureEvent, TouchEvent, attach, detach, device, initial, now } from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
 import { Input, TouchEventName } from "./Input.js";
@@ -9,7 +9,7 @@ import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { CommandCalls } from "./render/pipeline/CommandCalls.js";
 import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
-import { Root } from "./render/scene/Root.js";
+import { root } from "./render/scene/Root.js";
 
 export enum ZeroEvent {
     LOGIC_START = "LOGIC_START",
@@ -27,7 +27,7 @@ interface EventToListener {
     [ZeroEvent.RENDER_END]: () => void;
 }
 
-export abstract class Zero extends EventEmitterImpl<EventToListener> {
+export abstract class Zero extends EventEmitterImpl<EventToListener> implements EventListener {
     private static _instance: Zero;
     public static get instance(): Zero {
         return Zero._instance;
@@ -41,7 +41,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
 
     readonly input = new Input;
 
-    readonly scene = new Root;
+    readonly scene = root
 
     private readonly _componentScheduler = new ComponentScheduler;
 
@@ -153,7 +153,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> {
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
         if (this._pipeline_changed) {
-            this._pipeline.use();
+            this._pipeline.dump();
             this._pipeline_changed = false;
         }
         this.scene.update();
