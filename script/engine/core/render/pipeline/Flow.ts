@@ -33,7 +33,7 @@ export class Flow {
             const dynamicOffsets = new Uint32Vector;
             for (const uniform of this._ubos) {
                 const offset = uniform.dynamicOffset(params);
-                if (offset > 0) {
+                if (offset != -1) {
                     dynamicOffsets.add(offset);
                 }
             }

@@ -33,6 +33,8 @@ namespace gfx
             {
                 VkDescriptorBufferInfo bufferInfo = {};
                 bufferInfo.buffer = *buffer;
+                //"For VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC and VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC descriptor types, offset is the base offset from which the dynamic offset is applied and range is the static size used for all dynamic offsets."
+                // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkDescriptorBufferInfo.html#_description
                 bufferInfo.offset = 0;
                 bufferInfo.range = range ? range : buffer->info()->size;
 
@@ -48,6 +50,11 @@ namespace gfx
             });
 
         _buffers[binding] = std::make_pair(buffer, buffer->on(BufferEvent_impl::RESET, f));
+
+        if (!buffer->info()->size)
+        {
+            return;
+        }
 
         (*f)();
     }

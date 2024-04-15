@@ -8,6 +8,7 @@ namespace gfx
 
     bool Buffer_impl::initialize(const std::shared_ptr<const BufferInfo> &info)
     {
+        // "size must be greater than 0" https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkBufferCreateInfo.html#VUID-VkBufferCreateInfo-size-00912
         if (info->size)
         {
             VkBufferCreateInfo bufferInfo = {};
