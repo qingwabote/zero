@@ -30,10 +30,6 @@ export class CameraUBO extends UBO {
         return this._view.buffer;
     }
 
-    get range(): number {
-        return CameraBlock.size;
-    }
-
     override dynamicOffset(params: Parameters): number {
         return CameraBlock.size * params.cameraIndex
     };

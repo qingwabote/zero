@@ -234,7 +234,8 @@ export class Pipeline extends Yml {
                         if (!ubo) {
                             throw new Error(`undefined ubo: ${binding.ubo}`)
                         }
-                        context.descriptorSet.bindBuffer(binding.binding, ubo.buffer, ubo.range);
+                        const definition = (ubo.constructor as typeof render.UBO).definition;
+                        context.descriptorSet.bindBuffer(binding.binding, ubo.buffer, definition.size);
                         ubos.push(ubo);
                     } else if ('texture' in binding) {
                         const filter = binding.filter ? gfx.Filter[binding.filter as keyof typeof gfx.Filter] : gfx.Filter.NEAREST;

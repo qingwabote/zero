@@ -42,8 +42,15 @@ namespace gfx
                 write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 write.dstBinding = binding;
                 write.dstSet = _descriptorSet;
+                for (auto &&i : *_layout->info()->bindings)
+                {
+                    if (i->binding == binding)
+                    {
+                        write.descriptorType = static_cast<VkDescriptorType>(i->descriptorType);
+                        break;
+                    }
+                }
                 write.descriptorCount = 1;
-                write.descriptorType = range ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 write.pBufferInfo = &bufferInfo;
 
                 vkUpdateDescriptorSets(*_device, 1, &write, 0, nullptr);
@@ -51,12 +58,10 @@ namespace gfx
 
         _buffers[binding] = std::make_pair(buffer, buffer->on(BufferEvent_impl::RESET, f));
 
-        if (!buffer->info()->size)
+        if (buffer->info()->size)
         {
-            return;
+            (*f)();
         }
-
-        (*f)();
     }
 
     void DescriptorSet_impl::bindTexture(uint32_t binding, const std::shared_ptr<Texture_impl> &texture, const std::shared_ptr<Sampler_impl> &sampler)

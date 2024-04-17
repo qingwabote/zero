@@ -23,10 +23,6 @@ export class LightFrustaUBO extends UBO {
         return this._view.buffer;
     }
 
-    get range(): number {
-        return Block.size;
-    }
-
     override dynamicOffset(params: Parameters): number {
         const light = Zero.instance.scene.directionalLight!;
         return Block.size * light.shadows[params.cameraIndex].index;

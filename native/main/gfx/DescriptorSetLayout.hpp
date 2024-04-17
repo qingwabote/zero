@@ -16,7 +16,7 @@ namespace gfx
     public:
         DescriptorSetLayout_impl *impl() { return _impl.get(); }
 
-        const std::shared_ptr<DescriptorSetLayoutInfo> &info() { return _info; }
+        const std::shared_ptr<const DescriptorSetLayoutInfo> &info();
 
         DescriptorSetLayout(Device_impl *device);
 

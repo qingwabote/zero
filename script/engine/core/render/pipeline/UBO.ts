@@ -5,6 +5,7 @@ import { Parameters } from "./Parameters.js";
 interface UBODefinition {
     type: DescriptorType;
     stageFlags: ShaderStageFlagBits;
+    size: number;
 }
 
 export abstract class UBO {
@@ -16,8 +17,6 @@ export abstract class UBO {
     }
 
     abstract get buffer(): Buffer;
-
-    get range(): number { return 0 };
 
     dynamicOffset(paramm: Parameters): number { return -1 };
 
