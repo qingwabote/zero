@@ -7,20 +7,13 @@ import { Stage } from "./Stage.js";
 import { UBO } from "./UBO.js";
 
 export class Flow {
-    readonly visibilities: number;
-
     constructor(
         private readonly _context: Context,
         private readonly _ubos: readonly UBO[],
         private readonly _stages: readonly Stage[],
+        readonly visibilities: number,
         private readonly _loops?: Function[]
-    ) {
-        let visibilities = 0;
-        for (const stages of _stages) {
-            visibilities |= stages.visibilities;
-        }
-        this.visibilities = visibilities;
-    }
+    ) { }
 
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {
         const camera = Zero.instance.scene.cameras[cameraIndex];

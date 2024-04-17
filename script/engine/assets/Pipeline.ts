@@ -3,6 +3,7 @@ import { bundle } from "bundling";
 import * as gfx from "gfx";
 import { Rect, rect } from "../core/math/rect.js";
 import * as render from '../core/render/index.js';
+import { Data } from "../core/render/pipeline/Data.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import * as pipeline from "../pipeline/index.js";
@@ -118,7 +119,7 @@ interface Framebuffer {
 
 type Clear = keyof typeof gfx.ClearFlagBits;
 
-const UniformTypes: Record<string, new (visibilities: number) => render.UBO> = {
+const UniformTypes: Record<string, new (data: Data, visibilities: number) => render.UBO> = {
     Camera: pipeline.CameraUBO,
     Light: pipeline.LightUBO,
     Shadow: pipeline.ShadowUBO,
@@ -183,6 +184,8 @@ export class Pipeline extends Yml {
             }
         }
 
+        const data = new Data;
+
         const uboVisibilities: Record<string, number> = {};
         for (const flow of this._info.flows) {
             const visibilities = this.flow_visibilities(flow, variables);
@@ -195,7 +198,7 @@ export class Pipeline extends Yml {
 
         const uboMap: Map<string, render.UBO> = new Map;
         for (const ubo of this._info.ubos) {
-            uboMap.set(ubo.name, new UniformTypes[ubo.type](uboVisibilities[ubo.name]));
+            uboMap.set(ubo.name, new UniformTypes[ubo.type](data, uboVisibilities[ubo.name]));
         }
 
         const flows: render.Flow[] = [];
@@ -309,7 +312,7 @@ export class Pipeline extends Yml {
                     framebuffer = device.createFramebuffer(framebufferInfo);
                     viewport = rect.create(0, 0, 1, 1);
                 }
-                stages.push(new render.Stage(phases, framebuffer, clears, viewport));
+                stages.push(new render.Stage(phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
             }
             let loops: Function[] | undefined;
             if (flow.loops) {
@@ -334,10 +337,10 @@ export class Pipeline extends Yml {
                     })
                 }
             }
-            flows.push(new render.Flow(context, ubos, stages, loops));
+            flows.push(new render.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), loops));
         }
 
-        return new render.Pipeline([...uboMap.values()], flows);
+        return new render.Pipeline(data, [...uboMap.values()], flows);
     }
 
     private flow_visibilities(flow: Flow, variables?: Record<string, any>) {

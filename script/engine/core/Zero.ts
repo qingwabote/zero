@@ -63,13 +63,12 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         return this._commandCalls;
     }
 
-    private _pipeline_changed = true;
     public get pipeline(): Pipeline {
         return this._pipeline;
     }
     public set pipeline(value: Pipeline) {
         this._pipeline = value;
-        this._pipeline_changed = true;
+        this._pipeline.dump();
     }
 
     constructor(private _pipeline: Pipeline) {
@@ -152,10 +151,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
-        if (this._pipeline_changed) {
-            this._pipeline.dump();
-            this._pipeline_changed = false;
-        }
         this.scene.update();
         this._pipeline.update();
         FrameChangeRecord.frameId++;

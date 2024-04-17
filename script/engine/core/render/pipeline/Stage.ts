@@ -26,20 +26,13 @@ const defaultFramebuffer = (function () {
 })();
 
 export class Stage {
-    readonly visibilities: number;
-
     constructor(
         private _phases: Phase[],
+        readonly visibilities: number,
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _clears?: ClearFlagBits,
         public rect?: Readonly<Rect>
-    ) {
-        let visibilities = 0;
-        for (const phase of _phases) {
-            visibilities |= phase.visibility;
-        }
-        this.visibilities = visibilities;
-    }
+    ) { }
 
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {
         const camera = Zero.instance.scene.cameras[cameraIndex];

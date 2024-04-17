@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, render, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -73,13 +73,13 @@ export class App extends Zero {
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
-        light.emitter.on(DirectionalLight.Event.UPDATE, () => {
+        this.pipeline.data.on(render.Data.Event.UPDATE, () => {
             debugDrawer.clear()
 
-            const shadow = light.shadows[light.shadow_cameras[0]];
-            debugDrawer.drawFrustum(shadow.frustum.vertices, vec4.YELLOW);
+            const shadow = this.pipeline.data.shadow.boundingFrusta[this.pipeline.data.shadow.visibleCameras[0]];
+            debugDrawer.drawFrustum(shadow.bounds.vertices, vec4.YELLOW);
 
-            debugDrawer.drawFrustum(this.scene.cameras[light.shadow_cameras[0]].frustum.vertices, vec4.ONE);
+            debugDrawer.drawFrustum(this.scene.cameras[this.pipeline.data.shadow.visibleCameras[0]].frustum.vertices, vec4.ONE);
 
             // for (const model of this.scene.models) {
             //     if (model.transform.visibility != VisibilityFlagBits.WORLD) {
