@@ -35,7 +35,7 @@ function toFaces(out: FrustumFaces, vertices: Readonly<FrustumVertices>) {
     return out;
 }
 
-function fromOrthographic(out: FrustumVertices, left: number, right: number, bottom: number, top: number, near: number, far: number) {
+function orthographic(out: FrustumVertices, left: number, right: number, bottom: number, top: number, near: number, far: number) {
     vec3.set(out[0], right, top, - near);
     vec3.set(out[1], left, top, - near);
     vec3.set(out[2], left, bottom, - near);
@@ -49,7 +49,7 @@ function fromOrthographic(out: FrustumVertices, left: number, right: number, bot
     return out;
 }
 
-function fromPerspective(out: FrustumVertices, fov: number, aspect: number, near: number, far: number) {
+function perspective(out: FrustumVertices, fov: number, aspect: number, near: number, far: number) {
     const tanH = Math.tan(fov / 2);
     const tanW = tanH * aspect;
 
@@ -92,8 +92,8 @@ export const frustum = {
     vertices,
     faces,
     toFaces,
-    fromOrthographic,
-    fromPerspective,
+    orthographic,
+    perspective,
     transform,
     aabb
 } as const

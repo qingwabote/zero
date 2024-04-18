@@ -58,7 +58,7 @@ export class BoundingFurstum extends FrameChangeRecord {
         const near = 0;
         const far = aabb_a.halfExtent[2] * 2;
         mat4.ortho(mat4_b, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
-        this.bounds.fromOrthographic(left, right, bottom, top, near, far);
+        this.bounds.orthographic(left, right, bottom, top, near, far);
         this.bounds.transform(mat4_a);
 
         mat4.multiply(this._viewProj, mat4_b, mat4.invert(mat4_a, mat4_a));

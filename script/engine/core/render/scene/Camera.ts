@@ -13,17 +13,6 @@ const mat4_a = mat4.create();
 const mat4_b = mat4.create();
 
 export class Camera extends FrameChangeRecord {
-
-    override get hasChanged(): number {
-        if (super.hasChanged || this.transform.hasChanged) {
-            return 1;
-        }
-        return 0;
-    }
-    override set hasChanged(flags: number) {
-        super.hasChanged = flags;
-    }
-
     /**
      * half size of the vertical viewing volume
      */
@@ -72,23 +61,26 @@ export class Camera extends FrameChangeRecord {
     readonly frustum: Readonly<Frustum> = new Frustum;
 
     constructor(readonly transform: Transform) {
-        super();
+        super(1);
     }
 
     update() {
         if (this.hasChanged) {
-            mat4.invert(this._matView, this.transform.world_matrix);
-
             if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, this.aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
-                this.frustum.fromPerspective(Math.PI / 180 * this.fov, this.aspect, this.near, this.far);
+                this.frustum.perspective(Math.PI / 180 * this.fov, this.aspect, this.near, this.far);
             } else {
                 const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
                 mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
-                this.frustum.fromOrthographic(-x, x, -y, y, this.near, this.far);
+                this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
+        }
+        if (this.hasChanged || this.transform.hasChanged) {
             this.frustum.transform(this.transform.world_matrix);
+            if (this.transform.hasChanged) {
+                mat4.invert(this._matView, this.transform.world_matrix);
+            }
         }
     }
 

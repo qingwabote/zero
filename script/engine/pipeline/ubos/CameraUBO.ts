@@ -39,7 +39,7 @@ export class CameraUBO extends UBO {
         this._view.resize(CameraBlock.size * cameras.length / this._view.BYTES_PER_ELEMENT);
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            if (dumping || camera.hasChanged) {
+            if (dumping || camera.hasChanged || camera.transform.hasChanged) {
                 const offset = (CameraBlock.size / this._view.source.BYTES_PER_ELEMENT) * i;
                 this._view.set(camera.matView, offset + CameraBlock.members.view.offset);
                 this._view.set(camera.matProj, offset + CameraBlock.members.projection.offset);

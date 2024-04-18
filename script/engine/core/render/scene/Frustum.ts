@@ -5,7 +5,9 @@ import { vec3 } from "../../math/vec3.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
 
 export class Frustum extends FrameChangeRecord {
-    private _vertices = frustum.vertices();
+    private _vertices_raw = frustum.vertices();
+    private _vertices_tra = frustum.vertices();
+    private _vertices = this._vertices_raw;
     public get vertices(): Readonly<FrustumVertices> {
         return this._vertices;
     }
@@ -21,22 +23,25 @@ export class Frustum extends FrameChangeRecord {
         return this._faces
     }
 
-    fromOrthographic(left: number, right: number, bottom: number, top: number, near: number, far: number) {
-        frustum.fromOrthographic(this._vertices, left, right, bottom, top, near, far)
+    orthographic(left: number, right: number, bottom: number, top: number, near: number, far: number) {
+        frustum.orthographic(this._vertices_raw, left, right, bottom, top, near, far)
+        this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
         this.hasChanged = 1;
     }
 
-    fromPerspective(fov: number, aspect: number, near: number, far: number) {
-        frustum.fromPerspective(this._vertices, fov, aspect, near, far);
+    perspective(fov: number, aspect: number, near: number, far: number) {
+        frustum.perspective(this._vertices_raw, fov, aspect, near, far);
+        this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
         this.hasChanged = 1;
     }
 
     transform(m: Readonly<Mat4>) {
-        for (let i = 0; i < this._vertices.length; i++) {
-            vec3.transformMat4(this._vertices[i], this._vertices[i], m);
+        for (let i = 0; i < this._vertices_raw.length; i++) {
+            vec3.transformMat4(this._vertices_tra[i], this._vertices_raw[i], m);
         }
+        this._vertices = this._vertices_tra;
         this._faces_invalidated = true;
         this.hasChanged = 1;
     }
