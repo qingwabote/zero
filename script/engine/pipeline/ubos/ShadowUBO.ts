@@ -12,7 +12,7 @@ const Block = {
             offset: 0
         }
     },
-    size: UBO.align(16 * Float32Array.BYTES_PER_ELEMENT),
+    size: 16 * Float32Array.BYTES_PER_ELEMENT,
 }
 
 export class ShadowUBO extends UBO {
@@ -24,7 +24,7 @@ export class ShadowUBO extends UBO {
     }
 
     override dynamicOffset(params: Parameters): number {
-        return Block.size * this._data.shadow.visibleCameras.findIndex(cameraIndex => cameraIndex == params.cameraIndex);
+        return UBO.align(Block.size) * this._data.shadow.visibleCameras.findIndex(cameraIndex => cameraIndex == params.cameraIndex);
     }
 
     constructor(data: Data, visibilities: number) {
@@ -33,12 +33,14 @@ export class ShadowUBO extends UBO {
     }
 
     update(dumping: boolean): void {
-        this._view.resize(Block.size * this._data.shadow.visibleCameras.length / this._view.source.BYTES_PER_ELEMENT);
+        const size = UBO.align(Block.size);
+
+        this._view.resize(size * this._data.shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
 
         for (let i = 0; i < this._data.shadow.visibleCameras.length; i++) {
-            const shadow = this._data.shadow.boundingFrusta[this._data.shadow.visibleCameras[i]];
+            const shadow = this._data.shadow.boundingFrusta[this._data.shadow.visibleCameras[i]].levels[0];
             if (dumping || shadow.hasChanged) {
-                const offset = (Block.size / this._view.source.BYTES_PER_ELEMENT) * i;
+                const offset = (size / this._view.source.BYTES_PER_ELEMENT) * i;
                 this._view.set(shadow.viewProj, offset + Block.members.viewProj.offset);
             }
         }

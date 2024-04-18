@@ -77,7 +77,7 @@ export class App extends Zero {
             debugDrawer.clear()
 
             const shadow = this.pipeline.data.shadow.boundingFrusta[this.pipeline.data.shadow.visibleCameras[0]];
-            debugDrawer.drawFrustum(shadow.bounds.vertices, vec4.YELLOW);
+            debugDrawer.drawFrustum(shadow.levels[0].bounds.vertices, vec4.YELLOW);
 
             debugDrawer.drawFrustum(this.scene.cameras[this.pipeline.data.shadow.visibleCameras[0]].frustum.vertices, vec4.ONE);
 

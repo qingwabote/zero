@@ -3,6 +3,7 @@ import { aabb3d } from "../../math/aabb3d.js";
 import { frustum } from "../../math/frustum.js";
 import { Mat4, mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
+import { Camera } from "../scene/Camera.js";
 import { FrameChangeRecord } from "../scene/FrameChangeRecord.js";
 import { Frustum } from "../scene/Frustum.js";
 import { root } from "../scene/Root.js";
@@ -16,7 +17,7 @@ const aabb_a = aabb3d.create();
 export class BoundingFurstum extends FrameChangeRecord {
 
     override get hasChanged(): number {
-        return super.hasChanged || this._furstum.hasChanged || root.directionalLight!.hasChanged;
+        return super.hasChanged || this._camera.hasChanged || this._camera.transform.hasChanged || root.directionalLight!.hasChanged;
     }
     override set hasChanged(flags: number) {
         super.hasChanged = flags;
@@ -29,7 +30,9 @@ export class BoundingFurstum extends FrameChangeRecord {
 
     readonly bounds: Readonly<Frustum> = new Frustum;
 
-    constructor(private _furstum: Readonly<Frustum>) {
+    private _frustum = new Frustum;
+
+    constructor(private readonly _camera: Camera, private readonly _start: number = 0, private readonly _end: number = 1) {
         super(1);
     }
 
@@ -40,7 +43,21 @@ export class BoundingFurstum extends FrameChangeRecord {
 
         const light = root.directionalLight!;
 
-        frustum.transform(frustum_a, this._furstum.vertices, light.view);
+        let f: Readonly<Frustum>;
+        if (this._start != 0 || this._end != 1) {
+            if (this._camera.hasChanged) {
+                const d = this._camera.far - this._camera.near;
+                this._frustum.perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * this._start, this._camera.near + d * this._end);
+            }
+            if (this._camera.hasChanged || this._camera.transform.hasChanged) {
+                this._frustum.transform(this._camera.transform.world_matrix);
+            }
+            f = this._frustum;
+        } else {
+            f = this._camera.frustum;
+        }
+
+        frustum.transform(frustum_a, f.vertices, light.view);
 
         aabb3d.fromPoints(aabb_a, frustum_a);
 
@@ -48,7 +65,6 @@ export class BoundingFurstum extends FrameChangeRecord {
 
         vec3.transformMat4(vec3_a, vec3_a, light.model);
 
-        // mat4.fromTRS(mat4_a, vec3_a, this._direction.world_rotation, vec3.ONE);
         mat4.translate(mat4_a, light.model, vec3_a);
 
         const left = -aabb_a.halfExtent[0];

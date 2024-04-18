@@ -1,9 +1,9 @@
 import { root } from "../scene/Root.js";
-import { BoundingFurstum as BoundingFrustum } from "./BoundingFrustum.js";
+import { SplitFrustum } from "./SplitFrustum.js";
 
 export class Shadow {
-    private _boundingFrusta: Record<number, BoundingFrustum> = {};
-    public get boundingFrusta(): Readonly<Record<number, BoundingFrustum>> {
+    private _boundingFrusta: Record<number, SplitFrustum> = {};
+    public get boundingFrusta(): Readonly<Record<number, SplitFrustum>> {
         return this._boundingFrusta;
     }
 
@@ -28,7 +28,7 @@ export class Shadow {
             this._visibleCameras.length = 0;
             for (let i = 0; i < cameras.length; i++) {
                 if (cameras[i].visibilities & this._visibilities) {
-                    this._boundingFrusta[i] || (this._boundingFrusta[i] = new BoundingFrustum(cameras[i].frustum));
+                    this._boundingFrusta[i] || (this._boundingFrusta[i] = new SplitFrustum(cameras[i]));
                     this._visibleCameras.push(i);
                 }
             }
