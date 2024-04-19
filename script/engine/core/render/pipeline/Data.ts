@@ -14,6 +14,8 @@ export class Data extends EventEmitterImpl<EventToListener> {
 
     readonly shadow = new Shadow;
 
+    flowLoopIndex = 0;
+
     update(dumping: boolean) {
         this.shadow.update(dumping);
         this.emit(Event.UPDATE);

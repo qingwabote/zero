@@ -1,6 +1,5 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { BufferView } from "../../core/render/BufferView.js";
-import { Data } from "../../core/render/pipeline/Data.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
 import { Shadow } from "../../core/render/pipeline/Shadow.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
@@ -11,10 +10,10 @@ const Block = {
     members: {
         viewProj: {}
     },
-    size: 16 * Float32Array.BYTES_PER_ELEMENT,
+    size: 16 * Shadow.LEVEL_COUNT * Float32Array.BYTES_PER_ELEMENT,
 }
 
-export class ShadowUBO extends UBO {
+export class CSMUBO extends UBO {
     static readonly definition = Block;
 
     private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
@@ -22,30 +21,26 @@ export class ShadowUBO extends UBO {
         return this._view.buffer;
     }
 
-    constructor(data: Data, visibilities: number) {
-        super(data, visibilities);
-        data.shadow.visibilities = visibilities;
-    }
-
     override dynamicOffset(params: Parameters): number {
         const index = this._data.shadow.visibleCameras.findIndex(cameraIndex => cameraIndex == params.cameraIndex);
-        const offset = UBO.align(Block.size) * (Shadow.LEVEL_COUNT * index + this._data.flowLoopIndex);
-        return offset;
+        if (index == -1) {
+            return 0;
+        }
+        return UBO.align(Block.size) * index;
     }
 
     update(dumping: boolean): void {
         const size = UBO.align(Block.size);
 
-        const shadow = this._data.shadow;
+        this._view.resize(size * this._data.shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
 
-        this._view.resize(size * Shadow.LEVEL_COUNT * shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
-
-        for (let i = 0; i < shadow.visibleCameras.length; i++) {
-            const levels = shadow.boundingFrusta[shadow.visibleCameras[i]].levels;
+        for (let i = 0; i < this._data.shadow.visibleCameras.length; i++) {
+            const offset = (size / this._view.BYTES_PER_ELEMENT) * i;
+            const levels = this._data.shadow.boundingFrusta[this._data.shadow.visibleCameras[i]].levels;
             for (let j = 0; j < levels.length; j++) {
                 const level = levels[j];
                 if (dumping || level.hasChanged) {
-                    this._view.set(level.viewProj, (size / this._view.BYTES_PER_ELEMENT) * (Shadow.LEVEL_COUNT * i + j));
+                    this._view.set(level.viewProj, offset + 16 * j);
                 }
             }
         }

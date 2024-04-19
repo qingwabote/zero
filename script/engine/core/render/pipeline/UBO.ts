@@ -19,12 +19,12 @@ export abstract class UBO {
 
     abstract get buffer(): Buffer;
 
-    dynamicOffset(paramm: Parameters): number { return -1 };
-
     constructor(
         protected readonly _data: Data,
         protected readonly _visibilities: number
     ) { }
+
+    dynamicOffset(paramm: Parameters): number { return -1 };
 
     abstract update(dumping: boolean): void;
 }

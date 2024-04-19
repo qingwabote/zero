@@ -30,10 +30,20 @@ export class BoundingFurstum extends FrameChangeRecord {
 
     readonly bounds: Readonly<Frustum> = new Frustum;
 
-    private _frustum = new Frustum;
+    private readonly _frustum?: Frustum;
+    get frustum(): Readonly<Frustum> {
+        if (this._start != 0 || this._end != 1) {
+            return this._frustum!
+        } else {
+            return this._camera.frustum;
+        }
+    }
 
     constructor(private readonly _camera: Camera, private readonly _start: number = 0, private readonly _end: number = 1) {
         super(1);
+        if (this._start != 0 || this._end != 1) {
+            this._frustum = new Frustum;
+        }
     }
 
     update(dumping: boolean) {
@@ -47,12 +57,12 @@ export class BoundingFurstum extends FrameChangeRecord {
         if (this._start != 0 || this._end != 1) {
             if (this._camera.hasChanged) {
                 const d = this._camera.far - this._camera.near;
-                this._frustum.perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * this._start, this._camera.near + d * this._end);
+                this._frustum!.perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * this._start, this._camera.near + d * this._end);
             }
             if (this._camera.hasChanged || this._camera.transform.hasChanged) {
-                this._frustum.transform(this._camera.transform.world_matrix);
+                this._frustum!.transform(this._camera.transform.world_matrix);
             }
-            f = this._frustum;
+            f = this._frustum!;
         } else {
             f = this._camera.frustum;
         }

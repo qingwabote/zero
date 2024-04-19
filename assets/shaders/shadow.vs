@@ -1,5 +1,8 @@
-#include <global/shadow>
 #include <local>
+
+layout(set = 0, binding = 3) uniform Shadow {
+    mat4 viewProj;
+} shadow;
 
 layout(location = 0) in vec3 a_position;
 

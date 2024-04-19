@@ -2,6 +2,8 @@ import { root } from "../scene/Root.js";
 import { SplitFrustum } from "./SplitFrustum.js";
 
 export class Shadow {
+    static readonly LEVEL_COUNT = 4;
+
     private _boundingFrusta: Record<number, SplitFrustum> = {};
     public get boundingFrusta(): Readonly<Record<number, SplitFrustum>> {
         return this._boundingFrusta;
@@ -28,7 +30,7 @@ export class Shadow {
             this._visibleCameras.length = 0;
             for (let i = 0; i < cameras.length; i++) {
                 if (cameras[i].visibilities & this._visibilities) {
-                    this._boundingFrusta[i] || (this._boundingFrusta[i] = new SplitFrustum(cameras[i]));
+                    this._boundingFrusta[i] || (this._boundingFrusta[i] = new SplitFrustum(cameras[i], Shadow.LEVEL_COUNT));
                     this._visibleCameras.push(i);
                 }
             }

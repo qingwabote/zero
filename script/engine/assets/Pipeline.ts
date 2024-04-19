@@ -123,6 +123,7 @@ const UniformTypes: Record<string, new (data: Data, visibilities: number) => ren
     Camera: pipeline.CameraUBO,
     Light: pipeline.LightUBO,
     Shadow: pipeline.ShadowUBO,
+    CSM: pipeline.CSMUBO
 }
 
 interface UBO {
@@ -317,8 +318,8 @@ export class Pipeline extends Yml {
             let loops: Function[] | undefined;
             if (flow.loops) {
                 loops = [];
-                for (let flow_i = 0; flow_i < flow.loops.length; flow_i++) {
-                    const loop = flow.loops[flow_i];
+                for (let loop_i = 0; loop_i < flow.loops.length; loop_i++) {
+                    const loop = flow.loops[loop_i];
                     const setters: Function[] = [];
                     if (loop.stages) {
                         for (let stage_i = 0; stage_i < loop.stages.length; stage_i++) {
@@ -331,6 +332,7 @@ export class Pipeline extends Yml {
                         }
                     }
                     loops.push(function () {
+                        data.flowLoopIndex = loop_i;
                         for (const setter of setters) {
                             setter();
                         }

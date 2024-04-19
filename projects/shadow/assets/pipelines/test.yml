@@ -12,7 +12,8 @@ ubos:
     type: Light
   - name: shadow
     type: Shadow
-
+  - name: csm
+    type: CSM
 flows:
   - bindings:
       - ubo: shadow
@@ -32,14 +33,33 @@ flows:
           - viewport:
               x: 0
               y: 0
-              width: 1
-              height: 1
+              width: 0.5
+              height: 0.5
+      - stages:
+          - viewport:
+              x: 0.5
+              y: 0
+              width: 0.5
+              height: 0.5
+      - stages:
+          - viewport:
+              x: 0
+              y: 0.5
+              width: 0.5
+              height: 0.5
+      - stages:
+          - viewport:
+              x: 0.5
+              y: 0.5
+              width: 0.5
+              height: 0.5
+
   - bindings:
       - ubo: camera
         binding: 1
       - ubo: light
         binding: 2
-      - ubo: shadow
+      - ubo: csm
         binding: 3
       - texture: shadowmap
         binding: 0
