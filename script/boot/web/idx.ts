@@ -3,24 +3,19 @@ import { log } from "./console.js";
 //
 import { Device } from "gfx";
 
-// set initial size that doesn't change later
-// High DPI
-const documentElement = document.documentElement;
-const bufferWidth = documentElement.clientWidth * devicePixelRatio;
-const bufferHeight = documentElement.clientHeight * devicePixelRatio;
+const [styleWidth, styleHeight, bufferWidth, bufferHeight, ratio] = (function () {
+    const { clientWidth, clientHeight } = document.documentElement;
+    return [clientWidth, clientHeight, clientWidth * devicePixelRatio, clientHeight * devicePixelRatio, devicePixelRatio];
+})()
 
 const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
 canvas.width = bufferWidth;
 canvas.height = bufferHeight;
-canvas.style.width = `${documentElement.clientWidth}px`;
-canvas.style.height = `${documentElement.clientHeight}px`;
-log(`canvas style size ${canvas.style.width} ${canvas.style.height}
-canvas size ${canvas.width} ${canvas.height}
-devicePixelRatio ${devicePixelRatio}
-`);
+canvas.style.width = `${styleWidth}px`;
+canvas.style.height = `${styleHeight}px`;
 
 export const safeArea = (function () {
-    const top = document.getElementById("boot_log")!.clientHeight * devicePixelRatio;
+    const top = document.getElementById("boot_log")!.clientHeight * ratio;
     return { left: 0, right: 0, top, bottom: 0, width: bufferWidth, height: bufferHeight - top };
 })();
 
@@ -121,7 +116,7 @@ export function attach(listener: EventListener) {
         const rect = canvas.getBoundingClientRect();
         const offsetX = touch.clientX - rect.x;
         const offsetY = touch.clientY - rect.y;
-        listener.onTouchStart({ touches: [lastTouch = { x: offsetX * window.devicePixelRatio, y: offsetY * window.devicePixelRatio }] });
+        listener.onTouchStart({ touches: [lastTouch = { x: offsetX * ratio, y: offsetY * ratio }] });
         touchEvent.preventDefault(); // prevent mousedown
     })
     canvas.addEventListener('touchmove', function (touchEvent) {
@@ -129,7 +124,7 @@ export function attach(listener: EventListener) {
         const rect = canvas.getBoundingClientRect();
         const offsetX = touch.clientX - rect.x;
         const offsetY = touch.clientY - rect.y;
-        listener.onTouchMove({ touches: [lastTouch = { x: offsetX * window.devicePixelRatio, y: offsetY * window.devicePixelRatio }] });
+        listener.onTouchMove({ touches: [lastTouch = { x: offsetX * ratio, y: offsetY * ratio }] });
     })
     canvas.addEventListener('touchend', function (touchEvent) {
         listener.onTouchEnd({ touches: [lastTouch] });
@@ -139,19 +134,19 @@ export function attach(listener: EventListener) {
     })
 
     canvas.addEventListener("mousedown", function (mouseEvent) {
-        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX * window.devicePixelRatio, y: mouseEvent.offsetY * window.devicePixelRatio }] });
+        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX * ratio, y: mouseEvent.offsetY * ratio }] });
     })
     canvas.addEventListener("mouseup", function (mouseEvent) {
-        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX * window.devicePixelRatio, y: mouseEvent.offsetY * window.devicePixelRatio }] })
+        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX * ratio, y: mouseEvent.offsetY * ratio }] })
     })
     canvas.addEventListener("mousemove", function (mouseEvent) {
         if (mouseEvent.buttons) {
-            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX * window.devicePixelRatio, y: mouseEvent.offsetY * window.devicePixelRatio }] })
+            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX * ratio, y: mouseEvent.offsetY * ratio }] })
         }
     })
 
     canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * window.devicePixelRatio, y: wheelEvent.offsetY * window.devicePixelRatio }], delta: wheelEvent.deltaY });
+        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * ratio, y: wheelEvent.offsetY * ratio }], delta: wheelEvent.deltaY });
         wheelEvent.preventDefault();
     })
 

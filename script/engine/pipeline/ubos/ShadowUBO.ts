@@ -2,8 +2,8 @@ import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from
 import { BufferView } from "../../core/render/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
-import { Shadow } from "../../core/render/pipeline/Shadow.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
+import { Cascades } from "../../core/render/pipeline/shadow/Cascades.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -29,7 +29,7 @@ export class ShadowUBO extends UBO {
 
     override dynamicOffset(params: Parameters): number {
         const index = this._data.shadow.visibleCameras.findIndex(cameraIndex => cameraIndex == params.cameraIndex);
-        const offset = UBO.align(Block.size) * (Shadow.LEVEL_COUNT * index + this._data.flowLoopIndex);
+        const offset = UBO.align(Block.size) * (Cascades.COUNT * index + this._data.flowLoopIndex);
         return offset;
     }
 
@@ -38,14 +38,13 @@ export class ShadowUBO extends UBO {
 
         const shadow = this._data.shadow;
 
-        this._view.resize(size * Shadow.LEVEL_COUNT * shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
+        this._view.resize(size * Cascades.COUNT * shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
 
         for (let i = 0; i < shadow.visibleCameras.length; i++) {
-            const levels = shadow.boundingFrusta[shadow.visibleCameras[i]].levels;
-            for (let j = 0; j < levels.length; j++) {
-                const level = levels[j];
-                if (dumping || level.hasChanged) {
-                    this._view.set(level.viewProj, (size / this._view.BYTES_PER_ELEMENT) * (Shadow.LEVEL_COUNT * i + j));
+            const cascades = shadow.cascades[shadow.visibleCameras[i]];
+            if (dumping || cascades.hasChanged) {
+                for (let j = 0; j < Cascades.COUNT; j++) {
+                    this._view.set(cascades.viewProjs[j], (size / this._view.BYTES_PER_ELEMENT) * (Cascades.COUNT * i + j));
                 }
             }
         }

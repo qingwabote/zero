@@ -1,8 +1,8 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { BufferView } from "../../core/render/BufferView.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
-import { Shadow } from "../../core/render/pipeline/Shadow.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
+import { Cascades } from "../../core/render/pipeline/shadow/Cascades.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -10,7 +10,7 @@ const Block = {
     members: {
         viewProj: {}
     },
-    size: 16 * Shadow.LEVEL_COUNT * Float32Array.BYTES_PER_ELEMENT,
+    size: 16 * Cascades.COUNT * Float32Array.BYTES_PER_ELEMENT,
 }
 
 export class CSMUBO extends UBO {
@@ -36,11 +36,10 @@ export class CSMUBO extends UBO {
 
         for (let i = 0; i < this._data.shadow.visibleCameras.length; i++) {
             const offset = (size / this._view.BYTES_PER_ELEMENT) * i;
-            const levels = this._data.shadow.boundingFrusta[this._data.shadow.visibleCameras[i]].levels;
-            for (let j = 0; j < levels.length; j++) {
-                const level = levels[j];
-                if (dumping || level.hasChanged) {
-                    this._view.set(level.viewProj, offset + 16 * j);
+            const cascades = this._data.shadow.cascades[this._data.shadow.visibleCameras[i]];
+            if (dumping || cascades.hasChanged) {
+                for (let j = 0; j < Cascades.COUNT; j++) {
+                    this._view.set(cascades.viewProjs[j], offset + 16 * j);
                 }
             }
         }

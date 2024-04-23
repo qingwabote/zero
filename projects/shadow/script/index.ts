@@ -78,10 +78,10 @@ export class App extends Zero {
 
             const cameraIndex = this.pipeline.data.shadow.visibleCameras[0];
 
-            const shadow = this.pipeline.data.shadow.boundingFrusta[cameraIndex];
-            for (const level of shadow.levels) {
-                debugDrawer.drawFrustum(level.bounds.vertices, vec4.YELLOW);
-                debugDrawer.drawFrustum(level.frustum.vertices, vec4.ONE);
+            const cascades = this.pipeline.data.shadow.cascades[cameraIndex];
+            for (let i = 0; i < 4; i++) {
+                debugDrawer.drawFrustum(cascades.bounds[i].vertices, vec4.YELLOW);
+                debugDrawer.drawFrustum(cascades.frusta[i].vertices, vec4.ONE);
             }
 
             // for (const model of this.scene.models) {
