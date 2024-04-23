@@ -12,11 +12,11 @@ const VisibilityFlagBits = {
 const [guardian, plane, ss_depth, pipeline] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
-        return gltf.instantiate({ USE_SHADOW_MAP: 1 });
+        return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_PCF: 1 });
     })(),
     (async function () {
         const gltf = await builtin.cache('models/primitive/scene', GLTF);
-        return gltf.instantiate({ USE_SHADOW_MAP: 1 });
+        return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_PCF: 1 });
     })(),
     builtin.cache('shaders/depth', Shader),
     bundle.cache('pipelines/test', Pipeline)

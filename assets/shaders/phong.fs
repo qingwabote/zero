@@ -32,6 +32,10 @@ layout(location = 0) out vec4 fragColor;
     float shadowFactor() {
         float factor = 0.0;
 
+        #if SHADOW_MAP_PCF
+            vec2 atlasSize = vec2(textureSize(shadowMap, 0));
+        #endif
+
         for(int i = 0; i < 4; i++) {
             vec4 position = csm.viewProj[i] * vec4(v_position, 1.0);
 
@@ -41,14 +45,22 @@ layout(location = 0) out vec4 fragColor;
                 vec3 pos = position.xyz * 0.5 + 0.5;
             #endif
 
-            if (pos.x < 0.0 || pos.x > 1.0 || pos.y < 0.0 || pos.y > 1.0 || pos.z < 0.0 || pos.z > 1.0) {
-                continue;
-            }
+            #if SHADOW_MAP_PCF
+                float thresholdX = 1.0 / (atlasSize.x * CSMAtlas[i].z);
+                float thresholdY = 1.0 / (atlasSize.y * CSMAtlas[i].w);
+                if (pos.x < 0.0 + thresholdX || pos.x > 1.0 - thresholdX || pos.y < 0.0 + thresholdY || pos.y > 1.0 - thresholdY || pos.z < 0.0 || pos.z > 1.0) {
+                    continue;
+                }
+            #else
+                if (pos.x < 0.0 || pos.x > 1.0 || pos.y < 0.0 || pos.y > 1.0 || pos.z < 0.0 || pos.z > 1.0) {
+                    continue;
+                }
+            #endif
 
-            pos.xy = pos.xy * CSMAtlas[i].zw + CSMAtlas[i].xy;
+            pos.xy = CSMAtlas[i].xy + pos.xy * CSMAtlas[i].zw;
 
             #if SHADOW_MAP_PCF
-                vec2 texelSize = 1.0 / vec2(textureSize(shadowMap, 0));
+                vec2 texelSize = 1.0 / atlasSize;
                 for(int x = -1; x <= 1; ++x) {
                     for(int y = -1; y <= 1; ++y) {
                         factor += step(texture(shadowMap, pos.xy + vec2(x, y) * texelSize).r, pos.z);
