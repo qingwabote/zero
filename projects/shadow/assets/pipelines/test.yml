@@ -30,30 +30,13 @@ flows:
           - DEPTH
     loops:
       - stages:
-          - viewport:
-              x: 0
-              y: 0
-              width: 0.5
-              height: 0.5
+          - viewport: [0, 0, 0.5, 0.5]
       - stages:
-          - viewport:
-              x: 0.5
-              y: 0
-              width: 0.5
-              height: 0.5
+          - viewport: [0.5, 0, 0.5, 0.5]
       - stages:
-          - viewport:
-              x: 0
-              y: 0.5
-              width: 0.5
-              height: 0.5
+          - viewport: [0, 0.5, 0.5, 0.5]
       - stages:
-          - viewport:
-              x: 0.5
-              y: 0.5
-              width: 0.5
-              height: 0.5
-
+          - viewport: [0.5, 0.5, 0.5, 0.5]
   - bindings:
       - ubo: camera
         binding: 1

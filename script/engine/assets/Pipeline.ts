@@ -1,7 +1,7 @@
 import { device } from "boot";
 import { bundle } from "bundling";
 import * as gfx from "gfx";
-import { Rect, rect } from "../core/math/rect.js";
+import { Vec4, vec4 } from "../core/math/vec4.js";
 import * as render from '../core/render/index.js';
 import { Data } from "../core/render/pipeline/Data.js";
 import { getSampler } from "../core/sc.js";
@@ -135,7 +135,7 @@ interface Stage {
     phases?: Phase[];
     framebuffer?: Framebuffer;
     clears?: Clear[];
-    viewport?: Rect;
+    viewport?: Vec4;
 }
 
 interface Binding {
@@ -266,7 +266,7 @@ export class Pipeline extends Yml {
                     }
                 }
                 let framebuffer: gfx.Framebuffer | undefined;
-                let viewport: Rect | undefined;
+                let viewport: Vec4 | undefined;
                 let clears: gfx.ClearFlagBits | undefined;
                 if (stage.clears) {
                     clears = gfx.ClearFlagBits.NONE;
@@ -311,7 +311,7 @@ export class Pipeline extends Yml {
 
                     framebufferInfo.renderPass = render.getRenderPass(framebufferInfo, clears);
                     framebuffer = device.createFramebuffer(framebufferInfo);
-                    viewport = rect.create(0, 0, 1, 1);
+                    viewport = vec4.create(0, 0, 1, 1);
                 }
                 stages.push(new render.Stage(phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
             }
