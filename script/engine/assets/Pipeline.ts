@@ -1,6 +1,7 @@
 import { device } from "boot";
 import { bundle } from "bundling";
 import * as gfx from "gfx";
+import { Vec2 } from "../core/math/vec2.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import * as render from '../core/render/index.js';
 import { Data } from "../core/render/pipeline/Data.js";
@@ -106,8 +107,7 @@ interface Texture {
     name: string;
     usage: TextureUsage[];
     swapchain: boolean;
-    width: number;
-    height: number;
+    extent?: Vec2;
 }
 
 interface Framebuffer {
@@ -375,8 +375,8 @@ export class Pipeline extends Yml {
         if (samples) {
             info.samples = samples;
         }
-        info.width = texture.width || device.swapchain.width;
-        info.height = texture.height || device.swapchain.height;
+        info.width = texture.extent?.[0] || device.swapchain.width;
+        info.height = texture.extent?.[1] || device.swapchain.height;
         return device.createTexture(info);
     }
 }

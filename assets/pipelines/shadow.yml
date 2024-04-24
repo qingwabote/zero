@@ -3,8 +3,7 @@ textures:
     usage:
       - DEPTH_STENCIL
       - SAMPLED
-    width: 1024
-    height: 1024
+    extent: [1024, 1024]
 ubos:
   - name: camera
     type: Camera
