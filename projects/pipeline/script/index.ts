@@ -52,6 +52,7 @@ const [guardian, plane, unlit, phong, shadow] = await Promise.all([
     })(),
 ])
 
+const text_size = 64;
 const text_color_normal = [0.5, 0.5, 0.5, 1] as const;
 const text_color_selected = [0, 1, 0, 1] as const;
 
@@ -110,11 +111,12 @@ export class App extends Zero {
 
         const pipelineBar = (new Node).addComponent(ElementContainer);
         pipelineBar.flexDirection = FlexDirection.Row;
-        pipelineBar.setGap(Gutter.Column, 16);
+        pipelineBar.setGap(Gutter.Column, 32);
         {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'UNLIT';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(unlit, textRenderer.impl)
             })
@@ -125,6 +127,7 @@ export class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'PHONG';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(phong, textRenderer.impl)
             })
@@ -134,6 +137,7 @@ export class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'SHADOW';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(shadow, textRenderer.impl)
             })

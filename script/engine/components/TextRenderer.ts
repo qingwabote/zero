@@ -57,7 +57,7 @@ const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 
 export class TextRenderer extends BoundedRenderer {
-    private _dirtyFlag: DirtyFlagBits = DirtyFlagBits.TEXT;
+    private _dirties: DirtyFlagBits = DirtyFlagBits.TEXT;
 
     private _pass = PassInstance.PassInstance(pass);
 
@@ -70,7 +70,7 @@ export class TextRenderer extends BoundedRenderer {
             return;
         }
         this._text = value;
-        this._dirtyFlag |= DirtyFlagBits.TEXT;
+        this._dirties |= DirtyFlagBits.TEXT;
     }
 
     private _color = default_color;
@@ -80,6 +80,18 @@ export class TextRenderer extends BoundedRenderer {
     public set color(value: Readonly<Vec4>) {
         this._pass.setUniform('Props', 'albedo', value);
         this._color = value;
+    }
+
+    private _size: number = fnt_zero.info.size;
+    public get size(): number {
+        return this._size;
+    }
+    public set size(value: number) {
+        if (this._size == value) {
+            return;
+        }
+        this._size = value;
+        this._dirties |= DirtyFlagBits.TEXT;
     }
 
     private _vertexView: BufferView;
@@ -115,7 +127,7 @@ export class TextRenderer extends BoundedRenderer {
     }
 
     private updateData(): void {
-        if (this._dirtyFlag == DirtyFlagBits.NONE) {
+        if (this._dirties == DirtyFlagBits.NONE) {
             return;
         }
 
@@ -124,7 +136,7 @@ export class TextRenderer extends BoundedRenderer {
 
             this._mesh.setBoundsByPoints(vec3.ZERO, vec3.ZERO)
 
-            this._dirtyFlag = DirtyFlagBits.NONE;
+            this._dirties = DirtyFlagBits.NONE;
 
             this.emit(BoundsEventName.BOUNDS_CHANGED);
 
@@ -135,12 +147,12 @@ export class TextRenderer extends BoundedRenderer {
         this._vertexView.reset(4 * 4 * this._text.length);
 
         const tex = fnt_zero.texture.impl.info;
-        let [x, y, l, r, t, b, quads] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
+        let [x, y, l, r, t, b, quads, scale] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0, this._size / fnt_zero.info.size];
         for (let i = 0; i < this._text.length; i++) {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
-                y -= fnt_zero.common.lineHeight / TextRenderer.PIXELS_PER_UNIT;
+                y -= fnt_zero.common.lineHeight / TextRenderer.PIXELS_PER_UNIT * scale;
                 continue;
             }
 
@@ -154,10 +166,10 @@ export class TextRenderer extends BoundedRenderer {
             const tex_t = char.y / tex.height;
             const tex_b = (char.y + char.height) / tex.height;
 
-            const xoffset = char.xoffset / TextRenderer.PIXELS_PER_UNIT;
-            const yoffset = char.yoffset / TextRenderer.PIXELS_PER_UNIT;
-            const width = char.width / TextRenderer.PIXELS_PER_UNIT;
-            const height = char.height / TextRenderer.PIXELS_PER_UNIT;
+            const xoffset = char.xoffset / TextRenderer.PIXELS_PER_UNIT * scale;
+            const yoffset = char.yoffset / TextRenderer.PIXELS_PER_UNIT * scale;
+            const width = char.width / TextRenderer.PIXELS_PER_UNIT * scale;
+            const height = char.height / TextRenderer.PIXELS_PER_UNIT * scale;
 
             const pos_l = x + xoffset;
             const pos_r = x + xoffset + width;
@@ -191,7 +203,7 @@ export class TextRenderer extends BoundedRenderer {
             t = Math.max(t, pos_t);
             b = Math.min(b, pos_b);
 
-            x += char.xadvance / TextRenderer.PIXELS_PER_UNIT;
+            x += char.xadvance / TextRenderer.PIXELS_PER_UNIT * scale;
 
             quads++;
         }
@@ -203,7 +215,7 @@ export class TextRenderer extends BoundedRenderer {
         vec2.set(vec3_b, r, t);
         this._mesh.setBoundsByPoints(vec3_a, vec3_b)
 
-        this._dirtyFlag = DirtyFlagBits.NONE;
+        this._dirties = DirtyFlagBits.NONE;
 
         this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
