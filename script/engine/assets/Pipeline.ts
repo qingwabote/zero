@@ -126,11 +126,6 @@ const UniformTypes: Record<string, new (data: Data, visibilities: number) => ren
     CSM: pipeline.CSMUBO
 }
 
-interface UBO {
-    name: string;
-    type: string;
-}
-
 interface Stage {
     phases?: Phase[];
     framebuffer?: Framebuffer;
@@ -162,7 +157,6 @@ interface Flow extends FlowLoop {
 
 interface Info {
     textures?: Texture[];
-    ubos: UBO[];
     flows: Flow[];
 }
 
@@ -198,8 +192,14 @@ export class Pipeline extends Yml {
         }
 
         const uboMap: Map<string, render.UBO> = new Map;
-        for (const ubo of this._info.ubos) {
-            uboMap.set(ubo.name, new UniformTypes[ubo.type](data, uboVisibilities[ubo.name]));
+        for (const flow of this._info.flows) {
+            for (const binding of flow.bindings!) {
+                if ('ubo' in binding) {
+                    if (!uboMap.has(binding.ubo)) {
+                        uboMap.set(binding.ubo, new UniformTypes[binding.ubo](data, uboVisibilities[binding.ubo]))
+                    }
+                }
+            }
         }
 
         const flows: render.Flow[] = [];

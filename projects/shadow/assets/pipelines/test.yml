@@ -5,18 +5,9 @@ textures:
       - SAMPLED
     width: 1024
     height: 1024
-ubos:
-  - name: camera
-    type: Camera
-  - name: light
-    type: Light
-  - name: csmi
-    type: CSMI
-  - name: csm
-    type: CSM
 flows:
   - bindings:
-      - ubo: csmi
+      - ubo: CSMI
         binding: 3
     stages:
       - name: shadow
@@ -38,11 +29,11 @@ flows:
       - stages:
           - viewport: [0.5, 0.5, 0.5, 0.5]
   - bindings:
-      - ubo: camera
+      - ubo: Camera
         binding: 1
-      - ubo: light
+      - ubo: Light
         binding: 2
-      - ubo: csm
+      - ubo: CSM
         binding: 3
       - texture: shadowmap
         binding: 0
@@ -52,7 +43,7 @@ flows:
           - pass: default
             visibility: ${WORLD}
   - bindings:
-      - ubo: camera
+      - ubo: Camera
         binding: 1
     stages:
       - name: forward
