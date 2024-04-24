@@ -44,7 +44,7 @@ const phaseCreators = (function () {
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
     const CullingInstances = {
-        Shadow: new pipeline.ShadowCulling,
+        CSM: new pipeline.CSMCulling,
         View: new pipeline.ViewCulling
     }
 
@@ -122,7 +122,7 @@ type Clear = keyof typeof gfx.ClearFlagBits;
 const UniformTypes: Record<string, new (data: Data, visibilities: number) => render.UBO> = {
     Camera: pipeline.CameraUBO,
     Light: pipeline.LightUBO,
-    Shadow: pipeline.ShadowUBO,
+    CSMI: pipeline.CSMIUBO,
     CSM: pipeline.CSMUBO
 }
 

@@ -14,7 +14,8 @@ const Block = {
     size: 16 * Float32Array.BYTES_PER_ELEMENT,
 }
 
-export class ShadowUBO extends UBO {
+/**CSM iterator UBO */
+export class CSMIUBO extends UBO {
     static readonly definition = Block;
 
     private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);

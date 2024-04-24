@@ -10,18 +10,18 @@ ubos:
     type: Camera
   - name: light
     type: Light
-  - name: shadow
-    type: Shadow
+  - name: csmi
+    type: CSMI
   - name: csm
     type: CSM
 flows:
   - bindings:
-      - ubo: shadow
+      - ubo: csmi
         binding: 3
     stages:
       - name: shadow
         phases:
-          - culling: Shadow
+          - culling: CSM
             pass: shadow
             visibility: ${UP}
         framebuffer:
