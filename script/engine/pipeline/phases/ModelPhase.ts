@@ -23,6 +23,7 @@ export class ModelPhase extends Phase {
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
         const scene = Zero.instance.scene;
         const camera = scene.cameras[cameraIndex];
+        this._culling.ready();
         for (const model of scene.models) {
             if ((camera.visibilities & model.transform.visibility) == 0) {
                 continue;

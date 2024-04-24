@@ -46,7 +46,11 @@ export class Frustum extends FrameChangeRecord {
         this.hasChanged = 1;
     }
 
-    aabb(aabb: Readonly<AABB3D>): boolean {
-        return frustum.aabb(this.faces, aabb);
+    aabb_out(aabb: Readonly<AABB3D>): boolean {
+        return frustum.aabb_out(this.faces, aabb);
+    }
+
+    aabb_in(aabb: Readonly<AABB3D>): boolean {
+        return frustum.aabb_in(this.faces, aabb);
     }
 }

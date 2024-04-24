@@ -79,9 +79,18 @@ function transform(out: FrustumVertices, a: Readonly<FrustumVertices>, m: Readon
     return out;
 }
 
-function aabb(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): boolean {
+function aabb_out(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): boolean {
     for (const face of frustum) {
         if (plane.aabb(face, aabb) == -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function aabb_in(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): boolean {
+    for (const face of frustum) {
+        if (plane.aabb(face, aabb) != 0) {
             return false;
         }
     }
@@ -95,5 +104,6 @@ export const frustum = {
     orthographic,
     perspective,
     transform,
-    aabb
+    aabb_out,
+    aabb_in
 } as const
