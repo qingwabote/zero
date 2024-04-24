@@ -80,7 +80,7 @@ export class App extends Zero {
         up_camera.visibilities = VisibilityFlagBits.DEFAULT;
         up_camera.fov = 45;
         up_camera.far = 16
-        up_camera.rect = { x: 0, y: 0.5, width: 1, height: 0.5 };
+        up_camera.rect = [0, 0.5, 1, 0.5];
         node.position = [0, 0, 10];
 
         // UI

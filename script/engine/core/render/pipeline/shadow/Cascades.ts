@@ -68,11 +68,11 @@ export class Cascades extends FrameChangeRecord {
 
         for (let i = Cascades.COUNT - 1; i > -1; i--) {
             if (Cascades.COUNT != 1) {
-                if (this._camera.hasChanged) {
+                if (dumping || this._camera.hasChanged) {
                     const d = this._camera.far - this._camera.near;
                     this._frusta[i].perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * (i / Cascades.COUNT), this._camera.near + d * ((i + 1) / Cascades.COUNT));
                 }
-                if (this._camera.hasChanged || this._camera.transform.hasChanged) {
+                if (dumping || this._camera.hasChanged || this._camera.transform.hasChanged) {
                     this._frusta[i].transform(this._camera.transform.world_matrix);
                 }
             }

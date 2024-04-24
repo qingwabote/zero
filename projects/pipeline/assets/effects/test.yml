@@ -9,7 +9,7 @@ passes:
     type: phong-shadow
     macros:
       USE_SHADOW_MAP: 1
-      SHADOW_MAP_PCF: 0
+      SHADOW_MAP_PCF: 1
     props:
       albedo: [1, 1, 1, 1]
     depthStencilState:
