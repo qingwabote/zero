@@ -1,13 +1,8 @@
-ubos:
-  - name: camera
-    type: Camera
-  - name: light
-    type: Light
 flows:
   - bindings:
-      - ubo: camera
+      - ubo: Camera
         binding: 1
-      - ubo: light
+      - ubo: Light
         binding: 2
     stages:
       - phases:

@@ -3,13 +3,9 @@ textures:
     usage:
       - COLOR
       - SAMPLED
-ubos:
-  - name: camera
-    type: Camera
-
 flows:
   - bindings:
-      - ubo: camera
+      - ubo: Camera
         binding: 1
     stages:
       - phases:

@@ -4,33 +4,35 @@ textures:
       - DEPTH_STENCIL
       - SAMPLED
     extent: [1024, 1024]
-ubos:
-  - name: camera
-    type: Camera
-  - name: light
-    type: Light
-  - name: shadow
-    type: Shadow
-
 flows:
   - bindings:
-      - ubo: shadow
+      - ubo: CSMI
         binding: 3
     stages:
       - name: shadow
         phases:
-          - pass: shadow
+          - culling: CSM
+            pass: shadow
             visibility: ${WORLD}
         framebuffer:
           depthStencil: shadowmap
         clears:
           - DEPTH
+    loops:
+      - stages:
+          - viewport: [0, 0, 0.5, 0.5]
+      - stages:
+          - viewport: [0.5, 0, 0.5, 0.5]
+      - stages:
+          - viewport: [0, 0.5, 0.5, 0.5]
+      - stages:
+          - viewport: [0.5, 0.5, 0.5, 0.5]
   - bindings:
-      - ubo: camera
+      - ubo: Camera
         binding: 1
-      - ubo: light
+      - ubo: Light
         binding: 2
-      - ubo: shadow
+      - ubo: CSM
         binding: 3
       - texture: shadowmap
         binding: 0
@@ -40,7 +42,7 @@ flows:
           - pass: default
             visibility: ${WORLD}
   - bindings:
-      - ubo: camera
+      - ubo: Camera
         binding: 1
     stages:
       - name: forward

@@ -254,13 +254,9 @@ export class Pipeline extends Yml {
 
                 const phases: render.Phase[] = [];
                 for (const phase of stage.phases!) {
-                    let visibility = 0xffffffff;
-                    if (phase.visibility) {
-                        visibility = Number(this.resolveVar(phase.visibility, variables));
-                    }
                     const type = phase.type || 'model';
                     if (type in phaseCreators) {
-                        phases.push(await phaseCreators[type](phase as any, context, visibility))
+                        phases.push(await phaseCreators[type](phase as any, context, this.phase_visibilitiy(phase, variables)))
                     } else {
                         throw new Error(`unsupported phase type: ${type}`);
                     }
@@ -345,7 +341,7 @@ export class Pipeline extends Yml {
         return new render.Pipeline(data, [...uboMap.values()], flows);
     }
 
-    private flow_visibilities(flow: Flow, variables?: Record<string, any>) {
+    private flow_visibilities(flow: Flow, variables?: Record<string, any>): number {
         let res = 0;
         for (const stage of flow.stages!) {
             res |= this.stage_visibilities(stage, variables);
@@ -353,14 +349,16 @@ export class Pipeline extends Yml {
         return res;
     }
 
-    private stage_visibilities(stage: Stage, variables?: Record<string, any>) {
+    private stage_visibilities(stage: Stage, variables?: Record<string, any>): number {
         let res = 0;
         for (const phase of stage.phases!) {
-            if (phase.visibility) {
-                res |= Number(this.resolveVar(phase.visibility, variables));
-            }
+            res |= this.phase_visibilitiy(phase, variables);
         }
         return res;
+    }
+
+    private phase_visibilitiy(phase: Phase, variables?: Record<string, any>): number {
+        return phase.visibility ? Number(this.resolveVar(phase.visibility, variables)) : 0xffffffff;
     }
 
     private createTexture(texture: Texture | string, samples?: gfx.SampleCountFlagBits) {

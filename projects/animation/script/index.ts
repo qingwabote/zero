@@ -25,6 +25,7 @@ export class App extends Zero {
         node = new Node;
         node.addComponent(DirectionalLight);
         node.position = [0, 4, 4];
+        node.lookAt(vec3.ZERO);
 
         node = new Node;
         const main_camera = node.addComponent(Camera);
