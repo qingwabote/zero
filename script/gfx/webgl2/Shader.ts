@@ -49,7 +49,7 @@ export class Shader {
                 err += gl.getShaderInfoLog(shader) + '\n';
                 let lineNumber = 1;
                 err += 'Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `)
-                throw err;
+                throw new Error(err);
             }
             shaders.push(shader);
         }
@@ -60,7 +60,7 @@ export class Shader {
         }
         gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw 'Failed to link shader.\n' + gl.getProgramInfoLog(program)
+            throw new Error('Failed to link shader.\n' + gl.getProgramInfoLog(program))
         }
 
         const meta = glsl.parse(sources, types);

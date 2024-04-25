@@ -174,6 +174,13 @@ export const vec3 = {
         );
     },
 
+    distance(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>): number {
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
+        const z = b[2] - a[2];
+        return Math.sqrt(x * x + y * y + z * z);
+    },
+
     lerp<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>, t: number) {
         out[0] = a[0] + t * (b[0] - a[0]);
         out[1] = a[1] + t * (b[1] - a[1]);

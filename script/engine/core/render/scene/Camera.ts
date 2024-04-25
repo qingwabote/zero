@@ -1,10 +1,9 @@
 import { device } from "boot";
 import { ClearFlagBits } from "gfx";
-import { Zero } from "../../Zero.js";
 import { Mat4, mat4 } from "../../math/mat4.js";
-import { Rect, rect } from "../../math/rect.js";
 import { Vec2Like, vec2 } from "../../math/vec2.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
+import { Vec4, vec4 } from "../../math/vec4.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
 import { Frustum } from "./Frustum.js";
 import { Transform } from "./Transform.js";
@@ -14,17 +13,6 @@ const mat4_a = mat4.create();
 const mat4_b = mat4.create();
 
 export class Camera extends FrameChangeRecord {
-
-    override get hasChanged(): number {
-        if (super.hasChanged || this.transform.hasChanged) {
-            return 1;
-        }
-        return 0;
-    }
-    override set hasChanged(flags: number) {
-        super.hasChanged = flags;
-    }
-
     /**
      * half size of the vertical viewing volume
      */
@@ -40,20 +28,20 @@ export class Camera extends FrameChangeRecord {
 
     clears: ClearFlagBits = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
 
-    private _rect = rect.create(0, 0, 1, 1);
+    private _rect = vec4.create(0, 0, 1, 1);
     /**
      * x,y the lower left corner
      */
-    public get rect(): Readonly<Rect> {
+    public get rect(): Readonly<Vec4> {
         return this._rect;
     }
-    public set rect(value: Readonly<Rect>) {
-        rect.copy(this._rect, value);
+    public set rect(value: Readonly<Vec4>) {
+        vec4.copy(this._rect, value);
     }
 
     get aspect(): number {
         const { width, height } = device.swapchain
-        return (width * this._rect.width) / (height * this._rect.height);
+        return (width * this._rect[2]) / (height * this._rect[3]);
     }
 
     private _matView = mat4.create();
@@ -73,24 +61,26 @@ export class Camera extends FrameChangeRecord {
     readonly frustum: Readonly<Frustum> = new Frustum;
 
     constructor(readonly transform: Transform) {
-        super();
-        Zero.instance.scene.cameras.push(this);
+        super(1);
     }
 
     update() {
         if (this.hasChanged) {
-            mat4.invert(this._matView, this.transform.world_matrix);
-
             if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, this.aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
-                this.frustum.fromPerspective(Math.PI / 180 * this.fov, this.aspect, this.near, this.far);
+                this.frustum.perspective(Math.PI / 180 * this.fov, this.aspect, this.near, this.far);
             } else {
                 const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
                 mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
-                this.frustum.fromOrthographic(-x, x, -y, y, this.near, this.far);
+                this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
+        }
+        if (this.hasChanged || this.transform.hasChanged) {
             this.frustum.transform(this.transform.world_matrix);
+            if (this.transform.hasChanged) {
+                mat4.invert(this._matView, this.transform.world_matrix);
+            }
         }
     }
 
@@ -120,11 +110,11 @@ export class Camera extends FrameChangeRecord {
 
         y = height - y;
 
-        x -= width * this._rect.x;
-        y -= height * this._rect.y;
+        x -= width * this._rect[0];
+        y -= height * this._rect[1];
 
-        x /= width * this._rect.width;
-        y /= height * this._rect.height;
+        x /= width * this._rect[2];
+        y /= height * this._rect[3];
 
         x = x * 2 - 1;
         y = y * 2 - 1;

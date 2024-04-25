@@ -15,3 +15,8 @@ struct TouchEvent
 {
     std::shared_ptr<TouchVector> touches;
 };
+
+struct GestureEvent : TouchEvent
+{
+    int32_t delta;
+};

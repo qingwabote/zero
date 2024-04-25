@@ -15,6 +15,7 @@ import { Texture } from "./Texture.js";
 import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
 export declare interface Capabilities {
+    /**"The value must be a power of two" https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPhysicalDeviceLimits.html*/
     readonly uniformBufferOffsetAlignment: number
     readonly clipSpaceMinZ: number
 }

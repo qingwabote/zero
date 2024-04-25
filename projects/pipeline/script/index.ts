@@ -25,11 +25,11 @@ const materialFunc: MaterialFunc = function (params: MaterialParams): [string, P
     }
     return [
         bundle.resolve("./effects/test"),
-        [{}, pass, pass, pass]
+        [{}, pass, pass, pass, pass]
     ]
 }
 
-const [guardian, plane, unlit, phong, shadow] = await Promise.all([
+const [guardian, plane, unlit, phong, csm1, csm] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
         return gltf.instantiate(undefined, materialFunc);
@@ -47,11 +47,16 @@ const [guardian, plane, unlit, phong, shadow] = await Promise.all([
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
     (async function () {
-        const pipeline = await bundle.cache('pipelines/shadow', Pipeline)
+        const pipeline = await bundle.cache('pipelines/csm1', Pipeline)
+        return pipeline.instantiate(VisibilityFlagBits);
+    })(),
+    (async function () {
+        const pipeline = await bundle.cache('pipelines/csm', Pipeline)
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
 ])
 
+const text_size = 50;
 const text_color_normal = [0.5, 0.5, 0.5, 1] as const;
 const text_color_selected = [0, 1, 0, 1] as const;
 
@@ -80,8 +85,8 @@ export class App extends Zero {
         up_camera.visibilities = VisibilityFlagBits.DEFAULT;
         up_camera.fov = 45;
         up_camera.far = 16
-        up_camera.rect = { x: 0, y: 0.5, width: 1, height: 0.5 };
-        node.position = [0, 0, 10];
+        up_camera.rect = [0, 0.5, 1, 0.5];
+        node.position = [0, 2, 10];
 
         // UI
         node = new Node;
@@ -110,11 +115,12 @@ export class App extends Zero {
 
         const pipelineBar = (new Node).addComponent(ElementContainer);
         pipelineBar.flexDirection = FlexDirection.Row;
-        pipelineBar.setGap(Gutter.Column, 16);
+        pipelineBar.setGap(Gutter.Column, 32);
         {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'UNLIT';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(unlit, textRenderer.impl)
             })
@@ -125,6 +131,7 @@ export class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'PHONG';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(TouchEventName.START, async event => {
                 this.onPipelineText(phong, textRenderer.impl)
             })
@@ -134,8 +141,19 @@ export class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'SHADOW';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(TouchEventName.START, async event => {
-                this.onPipelineText(shadow, textRenderer.impl)
+                this.onPipelineText(csm1, textRenderer.impl)
+            })
+            pipelineBar.addElement(textRenderer);
+        }
+        {
+            const textRenderer = Renderer.create(TextRenderer);
+            textRenderer.impl.text = 'CSM';
+            textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
+            textRenderer.emitter.on(TouchEventName.START, async event => {
+                this.onPipelineText(csm, textRenderer.impl)
             })
             pipelineBar.addElement(textRenderer);
         }

@@ -1,5 +1,6 @@
 import { device } from "boot";
 import { Buffer, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Data } from "./Data.js";
 import { Parameters } from "./Parameters.js";
 
 interface UBODefinition {
@@ -15,21 +16,16 @@ export abstract class UBO {
         return Math.ceil(size / alignment) * alignment;
     }
 
-    private _visibilities: number = 0;
-    get visibilities(): number {
-        return this._visibilities;
-    }
-    set visibilities(value: number) {
-        this._visibilities = value;
-    }
-
     abstract get buffer(): Buffer;
 
-    get range(): number { return 0 };
+    abstract get range(): number;
+
+    constructor(
+        protected readonly _data: Data,
+        protected readonly _visibilities: number
+    ) { }
 
     dynamicOffset(paramm: Parameters): number { return -1 };
 
-    use(): void { };
-
-    update(): void { };
+    abstract update(dumping: boolean): void;
 }

@@ -1,7 +1,4 @@
 #include <global/camera>
-#if USE_SHADOW_MAP
-    #include <global/shadow>
-#endif
 #include <local>
 #if USE_SKIN
     #include <skin>
@@ -22,9 +19,6 @@ layout(location = 2) in vec3 a_normal;
 #endif
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) out vec3 v_position;
-#if USE_SHADOW_MAP
-    layout(location = 3) out vec4 v_shadow_position;
-#endif
 
 void main() {
     #if USE_ALBEDO_MAP
@@ -43,8 +37,5 @@ void main() {
     #endif 
     vec4 posWorld = local.model * pos;
     v_position = posWorld.xyz;
-    #if USE_SHADOW_MAP
-        v_shadow_position = shadow.projection * shadow.view * posWorld;
-    #endif
     gl_Position = camera.projection * camera.view * posWorld;
 }

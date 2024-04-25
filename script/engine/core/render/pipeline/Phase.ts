@@ -1,6 +1,6 @@
 import { CommandBuffer, RenderPass } from "gfx";
-import { Context } from "../Context.js";
 import { CommandCalls } from "./CommandCalls.js";
+import { Context } from "./Context.js";
 
 export abstract class Phase {
     constructor(protected _context: Context, readonly visibility: number) { }

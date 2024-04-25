@@ -231,6 +231,22 @@ int Window::loop(SDL_Window *sdl_window)
                     }
                     break;
                 }
+                case SDL_MOUSEWHEEL:
+                {
+                    if (_gesturePinchCb)
+                    {
+                        auto touch = std::make_shared<Touch>();
+                        touch->x = event.wheel.mouseX * pixelRatio;
+                        touch->y = event.wheel.mouseY * pixelRatio;
+                        auto touches = std::make_shared<TouchVector>();
+                        touches->emplace_back(std::move(touch));
+                        auto gestureEvent = std::make_shared<GestureEvent>();
+                        gestureEvent->touches = touches;
+                        gestureEvent->delta = event.wheel.y * -100;
+                        _gesturePinchCb->call(std::move(gestureEvent));
+                    }
+                    break;
+                }
                 default:
                     break;
                 }
@@ -257,6 +273,9 @@ int Window::loop(SDL_Window *sdl_window)
         _touchStartCb = nullptr;
         _touchMoveCb = nullptr;
         _touchEndCb = nullptr;
+
+        _gesturePinchCb = nullptr;
+
         _frameCb = nullptr;
 
         ThreadPool::shared().join();

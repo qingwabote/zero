@@ -18,14 +18,16 @@ export class SpriteRenderer extends BoundedRenderer {
 
     static readonly Filter = Filter;
 
-    shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });;
+    shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
 
+    private _spriteFrame_invalidated = false;
     private _spriteFrame: SpriteFrame | null = null;
     public get spriteFrame() {
         return this._spriteFrame;
     }
     public set spriteFrame(value) {
         this._spriteFrame = value;
+        this._spriteFrame_invalidated = true;
         this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
 
@@ -51,7 +53,14 @@ export class SpriteRenderer extends BoundedRenderer {
         if (pass.hasUniform('Props', 'albedo')) {
             pass.setUniform('Props', 'albedo', this.color);
         }
-        pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter));
         return new Model(this.node, this._spriteFrame.mesh, [new Material([pass])])
+    }
+
+    update(dt: number): void {
+        super.update(dt);
+        if (this._spriteFrame_invalidated) {
+            this._model?.materials[0].passes[0].setTexture('albedoMap', this._spriteFrame!.texture, getSampler(this.filter, this.filter))
+            this._spriteFrame_invalidated = false;
+        }
     }
 }

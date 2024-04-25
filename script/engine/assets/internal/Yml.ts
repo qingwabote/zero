@@ -7,6 +7,8 @@ const _variables: Record<string, any> = {
     ENGINE_ASSETS: bundle.root
 }
 
+const null_object = Object.freeze({});
+
 export abstract class Yml implements Asset {
     private _base: string = '';
 
@@ -29,7 +31,7 @@ export abstract class Yml implements Asset {
         return path[0] == '.' ? resolve(this._base, path) : path;
     }
 
-    protected resolveVar(value: string, variables: Record<string, any> = {}): string {
+    protected resolveVar(value: string, variables: Readonly<Record<string, any>> = null_object): string {
         return value.replace(/\${(.+)}/g, function (_, name: string) {
             let value = variables[name] ?? _variables[name];
             if (value != undefined) {

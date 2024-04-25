@@ -1,7 +1,8 @@
 import { ClearFlagBits } from "gfx";
 import { Component } from "../core/Component.js";
-import { Rect } from "../core/math/rect.js";
+import { Vec4 } from "../core/math/vec4.js";
 import { Camera as render_Camera } from "../core/render/scene/Camera.js";
+import { root } from "../core/render/scene/Root.js";
 
 export class Camera extends Component {
     static readonly ClearFlagBits = ClearFlagBits;
@@ -57,10 +58,10 @@ export class Camera extends Component {
     /**
      * the bottom-left of the swapchain is (0,0) and the top-right of the swapchain is (1,1)
      */
-    get rect(): Readonly<Rect> {
+    get rect(): Readonly<Vec4> {
         return this._camera.rect;
     }
-    set rect(value: Readonly<Rect>) {
+    set rect(value: Readonly<Vec4>) {
         this._camera.rect = value;
     }
 
@@ -70,5 +71,9 @@ export class Camera extends Component {
 
     get frustum() {
         return this._camera.frustum;
+    }
+
+    start(): void {
+        root.addCamera(this._camera);
     }
 }

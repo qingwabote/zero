@@ -4,7 +4,7 @@ import { BufferView } from "../../core/render/BufferView.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 
-const CameraBlock = {
+const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
     stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
     members: {
@@ -17,42 +17,43 @@ const CameraBlock = {
         position: {
             offset: 16 + 16
         }
-    },
-    size: UBO.align((16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT),
+    }
 }
 
-export class CameraUBO extends UBO {
-    static readonly definition = CameraBlock;
+const BlockSize = (16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT;
 
-    private _buffer: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, CameraBlock.size);
+export class CameraUBO extends UBO {
+
+    static readonly definition = Block;
+
+    private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
 
     get buffer(): Buffer {
-        return this._buffer.buffer;
+        return this._view.buffer;
     }
 
     get range(): number {
-        return CameraBlock.size;
+        return BlockSize
     }
 
     override dynamicOffset(params: Parameters): number {
-        return CameraBlock.size * params.cameraIndex
+        return UBO.align(BlockSize) * params.cameraIndex
     };
 
-    update(): void {
-        const renderScene = Zero.instance.scene;
-        const cameras = renderScene.cameras;
-        const camerasUboSize = CameraBlock.size * cameras.length;
-        this._buffer.resize(camerasUboSize / this._buffer.BYTES_PER_ELEMENT);
-        let camerasDataOffset = 0;
+    update(dumping: boolean): void {
+        const size = UBO.align(BlockSize);
+        const cameras = Zero.instance.scene.cameras;
+
+        this._view.resize(size * cameras.length / this._view.BYTES_PER_ELEMENT);
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            if (camera.hasChanged) {
-                this._buffer.set(camera.matView, camerasDataOffset + CameraBlock.members.view.offset);
-                this._buffer.set(camera.matProj, camerasDataOffset + CameraBlock.members.projection.offset);
-                this._buffer.set(camera.position, camerasDataOffset + CameraBlock.members.position.offset);
+            if (dumping || camera.hasChanged || camera.transform.hasChanged) {
+                const offset = (size / this._view.source.BYTES_PER_ELEMENT) * i;
+                this._view.set(camera.matView, offset + Block.members.view.offset);
+                this._view.set(camera.matProj, offset + Block.members.projection.offset);
+                this._view.set(camera.position, offset + Block.members.position.offset);
             }
-            camerasDataOffset += CameraBlock.size / Float32Array.BYTES_PER_ELEMENT;
         }
-        this._buffer.update();
+        this._view.update();
     }
 }

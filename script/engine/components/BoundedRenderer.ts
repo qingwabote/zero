@@ -3,12 +3,15 @@ import { AABB3D } from "../core/math/aabb3d.js";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
 
 export enum BoundsEventName {
-    BOUNDS_CHANGED = "BOUNDS_CHANGED",
+    BOUNDS_CHANGED = "BOUNDS_CHANGED"
 }
 
 interface BoundsEventToListener {
     [BoundsEventName.BOUNDS_CHANGED]: () => void;
 }
+
+const emitter: EventEmitter<BoundsEventToListener> = new EventEmitterImpl;
+emitter.on(BoundsEventName.BOUNDS_CHANGED, () => { })
 
 /**
  * Provides a bounds for ui system
@@ -17,14 +20,14 @@ export abstract class BoundedRenderer extends ModelRenderer implements EventEmit
     static readonly PIXELS_PER_UNIT: number = 100;
 
     private __emitter?: EventEmitter<BoundsEventToListener> = undefined;
-    private get _emitter() {
+    private get _emitter(): EventEmitter<BoundsEventToListener> {
         return this.__emitter ?? (this.__emitter = new EventEmitterImpl);
     }
     has<K extends keyof BoundsEventToListener>(name: K): boolean {
         return this.__emitter ? this.__emitter.has(name) : false;
     }
-    on<K extends keyof BoundsEventToListener>(name: K, listener: BoundsEventToListener[K]): void {
-        this._emitter.on(name, listener);
+    on<K extends keyof BoundsEventToListener>(name: K, listener: BoundsEventToListener[K]) {
+        return this._emitter.on(name, listener);
     }
     off<K extends keyof BoundsEventToListener>(name: K, listener: BoundsEventToListener[K]): void {
         this._emitter.off(name, listener);

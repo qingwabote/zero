@@ -173,9 +173,9 @@ export const mat4 = {
             out[15] = a[15];
         }
 
-        out[12] += v[0];
-        out[13] += v[1];
-        out[14] += v[2];
+        out[12] = a[12] + v[0];
+        out[13] = a[13] + v[1];
+        out[14] = a[14] + v[2];
         return out;
     },
 

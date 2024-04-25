@@ -3,7 +3,7 @@
 # 示例(H5)
 
 - [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
-- [Shadow Map](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
+- [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
 - [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 - [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
@@ -25,7 +25,8 @@
 # 基础功能
 
 - 3D 模型渲染 (gltf)
-- 冯氏光照与阴影 (shadow map)
+- 冯氏光照
+- 级联阴影
 - 动画混合 (一维)
 - 蒙皮动画
 - 骨骼动画 (spine)
@@ -35,7 +36,7 @@
 
 - [无光照](assets/pipelines/unlit.yml)
 - [光照](assets/pipelines/forward.yml)
-- [阴影](assets/pipelines/shadow.yml)
+- [级联阴影](assets/pipelines/shadow.yml)
 - [MSAA](assets/pipelines/unlit-ms.yml)
 - [FXAA](assets/pipelines/unlit-fxaa.yml)
 

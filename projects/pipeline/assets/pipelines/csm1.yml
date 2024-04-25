@@ -4,6 +4,11 @@ textures:
       - DEPTH_STENCIL
       - SAMPLED
     extent: [1024, 1024]
+ubos:
+  - type: CSMI
+    num: 1
+  - type: CSM
+    num: 1
 flows:
   - bindings:
       - ubo: CSMI
@@ -13,20 +18,11 @@ flows:
         phases:
           - culling: CSM
             pass: shadow
-            visibility: ${WORLD}
+            visibility: ${DEFAULT}
         framebuffer:
           depthStencil: shadowmap
         clears:
           - DEPTH
-    loops:
-      - stages:
-          - viewport: [0, 0, 0.5, 0.5]
-      - stages:
-          - viewport: [0.5, 0, 0.5, 0.5]
-      - stages:
-          - viewport: [0, 0.5, 0.5, 0.5]
-      - stages:
-          - viewport: [0.5, 0.5, 0.5, 0.5]
   - bindings:
       - ubo: Camera
         binding: 1
@@ -39,8 +35,8 @@ flows:
     stages:
       - name: forward
         phases:
-          - pass: default
-            visibility: ${WORLD}
+          - pass: csm1
+            visibility: ${DEFAULT}
   - bindings:
       - ubo: Camera
         binding: 1

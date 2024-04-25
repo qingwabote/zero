@@ -4,6 +4,10 @@ import { Asset, once } from "assets";
 import { load } from "boot";
 import { Texture } from "./Texture.js";
 
+interface Info {
+    size: number;
+}
+
 interface Common {
     lineHeight: number
 }
@@ -14,12 +18,18 @@ interface Char {
 
 const exp_lineByline = /(.+)\r?\n?/g;
 const exp_keyAndValue = /(\w+)=(\-?\d+)/g;
+const exp_info = /info\s+/;
 const exp_common = /common\s+/;
 const exp_char = /char\s+/;
 
 export class FNT implements Asset {
-    private _common!: Common;
-    get common() {
+    private _info: any = {};
+    get info(): Readonly<Info> {
+        return this._info;
+    }
+
+    private _common: any = {};
+    get common(): Readonly<Common> {
         return this._common;
     }
 
@@ -49,13 +59,19 @@ export class FNT implements Asset {
             }
 
             let line = res[0];
-            if (exp_common.test(line)) {
-                const common: any = {};
+            if (exp_info.test(line)) {
                 let match;
                 while (match = exp_keyAndValue.exec(line)) {
-                    common[match[1]] = parseInt(match[2]);
+                    this._info[match[1]] = parseInt(match[2]);
                 }
-                this._common = common;
+                continue;
+            }
+
+            if (exp_common.test(line)) {
+                let match;
+                while (match = exp_keyAndValue.exec(line)) {
+                    this._common[match[1]] = parseInt(match[2]);
+                }
                 continue;
             }
 

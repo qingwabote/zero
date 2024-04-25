@@ -1,6 +1,6 @@
 import { CommandBuffer, PassState, RenderPass } from "gfx";
-import { Context } from "../../core/render/Context.js";
 import { CommandCalls } from "../../core/render/pipeline/CommandCalls.js";
+import { Context } from "../../core/render/pipeline/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { quad } from "../../core/render/quad.js";
 

@@ -35,7 +35,7 @@ function toFaces(out: FrustumFaces, vertices: Readonly<FrustumVertices>) {
     return out;
 }
 
-function fromOrthographic(out: FrustumVertices, left: number, right: number, bottom: number, top: number, near: number, far: number) {
+function orthographic(out: FrustumVertices, left: number, right: number, bottom: number, top: number, near: number, far: number) {
     vec3.set(out[0], right, top, - near);
     vec3.set(out[1], left, top, - near);
     vec3.set(out[2], left, bottom, - near);
@@ -49,7 +49,7 @@ function fromOrthographic(out: FrustumVertices, left: number, right: number, bot
     return out;
 }
 
-function fromPerspective(out: FrustumVertices, fov: number, aspect: number, near: number, far: number) {
+function perspective(out: FrustumVertices, fov: number, aspect: number, near: number, far: number) {
     const tanH = Math.tan(fov / 2);
     const tanW = tanH * aspect;
 
@@ -79,21 +79,31 @@ function transform(out: FrustumVertices, a: Readonly<FrustumVertices>, m: Readon
     return out;
 }
 
-function aabb(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): number {
+function aabb_out(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): boolean {
     for (const face of frustum) {
         if (plane.aabb(face, aabb) == -1) {
-            return 0;
+            return true;
         }
     }
-    return 1
+    return false;
+}
+
+function aabb_in(frustum: Readonly<FrustumFaces>, aabb: Readonly<AABB3D>): boolean {
+    for (const face of frustum) {
+        if (plane.aabb(face, aabb) != 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 export const frustum = {
     vertices,
     faces,
     toFaces,
-    fromOrthographic,
-    fromPerspective,
+    orthographic,
+    perspective,
     transform,
-    aabb
+    aabb_out,
+    aabb_in
 } as const

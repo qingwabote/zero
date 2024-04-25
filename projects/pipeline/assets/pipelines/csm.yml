@@ -13,7 +13,7 @@ flows:
         phases:
           - culling: CSM
             pass: shadow
-            visibility: ${WORLD}
+            visibility: ${DEFAULT}
         framebuffer:
           depthStencil: shadowmap
         clears:
@@ -39,8 +39,8 @@ flows:
     stages:
       - name: forward
         phases:
-          - pass: default
-            visibility: ${WORLD}
+          - pass: csm
+            visibility: ${DEFAULT}
   - bindings:
       - ubo: Camera
         binding: 1
