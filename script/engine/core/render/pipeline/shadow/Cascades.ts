@@ -15,7 +15,6 @@ const mat4_a = mat4.create();
 const mat4_b = mat4.create();
 
 export class Cascades extends FrameChangeRecord {
-    static readonly COUNT: number = 4;
 
     override get hasChanged(): number {
         return super.hasChanged || this._camera.hasChanged || this._camera.transform.hasChanged || root.directionalLight!.hasChanged;
@@ -39,13 +38,13 @@ export class Cascades extends FrameChangeRecord {
         return this._viewProjs;
     }
 
-    constructor(private _camera: Camera) {
+    constructor(private readonly _camera: Camera, private readonly _num: number) {
         super(1);
         const frusta: Frustum[] = [];
         const bounds: Frustum[] = [];
         const viewProjs: Mat4[] = [];
-        for (let i = 0; i < Cascades.COUNT; i++) {
-            if (Cascades.COUNT == 1) {
+        for (let i = 0; i < _num; i++) {
+            if (_num == 1) {
                 frusta.push(_camera.frustum as Frustum);
             } else {
                 frusta.push(new Frustum);
@@ -66,11 +65,11 @@ export class Cascades extends FrameChangeRecord {
         let center_z_max: number;
         let halfExtent_z_max: number;
 
-        for (let i = Cascades.COUNT - 1; i > -1; i--) {
-            if (Cascades.COUNT != 1) {
+        for (let i = this._num - 1; i > -1; i--) {
+            if (this._num != 1) {
                 if (dumping || this._camera.hasChanged) {
                     const d = this._camera.far - this._camera.near;
-                    this._frusta[i].perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * (i / Cascades.COUNT), this._camera.near + d * ((i + 1) / Cascades.COUNT));
+                    this._frusta[i].perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * (i / this._num), this._camera.near + d * ((i + 1) / this._num));
                 }
                 if (dumping || this._camera.hasChanged || this._camera.transform.hasChanged) {
                     this._frusta[i].transform(this._camera.transform.world_matrix);
@@ -82,7 +81,7 @@ export class Cascades extends FrameChangeRecord {
             frustum.transform(frustum_a, this._frusta[i].vertices, light.view);
 
             aabb3d.fromPoints(aabb_a, frustum_a);
-            if (i == Cascades.COUNT - 1) {
+            if (i == this._num - 1) {
                 center_z_max = aabb_a.center[2];
                 halfExtent_z_max = aabb_a.halfExtent[2];
             } else {

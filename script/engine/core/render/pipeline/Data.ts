@@ -12,12 +12,12 @@ interface EventToListener {
 export class Data extends EventEmitterImpl<EventToListener> {
     static readonly Event = Event;
 
-    readonly shadow = new Shadow;
+    shadow: Shadow | null = null;
 
     flowLoopIndex = 0;
 
     update(dumping: boolean) {
-        this.shadow.update(dumping);
+        this.shadow?.update(dumping);
         this.emit(Event.UPDATE);
     }
 }

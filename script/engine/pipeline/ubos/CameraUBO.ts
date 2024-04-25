@@ -17,11 +17,13 @@ const Block = {
         position: {
             offset: 16 + 16
         }
-    },
-    size: (16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT,
+    }
 }
 
+const BlockSize = (16 + 16 + 4) * Float32Array.BYTES_PER_ELEMENT;
+
 export class CameraUBO extends UBO {
+
     static readonly definition = Block;
 
     private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
@@ -30,12 +32,16 @@ export class CameraUBO extends UBO {
         return this._view.buffer;
     }
 
+    get range(): number {
+        return BlockSize
+    }
+
     override dynamicOffset(params: Parameters): number {
-        return UBO.align(Block.size) * params.cameraIndex
+        return UBO.align(BlockSize) * params.cameraIndex
     };
 
     update(dumping: boolean): void {
-        const size = UBO.align(Block.size);
+        const size = UBO.align(BlockSize);
         const cameras = Zero.instance.scene.cameras;
 
         this._view.resize(size * cameras.length / this._view.BYTES_PER_ELEMENT);

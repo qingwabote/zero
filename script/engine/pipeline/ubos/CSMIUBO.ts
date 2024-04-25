@@ -2,20 +2,22 @@ import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from
 import { BufferView } from "../../core/render/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
+import { Shadow } from "../../core/render/pipeline/Shadow.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
-import { Cascades } from "../../core/render/pipeline/shadow/Cascades.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
     stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
     members: {
         viewProj: {}
-    },
-    size: 16 * Float32Array.BYTES_PER_ELEMENT,
+    }
 }
+
+const BlockSize = 16 * Float32Array.BYTES_PER_ELEMENT;
 
 /**CSM iterator UBO */
 export class CSMIUBO extends UBO {
+
     static readonly definition = Block;
 
     private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
@@ -23,34 +25,37 @@ export class CSMIUBO extends UBO {
         return this._view.buffer;
     }
 
-    constructor(data: Data, visibilities: number) {
+    get range(): number {
+        return BlockSize;
+    }
+
+    constructor(data: Data, visibilities: number, private readonly _num: number) {
         super(data, visibilities);
-        data.shadow.visibilities = visibilities;
+        data.shadow = new Shadow(visibilities, _num);
     }
 
     override dynamicOffset(params: Parameters): number {
-        const index = this._data.shadow.visibleCameras.findIndex(cameraIndex => cameraIndex == params.cameraIndex);
-        const offset = UBO.align(Block.size) * (Cascades.COUNT * index + this._data.flowLoopIndex);
+        const index = this._data.shadow!.visibleCameras.findIndex(cameraIndex => cameraIndex == params.cameraIndex);
+        const offset = UBO.align(BlockSize) * (this._num * index + this._data.flowLoopIndex);
         return offset;
     }
 
     update(dumping: boolean): void {
-        const size = UBO.align(Block.size);
+        const size = UBO.align(BlockSize);
 
-        const shadow = this._data.shadow;
+        const shadow = this._data.shadow!;
 
-        this._view.resize(size * Cascades.COUNT * shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
+        this._view.resize(size * this._num * shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
 
         for (let i = 0; i < shadow.visibleCameras.length; i++) {
-            const cascades = shadow.cascades[shadow.visibleCameras[i]];
+            const cascades = shadow.cascades.get(shadow.visibleCameras[i])!;
             if (dumping || cascades.hasChanged) {
-                for (let j = 0; j < Cascades.COUNT; j++) {
-                    this._view.set(cascades.viewProjs[j], (size / this._view.BYTES_PER_ELEMENT) * (Cascades.COUNT * i + j));
+                for (let j = 0; j < this._num; j++) {
+                    this._view.set(cascades.viewProjs[j], (size / this._view.BYTES_PER_ELEMENT) * (this._num * i + j));
                 }
             }
         }
 
         this._view.update();
     }
-
 }

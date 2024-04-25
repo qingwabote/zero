@@ -1,0 +1,47 @@
+textures:
+  - name: shadowmap
+    usage:
+      - DEPTH_STENCIL
+      - SAMPLED
+    extent: [1024, 1024]
+ubos:
+  - type: CSMI
+    num: 1
+  - type: CSM
+    num: 1
+flows:
+  - bindings:
+      - ubo: CSMI
+        binding: 3
+    stages:
+      - name: shadow
+        phases:
+          - culling: CSM
+            pass: shadow
+            visibility: ${DEFAULT}
+        framebuffer:
+          depthStencil: shadowmap
+        clears:
+          - DEPTH
+  - bindings:
+      - ubo: Camera
+        binding: 1
+      - ubo: Light
+        binding: 2
+      - ubo: CSM
+        binding: 3
+      - texture: shadowmap
+        binding: 0
+    stages:
+      - name: forward
+        phases:
+          - pass: csm1
+            visibility: ${DEFAULT}
+  - bindings:
+      - ubo: Camera
+        binding: 1
+    stages:
+      - name: forward
+        phases:
+          - pass: default
+            visibility: ${UI}

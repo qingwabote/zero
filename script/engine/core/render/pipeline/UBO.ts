@@ -6,7 +6,6 @@ import { Parameters } from "./Parameters.js";
 interface UBODefinition {
     type: DescriptorType;
     stageFlags: ShaderStageFlagBits;
-    size: number;
 }
 
 export abstract class UBO {
@@ -18,6 +17,8 @@ export abstract class UBO {
     }
 
     abstract get buffer(): Buffer;
+
+    abstract get range(): number;
 
     constructor(
         protected readonly _data: Data,

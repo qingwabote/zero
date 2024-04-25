@@ -8,14 +8,22 @@ precision highp float;
 #if USE_ALBEDO_MAP
     layout(location = 0) in vec2 v_uv;
 #endif
+
 layout(location = 1) in vec3 v_normal;
 layout(location = 2) in vec3 v_position;
+
 #if USE_ALBEDO_MAP
     layout(set = 2, binding = 0) uniform sampler2D albedoMap;
 #endif
+
 #if USE_SHADOW_MAP
+    #if SHADOW_MAP_CASCADED
+        #define CSM_NUM 4
+    #else
+        #define CSM_NUM 1
+    #endif
     layout(set = 0, binding = 3) uniform CSM {
-        mat4 viewProj[4];
+        mat4 viewProj[CSM_NUM];
     } csm;
     layout(set = 0, binding = 0) uniform sampler2D shadowMap;
 #endif
@@ -27,7 +35,11 @@ layout(set = 2, binding = 1) uniform Props  {
 layout(location = 0) out vec4 fragColor;
 
 #if USE_SHADOW_MAP
-    const vec4 CSMAtlas[4] = vec4[4](vec4(0.0,0.0,0.5,0.5),vec4(0.5,0.0,0.5,0.5),vec4(0.0,0.5,0.5,0.5),vec4(0.5,0.5,0.5,0.5));
+    #if SHADOW_MAP_CASCADED
+        const vec4 CSMAtlas[4] = vec4[4](vec4(0.0,0.0,0.5,0.5),vec4(0.5,0.0,0.5,0.5),vec4(0.0,0.5,0.5,0.5),vec4(0.5,0.5,0.5,0.5));
+    #else
+        const vec4 CSMAtlas[1] = vec4[1](vec4(0.0,0.0,1.0,1.0));
+    #endif
     
     float shadowFactor() {
         float factor = 0.0;
@@ -36,7 +48,7 @@ layout(location = 0) out vec4 fragColor;
             vec2 atlasSize = vec2(textureSize(shadowMap, 0));
         #endif
 
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < CSM_NUM; i++) {
             vec4 position = csm.viewProj[i] * vec4(v_position, 1.0);
 
             #if CLIP_SPACE_MIN_Z_0

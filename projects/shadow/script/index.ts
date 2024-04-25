@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, Zero, bundle as builtin, device, render, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, TouchEventName, Zero, bundle as builtin, device, render, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -9,20 +9,47 @@ const VisibilityFlagBits = {
     WORLD: 1 << 30
 } as const
 
-const [guardian, plane, ss_depth, pipeline] = await Promise.all([
+const materialFunc: MaterialFunc = function (params: MaterialParams): [string, PassOverridden[]] {
+    const pass: PassOverridden = {
+        macros: {
+            USE_ALBEDO_MAP: params.texture ? 1 : 0,
+            USE_SKIN: params.skin ? 1 : 0
+        },
+        props: {
+            albedo: params.albedo
+        },
+        ...params.texture &&
+        {
+            textures: {
+                'albedoMap': params.texture.impl
+            }
+        }
+    }
+    return [
+        bundle.resolve("./effects/test"),
+        [{}, pass, pass]
+    ]
+}
+
+const [guardian, plane, ss_depth, csm1, csm] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
-        return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_PCF: 1 });
+        return gltf.instantiate(undefined, materialFunc);
     })(),
     (async function () {
         const gltf = await builtin.cache('models/primitive/scene', GLTF);
-        return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_PCF: 1 });
+        return gltf.instantiate(undefined, materialFunc);
     })(),
     builtin.cache('shaders/depth', Shader),
-    bundle.cache('pipelines/test', Pipeline)
+    bundle.cache('pipelines/csm1', Pipeline),
+    bundle.cache('pipelines/csm', Pipeline)
 ])
 
-const renderPipeline = await pipeline.instantiate(VisibilityFlagBits);
+const csm1_instance = await csm1.instantiate(VisibilityFlagBits);
+const csm_instance = await csm.instantiate(VisibilityFlagBits);
+
+const csm1_shadowmap = new SpriteFrame(csm1.textures['shadowmap']);
+const csm_shadowmap = new SpriteFrame(csm.textures['shadowmap']);
 
 export class App extends Zero {
     protected override start() {
@@ -56,6 +83,7 @@ export class App extends Zero {
         down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
         down_camera.orthoSize = 16;
         down_camera.rect = [0, 0, 1, 0.5];
+        down_camera.near = -8;
         node.position = [-8, 8, 8];
 
         node = guardian.createScene("Sketchfab_Scene")!;
@@ -73,13 +101,15 @@ export class App extends Zero {
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
-        this.pipeline.data.on(render.Data.Event.UPDATE, () => {
+        const debugDraw = () => {
             debugDrawer.clear()
 
-            const cameraIndex = this.pipeline.data.shadow.visibleCameras[0];
+            const shadow = this.pipeline.data.shadow!;
 
-            const cascades = this.pipeline.data.shadow.cascades[cameraIndex];
-            for (let i = 0; i < 4; i++) {
+            const cameraIndex = shadow.visibleCameras[0];
+
+            const cascades = shadow.cascades.get(cameraIndex)!;
+            for (let i = 0; i < shadow.cascadeNum; i++) {
                 debugDrawer.drawFrustum(cascades.bounds[i].vertices, vec4.YELLOW);
                 debugDrawer.drawFrustum(cascades.frusta[i].vertices, vec4.ONE);
             }
@@ -94,7 +124,9 @@ export class App extends Zero {
             //         debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
             //     }
             // }
-        })
+        }
+        csm1_instance.data.on(render.Data.Event.UPDATE, debugDraw)
+        csm_instance.data.on(render.Data.Event.UPDATE, debugDraw)
 
         // UI
         node = new Node;
@@ -110,7 +142,7 @@ export class App extends Zero {
         const doc = node.addComponent(Document);
 
         const sprite = Renderer.create(SpriteRenderer);
-        sprite.impl.spriteFrame = new SpriteFrame(pipeline.textures['shadowmap']);
+        sprite.impl.spriteFrame = csm1_shadowmap;
         sprite.impl.shader = shaderLib.getShader(ss_depth);
         sprite.setWidth(200);
         sprite.setHeight(200);
@@ -147,9 +179,29 @@ export class App extends Zero {
             controlPanel.setWidth('100%');
             controlPanel.setHeight('100%');
             down_container.addElement(controlPanel);
+
+            const textRenderer = Renderer.create(TextRenderer);
+            textRenderer.impl.text = 'CSM OFF';
+            textRenderer.impl.color = vec4.ONE;
+            textRenderer.impl.size = 50;
+            textRenderer.positionType = PositionType.Absolute;
+            textRenderer.emitter.on(TouchEventName.START, async event => {
+                if (textRenderer.impl.text == 'CSM OFF') {
+                    textRenderer.impl.text = 'CSM ON';
+                    textRenderer.impl.color = vec4.GREEN;
+                    sprite.impl.spriteFrame = csm_shadowmap;
+                    this.pipeline = csm_instance;
+                } else {
+                    textRenderer.impl.text = 'CSM OFF';
+                    textRenderer.impl.color = vec4.ONE;
+                    sprite.impl.spriteFrame = csm1_shadowmap;
+                    this.pipeline = csm1_instance;
+                }
+            })
+            down_container.addElement(textRenderer);
         }
         doc.addElement(down_container)
     }
 }
 
-(new App(renderPipeline)).initialize().attach();
+(new App(csm1_instance)).initialize().attach();

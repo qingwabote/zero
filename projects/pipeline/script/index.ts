@@ -25,11 +25,11 @@ const materialFunc: MaterialFunc = function (params: MaterialParams): [string, P
     }
     return [
         bundle.resolve("./effects/test"),
-        [{}, pass, pass, pass]
+        [{}, pass, pass, pass, pass]
     ]
 }
 
-const [guardian, plane, unlit, phong, shadow] = await Promise.all([
+const [guardian, plane, unlit, phong, csm1, csm] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
         return gltf.instantiate(undefined, materialFunc);
@@ -47,12 +47,16 @@ const [guardian, plane, unlit, phong, shadow] = await Promise.all([
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
     (async function () {
-        const pipeline = await bundle.cache('pipelines/shadow', Pipeline)
+        const pipeline = await bundle.cache('pipelines/csm1', Pipeline)
+        return pipeline.instantiate(VisibilityFlagBits);
+    })(),
+    (async function () {
+        const pipeline = await bundle.cache('pipelines/csm', Pipeline)
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
 ])
 
-const text_size = 64;
+const text_size = 50;
 const text_color_normal = [0.5, 0.5, 0.5, 1] as const;
 const text_color_selected = [0, 1, 0, 1] as const;
 
@@ -139,7 +143,17 @@ export class App extends Zero {
             textRenderer.impl.color = text_color_normal;
             textRenderer.impl.size = text_size;
             textRenderer.emitter.on(TouchEventName.START, async event => {
-                this.onPipelineText(shadow, textRenderer.impl)
+                this.onPipelineText(csm1, textRenderer.impl)
+            })
+            pipelineBar.addElement(textRenderer);
+        }
+        {
+            const textRenderer = Renderer.create(TextRenderer);
+            textRenderer.impl.text = 'CSM';
+            textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
+            textRenderer.emitter.on(TouchEventName.START, async event => {
+                this.onPipelineText(csm, textRenderer.impl)
             })
             pipelineBar.addElement(textRenderer);
         }

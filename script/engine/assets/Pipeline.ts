@@ -14,27 +14,23 @@ import { Yml } from "./internal/Yml.js";
 interface PhaseBase {
     visibility?: string;
 }
-
 interface ModelPhase extends PhaseBase {
     type?: 'model';
     culling?: string;
     model?: string;
     pass?: string;
 }
-
 interface FxaaPhase extends PhaseBase {
     type: 'fxaa';
 }
-
 interface OutlinePhase extends PhaseBase {
     type: 'outline';
 }
-
 interface CopyPhase extends PhaseBase {
     type: 'copy';
 }
 
-const phaseCreators = (function () {
+const phaseFactory = (function () {
     const rasterizationState = new gfx.RasterizationState;
     rasterizationState.cullMode = gfx.CullMode.NONE;
 
@@ -119,11 +115,34 @@ interface Framebuffer {
 
 type Clear = keyof typeof gfx.ClearFlagBits;
 
-const UniformTypes: Record<string, new (data: Data, visibilities: number) => render.UBO> = {
-    Camera: pipeline.CameraUBO,
-    Light: pipeline.LightUBO,
-    CSMI: pipeline.CSMIUBO,
-    CSM: pipeline.CSMUBO
+interface CameraUBO {
+    type: 'Camera';
+}
+interface LightUBO {
+    type: 'Light';
+}
+interface CSMIUBO {
+    type: 'CSMI';
+    num: number;
+}
+interface CSMUBO {
+    type: 'CSM';
+    num: number;
+}
+
+const uboFactory = {
+    Camera: function (data: Data, visibilities: number, info?: CameraUBO) {
+        return new pipeline.CameraUBO(data, visibilities);
+    },
+    Light: function (data: Data, visibilities: number, info?: LightUBO) {
+        return new pipeline.LightUBO(data, visibilities);
+    },
+    CSMI: function (data: Data, visibilities: number, info?: CSMIUBO) {
+        return new pipeline.CSMIUBO(data, visibilities, info?.num ?? 4);
+    },
+    CSM: function (data: Data, visibilities: number, info?: CSMUBO) {
+        return new pipeline.CSMUBO(data, visibilities, info?.num ?? 4);
+    }
 }
 
 interface Stage {
@@ -138,7 +157,7 @@ interface Binding {
 }
 
 interface UBOBinding extends Binding {
-    ubo: string
+    ubo: keyof typeof uboFactory
 }
 
 interface TextureBinding extends Binding {
@@ -155,7 +174,10 @@ interface Flow extends FlowLoop {
     loops?: FlowLoop[]
 }
 
+type UBO = CameraUBO | LightUBO | CSMIUBO | CSMUBO
+
 interface Info {
+    ubos?: UBO[];
     textures?: Texture[];
     flows: Flow[];
 }
@@ -181,22 +203,27 @@ export class Pipeline extends Yml {
 
         const data = new Data;
 
-        const uboVisibilities: Record<string, number> = {};
+        const uboVisibilities: Map<keyof typeof uboFactory, number> = new Map;
         for (const flow of this._info.flows) {
             const visibilities = this.flow_visibilities(flow, variables);
             for (const binding of flow.bindings!) {
                 if ('ubo' in binding) {
-                    uboVisibilities[binding.ubo] = (uboVisibilities[binding.ubo] || 0) | visibilities;
+                    uboVisibilities.set(binding.ubo, (uboVisibilities.get(binding.ubo) || 0) | visibilities);
                 }
             }
         }
 
-        const uboMap: Map<string, render.UBO> = new Map;
+        const uboMap: Map<keyof typeof uboFactory, render.UBO> = new Map;
+        if (this._info.ubos) {
+            for (const ubo of this._info.ubos) {
+                uboMap.set(ubo.type, uboFactory[ubo.type](data, uboVisibilities.get(ubo.type)!, ubo as any));
+            }
+        }
         for (const flow of this._info.flows) {
             for (const binding of flow.bindings!) {
                 if ('ubo' in binding) {
                     if (!uboMap.has(binding.ubo)) {
-                        uboMap.set(binding.ubo, new UniformTypes[binding.ubo](data, uboVisibilities[binding.ubo]))
+                        uboMap.set(binding.ubo, uboFactory[binding.ubo](data, uboVisibilities.get(binding.ubo)!))
                     }
                 }
             }
@@ -238,8 +265,7 @@ export class Pipeline extends Yml {
                         if (!ubo) {
                             throw new Error(`undefined ubo: ${binding.ubo}`)
                         }
-                        const definition = (ubo.constructor as typeof render.UBO).definition;
-                        context.descriptorSet.bindBuffer(binding.binding, ubo.buffer, definition.size);
+                        context.descriptorSet.bindBuffer(binding.binding, ubo.buffer, ubo.range);
                         ubos.push(ubo);
                     } else if ('texture' in binding) {
                         const filter = binding.filter ? gfx.Filter[binding.filter as keyof typeof gfx.Filter] : gfx.Filter.NEAREST;
@@ -255,8 +281,8 @@ export class Pipeline extends Yml {
                 const phases: render.Phase[] = [];
                 for (const phase of stage.phases!) {
                     const type = phase.type || 'model';
-                    if (type in phaseCreators) {
-                        phases.push(await phaseCreators[type](phase as any, context, this.phase_visibilitiy(phase, variables)))
+                    if (type in phaseFactory) {
+                        phases.push(await phaseFactory[type](phase as any, context, this.phase_visibilitiy(phase, variables)))
                     } else {
                         throw new Error(`unsupported phase type: ${type}`);
                     }

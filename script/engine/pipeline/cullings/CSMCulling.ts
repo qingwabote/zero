@@ -18,7 +18,7 @@ export class CSMCulling implements Culling {
         }
 
         const data = Zero.instance.pipeline.data;
-        const frustum = data.shadow.cascades[cameraIndex].bounds[data.flowLoopIndex];
+        const frustum = data.shadow!.cascades.get(cameraIndex)!.bounds[data.flowLoopIndex];
         if (frustum.aabb_out(model.world_bounds)) {
             return true;
         }
