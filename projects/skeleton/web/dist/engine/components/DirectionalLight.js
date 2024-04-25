@@ -5,14 +5,4 @@ export class DirectionalLight extends Component {
         super(...arguments);
         this._light = new render_DirectionalLight(this.node);
     }
-    get emitter() {
-        return this._light.emitter;
-    }
-    get shadows() {
-        return this._light.shadows;
-    }
-    get shadow_cameras() {
-        return this._light.shadow_cameras;
-    }
 }
-DirectionalLight.Event = render_DirectionalLight.Event;

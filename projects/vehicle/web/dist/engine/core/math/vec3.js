@@ -135,6 +135,12 @@ export const vec3 = {
             && Math.abs(a2 - b2)
                 <= epsilon * Math.max(1.0, Math.abs(a2), Math.abs(b2)));
     },
+    distance(a, b) {
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
+        const z = b[2] - a[2];
+        return Math.sqrt(x * x + y * y + z * z);
+    },
     lerp(out, a, b, t) {
         out[0] = a[0] + t * (b[0] - a[0]);
         out[1] = a[1] + t * (b[1] - a[1]);

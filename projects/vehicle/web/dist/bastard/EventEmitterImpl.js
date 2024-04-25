@@ -13,6 +13,7 @@ export class EventEmitterImpl {
             this._event2callbacks.set(name, callbacks);
         }
         callbacks.set(listener);
+        return listener;
     }
     off(name, listener) {
         let callbacks = this._event2callbacks.get(name);

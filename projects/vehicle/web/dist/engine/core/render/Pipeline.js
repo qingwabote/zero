@@ -1,24 +1,20 @@
 import { Zero } from "../Zero.js";
 export class Pipeline {
-    constructor(ubos, _flows) {
+    constructor(data, ubos, _flows) {
+        this.data = data;
         this.ubos = ubos;
         this._flows = _flows;
+        this._dumping = false;
     }
-    use() {
-        for (const ubo of this.ubos) {
-            ubo.visibilities = 0;
-        }
-        for (const flow of this._flows) {
-            flow.use();
-        }
-        for (const ubo of this.ubos) {
-            ubo.use();
-        }
+    dump() {
+        this._dumping = true;
     }
     update() {
+        this.data.update(this._dumping);
         for (const ubo of this.ubos) {
-            ubo.update();
+            ubo.update(this._dumping);
         }
+        this._dumping = false;
     }
     record(commandCalls, commandBuffer, cameraIndex) {
         const camera = Zero.instance.scene.cameras[cameraIndex];

@@ -25,7 +25,7 @@ function toFaces(out, vertices) {
     plane.fromPoints(out[5], vertices[7], vertices[5], vertices[6]);
     return out;
 }
-function fromOrthographic(out, left, right, bottom, top, near, far) {
+function orthographic(out, left, right, bottom, top, near, far) {
     vec3.set(out[0], right, top, -near);
     vec3.set(out[1], left, top, -near);
     vec3.set(out[2], left, bottom, -near);
@@ -36,7 +36,7 @@ function fromOrthographic(out, left, right, bottom, top, near, far) {
     vec3.set(out[7], right, bottom, -far);
     return out;
 }
-function fromPerspective(out, fov, aspect, near, far) {
+function perspective(out, fov, aspect, near, far) {
     const tanH = Math.tan(fov / 2);
     const tanW = tanH * aspect;
     const halfNearW = near * tanW;
@@ -59,20 +59,29 @@ function transform(out, a, m) {
     }
     return out;
 }
-function aabb(frustum, aabb) {
+function aabb_out(frustum, aabb) {
     for (const face of frustum) {
         if (plane.aabb(face, aabb) == -1) {
-            return 0;
+            return true;
         }
     }
-    return 1;
+    return false;
+}
+function aabb_in(frustum, aabb) {
+    for (const face of frustum) {
+        if (plane.aabb(face, aabb) != 0) {
+            return false;
+        }
+    }
+    return true;
 }
 export const frustum = {
     vertices,
     faces,
     toFaces,
-    fromOrthographic,
-    fromPerspective,
+    orthographic,
+    perspective,
     transform,
-    aabb
+    aabb_out,
+    aabb_in
 };

@@ -4,6 +4,8 @@ export var BoundsEventName;
 (function (BoundsEventName) {
     BoundsEventName["BOUNDS_CHANGED"] = "BOUNDS_CHANGED";
 })(BoundsEventName || (BoundsEventName = {}));
+const emitter = new EventEmitterImpl;
+emitter.on(BoundsEventName.BOUNDS_CHANGED, () => { });
 /**
  * Provides a bounds for ui system
  */
@@ -20,7 +22,7 @@ export class BoundedRenderer extends ModelRenderer {
         return this.__emitter ? this.__emitter.has(name) : false;
     }
     on(name, listener) {
-        this._emitter.on(name, listener);
+        return this._emitter.on(name, listener);
     }
     off(name, listener) {
         this._emitter.off(name, listener);

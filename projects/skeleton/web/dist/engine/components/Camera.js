@@ -1,6 +1,7 @@
 import { ClearFlagBits } from "gfx";
 import { Component } from "../core/Component.js";
 import { Camera as render_Camera } from "../core/render/scene/Camera.js";
+import { root } from "../core/render/scene/Root.js";
 export class Camera extends Component {
     constructor() {
         super(...arguments);
@@ -62,6 +63,9 @@ export class Camera extends Component {
     }
     get frustum() {
         return this._camera.frustum;
+    }
+    start() {
+        root.addCamera(this._camera);
     }
 }
 Camera.ClearFlagBits = ClearFlagBits;

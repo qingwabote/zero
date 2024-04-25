@@ -5,7 +5,7 @@ import { Input, TouchEventName } from "./Input.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
-import { Root } from "./render/scene/Root.js";
+import { root } from "./render/scene/Root.js";
 export var ZeroEvent;
 (function (ZeroEvent) {
     ZeroEvent["LOGIC_START"] = "LOGIC_START";
@@ -28,13 +28,13 @@ export class Zero extends EventEmitterImpl {
     }
     set pipeline(value) {
         this._pipeline = value;
-        this._pipeline_changed = true;
+        this._pipeline.dump();
     }
     constructor(_pipeline) {
         super();
         this._pipeline = _pipeline;
         this.input = new Input;
-        this.scene = new Root;
+        this.scene = root;
         this._componentScheduler = new ComponentScheduler;
         this._timeScheduler = new TimeScheduler;
         this._commandBuffer = device.createCommandBuffer();
@@ -44,7 +44,6 @@ export class Zero extends EventEmitterImpl {
         this._inputEvents = new Map;
         this._time = initial;
         this._commandCalls = { renderPasses: 0, draws: 0 };
-        this._pipeline_changed = true;
         const systems = [...Zero._system2priority.keys()];
         systems.sort(function (a, b) {
             return Zero._system2priority.get(b) - Zero._system2priority.get(a);
@@ -107,10 +106,6 @@ export class Zero extends EventEmitterImpl {
         this.emit(ZeroEvent.LOGIC_END);
         this.emit(ZeroEvent.RENDER_START);
         device.acquire(this._presentSemaphore);
-        if (this._pipeline_changed) {
-            this._pipeline.use();
-            this._pipeline_changed = false;
-        }
         this.scene.update();
         this._pipeline.update();
         FrameChangeRecord.frameId++;

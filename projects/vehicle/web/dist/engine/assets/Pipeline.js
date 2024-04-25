@@ -1,12 +1,15 @@
 import { device } from "boot";
 import { bundle } from "bundling";
 import * as gfx from "gfx";
-import { getSampler, render, shaderLib } from "../core/index.js";
-import { rect } from "../core/math/rect.js";
+import { vec4 } from "../core/math/vec4.js";
+import * as render from '../core/render/index.js';
+import { Data } from "../core/render/pipeline/Data.js";
+import { getSampler } from "../core/sc.js";
+import { shaderLib } from "../core/shaderLib.js";
 import * as pipeline from "../pipeline/index.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
-const phaseCreators = (function () {
+const phaseFactory = (function () {
     const rasterizationState = new gfx.RasterizationState;
     rasterizationState.cullMode = gfx.CullMode.NONE;
     const blendState = new gfx.BlendState;
@@ -14,9 +17,20 @@ const phaseCreators = (function () {
     blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
     blendState.srcAlpha = gfx.BlendFactor.ONE;
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
+    const CullingInstances = {
+        CSM: new pipeline.CSMCulling,
+        View: new pipeline.ViewCulling
+    };
     return {
         model: async function (info, context, visibility) {
-            return new pipeline.ModelPhase(context, visibility, info.model, info.pass);
+            let culling = CullingInstances.View;
+            if (info.culling) {
+                culling = CullingInstances[info.culling];
+                if (!culling) {
+                    throw new Error(`unknown culling type: ${info.culling}`);
+                }
+            }
+            return new pipeline.ModelPhase(context, visibility, culling, info.model, info.pass);
         },
         fxaa: async function (info, context, visibility) {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
@@ -50,22 +64,22 @@ const phaseCreators = (function () {
         },
     };
 })();
-const UniformTypes = {
-    Camera: pipeline.CameraUBO,
-    Light: pipeline.LightUBO,
-    Shadow: pipeline.ShadowUBO,
+const uboFactory = {
+    Camera: function (data, visibilities, info) {
+        return new pipeline.CameraUBO(data, visibilities);
+    },
+    Light: function (data, visibilities, info) {
+        return new pipeline.LightUBO(data, visibilities);
+    },
+    CSMI: function (data, visibilities, info) {
+        var _a;
+        return new pipeline.CSMIUBO(data, visibilities, (_a = info === null || info === void 0 ? void 0 : info.num) !== null && _a !== void 0 ? _a : 4);
+    },
+    CSM: function (data, visibilities, info) {
+        var _a;
+        return new pipeline.CSMUBO(data, visibilities, (_a = info === null || info === void 0 ? void 0 : info.num) !== null && _a !== void 0 ? _a : 4);
+    }
 };
-const ubo_cache = (function () {
-    const ubos = {};
-    return function (info) {
-        let instance = ubos[info.type];
-        if (!instance) {
-            instance = new UniformTypes[info.type]();
-            ubos[info.type] = instance;
-        }
-        return instance;
-    };
-})();
 export class Pipeline extends Yml {
     constructor() {
         super(...arguments);
@@ -77,15 +91,36 @@ export class Pipeline extends Yml {
     async onParse(res) {
         this._info = res;
     }
-    async instantiate(variables = {}) {
+    async instantiate(variables) {
         if (this._info.textures) {
             for (const texture of this._info.textures) {
                 this._textures[texture.name] = this.createTexture(texture);
             }
         }
+        const data = new Data;
+        const uboVisibilities = new Map;
+        for (const flow of this._info.flows) {
+            const visibilities = this.flow_visibilities(flow, variables);
+            for (const binding of flow.bindings) {
+                if ('ubo' in binding) {
+                    uboVisibilities.set(binding.ubo, (uboVisibilities.get(binding.ubo) || 0) | visibilities);
+                }
+            }
+        }
         const uboMap = new Map;
-        for (const ubo of this._info.ubos) {
-            uboMap.set(ubo.name, ubo_cache(ubo));
+        if (this._info.ubos) {
+            for (const ubo of this._info.ubos) {
+                uboMap.set(ubo.type, uboFactory[ubo.type](data, uboVisibilities.get(ubo.type), ubo));
+            }
+        }
+        for (const flow of this._info.flows) {
+            for (const binding of flow.bindings) {
+                if ('ubo' in binding) {
+                    if (!uboMap.has(binding.ubo)) {
+                        uboMap.set(binding.ubo, uboFactory[binding.ubo](data, uboVisibilities.get(binding.ubo)));
+                    }
+                }
+            }
         }
         const flows = [];
         for (const flow of this._info.flows) {
@@ -139,13 +174,9 @@ export class Pipeline extends Yml {
                 const stage = flow.stages[i];
                 const phases = [];
                 for (const phase of stage.phases) {
-                    let visibility = 0xffffffff;
-                    if (phase.visibility) {
-                        visibility = Number(this.resolveVar(phase.visibility, variables));
-                    }
                     const type = phase.type || 'model';
-                    if (type in phaseCreators) {
-                        phases.push(await phaseCreators[type](phase, context, visibility));
+                    if (type in phaseFactory) {
+                        phases.push(await phaseFactory[type](phase, context, this.phase_visibilitiy(phase, variables)));
                     }
                     else {
                         throw new Error(`unsupported phase type: ${type}`);
@@ -196,15 +227,15 @@ export class Pipeline extends Yml {
                     framebufferInfo.height = height;
                     framebufferInfo.renderPass = render.getRenderPass(framebufferInfo, clears);
                     framebuffer = device.createFramebuffer(framebufferInfo);
-                    viewport = rect.create(0, 0, 1, 1);
+                    viewport = vec4.create(0, 0, 1, 1);
                 }
-                stages.push(new render.Stage(phases, framebuffer, clears, viewport));
+                stages.push(new render.Stage(phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
             }
             let loops;
             if (flow.loops) {
                 loops = [];
-                for (let flow_i = 0; flow_i < flow.loops.length; flow_i++) {
-                    const loop = flow.loops[flow_i];
+                for (let loop_i = 0; loop_i < flow.loops.length; loop_i++) {
+                    const loop = flow.loops[loop_i];
                     const setters = [];
                     if (loop.stages) {
                         for (let stage_i = 0; stage_i < loop.stages.length; stage_i++) {
@@ -217,17 +248,36 @@ export class Pipeline extends Yml {
                         }
                     }
                     loops.push(function () {
+                        data.flowLoopIndex = loop_i;
                         for (const setter of setters) {
                             setter();
                         }
                     });
                 }
             }
-            flows.push(new render.Flow(context, ubos, stages, loops));
+            flows.push(new render.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), loops));
         }
-        return new render.Pipeline([...uboMap.values()], flows);
+        return new render.Pipeline(data, [...uboMap.values()], flows);
+    }
+    flow_visibilities(flow, variables) {
+        let res = 0;
+        for (const stage of flow.stages) {
+            res |= this.stage_visibilities(stage, variables);
+        }
+        return res;
+    }
+    stage_visibilities(stage, variables) {
+        let res = 0;
+        for (const phase of stage.phases) {
+            res |= this.phase_visibilitiy(phase, variables);
+        }
+        return res;
+    }
+    phase_visibilitiy(phase, variables) {
+        return phase.visibility ? Number(this.resolveVar(phase.visibility, variables)) : 0xffffffff;
     }
     createTexture(texture, samples) {
+        var _a, _b;
         if (typeof texture == 'string') {
             return this._textures[texture];
         }
@@ -238,8 +288,8 @@ export class Pipeline extends Yml {
         if (samples) {
             info.samples = samples;
         }
-        info.width = texture.width || device.swapchain.width;
-        info.height = texture.height || device.swapchain.height;
+        info.width = ((_a = texture.extent) === null || _a === void 0 ? void 0 : _a[0]) || device.swapchain.width;
+        info.height = ((_b = texture.extent) === null || _b === void 0 ? void 0 : _b[1]) || device.swapchain.height;
         return device.createTexture(info);
     }
 }

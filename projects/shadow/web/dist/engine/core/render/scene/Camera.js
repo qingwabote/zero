@@ -1,25 +1,15 @@
 import { device } from "boot";
 import { ClearFlagBits } from "gfx";
-import { Zero } from "../../Zero.js";
 import { mat4 } from "../../math/mat4.js";
-import { rect } from "../../math/rect.js";
 import { vec2 } from "../../math/vec2.js";
 import { vec3 } from "../../math/vec3.js";
+import { vec4 } from "../../math/vec4.js";
 import { FrameChangeRecord } from "./FrameChangeRecord.js";
 import { Frustum } from "./Frustum.js";
 const vec2_a = vec2.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
 export class Camera extends FrameChangeRecord {
-    get hasChanged() {
-        if (super.hasChanged || this.transform.hasChanged) {
-            return 1;
-        }
-        return 0;
-    }
-    set hasChanged(flags) {
-        super.hasChanged = flags;
-    }
     /**
      * x,y the lower left corner
      */
@@ -27,11 +17,11 @@ export class Camera extends FrameChangeRecord {
         return this._rect;
     }
     set rect(value) {
-        rect.copy(this._rect, value);
+        vec4.copy(this._rect, value);
     }
     get aspect() {
         const { width, height } = device.swapchain;
-        return (width * this._rect.width) / (height * this._rect.height);
+        return (width * this._rect[2]) / (height * this._rect[3]);
     }
     get matView() {
         return this._matView;
@@ -43,7 +33,7 @@ export class Camera extends FrameChangeRecord {
         return this.transform.world_position;
     }
     constructor(transform) {
-        super();
+        super(1);
         this.transform = transform;
         /**
          * half size of the vertical viewing volume
@@ -57,26 +47,29 @@ export class Camera extends FrameChangeRecord {
         this.far = 1000;
         this.visibilities = 0;
         this.clears = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
-        this._rect = rect.create(0, 0, 1, 1);
+        this._rect = vec4.create(0, 0, 1, 1);
         this._matView = mat4.create();
         this._matProj = mat4.create();
         this.frustum = new Frustum;
-        Zero.instance.scene.cameras.push(this);
     }
     update() {
         if (this.hasChanged) {
-            mat4.invert(this._matView, this.transform.world_matrix);
             if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, this.aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
-                this.frustum.fromPerspective(Math.PI / 180 * this.fov, this.aspect, this.near, this.far);
+                this.frustum.perspective(Math.PI / 180 * this.fov, this.aspect, this.near, this.far);
             }
             else {
                 const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
                 mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
-                this.frustum.fromOrthographic(-x, x, -y, y, this.near, this.far);
+                this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
+        }
+        if (this.hasChanged || this.transform.hasChanged) {
             this.frustum.transform(this.transform.world_matrix);
+            if (this.transform.hasChanged) {
+                mat4.invert(this._matView, this.transform.world_matrix);
+            }
         }
     }
     screenPointToRay(out_from, out_to, x, y) {
@@ -98,10 +91,10 @@ export class Camera extends FrameChangeRecord {
     screenToNdc(out, x, y) {
         const { width, height } = device.swapchain;
         y = height - y;
-        x -= width * this._rect.x;
-        y -= height * this._rect.y;
-        x /= width * this._rect.width;
-        y /= height * this._rect.height;
+        x -= width * this._rect[0];
+        y -= height * this._rect[1];
+        x /= width * this._rect[2];
+        y /= height * this._rect[3];
         x = x * 2 - 1;
         y = y * 2 - 1;
         return vec2.set(out, x, y);

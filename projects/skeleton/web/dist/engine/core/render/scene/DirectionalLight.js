@@ -1,43 +1,39 @@
-import { EventEmitterImpl } from "bastard";
-import { Zero } from "../../Zero.js";
-import { DirectionalLightShadow } from "./DirectionalLightShadow.js";
-var Event;
-(function (Event) {
-    Event["UPDATE"] = "UPDATE";
-})(Event || (Event = {}));
-export class DirectionalLight {
-    get emitter() {
-        var _a;
-        return (_a = this._emitter) !== null && _a !== void 0 ? _a : (this._emitter = new EventEmitterImpl);
+import { mat4 } from "../../math/mat4.js";
+import { vec3 } from "../../math/vec3.js";
+import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { root } from "./Root.js";
+export class DirectionalLight extends FrameChangeRecord {
+    get hasChanged() {
+        return this.transform.hasChanged;
     }
-    get shadows() {
-        return this._shadows;
-    }
-    get shadow_cameras() {
-        return this._shadow_cameras;
-    }
-    set shadow_cameras(value) {
-        const cameras = Zero.instance.scene.cameras;
-        for (let i = 0; i < value.length; i++) {
-            const camera = cameras[value[i]];
-            const shadow = this._shadows[value[i]] || (this._shadows[value[i]] = new DirectionalLightShadow(this, camera.frustum));
-            shadow.index = i;
+    get model() {
+        if (this._model_invalidated) {
+            mat4.fromTRS(this._model, vec3.ZERO, this.transform.world_rotation, vec3.ONE);
+            this._model_invalidated = false;
         }
-        this._shadow_cameras = value;
+        return this._model;
+    }
+    get view() {
+        if (this._view_invalidated) {
+            mat4.invert(this._view, this.model);
+            this._view_invalidated = false;
+        }
+        return this._view;
     }
     constructor(transform) {
+        super();
         this.transform = transform;
-        this._emitter = undefined;
-        this._shadows = {};
-        this._shadow_cameras = [];
-        Zero.instance.scene.directionalLight = this;
+        this._model_invalidated = false;
+        this._model = mat4.create();
+        this._view_invalidated = false;
+        this._view = mat4.create();
+        root.directionalLight = this;
     }
     update() {
-        var _a;
-        for (let i = 0; i < this._shadow_cameras.length; i++) {
-            this._shadows[this._shadow_cameras[i]].update();
+        if (!this.hasChanged) {
+            return;
         }
-        (_a = this._emitter) === null || _a === void 0 ? void 0 : _a.emit(Event.UPDATE);
+        this._model_invalidated = true;
+        this._view_invalidated = true;
     }
 }
-DirectionalLight.Event = Event;

@@ -15,16 +15,17 @@ export class SpriteRenderer extends BoundedRenderer {
     constructor() {
         super(...arguments);
         this.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
+        this._spriteFrame_invalidated = false;
         this._spriteFrame = null;
         this.filter = Filter.NEAREST;
         this.color = vec4.ONE;
     }
-    ;
     get spriteFrame() {
         return this._spriteFrame;
     }
     set spriteFrame(value) {
         this._spriteFrame = value;
+        this._spriteFrame_invalidated = true;
         this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
     get bounds() {
@@ -45,8 +46,15 @@ export class SpriteRenderer extends BoundedRenderer {
         if (pass.hasUniform('Props', 'albedo')) {
             pass.setUniform('Props', 'albedo', this.color);
         }
-        pass.setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter));
         return new Model(this.node, this._spriteFrame.mesh, [new Material([pass])]);
+    }
+    update(dt) {
+        var _a;
+        super.update(dt);
+        if (this._spriteFrame_invalidated) {
+            (_a = this._model) === null || _a === void 0 ? void 0 : _a.materials[0].passes[0].setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter));
+            this._spriteFrame_invalidated = false;
+        }
     }
 }
 SpriteRenderer.PIXELS_PER_UNIT = SpriteFrame.PIXELS_PER_UNIT;

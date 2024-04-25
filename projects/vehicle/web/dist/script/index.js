@@ -3,7 +3,7 @@ import { CameraControlPanel, Document, Edge, PositionType, Profiler } from 'flex
 import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
-const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1 });
+const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
 var VisibilityFlagBits;
 (function (VisibilityFlagBits) {
     VisibilityFlagBits[VisibilityFlagBits["NONE"] = 0] = "NONE";

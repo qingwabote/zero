@@ -2,20 +2,20 @@ import { Zero } from "../../core/Zero.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { shaderLib } from "../../core/shaderLib.js";
 export class ModelPhase extends Phase {
-    constructor(context, visibility, 
+    constructor(context, visibility, _culling, 
     /**The model type that indicates which models should run in this phase */
     _model = 'default', 
     /**The pass type that indicates which passes should run in this phase */
     _pass = 'default') {
         super(context, visibility);
+        this._culling = _culling;
         this._model = _model;
         this._pass = _pass;
     }
     record(commandCalls, commandBuffer, renderPass, cameraIndex) {
         const scene = Zero.instance.scene;
         const camera = scene.cameras[cameraIndex];
-        // hard code
-        const frustum = this._pass == 'shadow' ? scene.directionalLight.shadows[cameraIndex].frustum : camera.frustum;
+        this._culling.ready();
         for (const model of scene.models) {
             if ((camera.visibilities & model.transform.visibility) == 0) {
                 continue;
@@ -23,7 +23,7 @@ export class ModelPhase extends Phase {
             if (model.type != this._model) {
                 continue;
             }
-            if (!frustum.aabb(model.world_bounds)) {
+            if (this._culling.cull(model, cameraIndex)) {
                 continue;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
@@ -35,8 +35,7 @@ export class ModelPhase extends Phase {
                     continue;
                 }
                 const material = model.materials[i];
-                for (let i = 0; i < material.passes.length; i++) {
-                    const pass = material.passes[i];
+                for (const pass of material.passes) {
                     if (pass.type != this._pass) {
                         continue;
                     }

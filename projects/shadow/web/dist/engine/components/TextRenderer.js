@@ -52,7 +52,7 @@ export class TextRenderer extends BoundedRenderer {
             return;
         }
         this._text = value;
-        this._dirtyFlag |= DirtyFlagBits.TEXT;
+        this._dirties |= DirtyFlagBits.TEXT;
     }
     get color() {
         return this._color;
@@ -61,15 +61,26 @@ export class TextRenderer extends BoundedRenderer {
         this._pass.setUniform('Props', 'albedo', value);
         this._color = value;
     }
+    get size() {
+        return this._size;
+    }
+    set size(value) {
+        if (this._size == value) {
+            return;
+        }
+        this._size = value;
+        this._dirties |= DirtyFlagBits.TEXT;
+    }
     get bounds() {
         return this._mesh.bounds;
     }
     constructor(node) {
         super(node);
-        this._dirtyFlag = DirtyFlagBits.TEXT;
+        this._dirties = DirtyFlagBits.TEXT;
         this._pass = PassInstance.PassInstance(pass);
         this._text = "";
         this._color = default_color;
+        this._size = fnt_zero.info.size;
         this._quads = 0;
         const vertexView = quad.createVertexBufferView();
         const subMesh = new SubMesh(quad.createInputAssembler(vertexView.buffer));
@@ -86,25 +97,25 @@ export class TextRenderer extends BoundedRenderer {
         this._mesh.subMeshes[0].drawInfo.count = 6 * this._quads;
     }
     updateData() {
-        if (this._dirtyFlag == DirtyFlagBits.NONE) {
+        if (this._dirties == DirtyFlagBits.NONE) {
             return;
         }
         if (!this._text) {
             this._quads = 0;
             this._mesh.setBoundsByPoints(vec3.ZERO, vec3.ZERO);
-            this._dirtyFlag = DirtyFlagBits.NONE;
+            this._dirties = DirtyFlagBits.NONE;
             this.emit(BoundsEventName.BOUNDS_CHANGED);
             return;
         }
         // just a redundant size
         this._vertexView.reset(4 * 4 * this._text.length);
         const tex = fnt_zero.texture.impl.info;
-        let [x, y, l, r, t, b, quads] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0];
+        let [x, y, l, r, t, b, quads, scale] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0, this._size / fnt_zero.info.size];
         for (let i = 0; i < this._text.length; i++) {
             const code = this._text.charCodeAt(i);
             if (code == lineBreak) {
                 x = 0;
-                y -= fnt_zero.common.lineHeight / TextRenderer.PIXELS_PER_UNIT;
+                y -= fnt_zero.common.lineHeight / TextRenderer.PIXELS_PER_UNIT * scale;
                 continue;
             }
             const char = fnt_zero.chars[code];
@@ -116,10 +127,10 @@ export class TextRenderer extends BoundedRenderer {
             const tex_r = (char.x + char.width) / tex.width;
             const tex_t = char.y / tex.height;
             const tex_b = (char.y + char.height) / tex.height;
-            const xoffset = char.xoffset / TextRenderer.PIXELS_PER_UNIT;
-            const yoffset = char.yoffset / TextRenderer.PIXELS_PER_UNIT;
-            const width = char.width / TextRenderer.PIXELS_PER_UNIT;
-            const height = char.height / TextRenderer.PIXELS_PER_UNIT;
+            const xoffset = char.xoffset / TextRenderer.PIXELS_PER_UNIT * scale;
+            const yoffset = char.yoffset / TextRenderer.PIXELS_PER_UNIT * scale;
+            const width = char.width / TextRenderer.PIXELS_PER_UNIT * scale;
+            const height = char.height / TextRenderer.PIXELS_PER_UNIT * scale;
             const pos_l = x + xoffset;
             const pos_r = x + xoffset + width;
             const pos_t = y - yoffset;
@@ -145,7 +156,7 @@ export class TextRenderer extends BoundedRenderer {
             r = Math.max(r, pos_r);
             t = Math.max(t, pos_t);
             b = Math.min(b, pos_b);
-            x += char.xadvance / TextRenderer.PIXELS_PER_UNIT;
+            x += char.xadvance / TextRenderer.PIXELS_PER_UNIT * scale;
             quads++;
         }
         quad.indexGrowTo(this._quads = quads);
@@ -153,7 +164,7 @@ export class TextRenderer extends BoundedRenderer {
         vec2.set(vec3_a, l, b);
         vec2.set(vec3_b, r, t);
         this._mesh.setBoundsByPoints(vec3_a, vec3_b);
-        this._dirtyFlag = DirtyFlagBits.NONE;
+        this._dirties = DirtyFlagBits.NONE;
         this.emit(BoundsEventName.BOUNDS_CHANGED);
     }
 }
