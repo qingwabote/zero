@@ -9,7 +9,7 @@ export interface TouchEvent {
     readonly touches: readonly Touch[]
 }
 
-export interface GestureEvent {
+export interface GestureEvent extends TouchEvent {
     readonly delta: number
 }
 
@@ -88,6 +88,11 @@ export function attach(listener: EventListener) {
     w.onTouchEnd(function (event: any) {
         const touch = event.touches.get(0);
         listener.onTouchEnd({ touches: [touch] })
+    })
+
+    w.onGesturePinch(function (event: any) {
+        const touch = event.touches.get(0);
+        listener.onGesturePinch({ touches: [touch], delta: event.delta })
     })
 
     w.onFrame(function () {

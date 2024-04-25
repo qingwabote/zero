@@ -20,6 +20,8 @@ private:
     std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchMoveCb;
     std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchEndCb;
 
+    std::unique_ptr<callable::Callable<void, std::shared_ptr<GestureEvent>>> _gesturePinchCb;
+
     std::unique_ptr<callable::Callable<void>> _frameCb;
 
     ThreadSafeQueue<std::unique_ptr<callable::Callable<void>>> _beforeTickQueue;
@@ -44,6 +46,8 @@ public:
     void onTouchStart(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchStartCb = std::move(cb); }
     void onTouchMove(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchMoveCb = std::move(cb); }
     void onTouchEnd(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchEndCb = std::move(cb); }
+
+    void onGesturePinch(std::unique_ptr<callable::Callable<void, std::shared_ptr<GestureEvent>>> &&cb) { _gesturePinchCb = std::move(cb); }
 
     void onFrame(std::unique_ptr<callable::Callable<void>> &&cb) { _frameCb = std::move(cb); }
 
