@@ -5,7 +5,7 @@ import { BoxShape } from 'physics';
 import Joystick from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
-const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1 });
+const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
 
 enum VisibilityFlagBits {
     NONE = 0,

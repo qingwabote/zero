@@ -1,23 +1,10 @@
-import { EventEmitterImpl } from "bastard";
 import { Camera } from "./Camera.js";
 import { DirectionalLight } from "./DirectionalLight.js";
 import { Model } from "./Model.js";
+import { ModelArray } from "./ModelArray.js";
+import { ModelCollection, ModelCollectionReadonly } from "./ModelCollection.js";
 
-function modelCompareFn(a: Model, b: Model) {
-    return a.order - b.order;
-}
-
-enum Event {
-    CAMERA_ADD = 'CAMERA_ADD'
-}
-
-interface EventToListener {
-    [Event.CAMERA_ADD]: () => void;
-}
-
-export class Root extends EventEmitterImpl<EventToListener> {
-    static readonly Event = Event;
-
+export class Root {
     directionalLight?: DirectionalLight = undefined;
 
     private _cameras: Camera[] = [];
@@ -25,18 +12,21 @@ export class Root extends EventEmitterImpl<EventToListener> {
         return this._cameras;
     }
 
-    private _models: Model[] = [];
-    get models(): readonly Model[] {
+    public get models(): ModelCollectionReadonly {
         return this._models;
     }
+    public set models(value: ModelCollection) {
+        this._models = value;
+    }
+
+    constructor(private _models: ModelCollection = new ModelArray) { }
 
     addCamera(camera: Camera) {
         this._cameras.push(camera);
-        this.emit(Event.CAMERA_ADD);
     }
 
     addModel(model: Model) {
-        this._models.push(model);
+        this._models.add(model);
         model.onAddToScene();
     }
 
@@ -47,11 +37,6 @@ export class Root extends EventEmitterImpl<EventToListener> {
             camera.update();
         }
 
-        this._models.sort(modelCompareFn);
-        for (const model of this._models) {
-            model.update();
-        }
+        this._models.update();
     }
 }
-
-export const root = new Root;

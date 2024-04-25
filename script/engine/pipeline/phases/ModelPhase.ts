@@ -7,6 +7,10 @@ import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
+function modelCompareFn(a: Model, b: Model) {
+    return a.order - b.order;
+}
+
 export class ModelPhase extends Phase {
     constructor(
         context: Context,
@@ -23,15 +27,12 @@ export class ModelPhase extends Phase {
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
         const scene = Zero.instance.scene;
         const camera = scene.cameras[cameraIndex];
-        this._culling.ready();
-        for (const model of scene.models) {
+        const models = this._culling.cull(scene.models, cameraIndex).sort(modelCompareFn);
+        for (const model of models) {
             if ((camera.visibilities & model.transform.visibility) == 0) {
                 continue;
             }
             if (model.type != this._model) {
-                continue;
-            }
-            if (this._culling.cull(model, cameraIndex)) {
                 continue;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);

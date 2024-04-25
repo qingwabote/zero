@@ -2,9 +2,9 @@ import { AABB3D } from "../../math/aabb3d.js";
 import { FrustumFaces, FrustumVertices, frustum } from "../../math/frustum.js";
 import { Mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { ChangeRecord } from "./ChangeRecord.js";
 
-export class Frustum extends FrameChangeRecord {
+export class Frustum extends ChangeRecord {
     private _vertices_raw = frustum.vertices();
     private _vertices_tra = frustum.vertices();
     private _vertices = this._vertices_raw;

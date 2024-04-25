@@ -14,12 +14,13 @@ rectangle system {
 }
 
 rectangle pipeline {
+    rectangle UBO
     rectangle Flow
     rectangle Stage
     rectangle Phase
 }
 
-rectangle render_scene {
+rectangle scene {
     rectangle Camera
     rectangle Light
     rectangle Model
@@ -32,11 +33,11 @@ rectangle gfx {
     rectangle Vulkan
 }
 
-logic-d->render_scene
-pipeline-r->render_scene
+logic-d->scene
+pipeline-r->scene
 
 logic-r->system
 
-render_scene-d->gfx
+scene-d->gfx
 pipeline-d->gfx
 ```

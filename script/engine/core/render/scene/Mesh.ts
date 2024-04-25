@@ -1,9 +1,9 @@
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { Vec3, vec3 } from "../../math/vec3.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { ChangeRecord } from "./ChangeRecord.js";
 import { SubMesh } from "./SubMesh.js";
 
-export class Mesh extends FrameChangeRecord {
+export class Mesh extends ChangeRecord {
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
         return this._bounds;

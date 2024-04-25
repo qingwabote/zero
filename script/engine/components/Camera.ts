@@ -1,8 +1,8 @@
 import { ClearFlagBits } from "gfx";
 import { Component } from "../core/Component.js";
+import { Zero } from "../core/Zero.js";
 import { Vec4 } from "../core/math/vec4.js";
 import { Camera as render_Camera } from "../core/render/scene/Camera.js";
-import { root } from "../core/render/scene/Root.js";
 
 export class Camera extends Component {
     static readonly ClearFlagBits = ClearFlagBits;
@@ -74,6 +74,6 @@ export class Camera extends Component {
     }
 
     start(): void {
-        root.addCamera(this._camera);
+        Zero.instance.scene.addCamera(this._camera);
     }
 }

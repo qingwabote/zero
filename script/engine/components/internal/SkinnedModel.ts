@@ -2,14 +2,14 @@ import { BufferUsageFlagBits } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";
+import { ChangeRecord } from "../../core/render/scene/ChangeRecord.js";
 import { Material } from "../../core/render/scene/Material.js";
 import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Transform } from "../../core/render/scene/Transform.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
-class ModelSpaceTransform extends FrameChangeRecord {
+class ModelSpaceTransform extends ChangeRecord {
     matrix = mat4.create();
 }
 

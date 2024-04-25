@@ -8,8 +8,8 @@ import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { CommandCalls } from "./render/pipeline/CommandCalls.js";
-import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
-import { root } from "./render/scene/Root.js";
+import { ChangeRecord } from "./render/scene/ChangeRecord.js";
+import { Root } from "./render/scene/Root.js";
 
 export enum ZeroEvent {
     LOGIC_START = "LOGIC_START",
@@ -41,7 +41,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     readonly input = new Input;
 
-    readonly scene = root
+    readonly scene = new Root;
 
     private readonly _componentScheduler = new ComponentScheduler;
 
@@ -153,7 +153,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         device.acquire(this._presentSemaphore);
         this.scene.update();
         this._pipeline.update();
-        FrameChangeRecord.frameId++;
+        ChangeRecord.expire();
         this._commandBuffer.begin();
 
         this._commandCalls.renderPasses = 0;
