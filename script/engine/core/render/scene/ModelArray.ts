@@ -10,39 +10,34 @@ export class ModelArray implements ModelCollection {
         this._models.push(model);
     }
 
-    cull(times = 1): (frustum: Readonly<Frustum>) => Model[] {
-        if (times > 1) {
-            const claimed: Map<Model, Model> = new Map;
-            return (frustum: Readonly<Frustum>) => {
-                const res: Model[] = [];
-                for (const model of this._models) {
-                    if (claimed.has(model)) {
-                        continue;
-                    }
-
-                    if (frustum.aabb_out(model.world_bounds)) {
-                        continue;
-                    }
-
-                    if (frustum.aabb_in(model.world_bounds)) {
-                        claimed.set(model, model);
-                    }
-
-                    res.push(model);
+    cull(times = 1) {
+        const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
+        return (type: string, visibilities: number, frustum: Readonly<Frustum>) => {
+            const res: Model[] = [];
+            for (const model of this._models) {
+                if (model.type != type) {
+                    continue;
                 }
-                return res;
-            }
-        } else {
-            return (frustum: Readonly<Frustum>) => {
-                const res: Model[] = [];
-                for (const model of this._models) {
-                    if (frustum.aabb_out(model.world_bounds)) {
-                        continue;
-                    }
-                    res.push(model);
+
+                if ((visibilities & model.transform.visibility) == 0) {
+                    continue;
                 }
-                return res;
+
+                if (claimed?.has(model)) {
+                    continue;
+                }
+
+                if (frustum.aabb_out(model.world_bounds)) {
+                    continue;
+                }
+
+                if (claimed && frustum.aabb_in(model.world_bounds)) {
+                    claimed.set(model, model);
+                }
+
+                res.push(model);
             }
+            return res;
         }
     }
 

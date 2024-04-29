@@ -25,16 +25,8 @@ export class ModelPhase extends Phase {
     }
 
     record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
-        const scene = Zero.instance.scene;
-        const camera = scene.cameras[cameraIndex];
-        const models = this._culling.cull(scene.models, cameraIndex).sort(modelCompareFn);
+        const models = this._culling.cull(Zero.instance.scene.models, this._model, cameraIndex).sort(modelCompareFn);
         for (const model of models) {
-            if ((camera.visibilities & model.transform.visibility) == 0) {
-                continue;
-            }
-            if (model.type != this._model) {
-                continue;
-            }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
             const ModelType = (model.constructor as typeof Model);
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {

@@ -4,12 +4,20 @@ import { Model } from "../core/render/scene/Model.js";
 import { ModelCollection } from "../core/render/scene/ModelCollection.js";
 import { ModelTreeNode, ModelTreeNodeContext } from "./ModelTreeNode.js";
 
-function cull(frustum: Readonly<Frustum>, node: ModelTreeNode, results: Model[], claimed?: Map<Model, Model>) {
+function cull(type: string, visibilities: number, frustum: Readonly<Frustum>, node: ModelTreeNode, results: Model[], claimed?: Map<Model, Model>) {
     if (frustum.aabb_out(node.bounds)) {
         return;
     }
 
     for (const model of node.models) {
+        if (model.type != type) {
+            continue;
+        }
+
+        if ((visibilities & model.transform.visibility) == 0) {
+            continue;
+        }
+
         if (claimed?.has(model)) {
             continue;
         }
@@ -26,7 +34,7 @@ function cull(frustum: Readonly<Frustum>, node: ModelTreeNode, results: Model[],
     }
 
     for (const child of node.children.values()) {
-        cull(frustum, child, results, claimed);
+        cull(type, visibilities, frustum, child, results, claimed);
     }
 }
 
@@ -47,11 +55,11 @@ export class ModelTree implements ModelCollection {
         this.root.swallow(model);
     }
 
-    cull(times = 1): (frustum: Readonly<Frustum>) => Model[] {
+    cull(times = 1) {
         const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
-        return (frustum: Readonly<Frustum>) => {
+        return (type: string, visibilities: number, frustum: Readonly<Frustum>) => {
             const res: Model[] = [];
-            cull(frustum, this.root, res, claimed);
+            cull(type, visibilities, frustum, this.root, res, claimed);
             return res;
         }
     }
