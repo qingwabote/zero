@@ -79,6 +79,17 @@ function fromRect(out: AABB3D, offset: Vec3Like, size: Vec3Like) {
     return fromExtremes(out, offset, vec3_c);
 }
 
+function contains(a: Readonly<AABB3D>, point: Vec3Like) {
+    const min = vec3_a;
+    const max = vec3_b;
+    toExtremes(min, max, a);
+    return !(
+        point[0] > max[0] || point[0] < min[0] ||
+        point[1] > max[1] || point[1] < min[1] ||
+        point[2] > max[2] || point[2] < min[2]
+    );
+}
+
 const ZERO = Object.freeze({ center: vec3.ZERO, halfExtent: vec3.ZERO })
 
-export const aabb3d = { create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, ZERO } as const
+export const aabb3d = { ZERO, create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, contains } as const

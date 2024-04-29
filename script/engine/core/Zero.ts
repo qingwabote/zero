@@ -9,6 +9,8 @@ import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { CommandCalls } from "./render/pipeline/CommandCalls.js";
 import { ChangeRecord } from "./render/scene/ChangeRecord.js";
+import { ModelArray } from "./render/scene/ModelArray.js";
+import { ModelCollection } from "./render/scene/ModelCollection.js";
 import { Root } from "./render/scene/Root.js";
 
 export enum ZeroEvent {
@@ -41,8 +43,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
     readonly input = new Input;
 
-    readonly scene = new Root;
-
     private readonly _componentScheduler = new ComponentScheduler;
 
     private readonly _timeScheduler = new TimeScheduler;
@@ -71,8 +71,12 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._pipeline.dump();
     }
 
-    constructor(private _pipeline: Pipeline) {
+    readonly scene: Root;
+
+    constructor(private _pipeline: Pipeline, models: ModelCollection = new ModelArray) {
         super();
+
+        this.scene = new Root(models)
 
         const systems: System[] = [...Zero._system2priority.keys()];
         systems.sort(function (a, b) {

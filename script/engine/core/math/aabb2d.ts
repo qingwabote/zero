@@ -53,11 +53,13 @@ export const aabb2d = {
     },
 
     contains(a: Readonly<AABB2D>, point: Vec2Like) {
-        this.toExtremes(vec2_a, vec2_b, a);
-        return (vec2_a[0] <= point[0]
-            && vec2_b[0] >= point[0]
-            && vec2_a[1] <= point[1]
-            && vec2_b[1] >= point[1]);
+        const min = vec2_a;
+        const max = vec2_b;
+        this.toExtremes(min, max, a);
+        return !(
+            point[0] > max[0] || point[0] < min[0] ||
+            point[1] > max[1] || point[1] < min[1]
+        );
     },
 
     copy(out: AABB2D, a: Readonly<AABB2D>) {

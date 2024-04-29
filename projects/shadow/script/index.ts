@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, TouchEventName, Zero, bundle as builtin, device, render, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, render, scene, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -51,6 +51,8 @@ const csm_instance = await csm.instantiate(VisibilityFlagBits);
 const csm1_shadowmap = new SpriteFrame(csm1.textures['shadowmap']);
 const csm_shadowmap = new SpriteFrame(csm.textures['shadowmap']);
 
+const modelTree = new scene.ModelTree(aabb3d.create(vec3.ZERO, vec3.create(6, 6, 6)))
+
 export class App extends Zero {
     protected override start() {
         const width = 640;
@@ -81,7 +83,7 @@ export class App extends Zero {
         node = new Node;
         const down_camera = node.addComponent(Camera);
         down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
-        down_camera.orthoSize = 16;
+        down_camera.orthoSize = 8;
         down_camera.rect = [0, 0, 1, 0.5];
         down_camera.near = -8;
         node.position = [-8, 8, 8];
@@ -104,15 +106,19 @@ export class App extends Zero {
         const debugDraw = () => {
             debugDrawer.clear()
 
-            const shadow = this.pipeline.data.shadow!;
-
-            const cameraIndex = shadow.visibleCameras[0];
-
-            const cascades = shadow.cascades.get(cameraIndex)!;
-            for (let i = 0; i < shadow.cascadeNum; i++) {
-                debugDrawer.drawFrustum(cascades.bounds[i].vertices, vec4.YELLOW);
-                debugDrawer.drawFrustum(cascades.frusta[i].vertices, vec4.ONE);
+            for (const node of modelTree.root.nodeIterator()) {
+                debugDrawer.drawAABB(node.bounds, vec4.RED);
             }
+
+            debugDrawer.lateUpdate();
+
+            // const shadow = this.pipeline.data.shadow!;
+            // const cameraIndex = shadow.visibleCameras[0];
+            // const cascades = shadow.cascades.get(cameraIndex)!;
+            // for (let i = 0; i < shadow.cascadeNum; i++) {
+            //     debugDrawer.drawFrustum(cascades.bounds[i].vertices, vec4.YELLOW);
+            //     debugDrawer.drawFrustum(cascades.frusta[i].vertices, vec4.ONE);
+            // }
 
             // for (const model of this.scene.models) {
             //     if (model.transform.visibility != VisibilityFlagBits.WORLD) {
@@ -204,4 +210,4 @@ export class App extends Zero {
     }
 }
 
-(new App(csm1_instance)).initialize().attach();
+(new App(csm1_instance, modelTree)).initialize().attach();

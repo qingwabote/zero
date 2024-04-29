@@ -1,7 +1,6 @@
 import { Camera } from "./Camera.js";
 import { DirectionalLight } from "./DirectionalLight.js";
 import { Model } from "./Model.js";
-import { ModelArray } from "./ModelArray.js";
 import { ModelCollection, ModelCollectionReadonly } from "./ModelCollection.js";
 
 export class Root {
@@ -19,7 +18,7 @@ export class Root {
         this._models = value;
     }
 
-    constructor(private _models: ModelCollection = new ModelArray) { }
+    constructor(private _models: ModelCollection) { }
 
     addCamera(camera: Camera) {
         this._cameras.push(camera);

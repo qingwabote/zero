@@ -4,12 +4,20 @@ import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { mat4 } from "../../math/mat4.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferView } from "../BufferView.js";
+import { ChangeRecord } from "./ChangeRecord.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";
 
-export class Model {
+export class Model extends ChangeRecord {
     static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
+
+    override get hasChanged(): number {
+        return super.hasChanged || this._mesh.hasChanged || this._transform.hasChanged;
+    }
+    override set hasChanged(flags: number) {
+        super.hasChanged = flags;
+    }
 
     private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
     private _localBuffer_invalid = false;
@@ -22,7 +30,7 @@ export class Model {
         this._localBuffer_invalid = true;
     }
 
-    private _world_bounds_invalid = false;
+    private _world_bounds_invalid = true;
     private _world_bounds = aabb3d.create();
     public get world_bounds(): Readonly<AABB3D> {
         if (this._world_bounds_invalid) {
@@ -47,6 +55,7 @@ export class Model {
     readonly descriptorSet: DescriptorSet;
 
     constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
+        super(1);
         const ModelType = (this.constructor as typeof Model);
         const descriptorSet = device.createDescriptorSet(ModelType.descriptorSetLayout);
         descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
