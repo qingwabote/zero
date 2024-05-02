@@ -25,7 +25,7 @@ function remove(models: Model[], model: Model) {
 }
 
 export class ModelTreeNodeContext {
-    readonly model2node: Map<Model, ModelTreeNode> = new Map;
+    readonly model2node: Map<Model, ModelTreeNode | null> = new Map;
 }
 
 /* children layout
@@ -62,11 +62,11 @@ export class ModelTreeNode {
         private readonly _index: number = -1
     ) { }
 
-    swallow(model: Model) {
+    update(model: Model) {
         if (this._depth < 8 - 1) {
             let child_index = 0;
             {
-                const model_center = model.world_bounds.center;
+                const model_center = model.bounds.center;
                 const node_center = this.bounds.center;
                 child_index |= model_center[0] < node_center[0] ? 0 : 0x1;
                 child_index |= model_center[1] < node_center[1] ? 0 : 0x2;
@@ -97,14 +97,14 @@ export class ModelTreeNode {
 
             const model_min = vec3_c;
             const model_max = vec3_d;
-            aabb3d.toExtremes(model_min, model_max, model.world_bounds);
+            aabb3d.toExtremes(model_min, model_max, model.bounds);
             if (contains(child_min, child_max, model_min) && contains(child_min, child_max, model_max)) {
                 let child = this._children.get(child_index);
                 if (!child) {
                     child = new ModelTreeNode(this._context, aabb3d.fromExtremes(aabb3d.create(), child_min, child_max), this._depth + 1, this, child_index);
                     this._children.set(child_index, child);
                 }
-                child.swallow(model);
+                child.update(model);
 
                 return;
             }

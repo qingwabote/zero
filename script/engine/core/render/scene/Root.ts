@@ -11,11 +11,13 @@ export class Root {
         return this._cameras;
     }
 
+    private _models_invalidated = true;
     public get models(): ModelCollectionReadonly {
         return this._models;
     }
     public set models(value: ModelCollection) {
         this._models = value;
+        this._models_invalidated = true;
     }
 
     constructor(private _models: ModelCollection) { }
@@ -26,7 +28,6 @@ export class Root {
 
     addModel(model: Model) {
         this._models.add(model);
-        model.onAddToScene();
     }
 
     update() {
@@ -36,6 +37,14 @@ export class Root {
             camera.update();
         }
 
-        this._models.update();
+        for (const model of this._models) {
+            model.update();
+
+            if (this._models_invalidated || (model.hasChanged & Model.ChangeBits.BOUNDS)) {
+                this._models.update(model);
+            }
+        }
+
+        this._models_invalidated = false;
     }
 }

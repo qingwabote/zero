@@ -9,15 +9,17 @@ import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";
 
+const mat4_a = mat4.create();
+
+enum ChangeBits {
+    NONE = 0,
+    BOUNDS = 1 << 0
+}
+
 export class Model extends ChangeRecord {
     static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
 
-    override get hasChanged(): number {
-        return super.hasChanged || this._mesh.hasChanged || this._transform.hasChanged;
-    }
-    override set hasChanged(flags: number) {
-        super.hasChanged = flags;
-    }
+    static readonly ChangeBits = ChangeBits;
 
     private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
     private _localBuffer_invalid = false;
@@ -28,16 +30,7 @@ export class Model extends ChangeRecord {
     public set transform(value: Transform) {
         this._transform = value;
         this._localBuffer_invalid = true;
-    }
-
-    private _world_bounds_invalid = true;
-    private _world_bounds = aabb3d.create();
-    public get world_bounds(): Readonly<AABB3D> {
-        if (this._world_bounds_invalid) {
-            aabb3d.transform(this._world_bounds, this.mesh.bounds, this._transform.world_matrix);
-            this._world_bounds_invalid = false;
-        }
-        return this._world_bounds;
+        super.hasChanged = ChangeBits.BOUNDS;
     }
 
     public get mesh() {
@@ -45,7 +38,8 @@ export class Model extends ChangeRecord {
     }
     public set mesh(value) {
         this._mesh = value;
-        this._world_bounds_invalid = true;
+        this._bounds_invalid = true;
+        super.hasChanged = ChangeBits.BOUNDS;
     }
 
     type: string = 'default';
@@ -54,31 +48,45 @@ export class Model extends ChangeRecord {
 
     readonly descriptorSet: DescriptorSet;
 
+    private _bounds_invalid = true;
+    private _bounds = aabb3d.create();
+    public get bounds(): Readonly<AABB3D> {
+        if (this._bounds_invalid) {
+            aabb3d.transform(this._bounds, this.mesh.bounds, this._transform.world_matrix);
+            this._bounds_invalid = false;
+        }
+        return this._bounds;
+    }
+
+    override get hasChanged(): number {
+        let flags = super.hasChanged;
+        if (this._mesh.hasChanged || this._transform.hasChanged) {
+            flags |= ChangeBits.BOUNDS;
+        }
+        return flags;
+    }
+
     constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
-        super(1);
+        super(ChangeBits.BOUNDS);
         const ModelType = (this.constructor as typeof Model);
         const descriptorSet = device.createDescriptorSet(ModelType.descriptorSetLayout);
         descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
         this.descriptorSet = descriptorSet;
     }
 
-    onAddToScene() {
-        this._localBuffer_invalid = true;
-    }
-
     update() {
         if (this._mesh.hasChanged) {
-            this._world_bounds_invalid = true;
+            this._bounds_invalid = true;
         }
 
         if (this._transform.hasChanged) {
-            this._world_bounds_invalid = this._localBuffer_invalid = true;
+            this._bounds_invalid = this._localBuffer_invalid = true;
         }
 
         if (this._localBuffer_invalid) {
             this._localBuffer.set(this._transform.world_matrix);
             // http://www.lighthouse3d.com/tutorials/glsl-tutorial/the-normal-matrix/ or https://paroj.github.io/gltut/Illumination/Tut09%20Normal%20Transformation.html
-            this._localBuffer.set(mat4.inverseTranspose(mat4.create(), this._transform.world_matrix), 16);
+            this._localBuffer.set(mat4.inverseTranspose(mat4_a, this._transform.world_matrix), 16);
             this._localBuffer.update();
             this._localBuffer_invalid = false;
         }

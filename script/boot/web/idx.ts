@@ -3,20 +3,20 @@ import { log } from "./console.js";
 //
 import { Device } from "gfx";
 
-const [styleWidth, styleHeight, bufferWidth, bufferHeight, ratio] = (function () {
+const [styleWidth, styleHeight, pixelWidth, pixelHeight, pixelRatio] = (function () {
     const { clientWidth, clientHeight } = document.documentElement;
     return [clientWidth, clientHeight, clientWidth * devicePixelRatio, clientHeight * devicePixelRatio, devicePixelRatio];
 })()
 
 const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
-canvas.width = bufferWidth;
-canvas.height = bufferHeight;
+canvas.width = pixelWidth;
+canvas.height = pixelHeight;
 canvas.style.width = `${styleWidth}px`;
 canvas.style.height = `${styleHeight}px`;
 
 export const safeArea = (function () {
-    const top = document.getElementById("boot_log")!.clientHeight * ratio;
-    return { left: 0, right: 0, top, bottom: 0, width: bufferWidth, height: bufferHeight - top };
+    const top = document.getElementById("boot_log")!.clientHeight * pixelRatio;
+    return { left: 0, right: 0, top, bottom: 0, width: pixelWidth, height: pixelHeight - top };
 })();
 
 export const platform = 'web';
@@ -116,7 +116,7 @@ export function attach(listener: EventListener) {
         const rect = canvas.getBoundingClientRect();
         const offsetX = touch.clientX - rect.x;
         const offsetY = touch.clientY - rect.y;
-        listener.onTouchStart({ touches: [lastTouch = { x: offsetX * ratio, y: offsetY * ratio }] });
+        listener.onTouchStart({ touches: [lastTouch = { x: offsetX * pixelRatio, y: offsetY * pixelRatio }] });
         touchEvent.preventDefault(); // prevent mousedown
     })
     canvas.addEventListener('touchmove', function (touchEvent) {
@@ -124,7 +124,7 @@ export function attach(listener: EventListener) {
         const rect = canvas.getBoundingClientRect();
         const offsetX = touch.clientX - rect.x;
         const offsetY = touch.clientY - rect.y;
-        listener.onTouchMove({ touches: [lastTouch = { x: offsetX * ratio, y: offsetY * ratio }] });
+        listener.onTouchMove({ touches: [lastTouch = { x: offsetX * pixelRatio, y: offsetY * pixelRatio }] });
     })
     canvas.addEventListener('touchend', function (touchEvent) {
         listener.onTouchEnd({ touches: [lastTouch] });
@@ -134,19 +134,19 @@ export function attach(listener: EventListener) {
     })
 
     canvas.addEventListener("mousedown", function (mouseEvent) {
-        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX * ratio, y: mouseEvent.offsetY * ratio }] });
+        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] });
     })
     canvas.addEventListener("mouseup", function (mouseEvent) {
-        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX * ratio, y: mouseEvent.offsetY * ratio }] })
+        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] })
     })
     canvas.addEventListener("mousemove", function (mouseEvent) {
         if (mouseEvent.buttons) {
-            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX * ratio, y: mouseEvent.offsetY * ratio }] })
+            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] })
         }
     })
 
     canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * ratio, y: wheelEvent.offsetY * ratio }], delta: wheelEvent.deltaY });
+        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * pixelRatio, y: wheelEvent.offsetY * pixelRatio }], delta: wheelEvent.deltaY });
         wheelEvent.preventDefault();
     })
 

@@ -51,8 +51,6 @@ const csm_instance = await csm.instantiate(VisibilityFlagBits);
 const csm1_shadowmap = new SpriteFrame(csm1.textures['shadowmap']);
 const csm_shadowmap = new SpriteFrame(csm.textures['shadowmap']);
 
-const modelTree = new scene.ModelTree(aabb3d.create(vec3.ZERO, vec3.create(6, 6, 6)))
-
 export class App extends Zero {
     protected override start() {
         const width = 640;
@@ -106,9 +104,9 @@ export class App extends Zero {
         const debugDraw = () => {
             debugDrawer.clear()
 
-            for (const node of modelTree.root.nodeIterator()) {
-                debugDrawer.drawAABB(node.bounds, vec4.RED);
-            }
+            // for (const node of modelTree.root.nodeIterator()) {
+            //     debugDrawer.drawAABB(node.bounds, vec4.RED);
+            // }
 
             debugDrawer.lateUpdate();
 
@@ -186,28 +184,61 @@ export class App extends Zero {
             controlPanel.setHeight('100%');
             down_container.addElement(controlPanel);
 
-            const textRenderer = Renderer.create(TextRenderer);
-            textRenderer.impl.text = 'CSM OFF';
-            textRenderer.impl.color = vec4.ONE;
-            textRenderer.impl.size = 50;
-            textRenderer.positionType = PositionType.Absolute;
-            textRenderer.emitter.on(TouchEventName.START, async event => {
-                if (textRenderer.impl.text == 'CSM OFF') {
-                    textRenderer.impl.text = 'CSM ON';
-                    textRenderer.impl.color = vec4.GREEN;
-                    sprite.impl.spriteFrame = csm_shadowmap;
-                    this.pipeline = csm_instance;
-                } else {
-                    textRenderer.impl.text = 'CSM OFF';
-                    textRenderer.impl.color = vec4.ONE;
-                    sprite.impl.spriteFrame = csm1_shadowmap;
-                    this.pipeline = csm1_instance;
-                }
-            })
-            down_container.addElement(textRenderer);
+            {
+                const textRenderer = Renderer.create(TextRenderer);
+                textRenderer.impl.text = 'CSM OFF';
+                textRenderer.impl.color = vec4.ONE;
+                textRenderer.impl.size = 50;
+                textRenderer.positionType = PositionType.Absolute;
+                textRenderer.emitter.on(TouchEventName.START, async event => {
+                    if (textRenderer.impl.text == 'CSM OFF') {
+                        textRenderer.impl.text = 'CSM ON';
+                        textRenderer.impl.color = vec4.GREEN;
+                        sprite.impl.spriteFrame = csm_shadowmap;
+                        this.pipeline = csm_instance;
+                    } else {
+                        textRenderer.impl.text = 'CSM OFF';
+                        textRenderer.impl.color = vec4.ONE;
+                        sprite.impl.spriteFrame = csm1_shadowmap;
+                        this.pipeline = csm1_instance;
+                    }
+                })
+                down_container.addElement(textRenderer);
+            }
+
+            {
+                const textRenderer = Renderer.create(TextRenderer);
+                textRenderer.impl.text = 'TREE OFF';
+                textRenderer.impl.color = vec4.ONE;
+                textRenderer.impl.size = 50;
+                textRenderer.positionType = PositionType.Absolute;
+                textRenderer.setPosition(Edge.Right, 0);
+                textRenderer.emitter.on(TouchEventName.START, async event => {
+                    const last = this.scene.models;
+                    if (textRenderer.impl.text == 'TREE OFF') {
+                        textRenderer.impl.text = 'TREE ON';
+                        textRenderer.impl.color = vec4.GREEN;
+                        const models = new scene.ModelTree(aabb3d.create(vec3.ZERO, vec3.create(6, 6, 6)));
+                        for (const model of last) {
+                            models.add(model);
+                        }
+                        this.scene.models = models;
+                    } else {
+                        textRenderer.impl.text = 'TREE OFF';
+                        textRenderer.impl.color = vec4.ONE;
+                        const models = new scene.ModelArray();
+                        for (const model of last) {
+                            models.add(model);
+                        }
+                        this.scene.models = models;
+                    }
+                })
+                down_container.addElement(textRenderer);
+            }
+
         }
         doc.addElement(down_container)
     }
 }
 
-(new App(csm1_instance, modelTree)).initialize().attach();
+(new App(csm1_instance)).initialize().attach();

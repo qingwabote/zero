@@ -2,40 +2,21 @@ import { AABB3D } from "../core/math/aabb3d.js";
 import { Frustum } from "../core/render/scene/Frustum.js";
 import { Model } from "../core/render/scene/Model.js";
 import { ModelCollection } from "../core/render/scene/ModelCollection.js";
+import * as culling from "../core/render/scene/culling.js";
 import { ModelTreeNode, ModelTreeNodeContext } from "./ModelTreeNode.js";
 
-function cull(type: string, visibilities: number, frustum: Readonly<Frustum>, node: ModelTreeNode, results: Model[], claimed?: Map<Model, Model>) {
+function cull(results: Model[], node: ModelTreeNode, type: string, visibilities: number, frustum: Readonly<Frustum>, claimed?: Map<Model, Model>): Model[] {
     if (frustum.aabb_out(node.bounds)) {
-        return;
+        return results;
     }
 
-    for (const model of node.models) {
-        if (model.type != type) {
-            continue;
-        }
-
-        if ((visibilities & model.transform.visibility) == 0) {
-            continue;
-        }
-
-        if (claimed?.has(model)) {
-            continue;
-        }
-
-        if (frustum.aabb_out(model.world_bounds)) {
-            continue;
-        }
-
-        if (claimed && frustum.aabb_in(model.world_bounds)) {
-            claimed.set(model, model);
-        }
-
-        results.push(model);
-    }
+    culling.cull(results, node.models, type, visibilities, frustum, claimed);
 
     for (const child of node.children.values()) {
-        cull(type, visibilities, frustum, child, results, claimed);
+        cull(results, child, type, visibilities, frustum, claimed);
     }
+
+    return results;
 }
 
 export class ModelTree implements ModelCollection {
@@ -47,31 +28,22 @@ export class ModelTree implements ModelCollection {
         this.root = new ModelTreeNode(this._context, bounds, 0);
     }
 
-    [Symbol.iterator](): Iterator<Model> {
-        return this._context.model2node.keys();
-    }
-
     add(model: Model): void {
-        this.root.swallow(model);
+        this._context.model2node.set(model, null);
     }
 
     cull(times = 1) {
         const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
         return (type: string, visibilities: number, frustum: Readonly<Frustum>) => {
-            const res: Model[] = [];
-            cull(type, visibilities, frustum, this.root, res, claimed);
-            return res;
+            return cull([], this.root, type, visibilities, frustum, claimed);
         }
     }
 
-    update(): void {
-        for (const model of this._context.model2node.keys()) {
+    update(model: Model): void {
+        this.root.update(model);
+    }
 
-            model.update();
-
-            if (model.hasChanged) {
-                this.root.swallow(model);
-            }
-        }
+    [Symbol.iterator](): Iterator<Model> {
+        return this._context.model2node.keys();
     }
 }

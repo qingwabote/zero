@@ -7,5 +7,5 @@ export interface ModelCollectionReadonly extends Iterable<Model> {
 
 export interface ModelCollection extends ModelCollectionReadonly {
     add(model: Model): void;
-    update(): void;
+    update(model: Model): void;
 }
