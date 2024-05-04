@@ -100,7 +100,7 @@ export class Cascades extends ChangeRecord {
             const top = aabb_a.halfExtent[1];
             const near = 0;
             const far = aabb_a.halfExtent[2] * 2;
-            mat4.ortho(mat4_b, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
+            mat4.orthographic(mat4_b, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
             this._bounds[i].orthographic(left, right, bottom, top, near, far);
             this._bounds[i].transform(mat4_a);
 

@@ -1,9 +1,9 @@
 import { CommandBuffer, RenderPass } from "gfx";
-import { CommandCalls } from "./CommandCalls.js";
 import { Context } from "./Context.js";
+import { Profile } from "./Profile.js";
 
 export abstract class Phase {
     constructor(protected _context: Context, readonly visibility: number) { }
 
-    abstract record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number): void;
+    abstract record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number): void;
 }

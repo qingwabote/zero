@@ -1,8 +1,8 @@
 import { CommandBuffer, Uint32Vector } from "gfx";
 import { Zero } from "../../Zero.js";
-import { CommandCalls } from "./CommandCalls.js";
 import { Context } from "./Context.js";
 import { Parameters } from "./Parameters.js";
+import { Profile } from "./Profile.js";
 import { Stage } from "./Stage.js";
 import { UBO } from "./UBO.js";
 
@@ -15,7 +15,7 @@ export class Flow {
         private readonly _loops?: Function[]
     ) { }
 
-    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, cameraIndex: number) {
+    record(commandCalls: Profile, commandBuffer: CommandBuffer, cameraIndex: number) {
         const camera = Zero.instance.scene.cameras[cameraIndex];
 
         for (let i = 0; i < (this._loops?.length ?? 1); i++) {

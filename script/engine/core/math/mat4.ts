@@ -243,7 +243,7 @@ export const mat4 = {
         return out;
     },
 
-    ortho<Out extends Mat4Like>(out: Out, left: number, right: number, bottom: number, top: number, near: number, far: number, minClipZ: number) {
+    orthographic<Out extends Mat4Like>(out: Out, left: number, right: number, bottom: number, top: number, near: number, far: number, minClipZ: number) {
         var lr = 1 / (left - right);
         var bt = 1 / (bottom - top);
         var nf = 1 / (near - far);

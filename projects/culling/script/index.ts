@@ -1,10 +1,8 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
-
-const primitive = await (await builtin.cache('models/primitive/scene', GLTF)).instantiate();
 
 const gltf_guardian = await (await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF)).instantiate();
 
@@ -43,11 +41,15 @@ class App extends Zero {
         {
             const num = 6;
             const origins = [vec3.create(0, -8, -8), vec3.create(0, -1, -8), vec3.create(0, 6, -8), vec3.create(0, 13, -8)]
+            // const origins = [vec3.create(0, -1, -8)]
             for (let i = 0; i < origins.length; i++) {
                 const pos = origins[i];
                 const rotation = mat3.fromYRotation(mat3.create(), Math.PI * 2 / num);
                 for (let i = 0; i < num; i++) {
                     const guardian = gltf_guardian.createScene("Sketchfab_Scene")!;
+                    const animation = guardian.addComponent(Animation);
+                    animation.clips = gltf_guardian.proto.animationClips;
+                    animation.play('WalkCycle')
                     guardian.visibility = VisibilityFlagBits.WORLD;
                     guardian.position = vec3.transformMat3(pos, pos, rotation);
                 }

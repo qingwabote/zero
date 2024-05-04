@@ -72,7 +72,7 @@ export class Camera extends ChangeRecord {
             } else {
                 const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
-                mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                mat4.orthographic(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
         }

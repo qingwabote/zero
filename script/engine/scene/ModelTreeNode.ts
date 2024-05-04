@@ -15,15 +15,6 @@ function contains(min: Readonly<Vec3>, max: Readonly<Vec3>, point: Readonly<Vec3
     );
 }
 
-function remove(models: Model[], model: Model) {
-    const last = models.pop()!;
-    if (last == model) {
-        return;
-    }
-
-    models[models.indexOf(model)] = last;
-}
-
 export class ModelTreeNodeContext {
     readonly model2node: Map<Model, ModelTreeNode | null> = new Map;
 }
@@ -64,44 +55,62 @@ export class ModelTreeNode {
 
     update(model: Model) {
         if (this._depth < 8 - 1) {
-            let child_index = 0;
-            {
-                const model_center = model.bounds.center;
-                const node_center = this.bounds.center;
-                child_index |= model_center[0] < node_center[0] ? 0 : 0x1;
-                child_index |= model_center[1] < node_center[1] ? 0 : 0x2;
-                child_index |= model_center[2] < node_center[2] ? 0 : 0x4;
-            }
-
             const child_min = vec3_a;
             const child_max = vec3_b;
-            aabb3d.toExtremes(child_min, child_max, this.bounds);
+            // aabb3d.toExtremes(child_min, child_max, this.bounds);
+            child_min[0] = this.bounds.center[0] - this.bounds.halfExtent[0];
+            child_min[1] = this.bounds.center[1] - this.bounds.halfExtent[1];
+            child_min[2] = this.bounds.center[2] - this.bounds.halfExtent[2];
+            child_max[0] = this.bounds.center[0] + this.bounds.halfExtent[0];
+            child_max[1] = this.bounds.center[1] + this.bounds.halfExtent[1];
+            child_max[2] = this.bounds.center[2] + this.bounds.halfExtent[2];
 
-            if (child_index & 0x1) {
-                child_min[0] = this.bounds.center[0]
-            } else {
+            const node_bounds = model.bounds;
+
+            let child_index = 0;
+            if (node_bounds.center[0] < this.bounds.center[0]) {
                 child_max[0] = this.bounds.center[0]
-            }
-
-            if (child_index & 0x2) {
-                child_min[1] = this.bounds.center[1]
             } else {
+                child_min[0] = this.bounds.center[0]
+                child_index |= 0x1;
+            }
+            if (node_bounds.center[1] < this.bounds.center[1]) {
                 child_max[1] = this.bounds.center[1]
-            }
-
-            if (child_index & 0x4) {
-                child_min[2] = this.bounds.center[2]
             } else {
+                child_min[1] = this.bounds.center[1]
+                child_index |= 0x2;
+            }
+            if (node_bounds.center[2] < this.bounds.center[2]) {
                 child_max[2] = this.bounds.center[2]
+            } else {
+                child_min[2] = this.bounds.center[2]
+                child_index |= 0x4;
             }
 
             const model_min = vec3_c;
             const model_max = vec3_d;
-            aabb3d.toExtremes(model_min, model_max, model.bounds);
+            // aabb3d.toExtremes(model_min, model_max, node_bounds);
+            model_min[0] = node_bounds.center[0] - node_bounds.halfExtent[0];
+            model_min[1] = node_bounds.center[1] - node_bounds.halfExtent[1];
+            model_min[2] = node_bounds.center[2] - node_bounds.halfExtent[2];
+            model_max[0] = node_bounds.center[0] + node_bounds.halfExtent[0];
+            model_max[1] = node_bounds.center[1] + node_bounds.halfExtent[1];
+            model_max[2] = node_bounds.center[2] + node_bounds.halfExtent[2];
+
             if (contains(child_min, child_max, model_min) && contains(child_min, child_max, model_max)) {
                 let child = this._children.get(child_index);
                 if (!child) {
-                    child = new ModelTreeNode(this._context, aabb3d.fromExtremes(aabb3d.create(), child_min, child_max), this._depth + 1, this, child_index);
+                    const center = vec3_c;
+                    center[0] = (child_max[0] + child_min[0]) / 2;
+                    center[1] = (child_max[1] + child_min[1]) / 2;
+                    center[2] = (child_max[2] + child_min[2]) / 2;
+                    const halfExtent = vec3_d;
+                    halfExtent[0] = (child_max[0] - child_min[0]) / 2;
+                    halfExtent[1] = (child_max[1] - child_min[1]) / 2;
+                    halfExtent[2] = (child_max[2] - child_min[2]) / 2;
+
+                    child = new ModelTreeNode(this._context, aabb3d.create(center, halfExtent), this._depth + 1, this, child_index);
+
                     this._children.set(child_index, child);
                 }
                 child.update(model);
@@ -115,15 +124,27 @@ export class ModelTreeNode {
             return;
         }
 
-        if (last) {
-            remove(last._models, model);
-            if (last._models.length == 0 && last._children.size == 0) {
-                last._parent?._children.delete(last._index);
-            }
-        }
-
         this._models.push(model);
         this._context.model2node.set(model, this);
+
+        if (last) {
+            // fast remove
+            const one = last._models.pop()!;
+            if (one != model) {
+                last._models[last._models.indexOf(model)] = one;
+            }
+
+            let node: ModelTreeNode | null = last;
+            do {
+                if (node._models.length) {
+                    break;
+                }
+                if (node._children.size) {
+                    break;
+                }
+                node._parent?._children.delete(node._index);
+            } while (node = node._parent);
+        }
     }
 
     *nodeIterator(): IterableIterator<ModelTreeNode> {

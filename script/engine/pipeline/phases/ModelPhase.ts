@@ -1,9 +1,9 @@
 import { CommandBuffer, DescriptorSetLayout, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { CommandCalls } from "../../core/render/pipeline/CommandCalls.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Culling } from "../../core/render/pipeline/Culling.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
+import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
@@ -24,8 +24,11 @@ export class ModelPhase extends Phase {
         super(context, visibility);
     }
 
-    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
-        const models = this._culling.cull(Zero.instance.scene.models, this._model, cameraIndex).sort(modelCompareFn);
+    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
+        profile.emit(Profile.Event.CULL_START);
+        const models = this._culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
+        profile.emit(Profile.Event.CULL_END);
+        models.sort(modelCompareFn);
         for (const model of models) {
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
             const ModelType = (model.constructor as typeof Model);
@@ -53,7 +56,7 @@ export class ModelPhase extends Phase {
                     } else {
                         commandBuffer.draw(drawInfo.count);
                     }
-                    commandCalls.draws++;
+                    profile.draws++;
                 }
             }
         }
