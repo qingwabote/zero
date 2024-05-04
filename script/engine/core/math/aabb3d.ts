@@ -64,12 +64,7 @@ const vec3_c = vec3.create();
 const vec3_d = vec3.create();
 
 function fromPoints(out: AABB3D, points: readonly Readonly<Vec3Like>[]) {
-    vec3.set(vec3_c, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-    vec3.set(vec3_d, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-    for (const point of points) {
-        vec3.min(vec3_c, vec3_c, point);
-        vec3.max(vec3_d, vec3_d, point);
-    }
+    vec3.extremes(vec3_c, vec3_d, points);
     fromExtremes(out, vec3_c, vec3_d);
     return out;
 }

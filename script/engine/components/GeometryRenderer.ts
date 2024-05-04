@@ -3,7 +3,7 @@ import { bundle } from "bundling";
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
-import { AABB3D } from "../core/math/aabb3d.js";
+import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { FrustumVertices } from "../core/math/frustum.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
@@ -18,6 +18,8 @@ import { BoundedRenderer } from "./BoundedRenderer.js";
 const drawLine = {
     vec3_a: vec3.create(),
     vec3_b: vec3.create(),
+    vec3_c: vec3.create(),
+    vec3_d: vec3.create(),
 } as const
 
 const drawAABB = {
@@ -69,9 +71,6 @@ export class GeometryRenderer extends BoundedRenderer {
         return this._mesh.bounds;
     }
 
-    private _vertexMin = vec3.create();
-    private _vertexMax = vec3.create();
-
     constructor(node: Node) {
         super(node);
 
@@ -102,11 +101,6 @@ export class GeometryRenderer extends BoundedRenderer {
     }
 
     drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color = vec4.ONE) {
-        if (this._vertexCount == 0) {
-            vec3.set(this._vertexMin, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-            vec3.set(this._vertexMax, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-        }
-
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
         this._buffer.resize(length)
 
@@ -119,14 +113,22 @@ export class GeometryRenderer extends BoundedRenderer {
         offset += 3
         this._buffer.set(color, offset);
 
-        vec3.min(drawLine.vec3_a, this._vertexMin, from);
+        if (this._vertexCount == 0) {
+            vec3.set(drawLine.vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+            vec3.set(drawLine.vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+        } else {
+            aabb3d.toExtremes(drawLine.vec3_a, drawLine.vec3_b, this._mesh.bounds);
+        }
+
+        vec3.min(drawLine.vec3_a, drawLine.vec3_a, from);
         vec3.min(drawLine.vec3_a, drawLine.vec3_a, to);
-        vec3.max(drawLine.vec3_b, this._vertexMax, from);
+        vec3.max(drawLine.vec3_b, drawLine.vec3_b, from);
         vec3.max(drawLine.vec3_b, drawLine.vec3_b, to);
-        if (!vec3.equals(drawLine.vec3_a, this._vertexMin) || !vec3.equals(drawLine.vec3_b, this._vertexMax)) {
-            this._mesh.setBoundsByPoints(drawLine.vec3_a, drawLine.vec3_b);
-            vec3.set(this._vertexMin, ...drawLine.vec3_a);
-            vec3.set(this._vertexMax, ...drawLine.vec3_b);
+
+        aabb3d.toExtremes(drawLine.vec3_c, drawLine.vec3_d, this._mesh.bounds);
+
+        if (!vec3.equals(drawLine.vec3_a, drawLine.vec3_c) || !vec3.equals(drawLine.vec3_b, drawLine.vec3_d)) {
+            this._mesh.setBoundsByExtremes(drawLine.vec3_a, drawLine.vec3_b);
             // this.emit(BoundsEvent.BOUNDS_CHANGED);
         }
 

@@ -15,8 +15,12 @@ enum VisibilityFlagBits {
     WORLD = 1 << 30
 }
 
+const tree_bounds = aabb3d.create(vec3.create(0, 4, 0), vec3.create(14, 14, 14));
+
 class App extends Zero {
     protected start(): void {
+        let debug: boolean = false
+
         const light = Node.build(DirectionalLight)
         light.node.position = [-12, 12, -12];
 
@@ -27,39 +31,46 @@ class App extends Zero {
         up_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.UP;
         up_camera.node.position = [0, 0, 0.001]
 
-        const down_camera = Node.build(Camera);
-        down_camera.orthoSize = 12;
-        down_camera.rect = [0, 0, 1, 0.5];
-        down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
-        down_camera.node.position = [0, 8, 8]
+        let down_camera: Camera;
+        if (debug) {
+            down_camera = Node.build(Camera);
+            down_camera.orthoSize = 12;
+            down_camera.rect = [0, 0, 1, 0.5];
+            down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
+            down_camera.node.position = [0, 12, 8]
+        }
 
         {
             const num = 6;
-            const pos = vec3.create(0, -1, -8);
-            const rotation = mat3.fromYRotation(mat3.create(), Math.PI * 2 / num);
-            for (let i = 0; i < num; i++) {
-                const guardian = gltf_guardian.createScene("Sketchfab_Scene")!;
-                guardian.visibility = VisibilityFlagBits.WORLD;
-                guardian.position = vec3.transformMat3(pos, pos, rotation);
+            const origins = [vec3.create(0, -8, -8), vec3.create(0, -1, -8), vec3.create(0, 6, -8), vec3.create(0, 13, -8)]
+            for (let i = 0; i < origins.length; i++) {
+                const pos = origins[i];
+                const rotation = mat3.fromYRotation(mat3.create(), Math.PI * 2 / num);
+                for (let i = 0; i < num; i++) {
+                    const guardian = gltf_guardian.createScene("Sketchfab_Scene")!;
+                    guardian.visibility = VisibilityFlagBits.WORLD;
+                    guardian.position = vec3.transformMat3(pos, pos, rotation);
+                }
             }
         }
 
-        const debugDrawer = Node.build(GeometryRenderer);
-        debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
+        if (debug) {
+            const debugDrawer = Node.build(GeometryRenderer);
+            debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
-        this.pipeline.data.on(render.Data.Event.UPDATE, () => {
-            debugDrawer.clear();
+            this.pipeline.data.on(render.Data.Event.UPDATE, () => {
+                debugDrawer.clear();
 
-            // if (this.scene.models instanceof scene.ModelTree) {
-            //     for (const node of this.scene.models.root.nodeIterator()) {
-            //         debugDrawer.drawAABB(node.bounds, vec4.RED);
-            //     }
-            //     debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
-            // }
+                if (this.scene.models instanceof scene.ModelTree) {
+                    for (const node of this.scene.models.root.nodeIterator()) {
+                        debugDrawer.drawAABB(node.bounds, vec4.RED);
+                    }
+                    debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
+                }
 
-            debugDrawer.lateUpdate();
-        })
-
+                debugDrawer.lateUpdate();
+            })
+        }
 
         const width = 640;
         const height = 960;
@@ -99,17 +110,19 @@ class App extends Zero {
         down_container.setWidth(width);
         down_container.setHeight(height / 2);
         {
-            const controlPanel = Node.build(CameraControlPanel);
-            controlPanel.camera = down_camera;
-            controlPanel.positionType = PositionType.Absolute;
-            controlPanel.setWidth('100%');
-            controlPanel.setHeight('100%');
-            down_container.addElement(controlPanel);
+            if (debug) {
+                const controlPanel = Node.build(CameraControlPanel);
+                controlPanel.camera = down_camera!;
+                controlPanel.positionType = PositionType.Absolute;
+                controlPanel.setWidth('100%');
+                controlPanel.setHeight('100%');
+                down_container.addElement(controlPanel);
+            }
 
             {
                 const textRenderer = Renderer.create(TextRenderer);
-                textRenderer.impl.text = 'TREE OFF';
-                textRenderer.impl.color = vec4.ONE;
+                textRenderer.impl.text = 'TREE ON';
+                textRenderer.impl.color = vec4.GREEN;
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.setPosition(Edge.Right, 0);
@@ -118,7 +131,7 @@ class App extends Zero {
                     if (textRenderer.impl.text == 'TREE OFF') {
                         textRenderer.impl.text = 'TREE ON';
                         textRenderer.impl.color = vec4.GREEN;
-                        const models = new scene.ModelTree(aabb3d.create(vec3.create(0, 4, 0), vec3.create(14, 14, 14)));
+                        const models = new scene.ModelTree(tree_bounds);
                         for (const model of last) {
                             models.add(model);
                         }
@@ -146,4 +159,4 @@ class App extends Zero {
     }
 }
 
-(new App(pipeline)).initialize().attach();
+(new App(pipeline, new scene.ModelTree(tree_bounds))).initialize().attach();

@@ -15,10 +15,10 @@ export class Mesh extends ChangeRecord {
         pointMax = vec3.ZERO,
     ) {
         super();
-        this.setBoundsByPoints(pointMin, pointMax);
+        this.setBoundsByExtremes(pointMin, pointMax);
     }
 
-    setBoundsByPoints(min: Readonly<Vec3>, max: Readonly<Vec3>) {
+    setBoundsByExtremes(min: Readonly<Vec3>, max: Readonly<Vec3>) {
         aabb3d.fromExtremes(this._bounds, min, max);
         this.hasChanged = 1;
     }

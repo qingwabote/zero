@@ -6,6 +6,7 @@ import { PassInstance } from "../PassInstance.js";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
+import { aabb2d } from "../core/math/aabb2d.js";
 import { AABB3D } from "../core/math/aabb3d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
@@ -52,6 +53,9 @@ enum DirtyFlagBits {
 }
 
 const lineBreak = '\n'.charCodeAt(0);
+
+const vec2_a = vec2.create();
+const vec2_b = vec2.create();
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
@@ -134,11 +138,13 @@ export class TextRenderer extends BoundedRenderer {
         if (!this._text) {
             this._quads = 0;
 
-            this._mesh.setBoundsByPoints(vec3.ZERO, vec3.ZERO)
-
             this._dirties = DirtyFlagBits.NONE;
 
-            this.emit(BoundsEventName.BOUNDS_CHANGED);
+            aabb2d.toExtremes(vec2_a, vec2_b, this._mesh.bounds);
+            if (!vec2.equals(vec2_a, vec3.ZERO) || !vec2.equals(vec2_b, vec3.ZERO)) {
+                this._mesh.setBoundsByExtremes(vec3.ZERO, vec3.ZERO)
+                this.emit(BoundsEventName.BOUNDS_CHANGED);
+            }
 
             return;
         }
@@ -210,13 +216,15 @@ export class TextRenderer extends BoundedRenderer {
 
         quad.indexGrowTo(this._quads = quads);
 
-        // aabb2d.set(this._bounds, 0, b, r + l, t - b);
         vec2.set(vec3_a, l, b);
         vec2.set(vec3_b, r, t);
-        this._mesh.setBoundsByPoints(vec3_a, vec3_b)
 
         this._dirties = DirtyFlagBits.NONE;
 
-        this.emit(BoundsEventName.BOUNDS_CHANGED);
+        aabb2d.toExtremes(vec2_a, vec2_b, this._mesh.bounds);
+        if (!vec2.equals(vec2_a, vec3_a) || !vec2.equals(vec2_b, vec3_b)) {
+            this._mesh.setBoundsByExtremes(vec3_a, vec3_b)
+            this.emit(BoundsEventName.BOUNDS_CHANGED);
+        }
     }
 }

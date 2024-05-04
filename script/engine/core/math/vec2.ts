@@ -66,6 +66,15 @@ export const vec2 = {
         return out;
     },
 
+    equals(a: Readonly<Vec2Like>, b: Readonly<Vec2Like>, epsilon = 0.000001) {
+        return (
+            Math.abs(a[0] - b[0])
+            <= epsilon * Math.max(1.0, Math.abs(a[0]), Math.abs(b[0]))
+            && Math.abs(a[1] - b[1])
+            <= epsilon * Math.max(1.0, Math.abs(a[1]), Math.abs(b[1]))
+        );
+    },
+
     distance(a: Readonly<Vec2Like>, b: Readonly<Vec2Like>) {
         const x = b[0] - a[0];
         const y = b[1] - a[1];
