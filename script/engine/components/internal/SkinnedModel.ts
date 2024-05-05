@@ -48,8 +48,8 @@ export class SkinnedModel extends Model {
         this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
     }
 
-    override update(): void {
-        super.update();
+    override upload(): void {
+        super.upload();
         if (!this._joints) {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths)!);
         }

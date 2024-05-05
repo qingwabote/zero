@@ -13,38 +13,14 @@ const mat4_a = mat4.create();
 
 enum ChangeBits {
     NONE = 0,
-    BOUNDS = 1 << 0
+    BOUNDS = 1 << 0,
+    UPLOAD = 1 << 1,
 }
 
 export class Model extends ChangeRecord {
     static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
 
     static readonly ChangeBits = ChangeBits;
-
-    private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
-    private _localBuffer_invalid = false;
-
-    public get transform(): Transform {
-        return this._transform;
-    }
-    public set transform(value: Transform) {
-        this._transform = value;
-        this._localBuffer_invalid = true;
-        super.hasChanged = ChangeBits.BOUNDS;
-    }
-
-    public get mesh() {
-        return this._mesh;
-    }
-    public set mesh(value) {
-        this._mesh = value;
-        this._bounds_invalid = true;
-        super.hasChanged = ChangeBits.BOUNDS;
-    }
-
-    type: string = 'default';
-
-    order: number = 0;
 
     readonly descriptorSet: DescriptorSet;
 
@@ -58,6 +34,27 @@ export class Model extends ChangeRecord {
         return this._bounds;
     }
 
+    private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
+    private _localBuffer_invalid = false;
+
+    public get transform(): Transform {
+        return this._transform;
+    }
+    public set transform(value: Transform) {
+        this._transform = value;
+        this._localBuffer_invalid = true;
+        super.hasChanged |= ChangeBits.BOUNDS;
+    }
+
+    public get mesh() {
+        return this._mesh;
+    }
+    public set mesh(value) {
+        this._mesh = value;
+        this._bounds_invalid = true;
+        super.hasChanged |= ChangeBits.BOUNDS;
+    }
+
     override get hasChanged(): number {
         let flags = super.hasChanged;
         if (this._mesh.hasChanged || this._transform.hasChanged) {
@@ -65,11 +62,17 @@ export class Model extends ChangeRecord {
         }
         return flags;
     }
+    override set hasChanged(flag: number) {
+        super.hasChanged |= flag;
+    }
+
+    type: string = 'default';
+
+    order: number = 0;
 
     constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
         super(ChangeBits.BOUNDS);
-        const ModelType = (this.constructor as typeof Model);
-        const descriptorSet = device.createDescriptorSet(ModelType.descriptorSetLayout);
+        const descriptorSet = device.createDescriptorSet((this.constructor as typeof Model).descriptorSetLayout);
         descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Local.binding, this._localBuffer.buffer);
         this.descriptorSet = descriptorSet;
     }
@@ -82,7 +85,9 @@ export class Model extends ChangeRecord {
         if (this._transform.hasChanged) {
             this._bounds_invalid = this._localBuffer_invalid = true;
         }
+    }
 
+    upload() {
         if (this._localBuffer_invalid) {
             this._localBuffer.set(this._transform.world_matrix);
             // http://www.lighthouse3d.com/tutorials/glsl-tutorial/the-normal-matrix/ or https://paroj.github.io/gltut/Illumination/Tut09%20Normal%20Transformation.html

@@ -30,8 +30,12 @@ export class ModelPhase extends Phase {
         profile.emit(Profile.Event.CULL_END);
         models.sort(modelCompareFn);
         for (const model of models) {
+            if (!(model.hasChanged & Model.ChangeBits.UPLOAD)) {
+                model.upload();
+                model.hasChanged |= Model.ChangeBits.UPLOAD;
+            }
+
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
-            const ModelType = (model.constructor as typeof Model);
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 const subMesh = model.mesh.subMeshes[i];
                 const drawInfo = subMesh.drawInfo;
@@ -43,7 +47,7 @@ export class ModelPhase extends Phase {
                     if (pass.type != this._pass) {
                         continue;
                     }
-                    const layouts: DescriptorSetLayout[] = [ModelType.descriptorSetLayout];
+                    const layouts: DescriptorSetLayout[] = [(model.constructor as typeof Model).descriptorSetLayout];
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                         layouts.push(pass.descriptorSetLayout);

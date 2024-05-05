@@ -22,11 +22,24 @@ class App extends Zero {
         const light = Node.build(DirectionalLight)
         light.node.position = [-12, 12, -12];
 
+        const width = 640;
+        const height = 960;
+
+        const swapchain = device.swapchain;
+        const scale = Math.min(swapchain.width / width, swapchain.height / height);
+
+        const ui_camera = Node.build(Camera);
+        ui_camera.orthoSize = swapchain.height / scale / 2;
+        ui_camera.near = -1;
+        ui_camera.far = 1;
+        ui_camera.visibilities = VisibilityFlagBits.UI;
+
         const up_camera = Node.build(Camera);
         up_camera.fov = 45;
         up_camera.far = 12
         up_camera.rect = [0, 0.5, 1, 0.5];
         up_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.UP;
+        up_camera.clears = Camera.ClearFlagBits.DEPTH;
         up_camera.node.position = [0, 0, 0.001]
 
         let down_camera: Camera;
@@ -72,21 +85,6 @@ class App extends Zero {
 
                 debugDrawer.lateUpdate();
             })
-        }
-
-        const width = 640;
-        const height = 960;
-
-        const swapchain = device.swapchain;
-        const scale = Math.min(swapchain.width / width, swapchain.height / height);
-
-        {
-            const camera = Node.build(Camera);
-            camera.orthoSize = swapchain.height / scale / 2;
-            camera.near = -1;
-            camera.far = 1;
-            camera.visibilities = VisibilityFlagBits.UI;
-            camera.clears = Camera.ClearFlagBits.DEPTH;
         }
 
         const doc = Node.build(Document);

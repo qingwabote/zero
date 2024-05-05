@@ -158,14 +158,12 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         boot.device.acquire(this._presentSemaphore);
         this.scene.update();
         this._pipeline.update();
-        ChangeRecord.expire();
         this._commandBuffer.begin();
-
         this._profile.clear();
         for (let i = 0; i < this.scene.cameras.length; i++) {
             this._pipeline.record(this._profile, this._commandBuffer, i);
         }
-
+        ChangeRecord.expire();
         this._commandBuffer.end();
         this.emit(Event.RENDER_END);
 

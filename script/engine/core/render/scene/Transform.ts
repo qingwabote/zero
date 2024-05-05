@@ -83,7 +83,7 @@ export class Transform extends ChangeRecord implements TRS {
 
     private _world_position = vec3.create();
     get world_position(): Readonly<Vec3> {
-        this.updateTransform();
+        this.update();
         return this._world_position;
     }
     set world_position(value: Readonly<Vec3Like>) {
@@ -99,7 +99,7 @@ export class Transform extends ChangeRecord implements TRS {
 
     private _world_rotation = quat.create()
     get world_rotation(): Readonly<Quat> {
-        this.updateTransform();
+        this.update();
         return this._world_rotation;
     }
     set world_rotation(value: Readonly<QuatLike>) {
@@ -130,7 +130,7 @@ export class Transform extends ChangeRecord implements TRS {
 
     private _matrix = mat4.create();
     public get matrix(): Mat4 {
-        this.updateTransform();
+        this.update();
         return this._matrix;
     }
     public set matrix(value: Readonly<Mat4Like>) {
@@ -140,7 +140,7 @@ export class Transform extends ChangeRecord implements TRS {
 
     private _world_matrix = mat4.create();
     get world_matrix(): Readonly<Mat4> {
-        this.updateTransform();
+        this.update();
         return this._world_matrix;
     }
 
@@ -190,7 +190,7 @@ export class Transform extends ChangeRecord implements TRS {
         }
     }
 
-    private updateTransform(): void {
+    private update(): void {
         if (this._changed == ChangeBits.NONE) return;
 
         if (!this._parent) {

@@ -41,9 +41,8 @@ export class Buffer {
         gl.bindVertexArray(null);
 
         gl.bindBuffer(target, this._impl);
-        // gl.bufferSubData(target, 0, new DataView(buffer, offset, length)); // does not work in wx ios.
+        // gl.bufferSubData(target, 0, new DataView(buffer, offset, length)); // DataView does not work in wx ios.
         gl.bufferSubData(target, 0, new Uint8Array(buffer, offset, length));
-        // gl.bufferSubData(target, 0, buffer.slice(offset, length));
 
         gl.bindBuffer(target, null);
     }
