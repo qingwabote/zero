@@ -5,14 +5,15 @@
 - [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
 - [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
 - [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
+- [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
 - [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
 
-# 支持的平台（后端）
+# 跨平台
 
-## WebGL2
+## WebGL
 
 - H5
 - [微信小游戏](minigame/README.md)
@@ -24,13 +25,15 @@
 
 # 基础功能
 
-- 3D 模型渲染 (gltf)
+- 模型渲染 (gltf)
 - 冯氏光照
 - 级联阴影
 - 动画混合 (一维)
 - 蒙皮动画
+- 场景剔除 (八叉树)
 - 骨骼动画 (spine)
 - 物理引擎 (ammo)
+- MSAA & FXAA
 
 # 可配置渲染管线
 
@@ -46,7 +49,7 @@
 
 # 基础架构
 
-![](https://www.plantuml.com/plantuml/svg/RP51JiGm34NtEKKkqCqSO3OZmMP0I4YmG0YPnYJH94uKfvgf47SdfODQNBBBi_t_byqdJnaAHEs0pBduMf5qBGCgLR2lG3QW3idwNdygtTv2xvD1WGufvaH8LNsjvtdaYd4Z0EGZL9z8SCwUf79s8_kU1Gqmfa6OPPynD86DtKr8Pu4UArZfzE20yQzaGJ9OthZ7VsGF4B60W4TlNHNihkqhI3DWRbwpHlVYl358h_jvV9N0Vbmsni_uVdlS2VWqX1FG5F_dQ9tfzklqwdSxNH65Qt_3yxKczwKywRGCo_Zr_mq0)
+![](https://www.plantuml.com/plantuml/svg/RP5DJWCn34RtEKKkC1iEq0MLO5D-90Gi40ipSHEhYHF56RKZrBkZcRPgvM7fftn-TYmxuW8LaWt0Rb-fDMJRwe36LEmRi8zeO_RKsrzZhRLN-fmTAhJEgMH6RkPucvTH6gP50s1Aq2YpubA8TUSIHg5U58qmva792XMCnBZGlT-_AF8GyrwXjmPUkry32AgDUlp7i8Q45HJSa0zDiQViC6eBY9YZEVNelW8vX_ozEiLlr7vxM8W_yUTnSwVWnn1tmDFSy_qwrwtciStbXxfw8USNKpsVofYPJn6_FLm3v_eF)
 
 # Bundleless
 

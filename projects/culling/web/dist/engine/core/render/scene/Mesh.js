@@ -1,7 +1,7 @@
 import { aabb3d } from "../../math/aabb3d.js";
 import { vec3 } from "../../math/vec3.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
-export class Mesh extends FrameChangeRecord {
+import { ChangeRecord } from "./ChangeRecord.js";
+export class Mesh extends ChangeRecord {
     get bounds() {
         return this._bounds;
     }
@@ -9,10 +9,10 @@ export class Mesh extends FrameChangeRecord {
         super();
         this.subMeshes = subMeshes;
         this._bounds = aabb3d.create();
-        this.setBoundsByPoints(pointMin, pointMax);
+        this.setBoundsByExtremes(pointMin, pointMax);
     }
-    setBoundsByPoints(min, max) {
-        aabb3d.fromPoints(this._bounds, min, max);
+    setBoundsByExtremes(min, max) {
+        aabb3d.fromExtremes(this._bounds, min, max);
         this.hasChanged = 1;
     }
     setBoundsByRect(offset, size) {

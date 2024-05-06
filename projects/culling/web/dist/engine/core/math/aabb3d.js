@@ -11,17 +11,17 @@ function set(out, center, halfExtent) {
     vec3.copy(out.halfExtent, halfExtent);
     return out;
 }
-function fromPoints(out, minPos, maxPos) {
-    vec3.add(vec3_a, maxPos, minPos);
+function fromExtremes(out, min, max) {
+    vec3.add(vec3_a, max, min);
     vec3.scale(vec3_a, vec3_a, 0.5);
-    vec3.subtract(vec3_b, maxPos, minPos);
+    vec3.subtract(vec3_b, max, min);
     vec3.scale(vec3_b, vec3_b, 0.5);
     set(out, vec3_a, vec3_b);
     return out;
 }
-function fromRect(out, offset, size) {
-    vec3.add(vec3_a, offset, size);
-    return fromPoints(out, offset, vec3_a);
+function toExtremes(min, max, a) {
+    vec3.subtract(min, a.center, a.halfExtent);
+    vec3.add(max, a.center, a.halfExtent);
 }
 // https://zeux.io/2010/10/17/aabb-from-obb-with-component-wise-abs/
 function transform(out, a, m) {
@@ -38,5 +38,24 @@ function transform(out, a, m) {
     vec3.transformMat3(out.halfExtent, a.halfExtent, mat3_a);
     return out;
 }
+const vec3_c = vec3.create();
+const vec3_d = vec3.create();
+function fromPoints(out, points) {
+    vec3.extremes(vec3_c, vec3_d, points);
+    fromExtremes(out, vec3_c, vec3_d);
+    return out;
+}
+function fromRect(out, offset, size) {
+    vec3.add(vec3_c, offset, size);
+    return fromExtremes(out, offset, vec3_c);
+}
+function contains(a, point) {
+    const min = vec3_a;
+    const max = vec3_b;
+    toExtremes(min, max, a);
+    return !(point[0] > max[0] || point[0] < min[0] ||
+        point[1] > max[1] || point[1] < min[1] ||
+        point[2] > max[2] || point[2] < min[2]);
+}
 const ZERO = Object.freeze({ center: vec3.ZERO, halfExtent: vec3.ZERO });
-export const aabb3d = { create, set, fromPoints, fromRect, transform, ZERO };
+export const aabb3d = { ZERO, create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, contains };

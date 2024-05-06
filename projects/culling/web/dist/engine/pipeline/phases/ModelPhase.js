@@ -1,29 +1,33 @@
 import { Zero } from "../../core/Zero.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
+import { Profile } from "../../core/render/pipeline/Profile.js";
+import { Model } from "../../core/render/scene/Model.js";
 import { shaderLib } from "../../core/shaderLib.js";
+function modelCompareFn(a, b) {
+    return a.order - b.order;
+}
 export class ModelPhase extends Phase {
-    constructor(context, visibility, 
+    constructor(context, visibility, _culling, 
     /**The model type that indicates which models should run in this phase */
     _model = 'default', 
     /**The pass type that indicates which passes should run in this phase */
     _pass = 'default') {
         super(context, visibility);
+        this._culling = _culling;
         this._model = _model;
         this._pass = _pass;
     }
-    record(commandBuffer, renderPass) {
-        const scene = Zero.instance.scene;
-        const camera = scene.cameras[this._context.cameraIndex];
-        let dc = 0;
-        for (const model of scene.models) {
-            if ((camera.visibilities & model.transform.visibility) == 0) {
-                continue;
-            }
-            if (model.type != this._model) {
-                continue;
+    record(profile, commandBuffer, renderPass, cameraIndex) {
+        profile.emit(Profile.Event.CULL_START);
+        const models = this._culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
+        profile.emit(Profile.Event.CULL_END);
+        models.sort(modelCompareFn);
+        for (const model of models) {
+            if (!(model.hasChanged & Model.ChangeBits.UPLOAD)) {
+                model.upload();
+                model.hasChanged |= Model.ChangeBits.UPLOAD;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
-            const ModelType = model.constructor;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 const subMesh = model.mesh.subMeshes[i];
                 const drawInfo = subMesh.drawInfo;
@@ -31,12 +35,11 @@ export class ModelPhase extends Phase {
                     continue;
                 }
                 const material = model.materials[i];
-                for (let i = 0; i < material.passes.length; i++) {
-                    const pass = material.passes[i];
+                for (const pass of material.passes) {
                     if (pass.type != this._pass) {
                         continue;
                     }
-                    const layouts = [ModelType.descriptorSetLayout];
+                    const layouts = [model.constructor.descriptorSetLayout];
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                         layouts.push(pass.descriptorSetLayout);
@@ -50,10 +53,9 @@ export class ModelPhase extends Phase {
                     else {
                         commandBuffer.draw(drawInfo.count);
                     }
-                    dc++;
+                    profile.draws++;
                 }
             }
         }
-        return dc;
     }
 }

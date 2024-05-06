@@ -125,15 +125,21 @@ export const vec3 = {
         out[2] = Math.max(a[2], b[2]);
         return out;
     },
+    extremes(min, max, points) {
+        vec3.set(min, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+        vec3.set(max, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+        for (const point of points) {
+            vec3.min(min, min, point);
+            vec3.max(max, max, point);
+        }
+    },
     equals(a, b, epsilon = 0.000001) {
-        const [a0, a1, a2] = [a[0], a[1], a[2]];
-        const [b0, b1, b2] = [b[0], b[1], b[2]];
-        return (Math.abs(a0 - b0)
-            <= epsilon * Math.max(1.0, Math.abs(a0), Math.abs(b0))
-            && Math.abs(a1 - b1)
-                <= epsilon * Math.max(1.0, Math.abs(a1), Math.abs(b1))
-            && Math.abs(a2 - b2)
-                <= epsilon * Math.max(1.0, Math.abs(a2), Math.abs(b2)));
+        return (Math.abs(a[0] - b[0])
+            <= epsilon * Math.max(1.0, Math.abs(a[0]), Math.abs(b[0]))
+            && Math.abs(a[1] - b[1])
+                <= epsilon * Math.max(1.0, Math.abs(a[1]), Math.abs(b[1]))
+            && Math.abs(a[2] - b[2])
+                <= epsilon * Math.max(1.0, Math.abs(a[2]), Math.abs(b[2])));
     },
     distance(a, b) {
         const x = b[0] - a[0];

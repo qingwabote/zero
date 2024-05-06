@@ -1,19 +1,19 @@
 import { device } from "boot";
+import { Zero } from "../../../Zero.js";
 import { aabb3d } from "../../../math/aabb3d.js";
 import { frustum } from "../../../math/frustum.js";
 import { mat4 } from "../../../math/mat4.js";
 import { vec3 } from "../../../math/vec3.js";
-import { FrameChangeRecord } from "../../scene/FrameChangeRecord.js";
+import { ChangeRecord } from "../../scene/ChangeRecord.js";
 import { Frustum } from "../../scene/Frustum.js";
-import { root } from "../../scene/Root.js";
 const frustum_a = frustum.vertices();
 const aabb_a = aabb3d.create();
 const vec3_a = vec3.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
-export class Cascades extends FrameChangeRecord {
+export class Cascades extends ChangeRecord {
     get hasChanged() {
-        return super.hasChanged || this._camera.hasChanged || this._camera.transform.hasChanged || root.directionalLight.hasChanged;
+        return super.hasChanged || this._camera.hasChanged || this._camera.transform.hasChanged || Zero.instance.scene.directionalLight.hasChanged;
     }
     set hasChanged(flags) {
         super.hasChanged = flags;
@@ -64,7 +64,7 @@ export class Cascades extends FrameChangeRecord {
                     this._frusta[i].transform(this._camera.transform.world_matrix);
                 }
             }
-            const light = root.directionalLight;
+            const light = Zero.instance.scene.directionalLight;
             frustum.transform(frustum_a, this._frusta[i].vertices, light.view);
             aabb3d.fromPoints(aabb_a, frustum_a);
             if (i == this._num - 1) {
@@ -83,7 +83,7 @@ export class Cascades extends FrameChangeRecord {
             const top = aabb_a.halfExtent[1];
             const near = 0;
             const far = aabb_a.halfExtent[2] * 2;
-            mat4.ortho(mat4_b, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
+            mat4.orthographic(mat4_b, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
             this._bounds[i].orthographic(left, right, bottom, top, near, far);
             this._bounds[i].transform(mat4_a);
             mat4.multiply(this._viewProjs[i], mat4_b, mat4.invert(mat4_a, mat4_a));

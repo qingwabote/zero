@@ -2,14 +2,14 @@ import { BufferUsageFlagBits } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";
+import { ChangeRecord } from "../../core/render/scene/ChangeRecord.js";
 import { Material } from "../../core/render/scene/Material.js";
 import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Transform } from "../../core/render/scene/Transform.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
-class ModelSpaceTransform extends FrameChangeRecord {
+class ModelSpaceTransform extends ChangeRecord {
     matrix = mat4.create();
 }
 
@@ -48,8 +48,8 @@ export class SkinnedModel extends Model {
         this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
     }
 
-    override update(): void {
-        super.update();
+    override upload(): void {
+        super.upload();
         if (!this._joints) {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths)!);
         }

@@ -35,6 +35,7 @@ export * from './core/Zero.js';
 export * from './core/math/aabb2d.js';
 export * from './core/math/aabb3d.js';
 export * from './core/math/frustum.js';
+export * from './core/math/mat3.js';
 export * from './core/math/mat4.js';
 export * from './core/math/quat.js';
 export * from './core/math/vec2.js';
@@ -45,4 +46,5 @@ export * from './core/sc.js';
 export * from './core/shaderLib.js';
 
 export * as render from './core/render/index.js';
+export * as scene from './scene/index.js';
 

@@ -3,20 +3,20 @@ import { mat4 } from "../../math/mat4.js";
 import { quat } from "../../math/quat.js";
 import { vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
-export var TransformBits;
-(function (TransformBits) {
-    TransformBits[TransformBits["NONE"] = 0] = "NONE";
-    TransformBits[TransformBits["POSITION"] = 1] = "POSITION";
-    TransformBits[TransformBits["ROTATION"] = 2] = "ROTATION";
-    TransformBits[TransformBits["SCALE"] = 4] = "SCALE";
-    TransformBits[TransformBits["TRS"] = 7] = "TRS";
-})(TransformBits || (TransformBits = {}));
+import { ChangeRecord } from "./ChangeRecord.js";
+var ChangeBits;
+(function (ChangeBits) {
+    ChangeBits[ChangeBits["NONE"] = 0] = "NONE";
+    ChangeBits[ChangeBits["POSITION"] = 1] = "POSITION";
+    ChangeBits[ChangeBits["ROTATION"] = 2] = "ROTATION";
+    ChangeBits[ChangeBits["SCALE"] = 4] = "SCALE";
+    ChangeBits[ChangeBits["TRS"] = 7] = "TRS";
+})(ChangeBits || (ChangeBits = {}));
 const vec3_a = vec3.create();
 const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
-export class Transform extends FrameChangeRecord {
+export class Transform extends ChangeRecord {
     get visibility() {
         var _a, _b, _c, _d;
         return (_d = (_b = (_a = this._explicit_visibility) !== null && _a !== void 0 ? _a : this._implicit_visibility) !== null && _b !== void 0 ? _b : (this._implicit_visibility = (_c = this._parent) === null || _c === void 0 ? void 0 : _c.visibility)) !== null && _d !== void 0 ? _d : 0;
@@ -38,7 +38,7 @@ export class Transform extends FrameChangeRecord {
     }
     set position(value) {
         vec3.copy(this._position, value);
-        this.dirty(TransformBits.POSITION);
+        this.dirty(ChangeBits.POSITION);
     }
     /**
      * rotation is normalized.
@@ -48,24 +48,24 @@ export class Transform extends FrameChangeRecord {
     }
     set rotation(value) {
         vec4.copy(this._rotation, value);
-        this.dirty(TransformBits.ROTATION);
+        this.dirty(ChangeBits.ROTATION);
     }
     get scale() {
         return this._scale;
     }
     set scale(value) {
         vec3.copy(this._scale, value);
-        this.dirty(TransformBits.SCALE);
+        this.dirty(ChangeBits.SCALE);
     }
     get euler() {
         return quat.toEuler(this._euler, this._rotation);
     }
     set euler(value) {
         quat.fromEuler(this._rotation, value[0], value[1], value[2]);
-        this.dirty(TransformBits.ROTATION);
+        this.dirty(ChangeBits.ROTATION);
     }
     get world_position() {
-        this.updateTransform();
+        this.update();
         return this._world_position;
     }
     set world_position(value) {
@@ -78,7 +78,7 @@ export class Transform extends FrameChangeRecord {
         this.position = vec3_a;
     }
     get world_rotation() {
-        this.updateTransform();
+        this.update();
         return this._world_rotation;
     }
     set world_rotation(value) {
@@ -86,9 +86,9 @@ export class Transform extends FrameChangeRecord {
             this.rotation = value;
             return;
         }
-        quat.conjugate(quat_a, this._parent.world_rotation);
-        quat.multiply(quat_a, quat_a, value);
-        this.rotation = quat_a;
+        quat.conjugate(this._rotation, this._parent.world_rotation);
+        quat.multiply(this._rotation, this._rotation, value);
+        this.dirty(ChangeBits.ROTATION);
     }
     get world_scale() {
         return this._world_scale;
@@ -100,15 +100,15 @@ export class Transform extends FrameChangeRecord {
         return this._parent;
     }
     get matrix() {
-        this.updateTransform();
+        this.update();
         return this._matrix;
     }
     set matrix(value) {
         mat4.toTRS(value, this._position, this._rotation, this._scale);
-        this.dirty(TransformBits.TRS);
+        this.dirty(ChangeBits.TRS);
     }
     get world_matrix() {
-        this.updateTransform();
+        this.update();
         return this._world_matrix;
     }
     constructor(name = '') {
@@ -116,7 +116,7 @@ export class Transform extends FrameChangeRecord {
         this.name = name;
         this._explicit_visibility = undefined;
         this._implicit_visibility = undefined;
-        this._changed = TransformBits.TRS;
+        this._changed = ChangeBits.TRS;
         this._position = vec3.create();
         this._rotation = quat.create();
         this._scale = vec3.create(1, 1, 1);
@@ -132,7 +132,7 @@ export class Transform extends FrameChangeRecord {
     addChild(child) {
         child._implicit_visibility = undefined;
         child._parent = this;
-        child.dirty(TransformBits.TRS);
+        child.dirty(ChangeBits.TRS);
         this._children.push(child);
     }
     getChildByPath(paths) {
@@ -152,6 +152,13 @@ export class Transform extends FrameChangeRecord {
         }
         return current;
     }
+    // https://medium.com/@carmencincotti/lets-look-at-magic-lookat-matrices-c77e53ebdf78
+    lookAt(tar) {
+        vec3.subtract(vec3_a, this.world_position, tar);
+        vec3.normalize(vec3_a, vec3_a);
+        quat.fromViewUp(quat_a, vec3_a);
+        this.world_rotation = quat_a;
+    }
     dirty(flag) {
         this._changed |= flag;
         this.hasChanged |= flag;
@@ -159,8 +166,8 @@ export class Transform extends FrameChangeRecord {
             child.dirty(flag);
         }
     }
-    updateTransform() {
-        if (this._changed == TransformBits.NONE)
+    update() {
+        if (this._changed == ChangeBits.NONE)
             return;
         if (!this._parent) {
             mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
@@ -168,7 +175,7 @@ export class Transform extends FrameChangeRecord {
             this._world_position.splice(0, this._position.length, ...this._position);
             this._world_rotation.splice(0, this._rotation.length, ...this._rotation);
             this._world_scale.splice(0, this._scale.length, ...this._scale);
-            this._changed = TransformBits.NONE;
+            this._changed = ChangeBits.NONE;
             return;
         }
         mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
@@ -179,6 +186,7 @@ export class Transform extends FrameChangeRecord {
         mat3.fromQuat(mat3_a, quat_a);
         mat3.multiplyMat4(mat3_a, mat3_a, this._world_matrix);
         vec3.set(this._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
-        this._changed = TransformBits.NONE;
+        this._changed = ChangeBits.NONE;
     }
 }
+Transform.ChangeBits = ChangeBits;

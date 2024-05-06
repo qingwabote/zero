@@ -4,7 +4,7 @@ import { Mat4, mat4 } from "../../math/mat4.js";
 import { Vec2Like, vec2 } from "../../math/vec2.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { Vec4, vec4 } from "../../math/vec4.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { ChangeRecord } from "./ChangeRecord.js";
 import { Frustum } from "./Frustum.js";
 import { Transform } from "./Transform.js";
 
@@ -12,7 +12,7 @@ const vec2_a = vec2.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
 
-export class Camera extends FrameChangeRecord {
+export class Camera extends ChangeRecord {
     /**
      * half size of the vertical viewing volume
      */
@@ -72,7 +72,7 @@ export class Camera extends FrameChangeRecord {
             } else {
                 const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
-                mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                mat4.orthographic(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
         }

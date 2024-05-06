@@ -204,7 +204,7 @@ export const mat4 = {
         out[15] = x * a[3] + y * a[7] + z * a[11] + w * a[15];
         return out;
     },
-    ortho(out, left, right, bottom, top, near, far, minClipZ) {
+    orthographic(out, left, right, bottom, top, near, far, minClipZ) {
         var lr = 1 / (left - right);
         var bt = 1 / (bottom - top);
         var nf = 1 / (near - far);

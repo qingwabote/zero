@@ -1,4 +1,4 @@
-import { root } from "../scene/Root.js";
+import { Zero } from "../../Zero.js";
 import { Cascades } from "./shadow/Cascades.js";
 export class Shadow {
     get cascades() {
@@ -16,7 +16,7 @@ export class Shadow {
     }
     update(dumping) {
         if (!this._initialized) {
-            const cameras = root.cameras;
+            const cameras = Zero.instance.scene.cameras;
             for (let i = 0; i < cameras.length; i++) {
                 if (cameras[i].visibilities & this._visibilities) {
                     this._cascades.set(i, new Cascades(cameras[i], this.cascadeNum));

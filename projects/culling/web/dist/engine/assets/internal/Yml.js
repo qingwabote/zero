@@ -5,6 +5,7 @@ import { parse } from "yaml";
 const _variables = {
     ENGINE_ASSETS: bundle.root
 };
+const null_object = Object.freeze({});
 export class Yml {
     constructor() {
         this._base = '';
@@ -23,7 +24,7 @@ export class Yml {
     resolvePath(path) {
         return path[0] == '.' ? resolve(this._base, path) : path;
     }
-    resolveVar(value, variables = {}) {
+    resolveVar(value, variables = null_object) {
         return value.replace(/\${(.+)}/g, function (_, name) {
             var _a;
             let value = (_a = variables[name]) !== null && _a !== void 0 ? _a : _variables[name];

@@ -1,18 +1,20 @@
 import { EventEmitterImpl } from "bastard";
-import { attach, detach, device, initial, now } from "boot";
+import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Input, TouchEventName } from "./Input.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
-import { FrameChangeRecord } from "./render/scene/FrameChangeRecord.js";
-import { root } from "./render/scene/Root.js";
-export var ZeroEvent;
-(function (ZeroEvent) {
-    ZeroEvent["LOGIC_START"] = "LOGIC_START";
-    ZeroEvent["LOGIC_END"] = "LOGIC_END";
-    ZeroEvent["RENDER_START"] = "RENDER_START";
-    ZeroEvent["RENDER_END"] = "RENDER_END";
-})(ZeroEvent || (ZeroEvent = {}));
+import { Scene } from "./render/Scene.js";
+import { Profile } from "./render/pipeline/Profile.js";
+import { ChangeRecord } from "./render/scene/ChangeRecord.js";
+import { ModelArray } from "./render/scene/ModelArray.js";
+var Event;
+(function (Event) {
+    Event["LOGIC_START"] = "LOGIC_START";
+    Event["LOGIC_END"] = "LOGIC_END";
+    Event["RENDER_START"] = "RENDER_START";
+    Event["RENDER_END"] = "RENDER_END";
+})(Event || (Event = {}));
 export class Zero extends EventEmitterImpl {
     static get instance() {
         return Zero._instance;
@@ -20,8 +22,8 @@ export class Zero extends EventEmitterImpl {
     static registerSystem(system, priority) {
         this._system2priority.set(system, priority);
     }
-    get commandCalls() {
-        return this._commandCalls;
+    get profile() {
+        return this._profile;
     }
     get pipeline() {
         return this._pipeline;
@@ -30,20 +32,20 @@ export class Zero extends EventEmitterImpl {
         this._pipeline = value;
         this._pipeline.dump();
     }
-    constructor(_pipeline) {
+    constructor(_pipeline, models = new ModelArray) {
         super();
         this._pipeline = _pipeline;
         this.input = new Input;
-        this.scene = root;
         this._componentScheduler = new ComponentScheduler;
         this._timeScheduler = new TimeScheduler;
-        this._commandBuffer = device.createCommandBuffer();
-        this._presentSemaphore = device.createSemaphore();
-        this._renderSemaphore = device.createSemaphore();
-        this._renderFence = device.createFence();
+        this._commandBuffer = boot.device.createCommandBuffer();
+        this._presentSemaphore = boot.device.createSemaphore();
+        this._renderSemaphore = boot.device.createSemaphore();
+        this._renderFence = boot.device.createFence();
         this._inputEvents = new Map;
-        this._time = initial;
-        this._commandCalls = { renderPasses: 0, draws: 0 };
+        this._time = boot.initial;
+        this._profile = new Profile;
+        this.scene = new Scene(models);
         const systems = [...Zero._system2priority.keys()];
         systems.sort(function (a, b) {
             return Zero._system2priority.get(b) - Zero._system2priority.get(a);
@@ -56,10 +58,10 @@ export class Zero extends EventEmitterImpl {
         return this;
     }
     attach() {
-        attach(this);
+        boot.attach(this);
     }
     detach() {
-        detach(this);
+        boot.detach(this);
     }
     addComponent(com) {
         this._componentScheduler.add(com);
@@ -86,8 +88,8 @@ export class Zero extends EventEmitterImpl {
         this._inputEvents.set(TouchEventName.ROTATE, event);
     }
     onFrame() {
-        this.emit(ZeroEvent.LOGIC_START);
-        const time = now();
+        this.emit(Event.LOGIC_START);
+        const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
         for (const [name, event] of this._inputEvents) {
@@ -103,28 +105,28 @@ export class Zero extends EventEmitterImpl {
         for (const system of this._systems) {
             system.lateUpdate(delta);
         }
-        this.emit(ZeroEvent.LOGIC_END);
-        this.emit(ZeroEvent.RENDER_START);
-        device.acquire(this._presentSemaphore);
+        this.emit(Event.LOGIC_END);
+        this.emit(Event.RENDER_START);
+        boot.device.acquire(this._presentSemaphore);
         this.scene.update();
         this._pipeline.update();
-        FrameChangeRecord.frameId++;
         this._commandBuffer.begin();
-        this._commandCalls.renderPasses = 0;
-        this._commandCalls.draws = 0;
+        this._profile.clear();
         for (let i = 0; i < this.scene.cameras.length; i++) {
-            this._pipeline.record(this._commandCalls, this._commandBuffer, i);
+            this._pipeline.record(this._profile, this._commandBuffer, i);
         }
+        ChangeRecord.expire();
         this._commandBuffer.end();
-        this.emit(ZeroEvent.RENDER_END);
+        this.emit(Event.RENDER_END);
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
         submitInfo.waitSemaphore = this._presentSemaphore;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         submitInfo.signalSemaphore = this._renderSemaphore;
-        device.queue.submit(submitInfo, this._renderFence);
-        device.queue.present(this._renderSemaphore);
-        device.queue.waitFence(this._renderFence);
+        boot.device.queue.submit(submitInfo, this._renderFence);
+        boot.device.queue.present(this._renderSemaphore);
+        boot.device.queue.waitFence(this._renderFence);
     }
 }
+Zero.Event = Event;
 Zero._system2priority = new Map;

@@ -6,8 +6,6 @@ export class Context {
         this._descriptorSetLayout = _descriptorSetLayout;
         this._pipelineLayoutCache = new Map;
         this._pipelineCache = {};
-        const pipelineLayoutInfo = new PipelineLayoutInfo;
-        pipelineLayoutInfo.layouts.add(_descriptorSetLayout);
         this.descriptorSet = device.createDescriptorSet(_descriptorSetLayout);
     }
     /**

@@ -84,7 +84,7 @@ export default class PolygonsRenderer extends Element {
                 vertexBuffer.update();
                 vec3.set(vec3_a, ...polygon.vertexPosMin, 0);
                 vec3.set(vec3_b, ...polygon.vertexPosMax, 0);
-                renderer.mesh!.setBoundsByPoints(vec3_a, vec3_b);
+                renderer.mesh!.setBoundsByExtremes(vec3_a, vec3_b);
 
                 const indexBuffer = this._indexViews[i];
                 triangulate(polygon.vertexes.length, indexBuffer);

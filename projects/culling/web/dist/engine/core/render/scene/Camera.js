@@ -1,34 +1,27 @@
 import { device } from "boot";
 import { ClearFlagBits } from "gfx";
 import { mat4 } from "../../math/mat4.js";
-import { rect } from "../../math/rect.js";
 import { vec2 } from "../../math/vec2.js";
 import { vec3 } from "../../math/vec3.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { vec4 } from "../../math/vec4.js";
+import { ChangeRecord } from "./ChangeRecord.js";
+import { Frustum } from "./Frustum.js";
 const vec2_a = vec2.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
-export class Camera extends FrameChangeRecord {
-    get hasChanged() {
-        if (super.hasChanged || this._transform.hasChanged) {
-            return 1;
-        }
-        return 0;
-    }
-    set hasChanged(flags) {
-        super.hasChanged = flags;
-    }
+export class Camera extends ChangeRecord {
     /**
      * x,y the lower left corner
      */
-    get viewport() {
-        return this._viewport;
+    get rect() {
+        return this._rect;
     }
-    set viewport(value) {
-        rect.copy(this._viewport, value);
+    set rect(value) {
+        vec4.copy(this._rect, value);
     }
     get aspect() {
-        return this._viewport.width / this._viewport.height;
+        const { width, height } = device.swapchain;
+        return (width * this._rect[2]) / (height * this._rect[3]);
     }
     get matView() {
         return this._matView;
@@ -37,11 +30,11 @@ export class Camera extends FrameChangeRecord {
         return this._matProj;
     }
     get position() {
-        return this._transform.world_position;
+        return this.transform.world_position;
     }
-    constructor(_transform) {
-        super();
-        this._transform = _transform;
+    constructor(transform) {
+        super(1);
+        this.transform = transform;
         /**
          * half size of the vertical viewing volume
          */
@@ -54,20 +47,28 @@ export class Camera extends FrameChangeRecord {
         this.far = 1000;
         this.visibilities = 0;
         this.clears = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
-        this._viewport = rect.create(0, 0, device.swapchain.width, device.swapchain.height);
+        this._rect = vec4.create(0, 0, 1, 1);
         this._matView = mat4.create();
         this._matProj = mat4.create();
+        this.frustum = new Frustum;
     }
     update() {
         if (this.hasChanged) {
-            mat4.invert(this._matView, this._transform.world_matrix);
             if (this.fov != -1) {
                 mat4.perspective(this._matProj, Math.PI / 180 * this.fov, this.aspect, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                this.frustum.perspective(Math.PI / 180 * this.fov, this.aspect, this.near, this.far);
             }
             else {
                 const x = this.orthoSize * this.aspect;
                 const y = this.orthoSize;
-                mat4.ortho(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                mat4.orthographic(this._matProj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
+                this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
+            }
+        }
+        if (this.hasChanged || this.transform.hasChanged) {
+            this.frustum.transform(this.transform.world_matrix);
+            if (this.transform.hasChanged) {
+                mat4.invert(this._matView, this.transform.world_matrix);
             }
         }
     }
@@ -88,12 +89,12 @@ export class Camera extends FrameChangeRecord {
         return vec2.transformMat4(out, vec2_a, matViewProjInv);
     }
     screenToNdc(out, x, y) {
-        y = device.swapchain.height - y;
-        const viewport = this._viewport;
-        x -= viewport.x;
-        y -= viewport.y;
-        x /= viewport.width;
-        y /= viewport.height;
+        const { width, height } = device.swapchain;
+        y = height - y;
+        x -= width * this._rect[0];
+        y -= height * this._rect[1];
+        x /= width * this._rect[2];
+        y /= height * this._rect[3];
         x = x * 2 - 1;
         y = y * 2 - 1;
         return vec2.set(out, x, y);

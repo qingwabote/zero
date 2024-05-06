@@ -23,7 +23,7 @@ export class Stage {
         this._clears = _clears;
         this.rect = rect;
     }
-    record(commandCalls, commandBuffer, cameraIndex) {
+    record(profile, commandBuffer, cameraIndex) {
         var _a, _b;
         const camera = Zero.instance.scene.cameras[cameraIndex];
         const renderPass = getRenderPass(this._framebuffer.info, (_a = this._clears) !== null && _a !== void 0 ? _a : camera.clears);
@@ -32,10 +32,10 @@ export class Stage {
         commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
         for (const phase of this._phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.record(commandCalls, commandBuffer, renderPass, cameraIndex);
+                phase.record(profile, commandBuffer, renderPass, cameraIndex);
             }
         }
         commandBuffer.endRenderPass();
-        commandCalls.renderPasses++;
+        profile.stages++;
     }
 }

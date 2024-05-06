@@ -1,10 +1,10 @@
 import { BufferUsageFlagBits } from "gfx";
 import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { FrameChangeRecord } from "../../core/render/scene/FrameChangeRecord.js";
+import { ChangeRecord } from "../../core/render/scene/ChangeRecord.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { shaderLib } from "../../core/shaderLib.js";
-class ModelSpaceTransform extends FrameChangeRecord {
+class ModelSpaceTransform extends ChangeRecord {
     constructor() {
         super(...arguments);
         this.matrix = mat4.create();
@@ -34,8 +34,8 @@ export class SkinnedModel extends Model {
         this._skinBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
         this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
     }
-    update() {
-        super.update();
+    upload() {
+        super.upload();
         if (!this._joints) {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths));
         }

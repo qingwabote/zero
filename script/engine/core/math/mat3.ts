@@ -58,6 +58,17 @@ export const mat3 = {
         return a[0] * (a[8] * a[4] - a[5] * a[7]) + a[1] * (-a[8] * a[3] + a[5] * a[6]) + a[2] * (a[7] * a[3] - a[4] * a[6]);
     },
 
+    fromYRotation<Out extends Mat3Like>(out: Out, radian: number) {
+        const s = Math.sin(radian);
+        const c = Math.cos(radian);
+
+        return set(out,
+            c, 0, -s,
+            0, 1, 0,
+            s, 0, c
+        )
+    },
+
     /**
      * @param view The view(z-axis) direction, it's must be normalized.
      * @param up The up direction, it's must be normalized, default value is (0, 1, 0).

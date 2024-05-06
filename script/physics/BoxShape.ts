@@ -52,7 +52,7 @@ export class BoxShape extends Component {
     }
 
     override update(): void {
-        if (this.node.hasChanged & render.TransformBits.SCALE) {
+        if (this.node.hasChanged & render.Transform.ChangeBits.SCALE) {
             this._dirtyFlags |= DirtyFlagBits.SCALE;
         }
 

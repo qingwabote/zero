@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, TouchEventName, Zero, bundle as builtin, device, render, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, render, scene, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -81,7 +81,7 @@ export class App extends Zero {
         node = new Node;
         const down_camera = node.addComponent(Camera);
         down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
-        down_camera.orthoSize = 16;
+        down_camera.orthoSize = 8;
         down_camera.rect = [0, 0, 1, 0.5];
         down_camera.near = -8;
         node.position = [-8, 8, 8];
@@ -104,15 +104,19 @@ export class App extends Zero {
         const debugDraw = () => {
             debugDrawer.clear()
 
-            const shadow = this.pipeline.data.shadow!;
+            // for (const node of modelTree.root.nodeIterator()) {
+            //     debugDrawer.drawAABB(node.bounds, vec4.RED);
+            // }
 
-            const cameraIndex = shadow.visibleCameras[0];
+            debugDrawer.lateUpdate();
 
-            const cascades = shadow.cascades.get(cameraIndex)!;
-            for (let i = 0; i < shadow.cascadeNum; i++) {
-                debugDrawer.drawFrustum(cascades.bounds[i].vertices, vec4.YELLOW);
-                debugDrawer.drawFrustum(cascades.frusta[i].vertices, vec4.ONE);
-            }
+            // const shadow = this.pipeline.data.shadow!;
+            // const cameraIndex = shadow.visibleCameras[0];
+            // const cascades = shadow.cascades.get(cameraIndex)!;
+            // for (let i = 0; i < shadow.cascadeNum; i++) {
+            //     debugDrawer.drawFrustum(cascades.bounds[i].vertices, vec4.YELLOW);
+            //     debugDrawer.drawFrustum(cascades.frusta[i].vertices, vec4.ONE);
+            // }
 
             // for (const model of this.scene.models) {
             //     if (model.transform.visibility != VisibilityFlagBits.WORLD) {
@@ -180,25 +184,58 @@ export class App extends Zero {
             controlPanel.setHeight('100%');
             down_container.addElement(controlPanel);
 
-            const textRenderer = Renderer.create(TextRenderer);
-            textRenderer.impl.text = 'CSM OFF';
-            textRenderer.impl.color = vec4.ONE;
-            textRenderer.impl.size = 50;
-            textRenderer.positionType = PositionType.Absolute;
-            textRenderer.emitter.on(TouchEventName.START, async event => {
-                if (textRenderer.impl.text == 'CSM OFF') {
-                    textRenderer.impl.text = 'CSM ON';
-                    textRenderer.impl.color = vec4.GREEN;
-                    sprite.impl.spriteFrame = csm_shadowmap;
-                    this.pipeline = csm_instance;
-                } else {
-                    textRenderer.impl.text = 'CSM OFF';
-                    textRenderer.impl.color = vec4.ONE;
-                    sprite.impl.spriteFrame = csm1_shadowmap;
-                    this.pipeline = csm1_instance;
-                }
-            })
-            down_container.addElement(textRenderer);
+            {
+                const textRenderer = Renderer.create(TextRenderer);
+                textRenderer.impl.text = 'CSM OFF';
+                textRenderer.impl.color = vec4.ONE;
+                textRenderer.impl.size = 50;
+                textRenderer.positionType = PositionType.Absolute;
+                textRenderer.emitter.on(TouchEventName.START, async event => {
+                    if (textRenderer.impl.text == 'CSM OFF') {
+                        textRenderer.impl.text = 'CSM ON';
+                        textRenderer.impl.color = vec4.GREEN;
+                        sprite.impl.spriteFrame = csm_shadowmap;
+                        this.pipeline = csm_instance;
+                    } else {
+                        textRenderer.impl.text = 'CSM OFF';
+                        textRenderer.impl.color = vec4.ONE;
+                        sprite.impl.spriteFrame = csm1_shadowmap;
+                        this.pipeline = csm1_instance;
+                    }
+                })
+                down_container.addElement(textRenderer);
+            }
+
+            {
+                const textRenderer = Renderer.create(TextRenderer);
+                textRenderer.impl.text = 'TREE OFF';
+                textRenderer.impl.color = vec4.ONE;
+                textRenderer.impl.size = 50;
+                textRenderer.positionType = PositionType.Absolute;
+                textRenderer.setPosition(Edge.Right, 0);
+                textRenderer.emitter.on(TouchEventName.START, async event => {
+                    const last = this.scene.models;
+                    if (textRenderer.impl.text == 'TREE OFF') {
+                        textRenderer.impl.text = 'TREE ON';
+                        textRenderer.impl.color = vec4.GREEN;
+                        const models = new scene.ModelTree(aabb3d.create(vec3.ZERO, vec3.create(6, 6, 6)));
+                        for (const model of last) {
+                            models.add(model);
+                        }
+                        this.scene.models = models;
+                    } else {
+                        textRenderer.impl.text = 'TREE OFF';
+                        textRenderer.impl.color = vec4.ONE;
+                        const models = new scene.ModelArray();
+                        for (const model of last) {
+                            models.add(model);
+                        }
+                        this.scene.models = models;
+                    }
+                })
+                down_container.addElement(textRenderer);
+            }
+
         }
         doc.addElement(down_container)
     }

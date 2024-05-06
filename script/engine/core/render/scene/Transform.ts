@@ -4,14 +4,14 @@ import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
+import { ChangeRecord } from "./ChangeRecord.js";
 
-export enum TransformBits {
+enum ChangeBits {
     NONE = 0,
     POSITION = (1 << 0),
     ROTATION = (1 << 1),
     SCALE = (1 << 2),
-    TRS = TransformBits.POSITION | TransformBits.ROTATION | TransformBits.SCALE,
+    TRS = ChangeBits.POSITION | ChangeBits.ROTATION | ChangeBits.SCALE,
 }
 
 const vec3_a = vec3.create();
@@ -19,8 +19,10 @@ const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
 
-export class Transform extends FrameChangeRecord implements TRS {
-    private _explicit_visibility: number | undefined = undefined;
+export class Transform extends ChangeRecord implements TRS {
+    static readonly ChangeBits = ChangeBits;
+
+    private _explicit_visibility?: number = undefined;
     private _implicit_visibility: number | undefined = undefined;
     public get visibility(): number {
         return this._explicit_visibility ?? this._implicit_visibility ?? (this._implicit_visibility = this._parent?.visibility) ?? 0;
@@ -38,7 +40,7 @@ export class Transform extends FrameChangeRecord implements TRS {
         this._explicit_visibility = value;
     }
 
-    private _changed = TransformBits.TRS;
+    private _changed = ChangeBits.TRS;
 
     private _position = vec3.create();
     get position(): Readonly<Vec3> {
@@ -46,7 +48,7 @@ export class Transform extends FrameChangeRecord implements TRS {
     }
     set position(value: Readonly<Vec3Like>) {
         vec3.copy(this._position, value)
-        this.dirty(TransformBits.POSITION);
+        this.dirty(ChangeBits.POSITION);
     }
 
     private _rotation = quat.create()
@@ -58,7 +60,7 @@ export class Transform extends FrameChangeRecord implements TRS {
     }
     set rotation(value: Readonly<QuatLike>) {
         vec4.copy(this._rotation, value)
-        this.dirty(TransformBits.ROTATION);
+        this.dirty(ChangeBits.ROTATION);
     }
 
     private _scale = vec3.create(1, 1, 1);
@@ -67,7 +69,7 @@ export class Transform extends FrameChangeRecord implements TRS {
     }
     set scale(value: Readonly<Vec3Like>) {
         vec3.copy(this._scale, value)
-        this.dirty(TransformBits.SCALE);
+        this.dirty(ChangeBits.SCALE);
     }
 
     private _euler = vec3.create();
@@ -76,12 +78,12 @@ export class Transform extends FrameChangeRecord implements TRS {
     }
     set euler(value: Readonly<Vec3Like>) {
         quat.fromEuler(this._rotation, value[0], value[1], value[2]);
-        this.dirty(TransformBits.ROTATION);
+        this.dirty(ChangeBits.ROTATION);
     }
 
     private _world_position = vec3.create();
     get world_position(): Readonly<Vec3> {
-        this.updateTransform();
+        this.update();
         return this._world_position;
     }
     set world_position(value: Readonly<Vec3Like>) {
@@ -97,7 +99,7 @@ export class Transform extends FrameChangeRecord implements TRS {
 
     private _world_rotation = quat.create()
     get world_rotation(): Readonly<Quat> {
-        this.updateTransform();
+        this.update();
         return this._world_rotation;
     }
     set world_rotation(value: Readonly<QuatLike>) {
@@ -108,7 +110,7 @@ export class Transform extends FrameChangeRecord implements TRS {
 
         quat.conjugate(this._rotation, this._parent.world_rotation);
         quat.multiply(this._rotation, this._rotation, value);
-        this.dirty(TransformBits.ROTATION);
+        this.dirty(ChangeBits.ROTATION);
     }
 
     private _world_scale = vec3.create(1, 1, 1);
@@ -128,17 +130,17 @@ export class Transform extends FrameChangeRecord implements TRS {
 
     private _matrix = mat4.create();
     public get matrix(): Mat4 {
-        this.updateTransform();
+        this.update();
         return this._matrix;
     }
     public set matrix(value: Readonly<Mat4Like>) {
         mat4.toTRS(value, this._position, this._rotation, this._scale);
-        this.dirty(TransformBits.TRS);
+        this.dirty(ChangeBits.TRS);
     }
 
     private _world_matrix = mat4.create();
     get world_matrix(): Readonly<Mat4> {
-        this.updateTransform();
+        this.update();
         return this._world_matrix;
     }
 
@@ -149,7 +151,7 @@ export class Transform extends FrameChangeRecord implements TRS {
     addChild(child: this): void {
         child._implicit_visibility = undefined;
         child._parent = this;
-        child.dirty(TransformBits.TRS);
+        child.dirty(ChangeBits.TRS);
 
         this._children.push(child);
     }
@@ -180,7 +182,7 @@ export class Transform extends FrameChangeRecord implements TRS {
         this.world_rotation = quat_a;
     }
 
-    private dirty(flag: TransformBits): void {
+    private dirty(flag: ChangeBits): void {
         this._changed |= flag;
         this.hasChanged |= flag;
         for (const child of this._children) {
@@ -188,8 +190,8 @@ export class Transform extends FrameChangeRecord implements TRS {
         }
     }
 
-    private updateTransform(): void {
-        if (this._changed == TransformBits.NONE) return;
+    private update(): void {
+        if (this._changed == ChangeBits.NONE) return;
 
         if (!this._parent) {
             mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
@@ -199,7 +201,7 @@ export class Transform extends FrameChangeRecord implements TRS {
             this._world_rotation.splice(0, this._rotation.length, ...this._rotation);
             this._world_scale.splice(0, this._scale.length, ...this._scale);
 
-            this._changed = TransformBits.NONE;
+            this._changed = ChangeBits.NONE;
             return;
         }
 
@@ -215,6 +217,6 @@ export class Transform extends FrameChangeRecord implements TRS {
         mat3.multiplyMat4(mat3_a, mat3_a, this._world_matrix);
         vec3.set(this._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
 
-        this._changed = TransformBits.NONE;
+        this._changed = ChangeBits.NONE;
     }
 }

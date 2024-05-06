@@ -6,11 +6,11 @@ export class PostPhase extends Phase {
         super(context, visibility);
         this._passState = _passState;
     }
-    record(commandCalls, commandBuffer, renderPass) {
+    record(profile, commandBuffer, renderPass) {
         const pipeline = this._context.getPipeline(this._passState, inputAssembler, renderPass);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.bindInputAssembler(inputAssembler);
         commandBuffer.drawIndexed(6, 0);
-        commandCalls.draws++;
+        profile.draws++;
     }
 }

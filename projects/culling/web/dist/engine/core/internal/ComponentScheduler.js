@@ -2,8 +2,10 @@ export class ComponentScheduler {
     constructor() {
         this._busying = false;
         this._addingQueue = [];
-        /**Elements that are added (and are not already part of the collection) during the iteration will always be iterated
-         * https://stackoverflow.com/questions/35940216/es6-is-it-dangerous-to-delete-elements-from-set-map-during-set-map-iteration*/
+        /**Elements that are added (and are not already part of the collection) during the iteration will always be iterated.
+         * https://stackoverflow.com/questions/35940216/es6-is-it-dangerous-to-delete-elements-from-set-map-during-set-map-iteration
+         * New keys added after the call to forEach begins are visited.
+         * https://262.ecma-international.org/#sec-map.prototype.foreach*/
         this._components = new Map;
     }
     add(com) {

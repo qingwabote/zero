@@ -8,11 +8,7 @@ export class Context {
     private _pipelineLayoutCache: Map<Shader, PipelineLayout> = new Map;
     private _pipelineCache: Record<number, Pipeline> = {};
 
-    constructor(
-        private _descriptorSetLayout: DescriptorSetLayout
-    ) {
-        const pipelineLayoutInfo = new PipelineLayoutInfo;
-        pipelineLayoutInfo.layouts.add(_descriptorSetLayout);
+    constructor(private _descriptorSetLayout: DescriptorSetLayout) {
         this.descriptorSet = device.createDescriptorSet(_descriptorSetLayout);
     }
 

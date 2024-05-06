@@ -1,11 +1,15 @@
 import { CommandBuffer, DescriptorSetLayout, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { CommandCalls } from "../../core/render/pipeline/CommandCalls.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Culling } from "../../core/render/pipeline/Culling.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
+import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { shaderLib } from "../../core/shaderLib.js";
+
+function modelCompareFn(a: Model, b: Model) {
+    return a.order - b.order;
+}
 
 export class ModelPhase extends Phase {
     constructor(
@@ -20,22 +24,18 @@ export class ModelPhase extends Phase {
         super(context, visibility);
     }
 
-    record(commandCalls: CommandCalls, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
-        const scene = Zero.instance.scene;
-        const camera = scene.cameras[cameraIndex];
-        this._culling.ready();
-        for (const model of scene.models) {
-            if ((camera.visibilities & model.transform.visibility) == 0) {
-                continue;
+    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
+        profile.emit(Profile.Event.CULL_START);
+        const models = this._culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
+        profile.emit(Profile.Event.CULL_END);
+        models.sort(modelCompareFn);
+        for (const model of models) {
+            if (!(model.hasChanged & Model.ChangeBits.UPLOAD)) {
+                model.upload();
+                model.hasChanged |= Model.ChangeBits.UPLOAD;
             }
-            if (model.type != this._model) {
-                continue;
-            }
-            if (this._culling.cull(model, cameraIndex)) {
-                continue;
-            }
+
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
-            const ModelType = (model.constructor as typeof Model);
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 const subMesh = model.mesh.subMeshes[i];
                 const drawInfo = subMesh.drawInfo;
@@ -47,7 +47,7 @@ export class ModelPhase extends Phase {
                     if (pass.type != this._pass) {
                         continue;
                     }
-                    const layouts: DescriptorSetLayout[] = [ModelType.descriptorSetLayout];
+                    const layouts: DescriptorSetLayout[] = [(model.constructor as typeof Model).descriptorSetLayout];
                     if (pass.descriptorSet) {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                         layouts.push(pass.descriptorSetLayout);
@@ -60,7 +60,7 @@ export class ModelPhase extends Phase {
                     } else {
                         commandBuffer.draw(drawInfo.count);
                     }
-                    commandCalls.draws++;
+                    profile.draws++;
                 }
             }
         }

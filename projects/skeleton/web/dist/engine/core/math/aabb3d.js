@@ -41,12 +41,7 @@ function transform(out, a, m) {
 const vec3_c = vec3.create();
 const vec3_d = vec3.create();
 function fromPoints(out, points) {
-    vec3.set(vec3_c, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-    vec3.set(vec3_d, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-    for (const point of points) {
-        vec3.min(vec3_c, vec3_c, point);
-        vec3.max(vec3_d, vec3_d, point);
-    }
+    vec3.extremes(vec3_c, vec3_d, points);
     fromExtremes(out, vec3_c, vec3_d);
     return out;
 }
@@ -54,5 +49,13 @@ function fromRect(out, offset, size) {
     vec3.add(vec3_c, offset, size);
     return fromExtremes(out, offset, vec3_c);
 }
+function contains(a, point) {
+    const min = vec3_a;
+    const max = vec3_b;
+    toExtremes(min, max, a);
+    return !(point[0] > max[0] || point[0] < min[0] ||
+        point[1] > max[1] || point[1] < min[1] ||
+        point[2] > max[2] || point[2] < min[2]);
+}
 const ZERO = Object.freeze({ center: vec3.ZERO, halfExtent: vec3.ZERO });
-export const aabb3d = { create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, ZERO };
+export const aabb3d = { ZERO, create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, contains };

@@ -1,19 +1,39 @@
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
-export class DirectionalLight extends FrameChangeRecord {
+import { Zero } from "../../Zero.js";
+import { mat4 } from "../../math/mat4.js";
+import { vec3 } from "../../math/vec3.js";
+import { ChangeRecord } from "./ChangeRecord.js";
+export class DirectionalLight extends ChangeRecord {
     get hasChanged() {
-        if (super.hasChanged || this._transform.hasChanged) {
-            return 1;
+        return this.transform.hasChanged;
+    }
+    get model() {
+        if (this._model_invalidated) {
+            mat4.fromTRS(this._model, vec3.ZERO, this.transform.world_rotation, vec3.ONE);
+            this._model_invalidated = false;
         }
-        return 0;
+        return this._model;
     }
-    set hasChanged(flags) {
-        super.hasChanged = flags;
+    get view() {
+        if (this._view_invalidated) {
+            mat4.invert(this._view, this.model);
+            this._view_invalidated = false;
+        }
+        return this._view;
     }
-    get position() {
-        return this._transform.world_position;
-    }
-    constructor(_transform) {
+    constructor(transform) {
         super();
-        this._transform = _transform;
+        this.transform = transform;
+        this._model_invalidated = false;
+        this._model = mat4.create();
+        this._view_invalidated = false;
+        this._view = mat4.create();
+        Zero.instance.scene.directionalLight = this;
+    }
+    update() {
+        if (!this.hasChanged) {
+            return;
+        }
+        this._model_invalidated = true;
+        this._view_invalidated = true;
     }
 }

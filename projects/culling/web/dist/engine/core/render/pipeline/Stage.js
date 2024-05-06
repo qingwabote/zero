@@ -16,32 +16,26 @@ const defaultFramebuffer = (function () {
     return device.createFramebuffer(framebufferInfo);
 })();
 export class Stage {
-    get framebuffer() {
-        return this._framebuffer;
-    }
-    constructor(_context, _phases, _framebuffer = defaultFramebuffer, _clears, _viewport) {
-        this._context = _context;
+    constructor(_phases, visibilities, _framebuffer = defaultFramebuffer, _clears, rect) {
         this._phases = _phases;
+        this.visibilities = visibilities;
         this._framebuffer = _framebuffer;
         this._clears = _clears;
-        this._viewport = _viewport;
+        this.rect = rect;
     }
-    record(commandBuffer) {
-        var _a;
-        const camera = Zero.instance.scene.cameras[this._context.cameraIndex];
-        const phases = this._phases.filter(phase => camera.visibilities & phase.visibility);
-        if (phases.length == 0) {
-            return 0;
-        }
-        const clears = (_a = this._clears) !== null && _a !== void 0 ? _a : camera.clears;
-        const renderPass = getRenderPass(this._framebuffer.info, clears);
-        const viewport = this._viewport || camera.viewport;
-        commandBuffer.beginRenderPass(renderPass, this._framebuffer, viewport.x, viewport.y, viewport.width, viewport.height);
-        let dc = 0;
-        for (const phase of phases) {
-            dc += phase.record(commandBuffer, renderPass);
+    record(profile, commandBuffer, cameraIndex) {
+        var _a, _b;
+        const camera = Zero.instance.scene.cameras[cameraIndex];
+        const renderPass = getRenderPass(this._framebuffer.info, (_a = this._clears) !== null && _a !== void 0 ? _a : camera.clears);
+        const rect = (_b = this.rect) !== null && _b !== void 0 ? _b : camera.rect;
+        const { width, height } = this._framebuffer.info;
+        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
+        for (const phase of this._phases) {
+            if (camera.visibilities & phase.visibility) {
+                phase.record(profile, commandBuffer, renderPass, cameraIndex);
+            }
         }
         commandBuffer.endRenderPass();
-        return dc;
+        profile.stages++;
     }
 }

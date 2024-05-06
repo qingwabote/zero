@@ -1,7 +1,8 @@
 import { device } from "boot";
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, DepthStencilState, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Shader } from "../assets/Shader.js";
+import { aabb3d } from "../core/math/aabb3d.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
@@ -14,6 +15,8 @@ import { BoundedRenderer } from "./BoundedRenderer.js";
 const drawLine = {
     vec3_a: vec3.create(),
     vec3_b: vec3.create(),
+    vec3_c: vec3.create(),
+    vec3_d: vec3.create(),
 };
 const drawAABB = {
     vec3_a: vec3.create(),
@@ -56,8 +59,6 @@ export class GeometryRenderer extends BoundedRenderer {
         super(node);
         this._buffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
         this._vertexCount = 0;
-        this._vertexMin = vec3.create();
-        this._vertexMax = vec3.create();
         const iaInfo = new InputAssemblerInfo;
         iaInfo.vertexAttributes = VERTEX_ATTRIBUTES;
         const vertexInput = new VertexInput;
@@ -70,6 +71,8 @@ export class GeometryRenderer extends BoundedRenderer {
     createModel() {
         const rasterizationState = new RasterizationState;
         rasterizationState.cullMode = CullMode.NONE;
+        const depthStencilState = new DepthStencilState;
+        depthStencilState.depthTestEnable = true;
         const blendState = new BlendState;
         blendState.srcRGB = BlendFactor.SRC_ALPHA;
         blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
@@ -79,14 +82,11 @@ export class GeometryRenderer extends BoundedRenderer {
         state.shader = shaderLib.getShader(ss_primitive);
         state.primitive = PrimitiveTopology.LINE_LIST;
         state.rasterizationState = rasterizationState;
+        state.depthStencilState = depthStencilState;
         state.blendState = blendState;
         return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])]);
     }
     drawLine(from, to, color = vec4.ONE) {
-        if (this._vertexCount == 0) {
-            vec3.set(this._vertexMin, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-            vec3.set(this._vertexMax, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-        }
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
         this._buffer.resize(length);
         let offset = this._vertexCount * VERTEX_COMPONENTS;
@@ -97,14 +97,20 @@ export class GeometryRenderer extends BoundedRenderer {
         this._buffer.set(to, offset);
         offset += 3;
         this._buffer.set(color, offset);
-        vec3.min(drawLine.vec3_a, this._vertexMin, from);
+        if (this._vertexCount == 0) {
+            vec3.set(drawLine.vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+            vec3.set(drawLine.vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+        }
+        else {
+            aabb3d.toExtremes(drawLine.vec3_a, drawLine.vec3_b, this._mesh.bounds);
+        }
+        vec3.min(drawLine.vec3_a, drawLine.vec3_a, from);
         vec3.min(drawLine.vec3_a, drawLine.vec3_a, to);
-        vec3.max(drawLine.vec3_b, this._vertexMax, from);
+        vec3.max(drawLine.vec3_b, drawLine.vec3_b, from);
         vec3.max(drawLine.vec3_b, drawLine.vec3_b, to);
-        if (!vec3.equals(drawLine.vec3_a, this._vertexMin) || !vec3.equals(drawLine.vec3_b, this._vertexMax)) {
-            this._mesh.setBoundsByPoints(drawLine.vec3_a, drawLine.vec3_b);
-            vec3.set(this._vertexMin, ...drawLine.vec3_a);
-            vec3.set(this._vertexMax, ...drawLine.vec3_b);
+        aabb3d.toExtremes(drawLine.vec3_c, drawLine.vec3_d, this._mesh.bounds);
+        if (!vec3.equals(drawLine.vec3_a, drawLine.vec3_c) || !vec3.equals(drawLine.vec3_b, drawLine.vec3_d)) {
+            this._mesh.setBoundsByExtremes(drawLine.vec3_a, drawLine.vec3_b);
             // this.emit(BoundsEvent.BOUNDS_CHANGED);
         }
         this._vertexCount += 2;

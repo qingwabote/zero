@@ -1,10 +1,7 @@
-import { device } from "boot";
 import { ClearFlagBits } from "gfx";
 import { Component } from "../core/Component.js";
 import { Zero } from "../core/Zero.js";
-import { rect } from "../core/math/rect.js";
 import { Camera as render_Camera } from "../core/render/scene/Camera.js";
-const rect_a = rect.create();
 export class Camera extends Component {
     constructor() {
         super(...arguments);
@@ -55,25 +52,20 @@ export class Camera extends Component {
     /**
      * the bottom-left of the swapchain is (0,0) and the top-right of the swapchain is (1,1)
      */
-    get viewport() {
-        const { width, height } = device.swapchain;
-        const viewport = this._camera.viewport;
-        rect.set(rect_a, viewport.x / width, viewport.y / height, viewport.width / width, viewport.height / height);
-        return rect_a;
+    get rect() {
+        return this._camera.rect;
     }
-    set viewport(value) {
-        const { width, height } = device.swapchain;
-        rect.set(rect_a, width * value.x, height * value.y, width * value.width, height * value.height);
-        this._camera.viewport = rect_a;
+    set rect(value) {
+        this._camera.rect = value;
     }
     get aspect() {
         return this._camera.aspect;
     }
-    start() {
-        Zero.instance.scene.cameras.push(this._camera);
+    get frustum() {
+        return this._camera.frustum;
     }
-    lateUpdate() {
-        this._camera.update();
+    start() {
+        Zero.instance.scene.addCamera(this._camera);
     }
 }
 Camera.ClearFlagBits = ClearFlagBits;

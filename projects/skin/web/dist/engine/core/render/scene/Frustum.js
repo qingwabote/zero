@@ -1,7 +1,7 @@
 import { frustum } from "../../math/frustum.js";
 import { vec3 } from "../../math/vec3.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
-export class Frustum extends FrameChangeRecord {
+import { ChangeRecord } from "./ChangeRecord.js";
+export class Frustum extends ChangeRecord {
     constructor() {
         super(...arguments);
         this._vertices_raw = frustum.vertices();

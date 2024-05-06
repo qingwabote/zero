@@ -1,8 +1,8 @@
+import { Zero } from "../../Zero.js";
 import { mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { FrameChangeRecord } from "./FrameChangeRecord.js";
-import { root } from "./Root.js";
-export class DirectionalLight extends FrameChangeRecord {
+import { ChangeRecord } from "./ChangeRecord.js";
+export class DirectionalLight extends ChangeRecord {
     get hasChanged() {
         return this.transform.hasChanged;
     }
@@ -27,7 +27,7 @@ export class DirectionalLight extends FrameChangeRecord {
         this._model = mat4.create();
         this._view_invalidated = false;
         this._view = mat4.create();
-        root.directionalLight = this;
+        Zero.instance.scene.directionalLight = this;
     }
     update() {
         if (!this.hasChanged) {

@@ -16,11 +16,11 @@ export class Pipeline {
         }
         this._dumping = false;
     }
-    record(commandCalls, commandBuffer, cameraIndex) {
+    record(profile, commandBuffer, cameraIndex) {
         const camera = Zero.instance.scene.cameras[cameraIndex];
         for (const flow of this._flows) {
             if (camera.visibilities & flow.visibilities) {
-                flow.record(commandCalls, commandBuffer, cameraIndex);
+                flow.record(profile, commandBuffer, cameraIndex);
             }
         }
     }
