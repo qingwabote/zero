@@ -5,15 +5,15 @@ import { ModelCollection } from "../core/render/scene/ModelCollection.js";
 import * as culling from "../core/render/scene/culling.js";
 import { ModelTreeNode, ModelTreeNodeContext } from "./ModelTreeNode.js";
 
-function cull(results: Model[], node: ModelTreeNode, type: string, visibilities: number, frustum: Readonly<Frustum>, claimed?: Map<Model, Model>): Model[] {
+function cull(results: Model[], node: ModelTreeNode, frustum: Readonly<Frustum>, visibilities: number, type: string, claimed?: Map<Model, Model>): Model[] {
     if (frustum.aabb_out(node.bounds)) {
         return results;
     }
 
-    culling.cull(results, node.models, type, visibilities, frustum, claimed);
+    culling.cull(results, node.models, frustum, visibilities, type, claimed);
 
     for (const child of node.children.values()) {
-        cull(results, child, type, visibilities, frustum, claimed);
+        cull(results, child, frustum, visibilities, type, claimed);
     }
 
     return results;
@@ -34,8 +34,8 @@ export class ModelTree implements ModelCollection {
 
     cull(times = 1) {
         const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
-        return (type: string, visibilities: number, frustum: Readonly<Frustum>) => {
-            return cull([], this.root, type, visibilities, frustum, claimed);
+        return (frustum: Readonly<Frustum>, visibilities: number, type: string = 'default') => {
+            return cull([], this.root, frustum, visibilities, type, claimed);
         }
     }
 

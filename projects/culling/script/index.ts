@@ -1,5 +1,6 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
+import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
+import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
@@ -15,54 +16,55 @@ enum VisibilityFlagBits {
 
 const tree_bounds = aabb3d.create(vec3.create(0, 4, 0), vec3.create(14, 14, 14));
 
+function tree_cull(results: ModelTreeNode[], node: ModelTreeNode, frustum: Readonly<render.Frustum>, visibilities: number): ModelTreeNode[] {
+    if (frustum.aabb_out(node.bounds)) {
+        return results;
+    }
+
+    results.push(node);
+
+    for (const child of node.children.values()) {
+        tree_cull(results, child, frustum, visibilities);
+    }
+
+    return results;
+}
+
 class App extends Zero {
     protected start(): void {
-        let debug: boolean = false
+        let debug: boolean = true
 
         const light = Node.build(DirectionalLight)
         light.node.position = [-12, 12, -12];
-
-        const width = 640;
-        const height = 960;
-
-        const swapchain = device.swapchain;
-        const scale = Math.min(swapchain.width / width, swapchain.height / height);
-
-        const ui_camera = Node.build(Camera);
-        ui_camera.orthoSize = swapchain.height / scale / 2;
-        ui_camera.near = -1;
-        ui_camera.far = 1;
-        ui_camera.visibilities = VisibilityFlagBits.UI;
 
         const up_camera = Node.build(Camera);
         up_camera.fov = 45;
         up_camera.far = 12
         up_camera.rect = [0, 0.5, 1, 0.5];
         up_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.UP;
-        up_camera.clears = Camera.ClearFlagBits.DEPTH;
         up_camera.node.position = [0, 0, 0.001]
 
         let down_camera: Camera;
         if (debug) {
             down_camera = Node.build(Camera);
-            down_camera.orthoSize = 12;
+            down_camera.orthoSize = 16;
             down_camera.rect = [0, 0, 1, 0.5];
             down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
-            down_camera.node.position = [0, 12, 8]
+            down_camera.node.position = [24, 24, 24]
         }
 
         {
             const num = 6;
-            const origins = [vec3.create(0, -8, -8), vec3.create(0, -1, -8), vec3.create(0, 6, -8), vec3.create(0, 13, -8)]
-            // const origins = [vec3.create(0, -1, -8)]
+            // const origins = [vec3.create(0, -8, -8), vec3.create(0, -1, -8), vec3.create(0, 6, -8)]
+            const origins = [vec3.create(0, -1, -8)]
             for (let i = 0; i < origins.length; i++) {
                 const pos = origins[i];
                 const rotation = mat3.fromYRotation(mat3.create(), Math.PI * 2 / num);
                 for (let i = 0; i < num; i++) {
                     const guardian = gltf_guardian.createScene("Sketchfab_Scene")!;
-                    const animation = guardian.addComponent(Animation);
-                    animation.clips = gltf_guardian.proto.animationClips;
-                    animation.play('WalkCycle')
+                    // const animation = guardian.addComponent(Animation);
+                    // animation.clips = gltf_guardian.proto.animationClips;
+                    // animation.play('WalkCycle')
                     guardian.visibility = VisibilityFlagBits.WORLD;
                     guardian.position = vec3.transformMat3(pos, pos, rotation);
                 }
@@ -77,15 +79,33 @@ class App extends Zero {
                 debugDrawer.clear();
 
                 if (this.scene.models instanceof scene.ModelTree) {
-                    for (const node of this.scene.models.root.nodeIterator()) {
-                        debugDrawer.drawAABB(node.bounds, vec4.RED);
+                    for (const node of tree_cull([], this.scene.models.root, up_camera.frustum, up_camera.visibilities)) {
+                        debugDrawer.drawAABB(node.bounds, vec4.ONE);
                     }
-                    debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
+                } else {
+                    for (const model of this.scene.models.cull(1)(up_camera.frustum, up_camera.visibilities)) {
+                        debugDrawer.drawAABB(model.bounds, vec4.ONE);
+                    }
                 }
+
+                debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
 
                 debugDrawer.lateUpdate();
             })
         }
+
+        const width = 640;
+        const height = 960;
+
+        const swapchain = device.swapchain;
+        const scale = Math.min(swapchain.width / width, swapchain.height / height);
+
+        const ui_camera = Node.build(Camera);
+        ui_camera.orthoSize = swapchain.height / scale / 2;
+        ui_camera.near = -1;
+        ui_camera.far = 1;
+        ui_camera.visibilities = VisibilityFlagBits.UI;
+        ui_camera.clears = Camera.ClearFlagBits.DEPTH;
 
         const doc = Node.build(Document);
         doc.setWidth(width);
