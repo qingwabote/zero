@@ -27,7 +27,7 @@ const defaultFramebuffer = (function () {
 
 export class Stage {
     constructor(
-        private _phases: Phase[],
+        public readonly phases: readonly Phase[],
         readonly visibilities: number,
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _clears?: ClearFlagBits,
@@ -43,7 +43,7 @@ export class Stage {
         const { width, height } = this._framebuffer.info;
         commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
 
-        for (const phase of this._phases) {
+        for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
                 phase.record(profile, commandBuffer, renderPass, cameraIndex);
             }

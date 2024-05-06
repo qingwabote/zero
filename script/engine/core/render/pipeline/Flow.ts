@@ -10,8 +10,8 @@ export class Flow {
     constructor(
         private readonly _context: Context,
         private readonly _ubos: readonly UBO[],
-        private readonly _stages: readonly Stage[],
-        readonly visibilities: number,
+        public readonly stages: readonly Stage[],
+        public readonly visibilities: number,
         private readonly _loops?: Function[]
     ) { }
 
@@ -31,7 +31,7 @@ export class Flow {
                 }
             }
             commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
-            for (const stage of this._stages) {
+            for (const stage of this.stages) {
                 if (camera.visibilities & stage.visibilities) {
                     stage.record(commandCalls, commandBuffer, cameraIndex);
                 }

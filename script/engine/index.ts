@@ -46,5 +46,6 @@ export * from './core/sc.js';
 export * from './core/shaderLib.js';
 
 export * as render from './core/render/index.js';
+export * as pipeline from './pipeline/index.js';
 export * as scene from './scene/index.js';
 

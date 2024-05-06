@@ -15,7 +15,7 @@ export class ModelPhase extends Phase {
     constructor(
         context: Context,
         visibility: number,
-        private _culling: Culling,
+        public culling: Culling,
         /**The model type that indicates which models should run in this phase */
         private _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
@@ -26,7 +26,7 @@ export class ModelPhase extends Phase {
 
     record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
         profile.emit(Profile.Event.CULL_START);
-        const models = this._culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
+        const models = this.culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
         profile.emit(Profile.Event.CULL_END);
         models.sort(modelCompareFn);
         for (const model of models) {

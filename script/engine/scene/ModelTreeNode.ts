@@ -17,6 +17,16 @@ function contains(min: Readonly<Vec3>, max: Readonly<Vec3>, point: Readonly<Vec3
 
 export class ModelTreeNodeContext {
     readonly model2node: Map<Model, ModelTreeNode | null> = new Map;
+
+    constructor(models?: Iterable<Model>) {
+        const model2node: Map<Model, ModelTreeNode | null> = new Map;
+        if (models) {
+            for (const model of models) {
+                model2node.set(model, null);
+            }
+        }
+        this.model2node = model2node;
+    }
 }
 
 /* children layout
@@ -147,14 +157,14 @@ export class ModelTreeNode {
         }
     }
 
-    *nodeIterator(): IterableIterator<ModelTreeNode> {
+    *nodeIterator(): Iterable<ModelTreeNode> {
         yield this;
         for (const child of this._children.values()) {
             yield* child.nodeIterator();
         }
     }
 
-    *modelIterator(): IterableIterator<Model> {
+    *modelIterator(): Iterable<Model> {
         for (const model of this._models) {
             yield model;
         }
