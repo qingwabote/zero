@@ -1,7 +1,7 @@
 import { Frustum } from "./Frustum.js";
 import { Model } from "./Model.js";
 
-export function cull(results: Model[], models: readonly Model[], type: string, visibilities: number, frustum: Readonly<Frustum>, claimed?: Map<Model, Model>) {
+export function cull(results: Model[], models: readonly Model[], frustum: Readonly<Frustum>, visibilities: number, type: string, claimed?: Map<Model, Model>) {
     for (const model of models) {
         if (model.type != type) {
             continue;

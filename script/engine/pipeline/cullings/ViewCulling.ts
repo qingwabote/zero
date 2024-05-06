@@ -6,7 +6,6 @@ import { ModelCollectionReadonly } from "../../core/render/scene/ModelCollection
 export class ViewCulling implements Culling {
     cull(models: ModelCollectionReadonly, type: string, cameraIndex: number): Model[] {
         const camera = Zero.instance.scene.cameras[cameraIndex];
-        const cull = models.cull();
-        return cull(type, camera.visibilities, camera.frustum);
+        return models.cull()(camera.frustum, camera.visibilities, type);
     }
 }

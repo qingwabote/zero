@@ -13,6 +13,7 @@ export * from './pipeline/UBO.js';
 export * from './pipeline/rpc.js';
 
 export * from './scene/Camera.js';
+export * from './scene/Frustum.js';
 export * from './scene/Material.js';
 export * from './scene/Mesh.js';
 export * from './scene/Model.js';

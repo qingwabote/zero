@@ -13,8 +13,8 @@ export class ModelArray implements ModelCollection {
 
     cull(times = 1) {
         const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
-        return (type: string, visibilities: number, frustum: Readonly<Frustum>) => {
-            return cull([], this._models, type, visibilities, frustum, claimed);
+        return (frustum: Readonly<Frustum>, visibilities: number, type: string = 'default') => {
+            return cull([], this._models, frustum, visibilities, type, claimed);
         }
     }
 

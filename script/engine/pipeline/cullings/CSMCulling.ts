@@ -5,7 +5,7 @@ import { Frustum } from "../../core/render/scene/Frustum.js";
 import { ModelCollectionReadonly } from "../../core/render/scene/ModelCollection.js";
 
 export class CSMCulling implements Culling {
-    private _cull!: (type: string, visibilities: number, frustum: Readonly<Frustum>) => Model[];
+    private _cull!: (frustum: Readonly<Frustum>, visibilities: number, type: string,) => Model[];
 
     cull(models: ModelCollectionReadonly, type: string, cameraIndex: number): Model[] {
         const data = Zero.instance.pipeline.data;
@@ -13,6 +13,6 @@ export class CSMCulling implements Culling {
             this._cull = models.cull(4)
         }
         const frustum = data.shadow!.cascades.get(cameraIndex)!.bounds[data.flowLoopIndex];
-        return this._cull(type, Zero.instance.scene.cameras[cameraIndex].visibilities, frustum)
+        return this._cull(frustum, Zero.instance.scene.cameras[cameraIndex].visibilities, type)
     }
 }
