@@ -5,14 +5,15 @@
 - [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
 - [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
 - [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
+- [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
 - [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
 
-# 支持的平台（后端）
+# 跨平台
 
-## WebGL2
+## WebGL
 
 - H5
 - [微信小游戏](minigame/README.md)
@@ -24,13 +25,15 @@
 
 # 基础功能
 
-- 3D 模型渲染 (gltf)
+- 模型渲染 (gltf)
 - 冯氏光照
 - 级联阴影
 - 动画混合 (一维)
 - 蒙皮动画
+- 场景剔除 (八叉树)
 - 骨骼动画 (spine)
 - 物理引擎 (ammo)
+- MSAA & FXAA
 
 # 可配置渲染管线
 
