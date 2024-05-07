@@ -1,6 +1,6 @@
-import { BufferView } from "./core/render/BufferView.js";
-import { Pass } from "./core/render/scene/Pass.js";
-import { shaderLib } from "./core/shaderLib.js";
+import { BufferView } from "../core/render/BufferView.js";
+import { Pass } from "../core/render/scene/Pass.js";
+import { shaderLib } from "../core/shaderLib.js";
 
 /**just reuse the uniform buffers for now*/
 export class PassInstance extends Pass {
