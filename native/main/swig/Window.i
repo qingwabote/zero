@@ -11,7 +11,7 @@
 %shared_ptr(Touch)
 %shared_ptr(TouchVector)
 %shared_ptr(TouchEvent)
-%shared_ptr(GestureEvent)
+%shared_ptr(WheelEvent)
 
 %include "events.hpp"
 
@@ -42,15 +42,15 @@ void SWIGV8_DeletePrivateData(SWIGV8_OBJECT objRef) {
     $1 = &temp;
 }
 
-%typemap(in) std::unique_ptr<callable::Callable<void, std::shared_ptr<GestureEvent>>> && (std::unique_ptr<callable::Callable<void, std::shared_ptr<GestureEvent>>> temp){
+%typemap(in) std::unique_ptr<callable::Callable<void, std::shared_ptr<WheelEvent>>> && (std::unique_ptr<callable::Callable<void, std::shared_ptr<WheelEvent>>> temp){
     auto js_func = $input.As<v8::Function>();
     v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
     auto c_func = new auto(
-        [js_g_func = std::move(js_g_func)](std::shared_ptr<GestureEvent> event) mutable
+        [js_g_func = std::move(js_g_func)](std::shared_ptr<WheelEvent> event) mutable
         {
           v8::Isolate *isolate = v8::Isolate::GetCurrent();
           v8::Local<v8::Context> context = isolate->GetCurrentContext();
-          auto js_event = SWIG_NewPointerObj(event, $descriptor(GestureEvent *), 0);
+          auto js_event = SWIG_NewPointerObj(event, $descriptor(WheelEvent *), 0);
           v8::Local<v8::Value> args[] = {js_event};
           js_g_func.Get(isolate)->Call(context, context->Global(), 1, args);
         });

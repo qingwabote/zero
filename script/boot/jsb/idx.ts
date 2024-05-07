@@ -1,24 +1,42 @@
 import { Device } from "gfx";
 
-export interface Touch {
-    readonly x: number,
-    readonly y: number
-}
-
 export interface TouchEvent {
-    readonly touches: readonly Touch[]
+    get count(): number;
+    x(index: number): number;
+    y(index: number): number;
 }
 
-export interface GestureEvent extends TouchEvent {
-    readonly delta: number
+export interface WheelEvent extends TouchEvent {
+    get delta(): number;
+}
+
+class TouchEventImpl implements TouchEvent {
+    get count(): number {
+        return this._event.touches.size();
+    }
+
+    constructor(protected _event: any) { }
+
+    x(index: number): number {
+        return this._event.touches.get(index).x
+    }
+
+    y(index: number): number {
+        return this._event.touches.get(index).y
+    }
+}
+
+class WheelEventImpl extends TouchEventImpl implements WheelEvent {
+    get delta(): number {
+        return this._event.delta;
+    }
 }
 
 export interface EventListener {
     onTouchStart(event: TouchEvent): void;
     onTouchMove(event: TouchEvent): void;
     onTouchEnd(event: TouchEvent): void;
-    onGesturePinch(event: GestureEvent): void;
-    onGestureRotate(event: GestureEvent): void;
+    onWheel(event: WheelEvent): void;
     onFrame(): void;
 }
 
@@ -78,21 +96,17 @@ export function loadBundle(name: string): Promise<void> { throw new Error("unimp
 
 export function attach(listener: EventListener) {
     w.onTouchStart(function (event: any) {
-        const touch = event.touches.get(0);
-        listener.onTouchStart({ touches: [touch] });
+        listener.onTouchStart(new TouchEventImpl(event));
     })
     w.onTouchMove(function (event: any) {
-        const touch = event.touches.get(0);
-        listener.onTouchMove({ touches: [touch] })
+        listener.onTouchMove(new TouchEventImpl(event))
     })
     w.onTouchEnd(function (event: any) {
-        const touch = event.touches.get(0);
-        listener.onTouchEnd({ touches: [touch] })
+        listener.onTouchEnd(new TouchEventImpl(event))
     })
 
-    w.onGesturePinch(function (event: any) {
-        const touch = event.touches.get(0);
-        listener.onGesturePinch({ touches: [touch], delta: event.delta })
+    w.onWheel(function (event: any) {
+        listener.onWheel(new WheelEventImpl(event))
     })
 
     w.onFrame(function () {

@@ -1,24 +1,20 @@
 import { Device } from 'gfx';
 
-export declare interface Touch {
-    readonly x: number,
-    readonly y: number
-}
-
 export declare interface TouchEvent {
-    readonly touches: readonly Touch[]
+    get count(): number;
+    x(index: number): number;
+    y(index: number): number;
 }
 
-export declare interface GestureEvent extends TouchEvent {
-    readonly delta: number
+export declare interface WheelEvent extends TouchEvent {
+    get delta(): number;
 }
 
 export declare interface EventListener {
     onTouchStart(event: TouchEvent): void;
     onTouchMove(event: TouchEvent): void;
     onTouchEnd(event: TouchEvent): void;
-    onGesturePinch(event: GestureEvent): void;
-    onGestureRotate(event: GestureEvent): void;
+    onWheel(event: WheelEvent): void;
     onFrame(): void;
 }
 
