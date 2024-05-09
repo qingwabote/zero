@@ -31,7 +31,7 @@ const materialFunc: MaterialFunc = function (params: MaterialParams): [string, P
     ]
 }
 
-const [guardian, plane, ss_depth, csm1, csm] = await Promise.all([
+const [guardian, plane, ss_depth, csm_off, csm_on] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
         return gltf.instantiate(undefined, materialFunc);
@@ -41,15 +41,15 @@ const [guardian, plane, ss_depth, csm1, csm] = await Promise.all([
         return gltf.instantiate(undefined, materialFunc);
     })(),
     builtin.cache('shaders/depth', Shader),
-    bundle.cache('pipelines/csm1', Pipeline),
-    bundle.cache('pipelines/csm', Pipeline)
+    bundle.cache('pipelines/csm-off', Pipeline),
+    bundle.cache('pipelines/csm-on', Pipeline)
 ])
 
-const csm1_instance = await csm1.instantiate(VisibilityFlagBits);
-const csm_instance = await csm.instantiate(VisibilityFlagBits);
+const csm_off_instance = await csm_off.instantiate(VisibilityFlagBits);
+const csm_on_instance = await csm_on.instantiate(VisibilityFlagBits);
 
-const csm1_shadowmap = new SpriteFrame(csm1.textures['shadowmap']);
-const csm_shadowmap = new SpriteFrame(csm.textures['shadowmap']);
+const csm_off_shadowmap = new SpriteFrame(csm_off.textures['shadowmap']);
+const csm_on_shadowmap = new SpriteFrame(csm_on.textures['shadowmap']);
 
 export class App extends Zero {
     protected override start() {
@@ -81,7 +81,7 @@ export class App extends Zero {
         node = new Node;
         const down_camera = node.addComponent(Camera);
         down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
-        down_camera.orthoSize = 8;
+        down_camera.orthoSize = 12;
         down_camera.rect = [0, 0, 1, 0.5];
         down_camera.near = -8;
         node.position = [-8, 8, 8];
@@ -101,22 +101,22 @@ export class App extends Zero {
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
+        const vec3_6in10 = Object.freeze(vec3.create(0.6, 0.6, 0.6));
+
         const debugDraw = () => {
             debugDrawer.clear()
 
-            // for (const node of modelTree.root.nodeIterator()) {
-            //     debugDrawer.drawAABB(node.bounds, vec4.RED);
-            // }
-
-            debugDrawer.lateUpdate();
-
-            // const shadow = this.pipeline.data.shadow!;
-            // const cameraIndex = shadow.visibleCameras[0];
-            // const cascades = shadow.cascades.get(cameraIndex)!;
-            // for (let i = 0; i < shadow.cascadeNum; i++) {
-            //     debugDrawer.drawFrustum(cascades.bounds[i].vertices, vec4.YELLOW);
-            //     debugDrawer.drawFrustum(cascades.frusta[i].vertices, vec4.ONE);
-            // }
+            const shadow = this.pipeline.data.shadow!;
+            const cameraIndex = shadow.visibleCameras[0];
+            const cascades = shadow.cascades.get(cameraIndex)!;
+            const bounds_color = vec4.create(...vec4.YELLOW);
+            const frusta_color = vec4.create(...vec4.ONE);
+            for (let i = 0; i < shadow.cascadeNum; i++) {
+                debugDrawer.drawFrustum(cascades.bounds[i].vertices, bounds_color);
+                debugDrawer.drawFrustum(cascades.frusta[i].vertices, frusta_color);
+                vec3.multiply(bounds_color, bounds_color, vec3_6in10)
+                vec3.multiply(frusta_color, frusta_color, vec3_6in10)
+            }
 
             // for (const model of this.scene.models) {
             //     if (model.transform.visibility != VisibilityFlagBits.WORLD) {
@@ -128,9 +128,10 @@ export class App extends Zero {
             //         debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
             //     }
             // }
+            debugDrawer.lateUpdate();
         }
-        csm1_instance.data.on(render.Data.Event.UPDATE, debugDraw)
-        csm_instance.data.on(render.Data.Event.UPDATE, debugDraw)
+        csm_off_instance.data.on(render.Data.Event.UPDATE, debugDraw)
+        csm_on_instance.data.on(render.Data.Event.UPDATE, debugDraw)
 
         // UI
         node = new Node;
@@ -146,7 +147,7 @@ export class App extends Zero {
         const doc = node.addComponent(Document);
 
         const sprite = Renderer.create(SpriteRenderer);
-        sprite.impl.spriteFrame = csm1_shadowmap;
+        sprite.impl.spriteFrame = csm_on_shadowmap;
         sprite.impl.shader = shaderLib.getShader(ss_depth);
         sprite.setWidth(200);
         sprite.setHeight(200);
@@ -186,21 +187,21 @@ export class App extends Zero {
 
             {
                 const textRenderer = Renderer.create(TextRenderer);
-                textRenderer.impl.text = 'CSM OFF';
-                textRenderer.impl.color = vec4.ONE;
+                textRenderer.impl.text = 'CSM ON';
+                textRenderer.impl.color = vec4.GREEN;
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.emitter.on(TouchEventName.START, async event => {
                     if (textRenderer.impl.text == 'CSM OFF') {
                         textRenderer.impl.text = 'CSM ON';
                         textRenderer.impl.color = vec4.GREEN;
-                        sprite.impl.spriteFrame = csm_shadowmap;
-                        this.pipeline = csm_instance;
+                        sprite.impl.spriteFrame = csm_on_shadowmap;
+                        this.pipeline = csm_on_instance;
                     } else {
                         textRenderer.impl.text = 'CSM OFF';
                         textRenderer.impl.color = vec4.ONE;
-                        sprite.impl.spriteFrame = csm1_shadowmap;
-                        this.pipeline = csm1_instance;
+                        sprite.impl.spriteFrame = csm_off_shadowmap;
+                        this.pipeline = csm_off_instance;
                     }
                 })
                 down_container.addElement(textRenderer);
@@ -241,4 +242,4 @@ export class App extends Zero {
     }
 }
 
-(new App(csm1_instance)).initialize().attach();
+(new App(csm_on_instance)).initialize().attach();

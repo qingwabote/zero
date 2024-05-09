@@ -122,13 +122,6 @@ export const vec3 = {
         return out;
     },
 
-    scale<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, scale: number) {
-        out[0] = a[0] * scale;
-        out[1] = a[1] * scale;
-        out[2] = a[2] * scale;
-        return out;
-    },
-
     dot(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>): number {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },

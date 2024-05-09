@@ -140,9 +140,11 @@ export class GLTF implements Asset {
 
         const [, parent, name] = res;
         const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text"));
-        const bin = await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer");
-        const json_images = json.images || [];
-        this._textures = await Promise.all(json_images.map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture)));
+        const [bin, textures] = await Promise.all([
+            load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer"),
+            json.images ? Promise.all((json.images as []).map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture))) : Promise.resolve([])
+        ]);
+        this._textures = textures
 
         const child2parent: Record<number, number> = {};
         for (let i = 0; i < json.nodes.length; i++) {
