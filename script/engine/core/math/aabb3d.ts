@@ -13,6 +13,8 @@ const vec3_b = vec3.create();
 
 const mat3_a = mat3.create();
 
+const vec3_half = Object.freeze(vec3.create(0.5, 0.5, 0.5));
+
 function create(center = vec3.ZERO, halfExtent = vec3.ZERO) {
     return { center: vec3.create(...center), halfExtent: vec3.create(...halfExtent) };
 }
@@ -25,10 +27,10 @@ function set(out: AABB3D, center: Readonly<Vec3Like>, halfExtent: Readonly<Vec3L
 
 function fromExtremes(out: AABB3D, min: Readonly<Vec3Like>, max: Readonly<Vec3Like>) {
     vec3.add(vec3_a, max, min);
-    vec3.scale(vec3_a, vec3_a, 0.5);
+    vec3.multiply(vec3_a, vec3_a, vec3_half);
 
     vec3.subtract(vec3_b, max, min);
-    vec3.scale(vec3_b, vec3_b, 0.5);
+    vec3.multiply(vec3_b, vec3_b, vec3_half);
 
     set(out, vec3_a, vec3_b);
     return out;
