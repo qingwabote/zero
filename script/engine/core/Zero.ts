@@ -2,7 +2,7 @@ import { EventEmitterImpl } from "bastard";
 import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
-import { Input, TouchEventName } from "./Input.js";
+import { Input, InputReadonly } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
@@ -43,7 +43,10 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._system2priority.set(system, priority);
     }
 
-    readonly input = new Input;
+    private readonly _input = new Input;
+    public get input(): InputReadonly {
+        return this._input;
+    }
 
     private readonly _componentScheduler = new ComponentScheduler;
 
@@ -55,8 +58,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private readonly _presentSemaphore = boot.device.createSemaphore();
     private readonly _renderSemaphore = boot.device.createSemaphore();
     private readonly _renderFence = boot.device.createFence();
-
-    private readonly _inputEvents: Map<TouchEventName, any> = new Map;
 
     private _time = boot.initial;
 
@@ -117,19 +118,16 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     }
 
     onTouchStart(event: boot.TouchEvent) {
-        this._inputEvents.set(TouchEventName.START, event)
+        this._input.onTouchStart(event);
     }
     onTouchMove(event: boot.TouchEvent) {
-        this._inputEvents.set(TouchEventName.MOVE, event)
+        this._input.onTouchMove(event);
     }
     onTouchEnd(event: boot.TouchEvent) {
-        this._inputEvents.set(TouchEventName.END, event)
+        this._input.onTouchEnd(event);
     }
-    onGesturePinch(event: boot.GestureEvent) {
-        this._inputEvents.set(TouchEventName.PINCH, event)
-    }
-    onGestureRotate(event: boot.GestureEvent) {
-        this._inputEvents.set(TouchEventName.ROTATE, event)
+    onWheel(event: boot.WheelEvent) {
+        this._input.onWheel(event);
     }
     onFrame() {
         this.emit(Event.LOGIC_START);
@@ -137,11 +135,6 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
-
-        for (const [name, event] of this._inputEvents) {
-            this.input.emit(name, event);
-        }
-        this._inputEvents.clear();
 
         this._componentScheduler.update(delta);
         this._timeScheduler.update();

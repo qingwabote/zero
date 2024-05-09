@@ -11,7 +11,7 @@ export class Pipeline {
     constructor(
         public readonly data: Data,
         public readonly ubos: readonly UBO[],
-        private readonly _flows: readonly Flow[]
+        public readonly flows: readonly Flow[]
     ) { }
 
     dump() {
@@ -31,7 +31,7 @@ export class Pipeline {
     record(profile: Profile, commandBuffer: CommandBuffer, cameraIndex: number) {
         const camera = Zero.instance.scene.cameras[cameraIndex];
 
-        for (const flow of this._flows) {
+        for (const flow of this.flows) {
             if (camera.visibilities & flow.visibilities) {
                 flow.record(profile, commandBuffer, cameraIndex);
             }

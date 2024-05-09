@@ -1,10 +1,10 @@
 import { Uint32Vector } from "gfx";
 import { Zero } from "../../Zero.js";
 export class Flow {
-    constructor(_context, _ubos, _stages, visibilities, _loops) {
+    constructor(_context, _ubos, stages, visibilities, _loops) {
         this._context = _context;
         this._ubos = _ubos;
-        this._stages = _stages;
+        this.stages = stages;
         this.visibilities = visibilities;
         this._loops = _loops;
     }
@@ -22,7 +22,7 @@ export class Flow {
                 }
             }
             commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
-            for (const stage of this._stages) {
+            for (const stage of this.stages) {
                 if (camera.visibilities & stage.visibilities) {
                     stage.record(commandCalls, commandBuffer, cameraIndex);
                 }

@@ -11,8 +11,8 @@ function cull(results, node, frustum, visibilities, type, claimed) {
     return results;
 }
 export class ModelTree {
-    constructor(bounds) {
-        this._context = new ModelTreeNodeContext;
+    constructor(bounds, models) {
+        this._context = new ModelTreeNodeContext(models);
         this.root = new ModelTreeNode(this._context, bounds, 0);
     }
     add(model) {

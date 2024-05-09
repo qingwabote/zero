@@ -1,5 +1,5 @@
 import { EventEmitter, EventEmitterImpl, SmartRef } from "bastard";
-import { AABB2D, Component, Node, TouchEventName, Vec2, aabb2d, vec2, vec3 } from "engine";
+import { AABB2D, Component, GestureEventName, Node, TouchEventName, Vec2, aabb2d, vec2, vec3 } from "engine";
 import { LayoutSystem } from "./LayoutSystem.js";
 import * as yoga from "./yoga/index.js";
 
@@ -22,9 +22,9 @@ export interface GestureEvent extends TouchEvent {
 export interface ElementEventToListener {
     [TouchEventName.START]: (event: TouchEvent) => void;
     [TouchEventName.MOVE]: (event: TouchEvent) => void;
-    [TouchEventName.END]: (event: TouchEvent) => void;
-    [TouchEventName.PINCH]: (event: GestureEvent) => void;
-    [TouchEventName.ROTATE]: (event: GestureEvent) => void;
+    [TouchEventName.END]: () => void;
+    [GestureEventName.PINCH]: (event: GestureEvent) => void;
+    [GestureEventName.ROTATE]: (event: GestureEvent) => void;
 }
 
 function yg_node_free(node: yoga.Node) { node.free(); }

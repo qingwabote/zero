@@ -1,9 +1,9 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
+import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, render, scene, vec3, vec4 } from "engine";
 import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 
-const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
+const forward = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 
 const gltf_guardian = await (await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF)).instantiate();
 
@@ -71,6 +71,8 @@ class App extends Zero {
             }
         }
 
+        const phase = this.pipeline.flows[0].stages[0].phases[0] as pipeline.ModelPhase
+
         if (debug) {
             const debugDrawer = Node.build(GeometryRenderer);
             debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
@@ -78,17 +80,19 @@ class App extends Zero {
             this.pipeline.data.on(render.Data.Event.UPDATE, () => {
                 debugDrawer.clear();
 
-                if (this.scene.models instanceof scene.ModelTree) {
-                    for (const node of tree_cull([], this.scene.models.root, up_camera.frustum, up_camera.visibilities)) {
-                        debugDrawer.drawAABB(node.bounds, vec4.ONE);
+                if (phase.culling instanceof pipeline.ViewCulling) {
+                    if (this.scene.models instanceof scene.ModelTree) {
+                        for (const node of tree_cull([], this.scene.models.root, up_camera.frustum, up_camera.visibilities)) {
+                            debugDrawer.drawAABB(node.bounds, vec4.ONE);
+                        }
+                    } else {
+                        for (const model of this.scene.models.cull(1)(up_camera.frustum, up_camera.visibilities)) {
+                            debugDrawer.drawAABB(model.bounds, vec4.ONE);
+                        }
                     }
-                } else {
-                    for (const model of this.scene.models.cull(1)(up_camera.frustum, up_camera.visibilities)) {
-                        debugDrawer.drawAABB(model.bounds, vec4.ONE);
-                    }
-                }
 
-                debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
+                    debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
+                }
 
                 debugDrawer.lateUpdate();
             })
@@ -146,25 +150,31 @@ class App extends Zero {
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.setPosition(Edge.Right, 0);
-                textRenderer.emitter.on(TouchEventName.START, async event => {
-                    const last = this.scene.models;
-                    if (textRenderer.impl.text == 'TREE OFF') {
-                        textRenderer.impl.text = 'TREE ON';
-                        textRenderer.impl.color = vec4.GREEN;
-                        const models = new scene.ModelTree(tree_bounds);
-                        for (const model of last) {
-                            models.add(model);
-                        }
-                        this.scene.models = models;
-                    } else {
+
+                const options = [
+                    () => {
                         textRenderer.impl.text = 'TREE OFF';
                         textRenderer.impl.color = vec4.ONE;
-                        const models = new scene.ModelArray();
-                        for (const model of last) {
-                            models.add(model);
-                        }
-                        this.scene.models = models;
-                    }
+                        this.scene.models = new scene.ModelArray(this.scene.models);
+                        phase.culling = new pipeline.ViewCulling;
+                    },
+                    () => {
+                        textRenderer.impl.text = 'NONE';
+                        textRenderer.impl.color = vec4.ONE;
+                        this.scene.models = new scene.ModelArray(this.scene.models);
+                        phase.culling = new pipeline.NoneCulling;
+                    },
+                    () => {
+                        textRenderer.impl.text = 'TREE ON';
+                        textRenderer.impl.color = vec4.GREEN;
+                        this.scene.models = new scene.ModelTree(tree_bounds, this.scene.models);
+                        phase.culling = new pipeline.ViewCulling;
+                    },
+                ]
+                let optionIndex = 0
+                textRenderer.emitter.on(TouchEventName.START, async event => {
+                    options[optionIndex]();
+                    optionIndex = (optionIndex + 1) % 3;
                 })
                 down_container.addElement(textRenderer);
             }
@@ -179,4 +189,4 @@ class App extends Zero {
     }
 }
 
-(new App(pipeline, new scene.ModelTree(tree_bounds))).initialize().attach();
+(new App(forward, new scene.ModelTree(tree_bounds))).initialize().attach();

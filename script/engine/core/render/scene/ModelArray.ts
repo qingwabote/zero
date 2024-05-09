@@ -5,7 +5,11 @@ import { cull } from "./culling.js";
 
 export class ModelArray implements ModelCollection {
 
-    private readonly _models: Model[] = [];
+    private readonly _models: Model[];
+
+    constructor(models?: Iterable<Model>) {
+        this._models = models ? [...models] : [];
+    }
 
     add(model: Model): void {
         this._models.push(model);

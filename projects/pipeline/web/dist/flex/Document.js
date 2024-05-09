@@ -1,4 +1,4 @@
-import { BoundedRenderer, TouchEventName, Zero, aabb2d, mat4, vec2 } from "engine";
+import { BoundedRenderer, GestureEventName, TouchEventName, Zero, aabb2d, mat4, vec2 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -8,12 +8,18 @@ export class Document extends ElementContainer {
         super(node);
         this._touchClaimed = new Map;
         Zero.instance.input.on(TouchEventName.START, event => {
-            this._touchClaimed.clear();
             this.eventHandler(event, TouchEventName.START);
         });
+        Zero.instance.input.on(TouchEventName.END, event => {
+            for (const element of this._touchClaimed.keys()) {
+                if (element.emitter.has(TouchEventName.END)) {
+                    element.emitter.emit(TouchEventName.END);
+                }
+            }
+            this._touchClaimed.clear();
+        });
         Zero.instance.input.on(TouchEventName.MOVE, event => this.eventHandler(event, TouchEventName.MOVE));
-        Zero.instance.input.on(TouchEventName.END, event => this.eventHandler(event, TouchEventName.END));
-        Zero.instance.input.on(TouchEventName.PINCH, event => this.eventHandler(event, TouchEventName.PINCH));
+        Zero.instance.input.on(GestureEventName.PINCH, event => this.eventHandler(event, GestureEventName.PINCH));
         LayoutSystem.instance.addRoot(this.yg_node);
     }
     lateUpdate() {
@@ -33,7 +39,7 @@ export class Document extends ElementContainer {
         const cameras = Zero.instance.scene.cameras;
         const world_positions = [];
         for (let i = 0; i < cameras.length; i++) {
-            world_positions[i] = cameras[i].screenToWorld(vec2.create(), event.touches[0].x, event.touches[0].y);
+            world_positions[i] = cameras[i].screenToWorld(vec2.create(), event.x(0), event.y(0));
         }
         const children = this.node.children;
         for (let i = children.length - 1; i > -1; i--) {
@@ -52,7 +58,7 @@ export class Document extends ElementContainer {
             if (!isContainer && !element.emitter.has(name)) {
                 continue;
             }
-            if ((name == TouchEventName.MOVE || name == TouchEventName.END) && !this._touchClaimed.has(element)) {
+            if (name == TouchEventName.MOVE && !this._touchClaimed.has(element)) {
                 continue;
             }
             // hit test
@@ -72,7 +78,7 @@ export class Document extends ElementContainer {
                     if (this.touchWalk(children[j].getComponent(Element), cameras, world_positions, name, event)) {
                         // bubbling
                         if (element.emitter.has(name)) {
-                            element.emitter.emit(name, Object.assign({ touch: { world: world_position, local: local_position } }, name == TouchEventName.PINCH && { delta: event.delta }));
+                            element.emitter.emit(name, Object.assign({ touch: { world: world_position, local: local_position } }, name == GestureEventName.PINCH && { delta: event.delta }));
                         }
                         if (name == TouchEventName.START) {
                             this._touchClaimed.set(element, element);
@@ -83,7 +89,7 @@ export class Document extends ElementContainer {
             }
             // target
             if (element.emitter.has(name)) {
-                element.emitter.emit(name, Object.assign({ touch: { world: world_position, local: local_position } }, name == TouchEventName.PINCH && { delta: event.delta }));
+                element.emitter.emit(name, Object.assign({ touch: { world: world_position, local: local_position } }, name == GestureEventName.PINCH && { delta: event.delta }));
             }
             if (name == TouchEventName.START) {
                 this._touchClaimed.set(element, element);

@@ -1,7 +1,7 @@
 import { cull } from "./culling.js";
 export class ModelArray {
-    constructor() {
-        this._models = [];
+    constructor(models) {
+        this._models = models ? [...models] : [];
     }
     add(model) {
         this._models.push(model);

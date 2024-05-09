@@ -16,8 +16,8 @@ const defaultFramebuffer = (function () {
     return device.createFramebuffer(framebufferInfo);
 })();
 export class Stage {
-    constructor(_phases, visibilities, _framebuffer = defaultFramebuffer, _clears, rect) {
-        this._phases = _phases;
+    constructor(phases, visibilities, _framebuffer = defaultFramebuffer, _clears, rect) {
+        this.phases = phases;
         this.visibilities = visibilities;
         this._framebuffer = _framebuffer;
         this._clears = _clears;
@@ -30,7 +30,7 @@ export class Stage {
         const rect = (_b = this.rect) !== null && _b !== void 0 ? _b : camera.rect;
         const { width, height } = this._framebuffer.info;
         commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
-        for (const phase of this._phases) {
+        for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
                 phase.record(profile, commandBuffer, renderPass, cameraIndex);
             }

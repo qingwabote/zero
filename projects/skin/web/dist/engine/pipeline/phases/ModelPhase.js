@@ -7,19 +7,19 @@ function modelCompareFn(a, b) {
     return a.order - b.order;
 }
 export class ModelPhase extends Phase {
-    constructor(context, visibility, _culling, 
+    constructor(context, visibility, culling, 
     /**The model type that indicates which models should run in this phase */
     _model = 'default', 
     /**The pass type that indicates which passes should run in this phase */
     _pass = 'default') {
         super(context, visibility);
-        this._culling = _culling;
+        this.culling = culling;
         this._model = _model;
         this._pass = _pass;
     }
     record(profile, commandBuffer, renderPass, cameraIndex) {
         profile.emit(Profile.Event.CULL_START);
-        const models = this._culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
+        const models = this.culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
         profile.emit(Profile.Event.CULL_END);
         models.sort(modelCompareFn);
         for (const model of models) {

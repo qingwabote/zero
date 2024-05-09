@@ -33,7 +33,7 @@ export default class Joystick extends ElementContainer {
             this.draw(primitive, this._point, color);
             this.emitter.emit(JoystickEventType.CHANGED);
         });
-        primitive.emitter.on(TouchEventName.END, event => {
+        primitive.emitter.on(TouchEventName.END, () => {
             vec2.set(this._point, 0, 0);
             this.draw(primitive, this._point, color);
             this.emitter.emit(JoystickEventType.CHANGED);

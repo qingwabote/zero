@@ -31,6 +31,7 @@ int WINAPI WinMain(
     freopen("conout$", "w", stderr);
 
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {

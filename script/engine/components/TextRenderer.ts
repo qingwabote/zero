@@ -2,7 +2,6 @@
 
 import { bundle } from "bundling";
 import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState } from "gfx";
-import { PassInstance } from "../PassInstance.js";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
@@ -17,6 +16,7 @@ import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { PassInstance } from "../scene/PassInstance.js";
 import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);

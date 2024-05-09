@@ -157,20 +157,22 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
         this.addElement(primitive);
         this._primitive = primitive.impl;
 
-        let touch: Touch;
+        let origin: Touch;
+        let last: Touch;
         this.emitter.on(TouchEventName.START, event => {
-            touch = event.touch;
+            origin = last = event.touch;
         });
         this.emitter.on(TouchEventName.MOVE, event => {
             mat4.invert(mat4_a, primitive.node.world_matrix);
-            const from = vec2.transformMat4(vec2.create(), touch.world, mat4_a);
+            const from = vec2.transformMat4(vec2.create(), origin.world, mat4_a);
             const to = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);
             this.drawLine(from, to);
+            last = event.touch;
         });
-        this.emitter.on(TouchEventName.END, event => {
+        this.emitter.on(TouchEventName.END, () => {
             mat4.invert(mat4_a, this._polygonsRenderer.node.world_matrix);
-            const a = vec2.transformMat4(vec2.create(), touch.world, mat4_a);
-            const b = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);
+            const a = vec2.transformMat4(vec2.create(), origin.world, mat4_a);
+            const b = vec2.transformMat4(vec2.create(), last.world, mat4_a);
 
             const out: Polygon[] = [];
             let cutted = false;

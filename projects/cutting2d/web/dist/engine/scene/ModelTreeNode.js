@@ -10,8 +10,15 @@ function contains(min, max, point) {
         point[2] > max[2] || point[2] < min[2]);
 }
 export class ModelTreeNodeContext {
-    constructor() {
+    constructor(models) {
         this.model2node = new Map;
+        const model2node = new Map;
+        if (models) {
+            for (const model of models) {
+                model2node.set(model, null);
+            }
+        }
+        this.model2node = model2node;
     }
 }
 /* children layout

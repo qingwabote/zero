@@ -16,6 +16,40 @@ export const safeArea = (function () {
     return { left: 0, right: 0, top, bottom: 0, width: pixelWidth, height: pixelHeight - top };
 })();
 export const platform = 'web';
+const canvasBoundingClientRect = canvas.getBoundingClientRect();
+class TouchEventImpl {
+    get count() {
+        return this._event.touches.length;
+    }
+    constructor(_event) {
+        this._event = _event;
+    }
+    x(index) {
+        return (this._event.touches[index].clientX - canvasBoundingClientRect.x) * pixelRatio;
+    }
+    y(index) {
+        return (this._event.touches[index].clientY - canvasBoundingClientRect.y) * pixelRatio;
+    }
+}
+class MouseEventImpl {
+    get count() {
+        return 1;
+    }
+    constructor(_event) {
+        this._event = _event;
+    }
+    x(index) {
+        return this._event.offsetX * pixelRatio;
+    }
+    y(index) {
+        return this._event.offsetY * pixelRatio;
+    }
+}
+class WheelEventImpl extends MouseEventImpl {
+    get delta() {
+        return -this._event.deltaY;
+    }
+}
 export const device = new Device(canvas.getContext('webgl2', { antialias: false }));
 export const initial = performance.now();
 export function now() { return performance.now(); }
@@ -72,41 +106,32 @@ export async function loadWasm(url, imports) {
 }
 export function loadBundle(name) { throw new Error("unimplemented"); }
 export function attach(listener) {
-    let lastTouch;
     canvas.addEventListener('touchstart', function (touchEvent) {
-        const touch = touchEvent.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const offsetX = touch.clientX - rect.x;
-        const offsetY = touch.clientY - rect.y;
-        listener.onTouchStart({ touches: [lastTouch = { x: offsetX * pixelRatio, y: offsetY * pixelRatio }] });
+        listener.onTouchStart(new TouchEventImpl(touchEvent));
         touchEvent.preventDefault(); // prevent mousedown
     });
     canvas.addEventListener('touchmove', function (touchEvent) {
-        const touch = touchEvent.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const offsetX = touch.clientX - rect.x;
-        const offsetY = touch.clientY - rect.y;
-        listener.onTouchMove({ touches: [lastTouch = { x: offsetX * pixelRatio, y: offsetY * pixelRatio }] });
+        listener.onTouchMove(new TouchEventImpl(touchEvent));
     });
     canvas.addEventListener('touchend', function (touchEvent) {
-        listener.onTouchEnd({ touches: [lastTouch] });
+        listener.onTouchEnd(new TouchEventImpl(touchEvent));
     });
     canvas.addEventListener('touchcancel', function (touchEvent) {
-        listener.onTouchEnd({ touches: [lastTouch] });
+        listener.onTouchEnd(new TouchEventImpl(touchEvent));
     });
     canvas.addEventListener("mousedown", function (mouseEvent) {
-        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] });
+        listener.onTouchStart(new MouseEventImpl(mouseEvent));
     });
     canvas.addEventListener("mouseup", function (mouseEvent) {
-        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] });
+        listener.onTouchEnd(new MouseEventImpl(mouseEvent));
     });
     canvas.addEventListener("mousemove", function (mouseEvent) {
         if (mouseEvent.buttons) {
-            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] });
+            listener.onTouchMove(new MouseEventImpl(mouseEvent));
         }
     });
     canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * pixelRatio, y: wheelEvent.offsetY * pixelRatio }], delta: wheelEvent.deltaY });
+        listener.onWheel(new WheelEventImpl(wheelEvent));
         wheelEvent.preventDefault();
     });
     function loop() {

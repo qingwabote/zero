@@ -22,9 +22,10 @@ function cull(results: Model[], node: ModelTreeNode, frustum: Readonly<Frustum>,
 export class ModelTree implements ModelCollection {
     readonly root: ModelTreeNode;
 
-    private readonly _context = new ModelTreeNodeContext;
+    private readonly _context: ModelTreeNodeContext;
 
-    constructor(bounds: Readonly<AABB3D>) {
+    constructor(bounds: Readonly<AABB3D>, models?: Iterable<Model>) {
+        this._context = new ModelTreeNodeContext(models);
         this.root = new ModelTreeNode(this._context, bounds, 0);
     }
 

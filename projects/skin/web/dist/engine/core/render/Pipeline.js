@@ -1,9 +1,9 @@
 import { Zero } from "../Zero.js";
 export class Pipeline {
-    constructor(data, ubos, _flows) {
+    constructor(data, ubos, flows) {
         this.data = data;
         this.ubos = ubos;
-        this._flows = _flows;
+        this.flows = flows;
         this._dumping = false;
     }
     dump() {
@@ -18,7 +18,7 @@ export class Pipeline {
     }
     record(profile, commandBuffer, cameraIndex) {
         const camera = Zero.instance.scene.cameras[cameraIndex];
-        for (const flow of this._flows) {
+        for (const flow of this.flows) {
             if (camera.visibilities & flow.visibilities) {
                 flow.record(profile, commandBuffer, cameraIndex);
             }

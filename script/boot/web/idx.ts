@@ -21,25 +21,61 @@ export const safeArea = (function () {
 
 export const platform = 'web';
 
-export interface Touch {
-    readonly x: number,
-    readonly y: number
-}
-
 export interface TouchEvent {
-    readonly touches: readonly Touch[]
+    get count(): number;
+    x(index: number): number;
+    y(index: number): number;
 }
 
-export interface GestureEvent extends TouchEvent {
-    readonly delta: number
+export interface WheelEvent extends TouchEvent {
+    get delta(): number;
+}
+
+const canvasBoundingClientRect = canvas.getBoundingClientRect();
+
+class TouchEventImpl implements TouchEvent {
+    get count(): number {
+        return this._event.touches.length;
+    }
+
+    constructor(private _event: globalThis.TouchEvent) { }
+
+    x(index: number): number {
+        return (this._event.touches[index].clientX - canvasBoundingClientRect.x) * pixelRatio;
+    }
+
+    y(index: number): number {
+        return (this._event.touches[index].clientY - canvasBoundingClientRect.y) * pixelRatio;
+    }
+}
+
+class MouseEventImpl implements TouchEvent {
+    get count(): number {
+        return 1;
+    }
+
+    constructor(protected _event: globalThis.MouseEvent) { }
+
+    x(index: number): number {
+        return this._event.offsetX * pixelRatio;
+    }
+
+    y(index: number): number {
+        return this._event.offsetY * pixelRatio;
+    }
+}
+
+class WheelEventImpl extends MouseEventImpl implements WheelEvent {
+    get delta(): number {
+        return -(this._event as globalThis.WheelEvent).deltaY;
+    }
 }
 
 export interface EventListener {
     onTouchStart(event: TouchEvent): void;
     onTouchMove(event: TouchEvent): void;
     onTouchEnd(event: TouchEvent): void;
-    onGesturePinch(event: GestureEvent): void;
-    onGestureRotate(event: GestureEvent): void;
+    onWheel(event: WheelEvent): void;
     onFrame(): void;
 }
 
@@ -109,44 +145,34 @@ export async function loadWasm(url: string, imports: WebAssembly.Imports): Promi
 export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
 
 export function attach(listener: EventListener) {
-    let lastTouch: Touch;
-
     canvas.addEventListener('touchstart', function (touchEvent) {
-        const touch = touchEvent.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const offsetX = touch.clientX - rect.x;
-        const offsetY = touch.clientY - rect.y;
-        listener.onTouchStart({ touches: [lastTouch = { x: offsetX * pixelRatio, y: offsetY * pixelRatio }] });
+        listener.onTouchStart(new TouchEventImpl(touchEvent));
         touchEvent.preventDefault(); // prevent mousedown
     })
     canvas.addEventListener('touchmove', function (touchEvent) {
-        const touch = touchEvent.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const offsetX = touch.clientX - rect.x;
-        const offsetY = touch.clientY - rect.y;
-        listener.onTouchMove({ touches: [lastTouch = { x: offsetX * pixelRatio, y: offsetY * pixelRatio }] });
+        listener.onTouchMove(new TouchEventImpl(touchEvent));
     })
     canvas.addEventListener('touchend', function (touchEvent) {
-        listener.onTouchEnd({ touches: [lastTouch] });
+        listener.onTouchEnd(new TouchEventImpl(touchEvent));
     })
     canvas.addEventListener('touchcancel', function (touchEvent) {
-        listener.onTouchEnd({ touches: [lastTouch] });
+        listener.onTouchEnd(new TouchEventImpl(touchEvent));
     })
 
     canvas.addEventListener("mousedown", function (mouseEvent) {
-        listener.onTouchStart({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] });
+        listener.onTouchStart(new MouseEventImpl(mouseEvent));
     })
     canvas.addEventListener("mouseup", function (mouseEvent) {
-        listener.onTouchEnd({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] })
+        listener.onTouchEnd(new MouseEventImpl(mouseEvent))
     })
     canvas.addEventListener("mousemove", function (mouseEvent) {
         if (mouseEvent.buttons) {
-            listener.onTouchMove({ touches: [{ x: mouseEvent.offsetX * pixelRatio, y: mouseEvent.offsetY * pixelRatio }] })
+            listener.onTouchMove(new MouseEventImpl(mouseEvent))
         }
     })
 
     canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onGesturePinch({ touches: [{ x: wheelEvent.offsetX * pixelRatio, y: wheelEvent.offsetY * pixelRatio }], delta: wheelEvent.deltaY });
+        listener.onWheel(new WheelEventImpl(wheelEvent));
         wheelEvent.preventDefault();
     })
 

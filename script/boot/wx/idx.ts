@@ -15,10 +15,6 @@ export interface TouchEvent {
     readonly touches: readonly Touch[]
 }
 
-export interface GestureEvent {
-    readonly delta: number
-}
-
 declare const wx: any;
 
 // copy from weapp-adapter.9568fddf
@@ -38,8 +34,6 @@ export interface EventListener {
     onTouchStart(event: TouchEvent): void;
     onTouchMove(event: TouchEvent): void;
     onTouchEnd(event: TouchEvent): void;
-    onGesturePinch(event: GestureEvent): void;
-    onGestureRotate(event: GestureEvent): void;
     onFrame(): void;
 }
 

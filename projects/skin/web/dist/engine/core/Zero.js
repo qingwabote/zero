@@ -1,7 +1,7 @@
 import { EventEmitterImpl } from "bastard";
 import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
-import { Input, TouchEventName } from "./Input.js";
+import { Input } from "./Input.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Scene } from "./render/Scene.js";
@@ -22,6 +22,9 @@ export class Zero extends EventEmitterImpl {
     static registerSystem(system, priority) {
         this._system2priority.set(system, priority);
     }
+    get input() {
+        return this._input;
+    }
     get profile() {
         return this._profile;
     }
@@ -35,14 +38,13 @@ export class Zero extends EventEmitterImpl {
     constructor(_pipeline, models = new ModelArray) {
         super();
         this._pipeline = _pipeline;
-        this.input = new Input;
+        this._input = new Input;
         this._componentScheduler = new ComponentScheduler;
         this._timeScheduler = new TimeScheduler;
         this._commandBuffer = boot.device.createCommandBuffer();
         this._presentSemaphore = boot.device.createSemaphore();
         this._renderSemaphore = boot.device.createSemaphore();
         this._renderFence = boot.device.createFence();
-        this._inputEvents = new Map;
         this._time = boot.initial;
         this._profile = new Profile;
         this.scene = new Scene(models);
@@ -73,29 +75,22 @@ export class Zero extends EventEmitterImpl {
         this._timeScheduler.clearInterval(func);
     }
     onTouchStart(event) {
-        this._inputEvents.set(TouchEventName.START, event);
+        this._input.onTouchStart(event);
     }
     onTouchMove(event) {
-        this._inputEvents.set(TouchEventName.MOVE, event);
+        this._input.onTouchMove(event);
     }
     onTouchEnd(event) {
-        this._inputEvents.set(TouchEventName.END, event);
+        this._input.onTouchEnd(event);
     }
-    onGesturePinch(event) {
-        this._inputEvents.set(TouchEventName.PINCH, event);
-    }
-    onGestureRotate(event) {
-        this._inputEvents.set(TouchEventName.ROTATE, event);
+    onWheel(event) {
+        this._input.onWheel(event);
     }
     onFrame() {
         this.emit(Event.LOGIC_START);
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
-        for (const [name, event] of this._inputEvents) {
-            this.input.emit(name, event);
-        }
-        this._inputEvents.clear();
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
         for (const system of this._systems) {

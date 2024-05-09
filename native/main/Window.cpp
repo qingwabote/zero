@@ -145,128 +145,122 @@ int Window::loop(SDL_Window *sdl_window)
             return -1;
         }
 
-        float pixelRatio{1};
+        int width = 0;
+        int height = 0;
+        float pixelRatio = 1;
         {
-            int size{0};
-            SDL_GetWindowSize(_sdl_window, &size, nullptr);
+            SDL_GetWindowSize(_sdl_window, &width, &height);
 
-            int sizeInPixels{0};
-            SDL_GetWindowSizeInPixels(_sdl_window, &sizeInPixels, nullptr);
+            int widthInPixels = 0;
+            SDL_GetWindowSizeInPixels(_sdl_window, &widthInPixels, nullptr);
 
-            pixelRatio = static_cast<float>(sizeInPixels) / size;
+            pixelRatio = static_cast<float>(widthInPixels) / width;
         }
 
-        bool running = true;
-        while (running)
         {
-            inspector->tick();
+            std::unordered_map<SDL_FingerID, std::shared_ptr<Touch>> touches;
 
-            std::unique_ptr<callable::Callable<void>> f{};
-            while (_beforeTickQueue.pop(f))
+            bool running = true;
+            while (running)
             {
-                f->call();
-            }
+                inspector->tick();
 
-            while (v8::platform::PumpMessageLoop(platform.get(), isolate.get()))
-            {
-            }
-
-            if (!index_promise.IsEmpty())
-            {
-                if (index_promise->State() == v8::Promise::PromiseState::kRejected)
+                std::unique_ptr<callable::Callable<void>> f{};
+                while (_beforeTickQueue.pop(f))
                 {
-                    return -1;
+                    f->call();
                 }
-                if (index_promise->State() == v8::Promise::PromiseState::kPending)
+
+                while (v8::platform::PumpMessageLoop(platform.get(), isolate.get()))
                 {
-                    continue;
                 }
-                index_promise.Clear();
-            }
 
-            SDL_Event event;
-            while (SDL_PollEvent(&event))
-            {
-                v8::HandleScope scope(isolate.get());
-
-                switch (event.type)
+                if (!index_promise.IsEmpty())
                 {
-                case SDL_QUIT:
-                    running = false;
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                case SDL_MOUSEBUTTONUP:
-                case SDL_MOUSEMOTION:
-                {
-                    callable::Callable<void, std::shared_ptr<TouchEvent>> *touchCb{nullptr};
+                    if (index_promise->State() == v8::Promise::PromiseState::kRejected)
+                    {
+                        return -1;
+                    }
+                    if (index_promise->State() == v8::Promise::PromiseState::kPending)
+                    {
+                        continue;
+                    }
+                    index_promise.Clear();
+                }
 
-                    if (event.type == SDL_MOUSEBUTTONDOWN)
+                SDL_Event event;
+                while (SDL_PollEvent(&event))
+                {
+                    switch (event.type)
                     {
-                        touchCb = _touchStartCb.get();
-                    }
-                    else if (event.type == SDL_MOUSEBUTTONUP)
+                    case SDL_FINGERDOWN:
+                    case SDL_FINGERUP:
+                    case SDL_FINGERMOTION:
                     {
-                        touchCb = _touchEndCb.get();
-                    }
-                    else if (event.type == SDL_MOUSEMOTION)
-                    {
-                        if ((event.motion.state & SDL_BUTTON_LMASK) == 0)
+                        callable::Callable<void, std::shared_ptr<TouchEvent>> *touchCb = nullptr;
+                        if (event.type == SDL_FINGERDOWN)
                         {
-                            break;
+                            touches.emplace(event.tfinger.fingerId, new Touch{int32_t(event.tfinger.x * width * pixelRatio), int32_t(event.tfinger.y * height * pixelRatio)});
+                            touchCb = _touchStartCb.get();
+                        }
+                        else if (event.type == SDL_FINGERUP)
+                        {
+                            touches.erase(event.tfinger.fingerId);
+                            touchCb = _touchEndCb.get();
+                        }
+                        else if (event.type == SDL_FINGERMOTION)
+                        {
+                            auto &touch = touches.find(event.tfinger.fingerId)->second;
+                            touch->x = event.tfinger.x * width * pixelRatio;
+                            touch->y = event.tfinger.y * height * pixelRatio;
+                            touchCb = _touchMoveCb.get();
                         }
 
-                        touchCb = _touchMoveCb.get();
+                        auto e = std::make_shared<TouchEvent>();
+                        e->touches = std::make_shared<TouchVector>();
+                        for (auto &&i : touches)
+                        {
+                            e->touches->emplace_back(i.second);
+                        }
+                        touchCb->call(std::move(e));
+                        break;
                     }
-
-                    if (touchCb)
+                    case SDL_MOUSEWHEEL:
                     {
-                        auto touch = std::make_shared<Touch>();
-                        touch->x = event.button.x * pixelRatio;
-                        touch->y = event.button.y * pixelRatio;
-                        auto touches = std::make_shared<TouchVector>();
-                        touches->emplace_back(std::move(touch));
-                        auto touchEvent = std::make_shared<TouchEvent>();
-                        touchEvent->touches = touches;
-                        touchCb->call(std::move(touchEvent));
+                        if (_wheelCb)
+                        {
+                            auto touches = std::make_shared<TouchVector>();
+                            touches->emplace_back(new Touch{int32_t(event.wheel.mouseX * pixelRatio), int32_t(event.wheel.mouseY * pixelRatio)});
+                            _wheelCb->call(std::shared_ptr<WheelEvent>(new WheelEvent{touches, event.wheel.y * 100}));
+                        }
+                        break;
                     }
-                    break;
+                    case SDL_QUIT:
+                    {
+                        running = false;
+                        break;
+                    }
+                    default:
+                        break;
+                    }
                 }
-                case SDL_MOUSEWHEEL:
+
+                if (_frameCb)
                 {
-                    if (_gesturePinchCb)
-                    {
-                        auto touch = std::make_shared<Touch>();
-                        touch->x = event.wheel.mouseX * pixelRatio;
-                        touch->y = event.wheel.mouseY * pixelRatio;
-                        auto touches = std::make_shared<TouchVector>();
-                        touches->emplace_back(std::move(touch));
-                        auto gestureEvent = std::make_shared<GestureEvent>();
-                        gestureEvent->touches = touches;
-                        gestureEvent->delta = event.wheel.y * -100;
-                        _gesturePinchCb->call(std::move(gestureEvent));
-                    }
-                    break;
+                    _frameCb->call();
                 }
-                default:
-                    break;
-                }
-            }
 
-            static std::chrono::steady_clock::time_point time;
-            static std::chrono::steady_clock::time_point now;
+                static std::chrono::steady_clock::time_point time;
+                static std::chrono::steady_clock::time_point now;
 
-            now = std::chrono::steady_clock::now();
-            auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count();
-            if (dt < NANOSECONDS_60FPS)
-            {
-                std::this_thread::sleep_for(std::chrono::nanoseconds(NANOSECONDS_60FPS - dt));
                 now = std::chrono::steady_clock::now();
-            }
-            time = now;
-
-            if (_frameCb)
-            {
-                _frameCb->call();
+                auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count();
+                if (dt < NANOSECONDS_60FPS)
+                {
+                    std::this_thread::sleep_for(std::chrono::nanoseconds(NANOSECONDS_60FPS - dt));
+                    now = std::chrono::steady_clock::now();
+                }
+                time = now;
             }
         }
 
@@ -274,7 +268,7 @@ int Window::loop(SDL_Window *sdl_window)
         _touchMoveCb = nullptr;
         _touchEndCb = nullptr;
 
-        _gesturePinchCb = nullptr;
+        _wheelCb = nullptr;
 
         _frameCb = nullptr;
 
