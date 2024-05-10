@@ -1,9 +1,11 @@
 import { GestureEventName, TouchEventName, quat, vec3 } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
+const vec3_a = vec3.create();
+const quat_a = quat.create();
 export class CameraControlPanel extends ElementContainer {
     constructor() {
         super(...arguments);
-        this._fiexd_changed = true;
+        this._fixed_changed = true;
         this._fixed = true;
     }
     get fixed() {
@@ -11,7 +13,7 @@ export class CameraControlPanel extends ElementContainer {
     }
     set fixed(value) {
         this._fixed = value;
-        this._fiexd_changed = true;
+        this._fixed_changed = true;
     }
     start() {
         let point;
@@ -22,8 +24,8 @@ export class CameraControlPanel extends ElementContainer {
             const dx = event.touch.local[0] - point[0];
             const dy = event.touch.local[1] - point[1];
             if (this.fixed) {
-                const rotation = quat.fromEuler(quat.create(), -dy, dx, 0);
-                this.camera.node.position = vec3.transformQuat(vec3.create(), this.camera.node.position, rotation);
+                const rotation = quat.fromEuler(quat_a, -dy, dx, 0);
+                this.camera.node.position = vec3.transformQuat(vec3_a, this.camera.node.position, rotation);
                 this.camera.node.lookAt(vec3.ZERO);
             }
             else {
@@ -42,14 +44,19 @@ export class CameraControlPanel extends ElementContainer {
             point = event.touch.local;
         });
         this.emitter.on(GestureEventName.PINCH, event => {
-            let delta_position = vec3.create(0, 0, -event.delta / 100);
-            delta_position = vec3.transformQuat(vec3.create(), delta_position, this.camera.node.rotation);
-            this.camera.node.position = vec3.add(vec3.create(), this.camera.node.position, delta_position);
+            if (this.camera.fov != -1) {
+                vec3.set(vec3_a, 0, 0, -event.delta / 100);
+                vec3.transformQuat(vec3_a, vec3_a, this.camera.node.rotation);
+                this.camera.node.position = vec3.add(vec3_a, vec3_a, this.camera.node.position);
+            }
+            else {
+                this.camera.orthoSize += -event.delta / 100;
+            }
         });
     }
     update(dt) {
         super.update(dt);
-        if (this._fiexd_changed) {
+        if (this._fixed_changed) {
             const view = vec3.normalize(vec3.create(), this.camera.node.position);
             if (this._fixed) {
                 this.camera.node.rotation = quat.fromViewUp(quat.create(), view);
@@ -58,7 +65,7 @@ export class CameraControlPanel extends ElementContainer {
                 view[1] = 0;
                 this.camera.node.rotation = quat.fromViewUp(quat.create(), view);
             }
-            this._fiexd_changed = false;
+            this._fixed_changed = false;
         }
     }
 }

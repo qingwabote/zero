@@ -92,12 +92,6 @@ export const vec3 = {
         out[2] = a[2] * b[2];
         return out;
     },
-    scale(out, a, scale) {
-        out[0] = a[0] * scale;
-        out[1] = a[1] * scale;
-        out[2] = a[2] * scale;
-        return out;
-    },
     dot(a, b) {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },

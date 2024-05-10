@@ -23,7 +23,7 @@ export default class Vehicle extends Component {
         const cube = primitive.createScene("Cube", true).children[0];
         let meshRenderer = cube.getComponent(MeshRenderer);
         meshRenderer.materials[0].passes[1].setUniform('Props', 'albedo', vec4.create(1, 0, 0, 1));
-        cube.scale = vec3.scale(vec3.create(), chassis_size, 0.5);
+        cube.scale = vec3.multiply(vec3.create(), chassis_size, [0.5, 0.5, 0.5]);
         node.addChild(cube);
         let shape = node.addComponent(BoxShape);
         shape.size = chassis_size;

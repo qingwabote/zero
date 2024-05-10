@@ -25,7 +25,6 @@ export class ModelPhase extends Phase {
         for (const model of models) {
             if (!(model.hasChanged & Model.ChangeBits.UPLOAD)) {
                 model.upload();
-                model.hasChanged |= Model.ChangeBits.UPLOAD;
             }
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
