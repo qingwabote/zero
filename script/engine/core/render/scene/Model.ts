@@ -24,25 +24,25 @@ export class Model extends ChangeRecord {
 
     readonly descriptorSet: DescriptorSet;
 
-    private _bounds_invalid = true;
+    private _bounds_invalidated = true;
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
-        if (this._bounds_invalid) {
+        if (this._bounds_invalidated) {
             aabb3d.transform(this._bounds, this.mesh.bounds, this._transform.world_matrix);
-            this._bounds_invalid = false;
+            this._bounds_invalidated = false;
         }
         return this._bounds;
     }
 
     private _localBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Local.length);
-    private _localBuffer_invalid = false;
+    private _localBuffer_invalidated = false;
 
     public get transform(): Transform {
         return this._transform;
     }
     public set transform(value: Transform) {
         this._transform = value;
-        this._localBuffer_invalid = true;
+        this._localBuffer_invalidated = true;
         super.hasChanged |= ChangeBits.BOUNDS;
     }
 
@@ -51,7 +51,7 @@ export class Model extends ChangeRecord {
     }
     public set mesh(value) {
         this._mesh = value;
-        this._bounds_invalid = true;
+        this._bounds_invalidated = true;
         super.hasChanged |= ChangeBits.BOUNDS;
     }
 
@@ -61,9 +61,6 @@ export class Model extends ChangeRecord {
             flags |= ChangeBits.BOUNDS;
         }
         return flags;
-    }
-    override set hasChanged(flag: number) {
-        super.hasChanged |= flag;
     }
 
     type: string = 'default';
@@ -79,21 +76,21 @@ export class Model extends ChangeRecord {
 
     update() {
         if (this._mesh.hasChanged) {
-            this._bounds_invalid = true;
+            this._bounds_invalidated = true;
         }
 
         if (this._transform.hasChanged) {
-            this._bounds_invalid = this._localBuffer_invalid = true;
+            this._bounds_invalidated = this._localBuffer_invalidated = true;
         }
     }
 
     upload() {
-        if (this._localBuffer_invalid) {
+        if (this._localBuffer_invalidated) {
             this._localBuffer.set(this._transform.world_matrix);
             // http://www.lighthouse3d.com/tutorials/glsl-tutorial/the-normal-matrix/ or https://paroj.github.io/gltut/Illumination/Tut09%20Normal%20Transformation.html
             this._localBuffer.set(mat4.inverseTranspose(mat4_a, this._transform.world_matrix), 16);
             this._localBuffer.update();
-            this._localBuffer_invalid = false;
+            this._localBuffer_invalidated = false;
         }
 
         for (const material of this.materials) {
@@ -101,5 +98,7 @@ export class Model extends ChangeRecord {
                 pass.update();
             }
         }
+
+        super.hasChanged |= ChangeBits.UPLOAD;
     }
 }
