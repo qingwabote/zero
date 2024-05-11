@@ -13,7 +13,7 @@
 
 # 跨平台
 
-## WebGL
+## WebGL2
 
 - H5
 - [微信小游戏](minigame/README.md)
