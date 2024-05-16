@@ -46,8 +46,6 @@ namespace gfx
 
         bool initialize();
 
-        void acquire(const std::shared_ptr<Semaphore> &presentSemaphore);
-
         Buffer *createBuffer(const std::shared_ptr<const BufferInfo> &info);
         virtual CommandBuffer *createCommandBuffer();
         DescriptorSet *createDescriptorSet(const std::shared_ptr<DescriptorSetLayout> &layout);

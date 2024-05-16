@@ -25,13 +25,13 @@ namespace bg
         _background->post(f);
     }
 
-    void Queue::waitFence(const std::shared_ptr<gfx::Fence> &fence)
+    void Queue::wait(const std::shared_ptr<gfx::Fence> &fence)
     {
         logan::Semaphore semaphore;
         auto f = new auto(
             [=, &semaphore]()
             {
-                gfx::Queue::waitFence(fence);
+                gfx::Queue::wait(fence);
                 semaphore.signal();
             });
         _background->post(f);

@@ -149,7 +149,7 @@ export enum PrimitiveTopology {
 
 // copy values from VkPipelineStageFlagBits in vulkan_core.h
 export enum PipelineStageFlagBits {
-    PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400
+    COLOR_ATTACHMENT_OUTPUT = 0x00000400
 }
 
 export enum ClearFlagBits {

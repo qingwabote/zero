@@ -11,6 +11,7 @@ import { RenderPass } from "./RenderPass.js";
 import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
+import { Swapchain } from "./Swapchain.js";
 import { Texture } from "./Texture.js";
 import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
@@ -20,20 +21,12 @@ export declare interface Capabilities {
     readonly clipSpaceMinZ: number
 }
 
-export declare interface Swapchain {
-    readonly colorTexture: Texture;
-    readonly width: number;
-    readonly height: number
-}
-
 export declare class Device {
     get capabilities(): Capabilities;
     get swapchain(): Swapchain;
     get queue(): Queue;
 
     constructor(...args);
-
-    acquire(semaphore: Semaphore): void;
 
     createBuffer(info: BufferInfo): Buffer;
     createCommandBuffer(): CommandBuffer;

@@ -360,7 +360,7 @@ export class GLTF implements Asset {
             const submitInfo = new SubmitInfo;
             submitInfo.commandBuffer = _commandBuffer;
             device.queue.submit(submitInfo, _fence);
-            device.queue.waitFence(_fence);
+            device.queue.wait(_fence);
         } else {
             const info = new BufferInfo();
             info.usage = usage;

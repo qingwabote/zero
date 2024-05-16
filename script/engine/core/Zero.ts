@@ -55,9 +55,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private readonly _systems: readonly System[];
 
     private readonly _commandBuffer = boot.device.createCommandBuffer();
-    private readonly _presentSemaphore = boot.device.createSemaphore();
-    private readonly _renderSemaphore = boot.device.createSemaphore();
-    private readonly _renderFence = boot.device.createFence();
+    private readonly _swapchainAcquired = boot.device.createSemaphore();
+    private readonly _queueExecuted = boot.device.createSemaphore();
+    private readonly _fence = boot.device.createFence();
 
     private _time = boot.initial;
 
@@ -148,7 +148,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this.emit(Event.LOGIC_END);
 
         this.emit(Event.RENDER_START);
-        boot.device.acquire(this._presentSemaphore);
+        boot.device.swapchain.acquire(this._swapchainAcquired);
         this.scene.update();
         this._pipeline.update();
         this._commandBuffer.begin();
@@ -162,11 +162,11 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
 
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
-        submitInfo.waitSemaphore = this._presentSemaphore;
-        submitInfo.waitDstStageMask = PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        submitInfo.signalSemaphore = this._renderSemaphore;
-        boot.device.queue.submit(submitInfo, this._renderFence);
-        boot.device.queue.present(this._renderSemaphore);
-        boot.device.queue.waitFence(this._renderFence);
+        submitInfo.waitSemaphore = this._swapchainAcquired;
+        submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
+        submitInfo.signalSemaphore = this._queueExecuted;
+        boot.device.queue.submit(submitInfo, this._fence);
+        boot.device.queue.present(this._queueExecuted);
+        boot.device.queue.wait(this._fence);
     }
 } 

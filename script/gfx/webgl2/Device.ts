@@ -12,18 +12,13 @@ import { RenderPass } from "./RenderPass.js";
 import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
+import { Swapchain } from "./Swapchain.js";
 import { Texture } from "./Texture.js";
 import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
 export interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
     readonly clipSpaceMinZ: number
-}
-
-export interface Swapchain {
-    readonly colorTexture: Texture;
-    readonly width: number;
-    readonly height: number
 }
 
 export class Device implements Device {
@@ -49,11 +44,9 @@ export class Device implements Device {
             uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1
         }
-        this._swapchain = { colorTexture: new Texture(gl, true), width: gl.drawingBufferWidth, height: gl.drawingBufferHeight };
+        this._swapchain = new Swapchain(gl);
         this._gl = gl;
     }
-
-    acquire(semaphore: Semaphore): void { }
 
     createBuffer(info: BufferInfo): Buffer {
         const buffer = new Buffer(this._gl);

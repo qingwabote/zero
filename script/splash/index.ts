@@ -46,7 +46,7 @@ commandBuffer.end();
 const submitInfo = new SubmitInfo;
 submitInfo.commandBuffer = commandBuffer;
 device.queue.submit(submitInfo, fence);
-device.queue.waitFence(fence);
+device.queue.wait(fence);
 
 const shaderInfo = new ShaderInfo;
 shaderInfo.sources.add(vs);

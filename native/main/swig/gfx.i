@@ -187,7 +187,7 @@
 %newobject gfx::Device::createFence;
 %newobject gfx::Device::createFramebuffer;
 %newobject gfx::Device::createInputAssembler;
-%newobject gfx::Device::RenderPass;
+%newobject gfx::Device::createRenderPass;
 %newobject gfx::Device::createSampler;
 %newobject gfx::Device::createSemaphore;
 %newobject gfx::Device::createTexture;

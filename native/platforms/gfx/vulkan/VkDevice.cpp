@@ -5,8 +5,6 @@
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
 
-#include "VkSemaphore_impl.hpp"
-
 #include "glslang/Public/ShaderLang.h"
 
 namespace
@@ -286,11 +284,7 @@ namespace gfx
 
         _capabilities = std::make_unique<Capabilities>(_impl->limits().minUniformBufferOffsetAlignment, 0);
 
-        auto swapchain_color_info = std::make_shared<TextureInfo>();
-        swapchain_color_info->samples = SampleCountFlagBits::X1;
-        auto swapchain_color = std::make_shared<Texture>(_impl, true);
-        swapchain_color->initialize(swapchain_color_info);
-        _swapchain = std::make_unique<Swapchain>(std::move(swapchain_color), _impl->swapchainImageExtent().width, _impl->swapchainImageExtent().height);
+        _swapchain = std::make_unique<Swapchain>(_impl);
 
         _queue = getQueue();
 
@@ -298,8 +292,6 @@ namespace gfx
     }
 
     std::unique_ptr<Queue> Device::getQueue() { return std::make_unique<Queue>(_impl); }
-
-    void Device::acquire(const std::shared_ptr<Semaphore> &semaphore) { _impl->acquireNextImage(semaphore->impl()); }
 
     Buffer *Device::createBuffer(const std::shared_ptr<const BufferInfo> &info)
     {

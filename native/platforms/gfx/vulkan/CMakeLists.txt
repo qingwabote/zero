@@ -17,6 +17,7 @@ set(SRC_FILES
     VkFence.cpp
     VkSemaphore.cpp
     VkQueue.cpp
+    VkSwapchain.cpp
 
     tests/triangle.cpp
 )
