@@ -20,27 +20,27 @@ function merge(target: any, ...sources: any[]): any {
     return target;
 }
 
-export interface RasterizationState {
+interface RasterizationState {
     readonly cullMode: keyof typeof gfx.CullMode;
 }
 
-export interface DepthStencilState {
+interface DepthStencilState {
     readonly depthTestEnable: boolean;
 }
 
-export type BlendFactor = keyof typeof gfx.BlendFactor;
+type BlendFactor = keyof typeof gfx.BlendFactor;
 
 /**color(RGB) = (sourceColor * srcRGB) + (destinationColor * dstRGB)
  * color(A) = (sourceAlpha * srcAlpha) + (destinationAlpha * dstAlpha)
  * https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendFuncSeparate*/
-export interface BlendState {
+interface BlendState {
     readonly srcRGB: BlendFactor;
     readonly dstRGB: BlendFactor;
     readonly srcAlpha: BlendFactor;
     readonly dstAlpha: BlendFactor;
 }
 
-export interface Pass {
+interface Pass {
     switch?: string;
     type?: string;
     shader?: string;
@@ -52,7 +52,7 @@ export interface Pass {
     blendState?: BlendState;
 }
 
-export interface PassOverridden extends Pass {
+interface PassOverridden extends Pass {
     textures?: Record<string, gfx.Texture>;
 }
 
@@ -129,4 +129,8 @@ export class Effect extends Yml {
         }
         return passes;
     }
+}
+
+export declare namespace Effect {
+    export { RasterizationState, DepthStencilState, BlendFactor, BlendState, Pass, PassOverridden }
 }

@@ -2,13 +2,13 @@ import { EventEmitterImpl } from "bastard";
 import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
-import { Input, InputReadonly } from "./Input.js";
+import { Input } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { Scene } from "./render/Scene.js";
-import { Profile, ProfileReadonly } from "./render/pipeline/Profile.js";
+import { Profile } from "./render/pipeline/Profile.js";
 import { ChangeRecord } from "./render/scene/ChangeRecord.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
@@ -30,8 +30,6 @@ interface EventToListener {
 }
 
 export abstract class Zero extends EventEmitterImpl<EventToListener> implements boot.EventListener {
-    static readonly Event = Event;
-
     private static _instance: Zero;
     public static get instance(): Zero {
         return Zero._instance;
@@ -44,7 +42,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     }
 
     private readonly _input = new Input;
-    public get input(): InputReadonly {
+    public get input(): Input.Readonly {
         return this._input;
     }
 
@@ -62,7 +60,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private _time = boot.initial;
 
     private _profile = new Profile;
-    public get profile(): ProfileReadonly {
+    public get profile(): Profile.Readonly {
         return this._profile;
     }
 
@@ -169,4 +167,9 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         boot.device.queue.present(this._queueExecuted);
         boot.device.queue.wait(this._fence);
     }
-} 
+}
+Zero.Event = Event;
+
+export declare namespace Zero {
+    export { Event }
+}

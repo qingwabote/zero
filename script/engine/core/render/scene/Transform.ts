@@ -6,12 +6,12 @@ import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
 import { ChangeRecord } from "./ChangeRecord.js";
 
-export enum TransformChangeBit {
+enum ChangeBit {
     NONE = 0,
     POSITION = (1 << 0),
     ROTATION = (1 << 1),
     SCALE = (1 << 2),
-    TRS = TransformChangeBit.POSITION | TransformChangeBit.ROTATION | TransformChangeBit.SCALE,
+    TRS = ChangeBit.POSITION | ChangeBit.ROTATION | ChangeBit.SCALE,
 }
 
 const vec3_a = vec3.create();
@@ -38,7 +38,7 @@ export class Transform extends ChangeRecord implements TRS {
         this._explicit_visibility = value;
     }
 
-    private _changed = TransformChangeBit.TRS;
+    private _changed = ChangeBit.TRS;
 
     private _position = vec3.create();
     get position(): Readonly<Vec3> {
@@ -46,7 +46,7 @@ export class Transform extends ChangeRecord implements TRS {
     }
     set position(value: Readonly<Vec3Like>) {
         vec3.copy(this._position, value)
-        this.dirty(TransformChangeBit.POSITION);
+        this.dirty(ChangeBit.POSITION);
     }
 
     private _rotation = quat.create()
@@ -58,7 +58,7 @@ export class Transform extends ChangeRecord implements TRS {
     }
     set rotation(value: Readonly<QuatLike>) {
         vec4.copy(this._rotation, value)
-        this.dirty(TransformChangeBit.ROTATION);
+        this.dirty(ChangeBit.ROTATION);
     }
 
     private _scale = vec3.create(1, 1, 1);
@@ -67,7 +67,7 @@ export class Transform extends ChangeRecord implements TRS {
     }
     set scale(value: Readonly<Vec3Like>) {
         vec3.copy(this._scale, value)
-        this.dirty(TransformChangeBit.SCALE);
+        this.dirty(ChangeBit.SCALE);
     }
 
     private _euler = vec3.create();
@@ -76,7 +76,7 @@ export class Transform extends ChangeRecord implements TRS {
     }
     set euler(value: Readonly<Vec3Like>) {
         quat.fromEuler(this._rotation, value[0], value[1], value[2]);
-        this.dirty(TransformChangeBit.ROTATION);
+        this.dirty(ChangeBit.ROTATION);
     }
 
     private _world_position = vec3.create();
@@ -108,7 +108,7 @@ export class Transform extends ChangeRecord implements TRS {
 
         quat.conjugate(this._rotation, this._parent.world_rotation);
         quat.multiply(this._rotation, this._rotation, value);
-        this.dirty(TransformChangeBit.ROTATION);
+        this.dirty(ChangeBit.ROTATION);
     }
 
     private _world_scale = vec3.create(1, 1, 1);
@@ -133,7 +133,7 @@ export class Transform extends ChangeRecord implements TRS {
     }
     public set matrix(value: Readonly<Mat4Like>) {
         mat4.toTRS(value, this._position, this._rotation, this._scale);
-        this.dirty(TransformChangeBit.TRS);
+        this.dirty(ChangeBit.TRS);
     }
 
     private _world_matrix = mat4.create();
@@ -149,7 +149,7 @@ export class Transform extends ChangeRecord implements TRS {
     addChild(child: this): void {
         child._implicit_visibility = undefined;
         child._parent = this;
-        child.dirty(TransformChangeBit.TRS);
+        child.dirty(ChangeBit.TRS);
 
         this._children.push(child);
     }
@@ -180,7 +180,7 @@ export class Transform extends ChangeRecord implements TRS {
         this.world_rotation = quat_a;
     }
 
-    private dirty(flag: TransformChangeBit): void {
+    private dirty(flag: ChangeBit): void {
         this._changed |= flag;
         this.hasChanged |= flag;
         for (const child of this._children) {
@@ -189,7 +189,7 @@ export class Transform extends ChangeRecord implements TRS {
     }
 
     private update(): void {
-        if (this._changed == TransformChangeBit.NONE) return;
+        if (this._changed == ChangeBit.NONE) return;
 
         if (!this._parent) {
             mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
@@ -199,7 +199,7 @@ export class Transform extends ChangeRecord implements TRS {
             this._world_rotation.splice(0, this._rotation.length, ...this._rotation);
             this._world_scale.splice(0, this._scale.length, ...this._scale);
 
-            this._changed = TransformChangeBit.NONE;
+            this._changed = ChangeBit.NONE;
             return;
         }
 
@@ -215,6 +215,11 @@ export class Transform extends ChangeRecord implements TRS {
         mat3.multiplyMat4(mat3_a, mat3_a, this._world_matrix);
         vec3.set(this._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
 
-        this._changed = TransformChangeBit.NONE;
+        this._changed = ChangeBit.NONE;
     }
+}
+Transform.ChangeBit = ChangeBit;
+
+export declare namespace Transform {
+    export { ChangeBit }
 }

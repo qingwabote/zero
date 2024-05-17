@@ -1,18 +1,18 @@
 import { EventEmitterImpl, EventReceiver } from "bastard";
 import { TouchEvent, WheelEvent } from "boot";
 
-export enum TouchEventName {
+enum TouchEvents {
     START = "TOUCH_START",
     MOVE = "TOUCH_MOVE",
     END = "TOUCH_END",
 }
 
-export enum GestureEventName {
+enum GestureEvents {
     PINCH = "GESTURE_PINCH",
     ROTATE = "GESTURE_ROTATE"
 }
 
-export class GestureEvent implements TouchEvent {
+class GestureEvent implements TouchEvent {
     get count(): number {
         return this._event.count;
     }
@@ -33,15 +33,15 @@ export class GestureEvent implements TouchEvent {
 }
 
 interface EventToListener {
-    [TouchEventName.START]: (event: TouchEvent) => void;
-    [TouchEventName.MOVE]: (event: TouchEvent) => void;
-    [TouchEventName.END]: (event: TouchEvent) => void;
+    [TouchEvents.START]: (event: TouchEvent) => void;
+    [TouchEvents.MOVE]: (event: TouchEvent) => void;
+    [TouchEvents.END]: (event: TouchEvent) => void;
 
-    [GestureEventName.PINCH]: (event: GestureEvent) => void;
-    [GestureEventName.ROTATE]: (event: GestureEvent) => void;
+    [GestureEvents.PINCH]: (event: GestureEvent) => void;
+    [GestureEvents.ROTATE]: (event: GestureEvent) => void;
 }
 
-export interface InputReadonly extends EventReceiver<EventToListener> { }
+interface InputReadonly extends EventReceiver<EventToListener> { }
 
 function distance(event: TouchEvent) {
     const x = event.x(0) - event.x(1);
@@ -54,7 +54,7 @@ export class Input extends EventEmitterImpl<EventToListener> implements InputRea
 
     onTouchStart(event: TouchEvent) {
         if (event.count < 2) {
-            this.emit(TouchEventName.START, event);
+            this.emit(TouchEvents.START, event);
             return;
         }
 
@@ -62,21 +62,26 @@ export class Input extends EventEmitterImpl<EventToListener> implements InputRea
     }
     onTouchMove(event: TouchEvent) {
         if (event.count < 2) {
-            this.emit(TouchEventName.MOVE, event);
+            this.emit(TouchEvents.MOVE, event);
             return;
         }
 
         const d = distance(event);
-        this.emit(GestureEventName.PINCH, new GestureEvent(event, d - this._dist));
+        this.emit(GestureEvents.PINCH, new GestureEvent(event, d - this._dist));
         this._dist = d;
     }
     onTouchEnd(event: TouchEvent) {
-        this.emit(TouchEventName.END, event);
+        this.emit(TouchEvents.END, event);
     }
     onWheel(event: WheelEvent) {
-        this.emit(GestureEventName.PINCH, new GestureEvent(event, event.delta));
+        this.emit(GestureEvents.PINCH, new GestureEvent(event, event.delta));
     }
 }
+Input.TouchEvents = TouchEvents;
+Input.GestureEvents = GestureEvents;
 
-export { TouchEvent, WheelEvent };
+export declare namespace Input {
+    export { TouchEvents, GestureEvents, InputReadonly as Readonly, TouchEvent };
+    export type { GestureEvent };
+}
 

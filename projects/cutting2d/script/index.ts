@@ -1,6 +1,6 @@
-import { Camera, Node, Pipeline, TextRenderer, Texture, TouchEventName, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
+import { Camera, Input, Node, Pipeline, TextRenderer, Texture, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
 import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Profiler, Renderer } from "flex";
-import CuttingBoard, { CuttingBoardEventType } from "./CuttingBoard.js";
+import { CuttingBoard } from "./CuttingBoard.js";
 
 const favicon = await builtin.cache('favicon.ico', Texture);
 
@@ -54,7 +54,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'NORMAL';
             textRenderer.impl.color = text_color_normal;
-            textRenderer.emitter.on(TouchEventName.START, async event => {
+            textRenderer.emitter.on(Input.TouchEvents.START, async event => {
                 this.onPipelineText(normal, textRenderer.impl)
             })
             this.onPipelineText(normal, textRenderer.impl);
@@ -64,7 +64,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'MSAA';
             textRenderer.impl.color = text_color_normal;
-            textRenderer.emitter.on(TouchEventName.START, async event => {
+            textRenderer.emitter.on(Input.TouchEvents.START, async event => {
                 this.onPipelineText(msaa, textRenderer.impl)
             })
             pipelineBar.addElement(textRenderer);
@@ -73,7 +73,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'FXAA';
             textRenderer.impl.color = text_color_normal;
-            textRenderer.emitter.on(TouchEventName.START, async event => {
+            textRenderer.emitter.on(Input.TouchEvents.START, async event => {
                 this.onPipelineText(fxaa, textRenderer.impl)
             })
             pipelineBar.addElement(textRenderer);
@@ -85,7 +85,7 @@ export default class App extends Zero {
         cuttingBoard.texture = favicon.impl;
         cuttingBoard.setWidth(width);
         cuttingBoard.setHeight(height);
-        cuttingBoard.emitter.on(CuttingBoardEventType.POLYGONS_CHANGED, () => {
+        cuttingBoard.emitter.on(CuttingBoard.EventType.POLYGONS_CHANGED, () => {
             if (cuttingBoard.polygons.length > 9) {
                 cuttingBoard.reset();
             }

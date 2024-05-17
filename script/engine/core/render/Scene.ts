@@ -2,7 +2,7 @@ import { EventEmitterImpl, EventReceiver } from "bastard";
 import { Camera } from "./scene/Camera.js";
 import { DirectionalLight } from "./scene/DirectionalLight.js";
 import { Model } from "./scene/Model.js";
-import { ModelCollection, ModelCollectionReadonly } from "./scene/ModelCollection.js";
+import { ModelCollection } from "./scene/ModelCollection.js";
 
 enum Event {
     MODEL_UPDATE_START = 'MODEL_UPDATE_START',
@@ -30,7 +30,7 @@ export class Scene {
     }
 
     private _models_invalidated = true;
-    public get models(): ModelCollectionReadonly {
+    public get models(): ModelCollection.Readonly {
         return this._models;
     }
     public set models(value: ModelCollection) {

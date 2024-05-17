@@ -1,6 +1,6 @@
 import { TRS } from "../../core/math/TRS.js";
 import { AnimationClip } from "../AnimationClip.js";
-import { ChannelBinding, ChannelBindingValue } from "./ChannelBinding.js";
+import { ChannelBinding } from "./ChannelBinding.js";
 import { ChannelBindingQuat, ChannelBindingVec3 } from "./values.js";
 
 export class ClipBinging {
@@ -16,7 +16,7 @@ export class ClipBinging {
                 throw new Error(`unsupported interpolation: ${channel.sampler.interpolation}`);
             }
             const node = getTRS(channel.node)
-            let property: ChannelBindingValue;
+            let property: ChannelBinding.Value;
             switch (channel.path) {
                 case 'translation':
                     property = new ChannelBindingVec3(node, 'position');

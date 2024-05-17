@@ -10,7 +10,7 @@ interface Event2Listener {
     [Event.CULL_END]: () => void;
 }
 
-export interface ProfileReadonly extends EventReceiver<Event2Listener> {
+interface ProfileReadonly extends EventReceiver<Event2Listener> {
     get draws(): number;
     get stages(): number;
 }
@@ -38,4 +38,8 @@ export class Profile extends EventEmitterImpl<Event2Listener> implements Profile
         this._draws = 0;
         this._stages = 0;
     }
+}
+
+export declare namespace Profile {
+    export { ProfileReadonly as Readonly }
 }

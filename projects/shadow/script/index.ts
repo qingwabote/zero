@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, MaterialFunc, MaterialParams, Node, PassOverridden, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, render, scene, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, Effect, GLTF, GeometryRenderer, Input, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, Zero, aabb3d, bundle as builtin, device, render, scene, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -9,8 +9,8 @@ const VisibilityFlagBits = {
     WORLD: 1 << 30
 } as const
 
-const materialFunc: MaterialFunc = function (params: MaterialParams): [string, PassOverridden[]] {
-    const pass: PassOverridden = {
+const materialFunc: GLTF.MaterialFunc = function (params: GLTF.MaterialParams): [string, Effect.PassOverridden[]] {
+    const pass: Effect.PassOverridden = {
         macros: {
             USE_ALBEDO_MAP: params.texture ? 1 : 0,
             USE_SKIN: params.skin ? 1 : 0
@@ -191,7 +191,7 @@ export class App extends Zero {
                 textRenderer.impl.color = vec4.GREEN;
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
-                textRenderer.emitter.on(TouchEventName.START, async event => {
+                textRenderer.emitter.on(Input.TouchEvents.START, async event => {
                     if (textRenderer.impl.text == 'CSM OFF') {
                         textRenderer.impl.text = 'CSM ON';
                         textRenderer.impl.color = vec4.GREEN;
@@ -214,7 +214,7 @@ export class App extends Zero {
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.setPosition(Edge.Right, 0);
-                textRenderer.emitter.on(TouchEventName.START, async event => {
+                textRenderer.emitter.on(Input.TouchEvents.START, async event => {
                     const last = this.scene.models;
                     if (textRenderer.impl.text == 'TREE OFF') {
                         textRenderer.impl.text = 'TREE ON';

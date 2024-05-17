@@ -12,7 +12,7 @@ const vec2_a = vec2.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
 
-export enum CameraChangeBit {
+enum ChangeBit {
     NONE = 0,
     PROJ = 1 << 0,
     VIEW = 1 << 1,
@@ -91,12 +91,12 @@ export class Camera extends ChangeRecord {
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
 
-            super.hasChanged |= CameraChangeBit.PROJ;
+            super.hasChanged |= ChangeBit.PROJ;
         }
 
         if (this._view_invalidated) {
             mat4.invert(this._view, this.transform.world_matrix);
-            super.hasChanged |= CameraChangeBit.VIEW;
+            super.hasChanged |= ChangeBit.VIEW;
         }
 
         if (this._proj_invalidated || this._view_invalidated) {
@@ -143,4 +143,9 @@ export class Camera extends ChangeRecord {
 
         return vec2.set(out, x, y);
     }
+}
+Camera.ChangeBit = ChangeBit;
+
+export declare namespace Camera {
+    export { ChangeBit }
 }

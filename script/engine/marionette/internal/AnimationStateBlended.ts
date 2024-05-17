@@ -1,7 +1,7 @@
 import { AnimationState } from "./AnimationState.js";
 import { ClipBinging } from "./ClipBinging.js";
 
-export interface BlendContext {
+interface Context {
     weight: number;
     flush(): void;
 }
@@ -29,7 +29,7 @@ export class AnimationStateBlended extends AnimationState {
         this.updateWeights();
     }
 
-    constructor(private _clips: readonly ClipBinging[], private _thresholds: readonly number[], private _context: BlendContext) {
+    constructor(private _clips: readonly ClipBinging[], private _thresholds: readonly number[], private _context: Context) {
         super();
         this._weights = new Array(_clips.length);
     }
@@ -70,4 +70,8 @@ export class AnimationStateBlended extends AnimationState {
             weights[iGreater - 1] = (greater - input) / d;
         }
     }
+}
+
+export declare namespace AnimationStateBlended {
+    export { Context }
 }

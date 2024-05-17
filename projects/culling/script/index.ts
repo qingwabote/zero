@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, render, scene, vec3, vec4 } from "engine";
+import { Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, TextRenderer, TouchEvents, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, render, scene, vec3, vec4 } from "engine";
 import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 
@@ -172,7 +172,7 @@ class App extends Zero {
                     },
                 ]
                 let optionIndex = 0
-                textRenderer.emitter.on(TouchEventName.START, async event => {
+                textRenderer.emitter.on(TouchEvents.START, async event => {
                     options[optionIndex]();
                     optionIndex = (optionIndex + 1) % 3;
                 })

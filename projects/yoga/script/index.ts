@@ -1,4 +1,4 @@
-import { Camera, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle, device, render, vec3 } from "engine";
+import { Camera, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, TouchEvents, VisibilityFlagBits, Zero, bundle, device, render, vec3 } from "engine";
 import { Align, Document, Edge, Justify, PositionType, Profiler, Renderer } from "flex";
 
 const unlit = await (await bundle.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
@@ -28,7 +28,7 @@ class App extends Zero {
 
         const renderer = Renderer.create(SpriteRenderer);
         renderer.impl.spriteFrame = new SpriteFrame(favicon.impl);
-        renderer.emitter.on(TouchEventName.START, () => {
+        renderer.emitter.on(TouchEvents.START, () => {
             console.log('TOUCH_START', renderer.node.name)
         })
         doc.addElement(renderer);
@@ -38,7 +38,7 @@ class App extends Zero {
         profiler.positionType = PositionType.Absolute;
         profiler.setPosition(Edge.Left, 8)
         profiler.setPosition(Edge.Bottom, 8)
-        profiler.emitter.on(TouchEventName.START, () => {
+        profiler.emitter.on(TouchEvents.START, () => {
             console.log('TOUCH_START', profiler.node.name)
         })
         doc.addElement(profiler);

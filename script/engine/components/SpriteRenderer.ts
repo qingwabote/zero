@@ -9,7 +9,7 @@ import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
+import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
 
@@ -28,7 +28,7 @@ export class SpriteRenderer extends BoundedRenderer {
     public set spriteFrame(value) {
         this._spriteFrame = value;
         this._spriteFrame_invalidated = true;
-        this.emit(BoundsEventName.BOUNDS_CHANGED);
+        this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
     }
 
     public get bounds(): Readonly<AABB3D> {

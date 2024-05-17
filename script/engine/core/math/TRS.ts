@@ -1,15 +1,15 @@
 import { QuatLike } from "./quat.js";
 import { Vec3Like } from "./vec3.js";
 
-export interface Translation {
+interface Translation {
     position: Readonly<Vec3Like>;
 }
 
-export interface Rotation {
+interface Rotation {
     rotation: Readonly<QuatLike>;
 }
 
-export interface Scale {
+interface Scale {
     scale: Readonly<Vec3Like>;
 }
 

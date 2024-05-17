@@ -1,10 +1,10 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { TransformChangeBit } from "../../core/render/index.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
-import { CameraChangeBit } from "../../core/render/scene/Camera.js";
+import { Camera } from "../../core/render/scene/Camera.js";
+import { Transform } from "../../core/render/scene/Transform.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -50,13 +50,13 @@ export class CameraUBO extends UBO {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             const offset = (size / this._view.source.BYTES_PER_ELEMENT) * i;
-            if (dumping || (camera.hasChanged & CameraChangeBit.VIEW)) {
+            if (dumping || (camera.hasChanged & Camera.ChangeBit.VIEW)) {
                 this._view.set(camera.view, offset + Block.members.view.offset);
             }
-            if (dumping || (camera.hasChanged & CameraChangeBit.PROJ)) {
+            if (dumping || (camera.hasChanged & Camera.ChangeBit.PROJ)) {
                 this._view.set(camera.proj, offset + Block.members.projection.offset);
             }
-            if (dumping || (camera.transform.hasChanged & TransformChangeBit.POSITION)) {
+            if (dumping || (camera.transform.hasChanged & Transform.ChangeBit.POSITION)) {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }

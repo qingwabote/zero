@@ -17,7 +17,7 @@ import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { PassInstance } from "../scene/PassInstance.js";
-import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
+import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
 
@@ -143,7 +143,7 @@ export class TextRenderer extends BoundedRenderer {
             aabb2d.toExtremes(vec2_a, vec2_b, this._mesh.bounds);
             if (!vec2.equals(vec2_a, vec3.ZERO) || !vec2.equals(vec2_b, vec3.ZERO)) {
                 this._mesh.setBoundsByExtremes(vec3.ZERO, vec3.ZERO)
-                this.emit(BoundsEventName.BOUNDS_CHANGED);
+                this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
             }
 
             return;
@@ -224,7 +224,7 @@ export class TextRenderer extends BoundedRenderer {
         aabb2d.toExtremes(vec2_a, vec2_b, this._mesh.bounds);
         if (!vec2.equals(vec2_a, vec3_a) || !vec2.equals(vec2_b, vec3_b)) {
             this._mesh.setBoundsByExtremes(vec3_a, vec3_b)
-            this.emit(BoundsEventName.BOUNDS_CHANGED);
+            this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
         }
     }
 }

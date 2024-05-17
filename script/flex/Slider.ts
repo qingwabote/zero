@@ -1,6 +1,6 @@
 import { bundle } from "bundling";
-import { Node, SpriteFrame, SpriteRenderer, Texture, TouchEventName, Vec2, vec4 } from "engine";
-import { ElementEventToListener } from "./Element.js";
+import { Input, Node, SpriteFrame, SpriteRenderer, Texture, Vec2, vec4 } from "engine";
+import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";
 import * as yoga from "./yoga/index.js";
@@ -8,15 +8,15 @@ import * as yoga from "./yoga/index.js";
 const splash_texture = await bundle.cache('images/splash.png', Texture);
 const splash_frame = new SpriteFrame(splash_texture.impl);
 
-export enum SliderEventType {
+enum EventType {
     CHANGED = 'CHANGED'
 }
 
-export interface SliderEventToListener extends ElementEventToListener {
-    [SliderEventType.CHANGED]: () => void
+interface EventToListener extends Element.EventToListener {
+    [EventType.CHANGED]: () => void
 }
 
-export class Slider extends ElementContainer<SliderEventToListener> {
+export class Slider extends ElementContainer<EventToListener> {
     private _background: Renderer<SpriteRenderer>;
     private _foreground: Renderer<SpriteRenderer>;
 
@@ -48,10 +48,10 @@ export class Slider extends ElementContainer<SliderEventToListener> {
         this.addElement(foreground);
         this._foreground = foreground;
 
-        this.emitter.on(TouchEventName.START, (event) => {
+        this.emitter.on(Input.TouchEvents.START, (event) => {
             this.onTouch(event.touch.local)
         })
-        this.emitter.on(TouchEventName.MOVE, (event) => {
+        this.emitter.on(Input.TouchEvents.MOVE, (event) => {
             this.onTouch(event.touch.local)
         })
 
@@ -64,6 +64,11 @@ export class Slider extends ElementContainer<SliderEventToListener> {
 
     private onTouch(pos: Readonly<Vec2>) {
         this.value = pos[0] / (this.bounds.halfExtent[0] * 2)
-        this.emitter.emit(SliderEventType.CHANGED);
+        this.emitter.emit(EventType.CHANGED);
     }
+}
+Slider.EventType = EventType;
+
+export declare namespace Slider {
+    export { EventType }
 }

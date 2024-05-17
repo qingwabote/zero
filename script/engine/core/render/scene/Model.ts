@@ -20,8 +20,6 @@ enum ChangeBits {
 export class Model extends ChangeRecord {
     static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Local]);
 
-    static readonly ChangeBits = ChangeBits;
-
     readonly descriptorSet: DescriptorSet;
 
     private _bounds_invalidated = true;
@@ -101,4 +99,9 @@ export class Model extends ChangeRecord {
 
         super.hasChanged |= ChangeBits.UPLOAD;
     }
+}
+Model.ChangeBits = ChangeBits;
+
+export declare namespace Model {
+    export { ChangeBits }
 }

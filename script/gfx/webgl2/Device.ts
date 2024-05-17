@@ -16,7 +16,7 @@ import { Swapchain } from "./Swapchain.js";
 import { Texture } from "./Texture.js";
 import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
-export interface Capabilities {
+interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
     readonly clipSpaceMinZ: number
 }

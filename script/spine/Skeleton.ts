@@ -1,5 +1,5 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BoundedRenderer, BoundsEventName, Node, Shader, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { BoundedRenderer, Node, Shader, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
 import { AABB3D } from 'engine/core/math/aabb3d.js';
 import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
 import { Texture } from './Texture.js';
@@ -60,7 +60,7 @@ export class Skeleton extends BoundedRenderer {
         vec2.set(vec3_b, sc_vec2_b.x, sc_vec2_b.y);
         this._mesh.setBoundsByRect(vec3_a, vec3_b)
         this._skeleton = skeleton;
-        this.emit(BoundsEventName.BOUNDS_CHANGED);
+        this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
     }
 
     private _vertexView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);

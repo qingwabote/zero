@@ -1,35 +1,35 @@
 import { EventEmitter, EventEmitterImpl, SmartRef } from "bastard";
-import { AABB2D, Component, GestureEventName, Node, TouchEventName, Vec2, aabb2d, vec2, vec3 } from "engine";
+import { AABB2D, Component, Input, Node, Vec2, aabb2d, vec2, vec3 } from "engine";
 import { LayoutSystem } from "./LayoutSystem.js";
 import * as yoga from "./yoga/index.js";
 
 const vec3_a = vec3.create();
 
-export interface Touch {
+interface Touch {
     world: Readonly<Vec2>;
     local: Readonly<Vec2>;
 }
 
-export interface TouchEvent {
+interface TouchEvent {
     readonly touch: Touch;
 }
 
-export interface GestureEvent extends TouchEvent {
+interface GestureEvent extends TouchEvent {
     readonly touch: Touch;
     readonly delta: number;
 }
 
-export interface ElementEventToListener {
-    [TouchEventName.START]: (event: TouchEvent) => void;
-    [TouchEventName.MOVE]: (event: TouchEvent) => void;
-    [TouchEventName.END]: () => void;
-    [GestureEventName.PINCH]: (event: GestureEvent) => void;
-    [GestureEventName.ROTATE]: (event: GestureEvent) => void;
+interface EventToListener {
+    [Input.TouchEvents.START]: (event: TouchEvent) => void;
+    [Input.TouchEvents.MOVE]: (event: TouchEvent) => void;
+    [Input.TouchEvents.END]: () => void;
+    [Input.GestureEvents.PINCH]: (event: GestureEvent) => void;
+    [Input.GestureEvents.ROTATE]: (event: GestureEvent) => void;
 }
 
 function yg_node_free(node: yoga.Node) { node.free(); }
 
-export abstract class Element<T extends ElementEventToListener = ElementEventToListener> extends Component {
+export abstract class Element<T extends EventToListener = EventToListener> extends Component {
     private _emitter: EventEmitter<T> | undefined = undefined;
     public get emitter() {
         return this._emitter ?? (this._emitter = new EventEmitterImpl);
@@ -82,4 +82,8 @@ export abstract class Element<T extends ElementEventToListener = ElementEventToL
         vec2.set(this._bounds.halfExtent, layout.width / 2, layout.height / 2);
         vec2.set(this._bounds.center, layout.width / 2, -layout.height / 2);
     }
+}
+
+export declare namespace Element {
+    export { Touch, TouchEvent, GestureEvent, EventToListener }
 }

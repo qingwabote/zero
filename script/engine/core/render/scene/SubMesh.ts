@@ -1,6 +1,6 @@
 import { InputAssembler } from "gfx";
 
-export interface DrawInfo {
+interface DrawInfo {
     count: number;
     first: number;
 }

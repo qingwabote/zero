@@ -13,9 +13,9 @@ import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { AnimationClip, Channel } from "../marionette/AnimationClip.js";
+import { AnimationClip } from "../marionette/AnimationClip.js";
 import { MaterialInstance } from "../scene/MaterialInstance.js";
-import { Effect, PassOverridden } from "./Effect.js";
+import { Effect } from "./Effect.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
 
@@ -52,13 +52,13 @@ function node2name(node: any, index: number): string {
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
-export interface MaterialParams {
+interface MaterialParams {
     albedo: Readonly<Vec4>;
     skin: boolean;
     texture?: Texture;
 }
 
-export type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<PassOverridden>[]];
+type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<Effect.PassOverridden>[]];
 
 const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
     return [
@@ -130,7 +130,7 @@ export class GLTF implements Asset {
 
     private _meshes: Mesh[] = [];
 
-    private _instances: Record<string, GLTFInstance> = {};
+    private _instances: Record<string, Instance> = {};
 
     async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
@@ -180,7 +180,7 @@ export class GLTF implements Asset {
 
         // animation
         for (const animation of json.animations || []) {
-            const channels: Channel[] = []
+            const channels: AnimationClip.Channel[] = []
             for (const channel of animation.channels) {
                 const sampler = animation.samplers[channel.sampler];
 
@@ -227,7 +227,7 @@ export class GLTF implements Asset {
         return this;
     }
 
-    async instantiate(macros?: Record<string, number>, materialFunc = materialFuncPhong): Promise<GLTFInstance> {
+    async instantiate(macros?: Record<string, number>, materialFunc = materialFuncPhong): Promise<Instance> {
         let instanceKey = materialFuncHash(materialFunc).toString();
         if (macros) {
             const names = Object.keys(macros).sort();
@@ -250,7 +250,7 @@ export class GLTF implements Asset {
                     skin: this._json.skins != undefined
                 }), macros));
             }
-            instance = new GLTFInstance(this, materials, materialDefault);
+            instance = new Instance(this, materials, materialDefault);
             this._instances[instanceKey] = instance;
         }
         return instance;
@@ -374,14 +374,14 @@ export class GLTF implements Asset {
         return this._buffers[index] = buffer;
     }
 
-    private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<PassOverridden>[], macros?: Record<string, number>) {
+    private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
         const effect = await cache(effectUrl, Effect)
         const passes = await effect.createPasses(passOverriddens, macros);
         return new Material(passes);
     }
 }
 
-export class GLTFInstance {
+class Instance {
     constructor(readonly proto: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
 
     createScene(name?: string, materialInstancing = false): Node | null {
@@ -457,4 +457,8 @@ export class GLTFInstance {
         }
         return materials;
     }
+}
+
+export declare namespace GLTF {
+    export { MaterialParams, MaterialFunc }
 }

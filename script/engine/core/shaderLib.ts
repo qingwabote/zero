@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Shader, ShaderInfo, ShaderStageFlagBits, Uniform, glsl } from "gfx";
+import { DescriptorSetLayout, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Shader, ShaderInfo, ShaderStageFlagBits, glsl } from "gfx";
 import { Shader as ShaderAsset } from "../assets/Shader.js";
 import { preprocessor } from "./internal/preprocessor.js";
 
@@ -38,16 +38,16 @@ const sets = {
     }
 } as const
 
-export interface UniformDefinition {
+interface Uniform {
     type: DescriptorType,
     stageFlags: ShaderStageFlagBits,
     binding: number
 }
 
-export interface Meta {
+interface Meta {
     readonly key: string;
-    readonly blocks: Record<string, Uniform>;
-    readonly samplerTextures: Record<string, Uniform>;
+    readonly blocks: Record<string, glsl.Uniform>;
+    readonly samplerTextures: Record<string, glsl.Uniform>;
 }
 
 const _key2shader: Record<string, Shader> = {};
@@ -61,7 +61,7 @@ const _macros: Readonly<Record<string, number>> = {
 export const shaderLib = {
     sets,
 
-    createDescriptorSetLayoutBinding(uniform: UniformDefinition): DescriptorSetLayoutBinding {
+    createDescriptorSetLayoutBinding(uniform: Uniform): DescriptorSetLayoutBinding {
         const binding = new DescriptorSetLayoutBinding;
         binding.descriptorType = uniform.type;
         binding.stageFlags = uniform.stageFlags;
@@ -70,7 +70,7 @@ export const shaderLib = {
         return binding;
     },
 
-    createDescriptorSetLayout(uniforms: UniformDefinition[]) {
+    createDescriptorSetLayout(uniforms: Uniform[]) {
         const info = new DescriptorSetLayoutInfo;
         for (const uniform of uniforms) {
             info.bindings.add(this.createDescriptorSetLayoutBinding(uniform));

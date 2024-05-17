@@ -4,7 +4,7 @@ import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, DepthStencilSta
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
-import { FrustumVertices } from "../core/math/frustum.js";
+import { frustum } from "../core/math/frustum.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
@@ -175,7 +175,7 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(right_up_far, right_down_far, color);
     }
 
-    drawFrustum(frustum: Readonly<FrustumVertices>, color = vec4.ONE) {
+    drawFrustum(frustum: Readonly<frustum.Vertices>, color = vec4.ONE) {
         this.drawLine(frustum[0], frustum[1], color);
         this.drawLine(frustum[1], frustum[2], color);
         this.drawLine(frustum[2], frustum[3], color);
