@@ -16,7 +16,6 @@ import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { PassInstance } from "../scene/PassInstance.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
@@ -43,7 +42,7 @@ const pass = await (async function () {
 
     const pass = Pass.Pass(state);
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
-    pass.setUniform('Props', 'albedo', default_color);
+    pass.setProperty('albedo', default_color);
     return pass;
 })()
 
@@ -63,7 +62,7 @@ const vec3_b = vec3.create();
 export class TextRenderer extends BoundedRenderer {
     private _dirties: DirtyFlagBits = DirtyFlagBits.TEXT;
 
-    private _pass = PassInstance.PassInstance(pass);
+    private _pass = pass.instantiate()
 
     private _text: string = "";
     get text(): string {
@@ -82,7 +81,7 @@ export class TextRenderer extends BoundedRenderer {
         return this._color;
     }
     public set color(value: Readonly<Vec4>) {
-        this._pass.setUniform('Props', 'albedo', value);
+        this._pass.setProperty('albedo', value);
         this._color = value;
     }
 
@@ -127,7 +126,7 @@ export class TextRenderer extends BoundedRenderer {
 
         this._vertexView.update();
 
-        this._mesh.subMeshes[0].drawInfo.count = 6 * this._quads;
+        this._mesh.subMeshes[0].draw.count = 6 * this._quads;
     }
 
     private updateData(): void {

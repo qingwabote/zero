@@ -335,13 +335,6 @@ namespace gfx
         return framebuffer;
     }
 
-    InputAssembler *Device::createInputAssembler(const std::shared_ptr<InputAssemblerInfo> &info)
-    {
-        auto inputAssembler = new InputAssembler(_impl);
-        inputAssembler->initialize(info);
-        return inputAssembler;
-    }
-
     Pipeline *Device::createPipeline(const std::shared_ptr<PipelineInfo> &info)
     {
         auto pipeline = new Pipeline(_impl);

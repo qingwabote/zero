@@ -31,7 +31,6 @@ namespace gfx
     class CommandBuffer;
     class Fence;
     class Semaphore;
-    class InputAssembler;
 
     using FloatVector = std::vector<float>;
     using Uint32Vector = std::vector<uint32_t>;
@@ -213,6 +212,8 @@ namespace gfx
         uint32_t format;
         uint32_t buffer;
         uint32_t offset;
+        uint32_t location;
+        bool instanced;
     };
     using VertexAttributeVector = std::vector<std::shared_ptr<VertexAttribute>>;
 
@@ -232,7 +233,7 @@ namespace gfx
         std::shared_ptr<Buffer> buffer;
         IndexType type{0};
     };
-    struct InputAssemblerInfo
+    struct InputAssembler
     {
         std::shared_ptr<VertexAttributeVector> vertexAttributes{new VertexAttributeVector()};
         std::shared_ptr<VertexInput> vertexInput;

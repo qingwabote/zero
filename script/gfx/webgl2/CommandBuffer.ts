@@ -2,12 +2,10 @@ import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, 
 import { Buffer } from "./Buffer.js";
 import { DescriptorSet } from "./DescriptorSet.js";
 import { Framebuffer } from "./Framebuffer.js";
-import { InputAssembler } from "./InputAssembler.js";
 import { Pipeline } from "./Pipeline.js";
 import { RenderPass } from "./RenderPass.js";
-import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
-import { AttachmentDescription, DescriptorSetLayoutBinding, InputAssemblerInfo, PipelineInfo, Uint32Vector, Vector, VertexAttribute } from "./info.js";
+import { AttachmentDescription, DescriptorSetLayoutBinding, InputAssembler, PipelineInfo, Uint32Vector, Vector, VertexAttribute } from "./info.js";
 
 function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
@@ -20,21 +18,17 @@ function bendFactor2WebGL(factor: BlendFactor): GLenum {
     }
 }
 
-const input2vao: WeakMap<InputAssemblerInfo, WeakMap<Shader, WebGLVertexArrayObject>> = new WeakMap;
+const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
 
 export class CommandBuffer {
-    private _gl: WebGL2RenderingContext;
-
     private _pipeline!: PipelineInfo;
 
-    private _inputAssembler!: InputAssemblerInfo;
+    private _inputAssembler!: InputAssembler;
 
     private _framebuffer!: Framebuffer;
     private _viewport!: { x: number, y: number, width: number, height: number };
 
-    constructor(gl: WebGL2RenderingContext) {
-        this._gl = gl;
-    }
+    constructor(private _gl: WebGL2RenderingContext) { }
 
     begin(): void { }
 
@@ -148,10 +142,10 @@ export class CommandBuffer {
     }
 
     bindInputAssembler(inputAssembler: InputAssembler): void {
-        this._inputAssembler = inputAssembler.info;
+        this._inputAssembler = inputAssembler;
     }
 
-    draw(vertexCount: number): void {
+    draw(vertexCount: number, instanceCount: number): void {
         this.bindVertexArray();
 
         const gl = this._gl;
@@ -167,11 +161,12 @@ export class CommandBuffer {
             default:
                 throw `unsupported primitive: ${this._pipeline.passState.primitive}`
         }
-        gl.drawArrays(mode, 0, vertexCount);
+        // gl.drawArrays(mode, 0, vertexCount);
+        gl.drawArraysInstanced(mode, 0, vertexCount, instanceCount);
         gl.bindVertexArray(null);
     }
 
-    drawIndexed(indexCount: number, firstIndex: number) {
+    drawIndexed(indexCount: number, firstIndex: number, instanceCount: number) {
         this.bindVertexArray();
 
         const indexInput = this._inputAssembler!.indexInput!;
@@ -192,7 +187,8 @@ export class CommandBuffer {
         }
 
         const gl = this._gl;
-        gl.drawElements(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || type_bytes) * firstIndex);
+        // gl.drawElements(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || type_bytes) * firstIndex);
+        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || type_bytes) * firstIndex, instanceCount);
         gl.bindVertexArray(null);
     }
 
@@ -218,73 +214,67 @@ export class CommandBuffer {
         const gl = this._gl;
 
         const inputAssembler = this._inputAssembler
-        const shader = this._pipeline.passState.shader;
 
-        let vao = input2vao.get(inputAssembler)?.get(shader);
+        let vao = input2vao.get(inputAssembler);
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
             const attributes = (inputAssembler.vertexAttributes as Vector<VertexAttribute>).data;
             for (const attribute of attributes) {
-                const location = gl.getAttribLocation(shader.impl, attribute.name);
-                if (location != -1) {
-                    const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.buffer];
-                    const offset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
-                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
-                    gl.enableVertexAttribArray(location);
-                    const formatInfo = FormatInfos[attribute.format];
-                    const stride = buffer.info.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
-                    let type: GLenum;
-                    let isInteger: boolean;
-                    switch (attribute.format) {
-                        case Format.RG32_SFLOAT:
-                        case Format.RGB32_SFLOAT:
-                        case Format.RGBA32_SFLOAT:
-                            type = WebGL2RenderingContext.FLOAT;
-                            isInteger = false;
-                            break;
-                        case Format.RGBA8_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_BYTE;
-                            isInteger = true;
-                            break;
-                        case Format.RGBA16_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_SHORT;
-                            isInteger = true;
-                            break;
-                        case Format.RGBA32_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_INT;
-                            isInteger = true;
-                            break;
-                        default:
-                            throw 'unsupported vertex type';
-                    }
-                    if (isInteger) {
-                        gl.vertexAttribIPointer(
-                            location,
-                            formatInfo.nums,
-                            type,
-                            stride, offset + attribute.offset);
-                    } else {
-                        gl.vertexAttribPointer(
-                            location,
-                            formatInfo.nums,
-                            type,
-                            false,
-                            stride,
-                            offset + attribute.offset);
-                    }
+                const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.buffer];
+                const offset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
+                gl.enableVertexAttribArray(attribute.location);
+                const formatInfo = FormatInfos[attribute.format];
+                const stride = buffer.info.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
+                let type: GLenum;
+                let isInteger: boolean;
+                switch (attribute.format) {
+                    case Format.RG32_SFLOAT:
+                    case Format.RGB32_SFLOAT:
+                    case Format.RGBA32_SFLOAT:
+                        type = WebGL2RenderingContext.FLOAT;
+                        isInteger = false;
+                        break;
+                    case Format.RGBA8_UINT:
+                        type = WebGL2RenderingContext.UNSIGNED_BYTE;
+                        isInteger = true;
+                        break;
+                    case Format.RGBA16_UINT:
+                        type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                        isInteger = true;
+                        break;
+                    case Format.RGBA32_UINT:
+                        type = WebGL2RenderingContext.UNSIGNED_INT;
+                        isInteger = true;
+                        break;
+                    default:
+                        throw 'unsupported vertex type';
+                }
+                if (isInteger) {
+                    gl.vertexAttribIPointer(
+                        attribute.location,
+                        formatInfo.nums,
+                        type,
+                        stride, offset + attribute.offset);
+                } else {
+                    gl.vertexAttribPointer(
+                        attribute.location,
+                        formatInfo.nums,
+                        type,
+                        false,
+                        stride,
+                        offset + attribute.offset);
+                }
+                if (attribute.instanced) {
+                    gl.vertexAttribDivisor(attribute.location, 1);
                 }
             }
             if (inputAssembler.indexInput) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, (inputAssembler.indexInput.buffer).impl);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, inputAssembler.indexInput.buffer.impl);
             }
 
-            let map = input2vao.get(inputAssembler);
-            if (!map) {
-                map = new Map;
-                input2vao.set(inputAssembler, map);
-            }
-            map.set(shader, vao);
+            input2vao.set(inputAssembler, vao);
 
             gl.bindVertexArray(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);

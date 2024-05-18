@@ -41,8 +41,8 @@
             "root": "dist/subpackages/projects/cutting2d"
         },
         {
-            "name": "yoga",
-            "root": "dist/subpackages/projects/yoga"
+            "name": "instancing",
+            "root": "dist/subpackages/projects/instancing"
         }
     ],
     "deviceOrientation": "portrait"

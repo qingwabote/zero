@@ -2,7 +2,6 @@ import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, For
 import { Buffer } from "./Buffer.js";
 import { CommandBuffer } from "./CommandBuffer.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
-import { InputAssembler } from "./InputAssembler.js";
 import { PipelineLayout } from "./PipelineLayout.js";
 import { RenderPass } from "./RenderPass.js";
 import { Semaphore } from "./Semaphore.js";
@@ -23,9 +22,9 @@ export abstract class Vector<T> {
     }
 }
 
-export class FloatVector extends Vector<number>{ };
-export class Uint32Vector extends Vector<number>{ };
-export class StringVector extends Vector<string>{ };
+export class FloatVector extends Vector<number> { };
+export class Uint32Vector extends Vector<number> { };
+export class StringVector extends Vector<string> { };
 
 
 export class BufferInfo {
@@ -42,7 +41,7 @@ export class DescriptorSetLayoutBinding {
     descriptorCount: number = 0;
     stageFlags: ShaderStageFlagBits = 0;
 }
-export class DescriptorSetLayoutBindingVector extends Vector<DescriptorSetLayoutBinding>{ };
+export class DescriptorSetLayoutBindingVector extends Vector<DescriptorSetLayoutBinding> { };
 export class DescriptorSetLayoutInfo {
     bindings: DescriptorSetLayoutBindingVector = new DescriptorSetLayoutBindingVector;
 }
@@ -52,7 +51,7 @@ export class AttachmentDescription {
     initialLayout: ImageLayout = 0;
     finalLayout: ImageLayout = 0;
 }
-export class AttachmentDescriptionVector extends Vector<AttachmentDescription>{ };
+export class AttachmentDescriptionVector extends Vector<AttachmentDescription> { };
 export class RenderPassInfo {
     colors: AttachmentDescriptionVector = new AttachmentDescriptionVector;
     depthStencil: AttachmentDescription = new AttachmentDescription;
@@ -67,7 +66,7 @@ export class TextureInfo {
     height: number = 0;
 }
 
-export class TextureVector extends Vector<Texture>{ };
+export class TextureVector extends Vector<Texture> { };
 export class FramebufferInfo {
     colors: TextureVector = new TextureVector;
     depthStencil!: Texture;
@@ -87,7 +86,7 @@ export class ShaderInfo {
     types: Uint32Vector = new Uint32Vector;
 }
 
-export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout>{ };
+export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout> { };
 export class PipelineLayoutInfo {
     layouts: DescriptorSetLayoutVector = new DescriptorSetLayoutVector;
 }
@@ -97,8 +96,10 @@ export class VertexAttribute {
     format: Format = 0;
     buffer: number = 0;
     offset: number = 0;
+    location: number = 0;
+    instanced: boolean = false;
 }
-export class BufferVector extends Vector<Buffer>{ };
+export class BufferVector extends Vector<Buffer> { };
 export class VertexInput {
     buffers: BufferVector = new BufferVector;
     offsets: Uint32Vector = new Uint32Vector;
@@ -107,8 +108,8 @@ export class IndexInput {
     buffer!: Buffer;
     type: IndexType = 0;
 }
-export class VertexAttributeVector extends Vector<VertexAttribute>{ };
-export class InputAssemblerInfo {
+export class VertexAttributeVector extends Vector<VertexAttribute> { };
+export class InputAssembler {
     vertexAttributes: VertexAttributeVector = new VertexAttributeVector;
     vertexInput!: VertexInput;
     indexInput?: IndexInput = undefined;

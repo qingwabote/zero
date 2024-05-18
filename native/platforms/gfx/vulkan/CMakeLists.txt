@@ -9,7 +9,6 @@ set(SRC_FILES
     VkShader.cpp
     VkRenderPass.cpp
     VkFramebuffer.cpp
-    VkInputAssembler.cpp
     VkPipelineLayout.cpp
     VkPipeline.cpp
     VkDescriptorSetLayout.cpp

@@ -3,8 +3,6 @@ import { Texture } from "./Texture.js";
 import { FramebufferInfo, Vector } from "./info.js";
 
 export class Framebuffer {
-    private _gl: WebGL2RenderingContext;
-
     private _impl: WebGLFramebuffer | null = null;
     /** null for default framebuffer */
     get impl(): WebGLFramebuffer | null {
@@ -16,9 +14,7 @@ export class Framebuffer {
         return this._info;
     }
 
-    constructor(gl: WebGL2RenderingContext) {
-        this._gl = gl;
-    }
+    constructor(private _gl: WebGL2RenderingContext) { }
 
     initialize(info: FramebufferInfo): boolean {
         this._info = info;

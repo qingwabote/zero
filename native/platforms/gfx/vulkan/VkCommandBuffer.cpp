@@ -206,7 +206,7 @@ namespace gfx
         static std::vector<VkBuffer> vertexBuffers;
         static std::vector<VkDeviceSize> vertexOffsets;
 
-        auto &vertexInput = inputAssembler->info()->vertexInput;
+        auto &vertexInput = inputAssembler->vertexInput;
         vertexBuffers.resize(vertexInput->buffers->size());
         for (size_t i = 0; i < vertexBuffers.size(); i++)
         {
@@ -219,7 +219,7 @@ namespace gfx
         }
         vkCmdBindVertexBuffers(_impl->_commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), vertexOffsets.data());
 
-        auto &indexInput = inputAssembler->info()->indexInput;
+        auto &indexInput = inputAssembler->indexInput;
         if (indexInput)
         {
             // WebGL can not specify the offset of the index buffer at buffer binding
@@ -233,16 +233,16 @@ namespace gfx
         _impl->_pipeline = pipeline;
     }
 
-    void CommandBuffer::draw(uint32_t vertexCount)
+    void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount)
     {
         _impl->bindDescriptorSets();
-        vkCmdDraw(_impl->_commandBuffer, vertexCount, 1, 0, 0);
+        vkCmdDraw(_impl->_commandBuffer, vertexCount, instanceCount, 0, 0);
     }
 
-    void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex)
+    void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount)
     {
         _impl->bindDescriptorSets();
-        vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, 1, firstIndex, 0, 0);
+        vkCmdDrawIndexed(_impl->_commandBuffer, indexCount, instanceCount, firstIndex, 0, 0);
     }
 
     void CommandBuffer::endRenderPass()

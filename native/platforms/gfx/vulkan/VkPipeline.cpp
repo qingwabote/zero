@@ -13,7 +13,6 @@
 #include "gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
 
-#include "gfx/InputAssembler.hpp"
 #include "gfx/Buffer.hpp"
 
 namespace gfx
@@ -117,32 +116,34 @@ namespace gfx
 
         // vertexInputState
         VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
-        auto &gfx_vertexAttributes = info->inputAssembler->info()->vertexAttributes;
+        auto &gfx_vertexAttributes = info->inputAssembler->vertexAttributes;
         std::vector<VkVertexInputAttributeDescription> attributes;
         for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
         {
             auto &gfx_attribute = gfx_vertexAttributes->at(i);
-            auto it = gfx_shader->impl()->attributeLocations().find(gfx_attribute->name);
-            if (it != gfx_shader->impl()->attributeLocations().end())
+            auto &attributesConsumed = gfx_shader->impl()->attributeLocations();
+            if (attributesConsumed.find(gfx_attribute->name) == attributesConsumed.end())
             {
-                VkVertexInputAttributeDescription attribute;
-                attribute.location = it->second;
-                attribute.binding = gfx_attribute->buffer;
-                // the format in buffer can be different from the format in shader,
-                // use the format in buffer to make sure type conversion can be done correctly by graphics api.
-                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
-                attribute.format = static_cast<VkFormat>(gfx_attribute->format);
-                attribute.offset = gfx_attribute->offset;
-                attributes.push_back(attribute);
+                // avoid warning "Vertex attribute not consumed by vertex shader"
+                continue;
             }
+            VkVertexInputAttributeDescription attribute{};
+            attribute.location = gfx_attribute->location;
+            attribute.binding = gfx_attribute->buffer;
+            // the format in buffer can be different from the format in shader,
+            // use the format in buffer to make sure type conversion can be done correctly by graphics api.
+            // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
+            attribute.format = static_cast<VkFormat>(gfx_attribute->format);
+            attribute.offset = gfx_attribute->offset;
+            attributes.push_back(attribute);
         }
         vertexInputState.vertexAttributeDescriptionCount = attributes.size();
         vertexInputState.pVertexAttributeDescriptions = attributes.data();
-        auto &gfx_vertexBuffers = info->inputAssembler->info()->vertexInput->buffers;
+        auto &gfx_vertexBuffers = info->inputAssembler->vertexInput->buffers;
         std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_vertexBuffers->size()};
         for (size_t binding = 0; binding < gfx_vertexBuffers->size(); binding++)
         {
-            auto gfx_buffer = gfx_vertexBuffers->at(binding);
+            auto &gfx_buffer = gfx_vertexBuffers->at(binding);
             auto stride = gfx_buffer->info()->stride;
             if (stride == 0)
             {
@@ -156,7 +157,19 @@ namespace gfx
                 }
             }
             bindingDescriptions[binding].stride = stride;
-            bindingDescriptions[binding].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            auto inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            for (auto &&attribute : *gfx_vertexAttributes)
+            {
+                if (attribute->buffer == binding)
+                {
+                    if (attribute->instanced)
+                    {
+                        inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+                    }
+                    break;
+                }
+            }
+            bindingDescriptions[binding].inputRate = inputRate;
             bindingDescriptions[binding].binding = binding;
         }
         vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();

@@ -10,7 +10,6 @@
 #include "RenderPass.hpp"
 #include "Framebuffer.hpp"
 #include "DescriptorSetLayout.hpp"
-#include "InputAssembler.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
 #include "CommandBuffer.hpp"
@@ -52,7 +51,6 @@ namespace gfx
         DescriptorSetLayout *createDescriptorSetLayout(const std::shared_ptr<DescriptorSetLayoutInfo> &info);
         Fence *createFence(bool signaled = false);
         Framebuffer *createFramebuffer(const std::shared_ptr<FramebufferInfo> &info);
-        InputAssembler *createInputAssembler(const std::shared_ptr<InputAssemblerInfo> &info);
         Pipeline *createPipeline(const std::shared_ptr<PipelineInfo> &info);
         PipelineLayout *createPipelineLayout(const std::shared_ptr<PipelineLayoutInfo> &info);
         RenderPass *createRenderPass(const std::shared_ptr<RenderPassInfo> &info);

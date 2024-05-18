@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits } from "gfx";
+import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
@@ -18,10 +18,7 @@ const mat4_a = mat4.create();
 const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
 
 export class SkinnedModel extends Model {
-    static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([
-        shaderLib.sets.local.uniforms.Local,
-        shaderLib.sets.local.uniforms.Skin
-    ]);
+    protected static _descriptorSetLayout?: DescriptorSetLayout = undefined;
 
     private _joints: readonly Transform[] | undefined = undefined;
 
@@ -41,24 +38,35 @@ export class SkinnedModel extends Model {
         this._joints = undefined;
     }
 
-    private _skinBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
-
     constructor(transform: Transform, mesh: Mesh, materials: readonly Material[], private _skin: Skin) {
         super(transform, mesh, materials);
-        this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
     }
 
-    override upload(): void {
-        super.upload();
+    getDescriptorSetLayout(): DescriptorSetLayout {
+        if (SkinnedModel._descriptorSetLayout) {
+            return SkinnedModel._descriptorSetLayout;
+        }
+        return SkinnedModel._descriptorSetLayout = shaderLib.createDescriptorSetLayout([
+            shaderLib.sets.local.uniforms.Skin
+        ]);
+    }
+
+    createUniformBuffers(descriptorSet: DescriptorSet): BufferView[] {
+        const skin = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
+        descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, skin.buffer);
+        return [skin];
+    }
+
+    override fillBuffers(buffers: BufferView[]): void {
+        super.fillBuffers(buffers);
         if (!this._joints) {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths)!);
         }
         for (let i = 0; i < this._joints.length; i++) {
             const joint = this._joints[i];
             this.updateModelSpace(joint);
-            this._skinBuffer.set(mat4.multiply(mat4_a, joint2modelSpace.get(joint)!.matrix, this._skin.inverseBindMatrices[i]), 16 * i);
+            buffers[0].set(mat4.multiply(mat4_a, joint2modelSpace.get(joint)!.matrix, this._skin.inverseBindMatrices[i]), 16 * i);
         }
-        this._skinBuffer.update()
     }
 
     private updateModelSpace(joint: Transform) {

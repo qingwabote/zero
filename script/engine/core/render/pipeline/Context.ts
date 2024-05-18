@@ -16,8 +16,7 @@ export class Context {
      * @param renderPass a compatible renderPass
      */
     getPipeline(passState: PassState, inputAssembler: InputAssembler, renderPass: RenderPass, layouts?: readonly DescriptorSetLayout[]): Pipeline {
-        const inputAssemblerInfo = inputAssembler.info;
-        const pipelineHash = hashLib.passState(passState) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
+        const pipelineHash = hashLib.passState(passState) ^ hashLib.inputAssembler(inputAssembler) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             const info = new PipelineInfo();

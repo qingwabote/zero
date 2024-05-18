@@ -1,10 +1,10 @@
 import { murmurhash2_32_gc } from "bastard";
-import type { InputAssemblerInfo, PassState, RenderPassInfo, Shader } from "gfx";
+import type { InputAssembler, PassState, RenderPassInfo, Shader } from "gfx";
 import { shaderLib } from "../shaderLib.js";
 
 const _shader2hash: WeakMap<Shader, number> = new WeakMap;
 const _pass2hash: WeakMap<PassState, number> = new WeakMap;
-const _inputAssembler2hash: WeakMap<InputAssemblerInfo, number> = new WeakMap;
+const _inputAssembler2hash: WeakMap<InputAssembler, number> = new WeakMap;
 
 let _renderPass_id = 0;
 const _renderPass2id: Map<RenderPassInfo, number> = new Map;
@@ -38,7 +38,7 @@ export const hashLib = {
         return hash;
     },
 
-    inputAssembler(inputAssembler: InputAssemblerInfo): number {
+    inputAssembler(inputAssembler: InputAssembler): number {
         let hash = _inputAssembler2hash.get(inputAssembler);
         if (!hash) {
             let key = '';
@@ -46,7 +46,7 @@ export const hashLib = {
             const length = attributes.size();
             for (let i = 0; i < length; i++) {
                 const attribute = attributes.get(i);
-                key += `${attribute.name}${attribute.format}${attribute.buffer}${attribute.offset}`;
+                key += `${attribute.name}${attribute.format}${attribute.buffer}${attribute.offset}${attribute.location}${attribute.instanced}`;
             }
             hash = murmurhash2_32_gc(key, 666);
             _inputAssembler2hash.set(inputAssembler, hash);

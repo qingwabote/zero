@@ -1,5 +1,4 @@
-import { bundle } from "bundling";
-import { Input, Node, SpriteFrame, SpriteRenderer, Texture, Vec2, vec4 } from "engine";
+import { Input, Node, SpriteFrame, SpriteRenderer, Texture, Vec2, bundle, vec4 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";

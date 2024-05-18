@@ -4,7 +4,6 @@ import { DescriptorSet } from "./DescriptorSet.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
 import { Fence } from "./Fence.js";
 import { Framebuffer } from "./Framebuffer.js";
-import { InputAssembler } from "./InputAssembler.js";
 import { Pipeline } from "./Pipeline.js";
 import { PipelineLayout } from "./PipelineLayout.js";
 import { Queue } from "./Queue.js";
@@ -14,7 +13,7 @@ import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
 import { Swapchain } from "./Swapchain.js";
 import { Texture } from "./Texture.js";
-import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
+import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
 interface Capabilities {
     readonly uniformBufferOffsetAlignment: number
@@ -22,8 +21,6 @@ interface Capabilities {
 }
 
 export class Device implements Device {
-    private readonly _gl: WebGL2RenderingContext
-
     private _capabilities: Capabilities;
     get capabilities(): Capabilities {
         return this._capabilities;
@@ -39,13 +36,12 @@ export class Device implements Device {
         return this._queue;
     }
 
-    constructor(gl: WebGL2RenderingContext) {
+    constructor(private _gl: WebGL2RenderingContext) {
         this._capabilities = {
-            uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+            uniformBufferOffsetAlignment: _gl.getParameter(_gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1
         }
-        this._swapchain = new Swapchain(gl);
-        this._gl = gl;
+        this._swapchain = new Swapchain(_gl);
     }
 
     createBuffer(info: BufferInfo): Buffer {
@@ -78,12 +74,6 @@ export class Device implements Device {
         const framebuffer = new Framebuffer(this._gl);
         framebuffer.initialize(info);
         return framebuffer;
-    }
-
-    createInputAssembler(info: InputAssemblerInfo): InputAssembler {
-        const inputAssembler = new InputAssembler;
-        inputAssembler.initialize(info);
-        return inputAssembler;
     }
 
     createPipeline(info: PipelineInfo): Pipeline {

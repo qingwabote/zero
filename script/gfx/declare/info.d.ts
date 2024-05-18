@@ -14,9 +14,9 @@ export declare abstract class Vector<T> {
     add(v: T): void;
 }
 
-export declare class FloatVector extends Vector<number>{ }
-export declare class Uint32Vector extends Vector<number>{ };
-export declare class StringVector extends Vector<string>{ };
+export declare class FloatVector extends Vector<number> { }
+export declare class Uint32Vector extends Vector<number> { };
+export declare class StringVector extends Vector<string> { };
 
 export declare class BufferInfo {
     usage: BufferUsageFlagBits;
@@ -39,7 +39,7 @@ export declare class DescriptorSetLayoutBinding {
     stageFlags: ShaderStageFlagBits;
 }
 
-export class DescriptorSetLayoutBindingVector extends Vector<DescriptorSetLayoutBinding>{ };
+export class DescriptorSetLayoutBindingVector extends Vector<DescriptorSetLayoutBinding> { };
 
 export declare class DescriptorSetLayoutInfo {
     bindings: DescriptorSetLayoutBindingVector;
@@ -52,7 +52,7 @@ export declare class TextureInfo {
     height: number;
 }
 
-export class TextureVector extends Vector<Texture>{ };
+export class TextureVector extends Vector<Texture> { };
 
 export declare class FramebufferInfo {
     colors: TextureVector;
@@ -69,7 +69,7 @@ export declare class AttachmentDescription {
     initialLayout: ImageLayout;
     finalLayout: ImageLayout;
 }
-export class AttachmentDescriptionVector extends Vector<AttachmentDescription>{ };
+export class AttachmentDescriptionVector extends Vector<AttachmentDescription> { };
 export declare class RenderPassInfo {
     colors: AttachmentDescriptionVector;
     depthStencil: AttachmentDescription;
@@ -87,7 +87,7 @@ export declare class ShaderInfo {
     types: Vector<ShaderStageFlagBits>;
 }
 
-export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout>{ };
+export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout> { };
 export declare class PipelineLayoutInfo {
     layouts: DescriptorSetLayoutVector
 }
@@ -97,10 +97,12 @@ export declare class VertexAttribute {
     format: Format
     buffer: number
     offset: number
+    location: number
+    instanced: boolean
 }
-export class VertexAttributeVector extends Vector<VertexAttribute>{ };
+export class VertexAttributeVector extends Vector<VertexAttribute> { };
 
-export class BufferVector extends Vector<Buffer>{ };
+export class BufferVector extends Vector<Buffer> { };
 export declare class VertexInput {
     buffers: BufferVector;
     offsets: FloatVector;
@@ -111,7 +113,8 @@ export declare class IndexInput {
     // offset: number; // WebGL can not specify the offset of the index buffer at buffer binding
     type: IndexType;
 }
-export declare class InputAssemblerInfo {
+/** InputAssembler is an immutable object, it correspond to a vao in WebGL. */
+export declare class InputAssembler {
     vertexAttributes: VertexAttributeVector;
     vertexInput: VertexInput;
     indexInput?: IndexInput;

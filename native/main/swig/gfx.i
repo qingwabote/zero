@@ -79,7 +79,7 @@
 %shared_ptr(gfx::BufferVector)
 %shared_ptr(gfx::VertexInput)
 %shared_ptr(gfx::IndexInput)
-%shared_ptr(gfx::InputAssemblerInfo)
+%shared_ptr(gfx::InputAssembler)
 
 %shared_ptr(gfx::RasterizationState)
 %shared_ptr(gfx::DepthStencilState)
@@ -87,7 +87,6 @@
 %shared_ptr(gfx::Shader)
 %shared_ptr(gfx::PassState)
 
-%shared_ptr(gfx::InputAssembler);
 %shared_ptr(gfx::PipelineInfo)
 
 %shared_ptr(gfx::CommandBuffer);
@@ -153,10 +152,6 @@
 %attribute2(gfx::Framebuffer, std::shared_ptr<gfx::FramebufferInfo>, info, info);
 %shared_ptr(gfx::Framebuffer);
 %include "gfx/Framebuffer.hpp"
-
-%ignore gfx::InputAssembler::InputAssembler;
-%attribute2(gfx::InputAssembler, std::shared_ptr<gfx::InputAssemblerInfo>, info, info);
-%include "gfx/InputAssembler.hpp"
 
 %ignore gfx::Shader::Shader;
 %attribute2(gfx::Shader, std::shared_ptr<gfx::ShaderInfo>, info, info);

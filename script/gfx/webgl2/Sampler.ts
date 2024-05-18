@@ -11,16 +11,12 @@ function getFilter(val: Filter): GLenum {
 }
 
 export class Sampler {
-    private _gl: WebGL2RenderingContext;
-
     private _impl!: WebGLSampler;
     get impl(): WebGLSampler {
         return this._impl;
     }
 
-    constructor(gl: WebGL2RenderingContext) {
-        this._gl = gl;
-    }
+    constructor(private _gl: WebGL2RenderingContext) { }
 
     initialize(info: SamplerInfo): boolean {
         const gl = this._gl;

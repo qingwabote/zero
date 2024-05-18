@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssemblerInfo, MemoryUsage, SubmitInfo, VertexAttribute, VertexInput } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, SubmitInfo, VertexAttribute, VertexInput } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
@@ -13,18 +13,18 @@ import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
+import { shaderLib } from "../core/shaderLib.js";
 import { AnimationClip } from "../marionette/AnimationClip.js";
-import { MaterialInstance } from "../scene/MaterialInstance.js";
 import { Effect } from "./Effect.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
 
-const builtinAttributes: Record<string, string> = {
-    "POSITION": "a_position",
-    "TEXCOORD_0": "a_texCoord",
-    "NORMAL": "a_normal",
-    "JOINTS_0": "a_joints",
-    "WEIGHTS_0": "a_weights"
+const attributeMap: Record<string, keyof typeof shaderLib.attributes> = {
+    "POSITION": "position",
+    "TEXCOORD_0": "uv",
+    "NORMAL": "normal",
+    "JOINTS_0": "joints",
+    "WEIGHTS_0": "weights"
 }
 
 const format_part1: Record<string, string> = {
@@ -265,7 +265,7 @@ export class GLTF implements Asset {
         vec3.set(vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
         vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
         for (const primitive of this._json.meshes[index].primitives) {
-            const iaInfo = new InputAssemblerInfo;
+            const ia = new InputAssembler;
             const vertexInput = new VertexInput;
             for (const key in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[key]];
@@ -274,21 +274,23 @@ export class GLTF implements Asset {
                     console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
                     continue;
                 }
-                const name = builtinAttributes[key];
+                const name = attributeMap[key];
                 if (!name) {
                     // console.log(`unknown attribute: ${key}`);
                     continue;
                 }
+                const builtin = shaderLib.attributes[name];
                 const attribute: VertexAttribute = new VertexAttribute;
-                attribute.name = name;
+                attribute.name = builtin.name;
                 attribute.format = format;
                 attribute.buffer = vertexInput.buffers.size();
                 attribute.offset = 0;
-                iaInfo.vertexAttributes.add(attribute);
+                attribute.location = builtin.location;
+                ia.vertexAttributes.add(attribute);
                 vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 vertexInput.offsets.add(accessor.byteOffset || 0);
             }
-            iaInfo.vertexInput = vertexInput;
+            ia.vertexInput = vertexInput;
 
             const indexAccessor = this._json.accessors[primitive.indices];
             const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
@@ -311,11 +313,11 @@ export class GLTF implements Asset {
             const indexInput = new IndexInput;
             indexInput.buffer = indexBuffer;
             indexInput.type = indexType;
-            iaInfo.indexInput = indexInput;
+            ia.indexInput = indexInput;
 
             subMeshes.push(
                 new SubMesh(
-                    device.createInputAssembler(iaInfo),
+                    ia,
                     {
                         count: indexAccessor.count,
                         first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
@@ -453,7 +455,7 @@ class Instance {
                 console.log("not provided attribute: TEXCOORD_0")
                 continue;
             }
-            materials.push(instancing ? new MaterialInstance(material) : material);
+            materials.push(instancing ? material.instantiate() : material);
         }
         return materials;
     }

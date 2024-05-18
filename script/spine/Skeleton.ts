@@ -1,25 +1,27 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BoundedRenderer, Node, Shader, bundle, device, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { BoundedRenderer, Node, Shader, bundle, render, shaderLib, vec2, vec3, vec4 } from "engine";
 import { AABB3D } from 'engine/core/math/aabb3d.js';
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
+import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
 import { Texture } from './Texture.js';
 
 const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
     const attributes = new VertexAttributeVector;
     let elements = 0;
 
-    const a_position = new VertexAttribute;
-    a_position.name = 'a_position';
-    a_position.format = Format.RG32_SFLOAT;
-    attributes.add(a_position);
-    elements += FormatInfos[a_position.format].nums;
+    const position = new VertexAttribute;
+    position.name = 'a_position';
+    position.format = Format.RG32_SFLOAT;
+    position.location = shaderLib.attributes.position.location;
+    attributes.add(position);
+    elements += FormatInfos[position.format].nums;
 
-    const a_texCoord = new VertexAttribute;
-    a_texCoord.name = 'a_texCoord';
-    a_texCoord.format = Format.RG32_SFLOAT;
-    a_texCoord.offset = FormatInfos[a_position.format].bytes;
-    attributes.add(a_texCoord);
-    elements += FormatInfos[a_texCoord.format].nums;
+    const texCoord = new VertexAttribute;
+    texCoord.name = 'a_texCoord';
+    texCoord.format = Format.RG32_SFLOAT;
+    texCoord.offset = FormatInfos[position.format].bytes;
+    texCoord.location = shaderLib.attributes.uv.location;
+    attributes.add(texCoord);
+    elements += FormatInfos[texCoord.format].nums;
 
     return [attributes, elements];
 })()
@@ -71,20 +73,20 @@ export class Skeleton extends BoundedRenderer {
     constructor(node: Node) {
         super(node);
 
-        const iaInfo = new InputAssemblerInfo;
-        iaInfo.vertexAttributes = VERTEX_ATTRIBUTES;
+        const ia = new InputAssembler;
+        ia.vertexAttributes = VERTEX_ATTRIBUTES;
 
         const vertexInput = new VertexInput;
         vertexInput.buffers.add(this._vertexView.buffer);
         vertexInput.offsets.add(0);
-        iaInfo.vertexInput = vertexInput;
+        ia.vertexInput = vertexInput;
 
         const indexInput = new IndexInput;
         indexInput.buffer = this._indexView.buffer;
         indexInput.type = IndexType.UINT16;
-        iaInfo.indexInput = indexInput;
+        ia.indexInput = indexInput;
 
-        this._mesh = new render.Mesh([new render.SubMesh(device.createInputAssembler(iaInfo))]);;
+        this._mesh = new render.Mesh([new render.SubMesh(ia)]);;
     }
 
     protected createModel(): render.Model | null {
@@ -180,16 +182,16 @@ export class Skeleton extends BoundedRenderer {
                     }
                     this._materials.push(material);
 
-                    const drawInfo = this._mesh.subMeshes[0].drawInfo;
-                    drawInfo.count = 0;
-                    drawInfo.first = index;
+                    const draw = this._mesh.subMeshes[0].draw;
+                    draw.count = 0;
+                    draw.first = index;
 
                     key = k;
                 }
 
                 vertex += attachment_vertex;
                 index += attachment_triangles.length;
-                this._mesh.subMeshes[0].drawInfo.count += attachment_triangles.length;
+                this._mesh.subMeshes[0].draw.count += attachment_triangles.length;
             }
 
             clipper.clipEndWithSlot(slot);
@@ -222,7 +224,7 @@ export class Skeleton extends BoundedRenderer {
                 break;
         }
         const pass = render.Pass.Pass(state);
-        pass.setUniform('Props', 'albedo', vec4.ONE);
+        pass.setProperty('albedo', vec4.ONE);
         pass.setTexture('albedoMap', texture.getImpl());
 
         return new render.Material([pass]);

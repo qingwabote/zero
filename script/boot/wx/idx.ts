@@ -1,3 +1,6 @@
+// load console first
+import "./console.js";
+//
 import { Device } from "gfx";
 
 const windowInfo = wx.getWindowInfo();
@@ -6,13 +9,30 @@ export const safeArea = windowInfo.safeArea;
 
 export const platform = 'wx';
 
-export interface Touch {
-    readonly x: number,
-    readonly y: number
+export interface TouchEvent {
+    get count(): number;
+    x(index: number): number;
+    y(index: number): number;
 }
 
-export interface TouchEvent {
-    readonly touches: readonly Touch[]
+export interface WheelEvent extends TouchEvent {
+    get delta(): number;
+}
+
+class TouchEventImpl implements TouchEvent {
+    get count(): number {
+        return this._event.touches.length;
+    }
+
+    constructor(private _event: any) { }
+
+    x(index: number): number {
+        return this._event.touches[index].clientX;
+    }
+
+    y(index: number): number {
+        return this._event.touches[index].clientY;
+    }
 }
 
 declare const wx: any;
@@ -126,23 +146,20 @@ interface ListenerHandle {
 
 const listener2handle: Map<EventListener, ListenerHandle> = new Map;
 
-let touchEvent: TouchEvent;
 export function attach(listener: EventListener) {
 
     const handle: ListenerHandle = {
         onTouchStart: function (event: any) {
-            const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
-            listener.onTouchStart(touchEvent = { touches });
+            listener.onTouchStart(new TouchEventImpl(event));
         },
         onTouchMove: function (event: any) {
-            const touches: Touch[] = (event.touches as any[]).map(touch => { return { x: touch.clientX, y: touch.clientY } })
-            listener.onTouchMove(touchEvent = { touches });
+            listener.onTouchMove(new TouchEventImpl(event));
         },
         onTouchEnd: function (event: any) {
-            listener.onTouchEnd(touchEvent);
+            listener.onTouchEnd(new TouchEventImpl(event));
         },
         onTouchCancel: function (event: any) {
-            listener.onTouchEnd(touchEvent);
+            listener.onTouchEnd(new TouchEventImpl(event));
         },
         onFrame: requestAnimationFrame(function loop() {
             listener.onFrame();

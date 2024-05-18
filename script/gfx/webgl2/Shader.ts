@@ -2,8 +2,6 @@ import { ShaderStageFlagBits, glsl } from "gfx-common";
 import { ShaderInfo, Vector } from "./info.js";
 
 export class Shader {
-    private _gl: WebGL2RenderingContext;
-
     protected _info!: ShaderInfo;
     get info(): ShaderInfo {
         return this._info;
@@ -14,9 +12,7 @@ export class Shader {
         return this._impl;
     }
 
-    constructor(gl: WebGL2RenderingContext) {
-        this._gl = gl;
-    }
+    constructor(private _gl: WebGL2RenderingContext) { }
 
     initialize(info: ShaderInfo): boolean {
         this._info = info;
@@ -48,7 +44,7 @@ export class Shader {
                 let err = `${types[i] == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.\n`
                 err += gl.getShaderInfoLog(shader) + '\n';
                 let lineNumber = 1;
-                err += 'Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `)
+                err += 'Shader source dump:' + source.replace(/^|\n/g, () => `\n${lineNumber++} `)
                 throw new Error(err);
             }
             shaders.push(shader);

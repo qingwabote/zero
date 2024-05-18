@@ -1,5 +1,6 @@
 import { device } from "boot";
-import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, MemoryUsage, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, MemoryUsage, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { shaderLib } from "../shaderLib.js";
 import { BufferView } from "./BufferView.js";
 
 const indexBufferView = new BufferView("Uint16", BufferUsageFlagBits.INDEX);
@@ -37,17 +38,19 @@ const indexInput = (function () {
 const vertexAttributes = (function () {
     const attributes = new VertexAttributeVector;
 
-    const a_position = new VertexAttribute;
-    a_position.name = 'a_position';
-    a_position.format = Format.RG32_SFLOAT;
-    a_position.offset = 0;
-    attributes.add(a_position);
+    const position = new VertexAttribute;
+    position.name = shaderLib.attributes.position.name;
+    position.format = Format.RG32_SFLOAT;
+    position.offset = 0;
+    position.location = shaderLib.attributes.position.location;
+    attributes.add(position);
 
-    const a_texCoord = new VertexAttribute;
-    a_texCoord.name = 'a_texCoord';
-    a_texCoord.format = Format.RG32_SFLOAT;
-    a_texCoord.offset = FormatInfos[a_position.format].bytes;
-    attributes.add(a_texCoord);
+    const texCoord = new VertexAttribute;
+    texCoord.name = shaderLib.attributes.uv.name;
+    texCoord.format = Format.RG32_SFLOAT;
+    texCoord.offset = FormatInfos[position.format].bytes;
+    texCoord.location = shaderLib.attributes.uv.location;
+    attributes.add(texCoord);
 
     return attributes;
 })();
@@ -80,12 +83,12 @@ function createInputAssembler(vertexBuffer: Buffer) {
     vertexInput.buffers.add(vertexBuffer);
     vertexInput.offsets.add(0);
 
-    const iaInfo = new InputAssemblerInfo
-    iaInfo.vertexAttributes = vertexAttributes;
-    iaInfo.vertexInput = vertexInput;
-    iaInfo.indexInput = indexInput;
+    const ia = new InputAssembler
+    ia.vertexAttributes = vertexAttributes;
+    ia.vertexInput = vertexInput;
+    ia.indexInput = indexInput;
 
-    return device.createInputAssembler(iaInfo);
+    return ia;
 }
 
 export const quad = {

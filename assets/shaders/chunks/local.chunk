@@ -1,4 +1,1 @@
-layout(set = 1, binding = 0) uniform Local {
-    mat4 model;
-    mat4 modelIT;
-} local;
+layout(location = 5) in mat4 a_model;

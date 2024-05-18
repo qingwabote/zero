@@ -2,8 +2,6 @@ import { SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
 import { TextureInfo } from "./info.js";
 
 export class Texture {
-    private _gl: WebGL2RenderingContext;
-
     private _texture!: WebGLTexture;
     get texture(): WebGLTexture {
         return this._texture;
@@ -24,12 +22,11 @@ export class Texture {
         return this._swapchain;
     }
 
-    constructor(gl: WebGL2RenderingContext, swapchain = false) {
+    constructor(private _gl: WebGL2RenderingContext, swapchain = false) {
         if (swapchain) {
             this._info = new TextureInfo;
         }
         this._swapchain = swapchain;
-        this._gl = gl;
     }
 
     initialize(info: TextureInfo): boolean {

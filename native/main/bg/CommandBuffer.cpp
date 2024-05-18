@@ -74,22 +74,22 @@ namespace bg
         _background->post(f);
     }
 
-    void CommandBuffer::draw(uint32_t count)
+    void CommandBuffer::draw(uint32_t count, uint32_t instanceCount)
     {
         auto f = new auto(
             [=]()
             {
-                gfx::CommandBuffer::draw(count);
+                gfx::CommandBuffer::draw(count, instanceCount);
             });
         _background->post(f);
     }
 
-    void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex)
+    void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount)
     {
         auto f = new auto(
             [=]()
             {
-                gfx::CommandBuffer::drawIndexed(indexCount, firstIndex);
+                gfx::CommandBuffer::drawIndexed(indexCount, firstIndex, instanceCount);
             });
         _background->post(f);
     }

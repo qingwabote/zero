@@ -1,11 +1,11 @@
-import { CommandBuffer, DescriptorSetLayout, RenderPass } from "gfx";
+import { CommandBuffer, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
-import { Culling } from "../../core/render/pipeline/Culling.js";
+import { Culler } from "../../core/render/pipeline/Culling.js";
+import { Drawer } from "../../core/render/pipeline/Drawer.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
-import { shaderLib } from "../../core/shaderLib.js";
 
 function modelCompareFn(a: Model, b: Model) {
     return a.order - b.order;
@@ -15,7 +15,8 @@ export class ModelPhase extends Phase {
     constructor(
         context: Context,
         visibility: number,
-        public culling: Culling,
+        public culler: Culler,
+        private _drawer: Drawer,
         /**The model type that indicates which models should run in this phase */
         private _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
@@ -26,42 +27,10 @@ export class ModelPhase extends Phase {
 
     record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
         profile.emit(Profile.Event.CULL_START);
-        const models = this.culling.cull(Zero.instance.scene.models, this._model, cameraIndex);
+        const models = this.culler.cull(Zero.instance.scene.models, this._model, cameraIndex);
         profile.emit(Profile.Event.CULL_END);
         models.sort(modelCompareFn);
-        for (const model of models) {
-            if (!(model.hasChanged & Model.ChangeBits.UPLOAD)) {
-                model.upload();
-            }
 
-            commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, model.descriptorSet);
-            for (let i = 0; i < model.mesh.subMeshes.length; i++) {
-                const subMesh = model.mesh.subMeshes[i];
-                const drawInfo = subMesh.drawInfo;
-                if (!drawInfo.count) {
-                    continue;
-                }
-                const material = model.materials[i];
-                for (const pass of material.passes) {
-                    if (pass.type != this._pass) {
-                        continue;
-                    }
-                    const layouts: DescriptorSetLayout[] = [(model.constructor as typeof Model).descriptorSetLayout];
-                    if (pass.descriptorSet) {
-                        commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
-                        layouts.push(pass.descriptorSetLayout);
-                    }
-                    const pipeline = this._context.getPipeline(pass.state, subMesh.inputAssembler, renderPass, layouts);
-                    commandBuffer.bindPipeline(pipeline);
-                    commandBuffer.bindInputAssembler(subMesh.inputAssembler);
-                    if (subMesh.inputAssembler.info.indexInput) {
-                        commandBuffer.drawIndexed(drawInfo.count, drawInfo.first);
-                    } else {
-                        commandBuffer.draw(drawInfo.count);
-                    }
-                    profile.draws++;
-                }
-            }
-        }
+        profile.draws += this._drawer.record(this._context, commandBuffer, renderPass, this._pass, models);
     }
 }

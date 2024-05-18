@@ -5,7 +5,9 @@
         "gfx": "./dist/gfx/index.js",
         "boot": "./dist/boot/index.js",
         "assets": "./dist/assets/index.js",
+        "bastard": "./dist/bastard/index.js",
         "engine": "./dist/engine/index.js",
+        "flex": "./dist/flex/index.js",
         "bundling": "./bundling-builtin.js"
     },
     "scopes": {

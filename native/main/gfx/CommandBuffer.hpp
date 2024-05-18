@@ -2,7 +2,6 @@
 
 #include "DescriptorSet.hpp"
 #include "PipelineLayout.hpp"
-#include "InputAssembler.hpp"
 #include "Pipeline.hpp"
 #include "Buffer.hpp"
 #include "Texture.hpp"
@@ -35,8 +34,8 @@ namespace gfx
         virtual void bindDescriptorSet(uint32_t index, const std::shared_ptr<DescriptorSet> &descriptorSet, const std::shared_ptr<Uint32Vector> &dynamicOffsets = nullptr);
         virtual void bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler);
         virtual void bindPipeline(const std::shared_ptr<Pipeline> &pipeline);
-        virtual void draw(uint32_t count);
-        virtual void drawIndexed(uint32_t indexCount, uint32_t firstIndex);
+        virtual void draw(uint32_t count, uint32_t instanceCount);
+        virtual void drawIndexed(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount);
         virtual void endRenderPass();
         virtual void end();
 
