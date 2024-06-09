@@ -9,9 +9,9 @@ import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { Scene } from "./render/Scene.js";
 import { Profile } from "./render/pipeline/Profile.js";
-import { ChangeRecord } from "./render/scene/ChangeRecord.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
+import { PeriodicFlag } from "./render/scene/PeriodicFlag.js";
 
 enum Event {
     LOGIC_START = 'LOGIC_START',
@@ -154,7 +154,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         for (let i = 0; i < this.scene.cameras.length; i++) {
             this._pipeline.record(this._profile, this._commandBuffer, i);
         }
-        ChangeRecord.expire();
+        PeriodicFlag.expire();
         this._commandBuffer.end();
         this.emit(Event.RENDER_END);
 

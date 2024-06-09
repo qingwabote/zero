@@ -4,8 +4,8 @@ import { Mat4, mat4 } from "../../math/mat4.js";
 import { Vec2Like, vec2 } from "../../math/vec2.js";
 import { Vec3Like, vec3 } from "../../math/vec3.js";
 import { Vec4, vec4 } from "../../math/vec4.js";
-import { ChangeRecord } from "./ChangeRecord.js";
 import { Frustum } from "./Frustum.js";
+import { PeriodicFlag } from "./PeriodicFlag.js";
 import { Transform } from "./Transform.js";
 
 const vec2_a = vec2.create();
@@ -18,7 +18,7 @@ enum ChangeBit {
     VIEW = 1 << 1,
 }
 
-export class Camera extends ChangeRecord {
+export class Camera {
     private _view_invalidated = true;
     private _view = mat4.create();
     get view(): Readonly<Mat4> {
@@ -71,9 +71,12 @@ export class Camera extends ChangeRecord {
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
 
-    constructor(readonly transform: Transform) {
-        super(0xffffffff);
+    private _hasChanged = new PeriodicFlag(0xffffffff)
+    get hasChanged(): ChangeBit {
+        return this._hasChanged.value;
     }
+
+    constructor(readonly transform: Transform) { }
 
     update() {
         if (this.transform.hasChanged) {
@@ -91,12 +94,12 @@ export class Camera extends ChangeRecord {
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
 
-            super.hasChanged |= ChangeBit.PROJ;
+            this._hasChanged.addBit(ChangeBit.PROJ);
         }
 
         if (this._view_invalidated) {
             mat4.invert(this._view, this.transform.world_matrix);
-            super.hasChanged |= ChangeBit.VIEW;
+            this._hasChanged.addBit(ChangeBit.VIEW);
         }
 
         if (this._proj_invalidated || this._view_invalidated) {

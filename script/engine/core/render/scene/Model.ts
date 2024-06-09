@@ -2,9 +2,9 @@ import { DescriptorSet, DescriptorSetLayout } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { BufferView } from "../BufferView.js";
 import { UniformSource } from "../UniformSource.js";
-import { ChangeRecord } from "./ChangeRecord.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
+import { PeriodicFlag } from "./PeriodicFlag.js";
 import { Transform } from "./Transform.js";
 
 enum ChangeBits {
@@ -12,7 +12,7 @@ enum ChangeBits {
     BOUNDS = 1 << 0,
 }
 
-export class Model extends ChangeRecord implements UniformSource {
+export class Model implements UniformSource {
     private _bounds_invalidated = true;
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
@@ -25,13 +25,22 @@ export class Model extends ChangeRecord implements UniformSource {
 
     private _localBuffer_invalidated = false;
 
+    private _hasChanged = new PeriodicFlag(ChangeBits.BOUNDS);
+    get hasChanged(): number {
+        let flag = this._hasChanged.value;
+        if (this._mesh.hasChanged || this._transform.hasChanged) {
+            flag |= ChangeBits.BOUNDS;
+        }
+        return flag;
+    }
+
     public get transform(): Transform {
         return this._transform;
     }
     public set transform(value: Transform) {
         this._transform = value;
         this._localBuffer_invalidated = true;
-        super.hasChanged |= ChangeBits.BOUNDS;
+        this._hasChanged.addBit(ChangeBits.BOUNDS)
     }
 
     public get mesh() {
@@ -40,24 +49,14 @@ export class Model extends ChangeRecord implements UniformSource {
     public set mesh(value) {
         this._mesh = value;
         this._bounds_invalidated = true;
-        super.hasChanged |= ChangeBits.BOUNDS;
-    }
-
-    override get hasChanged(): number {
-        let flags = super.hasChanged;
-        if (this._mesh.hasChanged || this._transform.hasChanged) {
-            flags |= ChangeBits.BOUNDS;
-        }
-        return flags;
+        this._hasChanged.addBit(ChangeBits.BOUNDS)
     }
 
     type: string = 'default';
 
     order: number = 0;
 
-    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
-        super(ChangeBits.BOUNDS);
-    }
+    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) { }
 
     update() {
         if (this._mesh.hasChanged) {

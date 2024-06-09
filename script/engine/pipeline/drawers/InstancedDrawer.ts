@@ -3,8 +3,8 @@ import { BufferView } from "../../core/render/BufferView.js";
 import { UniformResource } from "../../core/render/UniformResource.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Drawer } from "../../core/render/pipeline/Drawer.js";
-import { ChangeRecord } from "../../core/render/scene/ChangeRecord.js";
 import { Model } from "../../core/render/scene/Model.js";
+import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const inputAssembler_clone = (function () {
@@ -47,13 +47,14 @@ const inputAssembler_clone = (function () {
 
 const descriptorSetLayoutEmpty = shaderLib.createDescriptorSetLayout([]);
 
-class Batch extends ChangeRecord {
+class Batch {
     private readonly _buffer: BufferView = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16)
 
     readonly inputAssemblers: InputAssembler[];
 
+    private _hasUpdated = new PeriodicFlag();
+
     constructor(public model: Model) {
-        super();
         const inputAssemblers: InputAssembler[] = [];
         for (const subMesh of model.mesh.subMeshes) {
             const inputAssembler = inputAssembler_clone(subMesh.inputAssembler);
@@ -78,7 +79,7 @@ class Batch extends ChangeRecord {
     }
 
     update() {
-        if (this.hasChanged) {
+        if (this._hasUpdated.value) {
             return;
         }
 
@@ -87,7 +88,7 @@ class Batch extends ChangeRecord {
             this._buffer.update();
         }
 
-        this.hasChanged = 1;
+        this._hasUpdated.clear(1);
     }
 }
 

@@ -4,7 +4,7 @@ import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
-import { ChangeRecord } from "./ChangeRecord.js";
+import { PeriodicFlag } from "./PeriodicFlag.js";
 
 enum ChangeBit {
     NONE = 0,
@@ -19,7 +19,7 @@ const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
 
-export class Transform extends ChangeRecord implements TRS {
+export class Transform implements TRS {
     private _explicit_visibility?: number = undefined;
     private _implicit_visibility: number | undefined = undefined;
     public get visibility(): number {
@@ -142,9 +142,12 @@ export class Transform extends ChangeRecord implements TRS {
         return this._world_matrix;
     }
 
-    constructor(public readonly name: string = '') {
-        super(0xffffffff);
+    private _hasChanged = new PeriodicFlag(0xffffffff);
+    get hasChanged(): ChangeBit {
+        return this._hasChanged.value;
     }
+
+    constructor(public readonly name: string = '') { }
 
     addChild(child: this): void {
         child._implicit_visibility = undefined;
@@ -182,7 +185,7 @@ export class Transform extends ChangeRecord implements TRS {
 
     private dirty(flag: ChangeBit): void {
         this._changed |= flag;
-        this.hasChanged |= flag;
+        this._hasChanged.addBit(flag);
         for (const child of this._children) {
             child.dirty(flag);
         }

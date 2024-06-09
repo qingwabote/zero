@@ -2,11 +2,11 @@ import { device } from "boot";
 import { DescriptorSet, DescriptorSetLayout } from "gfx";
 import { BufferView } from "./BufferView.js";
 import { UniformSource } from "./UniformSource.js";
-import { ChangeRecord } from "./scene/ChangeRecord.js";
+import { PeriodicFlag } from "./scene/PeriodicFlag.js";
 
 const source2object: WeakMap<UniformSource, UniformResource> = new WeakMap;
 
-export class UniformResource extends ChangeRecord {
+export class UniformResource {
     static cache(source: UniformSource) {
         let object = source2object.get(source);
         if (!object) {
@@ -24,8 +24,9 @@ export class UniformResource extends ChangeRecord {
 
     private readonly _buffers?: BufferView[] = undefined;
 
+    private _hasUpdated = new PeriodicFlag();
+
     constructor(private _source: UniformSource) {
-        super();
         const descriptorSetLayout = _source.getDescriptorSetLayout();
         if (descriptorSetLayout) {
             const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
@@ -38,7 +39,7 @@ export class UniformResource extends ChangeRecord {
     }
 
     update() {
-        if (this.hasChanged) {
+        if (this._hasUpdated.value) {
             return this;
         }
 
@@ -53,7 +54,7 @@ export class UniformResource extends ChangeRecord {
             this._source.bindTextures?.(this.descriptorSet);
         }
 
-        this.hasChanged = 1;
+        this._hasUpdated.clear(1)
 
         return this
     }

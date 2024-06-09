@@ -2,14 +2,15 @@ import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { ChangeRecord } from "../../core/render/scene/ChangeRecord.js";
 import { Material } from "../../core/render/scene/Material.js";
 import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
+import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { Transform } from "../../core/render/scene/Transform.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
-class ModelSpaceTransform extends ChangeRecord {
+class ModelSpaceTransform {
+    hasUpdated = new PeriodicFlag();
     matrix = mat4.create();
 }
 
@@ -75,7 +76,7 @@ export class SkinnedModel extends Model {
             modelSpace = new ModelSpaceTransform;
             joint2modelSpace.set(joint, modelSpace);
         }
-        if (modelSpace.hasChanged) {
+        if (modelSpace.hasUpdated.value) {
             return;
         }
         const parent = joint.parent!;
@@ -85,6 +86,6 @@ export class SkinnedModel extends Model {
             this.updateModelSpace(parent);
             mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent)!.matrix, joint.matrix)
         }
-        modelSpace.hasChanged = 1;
+        modelSpace.hasUpdated.clear(1);
     }
 }
