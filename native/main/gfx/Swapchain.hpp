@@ -14,16 +14,11 @@ namespace gfx
     private:
         std::unique_ptr<Swapchain_impl> _impl;
 
-        std::shared_ptr<Texture> _colorTexture;
-
-        uint32_t _width;
-        uint32_t _height;
-
     public:
-        const std::shared_ptr<Texture> &colorTexture() { return _colorTexture; }
+        const std::shared_ptr<Texture> colorTexture;
 
-        uint32_t width() { return _width; }
-        uint32_t height() { return _height; }
+        const uint32_t width;
+        const uint32_t height;
 
         Swapchain(Device_impl *device);
 

@@ -17,9 +17,9 @@ namespace gfx
         std::vector<VkPipelineShaderStageCreateInfo> _stages;
 
     public:
-        const std::unordered_map<std::string, uint32_t> &attributeLocations() { return _attributeLocations; }
+        const std::unordered_map<std::string, uint32_t> &attributeLocations;
 
-        std::vector<VkPipelineShaderStageCreateInfo> &stages() { return _stages; }
+        const std::vector<VkPipelineShaderStageCreateInfo> &stages;
 
         Shader_impl(Device_impl *device);
 

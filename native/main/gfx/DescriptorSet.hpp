@@ -13,16 +13,15 @@ namespace gfx
     {
     private:
         std::unique_ptr<DescriptorSet_impl> _impl;
-        std::shared_ptr<DescriptorSetLayout> _layout;
 
     public:
         DescriptorSet_impl &impl() { return *_impl.get(); }
 
-        const std::shared_ptr<DescriptorSetLayout> &layout() { return _layout; };
+        const std::shared_ptr<DescriptorSetLayout> layout;
 
-        DescriptorSet(Device_impl *device);
+        DescriptorSet(Device_impl *device, const std::shared_ptr<DescriptorSetLayout> &layout);
 
-        bool initialize(const std::shared_ptr<DescriptorSetLayout> &layout);
+        bool initialize();
 
         void bindBuffer(uint32_t binding, const std::shared_ptr<Buffer> &buffer, double range = 0);
 

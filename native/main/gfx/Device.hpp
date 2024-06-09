@@ -45,7 +45,7 @@ namespace gfx
 
         bool initialize();
 
-        Buffer *createBuffer(const std::shared_ptr<const BufferInfo> &info);
+        Buffer *createBuffer(const std::shared_ptr<BufferInfo> &info);
         virtual CommandBuffer *createCommandBuffer();
         DescriptorSet *createDescriptorSet(const std::shared_ptr<DescriptorSetLayout> &layout);
         DescriptorSetLayout *createDescriptorSetLayout(const std::shared_ptr<DescriptorSetLayoutInfo> &info);

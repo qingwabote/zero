@@ -20,9 +20,9 @@ namespace gfx
     Pipeline_impl::Pipeline_impl(Device_impl *device) : _device(device) {}
     Pipeline_impl::~Pipeline_impl() {}
 
-    Pipeline::Pipeline(Device_impl *device) : _impl(std::make_unique<Pipeline_impl>(device)) {}
+    Pipeline::Pipeline(Device_impl *device, const std::shared_ptr<PipelineInfo> &info) : _impl(std::make_unique<Pipeline_impl>(device)), info(info) {}
 
-    bool Pipeline::initialize(const std::shared_ptr<PipelineInfo> &info)
+    bool Pipeline::initialize()
     {
         VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
 
@@ -30,7 +30,7 @@ namespace gfx
         auto &gfx_passState = info->passState;
 
         auto &gfx_shader = gfx_passState->shader;
-        auto &stageInfos = gfx_shader->impl()->stages();
+        auto &stageInfos = gfx_shader->impl()->stages;
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
 
@@ -50,7 +50,7 @@ namespace gfx
         pipelineInfo.pViewportState = &viewportState;
 
         bool swapchain = false;
-        for (auto &attachment : *info->renderPass->info()->colors)
+        for (auto &attachment : *info->renderPass->info->colors)
         {
             if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
             {
@@ -60,7 +60,7 @@ namespace gfx
         }
         if (!swapchain)
         {
-            for (auto &attachment : *info->renderPass->info()->resolves)
+            for (auto &attachment : *info->renderPass->info->resolves)
             {
                 if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
                 {
@@ -121,7 +121,7 @@ namespace gfx
         for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
         {
             auto &gfx_attribute = gfx_vertexAttributes->at(i);
-            auto &attributesConsumed = gfx_shader->impl()->attributeLocations();
+            auto &attributesConsumed = gfx_shader->impl()->attributeLocations;
             if (attributesConsumed.find(gfx_attribute->name) == attributesConsumed.end())
             {
                 // avoid warning "Vertex attribute not consumed by vertex shader"
@@ -144,7 +144,7 @@ namespace gfx
         for (size_t binding = 0; binding < gfx_vertexBuffers->size(); binding++)
         {
             auto &gfx_buffer = gfx_vertexBuffers->at(binding);
-            auto stride = gfx_buffer->info()->stride;
+            auto stride = gfx_buffer->info->stride;
             if (stride == 0)
             {
                 for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
@@ -180,7 +180,7 @@ namespace gfx
         auto &gfx_renderPass = info->renderPass;
         VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
         multisampleState.sampleShadingEnable = VK_FALSE;
-        multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(gfx_renderPass->info()->samples);
+        multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(gfx_renderPass->info->samples);
         multisampleState.minSampleShading = 1.0f;
         multisampleState.alphaToCoverageEnable = VK_FALSE;
         multisampleState.alphaToOneEnable = VK_FALSE;
@@ -195,7 +195,6 @@ namespace gfx
         {
             return true;
         }
-        _info = info;
         return false;
     }
 

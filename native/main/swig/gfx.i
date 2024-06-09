@@ -7,6 +7,7 @@
 %include "attribute.i"
 
 %ignore *::impl;
+%ignore *::initialize;
 
 %shared_ptr(ImageBitmap)
 
@@ -113,11 +114,9 @@
 %include "gfx/Capabilities.hpp"
 
 %ignore gfx::Buffer::Buffer;
-%attribute2(gfx::Buffer, std::shared_ptr<const gfx::BufferInfo>, info, info);
 %include "gfx/Buffer.hpp"
 
 %ignore gfx::RenderPass::RenderPass;
-%attribute2(gfx::RenderPass, std::shared_ptr<gfx::RenderPassInfo>, info, info);
 %include "gfx/RenderPass.hpp"
 
 %ignore gfx::Sampler::Sampler;
@@ -125,16 +124,13 @@
 %include "gfx/Sampler.hpp"
 
 %ignore gfx::Texture::Texture;
-%attribute2(gfx::Texture, std::shared_ptr<gfx::TextureInfo>, info, info);
 %include "gfx/Texture.hpp"
 
 %ignore gfx::DescriptorSet::DescriptorSet;
-%attribute2(gfx::DescriptorSet, std::shared_ptr<gfx::DescriptorSetLayout>, layout, layout);
 %shared_ptr(gfx::DescriptorSet);
 %include "gfx/DescriptorSet.hpp"
 
 %ignore gfx::DescriptorSetLayout::DescriptorSetLayout;
-%attribute2(gfx::DescriptorSetLayout, std::shared_ptr<gfx::DescriptorSetLayoutInfo>, info, info);
 %include "gfx/DescriptorSetLayout.hpp"
 
 %ignore gfx::PipelineLayout::PipelineLayout;
@@ -149,12 +145,10 @@
 %include "gfx/Semaphore.hpp"
 
 %ignore gfx::Framebuffer::Framebuffer;
-%attribute2(gfx::Framebuffer, std::shared_ptr<gfx::FramebufferInfo>, info, info);
 %shared_ptr(gfx::Framebuffer);
 %include "gfx/Framebuffer.hpp"
 
 %ignore gfx::Shader::Shader;
-%attribute2(gfx::Shader, std::shared_ptr<gfx::ShaderInfo>, info, info);
 %include "gfx/Shader.hpp"
 
 %ignore gfx::Pipeline::Pipeline;
@@ -165,9 +159,6 @@
 %include "gfx/CommandBuffer.hpp"
 
 %ignore gfx::Swapchain::Swapchain;
-%attribute2(gfx::Swapchain, std::shared_ptr<gfx::Texture>, colorTexture, colorTexture);
-%attribute(gfx::Swapchain, uint32_t, width, width);
-%attribute(gfx::Swapchain, uint32_t, height, height);
 %include "gfx/Swapchain.hpp"
 
 %ignore gfx::Queue::Queue;

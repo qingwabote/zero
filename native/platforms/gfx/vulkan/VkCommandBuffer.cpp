@@ -52,7 +52,7 @@ namespace gfx
             }
             vkCmdBindDescriptorSets(_commandBuffer,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                    _pipeline->info()->layout->impl(),
+                                    _pipeline->info->layout->impl(),
                                     it.first,
                                     1,
                                     &descriptorSet,

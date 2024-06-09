@@ -12,16 +12,14 @@ namespace gfx
     private:
         std::unique_ptr<Pipeline_impl> _impl;
 
-        std::shared_ptr<PipelineInfo> _info;
-
     public:
         Pipeline_impl &impl() { return *_impl.get(); }
 
-        const std::shared_ptr<PipelineInfo> &info() { return _info; }
+        const std::shared_ptr<PipelineInfo> info;
 
-        Pipeline(Device_impl *device);
+        Pipeline(Device_impl *device, const std::shared_ptr<PipelineInfo> &info);
 
-        bool initialize(const std::shared_ptr<PipelineInfo> &info);
+        bool initialize();
 
         ~Pipeline();
     };

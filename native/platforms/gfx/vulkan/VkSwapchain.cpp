@@ -14,19 +14,10 @@ namespace gfx
 
     Swapchain_impl::~Swapchain_impl() {}
 
-    Swapchain::Swapchain(Device_impl *device)
-    {
-        auto colorTexture_info = std::make_shared<TextureInfo>();
-        colorTexture_info->samples = SampleCountFlagBits::X1;
-        auto colorTexture = std::make_shared<Texture>(device, true);
-        colorTexture->initialize(colorTexture_info);
-        _colorTexture = std::move(colorTexture);
-
-        _width = device->swapchainImageExtent().width;
-        _height = device->swapchainImageExtent().height;
-
-        _impl = std::make_unique<Swapchain_impl>(device);
-    }
+    Swapchain::Swapchain(Device_impl *device) : _impl(std::make_unique<Swapchain_impl>(device)),
+                                                colorTexture(std::make_shared<Texture>(device, std::make_shared<TextureInfo>(), true)),
+                                                width(device->swapchainImageExtent().width),
+                                                height(device->swapchainImageExtent().height) {}
 
     void Swapchain::acquire(const std::shared_ptr<Semaphore> &semaphore)
     {

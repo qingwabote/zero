@@ -336,7 +336,7 @@ export class GLTF implements Asset {
     public getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
         if (index in this._buffers) {
             if ((this._buffers[index].info.usage & usage) != usage) {
-                throw new Error("buffer.info.usage & usage) != usage");
+                throw new Error(`buffer.info.usage(${this._buffers[index].info.usage}) & usage(${usage})) != usage`);
             }
             return this._buffers[index];
         }

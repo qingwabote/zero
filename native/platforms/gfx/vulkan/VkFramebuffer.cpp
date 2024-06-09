@@ -10,9 +10,9 @@ namespace gfx
     Framebuffer_impl::Framebuffer_impl(Device_impl *device) : _device(device) {}
     Framebuffer_impl::~Framebuffer_impl() {}
 
-    Framebuffer::Framebuffer(Device_impl *device) : _impl(std::make_unique<Framebuffer_impl>(device)) {}
+    Framebuffer::Framebuffer(Device_impl *device, const std::shared_ptr<FramebufferInfo> &info) : _impl(std::make_unique<Framebuffer_impl>(device)), info(info) {}
 
-    bool Framebuffer::initialize(const std::shared_ptr<FramebufferInfo> &info)
+    bool Framebuffer::initialize()
     {
         auto width = info->width;
         auto height = info->height;
@@ -91,7 +91,6 @@ namespace gfx
             vkCreateFramebuffer(*_impl->_device, &info, nullptr, &_impl->_framebuffers[framebufferIdx]);
         }
 
-        _info = info;
         return false;
     }
 

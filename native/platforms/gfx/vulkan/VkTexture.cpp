@@ -3,12 +3,10 @@
 
 namespace gfx
 {
-    Texture_impl::Texture_impl(Device_impl *device, bool swapchain) : _device(device), _swapchain(swapchain) {}
+    Texture_impl::Texture_impl(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : _device(device), info(info), _swapchain(swapchain) {}
 
-    bool Texture_impl::initialize(const std::shared_ptr<TextureInfo> &info)
+    bool Texture_impl::initialize()
     {
-        _info = info;
-
         if (_swapchain)
         {
             return false;
@@ -80,13 +78,11 @@ namespace gfx
         }
     }
 
-    const std::shared_ptr<TextureInfo> &Texture::info() { return _impl->info(); }
+    Texture::Texture(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : _impl(std::make_shared<Texture_impl>(device, info, swapchain)), info(_impl->info) {}
 
-    Texture::Texture(Device_impl *device, bool swapchain) : _impl(std::make_shared<Texture_impl>(device, swapchain)) {}
-
-    bool Texture::initialize(const std::shared_ptr<TextureInfo> &info)
+    bool Texture::initialize()
     {
-        return _impl->initialize(info);
+        return _impl->initialize();
     }
 
     Texture::~Texture() {}

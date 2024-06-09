@@ -18,16 +18,14 @@ namespace gfx
 
         bool _swapchain{false};
 
-        std::shared_ptr<TextureInfo> _info;
-
     public:
         bool swapchain() { return _swapchain; }
 
-        const std::shared_ptr<TextureInfo> &info() { return _info; }
+        const std::shared_ptr<TextureInfo> info;
 
-        Texture_impl(Device_impl *device, bool swapchain = false);
+        Texture_impl(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain = false);
 
-        bool initialize(const std::shared_ptr<TextureInfo> &info);
+        bool initialize();
 
         operator VkImage() { return _image; }
         operator VkImageView() { return _imageView; }

@@ -12,16 +12,14 @@ namespace gfx
     private:
         std::unique_ptr<RenderPass_impl> _impl;
 
-        std::shared_ptr<RenderPassInfo> _info;
-
     public:
         RenderPass_impl &impl() { return *_impl; }
 
-        const std::shared_ptr<RenderPassInfo> &info() { return _info; }
+        const std::shared_ptr<RenderPassInfo> info;
 
-        RenderPass(Device_impl *device);
+        RenderPass(Device_impl *device, const std::shared_ptr<RenderPassInfo> &info);
 
-        bool initialize(const std::shared_ptr<RenderPassInfo> &info);
+        bool initialize();
 
         ~RenderPass();
     };

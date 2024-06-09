@@ -293,10 +293,10 @@ namespace gfx
 
     std::unique_ptr<Queue> Device::getQueue() { return std::make_unique<Queue>(_impl); }
 
-    Buffer *Device::createBuffer(const std::shared_ptr<const BufferInfo> &info)
+    Buffer *Device::createBuffer(const std::shared_ptr<BufferInfo> &info)
     {
-        auto buffer = new Buffer(_impl);
-        buffer->initialize(info);
+        auto buffer = new Buffer(_impl, info);
+        buffer->initialize();
         return buffer;
     }
 
@@ -309,15 +309,15 @@ namespace gfx
 
     DescriptorSet *Device::createDescriptorSet(const std::shared_ptr<DescriptorSetLayout> &layout)
     {
-        auto descriptorSet = new DescriptorSet(_impl);
-        descriptorSet->initialize(layout);
+        auto descriptorSet = new DescriptorSet(_impl, layout);
+        descriptorSet->initialize();
         return descriptorSet;
     }
 
     DescriptorSetLayout *Device::createDescriptorSetLayout(const std::shared_ptr<DescriptorSetLayoutInfo> &info)
     {
-        auto descriptorSetLayout = new DescriptorSetLayout(_impl);
-        descriptorSetLayout->initialize(info);
+        auto descriptorSetLayout = new DescriptorSetLayout(_impl, info);
+        descriptorSetLayout->initialize();
         return descriptorSetLayout;
     }
 
@@ -330,15 +330,15 @@ namespace gfx
 
     Framebuffer *Device::createFramebuffer(const std::shared_ptr<FramebufferInfo> &info)
     {
-        auto framebuffer = new Framebuffer(_impl);
-        framebuffer->initialize(info);
+        auto framebuffer = new Framebuffer(_impl, info);
+        framebuffer->initialize();
         return framebuffer;
     }
 
     Pipeline *Device::createPipeline(const std::shared_ptr<PipelineInfo> &info)
     {
-        auto pipeline = new Pipeline(_impl);
-        pipeline->initialize(info);
+        auto pipeline = new Pipeline(_impl, info);
+        pipeline->initialize();
         return pipeline;
     }
 
@@ -351,8 +351,8 @@ namespace gfx
 
     RenderPass *Device::createRenderPass(const std::shared_ptr<RenderPassInfo> &info)
     {
-        auto renderPass = new RenderPass(_impl);
-        renderPass->initialize(info);
+        auto renderPass = new RenderPass(_impl, info);
+        renderPass->initialize();
         return renderPass;
     }
 
@@ -372,15 +372,15 @@ namespace gfx
 
     Shader *Device::createShader(const std::shared_ptr<ShaderInfo> &info)
     {
-        auto shader = new Shader(_impl);
-        shader->initialize(info);
+        auto shader = new Shader(_impl, info);
+        shader->initialize();
         return shader;
     }
 
     Texture *Device::createTexture(const std::shared_ptr<TextureInfo> &info)
     {
-        auto texture = new Texture(_impl);
-        texture->initialize(info);
+        auto texture = new Texture(_impl, info);
+        texture->initialize();
         return texture;
     }
 

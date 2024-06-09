@@ -4,9 +4,9 @@
 
 namespace gfx
 {
-    Buffer_impl::Buffer_impl(Device_impl *device) : _device(device) {}
+    Buffer_impl::Buffer_impl(Device_impl *device, const std::shared_ptr<BufferInfo> &info) : _device(device), info(info) {}
 
-    bool Buffer_impl::initialize(const std::shared_ptr<const BufferInfo> &info)
+    bool Buffer_impl::initialize()
     {
         // "size must be greater than 0" https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkBufferCreateInfo.html#VUID-VkBufferCreateInfo-size-00912
         if (info->size)
@@ -29,8 +29,6 @@ namespace gfx
             }
         }
 
-        _info = info;
-
         return false;
     }
 
@@ -40,31 +38,30 @@ namespace gfx
         memcpy(_allocationInfo.pMappedData, start, length);
     }
 
-    void Buffer_impl::reset(const std::shared_ptr<const BufferInfo> &info)
+    void Buffer_impl::resize(uint32_t size)
     {
-        if (_info->size)
+        if (info->size)
         {
             vmaDestroyBuffer(_device->allocator(), _buffer, _allocation);
         }
-        initialize(info);
+
+        info->size = size;
+        initialize();
+
         emit(BufferEvent_impl::RESET);
     }
 
     Buffer_impl::~Buffer_impl() { vmaDestroyBuffer(_device->allocator(), _buffer, _allocation); }
 
-    const std::shared_ptr<const BufferInfo> &Buffer::info() { return _impl->info(); }
+    Buffer::Buffer(Device_impl *device, const std::shared_ptr<BufferInfo> &info) : _impl(std::make_shared<Buffer_impl>(device, info)), info(_impl->info) {}
 
-    Buffer::Buffer(Device_impl *device) : _impl(std::make_shared<Buffer_impl>(device)) {}
-
-    bool Buffer::initialize(const std::shared_ptr<const BufferInfo> &info) { return _impl->initialize(info); }
+    bool Buffer::initialize() { return _impl->initialize(); }
 
     void Buffer::update(const std::shared_ptr<const void> &data, size_t offset, size_t length) { _impl->update(data.get(), offset, length); }
 
     void Buffer::resize(uint32_t size)
     {
-        auto info = std::make_shared<BufferInfo>(*_impl->info());
-        info->size = size;
-        _impl->reset(info);
+        _impl->resize(size);
     }
 
     Buffer::~Buffer() {}

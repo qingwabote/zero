@@ -11,16 +11,14 @@ namespace gfx
     private:
         std::unique_ptr<DescriptorSetLayout_impl> _impl;
 
-        std::shared_ptr<DescriptorSetLayoutInfo> _info;
-
     public:
         DescriptorSetLayout_impl *impl() { return _impl.get(); }
 
-        const std::shared_ptr<const DescriptorSetLayoutInfo> &info();
+        const std::shared_ptr<const DescriptorSetLayoutInfo> &info;
 
-        DescriptorSetLayout(Device_impl *device);
+        DescriptorSetLayout(Device_impl *device, const std::shared_ptr<DescriptorSetLayoutInfo> &info);
 
-        bool initialize(const std::shared_ptr<DescriptorSetLayoutInfo> &info);
+        bool initialize();
 
         ~DescriptorSetLayout();
     };
