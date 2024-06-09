@@ -1,5 +1,7 @@
 import { PipelineLayoutInfo } from "./info";
 
 export class PipelineLayout {
-    initialize(info: PipelineLayoutInfo): boolean { return false; }
+    constructor(readonly info: PipelineLayoutInfo) { }
+
+    initialize(): boolean { return false; }
 }

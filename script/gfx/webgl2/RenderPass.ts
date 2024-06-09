@@ -1,14 +1,7 @@
 import { RenderPassInfo } from './info.js';
 
 export class RenderPass {
-    private _info!: RenderPassInfo;
-    get info(): RenderPassInfo {
-        return this._info;
-    }
+    constructor(readonly info: RenderPassInfo) { }
 
-    initialize(info: RenderPassInfo): boolean {
-        this._info = info;
-        return false;
-    }
-
+    initialize(): boolean { return false; }
 }

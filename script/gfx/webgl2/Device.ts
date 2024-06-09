@@ -45,8 +45,8 @@ export class Device implements Device {
     }
 
     createBuffer(info: BufferInfo): Buffer {
-        const buffer = new Buffer(this._gl);
-        buffer.initialize(info);
+        const buffer = new Buffer(this._gl, info);
+        buffer.initialize();
         return buffer;
     }
 
@@ -55,8 +55,8 @@ export class Device implements Device {
     }
 
     createDescriptorSet(layout: DescriptorSetLayout): DescriptorSet {
-        const descriptorSet = new DescriptorSet();
-        descriptorSet.initialize(layout);
+        const descriptorSet = new DescriptorSet(layout);
+        descriptorSet.initialize();
         return descriptorSet;
     }
 
@@ -71,32 +71,32 @@ export class Device implements Device {
     }
 
     createFramebuffer(info: FramebufferInfo): Framebuffer {
-        const framebuffer = new Framebuffer(this._gl);
-        framebuffer.initialize(info);
+        const framebuffer = new Framebuffer(this._gl, info);
+        framebuffer.initialize();
         return framebuffer;
     }
 
     createPipeline(info: PipelineInfo): Pipeline {
-        const pipeline = new Pipeline();
-        pipeline.initialize(info);
+        const pipeline = new Pipeline(info);
+        pipeline.initialize();
         return pipeline;
     }
 
     createPipelineLayout(info: PipelineLayoutInfo): PipelineLayout {
-        const pipelineLayout = new PipelineLayout();
-        pipelineLayout.initialize(info);
+        const pipelineLayout = new PipelineLayout(info);
+        pipelineLayout.initialize();
         return pipelineLayout;
     }
 
     createRenderPass(info: RenderPassInfo): RenderPass {
-        const renderPass = new RenderPass
-        renderPass.initialize(info);
+        const renderPass = new RenderPass(info)
+        renderPass.initialize();
         return renderPass;
     }
 
     createSampler(info: SamplerInfo): Sampler {
-        const sampler = new Sampler(this._gl);
-        sampler.initialize(info);
+        const sampler = new Sampler(this._gl, info);
+        sampler.initialize();
         return sampler;
     }
 
@@ -105,14 +105,14 @@ export class Device implements Device {
     }
 
     createShader(info: ShaderInfo): Shader {
-        const shader = new Shader(this._gl);
-        shader.initialize(info);
+        const shader = new Shader(this._gl, info);
+        shader.initialize();
         return shader;
     }
 
     createTexture(info: TextureInfo): Texture {
-        const texture = new Texture(this._gl);
-        texture.initialize(info);
+        const texture = new Texture(this._gl, info);
+        texture.initialize();
         return texture;
     }
 }

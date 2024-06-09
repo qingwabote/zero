@@ -196,7 +196,7 @@ export class CommandBuffer {
         const gl = this._gl;
 
         for (const attachment of (this._framebuffer.info.resolves as Vector<Texture>).data) {
-            if ((attachment).swapchain) {
+            if (attachment.info.swapchain) {
                 gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 

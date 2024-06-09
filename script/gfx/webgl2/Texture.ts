@@ -12,46 +12,30 @@ export class Texture {
         return this._renderbuffer;
     }
 
-    private _info!: TextureInfo;
-    get info(): TextureInfo {
-        return this._info;
-    }
+    constructor(private _gl: WebGL2RenderingContext, readonly info: TextureInfo) { }
 
-    private _swapchain: boolean;
-    get swapchain(): boolean {
-        return this._swapchain;
-    }
-
-    constructor(private _gl: WebGL2RenderingContext, swapchain = false) {
-        if (swapchain) {
-            this._info = new TextureInfo;
-        }
-        this._swapchain = swapchain;
-    }
-
-    initialize(info: TextureInfo): boolean {
+    initialize(): boolean {
         const gl = this._gl;
 
         let format: GLenum = gl.RGBA8;
-        if (info.usage & TextureUsageFlagBits.DEPTH_STENCIL) {
+        if (this.info.usage & TextureUsageFlagBits.DEPTH_STENCIL) {
             format = gl.DEPTH_COMPONENT32F
         }
 
-        if (info.samples == SampleCountFlagBits.X1) {
+        if (this.info.samples == SampleCountFlagBits.X1) {
             this._texture = gl.createTexture()!
             gl.bindTexture(gl.TEXTURE_2D, this._texture);
-            gl.texStorage2D(gl.TEXTURE_2D, 1, format, info.width, info.height);
+            gl.texStorage2D(gl.TEXTURE_2D, 1, format, this.info.width, this.info.height);
 
             gl.bindTexture(gl.TEXTURE_2D, null);
         } else {
             this._renderbuffer = gl.createRenderbuffer()!
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, info.samples, format, info.width, info.height);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.info.samples, format, this.info.width, this.info.height);
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
 
-        this._info = info;
         return false;
     }
 }

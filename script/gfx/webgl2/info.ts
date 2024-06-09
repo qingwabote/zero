@@ -64,6 +64,7 @@ export class TextureInfo {
     usage: TextureUsageFlagBits = TextureUsageFlagBits.NONE;
     width: number = 0;
     height: number = 0;
+    swapchain = false;
 }
 
 export class TextureVector extends Vector<Texture> { };

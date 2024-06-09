@@ -2,21 +2,15 @@ import { ShaderStageFlagBits, glsl } from "gfx-common";
 import { ShaderInfo, Vector } from "./info.js";
 
 export class Shader {
-    protected _info!: ShaderInfo;
-    get info(): ShaderInfo {
-        return this._info;
-    }
-
     private _impl!: WebGLProgram;
     get impl(): WebGLProgram {
         return this._impl;
     }
 
-    constructor(private _gl: WebGL2RenderingContext) { }
+    constructor(private _gl: WebGL2RenderingContext, readonly info: ShaderInfo) { }
 
-    initialize(info: ShaderInfo): boolean {
-        this._info = info;
-        return this.compileShader(info);
+    initialize(): boolean {
+        return this.compileShader(this.info);
     }
 
     private compileShader(info: ShaderInfo): boolean {
