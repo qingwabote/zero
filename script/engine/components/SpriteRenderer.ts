@@ -1,5 +1,5 @@
 import { bundle } from "bundling";
-import { CullMode, Filter, PassState, PrimitiveTopology, RasterizationState } from "gfx";
+import { Filter, PassState, PrimitiveTopology } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
@@ -43,12 +43,9 @@ export class SpriteRenderer extends BoundedRenderer {
         if (!this._spriteFrame) {
             return null;
         }
-        const rasterizationState = new RasterizationState;
-        rasterizationState.cullMode = CullMode.NONE;
         const state = new PassState;
         state.shader = this.shader;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        state.rasterizationState = rasterizationState;
         const pass = Pass.Pass(state);
         if (pass.hasProperty('albedo')) {
             pass.setProperty('albedo', this.color);

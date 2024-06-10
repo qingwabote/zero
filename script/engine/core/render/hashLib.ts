@@ -23,7 +23,7 @@ export const hashLib = {
         let hash = _pass2hash.get(pass);
         if (!hash) {
             let key = "";
-            key += `${shaderLib.getShaderMeta(pass.shader).key}`;
+            key += `${shaderLib.getShaderMeta(pass.shader!).key}`;
             key += `${pass.primitive}`;
             key += `${pass.rasterizationState.cullMode}`;
             if (pass.depthStencilState) {

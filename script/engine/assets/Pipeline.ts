@@ -32,9 +32,6 @@ interface CopyPhase extends PhaseBase {
 }
 
 const phaseFactory = (function () {
-    const rasterizationState = new gfx.RasterizationState;
-    rasterizationState.cullMode = gfx.CullMode.NONE;
-
     const blendState = new gfx.BlendState;
     blendState.srcRGB = gfx.BlendFactor.ONE;
     blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
@@ -71,7 +68,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -83,7 +79,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -95,7 +90,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -334,7 +328,7 @@ export class Pipeline extends Yml {
                         ({ width, height } = texture.info);
                     }
                     if (!width || !height) {
-                        ({ width, height } = framebufferInfo.depthStencil.info);
+                        ({ width, height } = framebufferInfo.depthStencil!.info);
                     }
                     framebufferInfo.width = width;
                     framebufferInfo.height = height;

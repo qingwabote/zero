@@ -23,7 +23,7 @@ export class Context {
             info.passState = passState;
             info.inputAssembler = inputAssembler;
             info.renderPass = renderPass;
-            info.layout = this.getPipelineLayout(passState.shader, layouts)
+            info.layout = this.getPipelineLayout(passState.shader!, layouts)
             pipeline = device.createPipeline(info);
             this._pipelineCache[pipelineHash] = pipeline;
         }

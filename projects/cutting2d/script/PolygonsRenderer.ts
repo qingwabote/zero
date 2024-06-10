@@ -1,6 +1,6 @@
 import { MeshRenderer, Node, Shader, bundle, render, shaderLib, vec3, vec4 } from "engine";
 import { Element } from "flex";
-import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, RasterizationState, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Polygon } from "./Polygon.js";
 
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
@@ -53,12 +53,9 @@ export default class PolygonsRenderer extends Element {
     private _indexViews: render.BufferView[] = [];
 
     override start(): void {
-        const rasterizationState = new RasterizationState;
-        rasterizationState.cullMode = CullMode.NONE;
         const state = new PassState();
         state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        state.rasterizationState = rasterizationState;
         const pass = render.Pass.Pass(state);
         pass.setProperty('albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);

@@ -92,18 +92,16 @@ export class Effect extends Yml {
                 passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             }
 
-            const rasterizationState = new gfx.RasterizationState;
             if (info.rasterizationState?.cullMode) {
                 if (info.rasterizationState?.cullMode in gfx.CullMode) {
-                    rasterizationState.cullMode = gfx.CullMode[info.rasterizationState?.cullMode];
+                    passState.rasterizationState.cullMode = gfx.CullMode[info.rasterizationState?.cullMode];
                 } else {
                     throw `unsupported cullMode: ${info.rasterizationState?.cullMode}`;
                 }
             } else {
-                rasterizationState.cullMode = gfx.CullMode.BACK;
+                passState.rasterizationState.cullMode = gfx.CullMode.BACK;
             }
 
-            passState.rasterizationState = rasterizationState;
             if (info.depthStencilState) {
                 const depthStencilState = new gfx.DepthStencilState;
                 depthStencilState.depthTestEnable = info.depthStencilState.depthTestEnable;

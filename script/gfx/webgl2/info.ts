@@ -70,9 +70,9 @@ export class TextureInfo {
 export class TextureVector extends Vector<Texture> { };
 export class FramebufferInfo {
     colors: TextureVector = new TextureVector;
-    depthStencil!: Texture;
+    depthStencil: Texture | null = null;
     resolves: TextureVector = new TextureVector;
-    renderPass!: RenderPass;
+    renderPass: RenderPass | null = null;
     width: number = 0;
     height: number = 0;
 }
@@ -102,22 +102,22 @@ export class VertexAttribute {
 }
 export class BufferVector extends Vector<Buffer> { };
 export class VertexInput {
-    buffers: BufferVector = new BufferVector;
-    offsets: Uint32Vector = new Uint32Vector;
+    buffers = new BufferVector;
+    offsets = new Uint32Vector;
 }
 export class IndexInput {
-    buffer!: Buffer;
+    buffer: Buffer | null = null;
     type: IndexType = 0;
 }
 export class VertexAttributeVector extends Vector<VertexAttribute> { };
 export class InputAssembler {
-    vertexAttributes: VertexAttributeVector = new VertexAttributeVector;
-    vertexInput!: VertexInput;
-    indexInput?: IndexInput = undefined;
+    vertexAttributes = new VertexAttributeVector;
+    vertexInput = new VertexInput;
+    indexInput: IndexInput | null = null;
 }
 
 export class RasterizationState {
-    cullMode: CullMode = 0;
+    cullMode = CullMode.NONE;
 }
 
 export class DepthStencilState {
@@ -132,23 +132,23 @@ export class BlendState {
 }
 
 export class PassState {
-    shader!: Shader;
-    primitive!: PrimitiveTopology;
-    rasterizationState!: RasterizationState;
-    depthStencilState?: DepthStencilState = undefined;
-    blendState?: BlendState = undefined;
+    shader: Shader | null = null;
+    primitive: PrimitiveTopology = (0 as PrimitiveTopology);
+    rasterizationState = new RasterizationState;
+    depthStencilState: DepthStencilState | null = null;
+    blendState: BlendState | null = null;
 }
 
 export class PipelineInfo implements PipelineInfo {
-    passState!: PassState;
-    inputAssembler!: InputAssembler;
-    layout!: PipelineLayout;
-    renderPass!: RenderPass;
+    passState: PassState | null = null;
+    inputAssembler: InputAssembler | null = null;
+    layout: PipelineLayout | null = null;
+    renderPass: RenderPass | null = null;
 }
 
 export class SubmitInfo implements SubmitInfo {
-    commandBuffer!: CommandBuffer;
-    waitSemaphore?: Semaphore = undefined;
-    waitDstStageMask?: PipelineStageFlagBits = undefined;
-    signalSemaphore?: Semaphore = undefined;
+    commandBuffer: CommandBuffer | null = null;
+    waitSemaphore: Semaphore | null = null;
+    waitDstStageMask: PipelineStageFlagBits = (0 as PipelineStageFlagBits);
+    signalSemaphore: Semaphore | null = null;
 }

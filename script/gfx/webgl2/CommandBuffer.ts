@@ -72,9 +72,9 @@ export class CommandBuffer {
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
         const info = pipeline.info;
-        const state = info.passState;
+        const state = info.passState!;
 
-        gl.useProgram(state.shader.impl);
+        gl.useProgram(state.shader!.impl);
 
         switch (state.rasterizationState.cullMode) {
             case CullMode.NONE:
@@ -151,7 +151,7 @@ export class CommandBuffer {
         const gl = this._gl;
 
         let mode: GLenum;
-        switch (this._pipeline.passState.primitive) {
+        switch (this._pipeline.passState!.primitive) {
             case PrimitiveTopology.LINE_LIST:
                 mode = gl.LINES;
                 break;
@@ -159,7 +159,7 @@ export class CommandBuffer {
                 mode = gl.TRIANGLES;
                 break;
             default:
-                throw `unsupported primitive: ${this._pipeline.passState.primitive}`
+                throw `unsupported primitive: ${this._pipeline.passState!.primitive}`
         }
         // gl.drawArrays(mode, 0, vertexCount);
         gl.drawArraysInstanced(mode, 0, vertexCount, instanceCount);
@@ -188,7 +188,7 @@ export class CommandBuffer {
 
         const gl = this._gl;
         // gl.drawElements(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || type_bytes) * firstIndex);
-        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || type_bytes) * firstIndex, instanceCount);
+        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, (indexInput.buffer!.info.stride || type_bytes) * firstIndex, instanceCount);
         gl.bindVertexArray(null);
     }
 
@@ -271,7 +271,7 @@ export class CommandBuffer {
                 }
             }
             if (inputAssembler.indexInput) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, inputAssembler.indexInput.buffer.impl);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, inputAssembler.indexInput.buffer!.impl);
             }
 
             input2vao.set(inputAssembler, vao);

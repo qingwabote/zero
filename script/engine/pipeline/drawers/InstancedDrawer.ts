@@ -8,9 +8,7 @@ import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const inputAssembler_clone = (function () {
-    function vertexInput_clone(vertexInput: VertexInput): VertexInput {
-        const out = new VertexInput;
-
+    function vertexInput_clone(out: VertexInput, vertexInput: VertexInput): VertexInput {
         const buffers = vertexInput.buffers;
         const buffers_size = buffers.size();
         for (let i = 0; i < buffers_size; i++) {
@@ -35,7 +33,7 @@ const inputAssembler_clone = (function () {
             out.vertexAttributes.add(vertexAttributes.get(i));
         }
 
-        out.vertexInput = vertexInput_clone(inputAssembler.vertexInput);
+        vertexInput_clone(out.vertexInput, inputAssembler.vertexInput);
 
         if (inputAssembler.indexInput) {
             out.indexInput = inputAssembler.indexInput;

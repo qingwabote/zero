@@ -1,7 +1,7 @@
 import * as sc from '@esotericsoftware/spine-core';
 import { BoundedRenderer, Node, Shader, bundle, render, shaderLib, vec2, vec3, vec4 } from "engine";
 import { AABB3D } from 'engine/core/math/aabb3d.js';
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from 'gfx';
+import { BlendFactor, BlendState, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from 'gfx';
 import { Texture } from './Texture.js';
 
 const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
@@ -75,11 +75,8 @@ export class Skeleton extends BoundedRenderer {
 
         const ia = new InputAssembler;
         ia.vertexAttributes = VERTEX_ATTRIBUTES;
-
-        const vertexInput = new VertexInput;
-        vertexInput.buffers.add(this._vertexView.buffer);
-        vertexInput.offsets.add(0);
-        ia.vertexInput = vertexInput;
+        ia.vertexInput.buffers.add(this._vertexView.buffer);
+        ia.vertexInput.offsets.add(0);
 
         const indexInput = new IndexInput;
         indexInput.buffer = this._indexView.buffer;
@@ -204,12 +201,9 @@ export class Skeleton extends BoundedRenderer {
     }
 
     private createMaterial(blend: sc.BlendMode, texture: Texture): render.Material {
-        const rasterizationState = new RasterizationState;
-        rasterizationState.cullMode = CullMode.NONE;
         const state = new PassState();
         state.shader = shaderLib.getShader(ss_spine, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        state.rasterizationState = rasterizationState;
         switch (blend) {
             case sc.BlendMode.Normal:
                 const blendState = new BlendState;

@@ -56,9 +56,9 @@ export class TextureVector extends Vector<Texture> { };
 
 export declare class FramebufferInfo {
     colors: TextureVector;
-    depthStencil: Texture;
+    depthStencil: Texture | null;
     resolves: TextureVector;
-    renderPass: RenderPass;
+    renderPass: RenderPass | null;
     width: number;
     height: number;
 }
@@ -109,7 +109,7 @@ export declare class VertexInput {
 }
 
 export declare class IndexInput {
-    buffer: Buffer;
+    buffer: Buffer | null;
     // offset: number; // WebGL can not specify the offset of the index buffer at buffer binding
     type: IndexType;
 }
@@ -117,7 +117,7 @@ export declare class IndexInput {
 export declare class InputAssembler {
     vertexAttributes: VertexAttributeVector;
     vertexInput: VertexInput;
-    indexInput?: IndexInput;
+    indexInput: IndexInput | null;
 }
 
 export declare class RasterizationState {
@@ -138,24 +138,24 @@ export declare class BlendState {
 }
 
 export declare class PassState {
-    shader: Shader;
+    shader: Shader | null;
     primitive: PrimitiveTopology;
     rasterizationState: RasterizationState;
-    depthStencilState?: DepthStencilState;
-    blendState?: BlendState;
+    depthStencilState: DepthStencilState | null;
+    blendState: BlendState | null;
 }
 
 export declare class PipelineInfo {
-    passState: PassState;
-    inputAssembler: InputAssembler;
-    layout: PipelineLayout;
-    renderPass: RenderPass;
+    passState: PassState | null;
+    inputAssembler: InputAssembler | null;
+    layout: PipelineLayout | null;
+    renderPass: RenderPass | null;
 }
 
 export declare class SubmitInfo {
-    commandBuffer: CommandBuffer;
-    waitSemaphore?: Semaphore;
-    waitDstStageMask?: PipelineStageFlagBits;
-    signalSemaphore?: Semaphore;
+    commandBuffer: CommandBuffer | null;
+    waitSemaphore: Semaphore | null;
+    waitDstStageMask: PipelineStageFlagBits;
+    signalSemaphore: Semaphore | null;
 }
 

@@ -30,7 +30,7 @@ export class Framebuffer {
                 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, attachment.renderbuffer);
             }
         }
-        const depthStencilAttachment = this.info.depthStencil;
+        const depthStencilAttachment = this.info.depthStencil!;
         if (depthStencilAttachment.info.samples == SampleCountFlagBits.X1) {
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthStencilAttachment.texture, 0);
         } else {

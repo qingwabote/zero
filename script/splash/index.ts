@@ -2,7 +2,7 @@
 import { device } from 'boot';
 //
 import { bundle } from 'bundling';
-import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssembler, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput } from "gfx";
+import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssembler, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute } from "gfx";
 
 const TEXTURE_BINDING = 0;
 
@@ -55,9 +55,6 @@ shaderInfo.sources.add(fs);
 shaderInfo.types.add(ShaderStageFlagBits.FRAGMENT);
 const shader = device.createShader(shaderInfo);
 
-const rasterizationState = new RasterizationState;
-rasterizationState.cullMode = CullMode.NONE;
-
 const blendState = new BlendState;
 blendState.srcRGB = BlendFactor.SRC_ALPHA;
 blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
@@ -67,7 +64,6 @@ blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
 const passState = new PassState;
 passState.shader = shader;
 passState.primitive = PrimitiveTopology.TRIANGLE_LIST;
-passState.rasterizationState = rasterizationState;
 passState.blendState = blendState;
 
 const a_position = new VertexAttribute;
@@ -111,13 +107,11 @@ indexBuffer.update(indexes.buffer, 0, indexes.byteLength);
 const inputAssembler = new InputAssembler;
 inputAssembler.vertexAttributes.add(a_position);
 inputAssembler.vertexAttributes.add(a_texCoord);
-const vertexInput = new VertexInput;
-vertexInput.buffers.add(vertexBuffer);
-vertexInput.offsets.add(0);
+inputAssembler.vertexInput.buffers.add(vertexBuffer);
+inputAssembler.vertexInput.offsets.add(0);
 const indexInput = new IndexInput;
 indexInput.buffer = indexBuffer;
 indexInput.type = IndexType.UINT16;
-inputAssembler.vertexInput = vertexInput;
 inputAssembler.indexInput = indexInput;
 
 const colorAttachmentDescription = new AttachmentDescription;

@@ -236,7 +236,7 @@ namespace gfx
     struct InputAssembler
     {
         std::shared_ptr<VertexAttributeVector> vertexAttributes{new VertexAttributeVector()};
-        std::shared_ptr<VertexInput> vertexInput;
+        std::shared_ptr<VertexInput> vertexInput{new VertexInput()};
         std::shared_ptr<IndexInput> indexInput;
     };
 
@@ -248,7 +248,7 @@ namespace gfx
     };
     struct RasterizationState
     {
-        CullMode cullMode;
+        CullMode cullMode{CullMode::NONE};
     };
     struct DepthStencilState
     {
@@ -280,7 +280,7 @@ namespace gfx
     {
         std::shared_ptr<Shader> shader;
         PrimitiveTopology primitive{0};
-        std::shared_ptr<RasterizationState> rasterizationState;
+        std::shared_ptr<RasterizationState> rasterizationState{new RasterizationState()};
         std::shared_ptr<DepthStencilState> depthStencilState;
         std::shared_ptr<BlendState> blendState;
     };

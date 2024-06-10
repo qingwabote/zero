@@ -42,7 +42,7 @@ export class Pass implements UniformSource {
     protected initialize() { }
 
     hasProperty(member: string): boolean {
-        const block = shaderLib.getShaderMeta(this.state.shader).blocks['Props'];
+        const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
         if (!block) {
             return false;
         }
@@ -81,11 +81,11 @@ export class Pass implements UniformSource {
         if (this._descriptorSetLayout != undefined) {
             return this._descriptorSetLayout;
         }
-        return this._descriptorSetLayout = shaderLib.getDescriptorSetLayout(this.state.shader, shaderLib.sets.material.index);
+        return this._descriptorSetLayout = shaderLib.getDescriptorSetLayout(this.state.shader!, shaderLib.sets.material.index);
     }
 
     createUniformBuffers(descriptorSet: DescriptorSet): BufferView[] {
-        const block = shaderLib.getShaderMeta(this.state.shader).blocks['Props'];
+        const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
         if (!block) {
             return [];
         }
@@ -96,7 +96,7 @@ export class Pass implements UniformSource {
     }
 
     fillBuffers(buffers: BufferView[]) {
-        const block = shaderLib.getShaderMeta(this.state.shader).blocks['Props'];
+        const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
         let offset = 0;
         for (const mem of block.members!) {
             if (this._properties_dirty.get(mem.name)) {
@@ -109,14 +109,14 @@ export class Pass implements UniformSource {
 
     bindTextures(descriptorSet: DescriptorSet) {
         for (const name of this._samplerTextures_dirty.keys()) {
-            const binding = shaderLib.getShaderMeta(this.state.shader).samplerTextures[name].binding;
+            const binding = shaderLib.getShaderMeta(this.state.shader!).samplerTextures[name].binding;
             descriptorSet.bindTexture(binding, ...this._samplerTextures[name]);
         }
         this._samplerTextures_dirty.clear();
     }
 
     protected createUniformBuffer(name: string): BufferView {
-        const block = shaderLib.getShaderMeta(this.state.shader).blocks[name];
+        const block = shaderLib.getShaderMeta(this.state.shader!).blocks[name];
         let length = block.members!.reduce((acc, mem) => acc + type2Length(mem.type), 0);
         return new BufferView('Float32', BufferUsageFlagBits.UNIFORM, length);
     }

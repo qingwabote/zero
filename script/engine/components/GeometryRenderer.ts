@@ -1,5 +1,5 @@
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, DepthStencilState, Format, FormatInfos, InputAssembler, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, DepthStencilState, Format, FormatInfos, InputAssembler, PassState, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
@@ -77,17 +77,13 @@ export class GeometryRenderer extends BoundedRenderer {
 
         const ia = new InputAssembler;
         ia.vertexAttributes = VERTEX_ATTRIBUTES;
-        const vertexInput = new VertexInput;
-        vertexInput.buffers.add(this._buffer.buffer);
-        vertexInput.offsets.add(0);
-        ia.vertexInput = vertexInput;
+        ia.vertexInput.buffers.add(this._buffer.buffer);
+        ia.vertexInput.offsets.add(0);
 
         this._mesh = new Mesh([new SubMesh(ia)]);;
     }
 
     protected createModel(): Model | null {
-        const rasterizationState = new RasterizationState;
-        rasterizationState.cullMode = CullMode.NONE;
         const depthStencilState = new DepthStencilState;
         depthStencilState.depthTestEnable = true;
         const blendState = new BlendState;
@@ -98,7 +94,6 @@ export class GeometryRenderer extends BoundedRenderer {
         const state = new PassState;
         state.shader = shaderLib.getShader(ss_primitive);
         state.primitive = PrimitiveTopology.LINE_LIST;
-        state.rasterizationState = rasterizationState;
         state.depthStencilState = depthStencilState
         state.blendState = blendState;
         return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])])

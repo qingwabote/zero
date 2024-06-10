@@ -1,7 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState } from "gfx";
+import { BlendFactor, BlendState, PassState, PrimitiveTopology } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
@@ -25,9 +25,6 @@ const default_color = vec4.ONE;
 const pass = await (async function () {
     const ss_unlit = await bundle.cache('shaders/unlit', Shader);
 
-    const rasterizationState = new RasterizationState;
-    rasterizationState.cullMode = CullMode.NONE;
-
     const blendState = new BlendState;
     blendState.srcRGB = BlendFactor.SRC_ALPHA;
     blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
@@ -37,7 +34,6 @@ const pass = await (async function () {
     const state = new PassState;
     state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
     state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-    state.rasterizationState = rasterizationState;
     state.blendState = blendState;
 
     const pass = Pass.Pass(state);

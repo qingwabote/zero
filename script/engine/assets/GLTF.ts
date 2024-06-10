@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, SubmitInfo, VertexAttribute, VertexInput } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, SubmitInfo, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
@@ -266,7 +266,6 @@ export class GLTF implements Asset {
         vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
         for (const primitive of this._json.meshes[index].primitives) {
             const ia = new InputAssembler;
-            const vertexInput = new VertexInput;
             for (const key in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
@@ -283,14 +282,13 @@ export class GLTF implements Asset {
                 const attribute: VertexAttribute = new VertexAttribute;
                 attribute.name = builtin.name;
                 attribute.format = format;
-                attribute.buffer = vertexInput.buffers.size();
+                attribute.buffer = ia.vertexInput.buffers.size();
                 attribute.offset = 0;
                 attribute.location = builtin.location;
                 ia.vertexAttributes.add(attribute);
-                vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
-                vertexInput.offsets.add(accessor.byteOffset || 0);
+                ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                ia.vertexInput.offsets.add(accessor.byteOffset || 0);
             }
-            ia.vertexInput = vertexInput;
 
             const indexAccessor = this._json.accessors[primitive.indices];
             const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
