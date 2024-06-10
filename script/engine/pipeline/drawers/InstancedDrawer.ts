@@ -21,6 +21,12 @@ const inputAssembler_clone = (function () {
             out.offsets.add(offsets.get(i));
         }
 
+        const strides = vertexInput.strides;
+        const strides_size = strides.size();
+        for (let i = 0; i < strides_size; i++) {
+            out.strides.add(strides.get(i));
+        }
+
         return out;
     }
 

@@ -141,26 +141,29 @@ namespace gfx
         vertexInputState.pVertexAttributeDescriptions = attributes.data();
         auto &gfx_vertexBuffers = info->inputAssembler->vertexInput->buffers;
         std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_vertexBuffers->size()};
-        for (size_t binding = 0; binding < gfx_vertexBuffers->size(); binding++)
+        for (size_t i = 0; i < gfx_vertexBuffers->size(); i++)
         {
-            auto &gfx_buffer = gfx_vertexBuffers->at(binding);
-            auto stride = gfx_buffer->info->stride;
+            auto &gfx_buffer = gfx_vertexBuffers->at(i);
+            uint32_t stride = 0;
+            if (info->inputAssembler->vertexInput->strides->size() > i)
+            {
+                stride = info->inputAssembler->vertexInput->strides->at(i);
+            }
             if (stride == 0)
             {
-                for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
+                for (auto &&gfx_attribute : *gfx_vertexAttributes)
                 {
-                    auto &gfx_attribute = gfx_vertexAttributes->at(i);
-                    if (gfx_attribute->buffer == binding)
+                    if (gfx_attribute->buffer == i)
                     {
                         stride += FormatInfos.at(static_cast<Format>(gfx_attribute->format)).bytes;
                     }
                 }
             }
-            bindingDescriptions[binding].stride = stride;
+            bindingDescriptions[i].stride = stride;
             auto inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
             for (auto &&attribute : *gfx_vertexAttributes)
             {
-                if (attribute->buffer == binding)
+                if (attribute->buffer == i)
                 {
                     if (attribute->instanced)
                     {
@@ -169,8 +172,8 @@ namespace gfx
                     break;
                 }
             }
-            bindingDescriptions[binding].inputRate = inputRate;
-            bindingDescriptions[binding].binding = binding;
+            bindingDescriptions[i].inputRate = inputRate;
+            bindingDescriptions[i].binding = i;
         }
         vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
         vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();

@@ -187,8 +187,7 @@ export class CommandBuffer {
         }
 
         const gl = this._gl;
-        // gl.drawElements(gl.TRIANGLES, indexCount, type, (indexInput.buffer.info.stride || type_bytes) * firstIndex);
-        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, (indexInput.buffer!.info.stride || type_bytes) * firstIndex, instanceCount);
+        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, type_bytes * firstIndex, instanceCount);
         gl.bindVertexArray(null);
     }
 
@@ -223,10 +222,10 @@ export class CommandBuffer {
             for (const attribute of attributes) {
                 const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.buffer];
                 const offset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
+                const stride = (inputAssembler.vertexInput.strides as Vector<number>).data[attribute.buffer] || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];
-                const stride = buffer.info.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
                 let type: GLenum;
                 let isInteger: boolean;
                 switch (attribute.format) {

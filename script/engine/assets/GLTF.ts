@@ -288,6 +288,7 @@ export class GLTF implements Asset {
                 ia.vertexAttributes.add(attribute);
                 ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 ia.vertexInput.offsets.add(accessor.byteOffset || 0);
+                ia.vertexInput.strides.add(this._json.bufferViews[accessor.bufferView].byteStride || 0);
             }
 
             const indexAccessor = this._json.accessors[primitive.indices];
@@ -313,12 +314,16 @@ export class GLTF implements Asset {
             indexInput.type = indexType;
             ia.indexInput = indexInput;
 
+            if (this._json.bufferViews[indexAccessor.bufferView].byteStride) {
+                throw new Error('unsupported stride on index buffer')
+            }
+
             subMeshes.push(
                 new SubMesh(
                     ia,
                     {
                         count: indexAccessor.count,
-                        first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
+                        first: (indexAccessor.byteOffset || 0) / (indexType == IndexType.UINT16 ? 2 : 4)
                     }
                 )
             )
@@ -345,7 +350,6 @@ export class GLTF implements Asset {
             const info = new BufferInfo();
             info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
             info.mem_usage = MemoryUsage.GPU_ONLY;
-            info.stride = viewInfo.byteStride | 0;
             info.size = viewInfo.byteLength;
             buffer = device.createBuffer(info);
             if (!_commandBuffer) {
@@ -365,7 +369,6 @@ export class GLTF implements Asset {
             const info = new BufferInfo();
             info.usage = usage;
             info.mem_usage = MemoryUsage.CPU_TO_GPU;
-            info.stride = viewInfo.byteStride | 0;
             info.size = viewInfo.byteLength;
             buffer = device.createBuffer(info);
             buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);

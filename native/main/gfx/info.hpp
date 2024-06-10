@@ -82,7 +82,6 @@ namespace gfx
         BufferUsageFlagBits usage;
         MemoryUsage mem_usage;
         uint32_t size;
-        uint32_t stride;
     };
 
     enum class ShaderStageFlagBits
@@ -222,6 +221,7 @@ namespace gfx
     {
         std::shared_ptr<BufferVector> buffers{new BufferVector()};
         std::shared_ptr<Uint32Vector> offsets{new Uint32Vector()};
+        std::shared_ptr<Uint32Vector> strides{new Uint32Vector()};
     };
     enum class IndexType
     {

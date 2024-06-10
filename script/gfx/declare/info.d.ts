@@ -22,14 +22,6 @@ export declare class BufferInfo {
     usage: BufferUsageFlagBits;
     mem_usage: MemoryUsage;
     size: number;
-    /**
-     * When byteStride of the referenced bufferView is not defined, 
-     * it means that accessor elements are tightly packed, 
-     * i.e., effective stride equals the size of the element.
-     * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
-     */
-    stride: number;
-    // readonly offset: number
 }
 
 export declare class DescriptorSetLayoutBinding {
@@ -105,7 +97,15 @@ export class VertexAttributeVector extends Vector<VertexAttribute> { };
 export class BufferVector extends Vector<Buffer> { };
 export declare class VertexInput {
     buffers: BufferVector;
-    offsets: FloatVector;
+    offsets: Uint32Vector;
+    /**
+     * When byteStride of the referenced bufferView is not defined, 
+     * it means that accessor elements are tightly packed, 
+     * i.e., effective stride equals the size of the element.
+     * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
+     */
+    strides: Uint32Vector;
+
 }
 
 export declare class IndexInput {

@@ -31,8 +31,6 @@ export class BufferInfo {
     usage: BufferUsageFlagBits = 0;
     mem_usage: MemoryUsage = 0;
     size: number = 0;
-    stride: number = 0;
-
 }
 
 export class DescriptorSetLayoutBinding {
@@ -104,6 +102,7 @@ export class BufferVector extends Vector<Buffer> { };
 export class VertexInput {
     buffers = new BufferVector;
     offsets = new Uint32Vector;
+    strides = new Uint32Vector;
 }
 export class IndexInput {
     buffer: Buffer | null = null;
