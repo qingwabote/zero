@@ -13,7 +13,7 @@ flows:
         phases:
           - culling: CSM
             pass: shadow
-            batching: Instanced
+            batching: true
             visibility: ${UP}
         framebuffer:
           depthStencil: shadowmap
@@ -41,7 +41,7 @@ flows:
       - name: forward
         phases:
           - pass: default
-            batching: Instanced
+            batching: true
             visibility: ${WORLD}
   - bindings:
       - ubo: Camera

@@ -143,7 +143,6 @@ namespace gfx
         std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_vertexBuffers->size()};
         for (size_t i = 0; i < gfx_vertexBuffers->size(); i++)
         {
-            auto &gfx_buffer = gfx_vertexBuffers->at(i);
             uint32_t stride = 0;
             if (info->inputAssembler->vertexInput->strides->size() > i)
             {

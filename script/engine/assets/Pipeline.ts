@@ -17,7 +17,7 @@ interface PhaseBase {
 interface ModelPhase extends PhaseBase {
     type?: 'model';
     culling?: string;
-    batching?: string;
+    batching?: boolean;
     model?: string;
     pass?: string;
 }
@@ -52,14 +52,7 @@ const phaseFactory = (function () {
                     throw new Error(`unknown culling type: ${info.culling}`);
                 }
             }
-            let drawer = new pipeline.InstancedDrawer;
-            // if (info.batching) {
-            //     drawer = drawers[info.batching as keyof typeof drawers];
-            //     if (!drawer) {
-            //         throw new Error(`unknown batching type: ${info.batching}`);
-            //     }
-            // }
-            return new pipeline.ModelPhase(context, visibility, culler, drawer, info.model, info.pass);
+            return new pipeline.ModelPhase(context, visibility, culler, info.batching, info.model, info.pass);
         },
         fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);

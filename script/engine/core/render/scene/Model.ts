@@ -1,7 +1,7 @@
+import { device } from "boot";
 import { DescriptorSet, DescriptorSetLayout } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { BufferView } from "../BufferView.js";
-import { UniformSource } from "../UniformSource.js";
+import { shaderLib } from "../../shaderLib.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
@@ -12,7 +12,9 @@ enum ChangeBits {
     BOUNDS = 1 << 0,
 }
 
-export class Model implements UniformSource {
+export class Model {
+    static readonly descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([]);
+
     private _bounds_invalidated = true;
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
@@ -22,8 +24,6 @@ export class Model implements UniformSource {
         }
         return this._bounds;
     }
-
-    private _localBuffer_invalidated = false;
 
     private _hasChanged = new PeriodicFlag(ChangeBits.BOUNDS);
     get hasChanged(): number {
@@ -39,7 +39,6 @@ export class Model implements UniformSource {
     }
     public set transform(value: Transform) {
         this._transform = value;
-        this._localBuffer_invalidated = true;
         this._hasChanged.addBit(ChangeBits.BOUNDS)
     }
 
@@ -56,23 +55,26 @@ export class Model implements UniformSource {
 
     order: number = 0;
 
-    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) { }
+    readonly descriptorSet?: DescriptorSet;
 
-    update() {
-        if (this._mesh.hasChanged) {
-            this._bounds_invalidated = true;
-        }
+    protected _hasUploaded = new PeriodicFlag;
 
-        if (this._transform.hasChanged) {
-            this._bounds_invalidated = this._localBuffer_invalidated = true;
+    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
+        const descriptorSetLayout = (this.constructor as typeof Model).descriptorSetLayout;
+        if (descriptorSetLayout.info.bindings.size()) {
+            this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
         }
     }
 
-    getDescriptorSetLayout(): DescriptorSetLayout | null { return null; }
+    update() {
+        if (this._mesh.hasChanged || this._transform.hasChanged) {
+            this._bounds_invalidated = true;
+        }
+    }
 
-    createUniformBuffers(descriptorSet: DescriptorSet): BufferView[] { return []; }
-
-    fillBuffers(buffers: BufferView[]) { }
+    upload() {
+        this._hasUploaded.clear(1);
+    }
 }
 Model.ChangeBits = ChangeBits;
 

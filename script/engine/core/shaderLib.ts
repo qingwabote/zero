@@ -55,7 +55,7 @@ interface Meta {
 
 const _key2shader: Record<string, Shader> = {};
 const _shader2meta: WeakMap<Shader, Meta> = new WeakMap;
-const _shader2descriptorSetLayout: Record<string, DescriptorSetLayout | null> = {};
+const _shader2descriptorSetLayout: Record<string, DescriptorSetLayout> = {};
 
 const _macros: Readonly<Record<string, number>> = {
     CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
@@ -80,11 +80,10 @@ export const shaderLib = {
         for (const uniform of uniforms) {
             info.bindings.add(this.createDescriptorSetLayoutBinding(uniform));
         }
-        const layout = device.createDescriptorSetLayout(info);
-        return layout;
+        return device.createDescriptorSetLayout(info);
     },
 
-    getDescriptorSetLayout(shader: Shader, set: number): DescriptorSetLayout | null {
+    getDescriptorSetLayout(shader: Shader, set: number): DescriptorSetLayout {
         const meta = _shader2meta.get(shader)!;
         const key = `${set}:${meta.key}`;
         if (key in _shader2descriptorSetLayout) {
@@ -117,10 +116,6 @@ export const shaderLib = {
             binding.descriptorCount = 1;
             binding.stageFlags = block.stageFlags;
             bindings.add(binding);
-        }
-
-        if (!bindings.size()) {
-            return _shader2descriptorSetLayout[key] = null;
         }
 
         const info = new DescriptorSetLayoutInfo;

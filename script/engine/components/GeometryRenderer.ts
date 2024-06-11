@@ -80,7 +80,7 @@ export class GeometryRenderer extends BoundedRenderer {
         ia.vertexInput.buffers.add(this._buffer.buffer);
         ia.vertexInput.offsets.add(0);
 
-        this._mesh = new Mesh([new SubMesh(ia)]);;
+        this._mesh = new Mesh([new SubMesh(ia)]);
     }
 
     protected createModel(): Model | null {

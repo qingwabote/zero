@@ -9,7 +9,7 @@ const VisibilityFlagBits = {
     WORLD: 1 << 30
 } as const
 
-const [guardian, plane, instancing_off, instancing_on] = await Promise.all([
+const [guardian, plane, batching_off, batching_on] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
         return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1 });
@@ -19,11 +19,11 @@ const [guardian, plane, instancing_off, instancing_on] = await Promise.all([
         return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1 });
     })(),
     (async function () {
-        const pipeline = await bundle.cache('pipelines/instancing-off', Pipeline)
+        const pipeline = await bundle.cache('pipelines/batching-off', Pipeline)
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
     (async function () {
-        const pipeline = await bundle.cache('pipelines/instancing-on', Pipeline)
+        const pipeline = await bundle.cache('pipelines/batching-on', Pipeline)
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
 ])
@@ -129,11 +129,11 @@ export class App extends Zero {
                     if (textRenderer.impl.text == 'INSTANCING OFF') {
                         textRenderer.impl.text = 'INSTANCING ON';
                         textRenderer.impl.color = vec4.GREEN;
-                        this.pipeline = instancing_on;
+                        this.pipeline = batching_on;
                     } else {
                         textRenderer.impl.text = 'INSTANCING OFF';
                         textRenderer.impl.color = vec4.ONE;
-                        this.pipeline = instancing_off;
+                        this.pipeline = batching_off;
                     }
                 })
                 down_container.addElement(textRenderer);
@@ -144,4 +144,4 @@ export class App extends Zero {
     }
 }
 
-(new App(instancing_on)).initialize().attach();
+(new App(batching_on)).initialize().attach();

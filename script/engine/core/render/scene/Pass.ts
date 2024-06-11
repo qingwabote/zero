@@ -1,8 +1,8 @@
+import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, PassState, Sampler, Texture } from "gfx";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferView } from "../BufferView.js";
-import { UniformSource } from "../UniformSource.js";
 
 function type2Length(type: string): number {
     switch (type) {
@@ -16,14 +16,12 @@ function type2Length(type: string): number {
     }
 }
 
-export class Pass implements UniformSource {
+export class Pass {
     static Pass(state: PassState, type = 'default') {
         const pass = new Pass(state, type);
         pass.initialize();
         return pass;
     }
-
-    private _descriptorSetLayout?: DescriptorSetLayout | null = undefined;
 
     private _properties_dirty: Map<string, boolean> = new Map;
     private _properties: Record<string, ArrayLike<number>> = {};
@@ -37,9 +35,29 @@ export class Pass implements UniformSource {
         return this._samplerTextures;
     }
 
-    protected constructor(readonly state: PassState, readonly type: string) { }
+    readonly descriptorSetLayout: DescriptorSetLayout;
+    readonly descriptorSet?: DescriptorSet;
 
-    protected initialize() { }
+    private _propsBuffer?: BufferView;
+
+    protected constructor(readonly state: PassState, readonly type: string) {
+        const descriptorSetLayout = shaderLib.getDescriptorSetLayout(state.shader!, shaderLib.sets.material.index);
+        if (descriptorSetLayout.info.bindings.size()) {
+            this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+        }
+        this.descriptorSetLayout = descriptorSetLayout;
+    }
+
+    protected initialize() {
+        if (this.descriptorSet) {
+            const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
+            if (block) {
+                const view = this.createUniformBuffer('Props');
+                this.descriptorSet.bindBuffer(block.binding, view.buffer);
+                this._propsBuffer = view;
+            }
+        }
+    }
 
     hasProperty(member: string): boolean {
         const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
@@ -67,7 +85,7 @@ export class Pass implements UniformSource {
     }
 
     instantiate() {
-        const instance = new Pass(this.state, this.type);
+        const instance = Pass.Pass(this.state, this.type);
         for (const name in this.samplerTextures) {
             instance.setTexture(name, ...this.samplerTextures[name]);
         }
@@ -77,42 +95,27 @@ export class Pass implements UniformSource {
         return instance;
     }
 
-    getDescriptorSetLayout(): DescriptorSetLayout | null {
-        if (this._descriptorSetLayout != undefined) {
-            return this._descriptorSetLayout;
-        }
-        return this._descriptorSetLayout = shaderLib.getDescriptorSetLayout(this.state.shader!, shaderLib.sets.material.index);
-    }
-
-    createUniformBuffers(descriptorSet: DescriptorSet): BufferView[] {
-        const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
-        if (!block) {
-            return [];
-        }
-
-        const view = this.createUniformBuffer('Props');
-        descriptorSet.bindBuffer(block.binding, view.buffer);
-        return [view];
-    }
-
-    fillBuffers(buffers: BufferView[]) {
-        const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
-        let offset = 0;
-        for (const mem of block.members!) {
-            if (this._properties_dirty.get(mem.name)) {
-                buffers[0].set(this._properties[mem.name], offset);
+    upload() {
+        if (this.descriptorSet) {
+            for (const name of this._samplerTextures_dirty.keys()) {
+                const binding = shaderLib.getShaderMeta(this.state.shader!).samplerTextures[name].binding;
+                this.descriptorSet.bindTexture(binding, ...this._samplerTextures[name]);
             }
-            offset += type2Length(mem.type);
-        }
-        this._properties_dirty.clear();
-    }
+            this._samplerTextures_dirty.clear();
 
-    bindTextures(descriptorSet: DescriptorSet) {
-        for (const name of this._samplerTextures_dirty.keys()) {
-            const binding = shaderLib.getShaderMeta(this.state.shader!).samplerTextures[name].binding;
-            descriptorSet.bindTexture(binding, ...this._samplerTextures[name]);
+            if (this._propsBuffer) {
+                const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
+                let offset = 0;
+                for (const mem of block.members!) {
+                    if (this._properties_dirty.get(mem.name)) {
+                        this._propsBuffer.set(this._properties[mem.name], offset);
+                    }
+                    offset += type2Length(mem.type);
+                }
+                this._propsBuffer.update();
+                this._properties_dirty.clear();
+            }
         }
-        this._samplerTextures_dirty.clear();
     }
 
     protected createUniformBuffer(name: string): BufferView {

@@ -11,3 +11,7 @@ export class SubMesh {
         readonly draw: Draw = { count: 0, first: 0 }
     ) { }
 }
+
+export declare namespace SubMesh {
+    export { Draw }
+}
