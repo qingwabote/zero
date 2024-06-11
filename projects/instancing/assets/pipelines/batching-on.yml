@@ -14,7 +14,7 @@ flows:
           - culling: CSM
             pass: shadow
             batching: true
-            visibility: ${UP}
+            visibility: ${WORLD}
         framebuffer:
           depthStencil: shadowmap
         clears:

@@ -54,7 +54,7 @@ export class SkinnedModel extends Model {
             return;
         }
 
-        super.update();
+        super.upload();
 
         if (!this._joints) {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths)!);

@@ -55,6 +55,10 @@ export class Model {
 
     order: number = 0;
 
+    get descriptorSetLayout(): DescriptorSetLayout {
+        return (this.constructor as typeof Model).descriptorSetLayout;
+    }
+
     readonly descriptorSet?: DescriptorSet;
 
     protected _hasUploaded = new PeriodicFlag;

@@ -61,10 +61,14 @@ const _macros: Readonly<Record<string, number>> = {
     CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
 };
 
+const descriptorSetLayout_empty = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo)
+
 export const shaderLib = {
     attributes,
 
     sets,
+
+    descriptorSetLayout_empty,
 
     createDescriptorSetLayoutBinding(uniform: Uniform): DescriptorSetLayoutBinding {
         const binding = new DescriptorSetLayoutBinding;

@@ -3,8 +3,6 @@ import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextR
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
-    UP: 1 << 1,
-    DOWN: 1 << 2,
     UI: 1 << 29,
     WORLD: 1 << 30
 } as const
@@ -46,34 +44,27 @@ export class App extends Zero {
 
         let node: Node;
 
-        // cameras
         node = new Node;
         const up_camera = node.addComponent(Camera);
-        up_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.UP;
+        up_camera.visibilities = VisibilityFlagBits.WORLD;
         up_camera.fov = 45;
-        up_camera.far = 16;
-        up_camera.rect = [0, 0.5, 1, 0.5];
-        node.position = [0, 2, 10];
+        up_camera.far = 64;
+        node.position = [0, 6, 32];
 
-        node = new Node;
-        const down_camera = node.addComponent(Camera);
-        down_camera.visibilities = VisibilityFlagBits.WORLD | VisibilityFlagBits.DOWN;
-        down_camera.orthoSize = 12;
-        down_camera.rect = [0, 0, 1, 0.5];
-        down_camera.near = -8;
-        node.position = [-8, 8, 8];
-
-        node = guardian.createScene("Sketchfab_Scene")!;
-        const animation = node.addComponent(Animation);
-        animation.clips = guardian.proto.animationClips;
-        animation.play('WalkCycle')
-        node.visibility = VisibilityFlagBits.WORLD;
-        node.position = [0, -1, 0]
+        const guardian_positions = [vec3.create(-4, 3, -4), vec3.create(4, 3, -4), vec3.create(-4, 3, 4), vec3.create(4, 3, 4)]
+        for (const position of guardian_positions) {
+            node = guardian.createScene("Sketchfab_Scene")!;
+            const animation = node.addComponent(Animation);
+            animation.clips = guardian.proto.animationClips;
+            animation.play('WalkCycle')
+            node.visibility = VisibilityFlagBits.WORLD;
+            node.position = position
+        }
 
         node = plane.createScene("Plane")!;
         node.visibility = VisibilityFlagBits.WORLD
-        node.scale = [5, 1, 5];
-        node.position = [0, -1, 0];
+        node.scale = [8, 1, 8];
+        node.position = [0, 3, 0];
 
         // UI
         node = new Node;
@@ -112,33 +103,23 @@ export class App extends Zero {
         down_container.setWidth(width);
         down_container.setHeight(height / 2);
         {
-            const controlPanel = Node.build(CameraControlPanel);
-            controlPanel.camera = down_camera;
-            controlPanel.positionType = PositionType.Absolute;
-            controlPanel.setWidth('100%');
-            controlPanel.setHeight('100%');
-            down_container.addElement(controlPanel);
-
-            {
-                const textRenderer = Renderer.create(TextRenderer);
-                textRenderer.impl.text = 'INSTANCING ON';
-                textRenderer.impl.color = vec4.GREEN;
-                textRenderer.impl.size = 50;
-                textRenderer.positionType = PositionType.Absolute;
-                textRenderer.emitter.on(Input.TouchEvents.START, async event => {
-                    if (textRenderer.impl.text == 'INSTANCING OFF') {
-                        textRenderer.impl.text = 'INSTANCING ON';
-                        textRenderer.impl.color = vec4.GREEN;
-                        this.pipeline = batching_on;
-                    } else {
-                        textRenderer.impl.text = 'INSTANCING OFF';
-                        textRenderer.impl.color = vec4.ONE;
-                        this.pipeline = batching_off;
-                    }
-                })
-                down_container.addElement(textRenderer);
-            }
-
+            const textRenderer = Renderer.create(TextRenderer);
+            textRenderer.impl.text = 'INSTANCING ON';
+            textRenderer.impl.color = vec4.GREEN;
+            textRenderer.impl.size = 50;
+            textRenderer.positionType = PositionType.Absolute;
+            textRenderer.emitter.on(Input.TouchEvents.START, async event => {
+                if (textRenderer.impl.text == 'INSTANCING OFF') {
+                    textRenderer.impl.text = 'INSTANCING ON';
+                    textRenderer.impl.color = vec4.GREEN;
+                    this.pipeline = batching_on;
+                } else {
+                    textRenderer.impl.text = 'INSTANCING OFF';
+                    textRenderer.impl.color = vec4.ONE;
+                    this.pipeline = batching_off;
+                }
+            })
+            down_container.addElement(textRenderer);
         }
         doc.addElement(down_container)
     }

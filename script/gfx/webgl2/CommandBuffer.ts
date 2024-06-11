@@ -161,7 +161,6 @@ export class CommandBuffer {
             default:
                 throw `unsupported primitive: ${this._pipeline.passState!.primitive}`
         }
-        // gl.drawArrays(mode, 0, vertexCount);
         gl.drawArraysInstanced(mode, 0, vertexCount, instanceCount);
         gl.bindVertexArray(null);
     }

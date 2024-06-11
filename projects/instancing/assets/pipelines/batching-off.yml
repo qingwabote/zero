@@ -13,7 +13,7 @@ flows:
         phases:
           - culling: CSM
             pass: shadow
-            visibility: ${UP}
+            visibility: ${WORLD}
         framebuffer:
           depthStencil: shadowmap
         clears:

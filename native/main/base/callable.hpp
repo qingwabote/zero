@@ -2,6 +2,11 @@
 
 #include <memory>
 
+/**
+ * @brief std::function is copyable, the standard requires that callables used to construct it also be copyable,
+ * so we can't construct it from a lambda with a captured unique_ptr.
+ * here is a lambda container with no copy
+ */
 namespace callable
 {
     class CallableBase
