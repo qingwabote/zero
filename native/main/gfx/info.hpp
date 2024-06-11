@@ -211,6 +211,7 @@ namespace gfx
         uint32_t format;
         uint32_t buffer;
         uint32_t offset;
+        uint32_t stride;
         uint32_t location;
         bool instanced;
     };
@@ -221,7 +222,6 @@ namespace gfx
     {
         std::shared_ptr<BufferVector> buffers{new BufferVector()};
         std::shared_ptr<Uint32Vector> offsets{new Uint32Vector()};
-        std::shared_ptr<Uint32Vector> strides{new Uint32Vector()};
     };
     enum class IndexType
     {
@@ -288,7 +288,7 @@ namespace gfx
     struct PipelineInfo
     {
         std::shared_ptr<PassState> passState;
-        std::shared_ptr<InputAssembler> inputAssembler;
+        std::shared_ptr<VertexAttributeVector> attributes;
         std::shared_ptr<PipelineLayout> layout;
         std::shared_ptr<RenderPass> renderPass;
     };

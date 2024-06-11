@@ -284,11 +284,11 @@ export class GLTF implements Asset {
                 attribute.format = format;
                 attribute.buffer = ia.vertexInput.buffers.size();
                 attribute.offset = 0;
+                attribute.stride = this._json.bufferViews[accessor.bufferView].byteStride || 0;
                 attribute.location = builtin.location;
                 ia.vertexAttributes.add(attribute);
                 ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 ia.vertexInput.offsets.add(accessor.byteOffset || 0);
-                ia.vertexInput.strides.add(this._json.bufferViews[accessor.bufferView].byteStride || 0);
             }
 
             const indexAccessor = this._json.accessors[primitive.indices];

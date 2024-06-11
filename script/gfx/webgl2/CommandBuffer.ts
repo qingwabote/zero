@@ -222,7 +222,7 @@ export class CommandBuffer {
             for (const attribute of attributes) {
                 const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.buffer];
                 const offset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
-                const stride = (inputAssembler.vertexInput.strides as Vector<number>).data[attribute.buffer] || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
+                const stride = attribute.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
                 gl.enableVertexAttribArray(attribute.location);
                 const formatInfo = FormatInfos[attribute.format];

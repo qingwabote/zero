@@ -89,6 +89,13 @@ export declare class VertexAttribute {
     format: Format
     buffer: number
     offset: number
+    /**
+     * When byteStride of the referenced bufferView is not defined, 
+     * it means that accessor elements are tightly packed, 
+     * i.e., effective stride equals the size of the element.
+     * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
+     */
+    stride: number
     location: number
     instanced: boolean
 }
@@ -98,14 +105,6 @@ export class BufferVector extends Vector<Buffer> { };
 export declare class VertexInput {
     buffers: BufferVector;
     offsets: Uint32Vector;
-    /**
-     * When byteStride of the referenced bufferView is not defined, 
-     * it means that accessor elements are tightly packed, 
-     * i.e., effective stride equals the size of the element.
-     * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
-     */
-    strides: Uint32Vector;
-
 }
 
 export declare class IndexInput {
@@ -147,7 +146,7 @@ export declare class PassState {
 
 export declare class PipelineInfo {
     passState: PassState | null;
-    inputAssembler: InputAssembler | null;
+    attributes: VertexAttributeVector | null;
     layout: PipelineLayout | null;
     renderPass: RenderPass | null;
 }

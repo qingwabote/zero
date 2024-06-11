@@ -24,12 +24,6 @@ const inputAssembler_clone = (function () {
             out.offsets.add(offsets.get(i));
         }
 
-        const strides = vertexInput.strides;
-        const strides_size = strides.size();
-        for (let i = 0; i < strides_size; i++) {
-            out.strides.add(strides.get(i));
-        }
-
         return out;
     }
 
@@ -162,7 +156,7 @@ export class ModelPhase extends Phase {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                         layouts.push(pass.descriptorSetLayout);
                     }
-                    const pipeline = this._context.getPipeline(pass.state, batch.inputAssembler, renderPass, layouts);
+                    const pipeline = this._context.getPipeline(pass.state, batch.inputAssembler.vertexAttributes, renderPass, layouts);
                     commandBuffer.bindPipeline(pipeline);
                     commandBuffer.bindInputAssembler(batch.inputAssembler);
                     if (batch.inputAssembler.indexInput) {

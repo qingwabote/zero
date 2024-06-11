@@ -95,6 +95,7 @@ export class VertexAttribute {
     format: Format = 0;
     buffer: number = 0;
     offset: number = 0;
+    stride: number = 0;
     location: number = 0;
     instanced: boolean = false;
 }
@@ -102,7 +103,6 @@ export class BufferVector extends Vector<Buffer> { };
 export class VertexInput {
     buffers = new BufferVector;
     offsets = new Uint32Vector;
-    strides = new Uint32Vector;
 }
 export class IndexInput {
     buffer: Buffer | null = null;
@@ -140,7 +140,7 @@ export class PassState {
 
 export class PipelineInfo implements PipelineInfo {
     passState: PassState | null = null;
-    inputAssembler: InputAssembler | null = null;
+    attributes: VertexAttributeVector | null = null;
     layout: PipelineLayout | null = null;
     renderPass: RenderPass | null = null;
 }

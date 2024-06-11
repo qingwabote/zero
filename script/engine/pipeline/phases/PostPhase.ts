@@ -12,7 +12,7 @@ export class PostPhase extends Phase {
     }
 
     record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
-        const pipeline = this._context.getPipeline(this._passState, inputAssembler, renderPass);
+        const pipeline = this._context.getPipeline(this._passState, inputAssembler.vertexAttributes, renderPass);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.bindInputAssembler(inputAssembler);
         commandBuffer.drawIndexed(6, 0, 1)
