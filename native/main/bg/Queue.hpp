@@ -15,6 +15,5 @@ namespace bg
 
         virtual void submit(const std::shared_ptr<gfx::SubmitInfo> &info, const std::shared_ptr<gfx::Fence> &fence);
         virtual void present(const std::shared_ptr<gfx::Semaphore> &waitSemaphore);
-        virtual void wait(const std::shared_ptr<gfx::Fence> &fence);
     };
 }

@@ -40,4 +40,6 @@ export declare class Device {
     createSemaphore(): Semaphore;
     createShader(info: ShaderInfo): Shader;
     createTexture(info: TextureInfo): Texture;
+
+    waitForFence(fence: Fence): void { }
 }

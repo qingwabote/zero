@@ -165,7 +165,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
-        boot.device.queue.wait(this._fence);
+        boot.device.waitForFence(this._fence);
     }
 }
 Zero.Event = Event;

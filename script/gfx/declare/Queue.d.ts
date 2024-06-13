@@ -6,5 +6,4 @@ export declare class Queue {
     private constructor(...args);
     submit(info: SubmitInfo, fence: Fence): void;
     present(waitSemaphore: Semaphore): void;
-    wait(fence: Fence): void;
 }

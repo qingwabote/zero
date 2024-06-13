@@ -7,6 +7,9 @@
 
 #include "glslang/Public/ShaderLang.h"
 
+#include "gfx/Fence.hpp"
+#include "VkFence_impl.hpp"
+
 namespace
 {
     VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -383,6 +386,13 @@ namespace gfx
         auto texture = new Texture(_impl, info);
         texture->initialize();
         return texture;
+    }
+
+    void Device::waitForFence(const std::shared_ptr<Fence> &c_fence)
+    {
+        VkFence fence = c_fence->impl();
+        vkWaitForFences(*_impl, 1, &fence, true, 1000000000);
+        vkResetFences(*_impl, 1, &fence);
     }
 
     void Device::finish() { vkDeviceWaitIdle(_impl->device()); }
