@@ -10,6 +10,7 @@
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
+- [GPU Instancing](https://qingwabote.github.io/zero/projects/instancing/web/index.html)
 
 # 跨平台
 
@@ -34,6 +35,7 @@
 - 骨骼动画 (spine)
 - 物理引擎 (ammo)
 - MSAA & FXAA
+- GPU Instancing
 
 # 可配置渲染管线
 
