@@ -138,32 +138,32 @@ export namespace InstanceBatch {
             return this._count;
         }
 
-        private readonly _buffer: BufferView;
+        private readonly _view: BufferView = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
 
         private _locked = new PeriodicFlag();
         get locked(): boolean {
             return this._locked.value != 0;
         }
 
-        constructor(private _subMesh: SubMesh, readonly material: Material, readonly capacity: number = 32) {
+        constructor(private _subMesh: SubMesh, readonly material: Material) {
             const ia = inputAssembler_clone(_subMesh.inputAssembler);
-            const buffer = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16 * capacity);
             const bufferIndex = ia.vertexInput.buffers.size();
             for (let i = 0; i < 4; i++) {
                 ia.vertexAttributes.add(createModelAttribute(i, bufferIndex));
             }
-            ia.vertexInput.buffers.add(buffer.buffer);
+            ia.vertexInput.buffers.add(this._view.buffer);
             ia.vertexInput.offsets.add(0);
-            this._buffer = buffer;
             this.inputAssembler = ia;
         }
 
         add(transform: Readonly<Mat4>) {
-            this._buffer.set(transform, 16 * this._count++);
+            this._view.resize(16 * (this._count + 1));
+            this._view.set(transform, 16 * this._count);
+            this._count++;
         }
 
         upload(): void {
-            this._buffer.update();
+            this._view.update();
             this._locked.reset(1);
         }
 
