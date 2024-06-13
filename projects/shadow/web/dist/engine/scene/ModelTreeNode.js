@@ -9,7 +9,7 @@ function contains(min, max, point) {
         point[1] > max[1] || point[1] < min[1] ||
         point[2] > max[2] || point[2] < min[2]);
 }
-export class ModelTreeNodeContext {
+class Context {
     constructor(models) {
         this.model2node = new Map;
         const model2node = new Map;
@@ -153,3 +153,4 @@ export class ModelTreeNode {
         }
     }
 }
+ModelTreeNode.Context = Context;

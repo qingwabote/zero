@@ -1,107 +1,93 @@
-import { Camera, Node, Pipeline, Profiler, TextRenderer, UIDocument, UIRenderer, UITouchEventType, VisibilityFlagBits, Zero, bundle, device, loadBundle, safeArea, vec2, vec3 } from "engine";
+import { Camera, Input, Node, Pipeline, TextRenderer, Zero, bundle, device, loadBundle, safeArea, vec3 } from "engine";
+import { Align, Document, Edge, Renderer } from 'flex';
 
-const unlit = await (await bundle.cache('pipelines/unlit', Pipeline)).createRenderPipeline();
+const VisibilityFlagBits = {
+    UI: 1 << 29,
+} as const
+
+const unlit = await (await bundle.cache('pipelines/unlit', Pipeline)).instantiate();
 
 class App extends Zero {
     start() {
-        const { width, height } = device.swapchain;
+        const width = 640;
+        const height = 960;
+
+        const swapchain = device.swapchain;
+        const scaleX = swapchain.width / width;
+        const scaleY = swapchain.height / height;
+        const scale = scaleX < scaleY ? scaleX : scaleY;
 
         let node: Node;
 
         node = new Node;
         const ui_camera = node.addComponent(Camera);
-        ui_camera.orthoHeight = height / 2;
-        ui_camera.viewport = { x: 0, y: 0, width, height };
+        ui_camera.orthoSize = swapchain.height / scale / 2;
+        ui_camera.visibilities = VisibilityFlagBits.UI;
         node.position = vec3.create(0, 0, width / 2);
 
-        const doc = (new Node).addComponent(UIDocument);
-        doc.node.visibility = VisibilityFlagBits.DEFAULT;
+        const doc = (new Node).addComponent(Document);
+        doc.setWidth(width);
+        doc.setHeight(height);
+        doc.setPadding(Edge.Top, safeArea.top / scale);
+        doc.alignItems = Align.Center
+        doc.node.position = vec3.create(-width / 2, height / 2);
+        doc.node.visibility = VisibilityFlagBits.UI;
 
-        let y = safeArea.y + safeArea.height - 100;
-        let d = 80;
-
-        let textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
+        let textRenderer = Renderer.create(TextRenderer);
         textRenderer.impl.text = '动画混合';
         textRenderer.impl.color = [0, 1, 0, 1];
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+        textRenderer.emitter.on(Input.TouchEvents.START, async event => {
             this.go('animation');
         })
-        textRenderer.node.position = [0, y, 0];
-        y -= d;
         doc.addElement(textRenderer);
 
-        textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
+        textRenderer = Renderer.create(TextRenderer);
         textRenderer.impl.text = '阴影';
         textRenderer.impl.color = [0, 1, 0, 1];
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+        textRenderer.emitter.on(Input.TouchEvents.START, async event => {
             this.go('shadow');
         })
-        textRenderer.node.position = [0, y, 0];
-        y -= d;
         doc.addElement(textRenderer);
 
-        textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
+        textRenderer = Renderer.create(TextRenderer);
         textRenderer.impl.text = '蒙皮';
         textRenderer.impl.color = [0, 1, 0, 1];
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+        textRenderer.emitter.on(Input.TouchEvents.START, async event => {
             this.go('skin');
         })
-        textRenderer.node.position = [0, y, 0];
-        y -= d;
         doc.addElement(textRenderer);
 
-        textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
+        textRenderer = Renderer.create(TextRenderer);
         textRenderer.impl.text = '骨骼';
         textRenderer.impl.color = [0, 1, 0, 1];
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+        textRenderer.emitter.on(Input.TouchEvents.START, async event => {
             this.go('skeleton', 'spine');
         })
-        textRenderer.node.position = [0, y, 0];
-        y -= d;
         doc.addElement(textRenderer);
 
-        textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
+        textRenderer = Renderer.create(TextRenderer);
         textRenderer.impl.text = '载具';
         textRenderer.impl.color = [0, 1, 0, 1];
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+        textRenderer.emitter.on(Input.TouchEvents.START, async event => {
             this.go('vehicle', 'physics');
         })
-        textRenderer.node.position = [0, y, 0];
-        y -= d;
         doc.addElement(textRenderer);
 
-        textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
+        textRenderer = Renderer.create(TextRenderer);
         textRenderer.impl.text = '切割';
         textRenderer.impl.color = [0, 1, 0, 1];
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
+        textRenderer.emitter.on(Input.TouchEvents.START, async event => {
             this.go('cutting2d');
         })
-        textRenderer.node.position = [0, y, 0];
-        y -= d;
         doc.addElement(textRenderer);
 
-        textRenderer = UIRenderer.create(TextRenderer);
-        textRenderer.anchor = vec2.create(0.5, 1);
-        textRenderer.impl.text = 'yoga';
+        textRenderer = Renderer.create(TextRenderer);
+        textRenderer.impl.text = 'instancing';
         textRenderer.impl.color = [0, 1, 0, 1];
-        textRenderer.on(UITouchEventType.TOUCH_START, async event => {
-            this.go('yoga');
+        textRenderer.emitter.on(Input.TouchEvents.START, async event => {
+            this.go('instancing');
         })
-        textRenderer.node.position = [0, y, 0];
-        y -= d;
         doc.addElement(textRenderer);
-
-        node = new Node;
-        node.visibility = VisibilityFlagBits.DEFAULT
-        const profiler = node.addComponent(Profiler);
-        profiler.anchor = vec2.create(0, 0)
-        node.position = [-width / 2, safeArea.y, 0];
 
         return unlit;
     }
@@ -120,4 +106,4 @@ class App extends Zero {
     }
 }
 
-(new App).initialize();
+(new App(unlit)).initialize().attach();

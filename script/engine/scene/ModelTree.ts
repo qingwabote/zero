@@ -3,7 +3,7 @@ import { Frustum } from "../core/render/scene/Frustum.js";
 import { Model } from "../core/render/scene/Model.js";
 import { ModelCollection } from "../core/render/scene/ModelCollection.js";
 import * as culling from "../core/render/scene/culling.js";
-import { ModelTreeNode, ModelTreeNodeContext } from "./ModelTreeNode.js";
+import { ModelTreeNode } from "./ModelTreeNode.js";
 
 function cull(results: Model[], node: ModelTreeNode, frustum: Readonly<Frustum>, visibilities: number, type: string, claimed?: Map<Model, Model>): Model[] {
     if (frustum.aabb_out(node.bounds)) {
@@ -22,10 +22,10 @@ function cull(results: Model[], node: ModelTreeNode, frustum: Readonly<Frustum>,
 export class ModelTree implements ModelCollection {
     readonly root: ModelTreeNode;
 
-    private readonly _context: ModelTreeNodeContext;
+    private readonly _context: ModelTreeNode.Context;
 
     constructor(bounds: Readonly<AABB3D>, models?: Iterable<Model>) {
-        this._context = new ModelTreeNodeContext(models);
+        this._context = new ModelTreeNode.Context(models);
         this.root = new ModelTreeNode(this._context, bounds, 0);
     }
 
@@ -33,7 +33,7 @@ export class ModelTree implements ModelCollection {
         this._context.model2node.set(model, null);
     }
 
-    cull(times = 1) {
+    culler(times = 1) {
         const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
         return (frustum: Readonly<Frustum>, visibilities: number, type: string = 'default') => {
             return cull([], this.root, frustum, visibilities, type, claimed);

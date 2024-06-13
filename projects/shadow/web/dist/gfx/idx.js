@@ -6,7 +6,6 @@ export * from './DescriptorSetLayout.js';
 export * from './Device.js';
 export * from './Fence.js';
 export * from './Framebuffer.js';
-export * from './InputAssembler.js';
 export * from './Pipeline.js';
 export * from './PipelineLayout.js';
 export * from './Queue.js';

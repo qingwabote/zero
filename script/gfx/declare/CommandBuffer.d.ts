@@ -16,8 +16,8 @@ export declare class CommandBuffer {
     bindPipeline(pipeline: Pipeline): void;
     bindDescriptorSet(index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void;
     bindInputAssembler(inputAssembler: InputAssembler): void;
-    draw(vertexCount: number): void;
-    drawIndexed(indexCount: number, firstIndex: number): void;
+    draw(vertexCount: number, instanceCount: number): void;
+    drawIndexed(indexCount: number, firstIndex: number, instanceCount: number): void;
     endRenderPass(): void;
     end(): void;
 }

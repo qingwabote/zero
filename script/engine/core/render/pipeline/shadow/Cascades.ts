@@ -5,8 +5,8 @@ import { frustum } from "../../../math/frustum.js";
 import { Mat4, mat4 } from "../../../math/mat4.js";
 import { vec3 } from "../../../math/vec3.js";
 import { Camera } from "../../scene/Camera.js";
-import { ChangeRecord } from "../../scene/ChangeRecord.js";
 import { Frustum } from "../../scene/Frustum.js";
+import { PeriodicFlag } from "../../scene/PeriodicFlag.js";
 
 const frustum_a = frustum.vertices();
 const aabb_a = aabb3d.create();
@@ -14,13 +14,11 @@ const vec3_a = vec3.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
 
-export class Cascades extends ChangeRecord {
+export class Cascades {
 
-    override get hasChanged(): number {
-        return super.hasChanged || this._camera.hasChanged || this._camera.transform.hasChanged || Zero.instance.scene.directionalLight!.hasChanged;
-    }
-    override set hasChanged(flags: number) {
-        super.hasChanged = flags;
+    private _hasChanged = new PeriodicFlag(1);
+    get hasChanged(): number {
+        return this._hasChanged.value || this._camera.hasChanged || this._camera.transform.hasChanged || Zero.instance.scene.directionalLight!.hasChanged;
     }
 
     private _frusta: Frustum[];
@@ -39,7 +37,6 @@ export class Cascades extends ChangeRecord {
     }
 
     constructor(private readonly _camera: Camera, private readonly _num: number) {
-        super(1);
         const frusta: Frustum[] = [];
         const bounds: Frustum[] = [];
         const viewProjs: Mat4[] = [];

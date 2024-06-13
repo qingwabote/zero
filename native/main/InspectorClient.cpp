@@ -23,7 +23,7 @@ InspectorClient::InspectorClient()
     _socket->onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>(new callable::CallableLambda(new auto(
         [this](std::unique_ptr<WebSocketEvent> event)
         {
-            // ZERO_LOG("onmessage %s", event->buffer()->data());
+            // ZERO_LOG_INFO("onmessage %s", event->buffer()->data());
             v8_inspector::StringView stringView(reinterpret_cast<uint8_t *>(event->buffer()->data()), event->buffer()->size() - 1);
             _session->dispatchProtocolMessage(stringView);
         }))));

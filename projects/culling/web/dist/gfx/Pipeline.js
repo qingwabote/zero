@@ -1,9 +1,6 @@
 export class Pipeline {
-    get info() {
-        return this._info;
+    constructor(info) {
+        this.info = info;
     }
-    initialize(info) {
-        this._info = info;
-        return false;
-    }
+    initialize() { return false; }
 }

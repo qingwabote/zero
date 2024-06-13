@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssemblerInfo, MemoryUsage, SubmitInfo, VertexAttribute, VertexInput } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, SubmitInfo, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
@@ -13,18 +13,18 @@ import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
-import { AnimationClip, Channel } from "../marionette/AnimationClip.js";
-import { MaterialInstance } from "../scene/MaterialInstance.js";
-import { Effect, PassOverridden } from "./Effect.js";
+import { shaderLib } from "../core/shaderLib.js";
+import { AnimationClip } from "../marionette/AnimationClip.js";
+import { Effect } from "./Effect.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
 
-const builtinAttributes: Record<string, string> = {
-    "POSITION": "a_position",
-    "TEXCOORD_0": "a_texCoord",
-    "NORMAL": "a_normal",
-    "JOINTS_0": "a_joints",
-    "WEIGHTS_0": "a_weights"
+const attributeMap: Record<string, keyof typeof shaderLib.attributes> = {
+    "POSITION": "position",
+    "TEXCOORD_0": "uv",
+    "NORMAL": "normal",
+    "JOINTS_0": "joints",
+    "WEIGHTS_0": "weights"
 }
 
 const format_part1: Record<string, string> = {
@@ -52,13 +52,13 @@ function node2name(node: any, index: number): string {
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
 
-export interface MaterialParams {
+interface MaterialParams {
     albedo: Readonly<Vec4>;
     skin: boolean;
     texture?: Texture;
 }
 
-export type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<PassOverridden>[]];
+type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<Effect.PassOverridden>[]];
 
 const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
     return [
@@ -130,7 +130,7 @@ export class GLTF implements Asset {
 
     private _meshes: Mesh[] = [];
 
-    private _instances: Record<string, GLTFInstance> = {};
+    private _instances: Record<string, Instance> = {};
 
     async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
@@ -180,7 +180,7 @@ export class GLTF implements Asset {
 
         // animation
         for (const animation of json.animations || []) {
-            const channels: Channel[] = []
+            const channels: AnimationClip.Channel[] = []
             for (const channel of animation.channels) {
                 const sampler = animation.samplers[channel.sampler];
 
@@ -227,7 +227,7 @@ export class GLTF implements Asset {
         return this;
     }
 
-    async instantiate(macros?: Record<string, number>, materialFunc = materialFuncPhong): Promise<GLTFInstance> {
+    async instantiate(macros?: Record<string, number>, materialFunc = materialFuncPhong): Promise<Instance> {
         let instanceKey = materialFuncHash(materialFunc).toString();
         if (macros) {
             const names = Object.keys(macros).sort();
@@ -250,7 +250,7 @@ export class GLTF implements Asset {
                     skin: this._json.skins != undefined
                 }), macros));
             }
-            instance = new GLTFInstance(this, materials, materialDefault);
+            instance = new Instance(this, materials, materialDefault);
             this._instances[instanceKey] = instance;
         }
         return instance;
@@ -265,8 +265,7 @@ export class GLTF implements Asset {
         vec3.set(vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
         vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
         for (const primitive of this._json.meshes[index].primitives) {
-            const iaInfo = new InputAssemblerInfo;
-            const vertexInput = new VertexInput;
+            const ia = new InputAssembler;
             for (const key in primitive.attributes) {
                 const accessor = this._json.accessors[primitive.attributes[key]];
                 const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
@@ -274,21 +273,23 @@ export class GLTF implements Asset {
                     console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
                     continue;
                 }
-                const name = builtinAttributes[key];
+                const name = attributeMap[key];
                 if (!name) {
                     // console.log(`unknown attribute: ${key}`);
                     continue;
                 }
+                const builtin = shaderLib.attributes[name];
                 const attribute: VertexAttribute = new VertexAttribute;
-                attribute.name = name;
+                attribute.name = builtin.name;
                 attribute.format = format;
-                attribute.buffer = vertexInput.buffers.size();
+                attribute.buffer = ia.vertexInput.buffers.size();
                 attribute.offset = 0;
-                iaInfo.vertexAttributes.add(attribute);
-                vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
-                vertexInput.offsets.add(accessor.byteOffset || 0);
+                attribute.stride = this._json.bufferViews[accessor.bufferView].byteStride || 0;
+                attribute.location = builtin.location;
+                ia.vertexAttributes.add(attribute);
+                ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                ia.vertexInput.offsets.add(accessor.byteOffset || 0);
             }
-            iaInfo.vertexInput = vertexInput;
 
             const indexAccessor = this._json.accessors[primitive.indices];
             const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
@@ -311,14 +312,18 @@ export class GLTF implements Asset {
             const indexInput = new IndexInput;
             indexInput.buffer = indexBuffer;
             indexInput.type = indexType;
-            iaInfo.indexInput = indexInput;
+            ia.indexInput = indexInput;
+
+            if (this._json.bufferViews[indexAccessor.bufferView].byteStride) {
+                throw new Error('unsupported stride on index buffer')
+            }
 
             subMeshes.push(
                 new SubMesh(
-                    device.createInputAssembler(iaInfo),
+                    ia,
                     {
                         count: indexAccessor.count,
-                        first: (indexAccessor.byteOffset || 0) / (indexBuffer.info.stride || (indexType == IndexType.UINT16 ? 2 : 4))
+                        first: (indexAccessor.byteOffset || 0) / (indexType == IndexType.UINT16 ? 2 : 4)
                     }
                 )
             )
@@ -334,7 +339,7 @@ export class GLTF implements Asset {
     public getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
         if (index in this._buffers) {
             if ((this._buffers[index].info.usage & usage) != usage) {
-                throw new Error("buffer.info.usage & usage) != usage");
+                throw new Error(`buffer.info.usage(${this._buffers[index].info.usage}) & usage(${usage})) != usage`);
             }
             return this._buffers[index];
         }
@@ -345,7 +350,6 @@ export class GLTF implements Asset {
             const info = new BufferInfo();
             info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
             info.mem_usage = MemoryUsage.GPU_ONLY;
-            info.stride = viewInfo.byteStride | 0;
             info.size = viewInfo.byteLength;
             buffer = device.createBuffer(info);
             if (!_commandBuffer) {
@@ -360,12 +364,11 @@ export class GLTF implements Asset {
             const submitInfo = new SubmitInfo;
             submitInfo.commandBuffer = _commandBuffer;
             device.queue.submit(submitInfo, _fence);
-            device.queue.waitFence(_fence);
+            device.queue.wait(_fence);
         } else {
             const info = new BufferInfo();
             info.usage = usage;
             info.mem_usage = MemoryUsage.CPU_TO_GPU;
-            info.stride = viewInfo.byteStride | 0;
             info.size = viewInfo.byteLength;
             buffer = device.createBuffer(info);
             buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);
@@ -374,14 +377,14 @@ export class GLTF implements Asset {
         return this._buffers[index] = buffer;
     }
 
-    private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<PassOverridden>[], macros?: Record<string, number>) {
+    private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
         const effect = await cache(effectUrl, Effect)
         const passes = await effect.createPasses(passOverriddens, macros);
         return new Material(passes);
     }
 }
 
-export class GLTFInstance {
+class Instance {
     constructor(readonly proto: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
 
     createScene(name?: string, materialInstancing = false): Node | null {
@@ -453,8 +456,12 @@ export class GLTFInstance {
                 console.log("not provided attribute: TEXCOORD_0")
                 continue;
             }
-            materials.push(instancing ? new MaterialInstance(material) : material);
+            materials.push(instancing ? material.instantiate() : material);
         }
         return materials;
     }
+}
+
+export declare namespace GLTF {
+    export { MaterialParams, MaterialFunc }
 }

@@ -1,5 +1,5 @@
 import * as culling from "../core/render/scene/culling.js";
-import { ModelTreeNode, ModelTreeNodeContext } from "./ModelTreeNode.js";
+import { ModelTreeNode } from "./ModelTreeNode.js";
 function cull(results, node, frustum, visibilities, type, claimed) {
     if (frustum.aabb_out(node.bounds)) {
         return results;
@@ -12,13 +12,13 @@ function cull(results, node, frustum, visibilities, type, claimed) {
 }
 export class ModelTree {
     constructor(bounds, models) {
-        this._context = new ModelTreeNodeContext(models);
+        this._context = new ModelTreeNode.Context(models);
         this.root = new ModelTreeNode(this._context, bounds, 0);
     }
     add(model) {
         this._context.model2node.set(model, null);
     }
-    cull(times = 1) {
+    culler(times = 1) {
         const claimed = times > 1 ? new Map : undefined;
         return (frustum, visibilities, type = 'default') => {
             return cull([], this.root, frustum, visibilities, type, claimed);

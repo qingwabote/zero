@@ -15,11 +15,11 @@ namespace gfx
     public:
         const std::shared_ptr<Texture_impl> &impl() { return _impl; }
 
-        const std::shared_ptr<TextureInfo> &info();
+        const std::shared_ptr<TextureInfo> &info;
 
-        Texture(Device_impl *device, bool swapchain = false);
+        Texture(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain = false);
 
-        bool initialize(const std::shared_ptr<TextureInfo> &info);
+        bool initialize();
 
         ~Texture();
     };

@@ -5,8 +5,6 @@
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
 
-#include "VkSemaphore_impl.hpp"
-
 #include "glslang/Public/ShaderLang.h"
 
 namespace
@@ -28,12 +26,12 @@ namespace
         }
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
-            // ZERO_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            ZERO_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
             return VK_FALSE;
         }
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
         {
-            // ZERO_LOG_DEBUG("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            ZERO_LOG_VERBOSE("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
             return VK_FALSE;
         }
         ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
@@ -66,10 +64,11 @@ namespace gfx
         std::vector<const char *> validationLayers{"VK_LAYER_KHRONOS_validation"};
 
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
-        debugUtilsCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
-                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+        debugUtilsCreateInfo.messageSeverity =
+            // VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+            // VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         debugUtilsCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         debugUtilsCreateInfo.pfnUserCallback = debugUtilsMessengerCallback;
 
@@ -93,7 +92,7 @@ namespace gfx
         VkSurfaceKHR surface = nullptr;
         if (!SDL_Vulkan_CreateSurface(_window, instance, &surface))
         {
-            ZERO_LOG("failed to create surface, SDL Error: %s", SDL_GetError());
+            ZERO_LOG_ERROR("failed to create surface, SDL Error: %s", SDL_GetError());
             return true;
         }
 
@@ -286,11 +285,7 @@ namespace gfx
 
         _capabilities = std::make_unique<Capabilities>(_impl->limits().minUniformBufferOffsetAlignment, 0);
 
-        auto swapchain_color_info = std::make_shared<TextureInfo>();
-        swapchain_color_info->samples = SampleCountFlagBits::X1;
-        auto swapchain_color = std::make_shared<Texture>(_impl, true);
-        swapchain_color->initialize(swapchain_color_info);
-        _swapchain = std::make_unique<Swapchain>(std::move(swapchain_color), _impl->swapchainImageExtent().width, _impl->swapchainImageExtent().height);
+        _swapchain = std::make_unique<Swapchain>(_impl);
 
         _queue = getQueue();
 
@@ -299,12 +294,10 @@ namespace gfx
 
     std::unique_ptr<Queue> Device::getQueue() { return std::make_unique<Queue>(_impl); }
 
-    void Device::acquire(const std::shared_ptr<Semaphore> &semaphore) { _impl->acquireNextImage(semaphore->impl()); }
-
-    Buffer *Device::createBuffer(const std::shared_ptr<const BufferInfo> &info)
+    Buffer *Device::createBuffer(const std::shared_ptr<BufferInfo> &info)
     {
-        auto buffer = new Buffer(_impl);
-        buffer->initialize(info);
+        auto buffer = new Buffer(_impl, info);
+        buffer->initialize();
         return buffer;
     }
 
@@ -317,15 +310,15 @@ namespace gfx
 
     DescriptorSet *Device::createDescriptorSet(const std::shared_ptr<DescriptorSetLayout> &layout)
     {
-        auto descriptorSet = new DescriptorSet(_impl);
-        descriptorSet->initialize(layout);
+        auto descriptorSet = new DescriptorSet(_impl, layout);
+        descriptorSet->initialize();
         return descriptorSet;
     }
 
     DescriptorSetLayout *Device::createDescriptorSetLayout(const std::shared_ptr<DescriptorSetLayoutInfo> &info)
     {
-        auto descriptorSetLayout = new DescriptorSetLayout(_impl);
-        descriptorSetLayout->initialize(info);
+        auto descriptorSetLayout = new DescriptorSetLayout(_impl, info);
+        descriptorSetLayout->initialize();
         return descriptorSetLayout;
     }
 
@@ -338,22 +331,15 @@ namespace gfx
 
     Framebuffer *Device::createFramebuffer(const std::shared_ptr<FramebufferInfo> &info)
     {
-        auto framebuffer = new Framebuffer(_impl);
-        framebuffer->initialize(info);
+        auto framebuffer = new Framebuffer(_impl, info);
+        framebuffer->initialize();
         return framebuffer;
-    }
-
-    InputAssembler *Device::createInputAssembler(const std::shared_ptr<InputAssemblerInfo> &info)
-    {
-        auto inputAssembler = new InputAssembler(_impl);
-        inputAssembler->initialize(info);
-        return inputAssembler;
     }
 
     Pipeline *Device::createPipeline(const std::shared_ptr<PipelineInfo> &info)
     {
-        auto pipeline = new Pipeline(_impl);
-        pipeline->initialize(info);
+        auto pipeline = new Pipeline(_impl, info);
+        pipeline->initialize();
         return pipeline;
     }
 
@@ -366,8 +352,8 @@ namespace gfx
 
     RenderPass *Device::createRenderPass(const std::shared_ptr<RenderPassInfo> &info)
     {
-        auto renderPass = new RenderPass(_impl);
-        renderPass->initialize(info);
+        auto renderPass = new RenderPass(_impl, info);
+        renderPass->initialize();
         return renderPass;
     }
 
@@ -387,15 +373,15 @@ namespace gfx
 
     Shader *Device::createShader(const std::shared_ptr<ShaderInfo> &info)
     {
-        auto shader = new Shader(_impl);
-        shader->initialize(info);
+        auto shader = new Shader(_impl, info);
+        shader->initialize();
         return shader;
     }
 
     Texture *Device::createTexture(const std::shared_ptr<TextureInfo> &info)
     {
-        auto texture = new Texture(_impl);
-        texture->initialize(info);
+        auto texture = new Texture(_impl, info);
+        texture->initialize();
         return texture;
     }
 

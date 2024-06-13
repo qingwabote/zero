@@ -42,7 +42,7 @@ export function getRenderPass(framebuffer: FramebufferInfo, clears = ClearFlagBi
         info.resolves.add(description);
     }
 
-    const depthStencilAttachment = framebuffer.depthStencil;
+    const depthStencilAttachment = framebuffer.depthStencil!;
     const depthStencilDescription = new AttachmentDescription();
     depthStencilDescription.loadOp = clears & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
     depthStencilDescription.initialLayout = clears & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL;

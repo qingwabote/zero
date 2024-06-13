@@ -15,13 +15,13 @@ function binarySearch(source: ArrayLike<number>, value: number, EPSILON = 1e-6):
     return ~head;
 }
 
-export interface ChannelBindingValue {
+interface Value {
     set(buffer: ArrayLike<number>, index: number): void;
     lerp(buffer: ArrayLike<number>, prev: number, next: number, t: number): void;
 }
 
 export class ChannelBinding {
-    constructor(private _input: ArrayLike<number>, private _output: ArrayLike<number>, private _value: ChannelBindingValue) { }
+    constructor(private _input: ArrayLike<number>, private _output: ArrayLike<number>, private _value: Value) { }
 
     sample(time: number): void {
         const times = this._input;
@@ -45,4 +45,8 @@ export class ChannelBinding {
             this._value.lerp(this._output, prev, next, t);
         }
     }
+}
+
+export declare namespace ChannelBinding {
+    export { Value };
 }

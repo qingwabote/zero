@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, TouchEventName, Zero, bundle as builtin, device, vec3 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from 'engine';
 import { Align, CameraControlPanel, Document, Edge, ElementContainer, FlexDirection, Gutter, Justify, PositionType, Profiler, Renderer } from 'flex';
 const VisibilityFlagBits = {
     UI: 1 << 29,
@@ -105,7 +105,7 @@ export class App extends Zero {
             textRenderer.impl.text = 'UNLIT';
             textRenderer.impl.color = text_color_normal;
             textRenderer.impl.size = text_size;
-            textRenderer.emitter.on(TouchEventName.START, async (event) => {
+            textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                 this.onPipelineText(unlit, textRenderer.impl);
             });
             this.onPipelineText(unlit, textRenderer.impl);
@@ -116,7 +116,7 @@ export class App extends Zero {
             textRenderer.impl.text = 'PHONG';
             textRenderer.impl.color = text_color_normal;
             textRenderer.impl.size = text_size;
-            textRenderer.emitter.on(TouchEventName.START, async (event) => {
+            textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                 this.onPipelineText(phong, textRenderer.impl);
             });
             pipelineBar.addElement(textRenderer);
@@ -126,7 +126,7 @@ export class App extends Zero {
             textRenderer.impl.text = 'SHADOW';
             textRenderer.impl.color = text_color_normal;
             textRenderer.impl.size = text_size;
-            textRenderer.emitter.on(TouchEventName.START, async (event) => {
+            textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                 this.onPipelineText(csm1, textRenderer.impl);
             });
             pipelineBar.addElement(textRenderer);
@@ -136,7 +136,7 @@ export class App extends Zero {
             textRenderer.impl.text = 'CSM';
             textRenderer.impl.color = text_color_normal;
             textRenderer.impl.size = text_size;
-            textRenderer.emitter.on(TouchEventName.START, async (event) => {
+            textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                 this.onPipelineText(csm, textRenderer.impl);
             });
             pipelineBar.addElement(textRenderer);

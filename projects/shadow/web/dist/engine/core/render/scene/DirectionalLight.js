@@ -1,8 +1,7 @@
 import { Zero } from "../../Zero.js";
 import { mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { ChangeRecord } from "./ChangeRecord.js";
-export class DirectionalLight extends ChangeRecord {
+export class DirectionalLight {
     get hasChanged() {
         return this.transform.hasChanged;
     }
@@ -21,7 +20,6 @@ export class DirectionalLight extends ChangeRecord {
         return this._view;
     }
     constructor(transform) {
-        super();
         this.transform = transform;
         this._model_invalidated = false;
         this._model = mat4.create();

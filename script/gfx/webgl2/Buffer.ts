@@ -18,25 +18,19 @@ export class Buffer {
         return this._impl;
     }
 
-    private _info!: BufferInfo;
-    get info(): BufferInfo {
-        return this._info;
-    }
-
-    constructor(private _gl: WebGL2RenderingContext) {
+    constructor(private _gl: WebGL2RenderingContext, readonly info: BufferInfo) {
         this._impl = _gl.createBuffer()!
     }
 
-    initialize(info: BufferInfo): boolean {
-        this._info = info;
-        this.resize(info.size);
+    initialize(): boolean {
+        this.resize(this.info.size);
         return false;
     }
 
     update(buffer: ArrayBuffer, offset: number, length: number): void {
         const gl = this._gl;
 
-        const target = usage2target(this._info.usage);
+        const target = usage2target(this.info.usage);
 
         gl.bindVertexArray(null);
 
@@ -50,7 +44,7 @@ export class Buffer {
     resize(size: number): void {
         const gl = this._gl;
 
-        const target = usage2target(this._info.usage);
+        const target = usage2target(this.info.usage);
         gl.bindBuffer(target, this._impl);
         gl.bufferData(target, size, gl.STATIC_DRAW);
         gl.bindBuffer(target, null);

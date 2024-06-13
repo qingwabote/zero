@@ -12,16 +12,14 @@ namespace gfx
     private:
         std::unique_ptr<Shader_impl> _impl;
 
-        std::shared_ptr<ShaderInfo> _info;
-
     public:
         Shader_impl *impl() { return _impl.get(); }
 
-        const std::shared_ptr<ShaderInfo> &info() { return _info; }
+        const std::shared_ptr<ShaderInfo> info;
 
-        Shader(Device_impl *device);
+        Shader(Device_impl *device, const std::shared_ptr<ShaderInfo> &info);
 
-        bool initialize(const std::shared_ptr<ShaderInfo> &info);
+        bool initialize();
 
         ~Shader();
     };

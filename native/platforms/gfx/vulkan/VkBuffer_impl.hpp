@@ -20,18 +20,16 @@ namespace gfx
         VmaAllocation _allocation = nullptr;
         VmaAllocationInfo _allocationInfo{};
 
-        std::shared_ptr<const BufferInfo> _info;
-
     public:
-        const std::shared_ptr<const BufferInfo> &info() { return _info; };
+        const std::shared_ptr<BufferInfo> info;
 
-        Buffer_impl(Device_impl *device);
+        Buffer_impl(Device_impl *device, const std::shared_ptr<BufferInfo> &info);
 
-        bool initialize(const std::shared_ptr<const BufferInfo> &info);
+        bool initialize();
 
         void update(const void *data, size_t offset, size_t length);
 
-        void reset(const std::shared_ptr<const BufferInfo> &info);
+        void resize(uint32_t size);
 
         operator VkBuffer() { return _buffer; }
 

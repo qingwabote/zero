@@ -4,18 +4,18 @@ import { mat4 } from "../../math/mat4.js";
 import { vec2 } from "../../math/vec2.js";
 import { vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
-import { ChangeRecord } from "./ChangeRecord.js";
 import { Frustum } from "./Frustum.js";
+import { PeriodicFlag } from "./PeriodicFlag.js";
 const vec2_a = vec2.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
-export var CameraChangeBit;
-(function (CameraChangeBit) {
-    CameraChangeBit[CameraChangeBit["NONE"] = 0] = "NONE";
-    CameraChangeBit[CameraChangeBit["PROJ"] = 1] = "PROJ";
-    CameraChangeBit[CameraChangeBit["VIEW"] = 2] = "VIEW";
-})(CameraChangeBit || (CameraChangeBit = {}));
-export class Camera extends ChangeRecord {
+var ChangeBit;
+(function (ChangeBit) {
+    ChangeBit[ChangeBit["NONE"] = 0] = "NONE";
+    ChangeBit[ChangeBit["PROJ"] = 1] = "PROJ";
+    ChangeBit[ChangeBit["VIEW"] = 2] = "VIEW";
+})(ChangeBit || (ChangeBit = {}));
+export class Camera {
     get view() {
         return this._view;
     }
@@ -45,8 +45,10 @@ export class Camera extends ChangeRecord {
         const { width, height } = device.swapchain;
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
+    get hasChanged() {
+        return this._hasChanged.value;
+    }
     constructor(transform) {
-        super(0xffffffff);
         this.transform = transform;
         this._view_invalidated = true;
         this._view = mat4.create();
@@ -63,6 +65,7 @@ export class Camera extends ChangeRecord {
         this.visibilities = 0;
         this.clears = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
         this._rect = vec4.create(0, 0, 1, 1);
+        this._hasChanged = new PeriodicFlag(0xffffffff);
     }
     update() {
         if (this.transform.hasChanged) {
@@ -79,11 +82,11 @@ export class Camera extends ChangeRecord {
                 mat4.orthographic(this._proj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
-            super.hasChanged |= CameraChangeBit.PROJ;
+            this._hasChanged.addBit(ChangeBit.PROJ);
         }
         if (this._view_invalidated) {
             mat4.invert(this._view, this.transform.world_matrix);
-            super.hasChanged |= CameraChangeBit.VIEW;
+            this._hasChanged.addBit(ChangeBit.VIEW);
         }
         if (this._proj_invalidated || this._view_invalidated) {
             this.frustum.transform(this.transform.world_matrix);
@@ -118,3 +121,4 @@ export class Camera extends ChangeRecord {
         return vec2.set(out, x, y);
     }
 }
+Camera.ChangeBit = ChangeBit;

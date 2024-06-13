@@ -5,7 +5,7 @@ import { Vec3Like, vec3 } from "../core/math/vec3.js";
 import { Vec4Like } from "../core/math/vec4.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { AnimationClip } from "./AnimationClip.js";
-import { AnimationStateBlended, BlendContext } from "./internal/AnimationStateBlended.js";
+import { AnimationStateBlended } from "./internal/AnimationStateBlended.js";
 import { AnimationSystem } from "./internal/AnimationSystem.js";
 import { ClipBinging } from "./internal/ClipBinging.js";
 
@@ -40,7 +40,7 @@ class BlendTRS implements TRS {
         this.blendScale(value, this._context.weight)
     }
 
-    constructor(position: Readonly<Vec3Like>, rotation: Readonly<Vec4Like>, scale: Readonly<Vec3Like>, private _context: Readonly<BlendContext>) {
+    constructor(position: Readonly<Vec3Like>, rotation: Readonly<Vec4Like>, scale: Readonly<Vec3Like>, private _context: Readonly<AnimationStateBlended.Context>) {
         vec3.copy(this._position_default, position);
         quat.copy(this._rotation_default, rotation);
         vec3.copy(this._scale_default, scale);
@@ -113,7 +113,7 @@ class BlendTRS implements TRS {
     }
 }
 
-class BlendContextImpl implements BlendContext {
+class BlendContextImpl implements AnimationStateBlended.Context {
     weight: number = 0;
 
     private _node2trs: Map<Transform, BlendTRS> = new Map;

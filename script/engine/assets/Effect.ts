@@ -20,27 +20,27 @@ function merge(target: any, ...sources: any[]): any {
     return target;
 }
 
-export interface RasterizationState {
+interface RasterizationState {
     readonly cullMode: keyof typeof gfx.CullMode;
 }
 
-export interface DepthStencilState {
+interface DepthStencilState {
     readonly depthTestEnable: boolean;
 }
 
-export type BlendFactor = keyof typeof gfx.BlendFactor;
+type BlendFactor = keyof typeof gfx.BlendFactor;
 
 /**color(RGB) = (sourceColor * srcRGB) + (destinationColor * dstRGB)
  * color(A) = (sourceAlpha * srcAlpha) + (destinationAlpha * dstAlpha)
  * https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendFuncSeparate*/
-export interface BlendState {
+interface BlendState {
     readonly srcRGB: BlendFactor;
     readonly dstRGB: BlendFactor;
     readonly srcAlpha: BlendFactor;
     readonly dstAlpha: BlendFactor;
 }
 
-export interface Pass {
+interface Pass {
     switch?: string;
     type?: string;
     shader?: string;
@@ -52,7 +52,7 @@ export interface Pass {
     blendState?: BlendState;
 }
 
-export interface PassOverridden extends Pass {
+interface PassOverridden extends Pass {
     textures?: Record<string, gfx.Texture>;
 }
 
@@ -92,18 +92,16 @@ export class Effect extends Yml {
                 passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             }
 
-            const rasterizationState = new gfx.RasterizationState;
             if (info.rasterizationState?.cullMode) {
                 if (info.rasterizationState?.cullMode in gfx.CullMode) {
-                    rasterizationState.cullMode = gfx.CullMode[info.rasterizationState?.cullMode];
+                    passState.rasterizationState.cullMode = gfx.CullMode[info.rasterizationState?.cullMode];
                 } else {
                     throw `unsupported cullMode: ${info.rasterizationState?.cullMode}`;
                 }
             } else {
-                rasterizationState.cullMode = gfx.CullMode.BACK;
+                passState.rasterizationState.cullMode = gfx.CullMode.BACK;
             }
 
-            passState.rasterizationState = rasterizationState;
             if (info.depthStencilState) {
                 const depthStencilState = new gfx.DepthStencilState;
                 depthStencilState.depthTestEnable = info.depthStencilState.depthTestEnable;
@@ -120,7 +118,7 @@ export class Effect extends Yml {
 
             const pass = render.Pass.Pass(passState, info.type);
             for (const key in info.props) {
-                pass.setUniform('Props', key, info.props[key]);
+                pass.setProperty(key, info.props[key]);
             }
             for (const key in info.textures) {
                 pass.setTexture(key, info.textures[key]);
@@ -129,4 +127,8 @@ export class Effect extends Yml {
         }
         return passes;
     }
+}
+
+export declare namespace Effect {
+    export { RasterizationState, DepthStencilState, BlendFactor, BlendState, Pass, PassOverridden }
 }

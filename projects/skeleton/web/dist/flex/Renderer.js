@@ -1,4 +1,4 @@
-import { BoundedRenderer, BoundsEventName, Node, vec3 } from "engine";
+import { BoundedRenderer, Node, vec3 } from "engine";
 import { Element } from "./Element.js";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
@@ -21,7 +21,7 @@ export class Renderer extends Element {
             const halfExtent = this.impl.bounds.halfExtent;
             return { width: halfExtent[0] * 2 * PIXELS_PER_UNIT, height: halfExtent[1] * 2 * PIXELS_PER_UNIT };
         });
-        this.impl.on(BoundsEventName.BOUNDS_CHANGED, () => {
+        this.impl.on(BoundedRenderer.EventName.BOUNDS_CHANGED, () => {
             this.yg_node.deref().markDirty();
         });
     }

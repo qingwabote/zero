@@ -119,8 +119,8 @@ namespace tests::triangle
         vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
         pipelineInfo.pVertexInputState = &vertexInputState;
 
-        pipelineInfo.pStages = shader->stages().data();
-        pipelineInfo.stageCount = shader->stages().size();
+        pipelineInfo.pStages = shader->stages.data();
+        pipelineInfo.stageCount = shader->stages.size();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
         inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

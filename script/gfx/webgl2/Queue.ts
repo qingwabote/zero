@@ -5,5 +5,5 @@ import { SubmitInfo } from "./info.js";
 export class Queue {
     submit(info: SubmitInfo, fence: Fence): void { }
     present(waitSemaphore: Semaphore): void { }
-    waitFence(fence: Fence): void { }
+    wait(fence: Fence): void { }
 }

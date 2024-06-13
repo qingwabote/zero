@@ -21,8 +21,8 @@
         "skeleton": "tsc -p ../projects/skeleton/script --outDir ./dist/subpackages/projects/skeleton/script --module system --watch",
         "vehicle": "tsc -p ../projects/vehicle/script --outDir ./dist/subpackages/projects/vehicle/script --module system --watch",
         "cutting2d": "tsc -p ../projects/cutting2d/script --outDir ./dist/subpackages/projects/cutting2d/script --module system --watch",
-        "yoga": "tsc -p ../projects/yoga/script --outDir ./dist/subpackages/projects/yoga/script --module system --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\""
+        "instancing": "tsc -p ../projects/instancing/script --outDir ./dist/subpackages/projects/instancing/script --module system --watch",
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\" \"npm run flex\""
     },
     "devDependencies": {
         "@babel/preset-env": "^7.23.3",

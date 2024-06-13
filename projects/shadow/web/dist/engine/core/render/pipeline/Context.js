@@ -11,14 +11,13 @@ export class Context {
     /**
      * @param renderPass a compatible renderPass
      */
-    getPipeline(passState, inputAssembler, renderPass, layouts) {
-        const inputAssemblerInfo = inputAssembler.info;
-        const pipelineHash = hashLib.passState(passState) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
+    getPipeline(passState, attributes, renderPass, layouts) {
+        const pipelineHash = hashLib.passState(passState) ^ hashLib.attributes(attributes) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             const info = new PipelineInfo();
             info.passState = passState;
-            info.inputAssembler = inputAssembler;
+            info.attributes = attributes;
             info.renderPass = renderPass;
             info.layout = this.getPipelineLayout(passState.shader, layouts);
             pipeline = device.createPipeline(info);

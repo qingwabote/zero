@@ -1,5 +1,5 @@
 import { TouchEvent } from "boot";
-import { BoundedRenderer, GestureEvent, GestureEventName, Node, TouchEventName, Vec2, Zero, aabb2d, mat4, render, vec2 } from "engine";
+import { BoundedRenderer, Input, Node, Vec2, Zero, aabb2d, mat4, render, vec2 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -11,19 +11,19 @@ export class Document extends ElementContainer {
 
     constructor(node: Node) {
         super(node);
-        Zero.instance.input.on(TouchEventName.START, event => {
-            this.eventHandler(event, TouchEventName.START);
+        Zero.instance.input.on(Input.TouchEvents.START, event => {
+            this.eventHandler(event, Input.TouchEvents.START);
         });
-        Zero.instance.input.on(TouchEventName.END, event => {
+        Zero.instance.input.on(Input.TouchEvents.END, event => {
             for (const element of this._touchClaimed.keys()) {
-                if (element.emitter.has(TouchEventName.END)) {
-                    element.emitter.emit(TouchEventName.END);
+                if (element.emitter.has(Input.TouchEvents.END)) {
+                    element.emitter.emit(Input.TouchEvents.END);
                 }
             }
             this._touchClaimed.clear();
         });
-        Zero.instance.input.on(TouchEventName.MOVE, event => this.eventHandler(event, TouchEventName.MOVE));
-        Zero.instance.input.on(GestureEventName.PINCH, event => this.eventHandler(event, GestureEventName.PINCH));
+        Zero.instance.input.on(Input.TouchEvents.MOVE, event => this.eventHandler(event, Input.TouchEvents.MOVE));
+        Zero.instance.input.on(Input.GestureEvents.PINCH, event => this.eventHandler(event, Input.GestureEvents.PINCH));
 
         LayoutSystem.instance.addRoot(this.yg_node);
     }
@@ -43,7 +43,7 @@ export class Document extends ElementContainer {
         return order;
     }
 
-    private eventHandler(event: TouchEvent, name: TouchEventName | GestureEventName) {
+    private eventHandler(event: TouchEvent, name: Input.TouchEvents | Input.GestureEvents) {
         const cameras = Zero.instance.scene.cameras;
         const world_positions: Vec2[] = [];
         for (let i = 0; i < cameras.length; i++) {
@@ -57,7 +57,7 @@ export class Document extends ElementContainer {
         }
     }
 
-    private touchWalk(element: Element, cameras: readonly render.Camera[], world_positions: readonly Readonly<Vec2>[], name: TouchEventName | GestureEventName, event: TouchEvent) {
+    private touchWalk(element: Element, cameras: readonly render.Camera[], world_positions: readonly Readonly<Vec2>[], name: Input.TouchEvents | Input.GestureEvents, event: TouchEvent) {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (!(element.node.visibility & camera.visibilities)) {
@@ -69,7 +69,7 @@ export class Document extends ElementContainer {
                 continue;
             }
 
-            if (name == TouchEventName.MOVE && !this._touchClaimed.has(element)) {
+            if (name == Input.TouchEvents.MOVE && !this._touchClaimed.has(element)) {
                 continue;
             }
 
@@ -90,9 +90,9 @@ export class Document extends ElementContainer {
                     if (this.touchWalk(children[j].getComponent(Element)!, cameras, world_positions, name, event)) {
                         // bubbling
                         if (element.emitter.has(name)) {
-                            element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == GestureEventName.PINCH && { delta: (event as GestureEvent).delta } });
+                            element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
                         }
-                        if (name == TouchEventName.START) {
+                        if (name == Input.TouchEvents.START) {
                             this._touchClaimed.set(element, element);
                         }
                         return true;
@@ -101,9 +101,9 @@ export class Document extends ElementContainer {
             }
             // target
             if (element.emitter.has(name)) {
-                element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == GestureEventName.PINCH && { delta: (event as GestureEvent).delta } });
+                element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
             }
-            if (name == TouchEventName.START) {
+            if (name == Input.TouchEvents.START) {
                 this._touchClaimed.set(element, element);
             }
             return true;

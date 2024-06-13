@@ -2,16 +2,16 @@ import { EventEmitter, EventEmitterImpl } from "bastard";
 import { AABB3D } from "../core/math/aabb3d.js";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
 
-export enum BoundsEventName {
+enum EventName {
     BOUNDS_CHANGED = "BOUNDS_CHANGED"
 }
 
 interface BoundsEventToListener {
-    [BoundsEventName.BOUNDS_CHANGED]: () => void;
+    [EventName.BOUNDS_CHANGED]: () => void;
 }
 
 const emitter: EventEmitter<BoundsEventToListener> = new EventEmitterImpl;
-emitter.on(BoundsEventName.BOUNDS_CHANGED, () => { })
+emitter.on(EventName.BOUNDS_CHANGED, () => { })
 
 /**
  * Provides a bounds for ui system
@@ -37,4 +37,9 @@ export abstract class BoundedRenderer extends ModelRenderer implements EventEmit
     }
 
     public abstract get bounds(): Readonly<AABB3D>;
+}
+BoundedRenderer.EventName = EventName;
+
+export declare namespace BoundedRenderer {
+    export { EventName }
 }

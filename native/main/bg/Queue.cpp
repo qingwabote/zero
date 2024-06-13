@@ -1,5 +1,5 @@
 #include "Queue.hpp"
-#include "base/threading/Semaphore.hpp"
+#include <future>
 
 namespace bg
 {
@@ -25,16 +25,17 @@ namespace bg
         _background->post(f);
     }
 
-    void Queue::waitFence(const std::shared_ptr<gfx::Fence> &fence)
+    void Queue::wait(const std::shared_ptr<gfx::Fence> &fence)
     {
-        logan::Semaphore semaphore;
+        std::promise<void> promise;
+        std::future<void> future = promise.get_future();
         auto f = new auto(
-            [=, &semaphore]()
+            [=, &promise]()
             {
-                gfx::Queue::waitFence(fence);
-                semaphore.signal();
+                gfx::Queue::wait(fence);
+                promise.set_value();
             });
         _background->post(f);
-        semaphore.wait();
+        future.get();
     }
 }

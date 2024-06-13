@@ -1,5 +1,5 @@
 import { EventEmitterImpl, SmartRef } from "bastard";
-import { Component, GestureEventName, TouchEventName, aabb2d, vec2, vec3 } from "engine";
+import { Component, Input, aabb2d, vec2, vec3 } from "engine";
 import { LayoutSystem } from "./LayoutSystem.js";
 import * as yoga from "./yoga/index.js";
 const vec3_a = vec3.create();

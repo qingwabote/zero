@@ -14,22 +14,14 @@ export declare abstract class Vector<T> {
     add(v: T): void;
 }
 
-export declare class FloatVector extends Vector<number>{ }
-export declare class Uint32Vector extends Vector<number>{ };
-export declare class StringVector extends Vector<string>{ };
+export declare class FloatVector extends Vector<number> { }
+export declare class Uint32Vector extends Vector<number> { };
+export declare class StringVector extends Vector<string> { };
 
 export declare class BufferInfo {
     usage: BufferUsageFlagBits;
     mem_usage: MemoryUsage;
     size: number;
-    /**
-     * When byteStride of the referenced bufferView is not defined, 
-     * it means that accessor elements are tightly packed, 
-     * i.e., effective stride equals the size of the element.
-     * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
-     */
-    stride: number;
-    // readonly offset: number
 }
 
 export declare class DescriptorSetLayoutBinding {
@@ -39,7 +31,7 @@ export declare class DescriptorSetLayoutBinding {
     stageFlags: ShaderStageFlagBits;
 }
 
-export class DescriptorSetLayoutBindingVector extends Vector<DescriptorSetLayoutBinding>{ };
+export class DescriptorSetLayoutBindingVector extends Vector<DescriptorSetLayoutBinding> { };
 
 export declare class DescriptorSetLayoutInfo {
     bindings: DescriptorSetLayoutBindingVector;
@@ -52,13 +44,13 @@ export declare class TextureInfo {
     height: number;
 }
 
-export class TextureVector extends Vector<Texture>{ };
+export class TextureVector extends Vector<Texture> { };
 
 export declare class FramebufferInfo {
     colors: TextureVector;
-    depthStencil: Texture;
+    depthStencil: Texture | null;
     resolves: TextureVector;
-    renderPass: RenderPass;
+    renderPass: RenderPass | null;
     width: number;
     height: number;
 }
@@ -69,7 +61,7 @@ export declare class AttachmentDescription {
     initialLayout: ImageLayout;
     finalLayout: ImageLayout;
 }
-export class AttachmentDescriptionVector extends Vector<AttachmentDescription>{ };
+export class AttachmentDescriptionVector extends Vector<AttachmentDescription> { };
 export declare class RenderPassInfo {
     colors: AttachmentDescriptionVector;
     depthStencil: AttachmentDescription;
@@ -87,7 +79,7 @@ export declare class ShaderInfo {
     types: Vector<ShaderStageFlagBits>;
 }
 
-export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout>{ };
+export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout> { };
 export declare class PipelineLayoutInfo {
     layouts: DescriptorSetLayoutVector
 }
@@ -97,24 +89,34 @@ export declare class VertexAttribute {
     format: Format
     buffer: number
     offset: number
+    /**
+     * When byteStride of the referenced bufferView is not defined, 
+     * it means that accessor elements are tightly packed, 
+     * i.e., effective stride equals the size of the element.
+     * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
+     */
+    stride: number
+    location: number
+    instanced: boolean
 }
-export class VertexAttributeVector extends Vector<VertexAttribute>{ };
+export class VertexAttributeVector extends Vector<VertexAttribute> { };
 
-export class BufferVector extends Vector<Buffer>{ };
+export class BufferVector extends Vector<Buffer> { };
 export declare class VertexInput {
     buffers: BufferVector;
-    offsets: FloatVector;
+    offsets: Uint32Vector;
 }
 
 export declare class IndexInput {
-    buffer: Buffer;
+    buffer: Buffer | null;
     // offset: number; // WebGL can not specify the offset of the index buffer at buffer binding
     type: IndexType;
 }
-export declare class InputAssemblerInfo {
+/** InputAssembler is an immutable object, it correspond to a vao in WebGL. */
+export declare class InputAssembler {
     vertexAttributes: VertexAttributeVector;
     vertexInput: VertexInput;
-    indexInput?: IndexInput;
+    indexInput: IndexInput | null;
 }
 
 export declare class RasterizationState {
@@ -135,24 +137,24 @@ export declare class BlendState {
 }
 
 export declare class PassState {
-    shader: Shader;
+    shader: Shader | null;
     primitive: PrimitiveTopology;
     rasterizationState: RasterizationState;
-    depthStencilState?: DepthStencilState;
-    blendState?: BlendState;
+    depthStencilState: DepthStencilState | null;
+    blendState: BlendState | null;
 }
 
 export declare class PipelineInfo {
-    passState: PassState;
-    inputAssembler: InputAssembler;
-    layout: PipelineLayout;
-    renderPass: RenderPass;
+    passState: PassState | null;
+    attributes: VertexAttributeVector | null;
+    layout: PipelineLayout | null;
+    renderPass: RenderPass | null;
 }
 
 export declare class SubmitInfo {
-    commandBuffer: CommandBuffer;
-    waitSemaphore?: Semaphore;
-    waitDstStageMask?: PipelineStageFlagBits;
-    signalSemaphore?: Semaphore;
+    commandBuffer: CommandBuffer | null;
+    waitSemaphore: Semaphore | null;
+    waitDstStageMask: PipelineStageFlagBits;
+    signalSemaphore: Semaphore | null;
 }
 

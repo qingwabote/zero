@@ -6,8 +6,8 @@ import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Scene } from "./render/Scene.js";
 import { Profile } from "./render/pipeline/Profile.js";
-import { ChangeRecord } from "./render/scene/ChangeRecord.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
+import { PeriodicFlag } from "./render/scene/PeriodicFlag.js";
 var Event;
 (function (Event) {
     Event["LOGIC_START"] = "LOGIC_START";
@@ -42,9 +42,9 @@ export class Zero extends EventEmitterImpl {
         this._componentScheduler = new ComponentScheduler;
         this._timeScheduler = new TimeScheduler;
         this._commandBuffer = boot.device.createCommandBuffer();
-        this._presentSemaphore = boot.device.createSemaphore();
-        this._renderSemaphore = boot.device.createSemaphore();
-        this._renderFence = boot.device.createFence();
+        this._swapchainAcquired = boot.device.createSemaphore();
+        this._queueExecuted = boot.device.createSemaphore();
+        this._fence = boot.device.createFence();
         this._time = boot.initial;
         this._profile = new Profile;
         this.scene = new Scene(models);
@@ -102,7 +102,7 @@ export class Zero extends EventEmitterImpl {
         }
         this.emit(Event.LOGIC_END);
         this.emit(Event.RENDER_START);
-        boot.device.acquire(this._presentSemaphore);
+        boot.device.swapchain.acquire(this._swapchainAcquired);
         this.scene.update();
         this._pipeline.update();
         this._commandBuffer.begin();
@@ -110,18 +110,18 @@ export class Zero extends EventEmitterImpl {
         for (let i = 0; i < this.scene.cameras.length; i++) {
             this._pipeline.record(this._profile, this._commandBuffer, i);
         }
-        ChangeRecord.expire();
+        PeriodicFlag.expire();
         this._commandBuffer.end();
         this.emit(Event.RENDER_END);
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
-        submitInfo.waitSemaphore = this._presentSemaphore;
-        submitInfo.waitDstStageMask = PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        submitInfo.signalSemaphore = this._renderSemaphore;
-        boot.device.queue.submit(submitInfo, this._renderFence);
-        boot.device.queue.present(this._renderSemaphore);
-        boot.device.queue.waitFence(this._renderFence);
+        submitInfo.waitSemaphore = this._swapchainAcquired;
+        submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
+        submitInfo.signalSemaphore = this._queueExecuted;
+        boot.device.queue.submit(submitInfo, this._fence);
+        boot.device.queue.present(this._queueExecuted);
+        boot.device.queue.wait(this._fence);
     }
 }
-Zero.Event = Event;
 Zero._system2priority = new Map;
+Zero.Event = Event;

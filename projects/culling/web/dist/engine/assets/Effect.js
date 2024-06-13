@@ -49,19 +49,17 @@ export class Effect extends Yml {
             else {
                 passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             }
-            const rasterizationState = new gfx.RasterizationState;
             if ((_a = info.rasterizationState) === null || _a === void 0 ? void 0 : _a.cullMode) {
                 if (((_b = info.rasterizationState) === null || _b === void 0 ? void 0 : _b.cullMode) in gfx.CullMode) {
-                    rasterizationState.cullMode = gfx.CullMode[(_c = info.rasterizationState) === null || _c === void 0 ? void 0 : _c.cullMode];
+                    passState.rasterizationState.cullMode = gfx.CullMode[(_c = info.rasterizationState) === null || _c === void 0 ? void 0 : _c.cullMode];
                 }
                 else {
                     throw `unsupported cullMode: ${(_d = info.rasterizationState) === null || _d === void 0 ? void 0 : _d.cullMode}`;
                 }
             }
             else {
-                rasterizationState.cullMode = gfx.CullMode.BACK;
+                passState.rasterizationState.cullMode = gfx.CullMode.BACK;
             }
-            passState.rasterizationState = rasterizationState;
             if (info.depthStencilState) {
                 const depthStencilState = new gfx.DepthStencilState;
                 depthStencilState.depthTestEnable = info.depthStencilState.depthTestEnable;
@@ -77,7 +75,7 @@ export class Effect extends Yml {
             }
             const pass = render.Pass.Pass(passState, info.type);
             for (const key in info.props) {
-                pass.setUniform('Props', key, info.props[key]);
+                pass.setProperty(key, info.props[key]);
             }
             for (const key in info.textures) {
                 pass.setTexture(key, info.textures[key]);

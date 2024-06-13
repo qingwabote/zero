@@ -1,4 +1,4 @@
-import { GestureEventName, TouchEventName, quat, vec3 } from "engine";
+import { Input, quat, vec3 } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
 const vec3_a = vec3.create();
 const quat_a = quat.create();
@@ -17,10 +17,10 @@ export class CameraControlPanel extends ElementContainer {
     }
     start() {
         let point;
-        this.emitter.on(TouchEventName.START, event => {
+        this.emitter.on(Input.TouchEvents.START, event => {
             point = event.touch.local;
         });
-        this.emitter.on(TouchEventName.MOVE, event => {
+        this.emitter.on(Input.TouchEvents.MOVE, event => {
             const dx = event.touch.local[0] - point[0];
             const dy = event.touch.local[1] - point[1];
             if (this.fixed) {
@@ -43,7 +43,7 @@ export class CameraControlPanel extends ElementContainer {
             }
             point = event.touch.local;
         });
-        this.emitter.on(GestureEventName.PINCH, event => {
+        this.emitter.on(Input.GestureEvents.PINCH, event => {
             if (this.camera.fov != -1) {
                 vec3.set(vec3_a, 0, 0, -event.delta / 100);
                 vec3.transformQuat(vec3_a, vec3_a, this.camera.node.rotation);

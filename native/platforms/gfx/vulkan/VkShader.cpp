@@ -128,7 +128,7 @@ namespace
 
 namespace gfx
 {
-    Shader_impl::Shader_impl(Device_impl *device) : _device(device) {}
+    Shader_impl::Shader_impl(Device_impl *device) : _device(device), attributeLocations(_attributeLocations), stages(_stages) {}
 
     bool Shader_impl::initialize(const ShaderInfo &info)
     {
@@ -217,15 +217,14 @@ namespace gfx
         }
     }
 
-    Shader::Shader(Device_impl *device) : _impl(std::make_unique<Shader_impl>(device)) {}
+    Shader::Shader(Device_impl *device, const std::shared_ptr<ShaderInfo> &info) : _impl(std::make_unique<Shader_impl>(device)), info(info) {}
 
-    bool Shader::initialize(const std::shared_ptr<ShaderInfo> &info)
+    bool Shader::initialize()
     {
         if (_impl->initialize(*info))
         {
             return true;
         }
-        _info = info;
         return false;
     }
 

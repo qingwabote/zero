@@ -4,7 +4,6 @@ import { DescriptorSet } from "./DescriptorSet.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
 import { Fence } from "./Fence.js";
 import { Framebuffer } from "./Framebuffer.js";
-import { InputAssembler } from "./InputAssembler.js";
 import { Pipeline } from "./Pipeline.js";
 import { PipelineLayout } from "./PipelineLayout.js";
 import { Queue } from "./Queue.js";
@@ -12,6 +11,7 @@ import { RenderPass } from "./RenderPass.js";
 import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
+import { Swapchain } from "./Swapchain.js";
 import { Texture } from "./Texture.js";
 export class Device {
     get capabilities() {
@@ -23,27 +23,26 @@ export class Device {
     get queue() {
         return this._queue;
     }
-    constructor(gl) {
+    constructor(_gl) {
+        this._gl = _gl;
         this._queue = new Queue;
         this._capabilities = {
-            uniformBufferOffsetAlignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+            uniformBufferOffsetAlignment: _gl.getParameter(_gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
             clipSpaceMinZ: -1
         };
-        this._swapchain = { colorTexture: new Texture(gl, true), width: gl.drawingBufferWidth, height: gl.drawingBufferHeight };
-        this._gl = gl;
+        this._swapchain = new Swapchain(_gl);
     }
-    acquire(semaphore) { }
     createBuffer(info) {
-        const buffer = new Buffer(this._gl);
-        buffer.initialize(info);
+        const buffer = new Buffer(this._gl, info);
+        buffer.initialize();
         return buffer;
     }
     createCommandBuffer() {
         return new CommandBuffer(this._gl);
     }
     createDescriptorSet(layout) {
-        const descriptorSet = new DescriptorSet();
-        descriptorSet.initialize(layout);
+        const descriptorSet = new DescriptorSet(layout);
+        descriptorSet.initialize();
         return descriptorSet;
     }
     createDescriptorSetLayout(info) {
@@ -55,46 +54,41 @@ export class Device {
         return new Fence;
     }
     createFramebuffer(info) {
-        const framebuffer = new Framebuffer(this._gl);
-        framebuffer.initialize(info);
+        const framebuffer = new Framebuffer(this._gl, info);
+        framebuffer.initialize();
         return framebuffer;
     }
-    createInputAssembler(info) {
-        const inputAssembler = new InputAssembler;
-        inputAssembler.initialize(info);
-        return inputAssembler;
-    }
     createPipeline(info) {
-        const pipeline = new Pipeline();
-        pipeline.initialize(info);
+        const pipeline = new Pipeline(info);
+        pipeline.initialize();
         return pipeline;
     }
     createPipelineLayout(info) {
-        const pipelineLayout = new PipelineLayout();
-        pipelineLayout.initialize(info);
+        const pipelineLayout = new PipelineLayout(info);
+        pipelineLayout.initialize();
         return pipelineLayout;
     }
     createRenderPass(info) {
-        const renderPass = new RenderPass;
-        renderPass.initialize(info);
+        const renderPass = new RenderPass(info);
+        renderPass.initialize();
         return renderPass;
     }
     createSampler(info) {
-        const sampler = new Sampler(this._gl);
-        sampler.initialize(info);
+        const sampler = new Sampler(this._gl, info);
+        sampler.initialize();
         return sampler;
     }
     createSemaphore() {
         return new Semaphore;
     }
     createShader(info) {
-        const shader = new Shader(this._gl);
-        shader.initialize(info);
+        const shader = new Shader(this._gl, info);
+        shader.initialize();
         return shader;
     }
     createTexture(info) {
-        const texture = new Texture(this._gl);
-        texture.initialize(info);
+        const texture = new Texture(this._gl, info);
+        texture.initialize();
         return texture;
     }
 }

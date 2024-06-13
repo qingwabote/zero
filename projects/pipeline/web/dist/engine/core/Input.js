@@ -1,16 +1,16 @@
 import { EventEmitterImpl } from "bastard";
-export var TouchEventName;
-(function (TouchEventName) {
-    TouchEventName["START"] = "TOUCH_START";
-    TouchEventName["MOVE"] = "TOUCH_MOVE";
-    TouchEventName["END"] = "TOUCH_END";
-})(TouchEventName || (TouchEventName = {}));
-export var GestureEventName;
-(function (GestureEventName) {
-    GestureEventName["PINCH"] = "GESTURE_PINCH";
-    GestureEventName["ROTATE"] = "GESTURE_ROTATE";
-})(GestureEventName || (GestureEventName = {}));
-export class GestureEvent {
+var TouchEvents;
+(function (TouchEvents) {
+    TouchEvents["START"] = "TOUCH_START";
+    TouchEvents["MOVE"] = "TOUCH_MOVE";
+    TouchEvents["END"] = "TOUCH_END";
+})(TouchEvents || (TouchEvents = {}));
+var GestureEvents;
+(function (GestureEvents) {
+    GestureEvents["PINCH"] = "GESTURE_PINCH";
+    GestureEvents["ROTATE"] = "GESTURE_ROTATE";
+})(GestureEvents || (GestureEvents = {}));
+class GestureEvent {
     get count() {
         return this._event.count;
     }
@@ -40,24 +40,26 @@ export class Input extends EventEmitterImpl {
     }
     onTouchStart(event) {
         if (event.count < 2) {
-            this.emit(TouchEventName.START, event);
+            this.emit(TouchEvents.START, event);
             return;
         }
         this._dist = distance(event);
     }
     onTouchMove(event) {
         if (event.count < 2) {
-            this.emit(TouchEventName.MOVE, event);
+            this.emit(TouchEvents.MOVE, event);
             return;
         }
         const d = distance(event);
-        this.emit(GestureEventName.PINCH, new GestureEvent(event, d - this._dist));
+        this.emit(GestureEvents.PINCH, new GestureEvent(event, d - this._dist));
         this._dist = d;
     }
     onTouchEnd(event) {
-        this.emit(TouchEventName.END, event);
+        this.emit(TouchEvents.END, event);
     }
     onWheel(event) {
-        this.emit(GestureEventName.PINCH, new GestureEvent(event, event.delta));
+        this.emit(GestureEvents.PINCH, new GestureEvent(event, event.delta));
     }
 }
+Input.TouchEvents = TouchEvents;
+Input.GestureEvents = GestureEvents;

@@ -1,17 +1,12 @@
 export class DescriptorSet {
-    constructor() {
+    constructor(layout) {
+        this.layout = layout;
         this._buffers = [];
         this._bufferRanges = [];
         this._textures = [];
         this._textureSamplers = [];
     }
-    get layout() {
-        return this._layout;
-    }
-    initialize(layout) {
-        this._layout = layout;
-        return false;
-    }
+    initialize() { return false; }
     getBuffer(binding) {
         return this._buffers[binding];
     }

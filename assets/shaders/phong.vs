@@ -24,7 +24,7 @@ void main() {
     #if USE_ALBEDO_MAP
         v_uv = a_texCoord;
     #endif
-    v_normal = normalize((local.modelIT * vec4(a_normal, 0.0)).xyz);
+    v_normal = normalize((a_model * vec4(a_normal, 0.0)).xyz);
 
     vec4 pos = a_position;
     #if USE_SKIN
@@ -35,7 +35,7 @@ void main() {
             skin.joints[a_joints.w] * a_weights.w;
         pos = joint_matrix * pos;
     #endif 
-    vec4 posWorld = local.model * pos;
+    vec4 posWorld = a_model * pos;
     v_position = posWorld.xyz;
     gl_Position = camera.projection * camera.view * posWorld;
 }

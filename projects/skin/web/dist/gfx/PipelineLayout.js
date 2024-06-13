@@ -1,3 +1,6 @@
 export class PipelineLayout {
-    initialize(info) { return false; }
+    constructor(info) {
+        this.info = info;
+    }
+    initialize() { return false; }
 }

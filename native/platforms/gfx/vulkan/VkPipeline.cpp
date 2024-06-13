@@ -13,7 +13,6 @@
 #include "gfx/RenderPass.hpp"
 #include "VkRenderPass_impl.hpp"
 
-#include "gfx/InputAssembler.hpp"
 #include "gfx/Buffer.hpp"
 
 namespace gfx
@@ -21,9 +20,9 @@ namespace gfx
     Pipeline_impl::Pipeline_impl(Device_impl *device) : _device(device) {}
     Pipeline_impl::~Pipeline_impl() {}
 
-    Pipeline::Pipeline(Device_impl *device) : _impl(std::make_unique<Pipeline_impl>(device)) {}
+    Pipeline::Pipeline(Device_impl *device, const std::shared_ptr<PipelineInfo> &info) : _impl(std::make_unique<Pipeline_impl>(device)), info(info) {}
 
-    bool Pipeline::initialize(const std::shared_ptr<PipelineInfo> &info)
+    bool Pipeline::initialize()
     {
         VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
 
@@ -31,7 +30,7 @@ namespace gfx
         auto &gfx_passState = info->passState;
 
         auto &gfx_shader = gfx_passState->shader;
-        auto &stageInfos = gfx_shader->impl()->stages();
+        auto &stageInfos = gfx_shader->impl()->stages;
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
 
@@ -51,7 +50,7 @@ namespace gfx
         pipelineInfo.pViewportState = &viewportState;
 
         bool swapchain = false;
-        for (auto &attachment : *info->renderPass->info()->colors)
+        for (auto &attachment : *info->renderPass->info->colors)
         {
             if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
             {
@@ -61,7 +60,7 @@ namespace gfx
         }
         if (!swapchain)
         {
-            for (auto &attachment : *info->renderPass->info()->resolves)
+            for (auto &attachment : *info->renderPass->info->resolves)
             {
                 if (attachment->finalLayout == ImageLayout::PRESENT_SRC)
                 {
@@ -117,57 +116,67 @@ namespace gfx
 
         // vertexInputState
         VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
-        auto &gfx_vertexAttributes = info->inputAssembler->info()->vertexAttributes;
+        auto &gfx_attributes = info->attributes;
         std::vector<VkVertexInputAttributeDescription> attributes;
-        for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
+        std::vector<VkVertexInputBindingDescription> bindings;
+        for (auto &&gfx_attribute : *gfx_attributes)
         {
-            auto &gfx_attribute = gfx_vertexAttributes->at(i);
-            auto it = gfx_shader->impl()->attributeLocations().find(gfx_attribute->name);
-            if (it != gfx_shader->impl()->attributeLocations().end())
+            auto &attributesConsumed = gfx_shader->impl()->attributeLocations;
+            if (attributesConsumed.find(gfx_attribute->name) == attributesConsumed.end())
             {
-                VkVertexInputAttributeDescription attribute;
-                attribute.location = it->second;
-                attribute.binding = gfx_attribute->buffer;
-                // the format in buffer can be different from the format in shader,
-                // use the format in buffer to make sure type conversion can be done correctly by graphics api.
-                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
-                attribute.format = static_cast<VkFormat>(gfx_attribute->format);
-                attribute.offset = gfx_attribute->offset;
-                attributes.push_back(attribute);
+                // avoid warning "Vertex attribute not consumed by vertex shader"
+                continue;
             }
-        }
-        vertexInputState.vertexAttributeDescriptionCount = attributes.size();
-        vertexInputState.pVertexAttributeDescriptions = attributes.data();
-        auto &gfx_vertexBuffers = info->inputAssembler->info()->vertexInput->buffers;
-        std::vector<VkVertexInputBindingDescription> bindingDescriptions{gfx_vertexBuffers->size()};
-        for (size_t binding = 0; binding < gfx_vertexBuffers->size(); binding++)
-        {
-            auto gfx_buffer = gfx_vertexBuffers->at(binding);
-            auto stride = gfx_buffer->info()->stride;
-            if (stride == 0)
+
+            bool hasBinding = false;
+            for (auto &&description : bindings)
             {
-                for (size_t i = 0; i < gfx_vertexAttributes->size(); i++)
+                if (description.binding == gfx_attribute->buffer)
                 {
-                    auto &gfx_attribute = gfx_vertexAttributes->at(i);
-                    if (gfx_attribute->buffer == binding)
-                    {
-                        stride += FormatInfos.at(static_cast<Format>(gfx_attribute->format)).bytes;
-                    }
+                    hasBinding = true;
                 }
             }
-            bindingDescriptions[binding].stride = stride;
-            bindingDescriptions[binding].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            bindingDescriptions[binding].binding = binding;
+            if (!hasBinding)
+            {
+                VkVertexInputBindingDescription description{};
+                uint32_t stride = gfx_attribute->stride;
+                if (stride == 0)
+                {
+                    for (auto &&gfx_attr : *gfx_attributes)
+                    {
+                        if (gfx_attr->buffer == gfx_attribute->buffer)
+                        {
+                            stride += FormatInfos.at(static_cast<Format>(gfx_attr->format)).bytes;
+                        }
+                    }
+                }
+                description.stride = stride;
+                description.inputRate = gfx_attribute->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
+                description.binding = gfx_attribute->buffer;
+                bindings.push_back(description);
+            }
+
+            VkVertexInputAttributeDescription attribute{};
+            attribute.location = gfx_attribute->location;
+            attribute.binding = gfx_attribute->buffer;
+            // the format in buffer can be different from the format in shader,
+            // use the format in buffer to make sure type conversion can be done correctly by graphics api.
+            // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
+            attribute.format = static_cast<VkFormat>(gfx_attribute->format);
+            attribute.offset = gfx_attribute->offset;
+            attributes.push_back(attribute);
         }
-        vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
-        vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();
+        vertexInputState.pVertexAttributeDescriptions = attributes.data();
+        vertexInputState.vertexAttributeDescriptionCount = attributes.size();
+        vertexInputState.pVertexBindingDescriptions = bindings.data();
+        vertexInputState.vertexBindingDescriptionCount = bindings.size();
         pipelineInfo.pVertexInputState = &vertexInputState;
 
         // renderPass
         auto &gfx_renderPass = info->renderPass;
         VkPipelineMultisampleStateCreateInfo multisampleState = {VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
         multisampleState.sampleShadingEnable = VK_FALSE;
-        multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(gfx_renderPass->info()->samples);
+        multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(gfx_renderPass->info->samples);
         multisampleState.minSampleShading = 1.0f;
         multisampleState.alphaToCoverageEnable = VK_FALSE;
         multisampleState.alphaToOneEnable = VK_FALSE;
@@ -182,7 +191,6 @@ namespace gfx
         {
             return true;
         }
-        _info = info;
         return false;
     }
 

@@ -20,8 +20,8 @@ namespace bg
         virtual void bindDescriptorSet(uint32_t index, const std::shared_ptr<gfx::DescriptorSet> &descriptorSet, const std::shared_ptr<gfx::Uint32Vector> &dynamicOffsets) override;
         virtual void bindInputAssembler(const std::shared_ptr<gfx::InputAssembler> &inputAssembler) override;
         virtual void bindPipeline(const std::shared_ptr<gfx::Pipeline> &pipeline) override;
-        virtual void draw(uint32_t count) override;
-        virtual void drawIndexed(uint32_t indexCount, uint32_t firstIndex) override;
+        virtual void draw(uint32_t count, uint32_t instanceCount) override;
+        virtual void drawIndexed(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount) override;
         virtual void endRenderPass() override;
         virtual void end() override;
     };

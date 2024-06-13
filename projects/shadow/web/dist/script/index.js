@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, TouchEventName, Zero, aabb3d, bundle as builtin, device, render, scene, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, Zero, aabb3d, bundle as builtin, device, render, scene, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 const VisibilityFlagBits = {
     UP: 1 << 1,
@@ -161,7 +161,7 @@ export class App extends Zero {
                 textRenderer.impl.color = vec4.GREEN;
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
-                textRenderer.emitter.on(TouchEventName.START, async (event) => {
+                textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                     if (textRenderer.impl.text == 'CSM OFF') {
                         textRenderer.impl.text = 'CSM ON';
                         textRenderer.impl.color = vec4.GREEN;
@@ -184,7 +184,7 @@ export class App extends Zero {
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.setPosition(Edge.Right, 0);
-                textRenderer.emitter.on(TouchEventName.START, async (event) => {
+                textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                     const last = this.scene.models;
                     if (textRenderer.impl.text == 'TREE OFF') {
                         textRenderer.impl.text = 'TREE ON';

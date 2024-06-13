@@ -1,10 +1,9 @@
-import { device } from "boot";
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CullMode, DepthStencilState, Format, FormatInfos, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, DepthStencilState, Format, FormatInfos, InputAssembler, PassState, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
-import { FrustumVertices } from "../core/math/frustum.js";
+import { frustum } from "../core/math/frustum.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
@@ -41,20 +40,22 @@ const VERTEX_ATTRIBUTES = (function () {
     const attributes = new VertexAttributeVector;
     let offset = 0;
     let format = Format.RGB32_SFLOAT;
-    const positionAttribute = new VertexAttribute;
-    positionAttribute.name = 'a_position';
-    positionAttribute.format = format;
-    positionAttribute.buffer = 0;
-    positionAttribute.offset = offset;
-    attributes.add(positionAttribute);
+    const position = new VertexAttribute;
+    position.name = shaderLib.attributes.position.name;
+    position.format = format;
+    position.buffer = 0;
+    position.offset = offset;
+    position.location = shaderLib.attributes.position.location;
+    attributes.add(position);
     offset += FormatInfos[format].bytes;
     format = Format.RGBA32_SFLOAT;
-    const colorAttribute = new VertexAttribute;
-    colorAttribute.name = 'a_color';
-    colorAttribute.format = format;
-    colorAttribute.buffer = 0;
-    colorAttribute.offset = offset;
-    attributes.add(colorAttribute);
+    const color = new VertexAttribute;
+    color.name = shaderLib.attributes.color.name;
+    color.format = format;
+    color.buffer = 0;
+    color.offset = offset;
+    color.location = shaderLib.attributes.color.location;
+    attributes.add(color);
     offset += FormatInfos[format].bytes;
     return attributes;
 })()
@@ -74,19 +75,15 @@ export class GeometryRenderer extends BoundedRenderer {
     constructor(node: Node) {
         super(node);
 
-        const iaInfo = new InputAssemblerInfo;
-        iaInfo.vertexAttributes = VERTEX_ATTRIBUTES;
-        const vertexInput = new VertexInput;
-        vertexInput.buffers.add(this._buffer.buffer);
-        vertexInput.offsets.add(0);
-        iaInfo.vertexInput = vertexInput;
+        const ia = new InputAssembler;
+        ia.vertexAttributes = VERTEX_ATTRIBUTES;
+        ia.vertexInput.buffers.add(this._buffer.buffer);
+        ia.vertexInput.offsets.add(0);
 
-        this._mesh = new Mesh([new SubMesh(device.createInputAssembler(iaInfo))]);;
+        this._mesh = new Mesh([new SubMesh(ia)]);
     }
 
     protected createModel(): Model | null {
-        const rasterizationState = new RasterizationState;
-        rasterizationState.cullMode = CullMode.NONE;
         const depthStencilState = new DepthStencilState;
         depthStencilState.depthTestEnable = true;
         const blendState = new BlendState;
@@ -97,7 +94,6 @@ export class GeometryRenderer extends BoundedRenderer {
         const state = new PassState;
         state.shader = shaderLib.getShader(ss_primitive);
         state.primitive = PrimitiveTopology.LINE_LIST;
-        state.rasterizationState = rasterizationState;
         state.depthStencilState = depthStencilState
         state.blendState = blendState;
         return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])])
@@ -175,7 +171,7 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(right_up_far, right_down_far, color);
     }
 
-    drawFrustum(frustum: Readonly<FrustumVertices>, color = vec4.ONE) {
+    drawFrustum(frustum: Readonly<frustum.Vertices>, color = vec4.ONE) {
         this.drawLine(frustum[0], frustum[1], color);
         this.drawLine(frustum[1], frustum[2], color);
         this.drawLine(frustum[2], frustum[3], color);
@@ -194,13 +190,13 @@ export class GeometryRenderer extends BoundedRenderer {
 
     lateUpdate(): void {
         if (this._vertexCount == 0) {
-            this._mesh.subMeshes[0].drawInfo.count = 0;
+            this._mesh.subMeshes[0].draw.count = 0;
             return;
         }
 
         this._buffer.update();
 
-        this._mesh.subMeshes[0].drawInfo.count = this._vertexCount;
+        this._mesh.subMeshes[0].draw.count = this._vertexCount;
     }
 
     clear() {

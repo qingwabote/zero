@@ -1,5 +1,5 @@
-import { GeometryRenderer, Node, TouchEventName, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
-import { Align, ElementContainer, ElementEventToListener, Justify, Renderer, Touch } from "flex";
+import { GeometryRenderer, Input, Node, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
+import { Align, Element, ElementContainer, Justify, Renderer } from "flex";
 import { Texture } from "gfx";
 import { Polygon, Vertex } from "./Polygon.js";
 import PolygonsRenderer from "./PolygonsRenderer.js";
@@ -121,15 +121,15 @@ function cut(polygon: Polygon, intersections: Intersection[]): Polygon {
     return { vertexes, vertexPosMin, vertexPosMax, translation };
 }
 
-export enum CuttingBoardEventType {
+enum EventType {
     POLYGONS_CHANGED = "POLYGONS_CHANGED",
 }
 
-export interface CuttingBoardEventToListener extends ElementEventToListener {
-    [CuttingBoardEventType.POLYGONS_CHANGED]: () => void;
+interface EventToListener extends Element.EventToListener {
+    [EventType.POLYGONS_CHANGED]: () => void;
 }
 
-export default class CuttingBoard extends ElementContainer<CuttingBoardEventToListener> {
+export class CuttingBoard extends ElementContainer<EventToListener> {
 
     texture!: Texture;
 
@@ -157,19 +157,19 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
         this.addElement(primitive);
         this._primitive = primitive.impl;
 
-        let origin: Touch;
-        let last: Touch;
-        this.emitter.on(TouchEventName.START, event => {
+        let origin: Element.Touch;
+        let last: Element.Touch;
+        this.emitter.on(Input.TouchEvents.START, event => {
             origin = last = event.touch;
         });
-        this.emitter.on(TouchEventName.MOVE, event => {
+        this.emitter.on(Input.TouchEvents.MOVE, event => {
             mat4.invert(mat4_a, primitive.node.world_matrix);
             const from = vec2.transformMat4(vec2.create(), origin.world, mat4_a);
             const to = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);
             this.drawLine(from, to);
             last = event.touch;
         });
-        this.emitter.on(TouchEventName.END, () => {
+        this.emitter.on(Input.TouchEvents.END, () => {
             mat4.invert(mat4_a, this._polygonsRenderer.node.world_matrix);
             const a = vec2.transformMat4(vec2.create(), origin.world, mat4_a);
             const b = vec2.transformMat4(vec2.create(), last.world, mat4_a);
@@ -190,7 +190,7 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
                 this._polygonsRenderer.polygons = out;
                 this._polygons = out;
 
-                this.emitter.emit(CuttingBoardEventType.POLYGONS_CHANGED);
+                this.emitter.emit(EventType.POLYGONS_CHANGED);
             }
         });
 
@@ -239,7 +239,7 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
 
         this._polygons = polygons;
 
-        this.emitter.emit(CuttingBoardEventType.POLYGONS_CHANGED);
+        this.emitter.emit(EventType.POLYGONS_CHANGED);
     }
 
     private drawLine(from: Readonly<Vec2>, to: Readonly<Vec2>, color: Readonly<Vec4> = vec4.ONE) {
@@ -248,4 +248,9 @@ export default class CuttingBoard extends ElementContainer<CuttingBoardEventToLi
         this._primitive.clear();
         this._primitive.drawLine(vec3_a, vec3_b, color);
     }
+}
+CuttingBoard.EventType = EventType;
+
+export declare namespace CuttingBoard {
+    export { EventType }
 }

@@ -33,6 +33,7 @@ export declare const device: Device;
 
 export declare const initial: number;
 
+/**milliseconds */
 export declare function now(): number;
 
 export declare interface ResultTypes {

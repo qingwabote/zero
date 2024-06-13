@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, TouchEventName, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from 'engine';
+import { Camera, Node, Pipeline, SpriteFrame, SpriteRenderer, Texture, TouchEvents, VisibilityFlagBits, Zero, bundle as builtin, device, render, vec3 } from 'engine';
 import { Align, Document, Justify, Renderer } from 'flex';
 
 const screen = await bundle.cache('screen.png', Texture);
@@ -29,7 +29,7 @@ class App extends Zero {
         sprite.impl.spriteFrame = new SpriteFrame(screen.impl);
         doc.addElement(sprite);
 
-        this.input.on(TouchEventName.END, () => {
+        this.input.on(TouchEvents.END, () => {
             this.pipeline = this.pipeline == normal ? fxaa : normal;
         })
 

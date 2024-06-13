@@ -135,16 +135,14 @@ namespace gfx
         vkDestroyRenderPass(*_device, _renderPass, nullptr);
     }
 
-    RenderPass::RenderPass(Device_impl *device) : _impl(std::make_unique<RenderPass_impl>(device)) {}
+    RenderPass::RenderPass(Device_impl *device, const std::shared_ptr<RenderPassInfo> &info) : _impl(std::make_unique<RenderPass_impl>(device)), info(info) {}
 
-    bool RenderPass::initialize(const std::shared_ptr<RenderPassInfo> &info)
+    bool RenderPass::initialize()
     {
         if (_impl->initialize(*info))
         {
             return true;
         }
-
-        _info = info;
         return false;
     }
 

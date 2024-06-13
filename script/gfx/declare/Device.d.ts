@@ -4,26 +4,20 @@ import { DescriptorSet } from "./DescriptorSet.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
 import { Fence } from "./Fence.js";
 import { Framebuffer } from "./Framebuffer.js";
-import { InputAssembler } from "./InputAssembler.js";
 import { Pipeline, PipelineLayout } from "./Pipeline.js";
 import { Queue } from "./Queue.js";
 import { RenderPass } from "./RenderPass.js";
 import { Sampler } from "./Sampler.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
+import { Swapchain } from "./Swapchain.js";
 import { Texture } from "./Texture.js";
-import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, InputAssemblerInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
+import { BufferInfo, DescriptorSetLayoutInfo, FramebufferInfo, PipelineInfo, PipelineLayoutInfo, RenderPassInfo, SamplerInfo, ShaderInfo, TextureInfo } from "./info.js";
 
-export declare interface Capabilities {
+declare interface Capabilities {
     /**"The value must be a power of two" https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPhysicalDeviceLimits.html*/
     readonly uniformBufferOffsetAlignment: number
     readonly clipSpaceMinZ: number
-}
-
-export declare interface Swapchain {
-    readonly colorTexture: Texture;
-    readonly width: number;
-    readonly height: number
 }
 
 export declare class Device {
@@ -33,15 +27,12 @@ export declare class Device {
 
     constructor(...args);
 
-    acquire(semaphore: Semaphore): void;
-
     createBuffer(info: BufferInfo): Buffer;
     createCommandBuffer(): CommandBuffer;
     createDescriptorSet(layout: DescriptorSetLayout): DescriptorSet;
     createDescriptorSetLayout(info: DescriptorSetLayoutInfo): DescriptorSetLayout;
     createFence(signaled?: boolean): Fence;
     createFramebuffer(info: FramebufferInfo): Framebuffer;
-    createInputAssembler(info: InputAssemblerInfo): InputAssembler;
     createPipeline(info: PipelineInfo): Pipeline;
     createPipelineLayout(info: PipelineLayoutInfo): PipelineLayout;
     createRenderPass(info: RenderPassInfo): RenderPass;

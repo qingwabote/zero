@@ -1,12 +1,12 @@
 import { BufferUsageFlagBits } from "gfx";
 import { mat4 } from "../../core/math/mat4.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { ChangeRecord } from "../../core/render/scene/ChangeRecord.js";
 import { Model } from "../../core/render/scene/Model.js";
+import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { shaderLib } from "../../core/shaderLib.js";
-class ModelSpaceTransform extends ChangeRecord {
+class ModelSpaceTransform {
     constructor() {
-        super(...arguments);
+        this.hasUpdated = new PeriodicFlag();
         this.matrix = mat4.create();
     }
 }
@@ -31,10 +31,14 @@ export class SkinnedModel extends Model {
         super(transform, mesh, materials);
         this._skin = _skin;
         this._joints = undefined;
-        this._skinBuffer = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
-        this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, this._skinBuffer.buffer);
+        const view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
+        this.descriptorSet.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, view.buffer);
+        this._skinBuffer = view;
     }
     upload() {
+        if (this._hasUploaded.value) {
+            return;
+        }
         super.upload();
         if (!this._joints) {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths));
@@ -52,7 +56,7 @@ export class SkinnedModel extends Model {
             modelSpace = new ModelSpaceTransform;
             joint2modelSpace.set(joint, modelSpace);
         }
-        if (modelSpace.hasChanged) {
+        if (modelSpace.hasUpdated.value) {
             return;
         }
         const parent = joint.parent;
@@ -63,10 +67,7 @@ export class SkinnedModel extends Model {
             this.updateModelSpace(parent);
             mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent).matrix, joint.matrix);
         }
-        modelSpace.hasChanged = 1;
+        modelSpace.hasUpdated.reset(1);
     }
 }
-SkinnedModel.descriptorSetLayout = shaderLib.createDescriptorSetLayout([
-    shaderLib.sets.local.uniforms.Local,
-    shaderLib.sets.local.uniforms.Skin
-]);
+SkinnedModel.descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Skin]);

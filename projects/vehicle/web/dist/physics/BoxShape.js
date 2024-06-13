@@ -39,7 +39,7 @@ export class BoxShape extends Component {
         this.body = body;
     }
     update() {
-        if (this.node.hasChanged & render.TransformChangeBit.SCALE) {
+        if (this.node.hasChanged & render.Transform.ChangeBit.SCALE) {
             this._dirtyFlags |= DirtyFlagBits.SCALE;
         }
         if (this._dirtyFlags & DirtyFlagBits.SCALE) {

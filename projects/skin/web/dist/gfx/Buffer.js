@@ -15,21 +15,18 @@ export class Buffer {
     get impl() {
         return this._impl;
     }
-    get info() {
-        return this._info;
-    }
-    constructor(_gl) {
+    constructor(_gl, info) {
         this._gl = _gl;
+        this.info = info;
         this._impl = _gl.createBuffer();
     }
-    initialize(info) {
-        this._info = info;
-        this.resize(info.size);
+    initialize() {
+        this.resize(this.info.size);
         return false;
     }
     update(buffer, offset, length) {
         const gl = this._gl;
-        const target = usage2target(this._info.usage);
+        const target = usage2target(this.info.usage);
         gl.bindVertexArray(null);
         gl.bindBuffer(target, this._impl);
         // gl.bufferSubData(target, 0, new DataView(buffer, offset, length)); // DataView does not work in wx ios.
@@ -38,7 +35,7 @@ export class Buffer {
     }
     resize(size) {
         const gl = this._gl;
-        const target = usage2target(this._info.usage);
+        const target = usage2target(this.info.usage);
         gl.bindBuffer(target, this._impl);
         gl.bufferData(target, size, gl.STATIC_DRAW);
         gl.bindBuffer(target, null);

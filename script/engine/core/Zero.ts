@@ -2,16 +2,16 @@ import { EventEmitterImpl } from "bastard";
 import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
-import { Input, InputReadonly } from "./Input.js";
+import { Input } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { Scene } from "./render/Scene.js";
-import { Profile, ProfileReadonly } from "./render/pipeline/Profile.js";
-import { ChangeRecord } from "./render/scene/ChangeRecord.js";
+import { Profile } from "./render/pipeline/Profile.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
+import { PeriodicFlag } from "./render/scene/PeriodicFlag.js";
 
 enum Event {
     LOGIC_START = 'LOGIC_START',
@@ -30,8 +30,6 @@ interface EventToListener {
 }
 
 export abstract class Zero extends EventEmitterImpl<EventToListener> implements boot.EventListener {
-    static readonly Event = Event;
-
     private static _instance: Zero;
     public static get instance(): Zero {
         return Zero._instance;
@@ -44,7 +42,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     }
 
     private readonly _input = new Input;
-    public get input(): InputReadonly {
+    public get input(): Input.Readonly {
         return this._input;
     }
 
@@ -55,14 +53,14 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private readonly _systems: readonly System[];
 
     private readonly _commandBuffer = boot.device.createCommandBuffer();
-    private readonly _presentSemaphore = boot.device.createSemaphore();
-    private readonly _renderSemaphore = boot.device.createSemaphore();
-    private readonly _renderFence = boot.device.createFence();
+    private readonly _swapchainAcquired = boot.device.createSemaphore();
+    private readonly _queueExecuted = boot.device.createSemaphore();
+    private readonly _fence = boot.device.createFence();
 
     private _time = boot.initial;
 
     private _profile = new Profile;
-    public get profile(): ProfileReadonly {
+    public get profile(): Profile.Readonly {
         return this._profile;
     }
 
@@ -148,7 +146,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this.emit(Event.LOGIC_END);
 
         this.emit(Event.RENDER_START);
-        boot.device.acquire(this._presentSemaphore);
+        boot.device.swapchain.acquire(this._swapchainAcquired);
         this.scene.update();
         this._pipeline.update();
         this._commandBuffer.begin();
@@ -156,17 +154,22 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         for (let i = 0; i < this.scene.cameras.length; i++) {
             this._pipeline.record(this._profile, this._commandBuffer, i);
         }
-        ChangeRecord.expire();
+        PeriodicFlag.expire();
         this._commandBuffer.end();
         this.emit(Event.RENDER_END);
 
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
-        submitInfo.waitSemaphore = this._presentSemaphore;
-        submitInfo.waitDstStageMask = PipelineStageFlagBits.PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        submitInfo.signalSemaphore = this._renderSemaphore;
-        boot.device.queue.submit(submitInfo, this._renderFence);
-        boot.device.queue.present(this._renderSemaphore);
-        boot.device.queue.waitFence(this._renderFence);
+        submitInfo.waitSemaphore = this._swapchainAcquired;
+        submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
+        submitInfo.signalSemaphore = this._queueExecuted;
+        boot.device.queue.submit(submitInfo, this._fence);
+        boot.device.queue.present(this._queueExecuted);
+        boot.device.queue.wait(this._fence);
     }
-} 
+}
+Zero.Event = Event;
+
+export declare namespace Zero {
+    export { Event }
+}

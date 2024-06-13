@@ -144,7 +144,7 @@ export var PrimitiveTopology;
 // copy values from VkPipelineStageFlagBits in vulkan_core.h
 export var PipelineStageFlagBits;
 (function (PipelineStageFlagBits) {
-    PipelineStageFlagBits[PipelineStageFlagBits["PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT"] = 1024] = "PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT";
+    PipelineStageFlagBits[PipelineStageFlagBits["COLOR_ATTACHMENT_OUTPUT"] = 1024] = "COLOR_ATTACHMENT_OUTPUT";
 })(PipelineStageFlagBits || (PipelineStageFlagBits = {}));
 export var ClearFlagBits;
 (function (ClearFlagBits) {

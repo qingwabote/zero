@@ -10,10 +10,11 @@
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
+- [GPU Instancing](https://qingwabote.github.io/zero/projects/instancing/web/index.html)
 
 # 跨平台
 
-## WebGL
+## WebGL2
 
 - H5
 - [微信小游戏](minigame/README.md)
@@ -34,6 +35,7 @@
 - 骨骼动画 (spine)
 - 物理引擎 (ammo)
 - MSAA & FXAA
+- GPU Instancing
 
 # 可配置渲染管线
 
@@ -54,3 +56,7 @@
 # Bundleless
 
 无需使用 module bundler 打包引擎 javascript 源码, 引擎使用 [import-maps](https://github.com/WICG/import-maps) 实现 bare import specifiers, 依赖的 npm packages 则使用 rollup 打包
+
+# 兼容性
+
+Wasm 没有 GC, 引擎依赖 **FinalizationRegistry** 自动释放 Wasm 对象

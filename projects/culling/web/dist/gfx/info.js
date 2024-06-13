@@ -1,4 +1,4 @@
-import { SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
+import { CullMode, SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
 export class Vector {
     constructor() {
         this.data = [];
@@ -27,7 +27,6 @@ export class BufferInfo {
         this.usage = 0;
         this.mem_usage = 0;
         this.size = 0;
-        this.stride = 0;
     }
 }
 export class DescriptorSetLayoutBinding {
@@ -70,6 +69,7 @@ export class TextureInfo {
         this.usage = TextureUsageFlagBits.NONE;
         this.width = 0;
         this.height = 0;
+        this.swapchain = false;
     }
 }
 export class TextureVector extends Vector {
@@ -78,7 +78,9 @@ export class TextureVector extends Vector {
 export class FramebufferInfo {
     constructor() {
         this.colors = new TextureVector;
+        this.depthStencil = null;
         this.resolves = new TextureVector;
+        this.renderPass = null;
         this.width = 0;
         this.height = 0;
     }
@@ -109,6 +111,9 @@ export class VertexAttribute {
         this.format = 0;
         this.buffer = 0;
         this.offset = 0;
+        this.stride = 0;
+        this.location = 0;
+        this.instanced = false;
     }
 }
 export class BufferVector extends Vector {
@@ -122,21 +127,23 @@ export class VertexInput {
 }
 export class IndexInput {
     constructor() {
+        this.buffer = null;
         this.type = 0;
     }
 }
 export class VertexAttributeVector extends Vector {
 }
 ;
-export class InputAssemblerInfo {
+export class InputAssembler {
     constructor() {
         this.vertexAttributes = new VertexAttributeVector;
-        this.indexInput = undefined;
+        this.vertexInput = new VertexInput;
+        this.indexInput = null;
     }
 }
 export class RasterizationState {
     constructor() {
-        this.cullMode = 0;
+        this.cullMode = CullMode.NONE;
     }
 }
 export class DepthStencilState {
@@ -154,16 +161,26 @@ export class BlendState {
 }
 export class PassState {
     constructor() {
-        this.depthStencilState = undefined;
-        this.blendState = undefined;
+        this.shader = null;
+        this.primitive = 0;
+        this.rasterizationState = new RasterizationState;
+        this.depthStencilState = null;
+        this.blendState = null;
     }
 }
 export class PipelineInfo {
+    constructor() {
+        this.passState = null;
+        this.attributes = null;
+        this.layout = null;
+        this.renderPass = null;
+    }
 }
 export class SubmitInfo {
     constructor() {
-        this.waitSemaphore = undefined;
-        this.waitDstStageMask = undefined;
-        this.signalSemaphore = undefined;
+        this.commandBuffer = null;
+        this.waitSemaphore = null;
+        this.waitDstStageMask = 0;
+        this.signalSemaphore = null;
     }
 }

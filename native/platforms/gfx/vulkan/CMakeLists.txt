@@ -9,7 +9,6 @@ set(SRC_FILES
     VkShader.cpp
     VkRenderPass.cpp
     VkFramebuffer.cpp
-    VkInputAssembler.cpp
     VkPipelineLayout.cpp
     VkPipeline.cpp
     VkDescriptorSetLayout.cpp
@@ -17,6 +16,7 @@ set(SRC_FILES
     VkFence.cpp
     VkSemaphore.cpp
     VkQueue.cpp
+    VkSwapchain.cpp
 
     tests/triangle.cpp
 )

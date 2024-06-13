@@ -10,7 +10,6 @@
 #include "RenderPass.hpp"
 #include "Framebuffer.hpp"
 #include "DescriptorSetLayout.hpp"
-#include "InputAssembler.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
 #include "CommandBuffer.hpp"
@@ -46,15 +45,12 @@ namespace gfx
 
         bool initialize();
 
-        void acquire(const std::shared_ptr<Semaphore> &presentSemaphore);
-
-        Buffer *createBuffer(const std::shared_ptr<const BufferInfo> &info);
+        Buffer *createBuffer(const std::shared_ptr<BufferInfo> &info);
         virtual CommandBuffer *createCommandBuffer();
         DescriptorSet *createDescriptorSet(const std::shared_ptr<DescriptorSetLayout> &layout);
         DescriptorSetLayout *createDescriptorSetLayout(const std::shared_ptr<DescriptorSetLayoutInfo> &info);
         Fence *createFence(bool signaled = false);
         Framebuffer *createFramebuffer(const std::shared_ptr<FramebufferInfo> &info);
-        InputAssembler *createInputAssembler(const std::shared_ptr<InputAssemblerInfo> &info);
         Pipeline *createPipeline(const std::shared_ptr<PipelineInfo> &info);
         PipelineLayout *createPipelineLayout(const std::shared_ptr<PipelineLayoutInfo> &info);
         RenderPass *createRenderPass(const std::shared_ptr<RenderPassInfo> &info);

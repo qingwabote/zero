@@ -17,6 +17,7 @@ interface PhaseBase {
 interface ModelPhase extends PhaseBase {
     type?: 'model';
     culling?: string;
+    batching?: boolean;
     model?: string;
     pass?: string;
 }
@@ -31,30 +32,27 @@ interface CopyPhase extends PhaseBase {
 }
 
 const phaseFactory = (function () {
-    const rasterizationState = new gfx.RasterizationState;
-    rasterizationState.cullMode = gfx.CullMode.NONE;
-
     const blendState = new gfx.BlendState;
     blendState.srcRGB = gfx.BlendFactor.ONE;
     blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
     blendState.srcAlpha = gfx.BlendFactor.ONE;
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
-    const CullingInstances = {
-        CSM: new pipeline.CSMCulling,
-        View: new pipeline.ViewCulling
+    const cullers = {
+        CSM: new pipeline.CSMCuller,
+        View: new pipeline.ViewCuller
     }
 
     return {
         model: async function (info: ModelPhase, context: render.Context, visibility: number): Promise<render.Phase> {
-            let culling = CullingInstances.View;
+            let culler = cullers.View;
             if (info.culling) {
-                culling = CullingInstances[info.culling as keyof typeof CullingInstances];
-                if (!culling) {
+                culler = cullers[info.culling as keyof typeof cullers];
+                if (!culler) {
                     throw new Error(`unknown culling type: ${info.culling}`);
                 }
             }
-            return new pipeline.ModelPhase(context, visibility, culling, info.model, info.pass);
+            return new pipeline.ModelPhase(context, visibility, culler, info.batching, info.model, info.pass);
         },
         fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
@@ -63,7 +61,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -75,7 +72,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -87,7 +83,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -326,7 +321,7 @@ export class Pipeline extends Yml {
                         ({ width, height } = texture.info);
                     }
                     if (!width || !height) {
-                        ({ width, height } = framebufferInfo.depthStencil.info);
+                        ({ width, height } = framebufferInfo.depthStencil!.info);
                     }
                     framebufferInfo.width = width;
                     framebufferInfo.height = height;

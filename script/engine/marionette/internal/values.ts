@@ -2,7 +2,7 @@ import { TRS } from "../../core/math/TRS.js";
 import { QuatLike, quat } from "../../core/math/quat.js";
 import { Vec3Like, vec3 } from "../../core/math/vec3.js";
 import { vec4 } from "../../core/math/vec4.js";
-import { ChannelBindingValue } from "./ChannelBinding.js";
+import { ChannelBinding } from "./ChannelBinding.js";
 
 const vec4_a = vec4.create();
 const vec4_b = vec4.create();
@@ -10,7 +10,7 @@ const vec4_c = vec4.create();
 
 type FilteredKeys<T, U> = { [P in keyof T]: T[P] extends U ? P : never }[keyof T];
 
-export class ChannelBindingVec3 implements ChannelBindingValue {
+export class ChannelBindingVec3 implements ChannelBinding.Value {
     constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Vec3Like>) { }
 
     set(buffer: ArrayLike<number>, index: number): void {
@@ -29,7 +29,7 @@ export class ChannelBindingVec3 implements ChannelBindingValue {
     }
 }
 
-export class ChannelBindingQuat implements ChannelBindingValue {
+export class ChannelBindingQuat implements ChannelBinding.Value {
     constructor(private _transform: TRS, private _property: FilteredKeys<TRS, QuatLike>) { }
 
     set(buffer: ArrayLike<number>, index: number): void {

@@ -12,16 +12,14 @@ namespace gfx
     private:
         std::unique_ptr<Framebuffer_impl> _impl;
 
-        std::shared_ptr<FramebufferInfo> _info;
-
     public:
         Framebuffer_impl &impl() { return *_impl; }
 
-        const std::shared_ptr<FramebufferInfo> &info() { return _info; };
+        const std::shared_ptr<FramebufferInfo> info;
 
-        Framebuffer(Device_impl *device);
+        Framebuffer(Device_impl *device, const std::shared_ptr<FramebufferInfo> &info);
 
-        bool initialize(const std::shared_ptr<FramebufferInfo> &info);
+        bool initialize();
 
         ~Framebuffer();
     };

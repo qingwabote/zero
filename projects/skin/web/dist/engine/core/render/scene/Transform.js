@@ -3,20 +3,20 @@ import { mat4 } from "../../math/mat4.js";
 import { quat } from "../../math/quat.js";
 import { vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
-import { ChangeRecord } from "./ChangeRecord.js";
-export var TransformChangeBit;
-(function (TransformChangeBit) {
-    TransformChangeBit[TransformChangeBit["NONE"] = 0] = "NONE";
-    TransformChangeBit[TransformChangeBit["POSITION"] = 1] = "POSITION";
-    TransformChangeBit[TransformChangeBit["ROTATION"] = 2] = "ROTATION";
-    TransformChangeBit[TransformChangeBit["SCALE"] = 4] = "SCALE";
-    TransformChangeBit[TransformChangeBit["TRS"] = 7] = "TRS";
-})(TransformChangeBit || (TransformChangeBit = {}));
+import { PeriodicFlag } from "./PeriodicFlag.js";
+var ChangeBit;
+(function (ChangeBit) {
+    ChangeBit[ChangeBit["NONE"] = 0] = "NONE";
+    ChangeBit[ChangeBit["POSITION"] = 1] = "POSITION";
+    ChangeBit[ChangeBit["ROTATION"] = 2] = "ROTATION";
+    ChangeBit[ChangeBit["SCALE"] = 4] = "SCALE";
+    ChangeBit[ChangeBit["TRS"] = 7] = "TRS";
+})(ChangeBit || (ChangeBit = {}));
 const vec3_a = vec3.create();
 const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
-export class Transform extends ChangeRecord {
+export class Transform {
     get visibility() {
         var _a, _b, _c, _d;
         return (_d = (_b = (_a = this._explicit_visibility) !== null && _a !== void 0 ? _a : this._implicit_visibility) !== null && _b !== void 0 ? _b : (this._implicit_visibility = (_c = this._parent) === null || _c === void 0 ? void 0 : _c.visibility)) !== null && _d !== void 0 ? _d : 0;
@@ -38,7 +38,7 @@ export class Transform extends ChangeRecord {
     }
     set position(value) {
         vec3.copy(this._position, value);
-        this.dirty(TransformChangeBit.POSITION);
+        this.dirty(ChangeBit.POSITION);
     }
     /**
      * rotation is normalized.
@@ -48,21 +48,21 @@ export class Transform extends ChangeRecord {
     }
     set rotation(value) {
         vec4.copy(this._rotation, value);
-        this.dirty(TransformChangeBit.ROTATION);
+        this.dirty(ChangeBit.ROTATION);
     }
     get scale() {
         return this._scale;
     }
     set scale(value) {
         vec3.copy(this._scale, value);
-        this.dirty(TransformChangeBit.SCALE);
+        this.dirty(ChangeBit.SCALE);
     }
     get euler() {
         return quat.toEuler(this._euler, this._rotation);
     }
     set euler(value) {
         quat.fromEuler(this._rotation, value[0], value[1], value[2]);
-        this.dirty(TransformChangeBit.ROTATION);
+        this.dirty(ChangeBit.ROTATION);
     }
     get world_position() {
         this.update();
@@ -88,7 +88,7 @@ export class Transform extends ChangeRecord {
         }
         quat.conjugate(this._rotation, this._parent.world_rotation);
         quat.multiply(this._rotation, this._rotation, value);
-        this.dirty(TransformChangeBit.ROTATION);
+        this.dirty(ChangeBit.ROTATION);
     }
     get world_scale() {
         return this._world_scale;
@@ -105,18 +105,20 @@ export class Transform extends ChangeRecord {
     }
     set matrix(value) {
         mat4.toTRS(value, this._position, this._rotation, this._scale);
-        this.dirty(TransformChangeBit.TRS);
+        this.dirty(ChangeBit.TRS);
     }
     get world_matrix() {
         this.update();
         return this._world_matrix;
     }
+    get hasChanged() {
+        return this._hasChanged.value;
+    }
     constructor(name = '') {
-        super(0xffffffff);
         this.name = name;
         this._explicit_visibility = undefined;
         this._implicit_visibility = undefined;
-        this._changed = TransformChangeBit.TRS;
+        this._changed = ChangeBit.TRS;
         this._position = vec3.create();
         this._rotation = quat.create();
         this._scale = vec3.create(1, 1, 1);
@@ -128,11 +130,12 @@ export class Transform extends ChangeRecord {
         this._parent = undefined;
         this._matrix = mat4.create();
         this._world_matrix = mat4.create();
+        this._hasChanged = new PeriodicFlag(0xffffffff);
     }
     addChild(child) {
         child._implicit_visibility = undefined;
         child._parent = this;
-        child.dirty(TransformChangeBit.TRS);
+        child.dirty(ChangeBit.TRS);
         this._children.push(child);
     }
     getChildByPath(paths) {
@@ -161,13 +164,13 @@ export class Transform extends ChangeRecord {
     }
     dirty(flag) {
         this._changed |= flag;
-        this.hasChanged |= flag;
+        this._hasChanged.addBit(flag);
         for (const child of this._children) {
             child.dirty(flag);
         }
     }
     update() {
-        if (this._changed == TransformChangeBit.NONE)
+        if (this._changed == ChangeBit.NONE)
             return;
         if (!this._parent) {
             mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
@@ -175,7 +178,7 @@ export class Transform extends ChangeRecord {
             this._world_position.splice(0, this._position.length, ...this._position);
             this._world_rotation.splice(0, this._rotation.length, ...this._rotation);
             this._world_scale.splice(0, this._scale.length, ...this._scale);
-            this._changed = TransformChangeBit.NONE;
+            this._changed = ChangeBit.NONE;
             return;
         }
         mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
@@ -186,6 +189,7 @@ export class Transform extends ChangeRecord {
         mat3.fromQuat(mat3_a, quat_a);
         mat3.multiplyMat4(mat3_a, mat3_a, this._world_matrix);
         vec3.set(this._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
-        this._changed = TransformChangeBit.NONE;
+        this._changed = ChangeBit.NONE;
     }
 }
+Transform.ChangeBit = ChangeBit;

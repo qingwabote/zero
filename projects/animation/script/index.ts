@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
 import { BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from "engine";
-import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider, SliderEventType } from 'flex';
+import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider } from 'flex';
 
 const Polyart = await (await bundle.cache('SciFiWarriorPBRHPPolyart/Polyart', GLTF)).instantiate();
 
@@ -87,7 +87,7 @@ export class App extends Zero {
         slider.setWidth(180);
         slider.setHeight(20);
         slider.value = 0;
-        slider.emitter.on(SliderEventType.CHANGED, () => {
+        slider.emitter.on(Slider.EventType.CHANGED, () => {
             updateInput(slider.value);
         })
         panel.addElement(slider);

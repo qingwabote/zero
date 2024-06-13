@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayout, InputAssembler, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader } from "gfx";
+import { DescriptorSet, DescriptorSetLayout, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader, VertexAttributeVector } from "gfx";
 import { hashLib } from "../hashLib.js";
 
 export class Context {
@@ -15,16 +15,15 @@ export class Context {
     /**
      * @param renderPass a compatible renderPass
      */
-    getPipeline(passState: PassState, inputAssembler: InputAssembler, renderPass: RenderPass, layouts?: readonly DescriptorSetLayout[]): Pipeline {
-        const inputAssemblerInfo = inputAssembler.info;
-        const pipelineHash = hashLib.passState(passState) ^ hashLib.inputAssembler(inputAssemblerInfo) ^ hashLib.renderPass(renderPass.info);
+    getPipeline(passState: PassState, attributes: VertexAttributeVector, renderPass: RenderPass, layouts?: readonly DescriptorSetLayout[]): Pipeline {
+        const pipelineHash = hashLib.passState(passState) ^ hashLib.attributes(attributes) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             const info = new PipelineInfo();
             info.passState = passState;
-            info.inputAssembler = inputAssembler;
+            info.attributes = attributes;
             info.renderPass = renderPass;
-            info.layout = this.getPipelineLayout(passState.shader, layouts)
+            info.layout = this.getPipelineLayout(passState.shader!, layouts)
             pipeline = device.createPipeline(info);
             this._pipelineCache[pipelineHash] = pipeline;
         }

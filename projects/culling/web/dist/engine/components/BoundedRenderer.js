@@ -1,11 +1,11 @@
 import { EventEmitterImpl } from "bastard";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
-export var BoundsEventName;
-(function (BoundsEventName) {
-    BoundsEventName["BOUNDS_CHANGED"] = "BOUNDS_CHANGED";
-})(BoundsEventName || (BoundsEventName = {}));
+var EventName;
+(function (EventName) {
+    EventName["BOUNDS_CHANGED"] = "BOUNDS_CHANGED";
+})(EventName || (EventName = {}));
 const emitter = new EventEmitterImpl;
-emitter.on(BoundsEventName.BOUNDS_CHANGED, () => { });
+emitter.on(EventName.BOUNDS_CHANGED, () => { });
 /**
  * Provides a bounds for ui system
  */
@@ -33,3 +33,4 @@ export class BoundedRenderer extends ModelRenderer {
     }
 }
 BoundedRenderer.PIXELS_PER_UNIT = 100;
+BoundedRenderer.EventName = EventName;

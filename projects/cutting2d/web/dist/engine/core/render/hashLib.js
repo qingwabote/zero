@@ -2,7 +2,7 @@ import { murmurhash2_32_gc } from "bastard";
 import { shaderLib } from "../shaderLib.js";
 const _shader2hash = new WeakMap;
 const _pass2hash = new WeakMap;
-const _inputAssembler2hash = new WeakMap;
+const _attributes2hash = new WeakMap;
 let _renderPass_id = 0;
 const _renderPass2id = new Map;
 export const hashLib = {
@@ -32,18 +32,17 @@ export const hashLib = {
         }
         return hash;
     },
-    inputAssembler(inputAssembler) {
-        let hash = _inputAssembler2hash.get(inputAssembler);
+    attributes(attributes) {
+        let hash = _attributes2hash.get(attributes);
         if (!hash) {
             let key = '';
-            const attributes = inputAssembler.vertexAttributes;
             const length = attributes.size();
             for (let i = 0; i < length; i++) {
                 const attribute = attributes.get(i);
-                key += `${attribute.name}${attribute.format}${attribute.buffer}${attribute.offset}`;
+                key += `${attribute.name}${attribute.format}${attribute.buffer}${attribute.offset}${attribute.stride}${attribute.location}${attribute.instanced}`;
             }
             hash = murmurhash2_32_gc(key, 666);
-            _inputAssembler2hash.set(inputAssembler, hash);
+            _attributes2hash.set(attributes, hash);
         }
         return hash;
     },

@@ -1,6 +1,6 @@
-import { MeshRenderer, Node, Shader, bundle, device, render, shaderLib, vec3, vec4 } from "engine";
+import { MeshRenderer, Node, Shader, bundle, render, shaderLib, vec3, vec4 } from "engine";
 import { Element } from "flex";
-import { BufferUsageFlagBits, CullMode, Format, FormatInfos, IndexInput, IndexType, InputAssemblerInfo, PassState, PrimitiveTopology, RasterizationState, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Polygon } from "./Polygon.js";
 
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
@@ -8,14 +8,16 @@ const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
 const vertexAttributes = new VertexAttributeVector;
 
 const a_position = new VertexAttribute;
-a_position.name = 'a_position';
+a_position.name = shaderLib.attributes.position.name;
 a_position.format = Format.RG32_SFLOAT;
+a_position.location = shaderLib.attributes.position.location;
 vertexAttributes.add(a_position);
 
 const a_texCoord = new VertexAttribute;
-a_texCoord.name = 'a_texCoord';
+a_texCoord.name = shaderLib.attributes.uv.name;
 a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[a_position.format].bytes;
+a_texCoord.location = shaderLib.attributes.uv.location;
 vertexAttributes.add(a_texCoord);
 
 function triangulate(n: number, indexBuffer: render.BufferView) {
@@ -51,16 +53,13 @@ export default class PolygonsRenderer extends Element {
     private _indexViews: render.BufferView[] = [];
 
     override start(): void {
-        const rasterizationState = new RasterizationState;
-        rasterizationState.cullMode = CullMode.NONE;
         const state = new PassState();
         state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        state.rasterizationState = rasterizationState;
         const pass = render.Pass.Pass(state);
-        pass.setUniform('Props', 'albedo', vec4.ONE);
+        pass.setProperty('albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
-        this._material = { passes: [pass] };
+        this._material = new render.Material([pass]);
     }
 
     override update(): void {
@@ -91,14 +90,14 @@ export default class PolygonsRenderer extends Element {
                 indexBuffer.invalidate();
                 indexBuffer.update();
 
-                subMesh.drawInfo.count = indexBuffer.length;
+                subMesh.draw.count = indexBuffer.length;
 
                 renderer.node.position = vec3.create(...polygon.translation, 0)
             }
             for (; i < this._meshRenderers.length; i++) {
                 const renderer = this._meshRenderers[i];
                 const subMesh = renderer.mesh!.subMeshes[0];
-                subMesh.drawInfo.count = 0;
+                subMesh.draw.count = 0;
             }
             this._polygons_invalidated = false;
         }
@@ -107,22 +106,22 @@ export default class PolygonsRenderer extends Element {
     cacheMeshRenderer(index: number): MeshRenderer {
         let renderer = this._meshRenderers[index];
         if (!renderer) {
-            const iaInfo = new InputAssemblerInfo;
-            iaInfo.vertexAttributes = vertexAttributes;
+            const ia = new InputAssembler;
+            ia.vertexAttributes = vertexAttributes;
 
             const vertexView = new render.BufferView('Float32', BufferUsageFlagBits.VERTEX)
             const vertexInput = new VertexInput;
             vertexInput.buffers.add(vertexView.buffer);
             vertexInput.offsets.add(0);
-            iaInfo.vertexInput = vertexInput;
+            ia.vertexInput = vertexInput;
 
             const indexView = new render.BufferView('Uint16', BufferUsageFlagBits.INDEX);
             const indexInput = new IndexInput;
             indexInput.buffer = indexView.buffer;
             indexInput.type = IndexType.UINT16;
-            iaInfo.indexInput = indexInput;
+            ia.indexInput = indexInput;
 
-            const subMesh = new render.SubMesh(device.createInputAssembler(iaInfo));
+            const subMesh = new render.SubMesh(ia);
             renderer = (new Node(`PolygonsRenderer${index}`)).addComponent(MeshRenderer)
             renderer.mesh = new render.Mesh([subMesh]);
             renderer.materials = [this._material];

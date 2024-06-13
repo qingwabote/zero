@@ -1,14 +1,14 @@
-import { GeometryRenderer, TouchEventName, vec2, vec3 } from "engine";
+import { GeometryRenderer, Input, vec2, vec3 } from "engine";
 import { ElementContainer, Renderer } from "flex";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 const vec3_c = vec3.create();
 const vec3_d = vec3.create();
-export var JoystickEventType;
-(function (JoystickEventType) {
-    JoystickEventType["CHANGED"] = "CHANGED";
-})(JoystickEventType || (JoystickEventType = {}));
-export default class Joystick extends ElementContainer {
+var EventType;
+(function (EventType) {
+    EventType["CHANGED"] = "CHANGED";
+})(EventType || (EventType = {}));
+export class Joystick extends ElementContainer {
     get point() {
         return this._point;
     }
@@ -21,22 +21,22 @@ export default class Joystick extends ElementContainer {
         primitive.setHeight('100%');
         this.draw(primitive, this._point, color);
         this.addElement(primitive);
-        primitive.emitter.on(TouchEventName.START, event => {
+        primitive.emitter.on(Input.TouchEvents.START, event => {
             const local = event.touch.local;
             vec2.set(this._point, Math.max(Math.min(local[0], 1), -1), Math.max(Math.min(local[1], 1), -1));
             this.draw(primitive, this._point, color);
-            this.emitter.emit(JoystickEventType.CHANGED);
+            this.emitter.emit(EventType.CHANGED);
         });
-        primitive.emitter.on(TouchEventName.MOVE, event => {
+        primitive.emitter.on(Input.TouchEvents.MOVE, event => {
             const local = event.touch.local;
             vec2.set(this._point, Math.max(Math.min(local[0], 1), -1), Math.max(Math.min(local[1], 1), -1));
             this.draw(primitive, this._point, color);
-            this.emitter.emit(JoystickEventType.CHANGED);
+            this.emitter.emit(EventType.CHANGED);
         });
-        primitive.emitter.on(TouchEventName.END, () => {
+        primitive.emitter.on(Input.TouchEvents.END, () => {
             vec2.set(this._point, 0, 0);
             this.draw(primitive, this._point, color);
-            this.emitter.emit(JoystickEventType.CHANGED);
+            this.emitter.emit(EventType.CHANGED);
         });
     }
     draw(primitive, point, color) {
@@ -61,3 +61,4 @@ export default class Joystick extends ElementContainer {
         impl.drawLine(vec3_d, vec3_a, color);
     }
 }
+Joystick.EventType = EventType;

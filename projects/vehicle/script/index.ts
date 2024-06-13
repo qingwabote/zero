@@ -2,7 +2,7 @@
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
-import Joystick from "./Joystick.js";
+import { Joystick } from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
 
 const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
@@ -48,7 +48,7 @@ export class App extends Zero {
 
         const ground = primitive.createScene("Cube", true)!.children[0];
         let meshRenderer = ground.getComponent(MeshRenderer)!
-        meshRenderer.materials![0].passes[1].setUniform('Props', 'albedo', vec4.create(0.5, 0.5, 0.5, 1));
+        meshRenderer.materials![0].passes[1].setProperty('albedo', vec4.create(0.5, 0.5, 0.5, 1));
         ground.visibility = VisibilityFlagBits.WORLD;
         let shape = ground.addComponent(BoxShape);
         let aabb = meshRenderer.bounds;
@@ -74,7 +74,7 @@ export class App extends Zero {
                 const box = primitive.createScene("Cube", true)!.children[0];
                 box.visibility = VisibilityFlagBits.WORLD;
                 let meshRenderer = box.getComponent(MeshRenderer)!
-                meshRenderer.materials![0].passes[1].setUniform('Props', 'albedo', vec4.create(0, 0, 1, 1));
+                meshRenderer.materials![0].passes[1].setProperty('albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
                 shape.body.mass = 0.1;
                 aabb = meshRenderer.bounds;

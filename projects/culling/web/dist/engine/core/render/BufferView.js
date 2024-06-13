@@ -49,7 +49,6 @@ export class BufferView {
             return;
         }
         this._source = new format2array[this._format](capacity);
-        this._buffer.resize(this._source.byteLength);
         this._capacity = capacity;
     }
     shrink() { }
@@ -61,7 +60,11 @@ export class BufferView {
         if (!this._invalidated) {
             return;
         }
-        this._buffer.update(this._source.buffer, this._source.byteOffset, this._length * this._source.BYTES_PER_ELEMENT);
+        const bytes = this._length * this._source.BYTES_PER_ELEMENT;
+        if (this._buffer.info.size < bytes) {
+            this._buffer.resize(bytes);
+        }
+        this._buffer.update(this._source.buffer, this._source.byteOffset, bytes);
         this._invalidated = false;
     }
     invalidate() {

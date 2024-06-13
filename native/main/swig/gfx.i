@@ -7,6 +7,7 @@
 %include "attribute.i"
 
 %ignore *::impl;
+%ignore *::initialize;
 
 %shared_ptr(ImageBitmap)
 
@@ -79,7 +80,7 @@
 %shared_ptr(gfx::BufferVector)
 %shared_ptr(gfx::VertexInput)
 %shared_ptr(gfx::IndexInput)
-%shared_ptr(gfx::InputAssemblerInfo)
+%shared_ptr(gfx::InputAssembler)
 
 %shared_ptr(gfx::RasterizationState)
 %shared_ptr(gfx::DepthStencilState)
@@ -87,7 +88,6 @@
 %shared_ptr(gfx::Shader)
 %shared_ptr(gfx::PassState)
 
-%shared_ptr(gfx::InputAssembler);
 %shared_ptr(gfx::PipelineInfo)
 
 %shared_ptr(gfx::CommandBuffer);
@@ -114,11 +114,9 @@
 %include "gfx/Capabilities.hpp"
 
 %ignore gfx::Buffer::Buffer;
-%attribute2(gfx::Buffer, std::shared_ptr<const gfx::BufferInfo>, info, info);
 %include "gfx/Buffer.hpp"
 
 %ignore gfx::RenderPass::RenderPass;
-%attribute2(gfx::RenderPass, std::shared_ptr<gfx::RenderPassInfo>, info, info);
 %include "gfx/RenderPass.hpp"
 
 %ignore gfx::Sampler::Sampler;
@@ -126,16 +124,13 @@
 %include "gfx/Sampler.hpp"
 
 %ignore gfx::Texture::Texture;
-%attribute2(gfx::Texture, std::shared_ptr<gfx::TextureInfo>, info, info);
 %include "gfx/Texture.hpp"
 
 %ignore gfx::DescriptorSet::DescriptorSet;
-%attribute2(gfx::DescriptorSet, std::shared_ptr<gfx::DescriptorSetLayout>, layout, layout);
 %shared_ptr(gfx::DescriptorSet);
 %include "gfx/DescriptorSet.hpp"
 
 %ignore gfx::DescriptorSetLayout::DescriptorSetLayout;
-%attribute2(gfx::DescriptorSetLayout, std::shared_ptr<gfx::DescriptorSetLayoutInfo>, info, info);
 %include "gfx/DescriptorSetLayout.hpp"
 
 %ignore gfx::PipelineLayout::PipelineLayout;
@@ -150,16 +145,10 @@
 %include "gfx/Semaphore.hpp"
 
 %ignore gfx::Framebuffer::Framebuffer;
-%attribute2(gfx::Framebuffer, std::shared_ptr<gfx::FramebufferInfo>, info, info);
 %shared_ptr(gfx::Framebuffer);
 %include "gfx/Framebuffer.hpp"
 
-%ignore gfx::InputAssembler::InputAssembler;
-%attribute2(gfx::InputAssembler, std::shared_ptr<gfx::InputAssemblerInfo>, info, info);
-%include "gfx/InputAssembler.hpp"
-
 %ignore gfx::Shader::Shader;
-%attribute2(gfx::Shader, std::shared_ptr<gfx::ShaderInfo>, info, info);
 %include "gfx/Shader.hpp"
 
 %ignore gfx::Pipeline::Pipeline;
@@ -170,9 +159,6 @@
 %include "gfx/CommandBuffer.hpp"
 
 %ignore gfx::Swapchain::Swapchain;
-%attribute2(gfx::Swapchain, std::shared_ptr<gfx::Texture>, colorTexture, colorTexture);
-%attribute(gfx::Swapchain, uint32_t, width, width);
-%attribute(gfx::Swapchain, uint32_t, height, height);
 %include "gfx/Swapchain.hpp"
 
 %ignore gfx::Queue::Queue;
@@ -187,7 +173,7 @@
 %newobject gfx::Device::createFence;
 %newobject gfx::Device::createFramebuffer;
 %newobject gfx::Device::createInputAssembler;
-%newobject gfx::Device::RenderPass;
+%newobject gfx::Device::createRenderPass;
 %newobject gfx::Device::createSampler;
 %newobject gfx::Device::createSemaphore;
 %newobject gfx::Device::createTexture;

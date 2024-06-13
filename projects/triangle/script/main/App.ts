@@ -1,4 +1,4 @@
-import { AttachmentDescription, BufferInfo, BufferUsageFlagBits, CullMode, Format, FormatInfos, FramebufferInfo, ImageLayout, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, ShaderInfo, ShaderStageFlagBits, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { AttachmentDescription, BufferInfo, BufferUsageFlagBits, CullMode, Format, FormatInfos, FramebufferInfo, ImageLayout, InputAssembler, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, ShaderInfo, ShaderStageFlagBits, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 import { device } from "./impl.js";
 
 const vs = `
@@ -102,7 +102,7 @@ export class App {
         position_buffer.initialize(position_bufferInfo);
         position_buffer.update(positions.buffer, 0, positions.byteLength);
 
-        const inputAssemblerInfo = new InputAssemblerInfo;
+        const inputAssemblerInfo = new InputAssembler;
         inputAssemblerInfo.vertexAttributes.add(a_position);
         const vertexInput = new VertexInput;
         vertexInput.buffers.add(position_buffer);

@@ -1,34 +1,6 @@
-import { Format, ShaderStageFlagBits } from "./constants.js";
-function getFormat(type) {
-    let format;
-    switch (type) {
-        case "vec2":
-            format = Format.RG32_SFLOAT;
-            break;
-        case "vec3":
-            format = Format.RGB32_SFLOAT;
-            break;
-        case "vec4":
-            format = Format.RGBA32_SFLOAT;
-            break;
-        case "uvec4":
-            format = Format.RGBA32_UINT;
-            break;
-        default:
-            throw new Error(`unsupported attribute type: ${type}`);
-    }
-    return format;
-}
-export const glsl = {
-    parse(sources, types) {
-        const vs = sources[types.indexOf(ShaderStageFlagBits.VERTEX)];
-        const attributes = {};
-        const exp = /layout\s*\(\s*location\s*=\s*(\d)\s*\)\s*in\s*(\w+)\s*(\w+)/g;
-        let match;
-        while (match = exp.exec(vs)) {
-            const [_, location, type, name] = match;
-            attributes[name] = { location: parseInt(location), format: getFormat(type) };
-        }
+export var glsl;
+(function (glsl) {
+    function parse(sources, types) {
         const blocks = {};
         const samplerTextures = {};
         for (let i = 0; i < sources.length; i++) {
@@ -54,9 +26,9 @@ export const glsl = {
             }
         }
         return {
-            attributes,
             blocks,
             samplerTextures
         };
     }
-};
+    glsl.parse = parse;
+})(glsl || (glsl = {}));

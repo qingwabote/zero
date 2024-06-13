@@ -15,7 +15,7 @@ function contains(min: Readonly<Vec3>, max: Readonly<Vec3>, point: Readonly<Vec3
     );
 }
 
-export class ModelTreeNodeContext {
+class Context {
     readonly model2node: Map<Model, ModelTreeNode | null> = new Map;
 
     constructor(models?: Iterable<Model>) {
@@ -56,7 +56,7 @@ export class ModelTreeNode {
     }
 
     constructor(
-        private readonly _context: ModelTreeNodeContext,
+        private readonly _context: Context,
         public readonly bounds: Readonly<AABB3D>,
         private readonly _depth: number,
         private readonly _parent: ModelTreeNode | null = null,
@@ -172,4 +172,9 @@ export class ModelTreeNode {
             yield* child.modelIterator();
         }
     }
+}
+ModelTreeNode.Context = Context;
+
+export declare namespace ModelTreeNode {
+    export { Context }
 }

@@ -42,7 +42,7 @@ export class Texture {
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = _commandBuffer;
         device.queue.submit(submitInfo, _fence);
-        device.queue.waitFence(_fence);
+        device.queue.wait(_fence);
         this._width = bitmap.width;
         this._height = bitmap.height;
         this._url = url;

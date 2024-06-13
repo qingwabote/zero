@@ -1,4 +1,4 @@
-import { AttachmentDescription, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, InputAssemblerInfo, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SampleCountFlagBits, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
+import { AttachmentDescription, BufferInfo, BufferUsageFlagBits, CullMode, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, InputAssembler, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SampleCountFlagBits, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute, VertexInput, VertexInputAttributeDescription, VertexInputBindingDescription, VertexInputRate, VertexInputState } from "gfx";
 import { load } from "loader";
 import { device } from "./impl.js";
 
@@ -46,7 +46,7 @@ commandBuffer.end();
 const submitInfo = new SubmitInfo;
 submitInfo.commandBuffer = commandBuffer;
 device.queue.submit(submitInfo, fence);
-device.queue.waitFence(fence);
+device.queue.wait(fence);
 
 export class App {
     constructor() {
@@ -160,7 +160,7 @@ export class App {
         buffer.initialize(bufferInfo);
         buffer.update(vertexes.buffer, 0, vertexes.byteLength);
 
-        const inputAssemblerInfo = new InputAssemblerInfo;
+        const inputAssemblerInfo = new InputAssembler;
         inputAssemblerInfo.vertexAttributes.add(a_position);
         inputAssemblerInfo.vertexAttributes.add(a_texCoord);
         const vertexInput = new VertexInput;

@@ -1,17 +1,14 @@
 import { ShaderStageFlagBits, glsl } from "gfx-common";
 export class Shader {
-    get info() {
-        return this._info;
-    }
     get impl() {
         return this._impl;
     }
-    constructor(gl) {
-        this._gl = gl;
+    constructor(_gl, info) {
+        this._gl = _gl;
+        this.info = info;
     }
-    initialize(info) {
-        this._info = info;
-        return this.compileShader(info);
+    initialize() {
+        return this.compileShader(this.info);
     }
     compileShader(info) {
         const gl = this._gl;
@@ -36,7 +33,7 @@ export class Shader {
                 let err = `${types[i] == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.\n`;
                 err += gl.getShaderInfoLog(shader) + '\n';
                 let lineNumber = 1;
-                err += 'Shader source dump:', source.replace(/^|\n/g, () => `\n${lineNumber++} `);
+                err += 'Shader source dump:' + source.replace(/^|\n/g, () => `\n${lineNumber++} `);
                 throw new Error(err);
             }
             shaders.push(shader);

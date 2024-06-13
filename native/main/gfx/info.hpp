@@ -31,7 +31,6 @@ namespace gfx
     class CommandBuffer;
     class Fence;
     class Semaphore;
-    class InputAssembler;
 
     using FloatVector = std::vector<float>;
     using Uint32Vector = std::vector<uint32_t>;
@@ -83,7 +82,6 @@ namespace gfx
         BufferUsageFlagBits usage;
         MemoryUsage mem_usage;
         uint32_t size;
-        uint32_t stride;
     };
 
     enum class ShaderStageFlagBits
@@ -213,6 +211,9 @@ namespace gfx
         uint32_t format;
         uint32_t buffer;
         uint32_t offset;
+        uint32_t stride;
+        uint32_t location;
+        bool instanced;
     };
     using VertexAttributeVector = std::vector<std::shared_ptr<VertexAttribute>>;
 
@@ -232,10 +233,10 @@ namespace gfx
         std::shared_ptr<Buffer> buffer;
         IndexType type{0};
     };
-    struct InputAssemblerInfo
+    struct InputAssembler
     {
         std::shared_ptr<VertexAttributeVector> vertexAttributes{new VertexAttributeVector()};
-        std::shared_ptr<VertexInput> vertexInput;
+        std::shared_ptr<VertexInput> vertexInput{new VertexInput()};
         std::shared_ptr<IndexInput> indexInput;
     };
 
@@ -247,7 +248,7 @@ namespace gfx
     };
     struct RasterizationState
     {
-        CullMode cullMode;
+        CullMode cullMode{CullMode::NONE};
     };
     struct DepthStencilState
     {
@@ -279,7 +280,7 @@ namespace gfx
     {
         std::shared_ptr<Shader> shader;
         PrimitiveTopology primitive{0};
-        std::shared_ptr<RasterizationState> rasterizationState;
+        std::shared_ptr<RasterizationState> rasterizationState{new RasterizationState()};
         std::shared_ptr<DepthStencilState> depthStencilState;
         std::shared_ptr<BlendState> blendState;
     };
@@ -287,7 +288,7 @@ namespace gfx
     struct PipelineInfo
     {
         std::shared_ptr<PassState> passState;
-        std::shared_ptr<InputAssembler> inputAssembler;
+        std::shared_ptr<VertexAttributeVector> attributes;
         std::shared_ptr<PipelineLayout> layout;
         std::shared_ptr<RenderPass> renderPass;
     };

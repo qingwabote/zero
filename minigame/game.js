@@ -22,7 +22,7 @@ System.addImportMap({
         "skeleton": "./dist/subpackages/projects/skeleton/script/index.js",
         "vehicle": "./dist/subpackages/projects/vehicle/script/index.js",
         "cutting2d": "./dist/subpackages/projects/cutting2d/script/index.js",
-        "yoga": "./dist/subpackages/projects/yoga/script/index.js"
+        "instancing": "./dist/subpackages/projects/instancing/script/index.js"
     },
     scopes: {
         "./dist/splash/": {
@@ -48,6 +48,9 @@ System.addImportMap({
         },
         "./dist/subpackages/projects/skeleton/": {
             "bundling": "./bundling-skeleton.js"
+        },
+        "./dist/subpackages/projects/instancing/": {
+            "bundling": "./bundling-instancing.js"
         }
     }
 }, 'Fake://')
@@ -58,12 +61,11 @@ System.constructor.prototype.instantiate = function (url) {
         const register = System.getRegister(url);
         resolve(register)
     })
-}
-
-System.import('splash');
+};
 
 (async function () {
     const boot = await System.import('boot');
-    await Promise.all([boot.loadBundle('engine'), boot.loadBundle('navigation')]);
-    System.import('navigation')
+    await System.import('splash');
+    await Promise.all([boot.loadBundle('engine'), boot.loadBundle('instancing')]);
+    System.import('instancing')
 })()

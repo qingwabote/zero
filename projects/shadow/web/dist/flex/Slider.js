@@ -1,14 +1,13 @@
-import { bundle } from "bundling";
-import { SpriteFrame, SpriteRenderer, Texture, TouchEventName, vec4 } from "engine";
+import { Input, SpriteFrame, SpriteRenderer, Texture, bundle, vec4 } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";
 import * as yoga from "./yoga/index.js";
 const splash_texture = await bundle.cache('images/splash.png', Texture);
 const splash_frame = new SpriteFrame(splash_texture.impl);
-export var SliderEventType;
-(function (SliderEventType) {
-    SliderEventType["CHANGED"] = "CHANGED";
-})(SliderEventType || (SliderEventType = {}));
+var EventType;
+(function (EventType) {
+    EventType["CHANGED"] = "CHANGED";
+})(EventType || (EventType = {}));
 export class Slider extends ElementContainer {
     get value() {
         return this._value;
@@ -34,10 +33,10 @@ export class Slider extends ElementContainer {
         foreground.setPosition(yoga.Edge.Top, 0);
         this.addElement(foreground);
         this._foreground = foreground;
-        this.emitter.on(TouchEventName.START, (event) => {
+        this.emitter.on(Input.TouchEvents.START, (event) => {
             this.onTouch(event.touch.local);
         });
-        this.emitter.on(TouchEventName.MOVE, (event) => {
+        this.emitter.on(Input.TouchEvents.MOVE, (event) => {
             this.onTouch(event.touch.local);
         });
         this.onValue();
@@ -47,6 +46,7 @@ export class Slider extends ElementContainer {
     }
     onTouch(pos) {
         this.value = pos[0] / (this.bounds.halfExtent[0] * 2);
-        this.emitter.emit(SliderEventType.CHANGED);
+        this.emitter.emit(EventType.CHANGED);
     }
 }
+Slider.EventType = EventType;

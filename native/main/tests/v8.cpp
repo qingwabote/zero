@@ -27,12 +27,9 @@ namespace test::v8
 
             auto store = _v8::ArrayBuffer::NewBackingStore(isolate, 128);
             auto array = _v8::ArrayBuffer::New(isolate, std::move(store));
-            ZERO_LOG("dsfsdf");
         }
 
         auto gc = context->Global()->Get(context, _v8::String::NewFromUtf8Literal(isolate, "__gc__")).ToLocalChecked().As<_v8::Function>();
         gc->Call(context, context->Global(), 0, nullptr).ToLocalChecked();
-
-        ZERO_LOG("dsfsdf");
     }
 }

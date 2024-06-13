@@ -82,7 +82,7 @@ int Window::loop(SDL_Window *sdl_window)
         isolate->AddMessageListener(
             [](v8::Local<v8::Message> message, v8::Local<v8::Value> data)
             {
-                ZERO_LOG(
+                ZERO_LOG_ERROR(
                     "%s\nSTACK:\n%s\n",
                     *v8::String::Utf8Value{v8::Isolate::GetCurrent(), message->Get()},
                     sugar::v8::stackTrace_toString(message->GetStackTrace()).c_str());

@@ -13,7 +13,7 @@ namespace gfx
         if (pool.empty())
         {
             pool.multiply();
-            // ZERO_LOG("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
+            // ZERO_LOG_INFO("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
         }
         _descriptorSet = pool.get();
         _layout = layout.impl();
@@ -36,13 +36,13 @@ namespace gfx
                 //"For VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC and VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC descriptor types, offset is the base offset from which the dynamic offset is applied and range is the static size used for all dynamic offsets."
                 // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkDescriptorBufferInfo.html#_description
                 bufferInfo.offset = 0;
-                bufferInfo.range = range ? range : buffer->info()->size;
+                bufferInfo.range = range ? range : buffer->info->size;
 
                 VkWriteDescriptorSet write = {};
                 write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 write.dstBinding = binding;
                 write.dstSet = _descriptorSet;
-                for (auto &&i : *_layout->info()->bindings)
+                for (auto &&i : *_layout->info->bindings)
                 {
                     if (i->binding == binding)
                     {
@@ -58,7 +58,7 @@ namespace gfx
 
         _buffers[binding] = std::make_pair(buffer, buffer->on(BufferEvent_impl::RESET, f));
 
-        if (buffer->info()->size)
+        if (buffer->info->size)
         {
             (*f)();
         }
@@ -66,7 +66,7 @@ namespace gfx
 
     void DescriptorSet_impl::bindTexture(uint32_t binding, const std::shared_ptr<Texture_impl> &texture, const std::shared_ptr<Sampler_impl> &sampler)
     {
-        VkImageUsageFlags usage = static_cast<VkImageUsageFlags>(texture->info()->usage);
+        VkImageUsageFlags usage = static_cast<VkImageUsageFlags>(texture->info->usage);
         VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
         {
@@ -100,11 +100,10 @@ namespace gfx
         }
     }
 
-    DescriptorSet::DescriptorSet(Device_impl *device) : _impl(std::make_unique<DescriptorSet_impl>(device)) {}
+    DescriptorSet::DescriptorSet(Device_impl *device, const std::shared_ptr<DescriptorSetLayout> &layout) : _impl(std::make_unique<DescriptorSet_impl>(device)), layout(layout) {}
 
-    bool DescriptorSet::initialize(const std::shared_ptr<DescriptorSetLayout> &layout)
+    bool DescriptorSet::initialize()
     {
-        _layout = layout;
         return _impl->initialize(*layout);
     }
 

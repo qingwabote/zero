@@ -1,7 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, CullMode, PassState, PrimitiveTopology, RasterizationState } from "gfx";
+import { BlendFactor, BlendState, PassState, PrimitiveTopology } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
@@ -16,8 +16,7 @@ import { Model } from "../core/render/scene/Model.js";
 import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { PassInstance } from "../scene/PassInstance.js";
-import { BoundedRenderer, BoundsEventName } from "./BoundedRenderer.js";
+import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
 
@@ -25,9 +24,6 @@ const default_color = vec4.ONE;
 
 const pass = await (async function () {
     const ss_unlit = await bundle.cache('shaders/unlit', Shader);
-
-    const rasterizationState = new RasterizationState;
-    rasterizationState.cullMode = CullMode.NONE;
 
     const blendState = new BlendState;
     blendState.srcRGB = BlendFactor.SRC_ALPHA;
@@ -38,12 +34,11 @@ const pass = await (async function () {
     const state = new PassState;
     state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
     state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-    state.rasterizationState = rasterizationState;
     state.blendState = blendState;
 
     const pass = Pass.Pass(state);
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
-    pass.setUniform('Props', 'albedo', default_color);
+    pass.setProperty('albedo', default_color);
     return pass;
 })()
 
@@ -63,7 +58,7 @@ const vec3_b = vec3.create();
 export class TextRenderer extends BoundedRenderer {
     private _dirties: DirtyFlagBits = DirtyFlagBits.TEXT;
 
-    private _pass = PassInstance.PassInstance(pass);
+    private _pass = pass.instantiate()
 
     private _text: string = "";
     get text(): string {
@@ -82,7 +77,7 @@ export class TextRenderer extends BoundedRenderer {
         return this._color;
     }
     public set color(value: Readonly<Vec4>) {
-        this._pass.setUniform('Props', 'albedo', value);
+        this._pass.setProperty('albedo', value);
         this._color = value;
     }
 
@@ -127,7 +122,7 @@ export class TextRenderer extends BoundedRenderer {
 
         this._vertexView.update();
 
-        this._mesh.subMeshes[0].drawInfo.count = 6 * this._quads;
+        this._mesh.subMeshes[0].draw.count = 6 * this._quads;
     }
 
     private updateData(): void {
@@ -143,7 +138,7 @@ export class TextRenderer extends BoundedRenderer {
             aabb2d.toExtremes(vec2_a, vec2_b, this._mesh.bounds);
             if (!vec2.equals(vec2_a, vec3.ZERO) || !vec2.equals(vec2_b, vec3.ZERO)) {
                 this._mesh.setBoundsByExtremes(vec3.ZERO, vec3.ZERO)
-                this.emit(BoundsEventName.BOUNDS_CHANGED);
+                this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
             }
 
             return;
@@ -224,7 +219,7 @@ export class TextRenderer extends BoundedRenderer {
         aabb2d.toExtremes(vec2_a, vec2_b, this._mesh.bounds);
         if (!vec2.equals(vec2_a, vec3_a) || !vec2.equals(vec2_b, vec3_b)) {
             this._mesh.setBoundsByExtremes(vec3_a, vec3_b)
-            this.emit(BoundsEventName.BOUNDS_CHANGED);
+            this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
         }
     }
 }

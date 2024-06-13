@@ -10,27 +10,25 @@ import * as pipeline from "../pipeline/index.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
 const phaseFactory = (function () {
-    const rasterizationState = new gfx.RasterizationState;
-    rasterizationState.cullMode = gfx.CullMode.NONE;
     const blendState = new gfx.BlendState;
     blendState.srcRGB = gfx.BlendFactor.ONE;
     blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
     blendState.srcAlpha = gfx.BlendFactor.ONE;
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
-    const CullingInstances = {
-        CSM: new pipeline.CSMCulling,
-        View: new pipeline.ViewCulling
+    const cullers = {
+        CSM: new pipeline.CSMCuller,
+        View: new pipeline.ViewCuller
     };
     return {
         model: async function (info, context, visibility) {
-            let culling = CullingInstances.View;
+            let culler = cullers.View;
             if (info.culling) {
-                culling = CullingInstances[info.culling];
-                if (!culling) {
+                culler = cullers[info.culling];
+                if (!culler) {
                     throw new Error(`unknown culling type: ${info.culling}`);
                 }
             }
-            return new pipeline.ModelPhase(context, visibility, culling, info.model, info.pass);
+            return new pipeline.ModelPhase(context, visibility, culler, info.batching, info.model, info.pass);
         },
         fxaa: async function (info, context, visibility) {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
@@ -38,7 +36,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
             return new pipeline.PostPhase(context, passState, visibility);
         },
@@ -48,7 +45,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
             return new pipeline.PostPhase(context, passState, visibility);
         },
@@ -58,7 +54,6 @@ const phaseFactory = (function () {
             const passState = new gfx.PassState;
             passState.shader = shader;
             passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.rasterizationState = rasterizationState;
             passState.blendState = blendState;
             return new pipeline.PostPhase(context, passState, visibility);
         },

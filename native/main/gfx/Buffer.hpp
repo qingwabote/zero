@@ -14,11 +14,12 @@ namespace gfx
 
     public:
         const std::shared_ptr<Buffer_impl> &impl() { return _impl; }
-        const std::shared_ptr<const BufferInfo> &info();
 
-        Buffer(Device_impl *device);
+        const std::shared_ptr<BufferInfo> &info;
 
-        bool initialize(const std::shared_ptr<const BufferInfo> &info);
+        Buffer(Device_impl *device, const std::shared_ptr<BufferInfo> &info);
+
+        bool initialize();
         void update(const std::shared_ptr<const void> &data, size_t offset, size_t length);
         void resize(uint32_t size);
 

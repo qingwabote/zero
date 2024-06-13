@@ -1,11 +1,10 @@
 import { Zero } from "../../Zero.js";
 import { Mat4, mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { ChangeRecord } from "./ChangeRecord.js";
 import { Transform } from "./Transform.js";
 
-export class DirectionalLight extends ChangeRecord {
-    override get hasChanged(): number {
+export class DirectionalLight {
+    get hasChanged(): number {
         return this.transform.hasChanged;
     }
 
@@ -30,7 +29,6 @@ export class DirectionalLight extends ChangeRecord {
     }
 
     constructor(public transform: Transform) {
-        super();
         Zero.instance.scene.directionalLight = this;
     }
 

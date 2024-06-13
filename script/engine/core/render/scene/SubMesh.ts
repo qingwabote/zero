@@ -1,6 +1,6 @@
 import { InputAssembler } from "gfx";
 
-export interface DrawInfo {
+interface Draw {
     count: number;
     first: number;
 }
@@ -8,6 +8,10 @@ export interface DrawInfo {
 export class SubMesh {
     constructor(
         readonly inputAssembler: InputAssembler,
-        readonly drawInfo: DrawInfo = { count: 0, first: 0 }
+        readonly draw: Draw = { count: 0, first: 0 }
     ) { }
+}
+
+export declare namespace SubMesh {
+    export { Draw }
 }

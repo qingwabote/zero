@@ -1,4 +1,4 @@
-import { GeometryRenderer, Node, TouchEventName, mat4, vec2, vec3, vec4 } from "engine";
+import { GeometryRenderer, Input, Node, mat4, vec2, vec3, vec4 } from "engine";
 import { Align, ElementContainer, Justify, Renderer } from "flex";
 import PolygonsRenderer from "./PolygonsRenderer.js";
 const vec2_a = vec2.create();
@@ -96,11 +96,11 @@ function cut(polygon, intersections) {
     vec2.add(translation, polygon.translation, d);
     return { vertexes, vertexPosMin, vertexPosMax, translation };
 }
-export var CuttingBoardEventType;
-(function (CuttingBoardEventType) {
-    CuttingBoardEventType["POLYGONS_CHANGED"] = "POLYGONS_CHANGED";
-})(CuttingBoardEventType || (CuttingBoardEventType = {}));
-export default class CuttingBoard extends ElementContainer {
+var EventType;
+(function (EventType) {
+    EventType["POLYGONS_CHANGED"] = "POLYGONS_CHANGED";
+})(EventType || (EventType = {}));
+export class CuttingBoard extends ElementContainer {
     constructor() {
         super(...arguments);
         this._polygons = [];
@@ -122,17 +122,17 @@ export default class CuttingBoard extends ElementContainer {
         this._primitive = primitive.impl;
         let origin;
         let last;
-        this.emitter.on(TouchEventName.START, event => {
+        this.emitter.on(Input.TouchEvents.START, event => {
             origin = last = event.touch;
         });
-        this.emitter.on(TouchEventName.MOVE, event => {
+        this.emitter.on(Input.TouchEvents.MOVE, event => {
             mat4.invert(mat4_a, primitive.node.world_matrix);
             const from = vec2.transformMat4(vec2.create(), origin.world, mat4_a);
             const to = vec2.transformMat4(vec2.create(), event.touch.world, mat4_a);
             this.drawLine(from, to);
             last = event.touch;
         });
-        this.emitter.on(TouchEventName.END, () => {
+        this.emitter.on(Input.TouchEvents.END, () => {
             mat4.invert(mat4_a, this._polygonsRenderer.node.world_matrix);
             const a = vec2.transformMat4(vec2.create(), origin.world, mat4_a);
             const b = vec2.transformMat4(vec2.create(), last.world, mat4_a);
@@ -152,7 +152,7 @@ export default class CuttingBoard extends ElementContainer {
             if (cutted) {
                 this._polygonsRenderer.polygons = out;
                 this._polygons = out;
-                this.emitter.emit(CuttingBoardEventType.POLYGONS_CHANGED);
+                this.emitter.emit(EventType.POLYGONS_CHANGED);
             }
         });
         this.reset();
@@ -190,7 +190,7 @@ export default class CuttingBoard extends ElementContainer {
         this._polygonsRenderer.texture = this.texture;
         this._polygonsRenderer.polygons = polygons;
         this._polygons = polygons;
-        this.emitter.emit(CuttingBoardEventType.POLYGONS_CHANGED);
+        this.emitter.emit(EventType.POLYGONS_CHANGED);
     }
     drawLine(from, to, color = vec4.ONE) {
         vec3.set(vec3_a, from[0], from[1], 0);
@@ -199,3 +199,4 @@ export default class CuttingBoard extends ElementContainer {
         this._primitive.drawLine(vec3_a, vec3_b, color);
     }
 }
+CuttingBoard.EventType = EventType;
