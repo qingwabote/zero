@@ -83,6 +83,6 @@ export class SkinnedModel extends Model {
             this.updateModelSpace(parent);
             mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent)!.matrix, joint.matrix)
         }
-        modelSpace.hasUpdated.clear(1);
+        modelSpace.hasUpdated.reset(1);
     }
 }

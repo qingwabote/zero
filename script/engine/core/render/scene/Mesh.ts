@@ -24,11 +24,11 @@ export class Mesh {
 
     setBoundsByExtremes(min: Readonly<Vec3>, max: Readonly<Vec3>) {
         aabb3d.fromExtremes(this._bounds, min, max);
-        this._hasChanged.clear(1)
+        this._hasChanged.reset(1)
     }
 
     setBoundsByRect(offset: Readonly<Vec3>, size: Readonly<Vec3>) {
         aabb3d.fromRect(this._bounds, offset, size);
-        this._hasChanged.clear(1)
+        this._hasChanged.reset(1)
     }
 }

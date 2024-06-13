@@ -39,7 +39,7 @@ const multipleCache = (function () {
         if (!multiples) {
             material2multiples.set(material, multiples = []);
         }
-        let multiple = multiples.find(multiple => !multiple.recycling && multiple.capacity > multiple.count);
+        let multiple = multiples.find(multiple => !multiple.locked && multiple.capacity > multiple.count);
         if (!multiple) {
             multiple = new InstanceBatch.Multiple(subMesh, material)
             multiples.push(multiple);
@@ -98,7 +98,7 @@ export class ModelPhase extends Phase {
         }
 
         for (const batch of batches) {
-            batch.update();
+            batch.upload();
 
             if (batch.local.descriptorSet) {
                 commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);

@@ -19,7 +19,7 @@ export interface InstanceBatch {
     readonly draw: Readonly<SubMesh.Draw>
     readonly count: number
 
-    update(): void;
+    upload(): void;
     recycle(): void;
 }
 
@@ -108,7 +108,7 @@ export namespace InstanceBatch {
             this.inputAssembler = inputAssembler;
         }
 
-        update() {
+        upload() {
             if (this._hasUpdated.value) {
                 return;
             }
@@ -118,7 +118,7 @@ export namespace InstanceBatch {
             this._buffer.update();
             // }
 
-            this._hasUpdated.clear(1);
+            this._hasUpdated.reset(1);
         }
 
         recycle(): void { };
@@ -140,9 +140,9 @@ export namespace InstanceBatch {
 
         private readonly _buffer: BufferView;
 
-        private _recycling = new PeriodicFlag();
-        get recycling(): boolean {
-            return this._recycling.value != 0;
+        private _locked = new PeriodicFlag();
+        get locked(): boolean {
+            return this._locked.value != 0;
         }
 
         constructor(private _subMesh: SubMesh, readonly material: Material, readonly capacity: number = 32) {
@@ -162,13 +162,13 @@ export namespace InstanceBatch {
             this._buffer.set(transform, 16 * this._count++);
         }
 
-        update(): void {
+        upload(): void {
             this._buffer.update();
+            this._locked.reset(1);
         }
 
         recycle(): void {
             this._count = 0;
-            this._recycling.clear(1);
         }
     }
 }

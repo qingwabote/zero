@@ -11,7 +11,7 @@ void InspectorChannel::sendResponse(int callId, std::unique_ptr<v8_inspector::St
     auto characters16 = reinterpret_cast<const char16_t *>(message->string().characters16());
     auto utf8 = Conv.to_bytes(characters16, characters16 + message->string().length());
 
-    // ZERO_LOG("sendResponse %s", utf8.c_str());
+    // ZERO_LOG_INFO("sendResponse %s", utf8.c_str());
 
     _socket->send(utf8.c_str(), utf8.size());
 }
@@ -22,7 +22,7 @@ void InspectorChannel::sendNotification(std::unique_ptr<v8_inspector::StringBuff
     auto characters16 = reinterpret_cast<const char16_t *>(message->string().characters16());
     auto utf8 = Conv.to_bytes(characters16, characters16 + message->string().length());
 
-    // ZERO_LOG("sendNotification %s", utf8.c_str());
+    // ZERO_LOG_INFO("sendNotification %s", utf8.c_str());
 
     _socket->send(utf8.c_str(), utf8.size());
 }

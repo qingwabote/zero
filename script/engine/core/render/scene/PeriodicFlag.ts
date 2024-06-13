@@ -31,7 +31,7 @@ export class PeriodicFlag {
         this._version = version;
     }
 
-    clear(value: number = 0) {
+    reset(value: number = 0) {
         this._value = value;
         this._version = version;
     }

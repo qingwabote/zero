@@ -13,7 +13,7 @@ namespace gfx
         if (pool.empty())
         {
             pool.multiply();
-            // ZERO_LOG("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
+            // ZERO_LOG_INFO("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
         }
         _descriptorSet = pool.get();
         _layout = layout.impl();

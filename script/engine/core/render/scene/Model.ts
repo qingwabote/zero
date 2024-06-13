@@ -77,7 +77,7 @@ export class Model {
     }
 
     upload() {
-        this._hasUploaded.clear(1);
+        this._hasUploaded.reset(1);
     }
 }
 Model.ChangeBits = ChangeBits;

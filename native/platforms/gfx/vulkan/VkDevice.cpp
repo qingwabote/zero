@@ -26,12 +26,12 @@ namespace
         }
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
-            // ZERO_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            ZERO_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
             return VK_FALSE;
         }
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
         {
-            // ZERO_LOG_DEBUG("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            ZERO_LOG_VERBOSE("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
             return VK_FALSE;
         }
         ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
@@ -64,10 +64,11 @@ namespace gfx
         std::vector<const char *> validationLayers{"VK_LAYER_KHRONOS_validation"};
 
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
-        debugUtilsCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
-                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-                                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+        debugUtilsCreateInfo.messageSeverity =
+            // VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+            // VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         debugUtilsCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         debugUtilsCreateInfo.pfnUserCallback = debugUtilsMessengerCallback;
 
@@ -91,7 +92,7 @@ namespace gfx
         VkSurfaceKHR surface = nullptr;
         if (!SDL_Vulkan_CreateSurface(_window, instance, &surface))
         {
-            ZERO_LOG("failed to create surface, SDL Error: %s", SDL_GetError());
+            ZERO_LOG_ERROR("failed to create surface, SDL Error: %s", SDL_GetError());
             return true;
         }
 
