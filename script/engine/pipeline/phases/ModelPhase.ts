@@ -68,7 +68,8 @@ export class ModelPhase extends Phase {
 
     record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
         profile.emit(Profile.Event.CULL_START);
-        const models = this.culler.cull(Zero.instance.scene.models, this._model, cameraIndex);
+        const models: Model[] = []
+        this.culler.cull(models, Zero.instance.scene.models, this._model, cameraIndex);
         profile.emit(Profile.Event.CULL_END);
 
         if (!this._batching) {

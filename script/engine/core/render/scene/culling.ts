@@ -25,5 +25,4 @@ export function cull(results: Model[], models: readonly Model[], frustum: Readon
 
         results.push(model);
     }
-    return results;
 }

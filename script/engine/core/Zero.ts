@@ -11,25 +11,41 @@ import { Scene } from "./render/Scene.js";
 import { Profile } from "./render/pipeline/Profile.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
-import { PeriodicFlag } from "./render/scene/PeriodicFlag.js";
 
 enum Event {
+    FRAME_START = 'FRAME_START',
+    FRAME_END = 'FRAME_END',
+
     LOGIC_START = 'LOGIC_START',
     LOGIC_END = 'LOGIC_END',
 
     RENDER_START = 'RENDER_START',
     RENDER_END = 'RENDER_END',
+
+    QUEUE_START = 'QUEUE_START',
+    QUEUE_END = 'QUEUE_END',
 }
 
 interface EventToListener {
+    [Event.FRAME_START]: () => void;
+    [Event.FRAME_END]: () => void;
+
     [Event.LOGIC_START]: () => void;
     [Event.LOGIC_END]: () => void;
 
     [Event.RENDER_START]: () => void;
     [Event.RENDER_END]: () => void;
+
+    [Event.QUEUE_START]: () => void;
+    [Event.QUEUE_END]: () => void;
 }
 
 export abstract class Zero extends EventEmitterImpl<EventToListener> implements boot.EventListener {
+    private static _frameCount = 1;
+    public static get frameCount(): number {
+        return this._frameCount;
+    }
+
     private static _instance: Zero;
     public static get instance(): Zero {
         return Zero._instance;
@@ -128,12 +144,13 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._input.onWheel(event);
     }
     onFrame() {
-        this.emit(Event.LOGIC_START);
+        this.emit(Event.FRAME_START);
 
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
 
+        this.emit(Event.LOGIC_START);
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
         for (const system of this._systems) {
@@ -154,10 +171,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         for (let i = 0; i < this.scene.cameras.length; i++) {
             this._pipeline.record(this._profile, this._commandBuffer, i);
         }
-        PeriodicFlag.expire();
         this._commandBuffer.end();
-        this.emit(Event.RENDER_END);
-
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
         submitInfo.waitSemaphore = this._swapchainAcquired;
@@ -165,7 +179,15 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
+        this.emit(Event.RENDER_END);
+
+        this.emit(Event.QUEUE_START);
         boot.device.waitForFence(this._fence);
+        this.emit(Event.QUEUE_END);
+
+        this.emit(Event.FRAME_END);
+
+        Zero._frameCount++;
     }
 }
 Zero.Event = Event;

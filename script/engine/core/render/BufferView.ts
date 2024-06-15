@@ -29,11 +29,11 @@ export class BufferView {
 
     private _invalidated: boolean = false;
 
-    constructor(private _format: keyof typeof format2array, private _usage: BufferUsageFlagBits, private _length: number = 0) {
+    constructor(private _format: keyof typeof format2array, usage: BufferUsageFlagBits, private _length: number = 0) {
         const source = new format2array[_format](_length);
 
         const info = new BufferInfo;
-        info.usage = _usage;
+        info.usage = usage;
         info.mem_usage = MemoryUsage.CPU_TO_GPU;
         info.size = source.byteLength;
 
@@ -68,6 +68,10 @@ export class BufferView {
 
     set(array: ArrayLike<number>, offset?: number) {
         this._source.set(array, offset);
+        this.invalidate();
+    }
+
+    invalidate() {
         this._invalidated = true;
     }
 
@@ -81,9 +85,5 @@ export class BufferView {
         }
         this._buffer.update(this._source.buffer, this._source.byteOffset, bytes);
         this._invalidated = false;
-    }
-
-    invalidate() {
-        this._invalidated = true;
     }
 }

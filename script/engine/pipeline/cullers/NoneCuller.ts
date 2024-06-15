@@ -4,8 +4,7 @@ import { Culler } from "../../core/render/pipeline/Culling.js";
 import { ModelCollection } from "../../core/render/scene/ModelCollection.js";
 
 export class NoneCulling implements Culler {
-    cull(models: ModelCollection.Readonly, type: string, cameraIndex: number): Model[] {
-        const results: Model[] = [];
+    cull(results: Model[], models: ModelCollection.Readonly, type: string, cameraIndex: number): void {
         const camera = Zero.instance.scene.cameras[cameraIndex];
         for (const model of models) {
             if (model.type != type) {
@@ -18,6 +17,5 @@ export class NoneCulling implements Culler {
 
             results.push(model)
         }
-        return results;
     }
 }

@@ -4,8 +4,8 @@ import { Culler } from "../../core/render/pipeline/Culling.js";
 import { ModelCollection } from "../../core/render/scene/ModelCollection.js";
 
 export class ViewCuller implements Culler {
-    cull(models: ModelCollection.Readonly, type: string, cameraIndex: number): Model[] {
+    cull(results: Model[], models: ModelCollection.Readonly, type: string, cameraIndex: number): void {
         const camera = Zero.instance.scene.cameras[cameraIndex];
-        return models.culler()(camera.frustum, camera.visibilities, type);
+        models.culler()(results, camera.frustum, camera.visibilities, type);
     }
 }

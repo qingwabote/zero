@@ -2,7 +2,7 @@ import { Frustum } from "./Frustum.js";
 import { Model } from "./Model.js";
 
 interface ModelCollectionReadonly extends Iterable<Model> {
-    culler(times?: number): (frustum: Readonly<Frustum>, visibilities: number, type?: string) => Model[]
+    culler(times?: number): (results: Model[], frustum: Readonly<Frustum>, visibilities: number, type?: string) => void;
 }
 
 export interface ModelCollection extends ModelCollectionReadonly {

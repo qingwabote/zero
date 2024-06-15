@@ -71,9 +71,9 @@ export class Camera {
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
 
-    private _hasChanged = new PeriodicFlag(0xffffffff)
-    get hasChanged(): ChangeBit {
-        return this._hasChanged.value;
+    private _hasChanged: PeriodicFlag<ChangeBit> = new PeriodicFlag(0xffffffff)
+    get hasChanged(): PeriodicFlag.Readonly<ChangeBit> {
+        return this._hasChanged;
     }
 
     constructor(readonly transform: Transform) { }

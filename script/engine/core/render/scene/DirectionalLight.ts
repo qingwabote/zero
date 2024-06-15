@@ -5,7 +5,7 @@ import { Transform } from "./Transform.js";
 
 export class DirectionalLight {
     get hasChanged(): number {
-        return this.transform.hasChanged;
+        return this.transform.hasChanged.value;
     }
 
     private _model_invalidated = false;

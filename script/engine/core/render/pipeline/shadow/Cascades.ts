@@ -18,7 +18,7 @@ export class Cascades {
 
     private _hasChanged = new PeriodicFlag(1);
     get hasChanged(): number {
-        return this._hasChanged.value || this._camera.hasChanged || this._camera.transform.hasChanged || Zero.instance.scene.directionalLight!.hasChanged;
+        return this._hasChanged.value || this._camera.hasChanged.value || this._camera.transform.hasChanged.value || Zero.instance.scene.directionalLight!.hasChanged;
     }
 
     private _frusta: Frustum[];

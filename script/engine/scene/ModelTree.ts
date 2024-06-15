@@ -35,8 +35,8 @@ export class ModelTree implements ModelCollection {
 
     culler(times = 1) {
         const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
-        return (frustum: Readonly<Frustum>, visibilities: number, type: string = 'default') => {
-            return cull([], this.root, frustum, visibilities, type, claimed);
+        return (results: Model[], frustum: Readonly<Frustum>, visibilities: number, type: string = 'default') => {
+            cull(results, this.root, frustum, visibilities, type, claimed);
         }
     }
 
