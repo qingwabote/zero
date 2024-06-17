@@ -1,4 +1,5 @@
 import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
+import { Zero } from "../../../core/Zero.js";
 import { Mat4 } from "../../../core/math/mat4.js";
 import { BufferView } from "../../../core/render/BufferView.js";
 import { Material } from "../../../core/render/scene/Material.js";
@@ -94,7 +95,7 @@ export namespace InstanceBatch {
             return 1
         }
 
-        private _hasUpdated = new PeriodicFlag();
+        private _lastUploadFrame = -1;
 
         constructor(public model: Model, private _subIndex: number) {
             const subMesh = model.mesh.subMeshes[_subIndex];
@@ -109,16 +110,17 @@ export namespace InstanceBatch {
         }
 
         upload() {
-            if (this._hasUpdated.value) {
+            const frame = Zero.frameCount;
+            if (frame == this._lastUploadFrame) {
                 return;
             }
 
-            // if (this.model.transform.hasChanged) {
-            this._buffer.set(this.model.transform.world_matrix);
-            this._buffer.update();
-            // }
+            if (this.model.transform.hasChangedFlag.value || frame - this._lastUploadFrame > 1) {
+                this._buffer.set(this.model.transform.world_matrix);
+                this._buffer.update();
+            }
 
-            this._hasUpdated.reset(1);
+            this._lastUploadFrame = frame;
         }
 
         recycle(): void { };
@@ -140,9 +142,9 @@ export namespace InstanceBatch {
 
         private readonly _view: BufferView = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
 
-        private _locked = new PeriodicFlag();
+        private _lockedFlag = new PeriodicFlag();
         get locked(): boolean {
-            return this._locked.value != 0;
+            return this._lockedFlag.value != 0;
         }
 
         constructor(private _subMesh: SubMesh, readonly material: Material) {
@@ -164,7 +166,7 @@ export namespace InstanceBatch {
 
         upload(): void {
             this._view.update();
-            this._locked.reset(1);
+            this._lockedFlag.reset(1);
         }
 
         recycle(): void {

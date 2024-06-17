@@ -3,6 +3,7 @@ import { Zero } from "../../Zero.js";
 interface PeriodicFlagReadonly<FlagBit extends number = number> {
     get value(): number;
     hasBit(bit: FlagBit): boolean;
+    valueOf(): number;
 }
 
 export class PeriodicFlag<FlagBit extends number = number> implements PeriodicFlagReadonly<FlagBit> {
@@ -37,6 +38,10 @@ export class PeriodicFlag<FlagBit extends number = number> implements PeriodicFl
     reset(value: number = 0) {
         this._value = value;
         this._version = Zero.frameCount;
+    }
+
+    valueOf() {
+        return this.value;
     }
 }
 

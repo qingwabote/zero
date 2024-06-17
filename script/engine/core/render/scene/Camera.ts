@@ -71,15 +71,15 @@ export class Camera {
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
 
-    private _hasChanged: PeriodicFlag<ChangeBit> = new PeriodicFlag(0xffffffff)
-    get hasChanged(): PeriodicFlag.Readonly<ChangeBit> {
-        return this._hasChanged;
+    private _hasChangedFlag: PeriodicFlag<ChangeBit> = new PeriodicFlag(0xffffffff)
+    get hasChangedFlag(): PeriodicFlag.Readonly<ChangeBit> {
+        return this._hasChangedFlag;
     }
 
     constructor(readonly transform: Transform) { }
 
     update() {
-        if (this.transform.hasChanged) {
+        if (this.transform.hasChangedFlag.value) {
             this._view_invalidated = true;
         }
 
@@ -94,12 +94,12 @@ export class Camera {
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
 
-            this._hasChanged.addBit(ChangeBit.PROJ);
+            this._hasChangedFlag.addBit(ChangeBit.PROJ);
         }
 
         if (this._view_invalidated) {
             mat4.invert(this._view, this.transform.world_matrix);
-            this._hasChanged.addBit(ChangeBit.VIEW);
+            this._hasChangedFlag.addBit(ChangeBit.VIEW);
         }
 
         if (this._proj_invalidated || this._view_invalidated) {

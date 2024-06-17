@@ -28,7 +28,7 @@ export class Model {
     private _hasChanged = new PeriodicFlag(ChangeBits.BOUNDS);
     get hasChanged(): number {
         let flag = this._hasChanged.value;
-        if (this._mesh.hasChanged || this._transform.hasChanged) {
+        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             flag |= ChangeBits.BOUNDS;
         }
         return flag;
@@ -61,7 +61,7 @@ export class Model {
 
     readonly descriptorSet?: DescriptorSet;
 
-    protected _hasUploaded = new PeriodicFlag;
+    protected _hasUploadedFlag = new PeriodicFlag;
 
     constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
         const descriptorSetLayout = (this.constructor as typeof Model).descriptorSetLayout;
@@ -71,13 +71,13 @@ export class Model {
     }
 
     update() {
-        if (this._mesh.hasChanged || this._transform.hasChanged) {
+        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             this._bounds_invalidated = true;
         }
     }
 
     upload() {
-        this._hasUploaded.reset(1);
+        this._hasUploadedFlag.reset(1);
     }
 }
 Model.ChangeBits = ChangeBits;

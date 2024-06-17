@@ -16,9 +16,9 @@ const mat4_b = mat4.create();
 
 export class Cascades {
 
-    private _hasChanged = new PeriodicFlag(1);
+    private _hasChangedFlag = new PeriodicFlag(1);
     get hasChanged(): number {
-        return this._hasChanged.value || this._camera.hasChanged.value || this._camera.transform.hasChanged.value || Zero.instance.scene.directionalLight!.hasChanged;
+        return this._hasChangedFlag.value || this._camera.hasChangedFlag.value || this._camera.transform.hasChangedFlag.value || Zero.instance.scene.directionalLight!.hasChanged;
     }
 
     private _frusta: Frustum[];
@@ -64,11 +64,11 @@ export class Cascades {
 
         for (let i = this._num - 1; i > -1; i--) {
             if (this._num != 1) {
-                if (dumping || this._camera.hasChanged) {
+                if (dumping || this._camera.hasChangedFlag.value) {
                     const d = this._camera.far - this._camera.near;
                     this._frusta[i].perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * (i / this._num), this._camera.near + d * ((i + 1) / this._num));
                 }
-                if (dumping || this._camera.hasChanged || this._camera.transform.hasChanged) {
+                if (dumping || this._camera.hasChangedFlag.value || this._camera.transform.hasChangedFlag.value) {
                     this._frusta[i].transform(this._camera.transform.world_matrix);
                 }
             }
