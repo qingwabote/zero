@@ -12,7 +12,8 @@ export class CSMCuller implements Culler {
         if (data.flowLoopIndex == 0) {
             this._cull = models.culler(4)
         }
-        const frustum = data.shadow!.cascades.get(cameraIndex)!.bounds[data.flowLoopIndex];
-        this._cull(results, frustum, Zero.instance.scene.cameras[cameraIndex].visibilities, type)
+        const camera = Zero.instance.scene.cameras[cameraIndex];
+        const frustum = data.shadow!.getCascades(camera)!.boundaries[data.flowLoopIndex];
+        this._cull(results, frustum, camera.visibilities, type)
     }
 }

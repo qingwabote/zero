@@ -107,12 +107,13 @@ export class App extends Zero {
             debugDrawer.clear()
 
             const shadow = this.pipeline.data.shadow!;
+            const cameras = this.scene.cameras;
             const cameraIndex = shadow.visibleCameras[0];
-            const cascades = shadow.cascades.get(cameraIndex)!;
+            const cascades = shadow.getCascades(cameras[cameraIndex])!;
             const bounds_color = vec4.create(...vec4.YELLOW);
             const frusta_color = vec4.create(...vec4.ONE);
             for (let i = 0; i < shadow.cascadeNum; i++) {
-                debugDrawer.drawFrustum(cascades.bounds[i].vertices, bounds_color);
+                debugDrawer.drawFrustum(cascades.boundaries[i].vertices, bounds_color);
                 debugDrawer.drawFrustum(cascades.frusta[i].vertices, frusta_color);
                 vec3.multiply(bounds_color, bounds_color, vec3_6in10)
                 vec3.multiply(frusta_color, frusta_color, vec3_6in10)

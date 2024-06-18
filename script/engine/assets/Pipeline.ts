@@ -16,7 +16,7 @@ interface PhaseBase {
 }
 interface ModelPhase extends PhaseBase {
     type?: 'model';
-    culling?: string;
+    culling?: pipeline.ModelPhase.Culling;
     batching?: boolean;
     model?: string;
     pass?: string;
@@ -38,21 +38,9 @@ const phaseFactory = (function () {
     blendState.srcAlpha = gfx.BlendFactor.ONE;
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
-    const cullers = {
-        CSM: new pipeline.CSMCuller,
-        View: new pipeline.ViewCuller
-    }
-
     return {
         model: async function (info: ModelPhase, context: render.Context, visibility: number): Promise<render.Phase> {
-            let culler = cullers.View;
-            if (info.culling) {
-                culler = cullers[info.culling as keyof typeof cullers];
-                if (!culler) {
-                    throw new Error(`unknown culling type: ${info.culling}`);
-                }
-            }
-            return new pipeline.ModelPhase(context, visibility, culler, info.batching, info.model, info.pass);
+            return new pipeline.ModelPhase(context, visibility, info.culling, info.batching, info.model, info.pass);
         },
         fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);

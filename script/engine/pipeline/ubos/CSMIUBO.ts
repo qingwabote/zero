@@ -1,4 +1,5 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Parameters } from "../../core/render/pipeline/Parameters.js";
@@ -47,8 +48,10 @@ export class CSMIUBO extends UBO {
 
         this._view.resize(size * this._num * shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
 
+        const cameras = Zero.instance.scene.cameras;
+
         for (let i = 0; i < shadow.visibleCameras.length; i++) {
-            const cascades = shadow.cascades.get(shadow.visibleCameras[i])!;
+            const cascades = shadow.getCascades(cameras[shadow.visibleCameras[i]])!;
             if (dumping || cascades.hasChanged) {
                 for (let j = 0; j < this._num; j++) {
                     this._view.set(cascades.viewProjs[j], (size / this._view.BYTES_PER_ELEMENT) * (this._num * i + j));

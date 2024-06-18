@@ -1,7 +1,6 @@
 import { CommandBuffer, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
-import { Culler } from "../../core/render/pipeline/Culling.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Material } from "../../core/render/scene/Material.js";
@@ -52,11 +51,13 @@ function modelCompareFn(a: Model, b: Model) {
     return a.order - b.order;
 }
 
+type Culling = 'View' | 'CSM';
+
 export class ModelPhase extends Phase {
     constructor(
         context: Context,
         visibility: number,
-        public culler: Culler,
+        public culling: Culling = 'View',
         private _batching: boolean = false,
         /**The model type that indicates which models should run in this phase */
         private _model = 'default',
@@ -67,10 +68,25 @@ export class ModelPhase extends Phase {
     }
 
     record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
-        profile.emit(Profile.Event.CULL_START);
+        // profile.emit(Profile.Event.CULL_START);
+        // this.culling.cull(models, Zero.instance.scene.models, this._model, cameraIndex);
+        // profile.emit(Profile.Event.CULL_END);
+
+        const data = Zero.instance.pipeline.data;
+        const camera = Zero.instance.scene.cameras[cameraIndex];
+
         const models: Model[] = []
-        this.culler.cull(models, Zero.instance.scene.models, this._model, cameraIndex);
-        profile.emit(Profile.Event.CULL_END);
+
+        switch (this.culling) {
+            case 'View':
+                models.push(...data.getModels(camera)!);
+                break;
+            case 'CSM':
+                models.push(...data.shadow!.getCascades(camera)!.models[data.flowLoopIndex]);
+                break;
+            default:
+                throw new Error(`unsupported culling: ${this.culling}`);
+        }
 
         if (!this._batching) {
             models.sort(modelCompareFn);
@@ -129,4 +145,8 @@ export class ModelPhase extends Phase {
             batch.recycle();
         }
     }
+}
+
+export declare namespace ModelPhase {
+    export { Culling }
 }
