@@ -1,8 +1,7 @@
 import { EventEmitterImpl } from "bastard";
 import { Zero } from "../../Zero.js";
 import { Camera } from "../scene/Camera.js";
-import { Model } from "../scene/Model.js";
-import { Shadow } from "./Shadow.js";
+import { View } from "./data/View.js";
 
 enum Event {
     UPDATE = 'UPDATE'
@@ -15,27 +14,36 @@ interface EventToListener {
 export class Data extends EventEmitterImpl<EventToListener> {
     static readonly Event = Event;
 
-    shadow: Shadow | null = null;
+    public shadow_visibilities: number = 0;
 
-    private _camera2models: WeakMap<Camera, Model[]> = new WeakMap;
+    public shadow_cascades: number = 0;
+
+    private _camera2view: WeakMap<Camera, View> = new WeakMap;
+
+    cameraIndex = 0;
 
     flowLoopIndex = 0;
 
-    getModels(camera: Camera): readonly Model[] | undefined {
-        return this._camera2models.get(camera)
+    get camera(): Camera {
+        return Zero.instance.scene.cameras[this.cameraIndex];
+    }
+
+    get view(): View {
+        return this._camera2view.get(this.camera)!
+    }
+
+    getView(camera: Camera): View {
+        return this._camera2view.get(camera)!
     }
 
     update(dumping: boolean) {
-        this.shadow?.update(dumping);
-
-        for (let i = 0; i < Zero.instance.scene.cameras.length; i++) {
-            const camera = Zero.instance.scene.cameras[i];
-            let models: Model[] | undefined = this._camera2models.get(camera);
-            if (!models) {
-                this._camera2models.set(camera, models = []);
+        const scene = Zero.instance.scene;
+        for (const camera of scene.cameras) {
+            let view = this._camera2view.get(camera);
+            if (!view) {
+                this._camera2view.set(camera, view = new View(scene, camera, camera.visibilities & this.shadow_visibilities ? this.shadow_cascades : 0))
             }
-            models.length = 0;
-            Zero.instance.scene.models.culler()(models, camera.frustum, camera.visibilities);
+            view.update(dumping);
         }
 
         this.emit(Event.UPDATE);

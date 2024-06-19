@@ -1,9 +1,9 @@
 import { CommandBuffer } from "gfx";
-import { Zero } from "../Zero.js";
 import { Data } from "./pipeline/Data.js";
 import { Flow } from "./pipeline/Flow.js";
 import { Profile } from "./pipeline/Profile.js";
 import { UBO } from "./pipeline/UBO.js";
+import { Camera } from "./scene/Camera.js";
 
 export class Pipeline {
     private _dumping = false;
@@ -28,13 +28,14 @@ export class Pipeline {
         this._dumping = false;
     }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, cameraIndex: number) {
-        const camera = Zero.instance.scene.cameras[cameraIndex];
-
-        for (const flow of this.flows) {
-            if (camera.visibilities & flow.visibilities) {
-                flow.record(profile, commandBuffer, cameraIndex);
+    record(profile: Profile, commandBuffer: CommandBuffer, cameras: readonly Camera[]) {
+        for (this.data.cameraIndex = 0; this.data.cameraIndex < cameras.length; this.data.cameraIndex++) {
+            for (const flow of this.flows) {
+                if (this.data.camera.visibilities & flow.visibilities) {
+                    flow.record(profile, commandBuffer);
+                }
             }
         }
+
     }
 }

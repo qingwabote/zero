@@ -318,7 +318,7 @@ export class Pipeline extends Yml {
                     framebuffer = device.createFramebuffer(framebufferInfo);
                     viewport = vec4.create(0, 0, 1, 1);
                 }
-                stages.push(new render.Stage(phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
+                stages.push(new render.Stage(data, phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
             }
             let loops: Function[] | undefined;
             if (flow.loops) {
@@ -337,14 +337,13 @@ export class Pipeline extends Yml {
                         }
                     }
                     loops.push(function () {
-                        data.flowLoopIndex = loop_i;
                         for (const setter of setters) {
                             setter();
                         }
                     })
                 }
             }
-            flows.push(new render.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), loops));
+            flows.push(new render.Flow(data, context, ubos, stages, this.flow_visibilities(flow, variables), loops));
         }
 
         return new render.Pipeline(data, [...uboMap.values()], flows);

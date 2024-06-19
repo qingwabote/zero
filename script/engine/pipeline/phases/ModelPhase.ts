@@ -67,22 +67,21 @@ export class ModelPhase extends Phase {
         super(context, visibility);
     }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
+    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
         // profile.emit(Profile.Event.CULL_START);
         // this.culling.cull(models, Zero.instance.scene.models, this._model, cameraIndex);
         // profile.emit(Profile.Event.CULL_END);
 
         const data = Zero.instance.pipeline.data;
-        const camera = Zero.instance.scene.cameras[cameraIndex];
 
         const models: Model[] = []
 
         switch (this.culling) {
             case 'View':
-                models.push(...data.getModels(camera)!);
+                models.push(...data.view.models);
                 break;
             case 'CSM':
-                models.push(...data.shadow!.getCascades(camera)!.models[data.flowLoopIndex]);
+                models.push(...data.view.shadow!.models[data.flowLoopIndex]);
                 break;
             default:
                 throw new Error(`unsupported culling: ${this.culling}`);

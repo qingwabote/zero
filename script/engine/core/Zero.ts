@@ -168,9 +168,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._pipeline.update();
         this._commandBuffer.begin();
         this._profile.clear();
-        for (let i = 0; i < this.scene.cameras.length; i++) {
-            this._pipeline.record(this._profile, this._commandBuffer, i);
-        }
+        this._pipeline.record(this._profile, this._commandBuffer, this.scene.cameras);
         this._commandBuffer.end();
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
