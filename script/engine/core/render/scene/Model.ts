@@ -77,6 +77,16 @@ export class Model {
     }
 
     upload() {
+        if (this._hasUploadedFlag.value) {
+            return;
+        }
+
+        for (const material of this.materials) {
+            for (const pass of material.passes) {
+                pass.upload();
+            }
+        }
+
         this._hasUploadedFlag.reset(1);
     }
 }
