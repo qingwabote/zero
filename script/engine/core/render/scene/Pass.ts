@@ -103,7 +103,7 @@ export class Pass {
             }
             this._samplerTextures_dirty.clear();
 
-            if (this._propsBuffer) {
+            if (this._propsBuffer && this._properties_dirty.size) {
                 const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
                 let offset = 0;
                 for (const mem of block.members!) {
