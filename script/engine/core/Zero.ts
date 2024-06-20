@@ -1,4 +1,4 @@
-import { EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
@@ -40,7 +40,7 @@ interface EventToListener {
     [Event.QUEUE_END]: () => void;
 }
 
-export abstract class Zero extends EventEmitterImpl<EventToListener> implements boot.EventListener {
+export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
     private static _frameCount = 1;
     public static get frameCount(): number {
         return this._frameCount;

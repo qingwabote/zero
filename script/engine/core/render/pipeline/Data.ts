@@ -1,4 +1,4 @@
-import { EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 import { Zero } from "../../Zero.js";
 import { Camera } from "../scene/Camera.js";
 import { View } from "./data/View.js";
@@ -11,7 +11,7 @@ interface EventToListener {
     [Event.UPDATE]: () => void;
 }
 
-export class Data extends EventEmitterImpl<EventToListener> {
+export class Data extends EventEmitter.Impl<EventToListener> {
     static readonly Event = Event;
 
     public shadow_visibilities: number = 0;

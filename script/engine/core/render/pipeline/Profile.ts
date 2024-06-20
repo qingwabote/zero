@@ -1,4 +1,4 @@
-import { EventEmitterImpl, EventReceiver } from "bastard";
+import { EventEmitter } from "bastard";
 
 enum Event {
     CULL_START = 'CULL_START',
@@ -10,12 +10,12 @@ interface Event2Listener {
     [Event.CULL_END]: () => void;
 }
 
-interface ProfileReadonly extends EventReceiver<Event2Listener> {
+interface ProfileReadonly extends EventEmitter.Readonly<Event2Listener> {
     get draws(): number;
     get stages(): number;
 }
 
-export class Profile extends EventEmitterImpl<Event2Listener> implements ProfileReadonly {
+export class Profile extends EventEmitter.Impl<Event2Listener> implements ProfileReadonly {
     static readonly Event = Event;
 
     private _draws: number = 0;
