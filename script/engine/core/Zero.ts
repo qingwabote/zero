@@ -9,6 +9,7 @@ import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { Scene } from "./render/Scene.js";
 import { Profile } from "./render/pipeline/Profile.js";
+import { quad } from "./render/quad.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
 
@@ -22,8 +23,8 @@ enum Event {
     RENDER_START = 'RENDER_START',
     RENDER_END = 'RENDER_END',
 
-    QUEUE_START = 'QUEUE_START',
-    QUEUE_END = 'QUEUE_END',
+    HALT_START = 'HALT_START',
+    HALT_END = 'HALT_END',
 }
 
 interface EventToListener {
@@ -36,8 +37,8 @@ interface EventToListener {
     [Event.RENDER_START]: () => void;
     [Event.RENDER_END]: () => void;
 
-    [Event.QUEUE_START]: () => void;
-    [Event.QUEUE_END]: () => void;
+    [Event.HALT_START]: () => void;
+    [Event.HALT_END]: () => void;
 }
 
 export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
@@ -71,7 +72,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     private readonly _commandBuffer = boot.device.createCommandBuffer();
     private readonly _swapchainAcquired = boot.device.createSemaphore();
     private readonly _queueExecuted = boot.device.createSemaphore();
-    private readonly _fence = boot.device.createFence();
+    private readonly _fence = boot.device.createFence(true);
 
     private _time = boot.initial;
 
@@ -163,11 +164,20 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.emit(Event.LOGIC_END);
 
         this.emit(Event.RENDER_START);
-        boot.device.swapchain.acquire(this._swapchainAcquired);
         this.scene.update();
         this._pipeline.update();
         this._pipeline.cull();
+
+        this.emit(Event.HALT_START);
+        boot.device.waitForFence(this._fence);
+        this.emit(Event.HALT_END);
+
+        boot.device.swapchain.acquire(this._swapchainAcquired);
+
+        this._componentScheduler.upload();
         this._pipeline.upload();
+        quad.indexBufferView.update();
+
         this._commandBuffer.begin();
         this._profile.clear();
         this._pipeline.record(this._profile, this._commandBuffer, this.scene.cameras);
@@ -180,10 +190,6 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
         this.emit(Event.RENDER_END);
-
-        this.emit(Event.QUEUE_START);
-        boot.device.waitForFence(this._fence);
-        this.emit(Event.QUEUE_END);
 
         this.emit(Event.FRAME_END);
 

@@ -19,7 +19,7 @@ export class Profiler extends ElementContainer {
 
     private _cull_time = 0;
 
-    private _queue_time = 0;
+    private _halt_time = 0;
 
     private _text!: Renderer<TextRenderer>;
 
@@ -42,8 +42,8 @@ export class Profiler extends ElementContainer {
         let render_start = 0;
         let render_delta = 0;
 
-        let queue_start = 0;
-        let queue_delta = 0;
+        let halt_start = 0;
+        let halt_delta = 0;
 
         Zero.instance.on(Zero.Event.LOGIC_START, () => { logic_start = now(); })
         Zero.instance.on(Zero.Event.LOGIC_END, () => { logic_delta += now() - logic_start; })
@@ -57,8 +57,8 @@ export class Profiler extends ElementContainer {
         Zero.instance.on(Zero.Event.RENDER_START, () => { render_start = now(); })
         Zero.instance.on(Zero.Event.RENDER_END, () => { render_delta += now() - render_start; })
 
-        Zero.instance.on(Zero.Event.QUEUE_START, () => { queue_start = now(); })
-        Zero.instance.on(Zero.Event.QUEUE_END, () => { queue_delta += now() - queue_start; })
+        Zero.instance.on(Zero.Event.HALT_START, () => { halt_start = now(); })
+        Zero.instance.on(Zero.Event.HALT_END, () => { halt_delta += now() - halt_start; })
 
         Zero.instance.on(Zero.Event.FRAME_END, () => {
             if (Zero.frameCount % 60 == 0) {
@@ -74,8 +74,8 @@ export class Profiler extends ElementContainer {
                 this._render_time = render_delta / 60;
                 render_delta = 0;
 
-                this._queue_time = queue_delta / 60;
-                queue_delta = 0;
+                this._halt_time = halt_delta / 60;
+                halt_delta = 0;
             }
         })
     }
@@ -99,7 +99,7 @@ render   ${this._render_time.toFixed(2)}ms
  culling ${this._cull_time.toFixed(2)}ms
  passes  ${Zero.instance.profile.stages}
  draws   ${Zero.instance.profile.draws}
-queue    ${this._queue_time.toFixed(2)}ms
+halt     ${this._halt_time.toFixed(2)}ms
 boot     ${boot_time.toFixed(2)}s`;
     }
 }

@@ -109,7 +109,7 @@ export class TextRenderer extends BoundedRenderer {
         const vertexView = quad.createVertexBufferView();
         const subMesh: SubMesh = new SubMesh(quad.createInputAssembler(vertexView.buffer));
 
-        this._mesh = new Mesh([subMesh]);;
+        this._mesh = new Mesh([subMesh]);
         this._vertexView = vertexView;
     }
 
@@ -117,7 +117,7 @@ export class TextRenderer extends BoundedRenderer {
         return new Model(this.node, this._mesh, [new Material([this._pass])])
     }
 
-    override lateUpdate(): void {
+    override upload(): void {
         this.updateData();
 
         this._vertexView.update();

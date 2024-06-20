@@ -96,7 +96,7 @@ class App extends Zero {
                     debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
                 }
 
-                debugDrawer.lateUpdate();
+                debugDrawer.upload();
             })
         }
 

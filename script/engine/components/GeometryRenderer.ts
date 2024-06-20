@@ -188,7 +188,7 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(frustum[3], frustum[7], color);
     }
 
-    lateUpdate(): void {
+    override upload(): void {
         if (this._vertexCount == 0) {
             this._mesh.subMeshes[0].draw.count = 0;
             return;

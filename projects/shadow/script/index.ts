@@ -127,7 +127,7 @@ export class App extends Zero {
             //         debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
             //     }
             // }
-            debugDrawer.lateUpdate();
+            debugDrawer.upload();
         }
         csm_off_instance.data.on(render.Data.Event.UPDATE, debugDraw)
         csm_on_instance.data.on(render.Data.Event.UPDATE, debugDraw)

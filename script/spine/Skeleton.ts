@@ -90,7 +90,7 @@ export class Skeleton extends BoundedRenderer {
         return new render.Model(this.node, this._mesh, this._materials);
     }
 
-    override lateUpdate(): void {
+    override upload(): void {
         let key = '';
         let vertex = 0;
         let index = 0;

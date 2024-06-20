@@ -23,7 +23,6 @@ function indexGrowTo(quads: number) {
         indexBufferView.source[6 * _quads + 5] = 4 * _quads + 0;
     }
     indexBufferView.invalidate();
-    indexBufferView.update();
 }
 indexGrowTo(1);
 
@@ -89,6 +88,7 @@ function createInputAssembler(vertexBuffer: Buffer) {
 }
 
 export const quad = {
+    indexBufferView,
     indexInput,
     indexGrowTo,
     createVertexBuffer,

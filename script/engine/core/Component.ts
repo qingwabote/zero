@@ -6,4 +6,5 @@ export abstract class Component {
     start(): void { }
     update(dt: number): void { }
     lateUpdate(): void { }
+    upload(): void { }
 }
