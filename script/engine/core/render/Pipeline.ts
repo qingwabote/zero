@@ -20,6 +20,14 @@ export class Pipeline {
 
     update() {
         this.data.update(this._dumping);
+    }
+
+    cull() {
+        this.data.cull();
+    }
+
+    upload() {
+        this.data.upload();
 
         for (const ubo of this.ubos) {
             ubo.update(this._dumping);
@@ -36,6 +44,5 @@ export class Pipeline {
                 }
             }
         }
-
     }
 }

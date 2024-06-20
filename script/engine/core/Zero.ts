@@ -166,6 +166,8 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         boot.device.swapchain.acquire(this._swapchainAcquired);
         this.scene.update();
         this._pipeline.update();
+        this._pipeline.cull();
+        this._pipeline.upload();
         this._commandBuffer.begin();
         this._profile.clear();
         this._pipeline.record(this._profile, this._commandBuffer, this.scene.cameras);

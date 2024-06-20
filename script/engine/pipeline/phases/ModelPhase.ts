@@ -93,8 +93,6 @@ export class ModelPhase extends Phase {
 
         const batches: InstanceBatch[] = []
         for (const model of models) {
-            model.upload();
-
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 if (!model.mesh.subMeshes[i].draw.count) {
                     continue;
@@ -124,8 +122,6 @@ export class ModelPhase extends Phase {
                 if (pass.type != this._pass) {
                     continue;
                 }
-
-                pass.upload();
 
                 if (pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);

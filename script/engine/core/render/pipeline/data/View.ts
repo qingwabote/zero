@@ -19,8 +19,25 @@ export class View {
 
     update(dumping: boolean) {
         this.shadow?.update(dumping);
+    }
+
+    cull() {
+        this.shadow?.cull();
 
         this._models.length = 0;
         this._scene.models.culler()(this._models, this._camera.frustum, this._camera.visibilities);
+    }
+
+    upload() {
+        this.shadow?.upload();
+
+        for (const model of this._models) {
+            for (const material of model.materials) {
+                for (const pass of material.passes) {
+                    pass.upload();
+                }
+            }
+            model.upload();
+        }
     }
 }

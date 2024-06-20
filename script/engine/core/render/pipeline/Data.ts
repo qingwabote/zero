@@ -48,4 +48,18 @@ export class Data extends EventEmitter.Impl<EventToListener> {
 
         this.emit(Event.UPDATE);
     }
+
+    cull() {
+        const scene = Zero.instance.scene;
+        for (const camera of scene.cameras) {
+            this._camera2view.get(camera)!.cull();
+        }
+    }
+
+    upload() {
+        const scene = Zero.instance.scene;
+        for (const camera of scene.cameras) {
+            this._camera2view.get(camera)!.upload();
+        }
+    }
 }
