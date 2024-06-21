@@ -22,13 +22,7 @@ export class Pipeline {
         this.data.update(this._dumping);
     }
 
-    cull() {
-        this.data.cull();
-    }
-
     upload() {
-        this.data.upload();
-
         for (const ubo of this.ubos) {
             ubo.update(this._dumping);
         }
@@ -39,7 +33,7 @@ export class Pipeline {
     record(profile: Profile, commandBuffer: CommandBuffer, cameras: readonly Camera[]) {
         for (this.data.cameraIndex = 0; this.data.cameraIndex < cameras.length; this.data.cameraIndex++) {
             for (const flow of this.flows) {
-                if (this.data.camera.visibilities & flow.visibilities) {
+                if (this.data.current_camera.visibilities & flow.visibilities) {
                     flow.record(profile, commandBuffer);
                 }
             }

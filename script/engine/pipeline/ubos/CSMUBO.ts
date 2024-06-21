@@ -30,9 +30,9 @@ export class CSMUBO extends UBO {
     override get dynamicOffset(): number {
         let index = -1;
         for (const camera of Zero.instance.scene.cameras) {
-            if (camera.visibilities & this._data.shadow_visibilities) {
+            if (camera.visibilities & this._data.shadow!.visibilities) {
                 index++;
-                if (camera == this._data.camera) {
+                if (camera == this._data.current_camera) {
                     return UBO.align(this.range) * index;
                 }
             }
@@ -49,9 +49,9 @@ export class CSMUBO extends UBO {
 
         let index = -1;
         for (const camera of Zero.instance.scene.cameras) {
-            if (camera.visibilities & this._data.shadow_visibilities) {
+            if (camera.visibilities & this._data.shadow!.visibilities) {
                 index++;
-                const cascades = this._data.getView(camera).shadow!;
+                const cascades = this._data.shadow!.getCascades(camera)!;
                 if (dumping || cascades.hasChanged) {
                     this._view.resize(size * (index + 1) / this._view.BYTES_PER_ELEMENT);
                     for (let j = 0; j < this._num; j++) {

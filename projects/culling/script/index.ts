@@ -80,7 +80,7 @@ class App extends Zero {
             this.pipeline.data.on(render.Data.Event.UPDATE, () => {
                 debugDrawer.clear();
 
-                if (phase.culler instanceof pipeline.ViewCuller) {
+                if (this.pipeline.data.culling) {
                     if (this.scene.models instanceof scene.ModelTree) {
                         for (const node of tree_cull([], this.scene.models.root, up_camera.frustum, up_camera.visibilities)) {
                             debugDrawer.drawAABB(node.bounds, vec4.ONE);
@@ -95,8 +95,6 @@ class App extends Zero {
 
                     debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
                 }
-
-                debugDrawer.upload();
             })
         }
 
@@ -158,19 +156,19 @@ class App extends Zero {
                         textRenderer.impl.text = 'TREE OFF';
                         textRenderer.impl.color = vec4.ONE;
                         this.scene.models = new scene.ModelArray(this.scene.models);
-                        phase.culler = new pipeline.ViewCuller;
+                        this.pipeline.data.culling = new render.Culling;
                     },
                     () => {
                         textRenderer.impl.text = 'NONE';
                         textRenderer.impl.color = vec4.ONE;
                         this.scene.models = new scene.ModelArray(this.scene.models);
-                        phase.culler = new pipeline.NoneCulling;
+                        this.pipeline.data.culling = null;
                     },
                     () => {
                         textRenderer.impl.text = 'TREE ON';
                         textRenderer.impl.color = vec4.GREEN;
                         this.scene.models = new scene.ModelTree(tree_bounds, this.scene.models);
-                        phase.culler = new pipeline.ViewCuller;
+                        this.pipeline.data.culling = new render.Culling;
                     },
                 ]
                 let optionIndex = 0

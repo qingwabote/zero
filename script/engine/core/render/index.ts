@@ -12,6 +12,8 @@ export * from './pipeline/Stage.js';
 export * from './pipeline/UBO.js';
 export * from './pipeline/rpc.js';
 
+export * from './pipeline/data/Culling.js';
+
 export * from './scene/Camera.js';
 export * from './scene/Frustum.js';
 export * from './scene/Material.js';

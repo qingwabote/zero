@@ -107,10 +107,10 @@ export class App extends Zero {
             debugDrawer.clear()
 
             const cameras = this.scene.cameras;
-            const cascades = this.pipeline.data.getView(cameras[0]).shadow!;
+            const cascades = this.pipeline.data.shadow!.getCascades(cameras[0])!;
             const bounds_color = vec4.create(...vec4.YELLOW);
             const frusta_color = vec4.create(...vec4.ONE);
-            for (let i = 0; i < this.pipeline.data.shadow_cascades; i++) {
+            for (let i = 0; i < cascades.num; i++) {
                 debugDrawer.drawFrustum(cascades.boundaries[i].vertices, bounds_color);
                 debugDrawer.drawFrustum(cascades.frusta[i].vertices, frusta_color);
                 vec3.multiply(bounds_color, bounds_color, vec3_6in10)
@@ -127,7 +127,6 @@ export class App extends Zero {
             //         debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
             //     }
             // }
-            debugDrawer.upload();
         }
         csm_off_instance.data.on(render.Data.Event.UPDATE, debugDraw)
         csm_on_instance.data.on(render.Data.Event.UPDATE, debugDraw)

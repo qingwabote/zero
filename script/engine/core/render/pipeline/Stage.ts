@@ -36,7 +36,7 @@ export class Stage {
     ) { }
 
     record(profile: Profile, commandBuffer: CommandBuffer) {
-        const camera = this._data.camera;
+        const camera = this._data.current_camera;
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this.rect ?? camera.rect;
 

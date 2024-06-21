@@ -68,31 +68,32 @@ export class ModelPhase extends Phase {
     }
 
     record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
-        // profile.emit(Profile.Event.CULL_START);
-        // this.culling.cull(models, Zero.instance.scene.models, this._model, cameraIndex);
-        // profile.emit(Profile.Event.CULL_END);
-
         const data = Zero.instance.pipeline.data;
 
-        const models: Model[] = []
-
+        let models: Iterable<Model>;
         switch (this.culling) {
             case 'View':
-                models.push(...data.view.models);
+                models = data.culling?.getView(data.current_camera).camera || Zero.instance.scene.models;
                 break;
             case 'CSM':
-                models.push(...data.view.shadow!.models[data.flowLoopIndex]);
+                models = data.culling?.getView(data.current_camera).shadow[data.flowLoopIndex] || Zero.instance.scene.models;
                 break;
             default:
                 throw new Error(`unsupported culling: ${this.culling}`);
         }
 
         if (!this._batching) {
-            models.sort(modelCompareFn);
+            models = [...models].sort(modelCompareFn);
         }
 
         const batches: InstanceBatch[] = []
         for (const model of models) {
+            if (model.type != this._model) {
+                continue;
+            }
+
+            model.upload();
+
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 if (!model.mesh.subMeshes[i].draw.count) {
                     continue;
@@ -122,6 +123,8 @@ export class ModelPhase extends Phase {
                 if (pass.type != this._pass) {
                     continue;
                 }
+
+                pass.upload();
 
                 if (pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);

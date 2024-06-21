@@ -4,40 +4,36 @@ import { Model } from "../../scene/Model.js";
 import { Cascades } from "./Cascades.js";
 
 export class View {
-    public readonly shadow?: Cascades;
-
-    private _models: Model[] = [];
-    public get models(): readonly Model[] {
-        return this._models;
+    private _modelsInCamera: Model[] = [];
+    public get camera(): readonly Model[] {
+        return this._modelsInCamera;
     }
 
-    constructor(private readonly _scene: Scene, private readonly _camera: Camera, cascades: number = 0) {
-        if (cascades) {
-            this.shadow = new Cascades(_camera, cascades);
+    private _modelsInCascades: Model[][];
+    public get shadow(): readonly (readonly Model[])[] {
+        return this._modelsInCascades;
+    }
+
+    constructor(private readonly _scene: Scene, private readonly _camera: Camera, private readonly _shadow: Cascades | null = null) {
+        const modelsInCascades: Model[][] = [];
+        if (_shadow) {
+            for (let i = 0; i < _shadow.num; i++) {
+                modelsInCascades.push([])
+            }
         }
-    }
-
-    update(dumping: boolean) {
-        this.shadow?.update(dumping);
+        this._modelsInCascades = modelsInCascades;
     }
 
     cull() {
-        this.shadow?.cull();
-
-        this._models.length = 0;
-        this._scene.models.culler()(this._models, this._camera.frustum, this._camera.visibilities);
-    }
-
-    upload() {
-        this.shadow?.upload();
-
-        for (const model of this._models) {
-            for (const material of model.materials) {
-                for (const pass of material.passes) {
-                    pass.upload();
-                }
+        if (this._shadow) {
+            const cull = this._scene.models.culler(this._shadow.num)
+            for (let i = 0; i < this._shadow.num; i++) {
+                this._modelsInCascades[i].length = 0;
+                cull(this._modelsInCascades[i], this._shadow.boundaries[i], this._camera.visibilities);
             }
-            model.upload();
         }
+
+        this._modelsInCamera.length = 0;
+        this._scene.models.culler()(this._modelsInCamera, this._camera.frustum, this._camera.visibilities);
     }
 }

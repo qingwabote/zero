@@ -166,7 +166,6 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.emit(Event.RENDER_START);
         this.scene.update();
         this._pipeline.update();
-        this._pipeline.cull();
 
         this.emit(Event.HALT_START);
         boot.device.waitForFence(this._fence);

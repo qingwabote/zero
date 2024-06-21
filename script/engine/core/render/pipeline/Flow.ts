@@ -28,7 +28,7 @@ export class Flow {
             }
             commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
             for (const stage of this.stages) {
-                if (this._data.camera.visibilities & stage.visibilities) {
+                if (this._data.current_camera.visibilities & stage.visibilities) {
                     stage.record(commandCalls, commandBuffer);
                 }
             }
