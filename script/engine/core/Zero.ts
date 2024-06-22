@@ -164,8 +164,9 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.emit(Event.LOGIC_END);
 
         this.emit(Event.RENDER_START);
+        this._profile.clear();
         this.scene.update();
-        this._pipeline.update();
+        this._pipeline.update(this._profile);
 
         this.emit(Event.HALT_START);
         boot.device.waitForFence(this._fence);
@@ -178,7 +179,6 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         quad.indexBufferView.update();
 
         this._commandBuffer.begin();
-        this._profile.clear();
         this._pipeline.record(this._profile, this._commandBuffer, this.scene.cameras);
         this._commandBuffer.end();
         const submitInfo = new SubmitInfo;

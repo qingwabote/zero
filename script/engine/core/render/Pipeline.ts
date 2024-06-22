@@ -18,8 +18,8 @@ export class Pipeline {
         this._dumping = true;
     }
 
-    update() {
-        this.data.update(this._dumping);
+    update(profile: Profile) {
+        this.data.update(profile, this._dumping);
     }
 
     upload() {

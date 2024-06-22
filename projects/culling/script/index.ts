@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, render, scene, vec3, vec4 } from "engine";
+import { Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
 import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 
@@ -70,8 +70,6 @@ class App extends Zero {
                 }
             }
         }
-
-        const phase = this.pipeline.flows[0].stages[0].phases[0] as pipeline.ModelPhase
 
         if (debug) {
             const debugDrawer = Node.build(GeometryRenderer);

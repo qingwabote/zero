@@ -1,6 +1,7 @@
 import { EventEmitter } from "bastard";
 import { Zero } from "../../Zero.js";
 import { Camera } from "../scene/Camera.js";
+import { Profile } from "./Profile.js";
 import { Culling } from "./data/Culling.js";
 import { Shadow } from "./data/Shadow.js";
 
@@ -27,10 +28,12 @@ export class Data extends EventEmitter.Impl<EventToListener> {
         return Zero.instance.scene.cameras[this.cameraIndex];
     }
 
-    update(dumping: boolean) {
+    update(profile: Profile, dumping: boolean) {
         this.shadow?.update(dumping);
 
+        profile.emit(Profile.Event.CULL_START);
         this.culling?.cull(this.shadow)
+        profile.emit(Profile.Event.CULL_END);
 
         this.emit(Event.UPDATE);
     }
