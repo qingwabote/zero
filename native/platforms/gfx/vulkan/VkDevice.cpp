@@ -64,7 +64,12 @@ namespace gfx
 #else
 #pragma error Platform not supported
 #endif
-        std::vector<const char *> validationLayers{"VK_LAYER_KHRONOS_validation"};
+
+        std::vector<const char *> validationLayers{
+#ifndef NDEBUG
+            "VK_LAYER_KHRONOS_validation"
+#endif
+        };
 
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
         debugUtilsCreateInfo.messageSeverity =
