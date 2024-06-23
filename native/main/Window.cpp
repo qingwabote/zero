@@ -7,7 +7,7 @@
 #include "v8/libplatform/libplatform.h"
 #include "InspectorClient.hpp"
 #include "internal/console.hpp"
-#include "bg/Device.hpp"
+// #include "bg/Device.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -96,7 +96,7 @@ int Window::loop(SDL_Window *sdl_window)
         auto inspector = std::make_unique<InspectorClient>();
 
         _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
-        _device = std::make_unique<bg::Device>(sdl_window);
+        _device = std::make_unique<gfx::Device>(sdl_window);
         _device->initialize();
         _sdl_window = sdl_window;
 
