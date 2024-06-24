@@ -21,8 +21,11 @@ const attributes = {
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
 const sets = {
+    material: {
+        index: 1
+    },
     local: {
-        index: 1,
+        index: 2,
         uniforms: {
             Skin: {
                 type: DescriptorType.UNIFORM_BUFFER,
@@ -35,9 +38,6 @@ const sets = {
                 size: (16 * 128) * Float32Array.BYTES_PER_ELEMENT
             }
         }
-    },
-    material: {
-        index: 2
     }
 } as const
 

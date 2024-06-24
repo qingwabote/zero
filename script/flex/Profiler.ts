@@ -92,14 +92,14 @@ export class Profiler extends ElementContainer {
             this._time += dt;
         }
 
-        this._text.impl.text = `FPS      ${this._fps.toFixed(2)}
-logic    ${this._logic_time.toFixed(2)}ms
-render   ${this._render_time.toFixed(2)}ms
- halt    ${this._halt_time.toFixed(2)}ms
- model   ${this._model_time.toFixed(2)}ms
- culling ${this._cull_time.toFixed(2)}ms
- passes  ${Zero.instance.profile.stages}
- draws   ${Zero.instance.profile.draws}
-boot     ${boot_time.toFixed(2)}s`;
+        this._text.impl.text = `FPS    ${this._fps.toFixed(2)}
+logic  ${this._logic_time.toFixed(2)}ms
+render ${this._render_time.toFixed(2)}ms
+ halt  ${this._halt_time.toFixed(2)}ms
+ model ${this._model_time.toFixed(2)}ms
+ cull  ${this._cull_time.toFixed(2)}ms
+ pass  ${Zero.instance.profile.stages}
+ draws ${Zero.instance.profile.draws}
+boot   ${boot_time.toFixed(2)}s`;
     }
 }

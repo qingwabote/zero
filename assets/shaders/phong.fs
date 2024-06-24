@@ -13,7 +13,7 @@ layout(location = 1) in vec3 v_normal;
 layout(location = 2) in vec3 v_position;
 
 #if USE_ALBEDO_MAP
-    layout(set = 2, binding = 0) uniform sampler2D albedoMap;
+    layout(set = 1, binding = 0) uniform sampler2D albedoMap;
 #endif
 
 #if USE_SHADOW_MAP
@@ -28,7 +28,7 @@ layout(location = 2) in vec3 v_position;
     layout(set = 0, binding = 0) uniform sampler2D shadowMap;
 #endif
 
-layout(set = 2, binding = 1) uniform Props  {
+layout(set = 1, binding = 1) uniform Props  {
     vec4 albedo;
 } props;
 

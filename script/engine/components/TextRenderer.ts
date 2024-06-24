@@ -117,11 +117,12 @@ export class TextRenderer extends BoundedRenderer {
         return new Model(this.node, this._mesh, [new Material([this._pass])])
     }
 
-    override upload(): void {
+    override lateUpdate(): void {
         this.updateData();
+    }
 
+    override upload(): void {
         this._vertexView.update();
-
         this._mesh.subMeshes[0].draw.count = 6 * this._quads;
     }
 
