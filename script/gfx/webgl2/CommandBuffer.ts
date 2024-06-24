@@ -145,7 +145,7 @@ export class CommandBuffer {
         this._inputAssembler = inputAssembler;
     }
 
-    draw(vertexCount: number, instanceCount: number): void {
+    draw(vertexCount: number, firstVertex: number, instanceCount: number): void {
         this.bindVertexArray();
 
         const gl = this._gl;
@@ -161,7 +161,7 @@ export class CommandBuffer {
             default:
                 throw `unsupported primitive: ${this._pipeline.passState!.primitive}`
         }
-        gl.drawArraysInstanced(mode, 0, vertexCount, instanceCount);
+        gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
         gl.bindVertexArray(null);
     }
 

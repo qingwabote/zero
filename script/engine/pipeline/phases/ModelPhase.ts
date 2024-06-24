@@ -123,8 +123,7 @@ export class ModelPhase extends Phase {
                 }
 
                 for (const batch of batches) {
-                    batch.record(commandBuffer, renderPass, this._context, pass);
-                    profile.draws++;
+                    batch.record(profile, commandBuffer, renderPass, this._context, pass);
                 }
             }
         } else {
@@ -166,13 +165,13 @@ export class ModelPhase extends Phase {
                     current_pass = pass;
                 }
 
-                batches[i].record(commandBuffer, renderPass, this._context, pass);
-                profile.draws++;
+                batches[i].record(profile, commandBuffer, renderPass, this._context, pass);
             }
         }
     }
 }
+ModelPhase.InstanceBatch = InstanceBatch;
 
 export declare namespace ModelPhase {
-    export { Culling }
+    export { Culling, InstanceBatch }
 }

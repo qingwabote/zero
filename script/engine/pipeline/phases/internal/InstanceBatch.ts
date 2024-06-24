@@ -1,8 +1,9 @@
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, RenderPass, VertexAttribute, VertexInput } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, PrimitiveTopology, RenderPass, VertexAttribute, VertexInput } from "gfx";
 import { Zero } from "../../../core/Zero.js";
 import { Mat4 } from "../../../core/math/mat4.js";
 import { BufferView } from "../../../core/render/BufferView.js";
 import { Context } from "../../../core/render/pipeline/Context.js";
+import { Profile } from "../../../core/render/pipeline/Profile.js";
 import { Model } from "../../../core/render/scene/Model.js";
 import { Pass } from "../../../core/render/scene/Pass.js";
 import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
@@ -17,13 +18,15 @@ interface Local {
 const local_empty: Local = { descriptorSetLayout: shaderLib.descriptorSetLayout_empty }
 
 export abstract class InstanceBatch {
+    static subDraws = 1;
+
     constructor(
         protected readonly _inputAssembler: InputAssembler,
         protected readonly _draw: Readonly<SubMesh.Draw>,
         protected _count: number,
         protected readonly _local = local_empty) { }
 
-    record(commandBuffer: CommandBuffer, renderPass: RenderPass, context: Context, pass: Pass) {
+    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, context: Context, pass: Pass) {
         this.upload();
 
         if (this._local.descriptorSet) {
@@ -33,10 +36,30 @@ export abstract class InstanceBatch {
         const pipeline = context.getPipeline(pass.state, this._inputAssembler.vertexAttributes, renderPass, [pass.descriptorSetLayout, this._local.descriptorSetLayout]);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.bindInputAssembler(this._inputAssembler);
-        if (this._inputAssembler.indexInput) {
-            commandBuffer.drawIndexed(this._draw.count, this._draw.first, this._count);
-        } else {
-            commandBuffer.draw(this._draw.count, this._count);
+
+        let alignment;
+        switch (pass.state.primitive) {
+            case PrimitiveTopology.LINE_LIST:
+                alignment = 2;
+                break;
+            case PrimitiveTopology.TRIANGLE_LIST:
+                alignment = 3;
+                break;
+            default:
+                throw `unsupported primitive: ${pass.state.primitive}`
+        }
+
+        const subCount = Math.ceil(this._draw.count / InstanceBatch.subDraws / alignment) * alignment;
+
+        let count = 0;
+        while (count < this._draw.count) {
+            if (this._inputAssembler.indexInput) {
+                commandBuffer.drawIndexed(count + subCount > this._draw.count ? this._draw.count - count : subCount, this._draw.first + count, this._count);
+            } else {
+                commandBuffer.draw(count + subCount > this._draw.count ? this._draw.count - count : subCount, this._draw.first + count, this._count);
+            }
+            count += subCount;
+            profile.draws++;
         }
 
         this.recycle();
