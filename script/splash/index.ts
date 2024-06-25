@@ -46,7 +46,7 @@ commandBuffer.end();
 const submitInfo = new SubmitInfo;
 submitInfo.commandBuffer = commandBuffer;
 device.queue.submit(submitInfo, fence);
-device.queue.wait(fence);
+device.waitForFence(fence);
 
 const shaderInfo = new ShaderInfo;
 shaderInfo.sources.add(vs);
@@ -148,7 +148,7 @@ pipelineLayoutInfo.layouts.add(descriptorSetLayout);
 const pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
 
 const pipelineInfo = new PipelineInfo;
-pipelineInfo.inputAssembler = inputAssembler
+pipelineInfo.attributes = inputAssembler.vertexAttributes;
 pipelineInfo.layout = pipelineLayout;
 pipelineInfo.passState = passState;
 pipelineInfo.renderPass = renderPass;
