@@ -1,6 +1,3 @@
-// load console first
-import "./console.js";
-//
 import { Device } from "gfx";
 
 const windowInfo = wx.getWindowInfo();

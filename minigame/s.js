@@ -516,82 +516,24 @@
   var processFirst = hasDocument;
   systemJSPrototype.prepareImport = function (doProcessScripts) {
     if (processFirst || doProcessScripts) {
-      processScripts();
       processFirst = false;
     }
     return importMapPromise;
   };
-  if (hasDocument) {
-    processScripts();
-    window.addEventListener('DOMContentLoaded', processScripts);
-  }
+
   systemJSPrototype.addImportMap = function (newMap, mapBase) {
     resolveAndComposeImportMap(newMap, mapBase || baseUrl, importMap);
   };
-
-  function processScripts() {
-    [].forEach.call(document.querySelectorAll('script'), function (script) {
-      if (script.sp) // sp marker = systemjs processed
-        return;
-      // TODO: deprecate systemjs-module in next major now that we have auto import
-      if (script.type === 'systemjs-module') {
-        script.sp = true;
-        if (!script.src)
-          return;
-        System.import(script.src.slice(0, 7) === 'import:' ? script.src.slice(7) : resolveUrl(script.src, baseUrl)).catch(function (e) {
-          // if there is a script load error, dispatch an "error" event
-          // on the script tag.
-          if (e.message.indexOf('https://github.com/systemjs/systemjs/blob/main/docs/errors.md#3') > -1) {
-            var event = document.createEvent('Event');
-            event.initEvent('error', false, false);
-            script.dispatchEvent(event);
-          }
-          return Promise.reject(e);
-        });
-      }
-      else if (script.type === 'systemjs-importmap') {
-        script.sp = true;
-        // The passThrough property is for letting the module types fetch implementation know that this is not a SystemJS module.
-        var fetchPromise = script.src ? (System.fetch || fetch)(script.src, { integrity: script.integrity, passThrough: true }).then(function (res) {
-          if (!res.ok)
-            throw Error(res.status);
-          return res.text();
-        }).catch(function (err) {
-          err.message = errMsg('W4', script.src) + '\n' + err.message;
-          console.warn(err);
-          if (typeof script.onerror === 'function') {
-            script.onerror();
-          }
-          return '{}';
-        }) : script.innerHTML;
-        importMapPromise = importMapPromise.then(function () {
-          return fetchPromise;
-        }).then(function (text) {
-          extendImportMap(importMap, text, script.src || baseUrl);
-        });
-      }
-    });
-  }
-
-  function extendImportMap(importMap, newMapText, newMapUrl) {
-    var newMap = {};
-    try {
-      newMap = JSON.parse(newMapText);
-    } catch (err) {
-      console.warn(Error((errMsg('W5'))));
-    }
-    resolveAndComposeImportMap(newMap, newMapUrl, importMap);
-  }
 
   /*
    * Script instantiation loading
    */
 
   if (hasDocument) {
-    window.addEventListener('error', function (evt) {
-      lastWindowErrorUrl = evt.filename;
-      lastWindowError = evt.error;
-    });
+    // window.addEventListener('error', function (evt) {
+    //   lastWindowErrorUrl = evt.filename;
+    //   lastWindowError = evt.error;
+    // });
     var baseOrigin = location.origin;
   }
 
