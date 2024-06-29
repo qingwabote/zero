@@ -2,9 +2,9 @@ import { Device } from "gfx";
 
 const windowInfo = wx.getWindowInfo();
 
-export const safeArea = windowInfo.safeArea;
-
-export const platform = 'wx';
+const pixelRatio: number = windowInfo.pixelRatio;
+const pixelWidth: number = windowInfo.windowWidth * pixelRatio;
+const pixelHeight: number = windowInfo.windowHeight * pixelRatio;
 
 export interface TouchEvent {
     get count(): number;
@@ -24,11 +24,11 @@ class TouchEventImpl implements TouchEvent {
     constructor(private _event: any) { }
 
     x(index: number): number {
-        return this._event.touches[index].clientX;
+        return this._event.touches[index].clientX * pixelRatio;
     }
 
     y(index: number): number {
-        return this._event.touches[index].clientY;
+        return this._event.touches[index].clientY * pixelRatio;
     }
 }
 
@@ -55,8 +55,24 @@ export interface EventListener {
 }
 
 const canvas = wx.createCanvas()
+canvas.width = pixelWidth;
+canvas.height = pixelHeight;
 const gl = canvas.getContext('webgl2', { antialias: false })!;
 globalThis.WebGL2RenderingContext = gl;
+
+export const safeArea = (function () {
+    const safeArea = windowInfo;
+    return {
+        left: safeArea.left * pixelRatio,
+        right: safeArea.right * pixelRatio,
+        top: safeArea.top * pixelRatio,
+        bottom: safeArea.bottom * pixelRatio,
+        width: safeArea.width * pixelRatio,
+        height: safeArea.height * pixelRatio
+    };
+})();
+
+export const platform = 'wx';
 
 export const device = new Device(gl);
 
