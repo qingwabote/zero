@@ -38,14 +38,12 @@ const vertexAttributes = (function () {
     const attributes = new VertexAttributeVector;
 
     const position = new VertexAttribute;
-    position.name = shaderLib.attributes.position.name;
     position.format = Format.RG32_SFLOAT;
     position.offset = 0;
     position.location = shaderLib.attributes.position.location;
     attributes.add(position);
 
     const texCoord = new VertexAttribute;
-    texCoord.name = shaderLib.attributes.uv.name;
     texCoord.format = Format.RG32_SFLOAT;
     texCoord.offset = FormatInfos[position.format].bytes;
     texCoord.location = shaderLib.attributes.uv.location;

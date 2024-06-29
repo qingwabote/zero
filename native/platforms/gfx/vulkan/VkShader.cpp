@@ -181,7 +181,7 @@ namespace gfx
                 for (size_t i = 0; i < program.getNumPipeInputs(); i++)
                 {
                     auto &input = program.getPipeInput(i);
-                    _attributeLocations.emplace(input.name, input.getType()->getQualifier().layoutLocation);
+                    _attributeLocations.emplace(input.getType()->getQualifier().layoutLocation, input.name);
                 }
             }
 

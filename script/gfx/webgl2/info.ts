@@ -91,13 +91,13 @@ export class PipelineLayoutInfo {
 }
 
 export class VertexAttribute {
-    name: string = '';
+    location: number = 0;
     format: Format = 0;
     buffer: number = 0;
     offset: number = 0;
     stride: number = 0;
-    location: number = 0;
     instanced: boolean = false;
+    multiple: number = 1;
 }
 export class BufferVector extends Vector<Buffer> { };
 export class VertexInput {

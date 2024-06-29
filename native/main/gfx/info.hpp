@@ -207,13 +207,13 @@ namespace gfx
 
     struct VertexAttribute
     {
-        std::string name;
+        uint32_t location;
         uint32_t format;
         uint32_t buffer;
         uint32_t offset;
         uint32_t stride;
-        uint32_t location;
         bool instanced;
+        uint32_t multiple = 1;
     };
     using VertexAttributeVector = std::vector<std::shared_ptr<VertexAttribute>>;
 

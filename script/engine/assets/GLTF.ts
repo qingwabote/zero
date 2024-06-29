@@ -280,12 +280,11 @@ export class GLTF implements Asset {
                 }
                 const builtin = shaderLib.attributes[name];
                 const attribute: VertexAttribute = new VertexAttribute;
-                attribute.name = builtin.name;
+                attribute.location = builtin.location;
                 attribute.format = format;
                 attribute.buffer = ia.vertexInput.buffers.size();
                 attribute.offset = 0;
                 attribute.stride = this._json.bufferViews[accessor.bufferView].byteStride || 0;
-                attribute.location = builtin.location;
                 ia.vertexAttributes.add(attribute);
                 ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 ia.vertexInput.offsets.add(accessor.byteOffset || 0);

@@ -85,8 +85,12 @@ export declare class PipelineLayoutInfo {
 }
 
 export declare class VertexAttribute {
-    name: string
+    location: number
     format: Format
+    /**
+     * The buffer index in vertexInput.
+     * Webgl does not support indirect binding, so we use the buffer index as binding point in vulkan for consistency.
+     */
     buffer: number
     offset: number
     /**
@@ -96,8 +100,8 @@ export declare class VertexAttribute {
      * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
      */
     stride: number
-    location: number
     instanced: boolean
+    multiple: number
 }
 export class VertexAttributeVector extends Vector<VertexAttribute> { };
 

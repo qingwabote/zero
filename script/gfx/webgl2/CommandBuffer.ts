@@ -220,52 +220,58 @@ export class CommandBuffer {
             const attributes = (inputAssembler.vertexAttributes as Vector<VertexAttribute>).data;
             for (const attribute of attributes) {
                 const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.buffer];
-                const offset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
-                const stride = attribute.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
+                const bufferOffset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
+                const stride = attribute.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes * attr.multiple : 0), 0);
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
-                gl.enableVertexAttribArray(attribute.location);
-                const formatInfo = FormatInfos[attribute.format];
-                let type: GLenum;
-                let isInteger: boolean;
-                switch (attribute.format) {
-                    case Format.RG32_SFLOAT:
-                    case Format.RGB32_SFLOAT:
-                    case Format.RGBA32_SFLOAT:
-                        type = WebGL2RenderingContext.FLOAT;
-                        isInteger = false;
-                        break;
-                    case Format.RGBA8_UINT:
-                        type = WebGL2RenderingContext.UNSIGNED_BYTE;
-                        isInteger = true;
-                        break;
-                    case Format.RGBA16_UINT:
-                        type = WebGL2RenderingContext.UNSIGNED_SHORT;
-                        isInteger = true;
-                        break;
-                    case Format.RGBA32_UINT:
-                        type = WebGL2RenderingContext.UNSIGNED_INT;
-                        isInteger = true;
-                        break;
-                    default:
-                        throw 'unsupported vertex type';
-                }
-                if (isInteger) {
-                    gl.vertexAttribIPointer(
-                        attribute.location,
-                        formatInfo.nums,
-                        type,
-                        stride, offset + attribute.offset);
-                } else {
-                    gl.vertexAttribPointer(
-                        attribute.location,
-                        formatInfo.nums,
-                        type,
-                        false,
-                        stride,
-                        offset + attribute.offset);
-                }
-                if (attribute.instanced) {
-                    gl.vertexAttribDivisor(attribute.location, 1);
+                for (let i = 0; i < attribute.multiple; i++) {
+                    const formatInfo = FormatInfos[attribute.format];
+
+                    const location = attribute.location + i;
+                    const offset = attribute.offset + (formatInfo.bytes * i)
+                    gl.enableVertexAttribArray(location);
+                    let type: GLenum;
+                    let isInteger: boolean;
+                    switch (attribute.format) {
+                        case Format.RG32_SFLOAT:
+                        case Format.RGB32_SFLOAT:
+                        case Format.RGBA32_SFLOAT:
+                            type = WebGL2RenderingContext.FLOAT;
+                            isInteger = false;
+                            break;
+                        case Format.RGBA8_UINT:
+                            type = WebGL2RenderingContext.UNSIGNED_BYTE;
+                            isInteger = true;
+                            break;
+                        case Format.RGBA16_UINT:
+                            type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                            isInteger = true;
+                            break;
+                        case Format.RGBA32_UINT:
+                            type = WebGL2RenderingContext.UNSIGNED_INT;
+                            isInteger = true;
+                            break;
+                        default:
+                            throw 'unsupported vertex type';
+                    }
+                    if (isInteger) {
+                        gl.vertexAttribIPointer(
+                            location,
+                            formatInfo.nums,
+                            type,
+                            stride, bufferOffset + offset);
+                    } else {
+                        gl.vertexAttribPointer(
+                            location,
+                            formatInfo.nums,
+                            type,
+                            false,
+                            stride,
+                            bufferOffset + offset);
+                    }
+                    if (attribute.instanced) {
+                        gl.vertexAttribDivisor(location, 1);
+                    }
                 }
             }
             if (inputAssembler.indexInput) {

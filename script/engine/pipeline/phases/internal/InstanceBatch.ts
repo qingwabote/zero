@@ -106,15 +106,14 @@ const inputAssembler_clone = (function () {
     }
 })()
 
-function createModelAttribute(column: number, buffer: number) {
-    const vec4 = new VertexAttribute;
-    vec4.name = shaderLib.attributes.model.name;
-    vec4.instanced = true;
-    vec4.format = Format.RGBA32_SFLOAT;
-    vec4.location = shaderLib.attributes.model.location + column;
-    vec4.offset = 16 * column;
-    vec4.buffer = buffer;
-    return vec4;
+function createModelAttribute(buffer: number) {
+    const mat4 = new VertexAttribute;
+    mat4.location = shaderLib.attributes.model.location;
+    mat4.format = Format.RGBA32_SFLOAT;
+    mat4.buffer = buffer;
+    mat4.instanced = true;
+    mat4.multiple = 4;
+    return mat4;
 }
 
 export namespace InstanceBatch {
@@ -128,9 +127,7 @@ export namespace InstanceBatch {
             const subMesh = model.mesh.subMeshes[subIndex];
             const inputAssembler = inputAssembler_clone(subMesh.inputAssembler);
             const bufferIndex = inputAssembler.vertexInput.buffers.size();
-            for (let i = 0; i < 4; i++) {
-                inputAssembler.vertexAttributes.add(createModelAttribute(i, bufferIndex));
-            }
+            inputAssembler.vertexAttributes.add(createModelAttribute(bufferIndex));
             inputAssembler.vertexInput.buffers.add(view.buffer);
             inputAssembler.vertexInput.offsets.add(0);
             super(inputAssembler, subMesh.draw, 1, model);
@@ -168,9 +165,7 @@ export namespace InstanceBatch {
             const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
             const ia = inputAssembler_clone(subMesh.inputAssembler);
             const bufferIndex = ia.vertexInput.buffers.size();
-            for (let i = 0; i < 4; i++) {
-                ia.vertexAttributes.add(createModelAttribute(i, bufferIndex));
-            }
+            ia.vertexAttributes.add(createModelAttribute(bufferIndex));
             ia.vertexInput.buffers.add(view.buffer);
             ia.vertexInput.offsets.add(0);
             super(ia, subMesh.draw, 0);

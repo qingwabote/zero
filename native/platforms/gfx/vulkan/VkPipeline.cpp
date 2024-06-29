@@ -122,9 +122,10 @@ namespace gfx
         for (auto &&gfx_attribute : *gfx_attributes)
         {
             auto &attributesConsumed = gfx_shader->impl()->attributeLocations;
-            if (attributesConsumed.find(gfx_attribute->name) == attributesConsumed.end())
+            if (attributesConsumed.find(gfx_attribute->location) == attributesConsumed.end())
             {
                 // avoid warning "Vertex attribute not consumed by vertex shader"
+                // because we share vertex input if there are multi passes consuming different attributes in one model
                 continue;
             }
 
@@ -134,11 +135,11 @@ namespace gfx
                 if (description.binding == gfx_attribute->buffer)
                 {
                     hasBinding = true;
+                    break;
                 }
             }
             if (!hasBinding)
             {
-                VkVertexInputBindingDescription description{};
                 uint32_t stride = gfx_attribute->stride;
                 if (stride == 0)
                 {
@@ -146,25 +147,30 @@ namespace gfx
                     {
                         if (gfx_attr->buffer == gfx_attribute->buffer)
                         {
-                            stride += FormatInfos.at(static_cast<Format>(gfx_attr->format)).bytes;
+                            stride += FormatInfos.at(static_cast<Format>(gfx_attr->format)).bytes * gfx_attr->multiple;
                         }
                     }
                 }
+
+                VkVertexInputBindingDescription description{};
                 description.stride = stride;
                 description.inputRate = gfx_attribute->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
                 description.binding = gfx_attribute->buffer;
                 bindings.push_back(description);
             }
 
-            VkVertexInputAttributeDescription attribute{};
-            attribute.location = gfx_attribute->location;
-            attribute.binding = gfx_attribute->buffer;
-            // the format in buffer can be different from the format in shader,
-            // use the format in buffer to make sure type conversion can be done correctly by graphics api.
-            // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
-            attribute.format = static_cast<VkFormat>(gfx_attribute->format);
-            attribute.offset = gfx_attribute->offset;
-            attributes.push_back(attribute);
+            for (size_t i = 0; i < gfx_attribute->multiple; i++)
+            {
+                VkVertexInputAttributeDescription attribute{};
+                attribute.location = gfx_attribute->location + i;
+                // the format in buffer can be different from the format in shader,
+                // use the format in buffer to make sure type conversion can be done correctly by graphics api.
+                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
+                attribute.format = static_cast<VkFormat>(gfx_attribute->format);
+                attribute.binding = gfx_attribute->buffer;
+                attribute.offset = gfx_attribute->offset + (FormatInfos.at(static_cast<Format>(gfx_attribute->format)).bytes * i);
+                attributes.push_back(attribute);
+            }
         }
         vertexInputState.pVertexAttributeDescriptions = attributes.data();
         vertexInputState.vertexAttributeDescriptionCount = attributes.size();

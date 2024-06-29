@@ -45,7 +45,7 @@ export const hashLib = {
             const length = attributes.size();
             for (let i = 0; i < length; i++) {
                 const attribute = attributes.get(i);
-                key += `${attribute.name}${attribute.format}${attribute.buffer}${attribute.offset}${attribute.stride}${attribute.location}${attribute.instanced}`;
+                key += `${attribute.location}${attribute.format}${attribute.buffer}${attribute.offset}${attribute.stride}${attribute.instanced}`;
             }
             hash = murmurhash2_32_gc(key, 666);
             _attributes2hash.set(attributes, hash);
