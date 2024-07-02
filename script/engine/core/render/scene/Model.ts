@@ -1,7 +1,6 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayout } from "gfx";
+import { DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { shaderLib } from "../../shaderLib.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
@@ -13,7 +12,7 @@ enum ChangeBits {
 }
 
 export class Model {
-    static readonly descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([]);
+    static readonly descriptorSetLayout = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 
     private _bounds_invalidated = true;
     private _bounds = aabb3d.create();

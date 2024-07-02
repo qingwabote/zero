@@ -118,7 +118,7 @@ export class Effect extends Yml {
 
             const pass = render.Pass.Pass(passState, info.type);
             for (const key in info.props) {
-                pass.setProperty(key, info.props[key]);
+                pass.setProperty(info.props[key], pass.getPropertyOffset(key));
             }
             for (const key in info.textures) {
                 pass.setTexture(key, info.textures[key]);

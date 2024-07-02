@@ -1,20 +1,8 @@
 import { device } from "boot";
-import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, PassState, Sampler, Texture } from "gfx";
+import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, PassState, Sampler, Texture, glsl } from "gfx";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferView } from "../BufferView.js";
-
-function type2Length(type: string): number {
-    switch (type) {
-        case "vec4":
-            return 4;
-        case "mat4":
-            return 16;
-
-        default:
-            throw new Error(`unsupported uniform type: ${type}`);
-    }
-}
 
 export class Pass {
     static Pass(state: PassState, type = 'default') {
@@ -23,17 +11,8 @@ export class Pass {
         return pass;
     }
 
-    private _properties_dirty: Map<string, boolean> = new Map;
-    private _properties: Record<string, ArrayLike<number>> = {};
-    public get properties(): Readonly<Record<string, ArrayLike<number>>> {
-        return this._properties;
-    }
-
     private _samplerTextures_dirty: Map<string, boolean> = new Map;
     private _samplerTextures: Record<string, [Texture, Sampler]> = {};
-    public get samplerTextures(): Readonly<Record<string, [Texture, Sampler]>> {
-        return this._samplerTextures;
-    }
 
     readonly descriptorSetLayout: DescriptorSetLayout;
     readonly descriptorSet?: DescriptorSet;
@@ -52,7 +31,7 @@ export class Pass {
         if (this.descriptorSet) {
             const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
             if (block) {
-                const view = this.createUniformBuffer('Props');
+                const view = this.createUniformBuffer(block);
                 this.descriptorSet.bindBuffer(block.binding, view.buffer);
                 this._propsBuffer = view;
             }
@@ -65,18 +44,19 @@ export class Pass {
             return false;
         }
 
-        for (const mem of block.members!) {
-            if (mem.name == member) {
-                return true;
-            }
+        if (member in block.members!) {
+            return true;
         }
 
         return false;
     }
 
-    setProperty(member: string, value: ArrayLike<number>) {
-        this._properties[member] = value;
-        this._properties_dirty.set(member, true);
+    getPropertyOffset(name: string): number {
+        return shaderLib.getShaderMeta(this.state.shader!).blocks['Props']?.members![name]?.offset ?? -1;
+    }
+
+    setProperty(value: ArrayLike<number>, offset: number) {
+        this._propsBuffer!.set(value, offset);
     }
 
     setTexture(name: string, texture: Texture, sampler: Sampler = getSampler()): void {
@@ -86,11 +66,11 @@ export class Pass {
 
     instantiate() {
         const instance = Pass.Pass(this.state, this.type);
-        for (const name in this.samplerTextures) {
-            instance.setTexture(name, ...this.samplerTextures[name]);
+        for (const name in this._samplerTextures) {
+            instance.setTexture(name, ...this._samplerTextures[name]);
         }
-        for (const name in this.properties) {
-            instance.setProperty(name, this.properties[name])
+        if (this._propsBuffer) {
+            instance.setProperty(this._propsBuffer.source, 0);
         }
         return instance;
     }
@@ -103,24 +83,11 @@ export class Pass {
             }
             this._samplerTextures_dirty.clear();
 
-            if (this._propsBuffer && this._properties_dirty.size) {
-                const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
-                let offset = 0;
-                for (const mem of block.members!) {
-                    if (this._properties_dirty.get(mem.name)) {
-                        this._propsBuffer.set(this._properties[mem.name], offset);
-                    }
-                    offset += type2Length(mem.type);
-                }
-                this._propsBuffer.update();
-                this._properties_dirty.clear();
-            }
+            this._propsBuffer?.update();
         }
     }
 
-    protected createUniformBuffer(name: string): BufferView {
-        const block = shaderLib.getShaderMeta(this.state.shader!).blocks[name];
-        let length = block.members!.reduce((acc, mem) => acc + type2Length(mem.type), 0);
-        return new BufferView('Float32', BufferUsageFlagBits.UNIFORM, length);
+    protected createUniformBuffer(block: glsl.Uniform): BufferView {
+        return new BufferView('Float32', BufferUsageFlagBits.UNIFORM, block.size);
     }
 }

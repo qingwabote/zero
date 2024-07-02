@@ -1,8 +1,7 @@
 import { murmurhash2_32_gc } from "bastard";
-import type { PassState, RenderPassInfo, Shader, VertexAttributeVector } from "gfx";
+import type { PassState, RenderPassInfo, VertexAttributeVector } from "gfx";
 import { shaderLib } from "../shaderLib.js";
 
-const _shader2hash: WeakMap<Shader, number> = new WeakMap;
 const _pass2hash: WeakMap<PassState, number> = new WeakMap;
 const _attributes2hash: WeakMap<VertexAttributeVector, number> = new WeakMap;
 
@@ -10,15 +9,6 @@ let _renderPass_id = 0;
 const _renderPass2id: Map<RenderPassInfo, number> = new Map;
 
 export const hashLib = {
-    shader(shader: Shader): number {
-        let hash = _shader2hash.get(shader);
-        if (!hash) {
-            hash = murmurhash2_32_gc(shaderLib.getShaderMeta(shader).key, 666);
-            _shader2hash.set(shader, hash);
-        }
-        return hash;
-    },
-
     passState(pass: PassState): number {
         let hash = _pass2hash.get(pass);
         if (!hash) {

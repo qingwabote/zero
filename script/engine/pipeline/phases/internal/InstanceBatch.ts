@@ -1,4 +1,5 @@
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, PrimitiveTopology, RenderPass, VertexAttribute, VertexInput } from "gfx";
+import { device } from "boot";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, Format, InputAssembler, PrimitiveTopology, RenderPass, VertexAttribute, VertexInput } from "gfx";
 import { Zero } from "../../../core/Zero.js";
 import { Mat4 } from "../../../core/math/mat4.js";
 import { BufferView } from "../../../core/render/BufferView.js";
@@ -15,7 +16,7 @@ interface Local {
     readonly descriptorSet?: DescriptorSet,
 }
 
-const local_empty: Local = { descriptorSetLayout: shaderLib.descriptorSetLayout_empty }
+const local_empty: Local = { descriptorSetLayout: device.createDescriptorSetLayout(new DescriptorSetLayoutInfo) }
 
 export abstract class InstanceBatch {
     static subDraws = 1;

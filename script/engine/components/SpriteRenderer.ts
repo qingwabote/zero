@@ -47,8 +47,9 @@ export class SpriteRenderer extends BoundedRenderer {
         state.shader = this.shader;
         state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         const pass = Pass.Pass(state);
-        if (pass.hasProperty('albedo')) {
-            pass.setProperty('albedo', this.color);
+        const offset = pass.getPropertyOffset('albedo')
+        if (offset != -1) {
+            pass.setProperty(this.color, offset);
         }
         return new Model(this.node, this._spriteFrame.mesh, [new Material([pass])])
     }

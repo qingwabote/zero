@@ -38,7 +38,7 @@ const pass = await (async function () {
 
     const pass = Pass.Pass(state);
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
-    pass.setProperty('albedo', default_color);
+    pass.setProperty(default_color, pass.getPropertyOffset('albedo'));
     return pass;
 })()
 
@@ -77,7 +77,7 @@ export class TextRenderer extends BoundedRenderer {
         return this._color;
     }
     public set color(value: Readonly<Vec4>) {
-        this._pass.setProperty('albedo', value);
+        this._pass.setProperty(value, this._pass.getPropertyOffset('albedo'));
         this._color = value;
     }
 
