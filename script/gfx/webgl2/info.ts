@@ -99,6 +99,13 @@ export class VertexAttribute {
     instanced: boolean = false;
     multiple: number = 1;
 }
+export class VertexAttributeVector extends Vector<VertexAttribute> { };
+
+export class VertexInputState {
+    attributes = new VertexAttributeVector;
+    primitive = (0 as PrimitiveTopology);
+}
+
 export class BufferVector extends Vector<Buffer> { };
 export class VertexInput {
     buffers = new BufferVector;
@@ -108,9 +115,8 @@ export class IndexInput {
     buffer: Buffer | null = null;
     type: IndexType = 0;
 }
-export class VertexAttributeVector extends Vector<VertexAttribute> { };
 export class InputAssembler {
-    vertexAttributes = new VertexAttributeVector;
+    vertexInputState = new VertexInputState;
     vertexInput = new VertexInput;
     indexInput: IndexInput | null = null;
 }
@@ -132,15 +138,14 @@ export class BlendState {
 
 export class PassState {
     shader: Shader | null = null;
-    primitive: PrimitiveTopology = (0 as PrimitiveTopology);
     rasterizationState = new RasterizationState;
     depthStencilState: DepthStencilState | null = null;
     blendState: BlendState | null = null;
 }
 
 export class PipelineInfo implements PipelineInfo {
+    inputState: VertexInputState | null = null;
     passState: PassState | null = null;
-    attributes: VertexAttributeVector | null = null;
     layout: PipelineLayout | null = null;
     renderPass: RenderPass | null = null;
 }

@@ -74,7 +74,8 @@ export class GeometryRenderer extends BoundedRenderer {
         super(node);
 
         const ia = new InputAssembler;
-        ia.vertexAttributes = VERTEX_ATTRIBUTES;
+        ia.vertexInputState.attributes = VERTEX_ATTRIBUTES;
+        ia.vertexInputState.primitive = PrimitiveTopology.LINE_LIST;
         ia.vertexInput.buffers.add(this._buffer.buffer);
         ia.vertexInput.offsets.add(0);
 
@@ -91,7 +92,6 @@ export class GeometryRenderer extends BoundedRenderer {
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
         const state = new PassState;
         state.shader = shaderLib.getShader(ss_primitive);
-        state.primitive = PrimitiveTopology.LINE_LIST;
         state.depthStencilState = depthStencilState
         state.blendState = blendState;
         return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])])

@@ -48,7 +48,6 @@ const phaseFactory = (function () {
 
             const passState = new gfx.PassState;
             passState.shader = shader;
-            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -59,7 +58,6 @@ const phaseFactory = (function () {
 
             const passState = new gfx.PassState;
             passState.shader = shader;
-            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);
@@ -70,7 +68,6 @@ const phaseFactory = (function () {
 
             const passState = new gfx.PassState;
             passState.shader = shader;
-            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             passState.blendState = blendState;
 
             return new pipeline.PostPhase(context, passState, visibility);

@@ -151,7 +151,7 @@ export class CommandBuffer {
         const gl = this._gl;
 
         let mode: GLenum;
-        switch (this._pipeline.passState!.primitive) {
+        switch (this._inputAssembler.vertexInputState.primitive) {
             case PrimitiveTopology.LINE_LIST:
                 mode = gl.LINES;
                 break;
@@ -159,7 +159,7 @@ export class CommandBuffer {
                 mode = gl.TRIANGLES;
                 break;
             default:
-                throw `unsupported primitive: ${this._pipeline.passState!.primitive}`
+                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
         }
         gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
         gl.bindVertexArray(null);
@@ -217,7 +217,7 @@ export class CommandBuffer {
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = (inputAssembler.vertexAttributes as Vector<VertexAttribute>).data;
+            const attributes = (inputAssembler.vertexInputState.attributes as Vector<VertexAttribute>).data;
             for (const attribute of attributes) {
                 const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.buffer];
                 const bufferOffset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];

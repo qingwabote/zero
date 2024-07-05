@@ -34,12 +34,12 @@ export abstract class InstanceBatch {
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, this._local.descriptorSet);
         }
 
-        const pipeline = context.getPipeline(pass.state, this._inputAssembler.vertexAttributes, renderPass, [pass.descriptorSetLayout, this._local.descriptorSetLayout]);
+        const pipeline = context.getPipeline(pass.state, this._inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, this._local.descriptorSetLayout]);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.bindInputAssembler(this._inputAssembler);
 
         let alignment;
-        switch (pass.state.primitive) {
+        switch (this._inputAssembler.vertexInputState.primitive) {
             case PrimitiveTopology.LINE_LIST:
                 alignment = 2;
                 break;
@@ -47,7 +47,7 @@ export abstract class InstanceBatch {
                 alignment = 3;
                 break;
             default:
-                throw `unsupported primitive: ${pass.state.primitive}`
+                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
         }
 
         const subCount = Math.ceil(this._draw.count / InstanceBatch.subDraws / alignment) * alignment;
@@ -91,11 +91,12 @@ const inputAssembler_clone = (function () {
     return function (inputAssembler: InputAssembler): InputAssembler {
         const out = new InputAssembler;
 
-        const vertexAttributes = inputAssembler.vertexAttributes
+        const vertexAttributes = inputAssembler.vertexInputState.attributes;
         const size = vertexAttributes.size();
         for (let i = 0; i < size; i++) {
-            out.vertexAttributes.add(vertexAttributes.get(i));
+            out.vertexInputState.attributes.add(vertexAttributes.get(i));
         }
+        out.vertexInputState.primitive = inputAssembler.vertexInputState.primitive;
 
         vertexInput_clone(out.vertexInput, inputAssembler.vertexInput);
 
@@ -128,7 +129,7 @@ export namespace InstanceBatch {
             const subMesh = model.mesh.subMeshes[subIndex];
             const inputAssembler = inputAssembler_clone(subMesh.inputAssembler);
             const bufferIndex = inputAssembler.vertexInput.buffers.size();
-            inputAssembler.vertexAttributes.add(createModelAttribute(bufferIndex));
+            inputAssembler.vertexInputState.attributes.add(createModelAttribute(bufferIndex));
             inputAssembler.vertexInput.buffers.add(view.buffer);
             inputAssembler.vertexInput.offsets.add(0);
             super(inputAssembler, subMesh.draw, 1, model);
@@ -166,7 +167,7 @@ export namespace InstanceBatch {
             const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
             const ia = inputAssembler_clone(subMesh.inputAssembler);
             const bufferIndex = ia.vertexInput.buffers.size();
-            ia.vertexAttributes.add(createModelAttribute(bufferIndex));
+            ia.vertexInputState.attributes.add(createModelAttribute(bufferIndex));
             ia.vertexInput.buffers.add(view.buffer);
             ia.vertexInput.offsets.add(0);
             super(ia, subMesh.draw, 0);

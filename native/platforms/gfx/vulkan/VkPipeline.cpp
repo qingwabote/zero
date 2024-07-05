@@ -34,10 +34,6 @@ namespace gfx
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
 
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
-        inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(gfx_passState->primitive);
-        pipelineInfo.pInputAssemblyState = &inputAssemblyState;
-
         std::vector<VkDynamicState> dynamicStates{VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
         VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
         dynamicState.dynamicStateCount = dynamicStates.size();
@@ -116,7 +112,7 @@ namespace gfx
 
         // vertexInputState
         VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
-        auto &gfx_attributes = info->attributes;
+        auto &gfx_attributes = info->inputState->attributes;
         std::vector<VkVertexInputAttributeDescription> attributes;
         std::vector<VkVertexInputBindingDescription> bindings;
         for (auto &&gfx_attribute : *gfx_attributes)
@@ -177,6 +173,10 @@ namespace gfx
         vertexInputState.pVertexBindingDescriptions = bindings.data();
         vertexInputState.vertexBindingDescriptionCount = bindings.size();
         pipelineInfo.pVertexInputState = &vertexInputState;
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+        inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(info->inputState->primitive);
+        pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
         // renderPass
         auto &gfx_renderPass = info->renderPass;

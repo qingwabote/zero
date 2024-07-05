@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, MemoryUsage, VertexAttribute, VertexAttributeVector } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { shaderLib } from "../shaderLib.js";
 import { BufferView } from "./BufferView.js";
 
@@ -76,8 +76,9 @@ function createVertexBufferView() {
 }
 
 function createInputAssembler(vertexBuffer: Buffer) {
-    const ia = new InputAssembler
-    ia.vertexAttributes = vertexAttributes;
+    const ia = new InputAssembler;
+    ia.vertexInputState.attributes = vertexAttributes;
+    ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
     ia.vertexInput.buffers.add(vertexBuffer);
     ia.vertexInput.offsets.add(0);
     ia.indexInput = indexInput;

@@ -1,5 +1,5 @@
 import { bundle } from "bundling";
-import { Filter, PassState, PrimitiveTopology } from "gfx";
+import { Filter, PassState } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
@@ -45,7 +45,6 @@ export class SpriteRenderer extends BoundedRenderer {
         }
         const state = new PassState;
         state.shader = this.shader;
-        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
         const pass = Pass.Pass(state);
         const offset = pass.getPropertyOffset('albedo')
         if (offset != -1) {

@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, SubmitInfo, VertexAttribute } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, SubmitInfo, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
@@ -285,10 +285,11 @@ export class GLTF implements Asset {
                 attribute.buffer = ia.vertexInput.buffers.size();
                 attribute.offset = 0;
                 attribute.stride = this._json.bufferViews[accessor.bufferView].byteStride || 0;
-                ia.vertexAttributes.add(attribute);
+                ia.vertexInputState.attributes.add(attribute)
                 ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 ia.vertexInput.offsets.add(accessor.byteOffset || 0);
             }
+            ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
 
             const indexAccessor = this._json.accessors[primitive.indices];
             const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);

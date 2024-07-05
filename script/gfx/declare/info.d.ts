@@ -105,6 +105,11 @@ export declare class VertexAttribute {
 }
 export class VertexAttributeVector extends Vector<VertexAttribute> { };
 
+export declare class VertexInputState {
+    attributes: VertexAttributeVector;
+    primitive: PrimitiveTopology;
+}
+
 export class BufferVector extends Vector<Buffer> { };
 export declare class VertexInput {
     buffers: BufferVector;
@@ -118,7 +123,7 @@ export declare class IndexInput {
 }
 /** InputAssembler is an immutable object, it correspond to a vao in WebGL. */
 export declare class InputAssembler {
-    vertexAttributes: VertexAttributeVector;
+    vertexInputState: VertexInputState;
     vertexInput: VertexInput;
     indexInput: IndexInput | null;
 }
@@ -142,15 +147,14 @@ export declare class BlendState {
 
 export declare class PassState {
     shader: Shader | null;
-    primitive: PrimitiveTopology;
     rasterizationState: RasterizationState;
     depthStencilState: DepthStencilState | null;
     blendState: BlendState | null;
 }
 
 export declare class PipelineInfo {
+    inputState: VertexInputState | null;
     passState: PassState | null;
-    attributes: VertexAttributeVector | null;
     layout: PipelineLayout | null;
     renderPass: RenderPass | null;
 }

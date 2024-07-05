@@ -1,9 +1,9 @@
 import { murmurhash2_32_gc } from "bastard";
-import type { PassState, RenderPassInfo, VertexAttributeVector } from "gfx";
+import type { PassState, RenderPassInfo, VertexInputState } from "gfx";
 import { shaderLib } from "../shaderLib.js";
 
 const _pass2hash: WeakMap<PassState, number> = new WeakMap;
-const _attributes2hash: WeakMap<VertexAttributeVector, number> = new WeakMap;
+const _inputState2hash: WeakMap<VertexInputState, number> = new WeakMap;
 
 let _renderPass_id = 0;
 const _renderPass2id: Map<RenderPassInfo, number> = new Map;
@@ -14,7 +14,6 @@ export const hashLib = {
         if (!hash) {
             let key = "";
             key += `${shaderLib.getShaderMeta(pass.shader!).key}`;
-            key += `${pass.primitive}`;
             key += `${pass.rasterizationState.cullMode}`;
             if (pass.depthStencilState) {
                 key += `${pass.depthStencilState.depthTestEnable}`;
@@ -28,17 +27,18 @@ export const hashLib = {
         return hash;
     },
 
-    attributes(attributes: VertexAttributeVector): number {
-        let hash = _attributes2hash.get(attributes);
+    inputState(inputState: VertexInputState): number {
+        let hash = _inputState2hash.get(inputState);
         if (!hash) {
-            let key = '';
+            let key = `${inputState.primitive}`;
+            const attributes = inputState.attributes;
             const length = attributes.size();
             for (let i = 0; i < length; i++) {
                 const attribute = attributes.get(i);
                 key += `${attribute.location}${attribute.format}${attribute.buffer}${attribute.offset}${attribute.stride}${attribute.instanced}`;
             }
             hash = murmurhash2_32_gc(key, 666);
-            _attributes2hash.set(attributes, hash);
+            _inputState2hash.set(inputState, hash);
         }
         return hash;
     },

@@ -46,7 +46,6 @@ interface Pass {
     shader?: string;
     macros?: Record<string, number>;
     props?: Record<string, ArrayLike<number>>;
-    primitive?: keyof typeof gfx.PrimitiveTopology;
     rasterizationState?: RasterizationState;
     depthStencilState?: DepthStencilState;
     blendState?: BlendState;
@@ -81,16 +80,6 @@ export class Effect extends Yml {
 
             const passState = new gfx.PassState;
             passState.shader = shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader!)), Shader), mac);
-
-            if (info.primitive) {
-                if (info.primitive in gfx.PrimitiveTopology) {
-                    passState.primitive = gfx.PrimitiveTopology[info.primitive];
-                } else {
-                    throw `unsupported primitive: ${info.primitive}`;
-                }
-            } else {
-                passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            }
 
             if (info.rasterizationState?.cullMode) {
                 if (info.rasterizationState?.cullMode in gfx.CullMode) {
