@@ -1,8 +1,15 @@
 import { device } from "boot";
-import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, PassState, Sampler, Texture, glsl } from "gfx";
+import { BlendState, BufferUsageFlagBits, DepthStencilState, DescriptorSet, DescriptorSetLayout, RasterizationState, Sampler, Shader, Texture, glsl } from "gfx";
 import { getSampler } from "../../sc.js";
 import { shaderLib } from "../../shaderLib.js";
 import { BufferView } from "../BufferView.js";
+
+interface PassState {
+    readonly shader: Shader;
+    readonly rasterizationState?: RasterizationState;
+    readonly depthStencilState?: DepthStencilState;
+    readonly blendState?: BlendState
+}
 
 export class Pass {
     static Pass(state: PassState, type = 'default') {
@@ -20,7 +27,7 @@ export class Pass {
     private _propsBuffer?: BufferView;
 
     protected constructor(readonly state: PassState, readonly type: string) {
-        const descriptorSetLayout = shaderLib.getDescriptorSetLayout(state.shader!, shaderLib.sets.material.index);
+        const descriptorSetLayout = shaderLib.getDescriptorSetLayout(state.shader, shaderLib.sets.material.index);
         if (descriptorSetLayout.info.bindings.size()) {
             this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
         }
@@ -29,7 +36,7 @@ export class Pass {
 
     protected initialize() {
         if (this.descriptorSet) {
-            const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
+            const block = shaderLib.getShaderMeta(this.state.shader).blocks['Props'];
             if (block) {
                 const view = this.createUniformBuffer(block);
                 this.descriptorSet.bindBuffer(block.binding, view.buffer);
@@ -39,7 +46,7 @@ export class Pass {
     }
 
     hasProperty(member: string): boolean {
-        const block = shaderLib.getShaderMeta(this.state.shader!).blocks['Props'];
+        const block = shaderLib.getShaderMeta(this.state.shader).blocks['Props'];
         if (!block) {
             return false;
         }
@@ -52,7 +59,7 @@ export class Pass {
     }
 
     getPropertyOffset(name: string): number {
-        return shaderLib.getShaderMeta(this.state.shader!).blocks['Props']?.members![name]?.offset ?? -1;
+        return shaderLib.getShaderMeta(this.state.shader).blocks['Props']?.members![name]?.offset ?? -1;
     }
 
     setProperty(value: ArrayLike<number>, offset: number) {
@@ -78,7 +85,7 @@ export class Pass {
     upload() {
         if (this.descriptorSet) {
             for (const name of this._samplerTextures_dirty.keys()) {
-                const binding = shaderLib.getShaderMeta(this.state.shader!).samplerTextures[name].binding;
+                const binding = shaderLib.getShaderMeta(this.state.shader).samplerTextures[name].binding;
                 this.descriptorSet.bindTexture(binding, ...this._samplerTextures[name]);
             }
             this._samplerTextures_dirty.clear();
@@ -90,4 +97,8 @@ export class Pass {
     protected createUniformBuffer(block: glsl.Uniform): BufferView {
         return new BufferView('Float32', BufferUsageFlagBits.UNIFORM, block.size);
     }
+}
+
+export declare namespace Pass {
+    export { PassState as State }
 }

@@ -1,7 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, PassState } from "gfx";
+import { BlendFactor, BlendState } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
@@ -31,11 +31,7 @@ const pass = await (async function () {
     blendState.srcAlpha = BlendFactor.ONE;
     blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
 
-    const state = new PassState;
-    state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
-    state.blendState = blendState;
-
-    const pass = Pass.Pass(state);
+    const pass = Pass.Pass({ shader: shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 }), blendState });
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
     pass.setProperty(default_color, pass.getPropertyOffset('albedo'));
     return pass;

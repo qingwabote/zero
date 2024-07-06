@@ -125,6 +125,8 @@ export class ModelPhase extends Phase {
                 for (const batch of batches) {
                     batch.record(profile, commandBuffer, renderPass, this._context, pass);
                 }
+
+                profile.passes++;
             }
         } else {
             models = [...models].sort(modelCompareFn);
@@ -163,6 +165,8 @@ export class ModelPhase extends Phase {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                     }
                     current_pass = pass;
+
+                    profile.passes++;
                 }
 
                 batches[i].record(profile, commandBuffer, renderPass, this._context, pass);

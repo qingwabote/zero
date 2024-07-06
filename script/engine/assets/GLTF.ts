@@ -60,7 +60,7 @@ interface MaterialParams {
 
 type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<Effect.PassOverridden>[]];
 
-const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
+const materialFuncPhong: MaterialFunc = function (params: MaterialParams): [string, readonly Readonly<Effect.PassOverridden>[]] {
     return [
         bundle.resolve("./effects/phong"),
         [
@@ -76,7 +76,7 @@ const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
                 ...params.texture &&
                 {
                     textures: {
-                        'albedoMap': params.texture.impl
+                        'albedoMap': params.texture
                     }
                 }
             }
@@ -379,7 +379,7 @@ export class GLTF implements Asset {
 
     private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
         const effect = await cache(effectUrl, Effect)
-        const passes = await effect.createPasses(passOverriddens, macros);
+        const passes = await effect.getPasses(passOverriddens, macros);
         return new Material(passes);
     }
 }

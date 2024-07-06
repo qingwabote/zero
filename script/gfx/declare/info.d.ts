@@ -145,16 +145,14 @@ export declare class BlendState {
     dstAlpha: BlendFactor;
 }
 
-export declare class PassState {
-    shader: Shader | null;
-    rasterizationState: RasterizationState;
-    depthStencilState: DepthStencilState | null;
-    blendState: BlendState | null;
-}
-
 export declare class PipelineInfo {
     inputState: VertexInputState | null;
-    passState: PassState | null;
+
+    shader: Shader | null;
+    rasterizationState: RasterizationState | null;
+    depthStencilState: DepthStencilState | null;
+    blendState: BlendState | null;
+
     layout: PipelineLayout | null;
     renderPass: RenderPass | null;
 }

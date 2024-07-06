@@ -1,5 +1,5 @@
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, DepthStencilState, Format, FormatInfos, InputAssembler, PassState, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, DepthStencilState, Format, FormatInfos, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
@@ -90,11 +90,7 @@ export class GeometryRenderer extends BoundedRenderer {
         blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
         blendState.srcAlpha = BlendFactor.ONE;
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
-        const state = new PassState;
-        state.shader = shaderLib.getShader(ss_primitive);
-        state.depthStencilState = depthStencilState
-        state.blendState = blendState;
-        return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])])
+        return new Model(this.node, this._mesh, [new Material([Pass.Pass({ shader: shaderLib.getShader(ss_primitive), depthStencilState, blendState })])])
     }
 
     drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color = vec4.ONE) {

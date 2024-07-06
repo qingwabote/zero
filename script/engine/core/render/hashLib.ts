@@ -1,26 +1,38 @@
 import { murmurhash2_32_gc } from "bastard";
-import type { PassState, RenderPassInfo, VertexInputState } from "gfx";
+import type { RenderPassInfo, VertexInputState } from "gfx";
 import { shaderLib } from "../shaderLib.js";
+import { Pass } from "./scene/Pass.js";
 
-const _pass2hash: WeakMap<PassState, number> = new WeakMap;
+const _pass2hash: WeakMap<Pass.State, number> = new WeakMap;
 const _inputState2hash: WeakMap<VertexInputState, number> = new WeakMap;
 
 let _renderPass_id = 0;
 const _renderPass2id: Map<RenderPassInfo, number> = new Map;
 
 export const hashLib = {
-    passState(pass: PassState): number {
+    passState(pass: Pass.State): number {
         let hash = _pass2hash.get(pass);
         if (!hash) {
-            let key = "";
-            key += `${shaderLib.getShaderMeta(pass.shader!).key}`;
-            key += `${pass.rasterizationState.cullMode}`;
+            let key = `${shaderLib.getShaderMeta(pass.shader!).key}`;
+
+            if (pass.rasterizationState) {
+                key += `${pass.rasterizationState.cullMode}`;
+            } else {
+                key += ' '
+            }
+
             if (pass.depthStencilState) {
                 key += `${pass.depthStencilState.depthTestEnable}`;
+            } else {
+                key += ' '
             }
+
             if (pass.blendState) {
                 key += `${pass.blendState.srcRGB}${pass.blendState.dstRGB}${pass.blendState.srcAlpha}${pass.blendState.dstAlpha}`;
+            } else {
+                key += ' '
             }
+
             hash = murmurhash2_32_gc(key, 666);
             _pass2hash.set(pass, hash);
         }

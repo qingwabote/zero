@@ -284,18 +284,15 @@ namespace gfx
         BlendFactor dstAlpha;
     };
 
-    struct PassState
-    {
-        std::shared_ptr<Shader> shader;
-        std::shared_ptr<RasterizationState> rasterizationState{new RasterizationState()};
-        std::shared_ptr<DepthStencilState> depthStencilState;
-        std::shared_ptr<BlendState> blendState;
-    };
-
     struct PipelineInfo
     {
         std::shared_ptr<VertexInputState> inputState;
-        std::shared_ptr<PassState> passState;
+
+        std::shared_ptr<Shader> shader;
+        std::shared_ptr<RasterizationState> rasterizationState;
+        std::shared_ptr<DepthStencilState> depthStencilState;
+        std::shared_ptr<BlendState> blendState;
+
         std::shared_ptr<PipelineLayout> layout;
         std::shared_ptr<RenderPass> renderPass;
     };

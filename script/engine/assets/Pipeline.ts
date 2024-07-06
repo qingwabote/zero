@@ -45,32 +45,17 @@ const phaseFactory = (function () {
         fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-
-            const passState = new gfx.PassState;
-            passState.shader = shader;
-            passState.blendState = blendState;
-
-            return new pipeline.PostPhase(context, passState, visibility);
+            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
         },
         outline: async function (info: OutlinePhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/outline', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-
-            const passState = new gfx.PassState;
-            passState.shader = shader;
-            passState.blendState = blendState;
-
-            return new pipeline.PostPhase(context, passState, visibility);
+            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
         },
         copy: async function (info: CopyPhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/copy', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-
-            const passState = new gfx.PassState;
-            passState.shader = shader;
-            passState.blendState = blendState;
-
-            return new pipeline.PostPhase(context, passState, visibility);
+            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
         },
     } as const;
 })()

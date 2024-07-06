@@ -21,7 +21,7 @@ const materialFunc: GLTF.MaterialFunc = function (params: GLTF.MaterialParams): 
         ...params.texture &&
         {
             textures: {
-                'albedoMap': params.texture.impl
+                'albedoMap': params.texture
             }
         }
     }

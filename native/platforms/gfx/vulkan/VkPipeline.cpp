@@ -26,11 +26,7 @@ namespace gfx
     {
         VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
 
-        // passState
-        auto &gfx_passState = info->passState;
-
-        auto &gfx_shader = gfx_passState->shader;
-        auto &stageInfos = gfx_shader->impl()->stages;
+        auto &stageInfos = info->shader->impl()->stages;
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
 
@@ -66,7 +62,7 @@ namespace gfx
             }
         }
 
-        auto &gfx_rasterizationState = gfx_passState->rasterizationState;
+        auto &gfx_rasterizationState = info->rasterizationState;
         VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
         rasterizationState.rasterizerDiscardEnable = VK_FALSE;
         rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
@@ -79,7 +75,7 @@ namespace gfx
         rasterizationState.lineWidth = 1;
         pipelineInfo.pRasterizationState = &rasterizationState;
 
-        auto &gfx_depthStencilState = gfx_passState->depthStencilState;
+        auto &gfx_depthStencilState = info->depthStencilState;
         VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
         if (gfx_depthStencilState)
         {
@@ -89,7 +85,7 @@ namespace gfx
         }
         pipelineInfo.pDepthStencilState = &depthStencilState;
 
-        auto &gfx_blendState = gfx_passState->blendState;
+        auto &gfx_blendState = info->blendState;
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -117,7 +113,7 @@ namespace gfx
         std::vector<VkVertexInputBindingDescription> bindings;
         for (auto &&gfx_attribute : *gfx_attributes)
         {
-            auto &attributesConsumed = gfx_shader->impl()->attributeLocations;
+            auto &attributesConsumed = info->shader->impl()->attributeLocations;
             if (attributesConsumed.find(gfx_attribute->location) == attributesConsumed.end())
             {
                 // avoid warning "Vertex attribute not consumed by vertex shader"

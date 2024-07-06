@@ -1,5 +1,5 @@
 import { bundle } from "bundling";
-import { Filter, PassState } from "gfx";
+import { Filter } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
@@ -43,9 +43,7 @@ export class SpriteRenderer extends BoundedRenderer {
         if (!this._spriteFrame) {
             return null;
         }
-        const state = new PassState;
-        state.shader = this.shader;
-        const pass = Pass.Pass(state);
+        const pass = Pass.Pass({ shader: this.shader });
         const offset = pass.getPropertyOffset('albedo')
         if (offset != -1) {
             pass.setProperty(this.color, offset);
