@@ -1,10 +1,10 @@
 import { CommandBuffer, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { Pass } from "../../core/render/index.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
+import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { InstanceBatch } from "./internal/InstanceBatch.js";

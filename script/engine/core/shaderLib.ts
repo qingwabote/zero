@@ -83,8 +83,7 @@ export const shaderLib = {
         return device.createDescriptorSetLayout(info);
     },
 
-    getDescriptorSetLayout(shader: Shader, set: number): DescriptorSetLayout {
-        const meta = _shader2meta.get(shader)!;
+    getDescriptorSetLayout(meta: Meta, set: number): DescriptorSetLayout {
         const key = `${set}:${meta.key}`;
         if (key in _shader2descriptorSetLayout) {
             return _shader2descriptorSetLayout[key];

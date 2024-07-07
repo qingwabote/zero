@@ -1,7 +1,7 @@
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
-import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
+import { Material } from "../scene/Material.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 
 export class MeshRenderer extends BoundedRenderer {
@@ -13,7 +13,7 @@ export class MeshRenderer extends BoundedRenderer {
         this._mesh = value;
     }
 
-    private _materials: readonly Material[] | null = null;
+    private _materials: Material[] | null = null;
     public get materials() {
         return this._materials;
     }

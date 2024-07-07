@@ -10,12 +10,12 @@ import { AABB3D } from "../core/math/aabb3d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { BufferView, Material, Mesh } from "../core/render/index.js";
+import { BufferView, Mesh } from "../core/render/index.js";
 import { quad } from "../core/render/quad.js";
 import { Model } from "../core/render/scene/Model.js";
-import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { Pass } from "../scene/Pass.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
@@ -31,7 +31,7 @@ const pass = await (async function () {
     blendState.srcAlpha = BlendFactor.ONE;
     blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
 
-    const pass = Pass.Pass({ shader: shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 }), blendState });
+    const pass = new Pass({ shader: shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 }), blendState });
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
     pass.setProperty(default_color, pass.getPropertyOffset('albedo'));
     return pass;
@@ -53,7 +53,7 @@ const vec3_b = vec3.create();
 export class TextRenderer extends BoundedRenderer {
     private _dirties: DirtyFlagBits = DirtyFlagBits.TEXT;
 
-    private _pass = pass.instantiate()
+    private _pass = pass.copy()
 
     private _text: string = "";
     get text(): string {
@@ -109,7 +109,9 @@ export class TextRenderer extends BoundedRenderer {
     }
 
     protected createModel(): Model | null {
-        return new Model(this.node, this._mesh, [new Material([this._pass])])
+        return new Model(this.node, this._mesh, [
+            { passes: [this._pass] }
+        ])
     }
 
     override lateUpdate(): void {

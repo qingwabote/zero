@@ -10,11 +10,11 @@ import { Node } from "../core/Node.js";
 import { Mat4Like } from "../core/math/mat4.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { AnimationClip } from "../marionette/AnimationClip.js";
+import { Material } from "../scene/Material.js";
 import { Effect } from "./Effect.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
@@ -380,26 +380,26 @@ export class GLTF implements Asset {
     private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
         const effect = await cache(effectUrl, Effect)
         const passes = await effect.getPasses(passOverriddens, macros);
-        return new Material(passes);
+        return { passes };
     }
 }
 
 class Instance {
     constructor(readonly proto: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
 
-    createScene(name?: string, materialInstancing = false): Node | null {
+    createScene(name?: string): Node | null {
         const scene = name ? (this.proto.json.scenes as any[]).find(scene => scene.name == name) : this.proto.json.scenes[0];
         if (!scene) {
             return null;
         }
         const node = new Node(name);
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(index, materialInstancing, node))
+            node.addChild(this.createNode(index, node))
         }
         return node;
     }
 
-    private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
+    private createNode(index: number, root?: Node): Node {
         const info = this.proto.json.nodes[index];
         const node = new Node(node2name(info, index));
         if (!root) {
@@ -420,18 +420,18 @@ class Instance {
         }
 
         if (info.mesh != undefined) {
-            this.addMeshRenderer(root, node, info, materialInstancing);
+            this.addMeshRenderer(root, node, info);
         }
 
         if (info.children) {
             for (const idx of info.children) {
-                node.addChild(this.createNode(idx, materialInstancing, root));
+                node.addChild(this.createNode(idx, root));
             }
         }
         return node;
     }
 
-    private addMeshRenderer(root: Node, node: Node, info: any, materialInstancing: boolean) {
+    private addMeshRenderer(root: Node, node: Node, info: any) {
         let renderer: MeshRenderer;
         if (info.skin != undefined) {
             const rdr = node.addComponent(SkinnedMeshRenderer);
@@ -442,10 +442,10 @@ class Instance {
             renderer = node.addComponent(MeshRenderer);
         }
         renderer.mesh = this.proto.getMesh(info.mesh)
-        renderer.materials = this.getMaterials(info.mesh, materialInstancing);
+        renderer.materials = this.getMaterials(info.mesh);
     }
 
-    private getMaterials(meshIndex: number, instancing: boolean) {
+    private getMaterials(meshIndex: number) {
         const materials: Material[] = [];
         for (const primitive of this.proto.json.meshes[meshIndex].primitives) {
             const material = primitive.material == undefined ? this._materialDefault : this._materials[primitive.material];
@@ -456,7 +456,7 @@ class Instance {
                 console.log("not provided attribute: TEXCOORD_0")
                 continue;
             }
-            materials.push(instancing ? material.instantiate() : material);
+            materials.push(material);
         }
         return materials;
     }

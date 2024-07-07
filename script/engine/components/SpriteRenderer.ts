@@ -4,11 +4,10 @@ import { Shader } from "../assets/Shader.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { Material } from "../core/render/scene/Material.js";
 import { Model } from "../core/render/scene/Model.js";
-import { Pass } from "../core/render/scene/Pass.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { Pass } from "../scene/Pass.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
@@ -43,18 +42,20 @@ export class SpriteRenderer extends BoundedRenderer {
         if (!this._spriteFrame) {
             return null;
         }
-        const pass = Pass.Pass({ shader: this.shader });
+        const pass = new Pass({ shader: this.shader });
         const offset = pass.getPropertyOffset('albedo')
         if (offset != -1) {
             pass.setProperty(this.color, offset);
         }
-        return new Model(this.node, this._spriteFrame.mesh, [new Material([pass])])
+        return new Model(this.node, this._spriteFrame.mesh, [
+            { passes: [pass] }
+        ])
     }
 
     update(dt: number): void {
         super.update(dt);
         if (this._spriteFrame_invalidated) {
-            this._model?.materials[0].passes[0].setTexture('albedoMap', this._spriteFrame!.texture, getSampler(this.filter, this.filter))
+            (this._model?.materials[0].passes[0] as Pass).setTexture('albedoMap', this._spriteFrame!.texture, getSampler(this.filter, this.filter))
             this._spriteFrame_invalidated = false;
         }
     }

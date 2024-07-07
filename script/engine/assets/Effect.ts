@@ -2,8 +2,8 @@ import { cache } from "assets";
 import { empty, murmurhash2_32_gc } from "bastard";
 import * as gfx from "gfx";
 import { hashLib } from "../core/render/hashLib.js";
-import * as render from "../core/render/index.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { Pass as _Pass } from "../scene/Pass.js";
 import { Yml } from "./internal/Yml.js";
 import { Shader } from "./Shader.js";
 import { Texture } from "./Texture.js";
@@ -74,9 +74,9 @@ function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
 }
 
 const getPass = (function () {
-    const cache: Record<number, render.Pass> = {};
+    const cache: Record<number, _Pass> = {};
 
-    return function (state: render.Pass.State, props: PropRecord = empty.obj, textures: TextureRecord = empty.obj, type?: string) {
+    return function (state: _Pass.State, props: PropRecord = empty.obj, textures: TextureRecord = empty.obj, type?: string) {
         let key = `${type}`;
         for (const name in props) {
             key += name;
@@ -93,7 +93,7 @@ const getPass = (function () {
 
         let pass = cache[passHash];
         if (!pass) {
-            pass = render.Pass.Pass(state, type);
+            pass = new _Pass(state, type);
             for (const name in props) {
                 pass.setProperty(props[name], pass.getPropertyOffset(name));
             }
@@ -115,15 +115,15 @@ export class Effect extends Yml {
         this._passes = res.passes;
     }
 
-    async getPasses(overrides: readonly Readonly<PassOverridden>[], macros: MacroRecord = empty.obj): Promise<render.Pass[]> {
-        const passes: render.Pass[] = [];
+    async getPasses(overrides: readonly Readonly<PassOverridden>[], macros: MacroRecord = empty.obj): Promise<_Pass[]> {
+        const passes: _Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
             const info = merge({}, this._passes[i], overrides[i], { macros });
             if (info.switch && info.macros[info.switch] != 1) {
                 continue;
             }
 
-            const state: render.Pass.State = {
+            const state: _Pass.State = {
                 shader: shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader!)), Shader), info.macros),
                 rasterizationState: (function () {
                     const rasterization = new gfx.RasterizationState;
