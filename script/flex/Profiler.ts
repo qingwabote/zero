@@ -99,7 +99,7 @@ render ${this._render_time.toFixed(2)}ms
  model ${this._model_time.toFixed(2)}ms
  cull  ${this._cull_time.toFixed(2)}ms
  pass  ${Zero.instance.profile.passes}
- draws ${Zero.instance.profile.draws}
+ draw  ${Zero.instance.profile.draws}
 boot   ${boot_time.toFixed(2)}s`;
     }
 }

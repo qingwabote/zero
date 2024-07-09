@@ -238,7 +238,7 @@ export class GLTF implements Asset {
         let instance = this._instances[instanceKey];
         if (!instance) {
             const materialDefault = await this.materialLoad(...materialFunc({ albedo: vec4.ONE, skin: false }), macros);
-            const materials: Material[] = []
+            const materials: Material.Readonly[] = []
             for (const info of this._json.materials || []) {
                 let textureIdx = -1;
                 if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
@@ -385,7 +385,7 @@ export class GLTF implements Asset {
 }
 
 class Instance {
-    constructor(readonly proto: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
+    constructor(readonly proto: GLTF, private readonly _materials: Material.Readonly[], private readonly _materialDefault: Material) { }
 
     createScene(name?: string): Node | null {
         const scene = name ? (this.proto.json.scenes as any[]).find(scene => scene.name == name) : this.proto.json.scenes[0];
@@ -456,7 +456,7 @@ class Instance {
                 console.log("not provided attribute: TEXCOORD_0")
                 continue;
             }
-            materials.push(material);
+            materials.push({ passes: [...material.passes] });
         }
         return materials;
     }

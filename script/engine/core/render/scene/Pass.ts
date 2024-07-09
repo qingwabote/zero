@@ -2,9 +2,9 @@ import { BlendState, DepthStencilState, DescriptorSet, DescriptorSetLayout, Rast
 
 interface State {
     readonly shader: Shader;
-    readonly rasterizationState?: RasterizationState;
-    readonly depthStencilState?: DepthStencilState;
-    readonly blendState?: BlendState
+    readonly rasterizationState?: RasterizationState | undefined;
+    readonly depthStencilState?: DepthStencilState | undefined;
+    readonly blendState?: BlendState | undefined
 }
 
 export interface Pass {

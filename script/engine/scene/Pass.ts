@@ -23,9 +23,7 @@ export class Pass implements _Pass {
 
     private _textures_dirty: Map<string, boolean> = new Map;
     private _textures: Map<string, [Texture, Sampler]> = new Map;
-    get textures(): ReadonlyMap<string, [Texture, Sampler]> {
-        return this._textures;
-    }
+
     constructor(readonly state: _Pass.State, readonly type: string = 'default', source?: { props: BufferView | undefined, textures: ReadonlyMap<string, [Texture, Sampler]> | undefined }) {
         const meta = shaderLib.getShaderMeta(state.shader);
         this.descriptorSetLayout = shaderLib.getDescriptorSetLayout(meta, shaderLib.sets.material.index);
@@ -50,11 +48,15 @@ export class Pass implements _Pass {
         }
     }
 
+    setPropertyByName(name: string, value: ArrayLike<number>): Pass {
+        return this.setProperty(value, this.getPropertyOffset(name));
+    }
+
     getPropertyOffset(name: string): number {
         return shaderLib.getShaderMeta(this.state.shader).blocks['Props']?.members![name]?.offset ?? -1;
     }
 
-    setProperty(value: ArrayLike<number>, offset: number) {
+    setProperty(value: ArrayLike<number>, offset: number): Pass {
         if (this._props_state & PropsStateBit.EXTERNAL) {
             const props = new BufferView('Float32', BufferUsageFlagBits.UNIFORM, shaderLib.getShaderMeta(this.state.shader).blocks['Props'].size);
             props.set(this._props!.source);
@@ -62,11 +64,15 @@ export class Pass implements _Pass {
             this._props_state &= ~PropsStateBit.EXTERNAL
         }
         this._props!.set(value, offset);
+
+        return this;
     }
 
-    setTexture(name: string, texture: Texture, sampler: Sampler = getSampler()): void {
+    setTexture(name: string, texture: Texture, sampler: Sampler = getSampler()): Pass {
         this._textures.set(name, [texture, sampler]);
         this._textures_dirty.set(name, true);
+
+        return this;
     }
 
     upload() {
