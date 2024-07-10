@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { PipelineInfo, PipelineLayoutInfo } from "gfx";
+import { PipelineInfo, PipelineLayoutInfo, RasterizationState } from "gfx";
 import { hashLib } from "../hashLib.js";
 export class Context {
     constructor(_descriptorSetLayout) {
@@ -11,13 +11,20 @@ export class Context {
     /**
      * @param renderPass a compatible renderPass
      */
-    getPipeline(passState, attributes, renderPass, layouts) {
-        const pipelineHash = hashLib.passState(passState) ^ hashLib.attributes(attributes) ^ hashLib.renderPass(renderPass.info);
+    getPipeline(passState, inputState, renderPass, layouts) {
+        const pipelineHash = hashLib.passState(passState) ^ hashLib.inputState(inputState) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             const info = new PipelineInfo();
-            info.passState = passState;
-            info.attributes = attributes;
+            info.inputState = inputState;
+            info.shader = passState.shader;
+            info.rasterizationState = passState.rasterizationState || new RasterizationState;
+            if (passState.depthStencilState) {
+                info.depthStencilState = passState.depthStencilState;
+            }
+            if (passState.blendState) {
+                info.blendState = passState.blendState;
+            }
             info.renderPass = renderPass;
             info.layout = this.getPipelineLayout(passState.shader, layouts);
             pipeline = device.createPipeline(info);

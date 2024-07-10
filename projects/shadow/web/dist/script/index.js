@@ -16,7 +16,7 @@ const materialFunc = function (params) {
         } }, params.texture &&
         {
             textures: {
-                'albedoMap': params.texture.impl
+                'albedoMap': params.texture
             }
         });
     return [
@@ -84,13 +84,12 @@ export class App extends Zero {
         const vec3_6in10 = Object.freeze(vec3.create(0.6, 0.6, 0.6));
         const debugDraw = () => {
             debugDrawer.clear();
-            const shadow = this.pipeline.data.shadow;
-            const cameraIndex = shadow.visibleCameras[0];
-            const cascades = shadow.cascades.get(cameraIndex);
+            const cameras = this.scene.cameras;
+            const cascades = this.pipeline.data.shadow.getCascades(cameras[0]);
             const bounds_color = vec4.create(...vec4.YELLOW);
             const frusta_color = vec4.create(...vec4.ONE);
-            for (let i = 0; i < shadow.cascadeNum; i++) {
-                debugDrawer.drawFrustum(cascades.bounds[i].vertices, bounds_color);
+            for (let i = 0; i < cascades.num; i++) {
+                debugDrawer.drawFrustum(cascades.boundaries[i].vertices, bounds_color);
                 debugDrawer.drawFrustum(cascades.frusta[i].vertices, frusta_color);
                 vec3.multiply(bounds_color, bounds_color, vec3_6in10);
                 vec3.multiply(frusta_color, frusta_color, vec3_6in10);
@@ -105,7 +104,6 @@ export class App extends Zero {
             //         debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
             //     }
             // }
-            debugDrawer.lateUpdate();
         };
         csm_off_instance.data.on(render.Data.Event.UPDATE, debugDraw);
         csm_on_instance.data.on(render.Data.Event.UPDATE, debugDraw);

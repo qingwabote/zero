@@ -7,88 +7,70 @@ export class Profiler extends ElementContainer {
     constructor(node) {
         super(node);
         this._time = 0;
-        this._frames = 0;
+        this._frames = 1;
         this._fps = 0;
         this._logic_time = 0;
         this._render_time = 0;
         this._model_time = 0;
         this._cull_time = 0;
+        this._halt_time = 0;
         const text = Renderer.create(TextRenderer);
         this.addElement(text);
         this._text = text;
-        this.profileLogic();
-        this.profileRender();
+        let logic_start = 0;
+        let logic_delta = 0;
+        let cull_start = 0;
+        let cull_delta = 0;
+        let model_start = 0;
+        let model_delta = 0;
+        let render_start = 0;
+        let render_delta = 0;
+        let halt_start = 0;
+        let halt_delta = 0;
+        Zero.instance.on(Zero.Event.LOGIC_START, () => { logic_start = now(); });
+        Zero.instance.on(Zero.Event.LOGIC_END, () => { logic_delta += now() - logic_start; });
+        Zero.instance.profile.on(render.Profile.Event.CULL_START, () => { cull_start = now(); });
+        Zero.instance.profile.on(render.Profile.Event.CULL_END, () => { cull_delta += now() - cull_start; });
+        Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_START, () => { model_start = now(); });
+        Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_END, () => { model_delta += now() - model_start; });
+        Zero.instance.on(Zero.Event.RENDER_START, () => { render_start = now(); });
+        Zero.instance.on(Zero.Event.RENDER_END, () => { render_delta += now() - render_start; });
+        Zero.instance.on(Zero.Event.HALT_START, () => { halt_start = now(); });
+        Zero.instance.on(Zero.Event.HALT_END, () => { halt_delta += now() - halt_start; });
+        Zero.instance.on(Zero.Event.FRAME_END, () => {
+            if (Zero.frameCount % 60 == 0) {
+                this._logic_time = logic_delta / 60;
+                logic_delta = 0;
+                this._cull_time = cull_delta / 60;
+                cull_delta = 0;
+                this._model_time = model_delta / 60;
+                model_delta = 0;
+                this._render_time = render_delta / 60;
+                render_delta = 0;
+                this._halt_time = halt_delta / 60;
+                halt_delta = 0;
+            }
+        });
     }
     update(dt) {
         boot_time = boot_time || dt;
         if (this._time > 1) {
             this._fps = this._frames / this._time;
-            this._frames = 0;
-            this._time = 0;
+            this._frames = 1;
+            this._time = dt;
         }
-        this._frames++;
-        this._time += dt;
-        this._text.impl.text = `FPS: ${this._fps.toFixed(2)}
-draws: ${Zero.instance.profile.draws}
-render: ${this._render_time.toFixed(2)}ms
-    model: ${this._model_time.toFixed(2)}ms
-    culling: ${this._cull_time.toFixed(2)}ms
-    passes: ${Zero.instance.profile.stages}
-logic: ${this._logic_time.toFixed(2)}ms
-boot: ${boot_time.toFixed(2)}s`;
-    }
-    profileLogic() {
-        let time = 0;
-        let delta = 0;
-        let count = 0;
-        Zero.instance.on(Zero.Event.LOGIC_START, () => {
-            time = now();
-        });
-        Zero.instance.on(Zero.Event.LOGIC_END, () => {
-            delta += now() - time;
-            count++;
-            if (count == 60) {
-                this._logic_time = delta / count;
-                delta = 0;
-                count = 0;
-            }
-        });
-    }
-    profileRender() {
-        let time = 0;
-        let delta = 0;
-        let cull_start = 0;
-        let cull_delta = 0;
-        let model_start = 0;
-        let model_delta = 0;
-        let count = 0;
-        Zero.instance.on(Zero.Event.RENDER_START, () => {
-            time = now();
-        });
-        Zero.instance.profile.on(render.Profile.Event.CULL_START, () => {
-            cull_start = now();
-        });
-        Zero.instance.profile.on(render.Profile.Event.CULL_END, () => {
-            cull_delta += now() - cull_start;
-        });
-        Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_START, () => {
-            model_start = now();
-        });
-        Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_END, () => {
-            model_delta += now() - model_start;
-        });
-        Zero.instance.on(Zero.Event.RENDER_END, () => {
-            delta += now() - time;
-            count++;
-            if (count == 60) {
-                this._render_time = delta / count;
-                delta = 0;
-                this._model_time = model_delta / count;
-                this._cull_time = cull_delta / count;
-                cull_delta = 0;
-                model_delta = 0;
-                count = 0;
-            }
-        });
+        else {
+            this._frames++;
+            this._time += dt;
+        }
+        this._text.impl.text = `FPS    ${this._fps.toFixed(2)}
+logic  ${this._logic_time.toFixed(2)}ms
+render ${this._render_time.toFixed(2)}ms
+ halt  ${this._halt_time.toFixed(2)}ms
+ model ${this._model_time.toFixed(2)}ms
+ cull  ${this._cull_time.toFixed(2)}ms
+ pass  ${Zero.instance.profile.passes}
+ draw  ${Zero.instance.profile.draws}
+boot   ${boot_time.toFixed(2)}s`;
     }
 }

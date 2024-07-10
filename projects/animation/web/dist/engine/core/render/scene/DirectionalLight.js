@@ -3,7 +3,7 @@ import { mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
 export class DirectionalLight {
     get hasChanged() {
-        return this.transform.hasChanged;
+        return this.transform.hasChangedFlag.value;
     }
     get model() {
         if (this._model_invalidated) {

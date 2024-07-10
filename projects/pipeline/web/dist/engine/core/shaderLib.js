@@ -18,8 +18,11 @@ const attributes = {
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
  */
 const sets = {
+    material: {
+        index: 1
+    },
     local: {
-        index: 1,
+        index: 2,
         uniforms: {
             Skin: {
                 type: DescriptorType.UNIFORM_BUFFER,
@@ -32,9 +35,6 @@ const sets = {
                 size: (16 * 128) * Float32Array.BYTES_PER_ELEMENT
             }
         }
-    },
-    material: {
-        index: 2
     }
 };
 const _key2shader = {};
@@ -43,11 +43,9 @@ const _shader2descriptorSetLayout = {};
 const _macros = {
     CLIP_SPACE_MIN_Z_0: device.capabilities.clipSpaceMinZ == 0 ? 1 : 0
 };
-const descriptorSetLayout_empty = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 export const shaderLib = {
     attributes,
     sets,
-    descriptorSetLayout_empty,
     createDescriptorSetLayoutBinding(uniform) {
         const binding = new DescriptorSetLayoutBinding;
         binding.descriptorType = uniform.type;
@@ -63,8 +61,7 @@ export const shaderLib = {
         }
         return device.createDescriptorSetLayout(info);
     },
-    getDescriptorSetLayout(shader, set) {
-        const meta = _shader2meta.get(shader);
+    getDescriptorSetLayout(meta, set) {
         const key = `${set}:${meta.key}`;
         if (key in _shader2descriptorSetLayout) {
             return _shader2descriptorSetLayout[key];

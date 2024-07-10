@@ -1,14 +1,13 @@
 import { bundle } from "bundling";
-import { Filter, PassState, PrimitiveTopology } from "gfx";
+import { Filter } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { SpriteFrame } from "../assets/SpriteFrame.js";
 import { aabb3d } from "../core/math/aabb3d.js";
 import { vec4 } from "../core/math/vec4.js";
-import { Material } from "../core/render/scene/Material.js";
 import { Model } from "../core/render/scene/Model.js";
-import { Pass } from "../core/render/scene/Pass.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { Pass } from "../scene/Pass.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
 export class SpriteRenderer extends BoundedRenderer {
@@ -36,20 +35,20 @@ export class SpriteRenderer extends BoundedRenderer {
         if (!this._spriteFrame) {
             return null;
         }
-        const state = new PassState;
-        state.shader = this.shader;
-        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        const pass = Pass.Pass(state);
-        if (pass.hasProperty('albedo')) {
-            pass.setProperty('albedo', this.color);
+        const pass = new Pass({ shader: this.shader });
+        const offset = pass.getPropertyOffset('albedo');
+        if (offset != -1) {
+            pass.setProperty(this.color, offset);
         }
-        return new Model(this.node, this._spriteFrame.mesh, [new Material([pass])]);
+        return new Model(this.node, this._spriteFrame.mesh, [
+            { passes: [pass] }
+        ]);
     }
     update(dt) {
         var _a;
         super.update(dt);
         if (this._spriteFrame_invalidated) {
-            (_a = this._model) === null || _a === void 0 ? void 0 : _a.materials[0].passes[0].setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter));
+            ((_a = this._model) === null || _a === void 0 ? void 0 : _a.materials[0].passes[0]).setTexture('albedoMap', this._spriteFrame.texture, getSampler(this.filter, this.filter));
             this._spriteFrame_invalidated = false;
         }
     }

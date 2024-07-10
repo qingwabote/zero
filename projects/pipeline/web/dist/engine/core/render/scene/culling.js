@@ -1,8 +1,5 @@
-export function cull(results, models, frustum, visibilities, type, claimed) {
+export function cull(results, models, frustum, visibilities, claimed) {
     for (const model of models) {
-        if (model.type != type) {
-            continue;
-        }
         if ((visibilities & model.transform.visibility) == 0) {
             continue;
         }
@@ -17,5 +14,4 @@ export function cull(results, models, frustum, visibilities, type, claimed) {
         }
         results.push(model);
     }
-    return results;
 }

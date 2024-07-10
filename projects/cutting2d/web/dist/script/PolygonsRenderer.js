@@ -1,15 +1,13 @@
-import { MeshRenderer, Node, Shader, bundle, render, shaderLib, vec3, vec4 } from "engine";
+import { MeshRenderer, Node, Shader, bundle, render, scene, shaderLib, vec3, vec4 } from "engine";
 import { Element } from "flex";
-import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
 const vertexAttributes = new VertexAttributeVector;
 const a_position = new VertexAttribute;
-a_position.name = shaderLib.attributes.position.name;
 a_position.format = Format.RG32_SFLOAT;
 a_position.location = shaderLib.attributes.position.location;
 vertexAttributes.add(a_position);
 const a_texCoord = new VertexAttribute;
-a_texCoord.name = shaderLib.attributes.uv.name;
 a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[a_position.format].bytes;
 a_texCoord.location = shaderLib.attributes.uv.location;
@@ -42,13 +40,10 @@ export default class PolygonsRenderer extends Element {
         this._polygons_invalidated = true;
     }
     start() {
-        const state = new PassState();
-        state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
-        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        const pass = render.Pass.Pass(state);
-        pass.setProperty('albedo', vec4.ONE);
+        const pass = new scene.Pass({ shader: shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 }) });
+        pass.setPropertyByName('albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
-        this._material = new render.Material([pass]);
+        this._material = { passes: [pass] };
     }
     update() {
         if (this._polygons_invalidated) {
@@ -91,7 +86,8 @@ export default class PolygonsRenderer extends Element {
         let renderer = this._meshRenderers[index];
         if (!renderer) {
             const ia = new InputAssembler;
-            ia.vertexAttributes = vertexAttributes;
+            ia.vertexInputState.attributes = vertexAttributes;
+            ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
             const vertexView = new render.BufferView('Float32', BufferUsageFlagBits.VERTEX);
             const vertexInput = new VertexInput;
             vertexInput.buffers.add(vertexView.buffer);

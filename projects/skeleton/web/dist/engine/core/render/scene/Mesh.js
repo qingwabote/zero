@@ -6,20 +6,20 @@ export class Mesh {
         return this._bounds;
     }
     get hasChanged() {
-        return this._hasChanged.value;
+        return this._hasChangedFlag.value;
     }
     constructor(subMeshes, pointMin = vec3.ZERO, pointMax = vec3.ZERO) {
         this.subMeshes = subMeshes;
         this._bounds = aabb3d.create();
-        this._hasChanged = new PeriodicFlag();
+        this._hasChangedFlag = new PeriodicFlag();
         this.setBoundsByExtremes(pointMin, pointMax);
     }
     setBoundsByExtremes(min, max) {
         aabb3d.fromExtremes(this._bounds, min, max);
-        this._hasChanged.reset(1);
+        this._hasChangedFlag.reset(1);
     }
     setBoundsByRect(offset, size) {
         aabb3d.fromRect(this._bounds, offset, size);
-        this._hasChanged.reset(1);
+        this._hasChangedFlag.reset(1);
     }
 }

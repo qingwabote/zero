@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, render, scene, vec3, vec4 } from "engine";
+import { Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 const forward = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 const gltf_guardian = await (await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF)).instantiate();
@@ -57,26 +57,26 @@ class App extends Zero {
                 }
             }
         }
-        const phase = this.pipeline.flows[0].stages[0].phases[0];
         if (debug) {
             const debugDrawer = Node.build(GeometryRenderer);
             debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
             this.pipeline.data.on(render.Data.Event.UPDATE, () => {
                 debugDrawer.clear();
-                if (phase.culler instanceof pipeline.ViewCuller) {
+                if (this.pipeline.data.culling) {
                     if (this.scene.models instanceof scene.ModelTree) {
                         for (const node of tree_cull([], this.scene.models.root, up_camera.frustum, up_camera.visibilities)) {
                             debugDrawer.drawAABB(node.bounds, vec4.ONE);
                         }
                     }
                     else {
-                        for (const model of this.scene.models.culler(1)(up_camera.frustum, up_camera.visibilities)) {
+                        const models = [];
+                        this.scene.models.culler(1)(models, up_camera.frustum, up_camera.visibilities);
+                        for (const model of models) {
                             debugDrawer.drawAABB(model.bounds, vec4.ONE);
                         }
                     }
                     debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
                 }
-                debugDrawer.lateUpdate();
             });
         }
         const width = 640;
@@ -130,19 +130,19 @@ class App extends Zero {
                         textRenderer.impl.text = 'TREE OFF';
                         textRenderer.impl.color = vec4.ONE;
                         this.scene.models = new scene.ModelArray(this.scene.models);
-                        phase.culler = new pipeline.ViewCuller;
+                        this.pipeline.data.culling = new render.Culling;
                     },
                     () => {
                         textRenderer.impl.text = 'NONE';
                         textRenderer.impl.color = vec4.ONE;
                         this.scene.models = new scene.ModelArray(this.scene.models);
-                        phase.culler = new pipeline.NoneCulling;
+                        this.pipeline.data.culling = null;
                     },
                     () => {
                         textRenderer.impl.text = 'TREE ON';
                         textRenderer.impl.color = vec4.GREEN;
                         this.scene.models = new scene.ModelTree(tree_bounds, this.scene.models);
-                        phase.culler = new pipeline.ViewCuller;
+                        this.pipeline.data.culling = new render.Culling;
                     },
                 ];
                 let optionIndex = 0;

@@ -1,6 +1,5 @@
 import { Zero } from "../../core/Zero.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
-import { Profile } from "../../core/render/pipeline/Profile.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { InstanceBatch } from "./internal/InstanceBatch.js";
 const singleCache = (function () {
@@ -18,20 +17,15 @@ const singleCache = (function () {
     };
 })();
 const multipleCache = (function () {
-    const subMesh2material2multiples = new WeakMap;
-    return function (subMesh, material) {
-        let material2multiples = subMesh2material2multiples.get(subMesh);
-        if (!material2multiples) {
-            material2multiples = new WeakMap;
-            subMesh2material2multiples.set(subMesh, material2multiples);
-        }
-        let multiples = material2multiples.get(material);
+    const subMesh2multiples = new WeakMap;
+    return function (subMesh) {
+        let multiples = subMesh2multiples.get(subMesh);
         if (!multiples) {
-            material2multiples.set(material, multiples = []);
+            subMesh2multiples.set(subMesh, multiples = []);
         }
         let multiple = multiples.find(multiple => !multiple.locked);
         if (!multiple) {
-            multiple = new InstanceBatch.Multiple(subMesh, material);
+            multiple = new InstanceBatch.Multiple(subMesh);
             multiples.push(multiple);
         }
         return multiple;
@@ -41,67 +35,110 @@ function modelCompareFn(a, b) {
     return a.order - b.order;
 }
 export class ModelPhase extends Phase {
-    constructor(context, visibility, culler, _batching = false, 
+    constructor(context, visibility, culling = 'View', _batching = false, 
     /**The model type that indicates which models should run in this phase */
     _model = 'default', 
     /**The pass type that indicates which passes should run in this phase */
     _pass = 'default') {
         super(context, visibility);
-        this.culler = culler;
+        this.culling = culling;
         this._batching = _batching;
         this._model = _model;
         this._pass = _pass;
     }
-    record(profile, commandBuffer, renderPass, cameraIndex) {
-        profile.emit(Profile.Event.CULL_START);
-        const models = this.culler.cull(Zero.instance.scene.models, this._model, cameraIndex);
-        profile.emit(Profile.Event.CULL_END);
-        if (!this._batching) {
-            models.sort(modelCompareFn);
+    record(profile, commandBuffer, renderPass) {
+        var _a, _b;
+        const data = Zero.instance.pipeline.data;
+        let models;
+        switch (this.culling) {
+            case 'View':
+                models = ((_a = data.culling) === null || _a === void 0 ? void 0 : _a.getView(data.current_camera).camera) || Zero.instance.scene.models;
+                break;
+            case 'CSM':
+                models = ((_b = data.culling) === null || _b === void 0 ? void 0 : _b.getView(data.current_camera).shadow[data.flowLoopIndex]) || Zero.instance.scene.models;
+                break;
+            default:
+                throw new Error(`unsupported culling: ${this.culling}`);
         }
-        const batches = [];
-        for (const model of models) {
-            model.upload();
-            for (let i = 0; i < model.mesh.subMeshes.length; i++) {
-                if (!model.mesh.subMeshes[i].draw.count) {
+        if (this._batching) {
+            const pass2batches = new Map;
+            for (const model of models) {
+                if (model.type != this._model) {
                     continue;
                 }
-                if (!this._batching || model.descriptorSet) {
-                    batches.push(singleCache(model, i));
-                    continue;
+                model.upload();
+                for (let i = 0; i < model.mesh.subMeshes.length; i++) {
+                    if (model.mesh.subMeshes[i].draw.count == 0) {
+                        continue;
+                    }
+                    for (const pass of model.materials[i].passes) {
+                        if (pass.type != this._pass) {
+                            continue;
+                        }
+                        let batches = pass2batches.get(pass);
+                        if (!batches) {
+                            pass2batches.set(pass, batches = []);
+                        }
+                        // fallback
+                        if (model.descriptorSet) {
+                            batches.push(singleCache(model, i));
+                            continue;
+                        }
+                        const multiple = multipleCache(model.mesh.subMeshes[i]);
+                        if (multiple.count == 0) {
+                            batches.push(multiple);
+                        }
+                        multiple.add(model.transform.world_matrix);
+                    }
                 }
-                const multiple = multipleCache(model.mesh.subMeshes[i], model.materials[i]);
-                if (multiple.count == 0) {
-                    batches.push(multiple);
-                }
-                multiple.add(model.transform.world_matrix);
             }
-        }
-        for (const batch of batches) {
-            batch.upload();
-            if (batch.local.descriptorSet) {
-                commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);
-            }
-            for (const pass of batch.material.passes) {
-                if (pass.type != this._pass) {
-                    continue;
-                }
+            for (const [pass, batches] of pass2batches) {
                 pass.upload();
                 if (pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                 }
-                const pipeline = this._context.getPipeline(pass.state, batch.inputAssembler.vertexAttributes, renderPass, [batch.local.descriptorSetLayout, pass.descriptorSetLayout]);
-                commandBuffer.bindPipeline(pipeline);
-                commandBuffer.bindInputAssembler(batch.inputAssembler);
-                if (batch.inputAssembler.indexInput) {
-                    commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
+                for (const batch of batches) {
+                    batch.record(profile, commandBuffer, renderPass, this._context, pass);
                 }
-                else {
-                    commandBuffer.draw(batch.draw.count, batch.count);
-                }
-                profile.draws++;
+                profile.passes++;
             }
-            batch.recycle();
+        }
+        else {
+            models = [...models].sort(modelCompareFn);
+            const passes = [];
+            const batches = [];
+            for (const model of models) {
+                if (model.type != this._model) {
+                    continue;
+                }
+                model.upload();
+                for (let i = 0; i < model.mesh.subMeshes.length; i++) {
+                    if (model.mesh.subMeshes[i].draw.count == 0) {
+                        continue;
+                    }
+                    for (const pass of model.materials[i].passes) {
+                        if (pass.type != this._pass) {
+                            continue;
+                        }
+                        batches.push(singleCache(model, i));
+                        passes.push(pass);
+                    }
+                }
+            }
+            let current_pass;
+            for (let i = 0; i < batches.length; i++) {
+                const pass = passes[i];
+                if (current_pass != pass) {
+                    pass.upload();
+                    if (pass.descriptorSet) {
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
+                    }
+                    current_pass = pass;
+                    profile.passes++;
+                }
+                batches[i].record(profile, commandBuffer, renderPass, this._context, pass);
+            }
         }
     }
 }
+ModelPhase.InstanceBatch = InstanceBatch;

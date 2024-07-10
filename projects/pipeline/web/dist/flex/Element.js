@@ -1,4 +1,4 @@
-import { EventEmitterImpl, SmartRef } from "bastard";
+import { EventEmitter, SmartRef } from "bastard";
 import { Component, Input, aabb2d, vec2, vec3 } from "engine";
 import { LayoutSystem } from "./LayoutSystem.js";
 import * as yoga from "./yoga/index.js";
@@ -7,7 +7,7 @@ function yg_node_free(node) { node.free(); }
 export class Element extends Component {
     get emitter() {
         var _a;
-        return (_a = this._emitter) !== null && _a !== void 0 ? _a : (this._emitter = new EventEmitterImpl);
+        return (_a = this._emitter) !== null && _a !== void 0 ? _a : (this._emitter = new EventEmitter.Impl);
     }
     get bounds() {
         return this._bounds;

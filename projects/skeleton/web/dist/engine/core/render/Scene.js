@@ -1,4 +1,4 @@
-import { EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 import { Model } from "./scene/Model.js";
 var Event;
 (function (Event) {
@@ -21,7 +21,7 @@ export class Scene {
     }
     constructor(_models) {
         this._models = _models;
-        this._event = new EventEmitterImpl;
+        this._event = new EventEmitter.Impl;
         this.directionalLight = undefined;
         this._cameras = [];
         this._models_invalidated = true;

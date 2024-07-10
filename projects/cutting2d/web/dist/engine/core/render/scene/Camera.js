@@ -45,8 +45,8 @@ export class Camera {
         const { width, height } = device.swapchain;
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
-    get hasChanged() {
-        return this._hasChanged.value;
+    get hasChangedFlag() {
+        return this._hasChangedFlag;
     }
     constructor(transform) {
         this.transform = transform;
@@ -65,10 +65,10 @@ export class Camera {
         this.visibilities = 0;
         this.clears = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
         this._rect = vec4.create(0, 0, 1, 1);
-        this._hasChanged = new PeriodicFlag(0xffffffff);
+        this._hasChangedFlag = new PeriodicFlag(0xffffffff);
     }
     update() {
-        if (this.transform.hasChanged) {
+        if (this.transform.hasChangedFlag.value) {
             this._view_invalidated = true;
         }
         if (this._proj_invalidated) {
@@ -82,11 +82,11 @@ export class Camera {
                 mat4.orthographic(this._proj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
-            this._hasChanged.addBit(ChangeBit.PROJ);
+            this._hasChangedFlag.addBit(ChangeBit.PROJ);
         }
         if (this._view_invalidated) {
             mat4.invert(this._view, this.transform.world_matrix);
-            this._hasChanged.addBit(ChangeBit.VIEW);
+            this._hasChangedFlag.addBit(ChangeBit.VIEW);
         }
         if (this._proj_invalidated || this._view_invalidated) {
             this.frustum.transform(this.transform.world_matrix);

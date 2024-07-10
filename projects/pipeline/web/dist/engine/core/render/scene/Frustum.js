@@ -8,7 +8,7 @@ export class Frustum {
         this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
         this._faces = frustum.faces();
-        this._hasChanged = new PeriodicFlag();
+        this._hasChangedFlag = new PeriodicFlag();
     }
     get vertices() {
         return this._vertices;
@@ -22,19 +22,19 @@ export class Frustum {
         return this._faces;
     }
     get hasChanged() {
-        return this._hasChanged.value;
+        return this._hasChangedFlag.value;
     }
     orthographic(left, right, bottom, top, near, far) {
         frustum.orthographic(this._vertices_raw, left, right, bottom, top, near, far);
         this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
-        this._hasChanged.reset(1);
+        this._hasChangedFlag.reset(1);
     }
     perspective(fov, aspect, near, far) {
         frustum.perspective(this._vertices_raw, fov, aspect, near, far);
         this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
-        this._hasChanged.reset(1);
+        this._hasChangedFlag.reset(1);
     }
     transform(m) {
         for (let i = 0; i < this._vertices_raw.length; i++) {
@@ -42,7 +42,7 @@ export class Frustum {
         }
         this._vertices = this._vertices_tra;
         this._faces_invalidated = true;
-        this._hasChanged.reset(1);
+        this._hasChangedFlag.reset(1);
     }
     aabb_out(aabb) {
         return frustum.aabb_out(this.faces, aabb);

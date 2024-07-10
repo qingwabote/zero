@@ -20,9 +20,10 @@ export default class Vehicle extends Component {
     constructor(node) {
         super(node);
         this._wheels = [];
-        const cube = primitive.createScene("Cube", true).children[0];
+        const cube = primitive.createScene("Cube").children[0];
         let meshRenderer = cube.getComponent(MeshRenderer);
-        meshRenderer.materials[0].passes[1].setProperty('albedo', vec4.create(1, 0, 0, 1));
+        const material = meshRenderer.materials[0];
+        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(1, 0, 0, 1));
         cube.scale = vec3.multiply(vec3.create(), chassis_size, [0.5, 0.5, 0.5]);
         node.addChild(cube);
         let shape = node.addComponent(BoxShape);
@@ -72,10 +73,11 @@ export default class Vehicle extends Component {
         cylinder.scale = vec3.create(wheel_radius, wheel_width / 2, wheel_radius);
         cylinder.euler = vec3.create(0, 0, 90);
         node.addChild(cylinder);
-        const cube = primitive.createScene("Cube", true).children[0];
+        const cube = primitive.createScene("Cube").children[0];
         cube.scale = vec3.create(wheel_width / 2 + 0.01, wheel_radius - 0.01, wheel_radius / 3);
         let meshRenderer = cube.getComponent(MeshRenderer);
-        meshRenderer.materials[0].passes[1].setProperty('albedo', vec4.create(1, 0, 0, 1));
+        const material = meshRenderer.materials[0];
+        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(1, 0, 0, 1));
         node.addChild(cube);
         this.node.addChild(node);
         this._wheels.push(node);

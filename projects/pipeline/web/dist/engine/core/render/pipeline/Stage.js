@@ -1,6 +1,5 @@
 import { device } from "boot";
 import { FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
-import { Zero } from "../../Zero.js";
 import { getRenderPass } from "./rpc.js";
 const defaultFramebuffer = (function () {
     const framebufferInfo = new FramebufferInfo;
@@ -16,23 +15,24 @@ const defaultFramebuffer = (function () {
     return device.createFramebuffer(framebufferInfo);
 })();
 export class Stage {
-    constructor(phases, visibilities, _framebuffer = defaultFramebuffer, _clears, rect) {
+    constructor(_data, phases, visibilities, _framebuffer = defaultFramebuffer, _clears, rect) {
+        this._data = _data;
         this.phases = phases;
         this.visibilities = visibilities;
         this._framebuffer = _framebuffer;
         this._clears = _clears;
         this.rect = rect;
     }
-    record(profile, commandBuffer, cameraIndex) {
+    record(profile, commandBuffer) {
         var _a, _b;
-        const camera = Zero.instance.scene.cameras[cameraIndex];
+        const camera = this._data.current_camera;
         const renderPass = getRenderPass(this._framebuffer.info, (_a = this._clears) !== null && _a !== void 0 ? _a : camera.clears);
         const rect = (_b = this.rect) !== null && _b !== void 0 ? _b : camera.rect;
         const { width, height } = this._framebuffer.info;
         commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.record(profile, commandBuffer, renderPass, cameraIndex);
+                phase.record(profile, commandBuffer, renderPass, camera);
             }
         }
         commandBuffer.endRenderPass();

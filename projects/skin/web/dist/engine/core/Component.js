@@ -5,4 +5,5 @@ export class Component {
     start() { }
     update(dt) { }
     lateUpdate() { }
+    upload() { }
 }

@@ -91,4 +91,5 @@ export class Device {
         texture.initialize();
         return texture;
     }
+    waitForFence(fence) { }
 }

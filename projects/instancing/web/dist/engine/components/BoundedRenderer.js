@@ -1,10 +1,10 @@
-import { EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
 var EventName;
 (function (EventName) {
     EventName["BOUNDS_CHANGED"] = "BOUNDS_CHANGED";
 })(EventName || (EventName = {}));
-const emitter = new EventEmitterImpl;
+const emitter = new EventEmitter.Impl;
 emitter.on(EventName.BOUNDS_CHANGED, () => { });
 /**
  * Provides a bounds for ui system
@@ -16,7 +16,7 @@ export class BoundedRenderer extends ModelRenderer {
     }
     get _emitter() {
         var _a;
-        return (_a = this.__emitter) !== null && _a !== void 0 ? _a : (this.__emitter = new EventEmitterImpl);
+        return (_a = this.__emitter) !== null && _a !== void 0 ? _a : (this.__emitter = new EventEmitter.Impl);
     }
     has(name) {
         return this.__emitter ? this.__emitter.has(name) : false;

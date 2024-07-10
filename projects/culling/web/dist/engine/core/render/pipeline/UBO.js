@@ -4,10 +4,11 @@ export class UBO {
         const alignment = device.capabilities.uniformBufferOffsetAlignment;
         return Math.ceil(size / alignment) * alignment;
     }
+    get dynamicOffset() {
+        return -1;
+    }
     constructor(_data, _visibilities) {
         this._data = _data;
         this._visibilities = _visibilities;
     }
-    dynamicOffset(paramm) { return -1; }
-    ;
 }

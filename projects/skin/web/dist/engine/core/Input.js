@@ -1,4 +1,4 @@
-import { EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 var TouchEvents;
 (function (TouchEvents) {
     TouchEvents["START"] = "TOUCH_START";
@@ -33,7 +33,7 @@ function distance(event) {
     const y = event.y(0) - event.y(1);
     return Math.sqrt(x * x + y * y);
 }
-export class Input extends EventEmitterImpl {
+export class Input extends EventEmitter.Impl {
     constructor() {
         super(...arguments);
         this._dist = 0;

@@ -2,13 +2,12 @@
 import { cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { BufferInfo, BufferUsageFlagBits, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, SubmitInfo, VertexAttribute } from "gfx";
+import { BufferInfo, BufferUsageFlagBits, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, SubmitInfo, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -54,7 +53,7 @@ const materialFuncPhong = function (params) {
                 } }, params.texture &&
                 {
                     textures: {
-                        'albedoMap': params.texture.impl
+                        'albedoMap': params.texture
                     }
                 })
         ]
@@ -235,16 +234,16 @@ export class GLTF {
                 }
                 const builtin = shaderLib.attributes[name];
                 const attribute = new VertexAttribute;
-                attribute.name = builtin.name;
+                attribute.location = builtin.location;
                 attribute.format = format;
                 attribute.buffer = ia.vertexInput.buffers.size();
                 attribute.offset = 0;
                 attribute.stride = this._json.bufferViews[accessor.bufferView].byteStride || 0;
-                attribute.location = builtin.location;
-                ia.vertexAttributes.add(attribute);
+                ia.vertexInputState.attributes.add(attribute);
                 ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX));
                 ia.vertexInput.offsets.add(accessor.byteOffset || 0);
             }
+            ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
             const indexAccessor = this._json.accessors[primitive.indices];
             const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
             if (indexAccessor.type != "SCALAR") {
@@ -305,7 +304,7 @@ export class GLTF {
             const submitInfo = new SubmitInfo;
             submitInfo.commandBuffer = _commandBuffer;
             device.queue.submit(submitInfo, _fence);
-            device.queue.wait(_fence);
+            device.waitForFence(_fence);
         }
         else {
             const info = new BufferInfo();
@@ -319,8 +318,8 @@ export class GLTF {
     }
     async materialLoad(effectUrl, passOverriddens, macros) {
         const effect = await cache(effectUrl, Effect);
-        const passes = await effect.createPasses(passOverriddens, macros);
-        return new Material(passes);
+        const passes = await effect.getPasses(passOverriddens, macros);
+        return { passes };
     }
 }
 class Instance {
@@ -329,18 +328,18 @@ class Instance {
         this._materials = _materials;
         this._materialDefault = _materialDefault;
     }
-    createScene(name, materialInstancing = false) {
+    createScene(name) {
         const scene = name ? this.proto.json.scenes.find(scene => scene.name == name) : this.proto.json.scenes[0];
         if (!scene) {
             return null;
         }
         const node = new Node(name);
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(index, materialInstancing, node));
+            node.addChild(this.createNode(index, node));
         }
         return node;
     }
-    createNode(index, materialInstancing, root) {
+    createNode(index, root) {
         const info = this.proto.json.nodes[index];
         const node = new Node(node2name(info, index));
         if (!root) {
@@ -361,16 +360,16 @@ class Instance {
             }
         }
         if (info.mesh != undefined) {
-            this.addMeshRenderer(root, node, info, materialInstancing);
+            this.addMeshRenderer(root, node, info);
         }
         if (info.children) {
             for (const idx of info.children) {
-                node.addChild(this.createNode(idx, materialInstancing, root));
+                node.addChild(this.createNode(idx, root));
             }
         }
         return node;
     }
-    addMeshRenderer(root, node, info, materialInstancing) {
+    addMeshRenderer(root, node, info) {
         let renderer;
         if (info.skin != undefined) {
             const rdr = node.addComponent(SkinnedMeshRenderer);
@@ -382,9 +381,9 @@ class Instance {
             renderer = node.addComponent(MeshRenderer);
         }
         renderer.mesh = this.proto.getMesh(info.mesh);
-        renderer.materials = this.getMaterials(info.mesh, materialInstancing);
+        renderer.materials = this.getMaterials(info.mesh);
     }
-    getMaterials(meshIndex, instancing) {
+    getMaterials(meshIndex) {
         var _a;
         const materials = [];
         for (const primitive of this.proto.json.meshes[meshIndex].primitives) {
@@ -396,7 +395,7 @@ class Instance {
                 console.log("not provided attribute: TEXCOORD_0");
                 continue;
             }
-            materials.push(instancing ? material.instantiate() : material);
+            materials.push({ passes: [...material.passes] });
         }
         return materials;
     }

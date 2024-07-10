@@ -80,9 +80,9 @@ export class App extends Zero {
         panel.addElement(text);
         this.setInterval(() => {
             const weights = animation.state.weights;
-            text.impl.text = `空闲: ${weights[0].toFixed(2)}
-行走: ${weights[1].toFixed(2)}
-跑: ${weights[2].toFixed(2)}`;
+            text.impl.text = `Idle ${weights[0].toFixed(2)}
+Walk ${weights[1].toFixed(2)}
+Run  ${weights[2].toFixed(2)}`;
         });
         updateInput(slider.value);
         doc.addElement(panel);

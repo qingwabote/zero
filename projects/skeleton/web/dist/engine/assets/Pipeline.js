@@ -15,47 +15,24 @@ const phaseFactory = (function () {
     blendState.dstRGB = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
     blendState.srcAlpha = gfx.BlendFactor.ONE;
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
-    const cullers = {
-        CSM: new pipeline.CSMCuller,
-        View: new pipeline.ViewCuller
-    };
     return {
         model: async function (info, context, visibility) {
-            let culler = cullers.View;
-            if (info.culling) {
-                culler = cullers[info.culling];
-                if (!culler) {
-                    throw new Error(`unknown culling type: ${info.culling}`);
-                }
-            }
-            return new pipeline.ModelPhase(context, visibility, culler, info.batching, info.model, info.pass);
+            return new pipeline.ModelPhase(context, visibility, info.culling, info.batching, info.model, info.pass);
         },
         fxaa: async function (info, context, visibility) {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            const passState = new gfx.PassState;
-            passState.shader = shader;
-            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.blendState = blendState;
-            return new pipeline.PostPhase(context, passState, visibility);
+            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
         },
         outline: async function (info, context, visibility) {
             const shaderAsset = await bundle.cache('shaders/outline', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            const passState = new gfx.PassState;
-            passState.shader = shader;
-            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.blendState = blendState;
-            return new pipeline.PostPhase(context, passState, visibility);
+            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
         },
         copy: async function (info, context, visibility) {
             const shaderAsset = await bundle.cache('shaders/copy', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            const passState = new gfx.PassState;
-            passState.shader = shader;
-            passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
-            passState.blendState = blendState;
-            return new pipeline.PostPhase(context, passState, visibility);
+            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
         },
     };
 })();
@@ -224,7 +201,7 @@ export class Pipeline extends Yml {
                     framebuffer = device.createFramebuffer(framebufferInfo);
                     viewport = vec4.create(0, 0, 1, 1);
                 }
-                stages.push(new render.Stage(phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
+                stages.push(new render.Stage(data, phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
             }
             let loops;
             if (flow.loops) {
@@ -243,14 +220,13 @@ export class Pipeline extends Yml {
                         }
                     }
                     loops.push(function () {
-                        data.flowLoopIndex = loop_i;
                         for (const setter of setters) {
                             setter();
                         }
                     });
                 }
             }
-            flows.push(new render.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), loops));
+            flows.push(new render.Flow(data, context, ubos, stages, this.flow_visibilities(flow, variables), loops));
         }
         return new render.Pipeline(data, [...uboMap.values()], flows);
     }

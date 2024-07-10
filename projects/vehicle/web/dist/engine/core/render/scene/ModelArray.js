@@ -8,8 +8,8 @@ export class ModelArray {
     }
     culler(times = 1) {
         const claimed = times > 1 ? new Map : undefined;
-        return (frustum, visibilities, type = 'default') => {
-            return cull([], this._models, frustum, visibilities, type, claimed);
+        return (results, frustum, visibilities) => {
+            cull(results, this._models, frustum, visibilities, claimed);
         };
     }
     update(model) { }

@@ -1,12 +1,12 @@
 import * as culling from "../core/render/scene/culling.js";
 import { ModelTreeNode } from "./ModelTreeNode.js";
-function cull(results, node, frustum, visibilities, type, claimed) {
+function cull(results, node, frustum, visibilities, claimed) {
     if (frustum.aabb_out(node.bounds)) {
         return results;
     }
-    culling.cull(results, node.models, frustum, visibilities, type, claimed);
+    culling.cull(results, node.models, frustum, visibilities, claimed);
     for (const child of node.children.values()) {
-        cull(results, child, frustum, visibilities, type, claimed);
+        cull(results, child, frustum, visibilities, claimed);
     }
     return results;
 }
@@ -20,8 +20,8 @@ export class ModelTree {
     }
     culler(times = 1) {
         const claimed = times > 1 ? new Map : undefined;
-        return (frustum, visibilities, type = 'default') => {
-            return cull([], this.root, frustum, visibilities, type, claimed);
+        return (results, frustum, visibilities) => {
+            cull(results, this.root, frustum, visibilities, claimed);
         };
     }
     update(model) {

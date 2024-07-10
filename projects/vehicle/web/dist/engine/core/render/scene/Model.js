@@ -1,6 +1,6 @@
 import { device } from "boot";
+import { DescriptorSetLayoutInfo } from "gfx";
 import { aabb3d } from "../../math/aabb3d.js";
-import { shaderLib } from "../../shaderLib.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
 var ChangeBits;
 (function (ChangeBits) {
@@ -17,7 +17,7 @@ export class Model {
     }
     get hasChanged() {
         let flag = this._hasChanged.value;
-        if (this._mesh.hasChanged || this._transform.hasChanged) {
+        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             flag |= ChangeBits.BOUNDS;
         }
         return flag;
@@ -49,20 +49,23 @@ export class Model {
         this._hasChanged = new PeriodicFlag(ChangeBits.BOUNDS);
         this.type = 'default';
         this.order = 0;
-        this._hasUploaded = new PeriodicFlag;
+        this._hasUploadedFlag = new PeriodicFlag;
         const descriptorSetLayout = this.constructor.descriptorSetLayout;
         if (descriptorSetLayout.info.bindings.size()) {
             this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
         }
     }
     update() {
-        if (this._mesh.hasChanged || this._transform.hasChanged) {
+        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             this._bounds_invalidated = true;
         }
     }
     upload() {
-        this._hasUploaded.reset(1);
+        if (this._hasUploadedFlag.value) {
+            return;
+        }
+        this._hasUploadedFlag.reset(1);
     }
 }
-Model.descriptorSetLayout = shaderLib.createDescriptorSetLayout([]);
+Model.descriptorSetLayout = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 Model.ChangeBits = ChangeBits;

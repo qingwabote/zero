@@ -1,18 +1,18 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, PassState, PrimitiveTopology } from "gfx";
+import { BlendFactor, BlendState } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { Material, Mesh } from "../core/render/index.js";
+import { Mesh } from "../core/render/index.js";
 import { quad } from "../core/render/quad.js";
 import { Model } from "../core/render/scene/Model.js";
-import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { Pass } from "../scene/Pass.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
 const default_color = vec4.ONE;
@@ -23,13 +23,9 @@ const pass = await (async function () {
     blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
     blendState.srcAlpha = BlendFactor.ONE;
     blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
-    const state = new PassState;
-    state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
-    state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-    state.blendState = blendState;
-    const pass = Pass.Pass(state);
+    const pass = new Pass({ shader: shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 }), blendState });
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
-    pass.setProperty('albedo', default_color);
+    pass.setProperty(default_color, pass.getPropertyOffset('albedo'));
     return pass;
 })();
 var DirtyFlagBits;
@@ -57,7 +53,7 @@ export class TextRenderer extends BoundedRenderer {
         return this._color;
     }
     set color(value) {
-        this._pass.setProperty('albedo', value);
+        this._pass.setProperty(value, this._pass.getPropertyOffset('albedo'));
         this._color = value;
     }
     get size() {
@@ -76,7 +72,7 @@ export class TextRenderer extends BoundedRenderer {
     constructor(node) {
         super(node);
         this._dirties = DirtyFlagBits.TEXT;
-        this._pass = pass.instantiate();
+        this._pass = pass.copy();
         this._text = "";
         this._color = default_color;
         this._size = fnt_zero.info.size;
@@ -84,14 +80,17 @@ export class TextRenderer extends BoundedRenderer {
         const vertexView = quad.createVertexBufferView();
         const subMesh = new SubMesh(quad.createInputAssembler(vertexView.buffer));
         this._mesh = new Mesh([subMesh]);
-        ;
         this._vertexView = vertexView;
     }
     createModel() {
-        return new Model(this.node, this._mesh, [new Material([this._pass])]);
+        return new Model(this.node, this._mesh, [
+            { passes: [this._pass] }
+        ]);
     }
     lateUpdate() {
         this.updateData();
+    }
+    upload() {
         this._vertexView.update();
         this._mesh.subMeshes[0].draw.count = 6 * this._quads;
     }

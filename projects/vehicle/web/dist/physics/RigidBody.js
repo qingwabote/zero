@@ -36,7 +36,7 @@ export class RigidBody extends Component {
         this.impl.mass = 0;
     }
     update() {
-        if (this.node.hasChanged) {
+        if (this.node.hasChangedFlag.value) {
             phys_transform_a.identity();
             phys_vec3_a.set(...this.node.world_position);
             phys_transform_a.position = phys_vec3_a;

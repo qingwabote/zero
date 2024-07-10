@@ -9,15 +9,27 @@ export var glsl;
             while (match = exp.exec(sources[i])) {
                 const [_, set, binding, type, name, content] = match;
                 if (!type) {
-                    const members = [];
+                    const members = {};
                     const exp = /(\w+)\s+(\w+)/g;
                     let match;
+                    let offset = 0;
                     while (match = exp.exec(content)) {
                         const [_, type, name] = match;
-                        members.push({ name, type });
+                        members[name] = { type, offset };
+                        switch (type) {
+                            case "vec3":
+                            case "vec4":
+                                offset += 4;
+                                break;
+                            case "mat4":
+                                offset += 16;
+                                break;
+                            default:
+                                throw new Error(`unsupported uniform member type: ${type}`);
+                        }
                     }
                     const block = blocks[name];
-                    blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, stageFlags: block ? types[i] | block.stageFlags : types[i] };
+                    blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, size: offset, stageFlags: block ? types[i] | block.stageFlags : types[i] };
                 }
                 else if (type == 'sampler2D') {
                     const samplerTexture = samplerTextures[name];

@@ -1,4 +1,4 @@
-import { EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Input } from "./Input.js";
@@ -6,16 +6,23 @@ import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Scene } from "./render/Scene.js";
 import { Profile } from "./render/pipeline/Profile.js";
+import { quad } from "./render/quad.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
-import { PeriodicFlag } from "./render/scene/PeriodicFlag.js";
 var Event;
 (function (Event) {
+    Event["FRAME_START"] = "FRAME_START";
+    Event["FRAME_END"] = "FRAME_END";
     Event["LOGIC_START"] = "LOGIC_START";
     Event["LOGIC_END"] = "LOGIC_END";
     Event["RENDER_START"] = "RENDER_START";
     Event["RENDER_END"] = "RENDER_END";
+    Event["HALT_START"] = "HALT_START";
+    Event["HALT_END"] = "HALT_END";
 })(Event || (Event = {}));
-export class Zero extends EventEmitterImpl {
+export class Zero extends EventEmitter.Impl {
+    static get frameCount() {
+        return this._frameCount;
+    }
     static get instance() {
         return Zero._instance;
     }
@@ -44,7 +51,7 @@ export class Zero extends EventEmitterImpl {
         this._commandBuffer = boot.device.createCommandBuffer();
         this._swapchainAcquired = boot.device.createSemaphore();
         this._queueExecuted = boot.device.createSemaphore();
-        this._fence = boot.device.createFence();
+        this._fence = boot.device.createFence(true);
         this._time = boot.initial;
         this._profile = new Profile;
         this.scene = new Scene(models);
@@ -87,10 +94,11 @@ export class Zero extends EventEmitterImpl {
         this._input.onWheel(event);
     }
     onFrame() {
-        this.emit(Event.LOGIC_START);
+        this.emit(Event.FRAME_START);
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
+        this.emit(Event.LOGIC_START);
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
         for (const system of this._systems) {
@@ -102,17 +110,19 @@ export class Zero extends EventEmitterImpl {
         }
         this.emit(Event.LOGIC_END);
         this.emit(Event.RENDER_START);
-        boot.device.swapchain.acquire(this._swapchainAcquired);
-        this.scene.update();
-        this._pipeline.update();
-        this._commandBuffer.begin();
         this._profile.clear();
-        for (let i = 0; i < this.scene.cameras.length; i++) {
-            this._pipeline.record(this._profile, this._commandBuffer, i);
-        }
-        PeriodicFlag.expire();
+        this.scene.update();
+        this._pipeline.update(this._profile);
+        this.emit(Event.HALT_START);
+        boot.device.waitForFence(this._fence);
+        this.emit(Event.HALT_END);
+        boot.device.swapchain.acquire(this._swapchainAcquired);
+        this._componentScheduler.upload();
+        this._pipeline.upload();
+        quad.indexBufferView.update();
+        this._commandBuffer.begin();
+        this._pipeline.record(this._profile, this._commandBuffer, this.scene.cameras);
         this._commandBuffer.end();
-        this.emit(Event.RENDER_END);
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
         submitInfo.waitSemaphore = this._swapchainAcquired;
@@ -120,8 +130,11 @@ export class Zero extends EventEmitterImpl {
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
-        boot.device.queue.wait(this._fence);
+        this.emit(Event.RENDER_END);
+        this.emit(Event.FRAME_END);
+        Zero._frameCount++;
     }
 }
+Zero._frameCount = 1;
 Zero._system2priority = new Map;
 Zero.Event = Event;

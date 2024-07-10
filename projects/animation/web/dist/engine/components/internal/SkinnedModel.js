@@ -6,7 +6,7 @@ import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { shaderLib } from "../../core/shaderLib.js";
 class ModelSpaceTransform {
     constructor() {
-        this.hasUpdated = new PeriodicFlag();
+        this.hasUpdatedFlag = new PeriodicFlag();
         this.matrix = mat4.create();
     }
 }
@@ -36,7 +36,7 @@ export class SkinnedModel extends Model {
         this._skinBuffer = view;
     }
     upload() {
-        if (this._hasUploaded.value) {
+        if (this._hasUploadedFlag.value) {
             return;
         }
         super.upload();
@@ -56,7 +56,7 @@ export class SkinnedModel extends Model {
             modelSpace = new ModelSpaceTransform;
             joint2modelSpace.set(joint, modelSpace);
         }
-        if (modelSpace.hasUpdated.value) {
+        if (modelSpace.hasUpdatedFlag.value) {
             return;
         }
         const parent = joint.parent;
@@ -67,7 +67,7 @@ export class SkinnedModel extends Model {
             this.updateModelSpace(parent);
             mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent).matrix, joint.matrix);
         }
-        modelSpace.hasUpdated.reset(1);
+        modelSpace.hasUpdatedFlag.reset(1);
     }
 }
 SkinnedModel.descriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Skin]);

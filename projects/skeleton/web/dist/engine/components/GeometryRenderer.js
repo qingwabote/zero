@@ -1,15 +1,15 @@
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, DepthStencilState, Format, FormatInfos, InputAssembler, PassState, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, DepthStencilState, Format, FormatInfos, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { aabb3d } from "../core/math/aabb3d.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
 import { BufferView } from "../core/render/BufferView.js";
-import { Material, Mesh } from "../core/render/index.js";
+import { Mesh } from "../core/render/index.js";
 import { Model } from "../core/render/scene/Model.js";
-import { Pass } from "../core/render/scene/Pass.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
+import { Pass } from "../scene/Pass.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 const drawLine = {
     vec3_a: vec3.create(),
@@ -34,7 +34,6 @@ const VERTEX_ATTRIBUTES = (function () {
     let offset = 0;
     let format = Format.RGB32_SFLOAT;
     const position = new VertexAttribute;
-    position.name = shaderLib.attributes.position.name;
     position.format = format;
     position.buffer = 0;
     position.offset = offset;
@@ -43,7 +42,6 @@ const VERTEX_ATTRIBUTES = (function () {
     offset += FormatInfos[format].bytes;
     format = Format.RGBA32_SFLOAT;
     const color = new VertexAttribute;
-    color.name = shaderLib.attributes.color.name;
     color.format = format;
     color.buffer = 0;
     color.offset = offset;
@@ -61,7 +59,8 @@ export class GeometryRenderer extends BoundedRenderer {
         this._buffer = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
         this._vertexCount = 0;
         const ia = new InputAssembler;
-        ia.vertexAttributes = VERTEX_ATTRIBUTES;
+        ia.vertexInputState.attributes = VERTEX_ATTRIBUTES;
+        ia.vertexInputState.primitive = PrimitiveTopology.LINE_LIST;
         ia.vertexInput.buffers.add(this._buffer.buffer);
         ia.vertexInput.offsets.add(0);
         this._mesh = new Mesh([new SubMesh(ia)]);
@@ -74,12 +73,11 @@ export class GeometryRenderer extends BoundedRenderer {
         blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
         blendState.srcAlpha = BlendFactor.ONE;
         blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
-        const state = new PassState;
-        state.shader = shaderLib.getShader(ss_primitive);
-        state.primitive = PrimitiveTopology.LINE_LIST;
-        state.depthStencilState = depthStencilState;
-        state.blendState = blendState;
-        return new Model(this.node, this._mesh, [new Material([Pass.Pass(state)])]);
+        return new Model(this.node, this._mesh, [
+            {
+                passes: [new Pass({ shader: shaderLib.getShader(ss_primitive), depthStencilState, blendState })]
+            }
+        ]);
     }
     drawLine(from, to, color = vec4.ONE) {
         const length = (this._vertexCount + 2) * VERTEX_COMPONENTS;
@@ -154,7 +152,7 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(frustum[2], frustum[6], color);
         this.drawLine(frustum[3], frustum[7], color);
     }
-    lateUpdate() {
+    upload() {
         if (this._vertexCount == 0) {
             this._mesh.subMeshes[0].draw.count = 0;
             return;

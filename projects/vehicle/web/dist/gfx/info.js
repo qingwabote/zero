@@ -107,13 +107,22 @@ export class PipelineLayoutInfo {
 }
 export class VertexAttribute {
     constructor() {
-        this.name = '';
+        this.location = 0;
         this.format = 0;
         this.buffer = 0;
         this.offset = 0;
         this.stride = 0;
-        this.location = 0;
         this.instanced = false;
+        this.multiple = 1;
+    }
+}
+export class VertexAttributeVector extends Vector {
+}
+;
+export class VertexInputState {
+    constructor() {
+        this.attributes = new VertexAttributeVector;
+        this.primitive = 0;
     }
 }
 export class BufferVector extends Vector {
@@ -131,12 +140,9 @@ export class IndexInput {
         this.type = 0;
     }
 }
-export class VertexAttributeVector extends Vector {
-}
-;
 export class InputAssembler {
     constructor() {
-        this.vertexAttributes = new VertexAttributeVector;
+        this.vertexInputState = new VertexInputState;
         this.vertexInput = new VertexInput;
         this.indexInput = null;
     }
@@ -159,19 +165,13 @@ export class BlendState {
         this.dstAlpha = 0;
     }
 }
-export class PassState {
-    constructor() {
-        this.shader = null;
-        this.primitive = 0;
-        this.rasterizationState = new RasterizationState;
-        this.depthStencilState = null;
-        this.blendState = null;
-    }
-}
 export class PipelineInfo {
     constructor() {
-        this.passState = null;
-        this.attributes = null;
+        this.inputState = null;
+        this.shader = null;
+        this.rasterizationState = null;
+        this.depthStencilState = null;
+        this.blendState = null;
         this.layout = null;
         this.renderPass = null;
     }

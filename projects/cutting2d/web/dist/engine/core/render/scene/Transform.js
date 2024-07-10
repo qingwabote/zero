@@ -111,8 +111,8 @@ export class Transform {
         this.update();
         return this._world_matrix;
     }
-    get hasChanged() {
-        return this._hasChanged.value;
+    get hasChangedFlag() {
+        return this._hasChangedFlag;
     }
     constructor(name = '') {
         this.name = name;
@@ -130,7 +130,7 @@ export class Transform {
         this._parent = undefined;
         this._matrix = mat4.create();
         this._world_matrix = mat4.create();
-        this._hasChanged = new PeriodicFlag(0xffffffff);
+        this._hasChangedFlag = new PeriodicFlag(0xffffffff);
     }
     addChild(child) {
         child._implicit_visibility = undefined;
@@ -164,7 +164,7 @@ export class Transform {
     }
     dirty(flag) {
         this._changed |= flag;
-        this._hasChanged.addBit(flag);
+        this._hasChangedFlag.addBit(flag);
         for (const child of this._children) {
             child.dirty(flag);
         }

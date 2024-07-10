@@ -14,7 +14,7 @@ const materialFunc = function (params) {
         } }, params.texture &&
         {
             textures: {
-                'albedoMap': params.texture.impl
+                'albedoMap': params.texture
             }
         });
     return [

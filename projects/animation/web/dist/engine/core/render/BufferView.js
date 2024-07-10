@@ -17,15 +17,14 @@ export class BufferView {
     get BYTES_PER_ELEMENT() {
         return this._source.BYTES_PER_ELEMENT;
     }
-    constructor(_format, _usage, _length = 0) {
+    constructor(_format, usage, _length = 0) {
         this._format = _format;
-        this._usage = _usage;
         this._length = _length;
         this._capacity = 0;
         this._invalidated = false;
         const source = new format2array[_format](_length);
         const info = new BufferInfo;
-        info.usage = _usage;
+        info.usage = usage;
         info.mem_usage = MemoryUsage.CPU_TO_GPU;
         info.size = source.byteLength;
         [this._source, this._buffer, this._capacity] = [source, device.createBuffer(info), _length];
@@ -54,6 +53,9 @@ export class BufferView {
     shrink() { }
     set(array, offset) {
         this._source.set(array, offset);
+        this.invalidate();
+    }
+    invalidate() {
         this._invalidated = true;
     }
     update() {
@@ -66,8 +68,5 @@ export class BufferView {
         }
         this._buffer.update(this._source.buffer, this._source.byteOffset, bytes);
         this._invalidated = false;
-    }
-    invalidate() {
-        this._invalidated = true;
     }
 }

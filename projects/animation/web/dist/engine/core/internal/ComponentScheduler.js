@@ -35,6 +35,11 @@ export class ComponentScheduler {
         this._addingQueue.length = 0;
         this._busying = false;
     }
+    upload() {
+        for (const com of this._components.keys()) {
+            com.upload();
+        }
+    }
     schedule(com) {
         this._components.set(com, true);
     }
