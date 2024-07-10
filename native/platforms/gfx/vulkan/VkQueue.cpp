@@ -65,12 +65,5 @@ namespace gfx
         vkQueuePresentKHR(*_impl, &presentInfo);
     }
 
-    void Queue::wait(const std::shared_ptr<Fence> &c_fence)
-    {
-        VkFence fence = c_fence->impl();
-        vkWaitForFences(*_impl->_device, 1, &fence, true, 1000000000);
-        vkResetFences(*_impl->_device, 1, &fence);
-    }
-
     Queue::~Queue() {}
 }

@@ -1,11 +1,10 @@
 import { CommandBuffer, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
-import { Culler } from "../../core/render/pipeline/Culling.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
-import { Material } from "../../core/render/scene/Material.js";
 import { Model } from "../../core/render/scene/Model.js";
+import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { InstanceBatch } from "./internal/InstanceBatch.js";
@@ -27,21 +26,16 @@ const singleCache = (function () {
 })()
 
 const multipleCache = (function () {
-    const subMesh2material2multiples: WeakMap<SubMesh, WeakMap<Material, InstanceBatch.Multiple[]>> = new WeakMap;
+    const subMesh2multiples: WeakMap<SubMesh, InstanceBatch.Multiple[]> = new WeakMap;
 
-    return function (subMesh: SubMesh, material: Material): InstanceBatch.Multiple {
-        let material2multiples = subMesh2material2multiples.get(subMesh);
-        if (!material2multiples) {
-            material2multiples = new WeakMap;
-            subMesh2material2multiples.set(subMesh, material2multiples);
-        }
-        let multiples = material2multiples.get(material);
+    return function (subMesh: SubMesh): InstanceBatch.Multiple {
+        let multiples = subMesh2multiples.get(subMesh);
         if (!multiples) {
-            material2multiples.set(material, multiples = []);
+            subMesh2multiples.set(subMesh, multiples = []);
         }
         let multiple = multiples.find(multiple => !multiple.locked);
         if (!multiple) {
-            multiple = new InstanceBatch.Multiple(subMesh, material)
+            multiple = new InstanceBatch.Multiple(subMesh)
             multiples.push(multiple);
         }
         return multiple;
@@ -52,11 +46,13 @@ function modelCompareFn(a: Model, b: Model) {
     return a.order - b.order;
 }
 
+type Culling = 'View' | 'CSM';
+
 export class ModelPhase extends Phase {
     constructor(
         context: Context,
         visibility: number,
-        public culler: Culler,
+        public culling: Culling = 'View',
         private _batching: boolean = false,
         /**The model type that indicates which models should run in this phase */
         private _model = 'default',
@@ -66,66 +62,120 @@ export class ModelPhase extends Phase {
         super(context, visibility);
     }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, cameraIndex: number) {
-        profile.emit(Profile.Event.CULL_START);
-        const models = this.culler.cull(Zero.instance.scene.models, this._model, cameraIndex);
-        profile.emit(Profile.Event.CULL_END);
+    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
+        const data = Zero.instance.pipeline.data;
 
-        if (!this._batching) {
-            models.sort(modelCompareFn);
+        let models: Iterable<Model>;
+        switch (this.culling) {
+            case 'View':
+                models = data.culling?.getView(data.current_camera).camera || Zero.instance.scene.models;
+                break;
+            case 'CSM':
+                models = data.culling?.getView(data.current_camera).shadow[data.flowLoopIndex] || Zero.instance.scene.models;
+                break;
+            default:
+                throw new Error(`unsupported culling: ${this.culling}`);
         }
 
-        const batches: InstanceBatch[] = []
-        for (const model of models) {
-            model.upload();
-
-            for (let i = 0; i < model.mesh.subMeshes.length; i++) {
-                if (!model.mesh.subMeshes[i].draw.count) {
+        if (this._batching) {
+            const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
+            for (const model of models) {
+                if (model.type != this._model) {
                     continue;
                 }
 
-                if (!this._batching || model.descriptorSet) {
-                    batches.push(singleCache(model, i));
-                    continue;
-                }
+                model.upload();
 
-                const multiple = multipleCache(model.mesh.subMeshes[i], model.materials[i]);
-                if (multiple.count == 0) {
-                    batches.push(multiple);
+                for (let i = 0; i < model.mesh.subMeshes.length; i++) {
+                    if (model.mesh.subMeshes[i].draw.count == 0) {
+                        continue;
+                    }
+
+                    for (const pass of model.materials[i].passes) {
+                        if (pass.type != this._pass) {
+                            continue;
+                        }
+
+                        let batches = pass2batches.get(pass);
+                        if (!batches) {
+                            pass2batches.set(pass, batches = []);
+                        }
+
+                        // fallback
+                        if (model.descriptorSet) {
+                            batches.push(singleCache(model, i));
+                            continue;
+                        }
+
+                        const multiple = multipleCache(model.mesh.subMeshes[i]);
+                        if (multiple.count == 0) {
+                            batches.push(multiple);
+                        }
+                        multiple.add(model.transform.world_matrix);
+                    }
                 }
-                multiple.add(model.transform.world_matrix);
             }
-        }
 
-        for (const batch of batches) {
-            batch.upload();
-
-            if (batch.local.descriptorSet) {
-                commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);
-            }
-
-            for (const pass of batch.material.passes) {
-                if (pass.type != this._pass) {
-                    continue;
-                }
-
+            for (const [pass, batches] of pass2batches) {
                 pass.upload();
-
                 if (pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                 }
-                const pipeline = this._context.getPipeline(pass.state, batch.inputAssembler.vertexAttributes, renderPass, [batch.local.descriptorSetLayout, pass.descriptorSetLayout]);
-                commandBuffer.bindPipeline(pipeline);
-                commandBuffer.bindInputAssembler(batch.inputAssembler);
-                if (batch.inputAssembler.indexInput) {
-                    commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
-                } else {
-                    commandBuffer.draw(batch.draw.count, batch.count);
+
+                for (const batch of batches) {
+                    batch.record(profile, commandBuffer, renderPass, this._context, pass);
                 }
-                profile.draws++;
+
+                profile.passes++;
+            }
+        } else {
+            models = [...models].sort(modelCompareFn);
+
+            const passes: Pass[] = [];
+            const batches: InstanceBatch[] = [];
+            for (const model of models) {
+                if (model.type != this._model) {
+                    continue;
+                }
+
+                model.upload();
+
+                for (let i = 0; i < model.mesh.subMeshes.length; i++) {
+                    if (model.mesh.subMeshes[i].draw.count == 0) {
+                        continue;
+                    }
+
+                    for (const pass of model.materials[i].passes) {
+                        if (pass.type != this._pass) {
+                            continue;
+                        }
+
+                        batches.push(singleCache(model, i));
+                        passes.push(pass);
+                    }
+                }
             }
 
-            batch.recycle();
+            let current_pass;
+            for (let i = 0; i < batches.length; i++) {
+                const pass = passes[i];
+                if (current_pass != pass) {
+                    pass.upload();
+                    if (pass.descriptorSet) {
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
+                    }
+                    current_pass = pass;
+
+                    profile.passes++;
+                }
+
+                batches[i].record(profile, commandBuffer, renderPass, this._context, pass);
+            }
         }
     }
+}
+ModelPhase.InstanceBatch = InstanceBatch;
+
+export declare namespace ModelPhase {
+    export { Culling, InstanceBatch }
 }

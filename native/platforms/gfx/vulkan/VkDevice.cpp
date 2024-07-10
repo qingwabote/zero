@@ -7,6 +7,9 @@
 
 #include "glslang/Public/ShaderLang.h"
 
+#include "gfx/Fence.hpp"
+#include "VkFence_impl.hpp"
+
 namespace
 {
     VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -61,7 +64,12 @@ namespace gfx
 #else
 #pragma error Platform not supported
 #endif
-        std::vector<const char *> validationLayers{"VK_LAYER_KHRONOS_validation"};
+
+        std::vector<const char *> validationLayers{
+#ifndef NDEBUG
+            "VK_LAYER_KHRONOS_validation"
+#endif
+        };
 
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
         debugUtilsCreateInfo.messageSeverity =
@@ -383,6 +391,13 @@ namespace gfx
         auto texture = new Texture(_impl, info);
         texture->initialize();
         return texture;
+    }
+
+    void Device::waitForFence(const std::shared_ptr<Fence> &c_fence)
+    {
+        VkFence fence = c_fence->impl();
+        vkWaitForFences(*_impl, 1, &fence, true, 3000000000);
+        vkResetFences(*_impl, 1, &fence);
     }
 
     void Device::finish() { vkDeviceWaitIdle(_impl->device()); }

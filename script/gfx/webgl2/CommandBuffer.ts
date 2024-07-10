@@ -72,11 +72,10 @@ export class CommandBuffer {
     bindPipeline(pipeline: Pipeline) {
         const gl = this._gl;
         const info = pipeline.info;
-        const state = info.passState!;
 
-        gl.useProgram(state.shader!.impl);
+        gl.useProgram(info.shader!.impl);
 
-        switch (state.rasterizationState.cullMode) {
+        switch (info.rasterizationState!.cullMode) {
             case CullMode.NONE:
                 gl.disable(gl.CULL_FACE);
                 break;
@@ -89,18 +88,18 @@ export class CommandBuffer {
                 gl.enable(gl.CULL_FACE);
                 break;
             default:
-                throw new Error(`unsupported cullMode: ${state.rasterizationState.cullMode}`);
+                throw new Error(`unsupported cullMode: ${info.rasterizationState!.cullMode}`);
         }
 
         gl.enable(gl.SCISSOR_TEST);
 
-        if (state.depthStencilState?.depthTestEnable) {
+        if (info.depthStencilState?.depthTestEnable) {
             gl.enable(gl.DEPTH_TEST);
         } else {
             gl.disable(gl.DEPTH_TEST);
         }
 
-        const blendState = state.blendState;
+        const blendState = info.blendState;
         if (blendState) {
             gl.blendFuncSeparate(
                 bendFactor2WebGL(blendState.srcRGB),
@@ -145,13 +144,13 @@ export class CommandBuffer {
         this._inputAssembler = inputAssembler;
     }
 
-    draw(vertexCount: number, instanceCount: number): void {
+    draw(vertexCount: number, firstVertex: number, instanceCount: number): void {
         this.bindVertexArray();
 
         const gl = this._gl;
 
         let mode: GLenum;
-        switch (this._pipeline.passState!.primitive) {
+        switch (this._inputAssembler.vertexInputState.primitive) {
             case PrimitiveTopology.LINE_LIST:
                 mode = gl.LINES;
                 break;
@@ -159,9 +158,9 @@ export class CommandBuffer {
                 mode = gl.TRIANGLES;
                 break;
             default:
-                throw `unsupported primitive: ${this._pipeline.passState!.primitive}`
+                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
         }
-        gl.drawArraysInstanced(mode, 0, vertexCount, instanceCount);
+        gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
         gl.bindVertexArray(null);
     }
 
@@ -217,55 +216,61 @@ export class CommandBuffer {
         if (!vao) {
             vao = gl.createVertexArray()!;
             gl.bindVertexArray(vao);
-            const attributes = (inputAssembler.vertexAttributes as Vector<VertexAttribute>).data;
+            const attributes = (inputAssembler.vertexInputState.attributes as Vector<VertexAttribute>).data;
             for (const attribute of attributes) {
                 const buffer = (inputAssembler.vertexInput.buffers as Vector<Buffer>).data[attribute.buffer];
-                const offset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
-                const stride = attribute.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes : 0), 0);
+                const bufferOffset = (inputAssembler.vertexInput.offsets as Vector<number>).data[attribute.buffer];
+                const stride = attribute.stride || attributes.reduce((acc, attr) => acc + (attr.buffer == attribute.buffer ? FormatInfos[attr.format].bytes * attr.multiple : 0), 0);
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer.impl);
-                gl.enableVertexAttribArray(attribute.location);
-                const formatInfo = FormatInfos[attribute.format];
-                let type: GLenum;
-                let isInteger: boolean;
-                switch (attribute.format) {
-                    case Format.RG32_SFLOAT:
-                    case Format.RGB32_SFLOAT:
-                    case Format.RGBA32_SFLOAT:
-                        type = WebGL2RenderingContext.FLOAT;
-                        isInteger = false;
-                        break;
-                    case Format.RGBA8_UINT:
-                        type = WebGL2RenderingContext.UNSIGNED_BYTE;
-                        isInteger = true;
-                        break;
-                    case Format.RGBA16_UINT:
-                        type = WebGL2RenderingContext.UNSIGNED_SHORT;
-                        isInteger = true;
-                        break;
-                    case Format.RGBA32_UINT:
-                        type = WebGL2RenderingContext.UNSIGNED_INT;
-                        isInteger = true;
-                        break;
-                    default:
-                        throw 'unsupported vertex type';
-                }
-                if (isInteger) {
-                    gl.vertexAttribIPointer(
-                        attribute.location,
-                        formatInfo.nums,
-                        type,
-                        stride, offset + attribute.offset);
-                } else {
-                    gl.vertexAttribPointer(
-                        attribute.location,
-                        formatInfo.nums,
-                        type,
-                        false,
-                        stride,
-                        offset + attribute.offset);
-                }
-                if (attribute.instanced) {
-                    gl.vertexAttribDivisor(attribute.location, 1);
+                for (let i = 0; i < attribute.multiple; i++) {
+                    const formatInfo = FormatInfos[attribute.format];
+
+                    const location = attribute.location + i;
+                    const offset = attribute.offset + (formatInfo.bytes * i)
+                    gl.enableVertexAttribArray(location);
+                    let type: GLenum;
+                    let isInteger: boolean;
+                    switch (attribute.format) {
+                        case Format.RG32_SFLOAT:
+                        case Format.RGB32_SFLOAT:
+                        case Format.RGBA32_SFLOAT:
+                            type = WebGL2RenderingContext.FLOAT;
+                            isInteger = false;
+                            break;
+                        case Format.RGBA8_UINT:
+                            type = WebGL2RenderingContext.UNSIGNED_BYTE;
+                            isInteger = true;
+                            break;
+                        case Format.RGBA16_UINT:
+                            type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                            isInteger = true;
+                            break;
+                        case Format.RGBA32_UINT:
+                            type = WebGL2RenderingContext.UNSIGNED_INT;
+                            isInteger = true;
+                            break;
+                        default:
+                            throw 'unsupported vertex type';
+                    }
+                    if (isInteger) {
+                        gl.vertexAttribIPointer(
+                            location,
+                            formatInfo.nums,
+                            type,
+                            stride, bufferOffset + offset);
+                    } else {
+                        gl.vertexAttribPointer(
+                            location,
+                            formatInfo.nums,
+                            type,
+                            false,
+                            stride,
+                            bufferOffset + offset);
+                    }
+                    if (attribute.instanced) {
+                        gl.vertexAttribDivisor(location, 1);
+                    }
                 }
             }
             if (inputAssembler.indexInput) {

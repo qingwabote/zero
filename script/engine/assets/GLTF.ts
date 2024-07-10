@@ -3,18 +3,18 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, SubmitInfo, VertexAttribute } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, SubmitInfo, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
 import { Mat4Like } from "../core/math/mat4.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { AnimationClip } from "../marionette/AnimationClip.js";
+import { Material } from "../scene/Material.js";
 import { Effect } from "./Effect.js";
 import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
@@ -60,7 +60,7 @@ interface MaterialParams {
 
 type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<Effect.PassOverridden>[]];
 
-const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
+const materialFuncPhong: MaterialFunc = function (params: MaterialParams): [string, readonly Readonly<Effect.PassOverridden>[]] {
     return [
         bundle.resolve("./effects/phong"),
         [
@@ -76,7 +76,7 @@ const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
                 ...params.texture &&
                 {
                     textures: {
-                        'albedoMap': params.texture.impl
+                        'albedoMap': params.texture
                     }
                 }
             }
@@ -238,7 +238,7 @@ export class GLTF implements Asset {
         let instance = this._instances[instanceKey];
         if (!instance) {
             const materialDefault = await this.materialLoad(...materialFunc({ albedo: vec4.ONE, skin: false }), macros);
-            const materials: Material[] = []
+            const materials: Material.Readonly[] = []
             for (const info of this._json.materials || []) {
                 let textureIdx = -1;
                 if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
@@ -280,16 +280,16 @@ export class GLTF implements Asset {
                 }
                 const builtin = shaderLib.attributes[name];
                 const attribute: VertexAttribute = new VertexAttribute;
-                attribute.name = builtin.name;
+                attribute.location = builtin.location;
                 attribute.format = format;
                 attribute.buffer = ia.vertexInput.buffers.size();
                 attribute.offset = 0;
                 attribute.stride = this._json.bufferViews[accessor.bufferView].byteStride || 0;
-                attribute.location = builtin.location;
-                ia.vertexAttributes.add(attribute);
+                ia.vertexInputState.attributes.add(attribute)
                 ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
                 ia.vertexInput.offsets.add(accessor.byteOffset || 0);
             }
+            ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
 
             const indexAccessor = this._json.accessors[primitive.indices];
             const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
@@ -364,7 +364,7 @@ export class GLTF implements Asset {
             const submitInfo = new SubmitInfo;
             submitInfo.commandBuffer = _commandBuffer;
             device.queue.submit(submitInfo, _fence);
-            device.queue.wait(_fence);
+            device.waitForFence(_fence);
         } else {
             const info = new BufferInfo();
             info.usage = usage;
@@ -379,27 +379,27 @@ export class GLTF implements Asset {
 
     private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
         const effect = await cache(effectUrl, Effect)
-        const passes = await effect.createPasses(passOverriddens, macros);
-        return new Material(passes);
+        const passes = await effect.getPasses(passOverriddens, macros);
+        return { passes };
     }
 }
 
 class Instance {
-    constructor(readonly proto: GLTF, private readonly _materials: Material[], private readonly _materialDefault: Material) { }
+    constructor(readonly proto: GLTF, private readonly _materials: Material.Readonly[], private readonly _materialDefault: Material) { }
 
-    createScene(name?: string, materialInstancing = false): Node | null {
+    createScene(name?: string): Node | null {
         const scene = name ? (this.proto.json.scenes as any[]).find(scene => scene.name == name) : this.proto.json.scenes[0];
         if (!scene) {
             return null;
         }
         const node = new Node(name);
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(index, materialInstancing, node))
+            node.addChild(this.createNode(index, node))
         }
         return node;
     }
 
-    private createNode(index: number, materialInstancing: boolean, root?: Node): Node {
+    private createNode(index: number, root?: Node): Node {
         const info = this.proto.json.nodes[index];
         const node = new Node(node2name(info, index));
         if (!root) {
@@ -420,18 +420,18 @@ class Instance {
         }
 
         if (info.mesh != undefined) {
-            this.addMeshRenderer(root, node, info, materialInstancing);
+            this.addMeshRenderer(root, node, info);
         }
 
         if (info.children) {
             for (const idx of info.children) {
-                node.addChild(this.createNode(idx, materialInstancing, root));
+                node.addChild(this.createNode(idx, root));
             }
         }
         return node;
     }
 
-    private addMeshRenderer(root: Node, node: Node, info: any, materialInstancing: boolean) {
+    private addMeshRenderer(root: Node, node: Node, info: any) {
         let renderer: MeshRenderer;
         if (info.skin != undefined) {
             const rdr = node.addComponent(SkinnedMeshRenderer);
@@ -442,10 +442,10 @@ class Instance {
             renderer = node.addComponent(MeshRenderer);
         }
         renderer.mesh = this.proto.getMesh(info.mesh)
-        renderer.materials = this.getMaterials(info.mesh, materialInstancing);
+        renderer.materials = this.getMaterials(info.mesh);
     }
 
-    private getMaterials(meshIndex: number, instancing: boolean) {
+    private getMaterials(meshIndex: number) {
         const materials: Material[] = [];
         for (const primitive of this.proto.json.meshes[meshIndex].primitives) {
             const material = primitive.material == undefined ? this._materialDefault : this._materials[primitive.material];
@@ -456,7 +456,7 @@ class Instance {
                 console.log("not provided attribute: TEXCOORD_0")
                 continue;
             }
-            materials.push(instancing ? material.instantiate() : material);
+            materials.push({ passes: [...material.passes] });
         }
         return materials;
     }

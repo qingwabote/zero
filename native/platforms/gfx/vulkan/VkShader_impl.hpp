@@ -12,12 +12,12 @@ namespace gfx
     private:
         Device_impl *_device{nullptr};
 
-        std::unordered_map<std::string, uint32_t> _attributeLocations;
+        std::unordered_map<uint32_t, std::string> _attributeLocations;
 
         std::vector<VkPipelineShaderStageCreateInfo> _stages;
 
     public:
-        const std::unordered_map<std::string, uint32_t> &attributeLocations;
+        const std::unordered_map<uint32_t, std::string> &attributeLocations;
 
         const std::vector<VkPipelineShaderStageCreateInfo> &stages;
 

@@ -1,4 +1,5 @@
 {
+    "iOSHighPerformance": true,
     "subpackages": [
         {
             "name": "engine",

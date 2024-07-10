@@ -10,7 +10,7 @@ import { Transform } from "../../core/render/scene/Transform.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 class ModelSpaceTransform {
-    hasUpdated = new PeriodicFlag();
+    hasUpdatedFlag = new PeriodicFlag();
     matrix = mat4.create();
 }
 
@@ -50,7 +50,7 @@ export class SkinnedModel extends Model {
     }
 
     override upload(): void {
-        if (this._hasUploaded.value) {
+        if (this._hasUploadedFlag.value) {
             return;
         }
 
@@ -73,7 +73,7 @@ export class SkinnedModel extends Model {
             modelSpace = new ModelSpaceTransform;
             joint2modelSpace.set(joint, modelSpace);
         }
-        if (modelSpace.hasUpdated.value) {
+        if (modelSpace.hasUpdatedFlag.value) {
             return;
         }
         const parent = joint.parent!;
@@ -83,6 +83,6 @@ export class SkinnedModel extends Model {
             this.updateModelSpace(parent);
             mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent)!.matrix, joint.matrix)
         }
-        modelSpace.hasUpdated.reset(1);
+        modelSpace.hasUpdatedFlag.reset(1);
     }
 }

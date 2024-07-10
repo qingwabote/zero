@@ -1,7 +1,7 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BoundedRenderer, Node, Shader, bundle, render, shaderLib, vec2, vec3, vec4 } from "engine";
+import { BoundedRenderer, Node, Shader, bundle, render, scene, shaderLib, vec2, vec3, vec4 } from "engine";
 import { AABB3D } from 'engine/core/math/aabb3d.js';
-import { BlendFactor, BlendState, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from 'gfx';
+import { BlendFactor, BlendState, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from 'gfx';
 import { Texture } from './Texture.js';
 
 const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
@@ -9,14 +9,12 @@ const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
     let elements = 0;
 
     const position = new VertexAttribute;
-    position.name = 'a_position';
     position.format = Format.RG32_SFLOAT;
     position.location = shaderLib.attributes.position.location;
     attributes.add(position);
     elements += FormatInfos[position.format].nums;
 
     const texCoord = new VertexAttribute;
-    texCoord.name = 'a_texCoord';
     texCoord.format = Format.RG32_SFLOAT;
     texCoord.offset = FormatInfos[position.format].bytes;
     texCoord.location = shaderLib.attributes.uv.location;
@@ -44,7 +42,7 @@ export class Skeleton extends BoundedRenderer {
     static readonly PIXELS_PER_UNIT = 1;
 
     private _mesh: render.Mesh;
-    private _materials: render.Material[] = [];
+    private _materials: scene.Material[] = [];
 
     public get bounds(): Readonly<AABB3D> {
         return this._mesh.bounds;
@@ -68,13 +66,14 @@ export class Skeleton extends BoundedRenderer {
     private _vertexView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);
     private _indexView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 2048 * 3);
 
-    private _materialCache: Record<string, render.Material> = {};
+    private _materialCache: Record<string, scene.Material> = {};
 
     constructor(node: Node) {
         super(node);
 
         const ia = new InputAssembler;
-        ia.vertexAttributes = VERTEX_ATTRIBUTES;
+        ia.vertexInputState.attributes = VERTEX_ATTRIBUTES;
+        ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
         ia.vertexInput.buffers.add(this._vertexView.buffer);
         ia.vertexInput.offsets.add(0);
 
@@ -90,7 +89,7 @@ export class Skeleton extends BoundedRenderer {
         return new render.Model(this.node, this._mesh, this._materials);
     }
 
-    override lateUpdate(): void {
+    override upload(): void {
         let key = '';
         let vertex = 0;
         let index = 0;
@@ -200,27 +199,24 @@ export class Skeleton extends BoundedRenderer {
         this._indexView.update();
     }
 
-    private createMaterial(blend: sc.BlendMode, texture: Texture): render.Material {
-        const state = new PassState();
-        state.shader = shaderLib.getShader(ss_spine, { USE_ALBEDO_MAP: 1 });
-        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
+    private createMaterial(blend: sc.BlendMode, texture: Texture): scene.Material {
+        let blendState: BlendState | undefined = undefined
         switch (blend) {
             case sc.BlendMode.Normal:
-                const blendState = new BlendState;
+                blendState = new BlendState;
                 blendState.srcRGB = BlendFactor.ONE; // premultipliedAlpha
                 blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
                 blendState.srcAlpha = BlendFactor.ONE;
                 blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
-                state.blendState = blendState;
                 break;
 
             default:
                 break;
         }
-        const pass = render.Pass.Pass(state);
-        pass.setProperty('albedo', vec4.ONE);
+        const pass = new scene.Pass({ shader: shaderLib.getShader(ss_spine, { USE_ALBEDO_MAP: 1 }), blendState })
+        pass.setPropertyByName('albedo', vec4.ONE);
         pass.setTexture('albedoMap', texture.getImpl());
 
-        return new render.Material([pass]);
+        return { passes: [pass] };
     }
 }

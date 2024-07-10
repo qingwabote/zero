@@ -1,12 +1,8 @@
 import { Frustum } from "./Frustum.js";
 import { Model } from "./Model.js";
 
-export function cull(results: Model[], models: readonly Model[], frustum: Readonly<Frustum>, visibilities: number, type: string, claimed?: Map<Model, Model>) {
+export function cull(results: Model[], models: readonly Model[], frustum: Readonly<Frustum>, visibilities: number, claimed?: Map<Model, Model>) {
     for (const model of models) {
-        if (model.type != type) {
-            continue;
-        }
-
         if ((visibilities & model.transform.visibility) == 0) {
             continue;
         }
@@ -25,5 +21,4 @@ export function cull(results: Model[], models: readonly Model[], frustum: Readon
 
         results.push(model);
     }
-    return results;
 }

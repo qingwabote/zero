@@ -1,6 +1,7 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayout, PassState, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RenderPass, Shader, VertexAttributeVector } from "gfx";
+import { DescriptorSet, DescriptorSetLayout, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RasterizationState, RenderPass, Shader, VertexInputState } from "gfx";
 import { hashLib } from "../hashLib.js";
+import { Pass } from "../scene/Pass.js";
 
 export class Context {
     readonly descriptorSet: DescriptorSet;
@@ -15,13 +16,22 @@ export class Context {
     /**
      * @param renderPass a compatible renderPass
      */
-    getPipeline(passState: PassState, attributes: VertexAttributeVector, renderPass: RenderPass, layouts?: readonly DescriptorSetLayout[]): Pipeline {
-        const pipelineHash = hashLib.passState(passState) ^ hashLib.attributes(attributes) ^ hashLib.renderPass(renderPass.info);
+    getPipeline(passState: Pass.State, inputState: VertexInputState, renderPass: RenderPass, layouts?: readonly DescriptorSetLayout[]): Pipeline {
+        const pipelineHash = hashLib.passState(passState) ^ hashLib.inputState(inputState) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
             const info = new PipelineInfo();
-            info.passState = passState;
-            info.attributes = attributes;
+            info.inputState = inputState;
+
+            info.shader = passState.shader;
+            info.rasterizationState = passState.rasterizationState || new RasterizationState;
+            if (passState.depthStencilState) {
+                info.depthStencilState = passState.depthStencilState;
+            }
+            if (passState.blendState) {
+                info.blendState = passState.blendState;
+            }
+
             info.renderPass = renderPass;
             info.layout = this.getPipelineLayout(passState.shader!, layouts)
             pipeline = device.createPipeline(info);

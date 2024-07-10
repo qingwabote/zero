@@ -1,5 +1,4 @@
 #include "Queue.hpp"
-#include <future>
 
 namespace bg
 {
@@ -23,19 +22,5 @@ namespace bg
                 gfx::Queue::present(waitSemaphore);
             });
         _background->post(f);
-    }
-
-    void Queue::wait(const std::shared_ptr<gfx::Fence> &fence)
-    {
-        std::promise<void> promise;
-        std::future<void> future = promise.get_future();
-        auto f = new auto(
-            [=, &promise]()
-            {
-                gfx::Queue::wait(fence);
-                promise.set_value();
-            });
-        _background->post(f);
-        future.get();
     }
 }

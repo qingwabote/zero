@@ -115,4 +115,6 @@ export class Device implements Device {
         texture.initialize();
         return texture;
     }
+
+    waitForFence(fence: Fence): void { }
 }

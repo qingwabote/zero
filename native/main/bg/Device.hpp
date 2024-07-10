@@ -18,6 +18,8 @@ namespace bg
 
         gfx::CommandBuffer *createCommandBuffer() override;
 
+        virtual void waitForFence(const std::shared_ptr<gfx::Fence> &fence);
+
         void finish() override;
     };
 }

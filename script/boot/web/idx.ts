@@ -3,16 +3,15 @@ import { log } from "./console.js";
 //
 import { Device } from "gfx";
 
-const [styleWidth, styleHeight, pixelWidth, pixelHeight, pixelRatio] = (function () {
-    const { clientWidth, clientHeight } = document.documentElement;
-    return [clientWidth, clientHeight, clientWidth * devicePixelRatio, clientHeight * devicePixelRatio, devicePixelRatio];
-})()
+const pixelRatio: number = devicePixelRatio;
+const pixelWidth: number = document.documentElement.clientWidth * pixelRatio;
+const pixelHeight: number = document.documentElement.clientHeight * pixelRatio;
 
 const canvas = document.getElementById('boot_canvas') as HTMLCanvasElement;
 canvas.width = pixelWidth;
 canvas.height = pixelHeight;
-canvas.style.width = `${styleWidth}px`;
-canvas.style.height = `${styleHeight}px`;
+canvas.style.width = `${document.documentElement.clientWidth}px`;
+canvas.style.height = `${document.documentElement.clientHeight}px`;
 
 export const safeArea = (function () {
     const top = document.getElementById("boot_log")!.clientHeight * pixelRatio;

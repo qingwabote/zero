@@ -1,4 +1,4 @@
-import { EventEmitterImpl, EventReceiver } from "bastard";
+import { EventEmitter } from "bastard";
 import { TouchEvent, WheelEvent } from "boot";
 
 enum TouchEvents {
@@ -41,7 +41,7 @@ interface EventToListener {
     [GestureEvents.ROTATE]: (event: GestureEvent) => void;
 }
 
-interface InputReadonly extends EventReceiver<EventToListener> { }
+interface InputReadonly extends EventEmitter.Readonly<EventToListener> { }
 
 function distance(event: TouchEvent) {
     const x = event.x(0) - event.x(1);
@@ -49,7 +49,7 @@ function distance(event: TouchEvent) {
     return Math.sqrt(x * x + y * y);
 }
 
-export class Input extends EventEmitterImpl<EventToListener> implements InputReadonly {
+export class Input extends EventEmitter.Impl<EventToListener> implements InputReadonly {
     private _dist: number = 0;
 
     onTouchStart(event: TouchEvent) {

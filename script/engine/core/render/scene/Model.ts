@@ -1,7 +1,6 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayout } from "gfx";
+import { DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { shaderLib } from "../../shaderLib.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
@@ -13,7 +12,7 @@ enum ChangeBits {
 }
 
 export class Model {
-    static readonly descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([]);
+    static readonly descriptorSetLayout = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 
     private _bounds_invalidated = true;
     private _bounds = aabb3d.create();
@@ -28,7 +27,7 @@ export class Model {
     private _hasChanged = new PeriodicFlag(ChangeBits.BOUNDS);
     get hasChanged(): number {
         let flag = this._hasChanged.value;
-        if (this._mesh.hasChanged || this._transform.hasChanged) {
+        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             flag |= ChangeBits.BOUNDS;
         }
         return flag;
@@ -61,7 +60,7 @@ export class Model {
 
     readonly descriptorSet?: DescriptorSet;
 
-    protected _hasUploaded = new PeriodicFlag;
+    protected _hasUploadedFlag = new PeriodicFlag;
 
     constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
         const descriptorSetLayout = (this.constructor as typeof Model).descriptorSetLayout;
@@ -71,13 +70,17 @@ export class Model {
     }
 
     update() {
-        if (this._mesh.hasChanged || this._transform.hasChanged) {
+        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             this._bounds_invalidated = true;
         }
     }
 
     upload() {
-        this._hasUploaded.reset(1);
+        if (this._hasUploadedFlag.value) {
+            return;
+        }
+
+        this._hasUploadedFlag.reset(1);
     }
 }
 Model.ChangeBits = ChangeBits;

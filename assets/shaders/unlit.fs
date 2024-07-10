@@ -3,10 +3,10 @@ precision highp float;
 layout(location = 0) in vec2 v_uv;
 
 #if USE_ALBEDO_MAP
-    layout(set = 2, binding = 0) uniform sampler2D albedoMap;
+    layout(set = 1, binding = 0) uniform sampler2D albedoMap;
 #endif
 
-layout(set = 2, binding = 1) uniform Props  {
+layout(set = 1, binding = 1) uniform Props  {
     vec4 albedo;
 } props;
 

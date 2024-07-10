@@ -1,7 +1,7 @@
 import { device } from "boot";
 import { ClearFlagBits, CommandBuffer, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
-import { Zero } from "../../Zero.js";
 import { Vec4 } from "../../math/vec4.js";
+import { Data } from "./Data.js";
 import { Phase } from "./Phase.js";
 import { Profile } from "./Profile.js";
 import { getRenderPass } from "./rpc.js";
@@ -27,6 +27,7 @@ const defaultFramebuffer = (function () {
 
 export class Stage {
     constructor(
+        private readonly _data: Data,
         public readonly phases: readonly Phase[],
         readonly visibilities: number,
         private _framebuffer: Framebuffer = defaultFramebuffer,
@@ -34,9 +35,8 @@ export class Stage {
         public rect?: Readonly<Vec4>
     ) { }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, cameraIndex: number) {
-        const camera = Zero.instance.scene.cameras[cameraIndex];
-
+    record(profile: Profile, commandBuffer: CommandBuffer) {
+        const camera = this._data.current_camera;
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this.rect ?? camera.rect;
 
@@ -45,7 +45,7 @@ export class Stage {
 
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.record(profile, commandBuffer, renderPass, cameraIndex);
+                phase.record(profile, commandBuffer, renderPass, camera);
             }
         }
 

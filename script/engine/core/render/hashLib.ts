@@ -1,54 +1,56 @@
 import { murmurhash2_32_gc } from "bastard";
-import type { PassState, RenderPassInfo, Shader, VertexAttributeVector } from "gfx";
+import type { RenderPassInfo, VertexInputState } from "gfx";
 import { shaderLib } from "../shaderLib.js";
+import { Pass } from "./scene/Pass.js";
 
-const _shader2hash: WeakMap<Shader, number> = new WeakMap;
-const _pass2hash: WeakMap<PassState, number> = new WeakMap;
-const _attributes2hash: WeakMap<VertexAttributeVector, number> = new WeakMap;
+const _pass2hash: WeakMap<Pass.State, number> = new WeakMap;
+const _inputState2hash: WeakMap<VertexInputState, number> = new WeakMap;
 
 let _renderPass_id = 0;
 const _renderPass2id: Map<RenderPassInfo, number> = new Map;
 
 export const hashLib = {
-    shader(shader: Shader): number {
-        let hash = _shader2hash.get(shader);
-        if (!hash) {
-            hash = murmurhash2_32_gc(shaderLib.getShaderMeta(shader).key, 666);
-            _shader2hash.set(shader, hash);
-        }
-        return hash;
-    },
-
-    passState(pass: PassState): number {
+    passState(pass: Pass.State): number {
         let hash = _pass2hash.get(pass);
         if (!hash) {
-            let key = "";
-            key += `${shaderLib.getShaderMeta(pass.shader!).key}`;
-            key += `${pass.primitive}`;
-            key += `${pass.rasterizationState.cullMode}`;
+            let key = `${shaderLib.getShaderMeta(pass.shader!).key}`;
+
+            if (pass.rasterizationState) {
+                key += `${pass.rasterizationState.cullMode}`;
+            } else {
+                key += ' '
+            }
+
             if (pass.depthStencilState) {
                 key += `${pass.depthStencilState.depthTestEnable}`;
+            } else {
+                key += ' '
             }
+
             if (pass.blendState) {
                 key += `${pass.blendState.srcRGB}${pass.blendState.dstRGB}${pass.blendState.srcAlpha}${pass.blendState.dstAlpha}`;
+            } else {
+                key += ' '
             }
+
             hash = murmurhash2_32_gc(key, 666);
             _pass2hash.set(pass, hash);
         }
         return hash;
     },
 
-    attributes(attributes: VertexAttributeVector): number {
-        let hash = _attributes2hash.get(attributes);
+    inputState(inputState: VertexInputState): number {
+        let hash = _inputState2hash.get(inputState);
         if (!hash) {
-            let key = '';
+            let key = `${inputState.primitive}`;
+            const attributes = inputState.attributes;
             const length = attributes.size();
             for (let i = 0; i < length; i++) {
                 const attribute = attributes.get(i);
-                key += `${attribute.name}${attribute.format}${attribute.buffer}${attribute.offset}${attribute.stride}${attribute.location}${attribute.instanced}`;
+                key += `${attribute.location}${attribute.format}${attribute.buffer}${attribute.offset}${attribute.stride}${attribute.instanced}`;
             }
             hash = murmurhash2_32_gc(key, 666);
-            _attributes2hash.set(attributes, hash);
+            _inputState2hash.set(inputState, hash);
         }
         return hash;
     },

@@ -205,17 +205,30 @@ namespace gfx
         std::shared_ptr<DescriptorSetLayoutVector> layouts{new DescriptorSetLayoutVector()};
     };
 
+    enum class PrimitiveTopology
+    {
+        POINT_LIST = 0,
+        LINE_LIST = 1,
+        TRIANGLE_LIST = 3
+    };
+
     struct VertexAttribute
     {
-        std::string name;
+        uint32_t location;
         uint32_t format;
         uint32_t buffer;
         uint32_t offset;
         uint32_t stride;
-        uint32_t location;
         bool instanced;
+        uint32_t multiple = 1;
     };
     using VertexAttributeVector = std::vector<std::shared_ptr<VertexAttribute>>;
+
+    struct VertexInputState
+    {
+        std::shared_ptr<VertexAttributeVector> attributes{new VertexAttributeVector()};
+        PrimitiveTopology primitive{0};
+    };
 
     using BufferVector = std::vector<std::shared_ptr<Buffer>>;
     struct VertexInput
@@ -235,7 +248,7 @@ namespace gfx
     };
     struct InputAssembler
     {
-        std::shared_ptr<VertexAttributeVector> vertexAttributes{new VertexAttributeVector()};
+        std::shared_ptr<VertexInputState> vertexInputState{new VertexInputState()};
         std::shared_ptr<VertexInput> vertexInput{new VertexInput()};
         std::shared_ptr<IndexInput> indexInput;
     };
@@ -270,25 +283,16 @@ namespace gfx
         BlendFactor srcAlpha;
         BlendFactor dstAlpha;
     };
-    enum class PrimitiveTopology
-    {
-        POINT_LIST = 0,
-        LINE_LIST = 1,
-        TRIANGLE_LIST = 3
-    };
-    struct PassState
-    {
-        std::shared_ptr<Shader> shader;
-        PrimitiveTopology primitive{0};
-        std::shared_ptr<RasterizationState> rasterizationState{new RasterizationState()};
-        std::shared_ptr<DepthStencilState> depthStencilState;
-        std::shared_ptr<BlendState> blendState;
-    };
 
     struct PipelineInfo
     {
-        std::shared_ptr<PassState> passState;
-        std::shared_ptr<VertexAttributeVector> attributes;
+        std::shared_ptr<VertexInputState> inputState;
+
+        std::shared_ptr<Shader> shader;
+        std::shared_ptr<RasterizationState> rasterizationState;
+        std::shared_ptr<DepthStencilState> depthStencilState;
+        std::shared_ptr<BlendState> blendState;
+
         std::shared_ptr<PipelineLayout> layout;
         std::shared_ptr<RenderPass> renderPass;
     };

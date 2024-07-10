@@ -75,7 +75,7 @@
 
 %shared_ptr(gfx::VertexAttribute);
 %shared_ptr(gfx::VertexAttributeVector);
-
+%shared_ptr(gfx::VertexInputState)
 %shared_ptr(gfx::Buffer);
 %shared_ptr(gfx::BufferVector)
 %shared_ptr(gfx::VertexInput)

@@ -233,10 +233,10 @@ namespace gfx
         _impl->_pipeline = pipeline;
     }
 
-    void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount)
+    void CommandBuffer::draw(uint32_t vertexCount, uint32_t firstVertex, uint32_t instanceCount)
     {
         _impl->bindDescriptorSets();
-        vkCmdDraw(_impl->_commandBuffer, vertexCount, instanceCount, 0, 0);
+        vkCmdDraw(_impl->_commandBuffer, vertexCount, instanceCount, firstVertex, 0);
     }
 
     void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount)

@@ -46,7 +46,7 @@ commandBuffer.end();
 const submitInfo = new SubmitInfo;
 submitInfo.commandBuffer = commandBuffer;
 device.queue.submit(submitInfo, fence);
-device.queue.wait(fence);
+device.waitForFence(fence);
 
 const shaderInfo = new ShaderInfo;
 shaderInfo.sources.add(vs);
@@ -67,14 +67,12 @@ passState.primitive = PrimitiveTopology.TRIANGLE_LIST;
 passState.blendState = blendState;
 
 const a_position = new VertexAttribute;
-a_position.name = 'a_position';
 a_position.format = Format.RGB32_SFLOAT;
 a_position.offset = 0;
 a_position.buffer = 0;
 a_position.location = 0;
 
 const a_texCoord = new VertexAttribute;
-a_texCoord.name = 'a_texCoord';
 a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[a_position.format].bytes;
 a_texCoord.buffer = 0;
@@ -148,7 +146,7 @@ pipelineLayoutInfo.layouts.add(descriptorSetLayout);
 const pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
 
 const pipelineInfo = new PipelineInfo;
-pipelineInfo.inputAssembler = inputAssembler
+pipelineInfo.attributes = inputAssembler.vertexAttributes;
 pipelineInfo.layout = pipelineLayout;
 pipelineInfo.passState = passState;
 pipelineInfo.renderPass = renderPass;

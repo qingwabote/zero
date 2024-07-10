@@ -1,4 +1,4 @@
-import { EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
@@ -9,27 +9,44 @@ import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { Scene } from "./render/Scene.js";
 import { Profile } from "./render/pipeline/Profile.js";
+import { quad } from "./render/quad.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
-import { PeriodicFlag } from "./render/scene/PeriodicFlag.js";
 
 enum Event {
+    FRAME_START = 'FRAME_START',
+    FRAME_END = 'FRAME_END',
+
     LOGIC_START = 'LOGIC_START',
     LOGIC_END = 'LOGIC_END',
 
     RENDER_START = 'RENDER_START',
     RENDER_END = 'RENDER_END',
+
+    HALT_START = 'HALT_START',
+    HALT_END = 'HALT_END',
 }
 
 interface EventToListener {
+    [Event.FRAME_START]: () => void;
+    [Event.FRAME_END]: () => void;
+
     [Event.LOGIC_START]: () => void;
     [Event.LOGIC_END]: () => void;
 
     [Event.RENDER_START]: () => void;
     [Event.RENDER_END]: () => void;
+
+    [Event.HALT_START]: () => void;
+    [Event.HALT_END]: () => void;
 }
 
-export abstract class Zero extends EventEmitterImpl<EventToListener> implements boot.EventListener {
+export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
+    private static _frameCount = 1;
+    public static get frameCount(): number {
+        return this._frameCount;
+    }
+
     private static _instance: Zero;
     public static get instance(): Zero {
         return Zero._instance;
@@ -55,7 +72,7 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
     private readonly _commandBuffer = boot.device.createCommandBuffer();
     private readonly _swapchainAcquired = boot.device.createSemaphore();
     private readonly _queueExecuted = boot.device.createSemaphore();
-    private readonly _fence = boot.device.createFence();
+    private readonly _fence = boot.device.createFence(true);
 
     private _time = boot.initial;
 
@@ -128,12 +145,13 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this._input.onWheel(event);
     }
     onFrame() {
-        this.emit(Event.LOGIC_START);
+        this.emit(Event.FRAME_START);
 
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
 
+        this.emit(Event.LOGIC_START);
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
         for (const system of this._systems) {
@@ -146,18 +164,23 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         this.emit(Event.LOGIC_END);
 
         this.emit(Event.RENDER_START);
-        boot.device.swapchain.acquire(this._swapchainAcquired);
-        this.scene.update();
-        this._pipeline.update();
-        this._commandBuffer.begin();
         this._profile.clear();
-        for (let i = 0; i < this.scene.cameras.length; i++) {
-            this._pipeline.record(this._profile, this._commandBuffer, i);
-        }
-        PeriodicFlag.expire();
-        this._commandBuffer.end();
-        this.emit(Event.RENDER_END);
+        this.scene.update();
+        this._pipeline.update(this._profile);
 
+        this.emit(Event.HALT_START);
+        boot.device.waitForFence(this._fence);
+        this.emit(Event.HALT_END);
+
+        boot.device.swapchain.acquire(this._swapchainAcquired);
+
+        this._componentScheduler.upload();
+        this._pipeline.upload();
+        quad.indexBufferView.update();
+
+        this._commandBuffer.begin();
+        this._pipeline.record(this._profile, this._commandBuffer, this.scene.cameras);
+        this._commandBuffer.end();
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this._commandBuffer;
         submitInfo.waitSemaphore = this._swapchainAcquired;
@@ -165,7 +188,11 @@ export abstract class Zero extends EventEmitterImpl<EventToListener> implements 
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
-        boot.device.queue.wait(this._fence);
+        this.emit(Event.RENDER_END);
+
+        this.emit(Event.FRAME_END);
+
+        Zero._frameCount++;
     }
 }
 Zero.Event = Event;

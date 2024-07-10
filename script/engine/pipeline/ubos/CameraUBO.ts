@@ -1,7 +1,6 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/BufferView.js";
-import { Parameters } from "../../core/render/pipeline/Parameters.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Camera } from "../../core/render/scene/Camera.js";
 import { Transform } from "../../core/render/scene/Transform.js";
@@ -38,8 +37,8 @@ export class CameraUBO extends UBO {
         return BlockSize
     }
 
-    override dynamicOffset(params: Parameters): number {
-        return UBO.align(BlockSize) * params.cameraIndex
+    override get dynamicOffset(): number {
+        return UBO.align(BlockSize) * this._data.cameraIndex
     };
 
     update(dumping: boolean): void {
@@ -50,13 +49,13 @@ export class CameraUBO extends UBO {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             const offset = (size / this._view.source.BYTES_PER_ELEMENT) * i;
-            if (dumping || (camera.hasChanged & Camera.ChangeBit.VIEW)) {
+            if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.VIEW))) {
                 this._view.set(camera.view, offset + Block.members.view.offset);
             }
-            if (dumping || (camera.hasChanged & Camera.ChangeBit.PROJ)) {
+            if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.PROJ))) {
                 this._view.set(camera.proj, offset + Block.members.projection.offset);
             }
-            if (dumping || (camera.transform.hasChanged & Transform.ChangeBit.POSITION)) {
+            if (dumping || (camera.transform.hasChangedFlag.hasBit(Transform.ChangeBit.POSITION))) {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }

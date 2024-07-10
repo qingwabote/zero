@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, MemoryUsage, VertexAttribute, VertexAttributeVector } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { shaderLib } from "../shaderLib.js";
 import { BufferView } from "./BufferView.js";
 
@@ -23,7 +23,6 @@ function indexGrowTo(quads: number) {
         indexBufferView.source[6 * _quads + 5] = 4 * _quads + 0;
     }
     indexBufferView.invalidate();
-    indexBufferView.update();
 }
 indexGrowTo(1);
 
@@ -39,14 +38,12 @@ const vertexAttributes = (function () {
     const attributes = new VertexAttributeVector;
 
     const position = new VertexAttribute;
-    position.name = shaderLib.attributes.position.name;
     position.format = Format.RG32_SFLOAT;
     position.offset = 0;
     position.location = shaderLib.attributes.position.location;
     attributes.add(position);
 
     const texCoord = new VertexAttribute;
-    texCoord.name = shaderLib.attributes.uv.name;
     texCoord.format = Format.RG32_SFLOAT;
     texCoord.offset = FormatInfos[position.format].bytes;
     texCoord.location = shaderLib.attributes.uv.location;
@@ -79,8 +76,9 @@ function createVertexBufferView() {
 }
 
 function createInputAssembler(vertexBuffer: Buffer) {
-    const ia = new InputAssembler
-    ia.vertexAttributes = vertexAttributes;
+    const ia = new InputAssembler;
+    ia.vertexInputState.attributes = vertexAttributes;
+    ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
     ia.vertexInput.buffers.add(vertexBuffer);
     ia.vertexInput.offsets.add(0);
     ia.indexInput = indexInput;
@@ -89,6 +87,7 @@ function createInputAssembler(vertexBuffer: Buffer) {
 }
 
 export const quad = {
+    indexBufferView,
     indexInput,
     indexGrowTo,
     createVertexBuffer,

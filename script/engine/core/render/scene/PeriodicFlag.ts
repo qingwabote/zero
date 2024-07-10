@@ -1,12 +1,15 @@
-let version = 0;
+import { Zero } from "../../Zero.js";
 
-export class PeriodicFlag {
-    static expire() { version++; }
+interface PeriodicFlagReadonly<FlagBit extends number = number> {
+    get value(): number;
+    hasBit(bit: FlagBit): boolean;
+}
 
-    private _version = version;
+export class PeriodicFlag<FlagBit extends number = number> implements PeriodicFlagReadonly<FlagBit> {
+    private _version = Zero.frameCount;
 
     get value(): number {
-        if (this._version != version) {
+        if (this._version != Zero.frameCount) {
             return 0;
         }
         return this._value;
@@ -14,25 +17,29 @@ export class PeriodicFlag {
 
     constructor(private _value: number = 0) { }
 
-    hasBit(bit: number): boolean {
-        if (this._version != version) {
+    hasBit(bit: FlagBit): boolean {
+        if (this._version != Zero.frameCount) {
             return false;
         }
         return (this._value & bit) != 0;
     }
 
-    addBit(bit: number) {
+    addBit(bit: FlagBit) {
         this._value |= bit;
-        this._version = version;
+        this._version = Zero.frameCount;
     }
 
-    removeBit(bit: number) {
+    removeBit(bit: FlagBit) {
         this._value &= ~bit;
-        this._version = version;
+        this._version = Zero.frameCount;
     }
 
     reset(value: number = 0) {
         this._value = value;
-        this._version = version;
+        this._version = Zero.frameCount;
     }
+}
+
+export declare namespace PeriodicFlag {
+    export { PeriodicFlagReadonly as Readonly }
 }

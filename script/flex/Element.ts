@@ -1,4 +1,4 @@
-import { EventEmitter, EventEmitterImpl, SmartRef } from "bastard";
+import { EventEmitter, SmartRef } from "bastard";
 import { AABB2D, Component, Input, Node, Vec2, aabb2d, vec2, vec3 } from "engine";
 import { LayoutSystem } from "./LayoutSystem.js";
 import * as yoga from "./yoga/index.js";
@@ -32,7 +32,7 @@ function yg_node_free(node: yoga.Node) { node.free(); }
 export abstract class Element<T extends EventToListener = EventToListener> extends Component {
     private _emitter: EventEmitter<T> | undefined = undefined;
     public get emitter() {
-        return this._emitter ?? (this._emitter = new EventEmitterImpl);
+        return this._emitter ?? (this._emitter = new EventEmitter.Impl);
     }
 
     readonly yg_node = new SmartRef(yoga.impl.Node.create(), yg_node_free);

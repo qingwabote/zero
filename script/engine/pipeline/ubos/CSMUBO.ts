@@ -1,7 +1,7 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
-import { Parameters } from "../../core/render/pipeline/Parameters.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 
 const Block = {
@@ -27,31 +27,36 @@ export class CSMUBO extends UBO {
         return BlockSize * this._num
     }
 
-    constructor(data: Data, visibilities: number, private readonly _num: number) {
-        super(data, visibilities);
+    override get dynamicOffset(): number {
+        let index = -1;
+        for (const camera of Zero.instance.scene.cameras) {
+            if (camera.visibilities & this._data.shadow!.visibilities) {
+                index++;
+                if (camera == this._data.current_camera) {
+                    return UBO.align(this.range) * index;
+                }
+            }
+        }
+        return 0;
     }
 
-    override dynamicOffset(params: Parameters): number {
-        const index = this._data.shadow!.visibleCameras.findIndex(cameraIndex => cameraIndex == params.cameraIndex);
-        if (index == -1) {
-            return 0;
-        }
-        return UBO.align(this.range) * index;
+    constructor(data: Data, visibilities: number, private readonly _num: number) {
+        super(data, visibilities);
     }
 
     update(dumping: boolean): void {
         const size = UBO.align(this.range);
 
-        const shadow = this._data.shadow!;
-
-        this._view.resize(size * shadow.visibleCameras.length / this._view.BYTES_PER_ELEMENT);
-
-        for (let i = 0; i < shadow.visibleCameras.length; i++) {
-            const offset = (size / this._view.BYTES_PER_ELEMENT) * i;
-            const cascades = shadow.cascades.get(shadow.visibleCameras[i])!;
-            if (dumping || cascades.hasChanged) {
-                for (let j = 0; j < this._num; j++) {
-                    this._view.set(cascades.viewProjs[j], offset + 16 * j);
+        let index = -1;
+        for (const camera of Zero.instance.scene.cameras) {
+            if (camera.visibilities & this._data.shadow!.visibilities) {
+                index++;
+                const cascades = this._data.shadow!.getCascades(camera)!;
+                if (dumping || cascades.hasChanged) {
+                    this._view.resize(size * (index + 1) / this._view.BYTES_PER_ELEMENT);
+                    for (let j = 0; j < this._num; j++) {
+                        this._view.set(cascades.viewProjs[j], (size / this._view.BYTES_PER_ELEMENT) * index + 16 * j);
+                    }
                 }
             }
         }

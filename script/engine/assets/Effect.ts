@@ -1,12 +1,16 @@
 import { cache } from "assets";
+import { empty, murmurhash2_32_gc } from "bastard";
 import * as gfx from "gfx";
-import * as render from "../core/render/index.js";
+import { hashLib } from "../core/render/hashLib.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { Shader } from "./Shader.js";
+import { Pass as _Pass } from "../scene/Pass.js";
 import { Yml } from "./internal/Yml.js";
+import { Shader } from "./Shader.js";
+import { Texture } from "./Texture.js";
 
 function merge<T extends {}, U>(target: T, source: U): T & U;
 function merge<T extends {}, U, V>(target: T, source1: U, source2: V): T & U & V;
+function merge<T extends {}, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W;
 function merge(target: any, ...sources: any[]): any {
     for (const source of sources) {
         for (const key in source) {
@@ -40,20 +44,26 @@ interface BlendState {
     readonly dstAlpha: BlendFactor;
 }
 
+type MacroRecord = Record<string, number>;
+type PropRecord = Record<string, ArrayLike<number>>;
+
 interface Pass {
     switch?: string;
     type?: string;
+
     shader?: string;
-    macros?: Record<string, number>;
-    props?: Record<string, ArrayLike<number>>;
-    primitive?: keyof typeof gfx.PrimitiveTopology;
+    macros?: MacroRecord;
     rasterizationState?: RasterizationState;
     depthStencilState?: DepthStencilState;
     blendState?: BlendState;
+
+    props?: PropRecord;
 }
 
+type TextureRecord = Record<string, Texture>;
+
 interface PassOverridden extends Pass {
-    textures?: Record<string, gfx.Texture>;
+    textures?: TextureRecord;
 }
 
 function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
@@ -63,6 +73,41 @@ function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
     throw `unsupported factor: ${factor}`;
 }
 
+const getPass = (function () {
+    const cache: Record<number, _Pass> = {};
+
+    return function (state: _Pass.State, props: PropRecord = empty.obj, textures: TextureRecord = empty.obj, type?: string) {
+        let key = `${type}`;
+        for (const name in props) {
+            key += name;
+            const prop = props[name];
+            for (let i = 0; i < prop.length; i++) {
+                key += prop[i];
+            }
+        }
+        for (const name in textures) {
+            key += name + textures[name].url;
+        }
+
+        const passHash = hashLib.passState(state) ^ murmurhash2_32_gc(key, 666);
+
+        let pass = cache[passHash];
+        if (!pass) {
+            pass = new _Pass(state, type);
+            for (const name in props) {
+                pass.setProperty(props[name], pass.getPropertyOffset(name));
+            }
+            for (const name in textures) {
+                pass.setTexture(name, textures[name].impl);
+            }
+
+            cache[passHash] = pass;
+        }
+
+        return pass;
+    }
+})()
+
 export class Effect extends Yml {
     private _passes!: readonly Readonly<Pass>[];
 
@@ -70,60 +115,49 @@ export class Effect extends Yml {
         this._passes = res.passes;
     }
 
-    async createPasses(overrides: readonly Readonly<PassOverridden>[], macros?: Record<string, number>): Promise<render.Pass[]> {
-        const passes: render.Pass[] = [];
+    async getPasses(overrides: readonly Readonly<PassOverridden>[], macros: MacroRecord = empty.obj): Promise<_Pass[]> {
+        const passes: _Pass[] = [];
         for (let i = 0; i < this._passes.length; i++) {
-            const info = merge({}, this._passes[i], overrides[i]);
-            const mac = Object.assign({}, info.macros, macros);
-            if (info.switch && mac[info.switch] != 1) {
+            const info = merge({}, this._passes[i], overrides[i], { macros });
+            if (info.switch && info.macros[info.switch] != 1) {
                 continue;
             }
 
-            const passState = new gfx.PassState;
-            passState.shader = shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader!)), Shader), mac);
-
-            if (info.primitive) {
-                if (info.primitive in gfx.PrimitiveTopology) {
-                    passState.primitive = gfx.PrimitiveTopology[info.primitive];
-                } else {
-                    throw `unsupported primitive: ${info.primitive}`;
+            const state: _Pass.State = {
+                shader: shaderLib.getShader(await cache(this.resolveVar(this.resolvePath(info.shader!)), Shader), info.macros),
+                rasterizationState: (function () {
+                    const rasterization = new gfx.RasterizationState;
+                    if (info.rasterizationState?.cullMode) {
+                        if (info.rasterizationState.cullMode in gfx.CullMode) {
+                            rasterization.cullMode = gfx.CullMode[info.rasterizationState.cullMode];
+                        } else {
+                            throw `unsupported cullMode: ${info.rasterizationState?.cullMode}`;
+                        }
+                    } else {
+                        rasterization.cullMode = gfx.CullMode.BACK;
+                    }
+                    return rasterization
+                })(),
+                ...info.depthStencilState && {
+                    depthStencilState: (function () {
+                        const depthStencil = new gfx.DepthStencilState;
+                        depthStencil.depthTestEnable = info.depthStencilState.depthTestEnable;
+                        return depthStencil
+                    })()
+                },
+                ...info.blendState && {
+                    blendState: (function () {
+                        const blend = new gfx.BlendState;
+                        blend.srcRGB = gfx_BlendFactor(info.blendState.srcRGB);
+                        blend.dstRGB = gfx_BlendFactor(info.blendState.dstRGB);
+                        blend.srcAlpha = gfx_BlendFactor(info.blendState.srcAlpha);
+                        blend.dstAlpha = gfx_BlendFactor(info.blendState.dstAlpha);
+                        return blend;
+                    })()
                 }
-            } else {
-                passState.primitive = gfx.PrimitiveTopology.TRIANGLE_LIST;
             }
 
-            if (info.rasterizationState?.cullMode) {
-                if (info.rasterizationState?.cullMode in gfx.CullMode) {
-                    passState.rasterizationState.cullMode = gfx.CullMode[info.rasterizationState?.cullMode];
-                } else {
-                    throw `unsupported cullMode: ${info.rasterizationState?.cullMode}`;
-                }
-            } else {
-                passState.rasterizationState.cullMode = gfx.CullMode.BACK;
-            }
-
-            if (info.depthStencilState) {
-                const depthStencilState = new gfx.DepthStencilState;
-                depthStencilState.depthTestEnable = info.depthStencilState.depthTestEnable;
-                passState.depthStencilState = depthStencilState;
-            }
-            if (info.blendState) {
-                const blendState = new gfx.BlendState;
-                blendState.srcRGB = gfx_BlendFactor(info.blendState.srcRGB);
-                blendState.dstRGB = gfx_BlendFactor(info.blendState.dstRGB);
-                blendState.srcAlpha = gfx_BlendFactor(info.blendState.srcAlpha);
-                blendState.dstAlpha = gfx_BlendFactor(info.blendState.dstAlpha);
-                passState.blendState = blendState;
-            }
-
-            const pass = render.Pass.Pass(passState, info.type);
-            for (const key in info.props) {
-                pass.setProperty(key, info.props[key]);
-            }
-            for (const key in info.textures) {
-                pass.setTexture(key, info.textures[key]);
-            }
-            passes.push(pass);
+            passes.push(getPass(state, info.props, info.textures, info.type));
         }
         return passes;
     }

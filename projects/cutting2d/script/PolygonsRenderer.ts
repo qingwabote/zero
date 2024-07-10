@@ -1,6 +1,6 @@
-import { MeshRenderer, Node, Shader, bundle, render, shaderLib, vec3, vec4 } from "engine";
+import { MeshRenderer, Node, Shader, bundle, render, scene, shaderLib, vec3, vec4 } from "engine";
 import { Element } from "flex";
-import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PassState, PrimitiveTopology, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Polygon } from "./Polygon.js";
 
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
@@ -8,13 +8,11 @@ const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
 const vertexAttributes = new VertexAttributeVector;
 
 const a_position = new VertexAttribute;
-a_position.name = shaderLib.attributes.position.name;
 a_position.format = Format.RG32_SFLOAT;
 a_position.location = shaderLib.attributes.position.location;
 vertexAttributes.add(a_position);
 
 const a_texCoord = new VertexAttribute;
-a_texCoord.name = shaderLib.attributes.uv.name;
 a_texCoord.format = Format.RG32_SFLOAT;
 a_texCoord.offset = FormatInfos[a_position.format].bytes;
 a_texCoord.location = shaderLib.attributes.uv.location;
@@ -46,20 +44,17 @@ export default class PolygonsRenderer extends Element {
 
     texture!: Texture;
 
-    private _material!: render.Material;
+    private _material!: scene.Material;
 
     private _meshRenderers: MeshRenderer[] = [];
     private _vertexViews: render.BufferView[] = [];
     private _indexViews: render.BufferView[] = [];
 
     override start(): void {
-        const state = new PassState();
-        state.shader = shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 });
-        state.primitive = PrimitiveTopology.TRIANGLE_LIST;
-        const pass = render.Pass.Pass(state);
-        pass.setProperty('albedo', vec4.ONE);
+        const pass = new scene.Pass({ shader: shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 }) });
+        pass.setPropertyByName('albedo', vec4.ONE);
         pass.setTexture('albedoMap', this.texture);
-        this._material = new render.Material([pass]);
+        this._material = { passes: [pass] };
     }
 
     override update(): void {
@@ -107,7 +102,8 @@ export default class PolygonsRenderer extends Element {
         let renderer = this._meshRenderers[index];
         if (!renderer) {
             const ia = new InputAssembler;
-            ia.vertexAttributes = vertexAttributes;
+            ia.vertexInputState.attributes = vertexAttributes;
+            ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
 
             const vertexView = new render.BufferView('Float32', BufferUsageFlagBits.VERTEX)
             const vertexInput = new VertexInput;

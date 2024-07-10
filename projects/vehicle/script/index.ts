@@ -46,9 +46,10 @@ export class App extends Zero {
 
         const ground_size = vec3.create(30, 0.2, 30);
 
-        const ground = primitive.createScene("Cube", true)!.children[0];
+        const ground = primitive.createScene("Cube")!.children[0];
         let meshRenderer = ground.getComponent(MeshRenderer)!
-        meshRenderer.materials![0].passes[1].setProperty('albedo', vec4.create(0.5, 0.5, 0.5, 1));
+        const material = meshRenderer.materials![0];
+        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(0.5, 0.5, 0.5, 1));
         ground.visibility = VisibilityFlagBits.WORLD;
         let shape = ground.addComponent(BoxShape);
         let aabb = meshRenderer.bounds;
@@ -71,10 +72,11 @@ export class App extends Zero {
                 const box_y = box_bottom + box_size / 2;
                 const box_z = wall_pos[2];
 
-                const box = primitive.createScene("Cube", true)!.children[0];
+                const box = primitive.createScene("Cube")!.children[0];
                 box.visibility = VisibilityFlagBits.WORLD;
-                let meshRenderer = box.getComponent(MeshRenderer)!
-                meshRenderer.materials![0].passes[1].setProperty('albedo', vec4.create(0, 0, 1, 1));
+                let meshRenderer = box.getComponent(MeshRenderer)!;
+                const material = meshRenderer.materials![0];
+                material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
                 shape.body.mass = 0.1;
                 aabb = meshRenderer.bounds;

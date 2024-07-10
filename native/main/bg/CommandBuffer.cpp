@@ -74,12 +74,12 @@ namespace bg
         _background->post(f);
     }
 
-    void CommandBuffer::draw(uint32_t count, uint32_t instanceCount)
+    void CommandBuffer::draw(uint32_t count, uint32_t firstVertex, uint32_t instanceCount)
     {
         auto f = new auto(
             [=]()
             {
-                gfx::CommandBuffer::draw(count, instanceCount);
+                gfx::CommandBuffer::draw(count, firstVertex, instanceCount);
             });
         _background->post(f);
     }

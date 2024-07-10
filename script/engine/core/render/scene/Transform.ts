@@ -142,9 +142,9 @@ export class Transform implements TRS {
         return this._world_matrix;
     }
 
-    private _hasChanged = new PeriodicFlag(0xffffffff);
-    get hasChanged(): ChangeBit {
-        return this._hasChanged.value;
+    private _hasChangedFlag: PeriodicFlag<ChangeBit> = new PeriodicFlag(0xffffffff);
+    get hasChangedFlag(): PeriodicFlag.Readonly<ChangeBit> {
+        return this._hasChangedFlag;
     }
 
     constructor(public readonly name: string = '') { }
@@ -185,7 +185,7 @@ export class Transform implements TRS {
 
     private dirty(flag: ChangeBit): void {
         this._changed |= flag;
-        this._hasChanged.addBit(flag);
+        this._hasChangedFlag.addBit(flag);
         for (const child of this._children) {
             child.dirty(flag);
         }

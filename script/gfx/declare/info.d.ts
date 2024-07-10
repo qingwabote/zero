@@ -85,8 +85,12 @@ export declare class PipelineLayoutInfo {
 }
 
 export declare class VertexAttribute {
-    name: string
+    location: number
     format: Format
+    /**
+     * The buffer index in vertexInput.
+     * Webgl does not support indirect binding, so we use the buffer index as binding point in vulkan for consistency.
+     */
     buffer: number
     offset: number
     /**
@@ -96,10 +100,15 @@ export declare class VertexAttribute {
      * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
      */
     stride: number
-    location: number
     instanced: boolean
+    multiple: number
 }
 export class VertexAttributeVector extends Vector<VertexAttribute> { };
+
+export declare class VertexInputState {
+    attributes: VertexAttributeVector;
+    primitive: PrimitiveTopology;
+}
 
 export class BufferVector extends Vector<Buffer> { };
 export declare class VertexInput {
@@ -114,7 +123,7 @@ export declare class IndexInput {
 }
 /** InputAssembler is an immutable object, it correspond to a vao in WebGL. */
 export declare class InputAssembler {
-    vertexAttributes: VertexAttributeVector;
+    vertexInputState: VertexInputState;
     vertexInput: VertexInput;
     indexInput: IndexInput | null;
 }
@@ -136,17 +145,14 @@ export declare class BlendState {
     dstAlpha: BlendFactor;
 }
 
-export declare class PassState {
+export declare class PipelineInfo {
+    inputState: VertexInputState | null;
+
     shader: Shader | null;
-    primitive: PrimitiveTopology;
-    rasterizationState: RasterizationState;
+    rasterizationState: RasterizationState | null;
     depthStencilState: DepthStencilState | null;
     blendState: BlendState | null;
-}
 
-export declare class PipelineInfo {
-    passState: PassState | null;
-    attributes: VertexAttributeVector | null;
     layout: PipelineLayout | null;
     renderPass: RenderPass | null;
 }

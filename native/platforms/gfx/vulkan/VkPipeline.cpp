@@ -26,17 +26,9 @@ namespace gfx
     {
         VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
 
-        // passState
-        auto &gfx_passState = info->passState;
-
-        auto &gfx_shader = gfx_passState->shader;
-        auto &stageInfos = gfx_shader->impl()->stages;
+        auto &stageInfos = info->shader->impl()->stages;
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
-
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
-        inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(gfx_passState->primitive);
-        pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
         std::vector<VkDynamicState> dynamicStates{VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
         VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
@@ -70,7 +62,7 @@ namespace gfx
             }
         }
 
-        auto &gfx_rasterizationState = gfx_passState->rasterizationState;
+        auto &gfx_rasterizationState = info->rasterizationState;
         VkPipelineRasterizationStateCreateInfo rasterizationState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
         rasterizationState.rasterizerDiscardEnable = VK_FALSE;
         rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
@@ -83,7 +75,7 @@ namespace gfx
         rasterizationState.lineWidth = 1;
         pipelineInfo.pRasterizationState = &rasterizationState;
 
-        auto &gfx_depthStencilState = gfx_passState->depthStencilState;
+        auto &gfx_depthStencilState = info->depthStencilState;
         VkPipelineDepthStencilStateCreateInfo depthStencilState = {VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
         if (gfx_depthStencilState)
         {
@@ -93,7 +85,7 @@ namespace gfx
         }
         pipelineInfo.pDepthStencilState = &depthStencilState;
 
-        auto &gfx_blendState = gfx_passState->blendState;
+        auto &gfx_blendState = info->blendState;
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -116,15 +108,16 @@ namespace gfx
 
         // vertexInputState
         VkPipelineVertexInputStateCreateInfo vertexInputState = {VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
-        auto &gfx_attributes = info->attributes;
+        auto &gfx_attributes = info->inputState->attributes;
         std::vector<VkVertexInputAttributeDescription> attributes;
         std::vector<VkVertexInputBindingDescription> bindings;
         for (auto &&gfx_attribute : *gfx_attributes)
         {
-            auto &attributesConsumed = gfx_shader->impl()->attributeLocations;
-            if (attributesConsumed.find(gfx_attribute->name) == attributesConsumed.end())
+            auto &attributesConsumed = info->shader->impl()->attributeLocations;
+            if (attributesConsumed.find(gfx_attribute->location) == attributesConsumed.end())
             {
                 // avoid warning "Vertex attribute not consumed by vertex shader"
+                // because we share vertex input if there are multi passes consuming different attributes in one model
                 continue;
             }
 
@@ -134,11 +127,11 @@ namespace gfx
                 if (description.binding == gfx_attribute->buffer)
                 {
                     hasBinding = true;
+                    break;
                 }
             }
             if (!hasBinding)
             {
-                VkVertexInputBindingDescription description{};
                 uint32_t stride = gfx_attribute->stride;
                 if (stride == 0)
                 {
@@ -146,31 +139,40 @@ namespace gfx
                     {
                         if (gfx_attr->buffer == gfx_attribute->buffer)
                         {
-                            stride += FormatInfos.at(static_cast<Format>(gfx_attr->format)).bytes;
+                            stride += FormatInfos.at(static_cast<Format>(gfx_attr->format)).bytes * gfx_attr->multiple;
                         }
                     }
                 }
+
+                VkVertexInputBindingDescription description{};
                 description.stride = stride;
                 description.inputRate = gfx_attribute->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
                 description.binding = gfx_attribute->buffer;
                 bindings.push_back(description);
             }
 
-            VkVertexInputAttributeDescription attribute{};
-            attribute.location = gfx_attribute->location;
-            attribute.binding = gfx_attribute->buffer;
-            // the format in buffer can be different from the format in shader,
-            // use the format in buffer to make sure type conversion can be done correctly by graphics api.
-            // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
-            attribute.format = static_cast<VkFormat>(gfx_attribute->format);
-            attribute.offset = gfx_attribute->offset;
-            attributes.push_back(attribute);
+            for (size_t i = 0; i < gfx_attribute->multiple; i++)
+            {
+                VkVertexInputAttributeDescription attribute{};
+                attribute.location = gfx_attribute->location + i;
+                // the format in buffer can be different from the format in shader,
+                // use the format in buffer to make sure type conversion can be done correctly by graphics api.
+                // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttribPointer#integer_attributes
+                attribute.format = static_cast<VkFormat>(gfx_attribute->format);
+                attribute.binding = gfx_attribute->buffer;
+                attribute.offset = gfx_attribute->offset + (FormatInfos.at(static_cast<Format>(gfx_attribute->format)).bytes * i);
+                attributes.push_back(attribute);
+            }
         }
         vertexInputState.pVertexAttributeDescriptions = attributes.data();
         vertexInputState.vertexAttributeDescriptionCount = attributes.size();
         vertexInputState.pVertexBindingDescriptions = bindings.data();
         vertexInputState.vertexBindingDescriptionCount = bindings.size();
         pipelineInfo.pVertexInputState = &vertexInputState;
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+        inputAssemblyState.topology = static_cast<VkPrimitiveTopology>(info->inputState->primitive);
+        pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 
         // renderPass
         auto &gfx_renderPass = info->renderPass;

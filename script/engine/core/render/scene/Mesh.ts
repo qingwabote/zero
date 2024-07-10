@@ -9,9 +9,9 @@ export class Mesh {
         return this._bounds;
     }
 
-    private _hasChanged = new PeriodicFlag();
+    private _hasChangedFlag = new PeriodicFlag();
     get hasChanged(): number {
-        return this._hasChanged.value;
+        return this._hasChangedFlag.value;
     }
 
     constructor(
@@ -24,11 +24,11 @@ export class Mesh {
 
     setBoundsByExtremes(min: Readonly<Vec3>, max: Readonly<Vec3>) {
         aabb3d.fromExtremes(this._bounds, min, max);
-        this._hasChanged.reset(1)
+        this._hasChangedFlag.reset(1)
     }
 
     setBoundsByRect(offset: Readonly<Vec3>, size: Readonly<Vec3>) {
         aabb3d.fromRect(this._bounds, offset, size);
-        this._hasChanged.reset(1)
+        this._hasChangedFlag.reset(1)
     }
 }

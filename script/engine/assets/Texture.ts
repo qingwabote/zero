@@ -46,7 +46,7 @@ export class Texture implements Asset {
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = _commandBuffer;
         device.queue.submit(submitInfo, _fence);
-        device.queue.wait(_fence);
+        device.waitForFence(_fence);
 
         this._width = bitmap.width;
         this._height = bitmap.height;

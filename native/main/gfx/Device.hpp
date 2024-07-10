@@ -59,6 +59,8 @@ namespace gfx
         Shader *createShader(const std::shared_ptr<ShaderInfo> &info);
         Texture *createTexture(const std::shared_ptr<TextureInfo> &info);
 
+        virtual void waitForFence(const std::shared_ptr<Fence> &fence);
+
         virtual void finish();
 
         virtual ~Device();

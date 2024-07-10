@@ -1,4 +1,4 @@
-import { EventEmitter, EventEmitterImpl } from "bastard";
+import { EventEmitter } from "bastard";
 import { AABB3D } from "../core/math/aabb3d.js";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
 
@@ -10,7 +10,7 @@ interface BoundsEventToListener {
     [EventName.BOUNDS_CHANGED]: () => void;
 }
 
-const emitter: EventEmitter<BoundsEventToListener> = new EventEmitterImpl;
+const emitter: EventEmitter<BoundsEventToListener> = new EventEmitter.Impl;
 emitter.on(EventName.BOUNDS_CHANGED, () => { })
 
 /**
@@ -21,7 +21,7 @@ export abstract class BoundedRenderer extends ModelRenderer implements EventEmit
 
     private __emitter?: EventEmitter<BoundsEventToListener> = undefined;
     private get _emitter(): EventEmitter<BoundsEventToListener> {
-        return this.__emitter ?? (this.__emitter = new EventEmitterImpl);
+        return this.__emitter ?? (this.__emitter = new EventEmitter.Impl);
     }
     has<K extends keyof BoundsEventToListener>(name: K): boolean {
         return this.__emitter ? this.__emitter.has(name) : false;

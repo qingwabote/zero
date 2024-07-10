@@ -16,9 +16,9 @@ const mat4_b = mat4.create();
 
 export class Cascades {
 
-    private _hasChanged = new PeriodicFlag(1);
+    private _hasChangedFlag = new PeriodicFlag(1);
     get hasChanged(): number {
-        return this._hasChanged.value || this._camera.hasChanged || this._camera.transform.hasChanged || Zero.instance.scene.directionalLight!.hasChanged;
+        return this._hasChangedFlag.value || this._camera.hasChangedFlag.value || this._camera.transform.hasChangedFlag.value || Zero.instance.scene.directionalLight!.hasChanged;
     }
 
     private _frusta: Frustum[];
@@ -26,9 +26,9 @@ export class Cascades {
         return this._frusta;
     }
 
-    private _bounds: Frustum[];
-    public get bounds(): readonly Readonly<Frustum>[] {
-        return this._bounds;
+    private _boundaries: Frustum[];
+    public get boundaries(): readonly Readonly<Frustum>[] {
+        return this._boundaries;
     }
 
     private _viewProjs: Mat4[];
@@ -36,21 +36,21 @@ export class Cascades {
         return this._viewProjs;
     }
 
-    constructor(private readonly _camera: Camera, private readonly _num: number) {
+    constructor(private readonly _camera: Camera, public readonly num: number) {
         const frusta: Frustum[] = [];
-        const bounds: Frustum[] = [];
+        const boundaries: Frustum[] = [];
         const viewProjs: Mat4[] = [];
-        for (let i = 0; i < _num; i++) {
-            if (_num == 1) {
+        for (let i = 0; i < num; i++) {
+            if (num == 1) {
                 frusta.push(_camera.frustum as Frustum);
             } else {
                 frusta.push(new Frustum);
             }
-            bounds.push(new Frustum);
+            boundaries.push(new Frustum);
             viewProjs.push(mat4.create());
         }
         this._frusta = frusta;
-        this._bounds = bounds;
+        this._boundaries = boundaries;
         this._viewProjs = viewProjs;
     }
 
@@ -62,13 +62,13 @@ export class Cascades {
         let center_z_max: number;
         let halfExtent_z_max: number;
 
-        for (let i = this._num - 1; i > -1; i--) {
-            if (this._num != 1) {
-                if (dumping || this._camera.hasChanged) {
+        for (let i = this.num - 1; i > -1; i--) {
+            if (this.num != 1) {
+                if (dumping || this._camera.hasChangedFlag.value) {
                     const d = this._camera.far - this._camera.near;
-                    this._frusta[i].perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * (i / this._num), this._camera.near + d * ((i + 1) / this._num));
+                    this._frusta[i].perspective(Math.PI / 180 * this._camera.fov, this._camera.aspect, this._camera.near + d * (i / this.num), this._camera.near + d * ((i + 1) / this.num));
                 }
-                if (dumping || this._camera.hasChanged || this._camera.transform.hasChanged) {
+                if (dumping || this._camera.hasChangedFlag.value || this._camera.transform.hasChangedFlag.value) {
                     this._frusta[i].transform(this._camera.transform.world_matrix);
                 }
             }
@@ -78,7 +78,7 @@ export class Cascades {
             frustum.transform(frustum_a, this._frusta[i].vertices, light.view);
 
             aabb3d.fromPoints(aabb_a, frustum_a);
-            if (i == this._num - 1) {
+            if (i == this.num - 1) {
                 center_z_max = aabb_a.center[2];
                 halfExtent_z_max = aabb_a.halfExtent[2];
             } else {
@@ -98,8 +98,8 @@ export class Cascades {
             const near = 0;
             const far = aabb_a.halfExtent[2] * 2;
             mat4.orthographic(mat4_b, left, right, bottom, top, near, far, device.capabilities.clipSpaceMinZ);
-            this._bounds[i].orthographic(left, right, bottom, top, near, far);
-            this._bounds[i].transform(mat4_a);
+            this._boundaries[i].orthographic(left, right, bottom, top, near, far);
+            this._boundaries[i].transform(mat4_a);
 
             mat4.multiply(this._viewProjs[i], mat4_b, mat4.invert(mat4_a, mat4_a));
         }

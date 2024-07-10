@@ -17,7 +17,6 @@ namespace gfx
 
         virtual void submit(const std::shared_ptr<SubmitInfo> &info, const std::shared_ptr<Fence> &fence);
         virtual void present(const std::shared_ptr<Semaphore> &waitSemaphore);
-        virtual void wait(const std::shared_ptr<Fence> &fence);
 
         virtual ~Queue();
     };

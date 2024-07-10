@@ -1,4 +1,4 @@
-import { EventEmitterImpl, EventReceiver } from "bastard";
+import { EventEmitter } from "bastard";
 import { Camera } from "./scene/Camera.js";
 import { DirectionalLight } from "./scene/DirectionalLight.js";
 import { Model } from "./scene/Model.js";
@@ -17,8 +17,8 @@ interface Event2Listener {
 export class Scene {
     static readonly Event = Event;
 
-    private _event = new EventEmitterImpl<Event2Listener>;
-    public get event(): EventReceiver<Event2Listener> {
+    private _event = new EventEmitter.Impl<Event2Listener>;
+    public get event(): EventEmitter.Readonly<Event2Listener> {
         return this._event;
     }
 
