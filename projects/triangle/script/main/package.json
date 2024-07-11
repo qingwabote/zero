@@ -1,6 +1,0 @@
-{
-  "name": "main",
-  "dependencies": {
-    "gfx": "file:../../../../script/gfx/declare"
-  }
-}

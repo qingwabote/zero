@@ -1,6 +1,0 @@
-{
-  "extends": "../../../../script/tsconfig.json",
-  "compilerOptions": {
-    "outDir": "dist"
-  }
-}
