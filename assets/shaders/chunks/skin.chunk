@@ -1,3 +1,13 @@
 layout(set = 2, binding = 1) uniform Skin {
-    mat4 joints[128];
+    vec4 joints[128 * 3];
 } skin;
+
+mat4 skin_jointMatrix (uint i) {
+    uint base = 3u * i;
+    return mat4(
+        vec4(skin.joints[base + 0u].xyz, 0.0), 
+        vec4(skin.joints[base + 1u].xyz, 0.0), 
+        vec4(skin.joints[base + 2u].xyz, 0.0), 
+        vec4(skin.joints[base + 0u].w, skin.joints[base + 1u].w, skin.joints[base + 2u].w, 1.0)
+    );
+}

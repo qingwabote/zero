@@ -29,10 +29,10 @@ void main() {
     vec4 pos = a_position;
     #if USE_SKIN
         mat4 joint_matrix = 
-            skin.joints[a_joints.x] * a_weights.x + 
-            skin.joints[a_joints.y] * a_weights.y + 
-            skin.joints[a_joints.z] * a_weights.z +
-            skin.joints[a_joints.w] * a_weights.w;
+            skin_jointMatrix(a_joints.x) * a_weights.x + 
+            skin_jointMatrix(a_joints.y) * a_weights.y + 
+            skin_jointMatrix(a_joints.z) * a_weights.z +
+            skin_jointMatrix(a_joints.w) * a_weights.w;
         pos = joint_matrix * pos;
     #endif 
     vec4 posWorld = a_model * pos;
