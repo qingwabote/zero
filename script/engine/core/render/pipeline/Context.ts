@@ -1,5 +1,7 @@
+import { empty } from "bastard";
 import { device } from "boot";
 import { DescriptorSet, DescriptorSetLayout, Pipeline, PipelineInfo, PipelineLayout, PipelineLayoutInfo, RasterizationState, RenderPass, Shader, VertexInputState } from "gfx";
+import { shaderLib } from "../../shaderLib.js";
 import { hashLib } from "../hashLib.js";
 import { Pass } from "../scene/Pass.js";
 
@@ -16,7 +18,7 @@ export class Context {
     /**
      * @param renderPass a compatible renderPass
      */
-    getPipeline(passState: Pass.State, inputState: VertexInputState, renderPass: RenderPass, layouts?: readonly DescriptorSetLayout[]): Pipeline {
+    getPipeline(passState: Pass.State, inputState: VertexInputState, renderPass: RenderPass, layouts: readonly DescriptorSetLayout[] = empty.arr): Pipeline {
         const pipelineHash = hashLib.passState(passState) ^ hashLib.inputState(inputState) ^ hashLib.renderPass(renderPass.info);
         let pipeline = this._pipelineCache[pipelineHash];
         if (!pipeline) {
@@ -34,24 +36,21 @@ export class Context {
 
             info.renderPass = renderPass;
             info.layout = this.getPipelineLayout(passState.shader!, layouts)
-            pipeline = device.createPipeline(info);
-            this._pipelineCache[pipelineHash] = pipeline;
+            this._pipelineCache[pipelineHash] = pipeline = device.createPipeline(info);
         }
         return pipeline;
     }
 
-    private getPipelineLayout(shader: Shader, layouts?: readonly DescriptorSetLayout[]): PipelineLayout {
+    private getPipelineLayout(shader: Shader, layouts: readonly DescriptorSetLayout[]): PipelineLayout {
         let pipelineLayout = this._pipelineLayoutCache.get(shader);
         if (!pipelineLayout) {
             const info = new PipelineLayoutInfo;
             info.layouts.add(this._descriptorSetLayout);
-            if (layouts) {
-                for (const layout of layouts) {
-                    info.layouts.add(layout);
-                }
+            info.layouts.add(shaderLib.getDescriptorSetLayout(shaderLib.getShaderMeta(shader), shaderLib.sets.material.index));
+            for (const layout of layouts) {
+                info.layouts.add(layout);
             }
-            pipelineLayout = device.createPipelineLayout(info);
-            this._pipelineLayoutCache.set(shader, pipelineLayout);
+            this._pipelineLayoutCache.set(shader, pipelineLayout = device.createPipelineLayout(info));
         }
         return pipelineLayout;
     }

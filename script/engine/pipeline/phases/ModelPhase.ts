@@ -1,3 +1,4 @@
+import { RecyclePool } from "bastard";
 import { CommandBuffer, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
@@ -8,6 +9,17 @@ import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { InstanceBatch } from "./internal/InstanceBatch.js";
+
+interface PB {
+    pass: Pass,
+    batch: InstanceBatch.Single;
+}
+
+const pbPool: RecyclePool<PB> = new RecyclePool(() => { return { pass: null, batch: null } as unknown as PB })
+
+function pbCompareFn(a: PB, b: PB) {
+    return a.batch.model.order - b.batch.model.order || a.pass.id - b.pass.id;
+}
 
 const singleCache = (function () {
     const model2singles: WeakMap<Model, InstanceBatch.Single[]> = new WeakMap;
@@ -41,10 +53,6 @@ const multipleCache = (function () {
         return multiple;
     }
 })();
-
-function modelCompareFn(a: Model, b: Model) {
-    return a.order - b.order;
-}
 
 type Culling = 'View' | 'CSM';
 
@@ -123,16 +131,13 @@ export class ModelPhase extends Phase {
                 }
 
                 for (const batch of batches) {
-                    batch.record(profile, commandBuffer, renderPass, this._context, pass);
+                    batch.record(profile, commandBuffer, renderPass, this._context, pass.state);
                 }
 
                 profile.passes++;
             }
         } else {
-            models = [...models].sort(modelCompareFn);
-
-            const passes: Pass[] = [];
-            const batches: InstanceBatch[] = [];
+            const pbQueue: PB[] = [];
             for (const model of models) {
                 if (model.type != this._model) {
                     continue;
@@ -150,15 +155,19 @@ export class ModelPhase extends Phase {
                             continue;
                         }
 
-                        batches.push(singleCache(model, i));
-                        passes.push(pass);
+                        const pb = pbPool.get();
+                        pb.pass = pass;
+                        pb.batch = singleCache(model, i);
+                        pbQueue.push(pb);
                     }
                 }
             }
 
+            pbQueue.sort(pbCompareFn);
+
             let current_pass;
-            for (let i = 0; i < batches.length; i++) {
-                const pass = passes[i];
+            for (const pb of pbQueue) {
+                const pass = pb.pass;
                 if (current_pass != pass) {
                     pass.upload();
                     if (pass.descriptorSet) {
@@ -169,8 +178,10 @@ export class ModelPhase extends Phase {
                     profile.passes++;
                 }
 
-                batches[i].record(profile, commandBuffer, renderPass, this._context, pass);
+                pb.batch.record(profile, commandBuffer, renderPass, this._context, pass.state);
             }
+
+            pbPool.recycle();
         }
     }
 }

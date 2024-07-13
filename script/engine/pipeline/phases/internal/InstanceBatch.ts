@@ -27,14 +27,14 @@ export abstract class InstanceBatch {
         protected _count: number,
         protected readonly _local = local_empty) { }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, context: Context, pass: Pass) {
+    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, context: Context, passState: Pass.State) {
         this.upload();
 
         if (this._local.descriptorSet) {
             commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, this._local.descriptorSet);
         }
 
-        const pipeline = context.getPipeline(pass.state, this._inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, this._local.descriptorSetLayout]);
+        const pipeline = context.getPipeline(passState, this._inputAssembler.vertexInputState, renderPass, [this._local.descriptorSetLayout]);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.bindInputAssembler(this._inputAssembler);
 
