@@ -66,19 +66,15 @@ export const shaderLib = {
 
     sets,
 
-    createDescriptorSetLayoutBinding(uniform: Uniform): DescriptorSetLayoutBinding {
-        const binding = new DescriptorSetLayoutBinding;
-        binding.descriptorType = uniform.type;
-        binding.stageFlags = uniform.stageFlags;
-        binding.binding = uniform.binding;
-        binding.descriptorCount = 1;
-        return binding;
-    },
-
     createDescriptorSetLayout(uniforms: Uniform[]) {
         const info = new DescriptorSetLayoutInfo;
         for (const uniform of uniforms) {
-            info.bindings.add(this.createDescriptorSetLayoutBinding(uniform));
+            const binding = new DescriptorSetLayoutBinding;
+            binding.descriptorType = uniform.type;
+            binding.stageFlags = uniform.stageFlags;
+            binding.binding = uniform.binding;
+            binding.descriptorCount = 1;
+            info.bindings.add(binding);
         }
         return device.createDescriptorSetLayout(info);
     },
