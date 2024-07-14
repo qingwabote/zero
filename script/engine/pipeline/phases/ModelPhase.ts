@@ -131,7 +131,7 @@ export class ModelPhase extends Phase {
                 }
 
                 for (const batch of batches) {
-                    batch.record(profile, commandBuffer, renderPass, this._context, pass.state);
+                    batch.record(profile, commandBuffer, renderPass, this._context, pass);
                 }
 
                 profile.passes++;
@@ -178,7 +178,7 @@ export class ModelPhase extends Phase {
                     profile.passes++;
                 }
 
-                pb.batch.record(profile, commandBuffer, renderPass, this._context, pass.state);
+                pb.batch.record(profile, commandBuffer, renderPass, this._context, pass);
             }
 
             pbPool.recycle();
