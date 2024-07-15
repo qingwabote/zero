@@ -1,5 +1,5 @@
 import { RecyclePool } from "bastard";
-import { CommandBuffer, PrimitiveTopology, RenderPass } from "gfx";
+import { CommandBuffer, Pipeline, PrimitiveTopology, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
@@ -21,7 +21,7 @@ interface PS extends PB {
 
 const ps_pool: RecyclePool<PS> = new RecyclePool(() => { return { pass: null!, batch: null! } })
 
-function ps_CompareFn(a: PS, b: PS) {
+function ps_compareFn(a: PS, b: PS) {
     return a.batch.model.order - b.batch.model.order || a.pass.id - b.pass.id;
 }
 
@@ -174,9 +174,9 @@ export class ModelPhase extends Phase {
                 }
             }
 
-            queue.sort(ps_CompareFn);
+            queue.sort(ps_compareFn);
 
-            let current_pass;
+            let current_pass: Pass | undefined;
             pbIterable = (function* () {
                 for (const pb of queue) {
                     const pass = pb.pass;
@@ -195,6 +195,7 @@ export class ModelPhase extends Phase {
             })();
         }
 
+        let current_pipeline: Pipeline | undefined;
         for (const { batch, pass } of pbIterable) {
             batch.upload();
 
@@ -203,7 +204,13 @@ export class ModelPhase extends Phase {
             }
 
             const pipeline = this._context.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.local.descriptorSetLayout]);
-            commandBuffer.bindPipeline(pipeline);
+            if (current_pipeline != pipeline) {
+                commandBuffer.bindPipeline(pipeline);
+                current_pipeline = pipeline;
+
+                profile.pipelines++;
+            }
+
             commandBuffer.bindInputAssembler(batch.inputAssembler);
 
             let alignment;

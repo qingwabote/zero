@@ -5,7 +5,7 @@ import { Framebuffer } from "./Framebuffer.js";
 import { Pipeline } from "./Pipeline.js";
 import { RenderPass } from "./RenderPass.js";
 import { Texture } from "./Texture.js";
-import { AttachmentDescription, DescriptorSetLayoutBinding, InputAssembler, PipelineInfo, Uint32Vector, Vector, VertexAttribute } from "./info.js";
+import { AttachmentDescription, DescriptorSetLayoutBinding, InputAssembler, Uint32Vector, Vector, VertexAttribute } from "./info.js";
 
 function bendFactor2WebGL(factor: BlendFactor): GLenum {
     switch (factor) {
@@ -21,8 +21,6 @@ function bendFactor2WebGL(factor: BlendFactor): GLenum {
 const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
 
 export class CommandBuffer {
-    private _pipeline!: PipelineInfo;
-
     private _inputAssembler!: InputAssembler;
 
     private _framebuffer!: Framebuffer;
@@ -111,8 +109,6 @@ export class CommandBuffer {
         } else {
             gl.disable(gl.BLEND);
         }
-
-        this._pipeline = info;
     }
 
     bindDescriptorSet(index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void {
@@ -141,76 +137,7 @@ export class CommandBuffer {
     }
 
     bindInputAssembler(inputAssembler: InputAssembler): void {
-        this._inputAssembler = inputAssembler;
-    }
-
-    draw(vertexCount: number, firstVertex: number, instanceCount: number): void {
-        this.bindVertexArray();
-
         const gl = this._gl;
-
-        let mode: GLenum;
-        switch (this._inputAssembler.vertexInputState.primitive) {
-            case PrimitiveTopology.LINE_LIST:
-                mode = gl.LINES;
-                break;
-            case PrimitiveTopology.TRIANGLE_LIST:
-                mode = gl.TRIANGLES;
-                break;
-            default:
-                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
-        }
-        gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
-        gl.bindVertexArray(null);
-    }
-
-    drawIndexed(indexCount: number, firstIndex: number, instanceCount: number) {
-        this.bindVertexArray();
-
-        const indexInput = this._inputAssembler!.indexInput!;
-
-        let type: GLenum;
-        let type_bytes: number;
-        switch (indexInput.type) {
-            case IndexType.UINT16:
-                type = WebGL2RenderingContext.UNSIGNED_SHORT;
-                type_bytes = 2;
-                break;
-            case IndexType.UINT32:
-                type = WebGL2RenderingContext.UNSIGNED_INT;
-                type_bytes = 4;
-                break;
-            default:
-                throw 'unsupported index type';
-        }
-
-        const gl = this._gl;
-        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, type_bytes * firstIndex, instanceCount);
-        gl.bindVertexArray(null);
-    }
-
-    endRenderPass() {
-        const gl = this._gl;
-
-        for (const attachment of (this._framebuffer.info.resolves as Vector<Texture>).data) {
-            if (attachment.info.swapchain) {
-                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
-                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-
-                gl.blitFramebuffer(
-                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
-                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
-                    gl.COLOR_BUFFER_BIT, gl.LINEAR);
-            }
-        }
-    }
-
-    end(): void { }
-
-    private bindVertexArray() {
-        const gl = this._gl;
-
-        const inputAssembler = this._inputAssembler
 
         let vao = input2vao.get(inputAssembler);
         if (!vao) {
@@ -284,5 +211,66 @@ export class CommandBuffer {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         }
         gl.bindVertexArray(vao);
+
+        this._inputAssembler = inputAssembler;
     }
+
+    draw(vertexCount: number, firstVertex: number, instanceCount: number): void {
+        const gl = this._gl;
+
+        let mode: GLenum;
+        switch (this._inputAssembler.vertexInputState.primitive) {
+            case PrimitiveTopology.LINE_LIST:
+                mode = gl.LINES;
+                break;
+            case PrimitiveTopology.TRIANGLE_LIST:
+                mode = gl.TRIANGLES;
+                break;
+            default:
+                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
+        }
+        gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
+        gl.bindVertexArray(null);
+    }
+
+    drawIndexed(indexCount: number, firstIndex: number, instanceCount: number) {
+        const indexInput = this._inputAssembler!.indexInput!;
+
+        let type: GLenum;
+        let type_bytes: number;
+        switch (indexInput.type) {
+            case IndexType.UINT16:
+                type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                type_bytes = 2;
+                break;
+            case IndexType.UINT32:
+                type = WebGL2RenderingContext.UNSIGNED_INT;
+                type_bytes = 4;
+                break;
+            default:
+                throw 'unsupported index type';
+        }
+
+        const gl = this._gl;
+        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, type_bytes * firstIndex, instanceCount);
+        gl.bindVertexArray(null);
+    }
+
+    endRenderPass() {
+        const gl = this._gl;
+
+        for (const attachment of (this._framebuffer.info.resolves as Vector<Texture>).data) {
+            if (attachment.info.swapchain) {
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+                gl.blitFramebuffer(
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
+                    this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height,
+                    gl.COLOR_BUFFER_BIT, gl.LINEAR);
+            }
+        }
+    }
+
+    end(): void { }
 }

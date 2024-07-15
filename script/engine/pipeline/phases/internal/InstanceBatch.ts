@@ -138,8 +138,7 @@ export namespace InstanceBatch {
         constructor(subMesh: SubMesh) {
             const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
             const ia = inputAssembler_clone(subMesh.inputAssembler);
-            const bufferIndex = ia.vertexInput.buffers.size();
-            ia.vertexInputState.attributes.add(createModelAttribute(bufferIndex));
+            ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
             ia.vertexInput.buffers.add(view.buffer);
             ia.vertexInput.offsets.add(0);
             this._view = view;
