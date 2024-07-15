@@ -125,14 +125,14 @@ export class App extends Zero {
 
             {
                 const textRenderer = Renderer.create(TextRenderer);
-                textRenderer.impl.text = `draws x${pipeline.ModelPhase.InstanceBatch.subDraws}`;
+                textRenderer.impl.text = `draws x${pipeline.ModelPhase.subDraws}`;
                 textRenderer.impl.color = vec4.GREEN;
                 textRenderer.impl.size = 50;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.setPosition(Edge.Right, 0);
                 textRenderer.setPosition(Edge.Bottom, 0);
                 textRenderer.emitter.on(Input.TouchEvents.START, async event => {
-                    textRenderer.impl.text = `draws x${++pipeline.ModelPhase.InstanceBatch.subDraws}`;
+                    textRenderer.impl.text = `draws x${++pipeline.ModelPhase.subDraws}`;
                 })
                 down_container.addElement(textRenderer);
             }

@@ -1,12 +1,9 @@
 import { device } from "boot";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, Format, InputAssembler, PrimitiveTopology, RenderPass, VertexAttribute, VertexInput } from "gfx";
+import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
 import { Zero } from "../../../core/Zero.js";
 import { Mat4 } from "../../../core/math/mat4.js";
 import { BufferView } from "../../../core/render/BufferView.js";
-import { Context } from "../../../core/render/pipeline/Context.js";
-import { Profile } from "../../../core/render/pipeline/Profile.js";
 import { Model } from "../../../core/render/scene/Model.js";
-import { Pass } from "../../../core/render/scene/Pass.js";
 import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
 import { SubMesh } from "../../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../../core/shaderLib.js";
@@ -18,57 +15,14 @@ interface Local {
 
 const local_empty: Local = { descriptorSetLayout: device.createDescriptorSetLayout(new DescriptorSetLayoutInfo) }
 
-export abstract class InstanceBatch {
-    static subDraws = 1;
+export interface InstanceBatch {
+    readonly local: Local;
+    readonly inputAssembler: InputAssembler;
+    readonly draw: Readonly<SubMesh.Draw>;
+    readonly count: number;
 
-    constructor(
-        protected readonly _inputAssembler: InputAssembler,
-        protected readonly _draw: Readonly<SubMesh.Draw>,
-        protected _count: number,
-        protected readonly _local = local_empty) { }
-
-    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass, context: Context, pass: Pass) {
-        this.upload();
-
-        if (this._local.descriptorSet) {
-            commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, this._local.descriptorSet);
-        }
-
-        const pipeline = context.getPipeline(pass.state, this._inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, this._local.descriptorSetLayout]);
-        commandBuffer.bindPipeline(pipeline);
-        commandBuffer.bindInputAssembler(this._inputAssembler);
-
-        let alignment;
-        switch (this._inputAssembler.vertexInputState.primitive) {
-            case PrimitiveTopology.LINE_LIST:
-                alignment = 2;
-                break;
-            case PrimitiveTopology.TRIANGLE_LIST:
-                alignment = 3;
-                break;
-            default:
-                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
-        }
-
-        const subCount = Math.ceil(this._draw.count / InstanceBatch.subDraws / alignment) * alignment;
-
-        let count = 0;
-        while (count < this._draw.count) {
-            if (this._inputAssembler.indexInput) {
-                commandBuffer.drawIndexed(count + subCount > this._draw.count ? this._draw.count - count : subCount, this._draw.first + count, this._count);
-            } else {
-                commandBuffer.draw(count + subCount > this._draw.count ? this._draw.count - count : subCount, this._draw.first + count, this._count);
-            }
-            count += subCount;
-            profile.draws++;
-        }
-
-        this.recycle();
-    }
-
-    protected abstract upload(): void;
-
-    protected recycle(): void { }
+    upload(): void;
+    recycle(): void;
 }
 
 const inputAssembler_clone = (function () {
@@ -119,21 +73,30 @@ function createModelAttribute(buffer: number) {
 }
 
 export namespace InstanceBatch {
-    export class Single extends InstanceBatch {
+    export class Single implements InstanceBatch {
+        readonly local: Local;
+
+        readonly inputAssembler: InputAssembler;
+
+        readonly draw: Readonly<SubMesh.Draw>;
+
+        readonly count: number = 1;
+
         private readonly _view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16)
 
         private _lastUploadFrame = -1;
 
-        constructor(public model: Model, subIndex: number) {
+        constructor(readonly model: Model, subIndex: number) {
             const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16)
             const subMesh = model.mesh.subMeshes[subIndex];
-            const inputAssembler = inputAssembler_clone(subMesh.inputAssembler);
-            const bufferIndex = inputAssembler.vertexInput.buffers.size();
-            inputAssembler.vertexInputState.attributes.add(createModelAttribute(bufferIndex));
-            inputAssembler.vertexInput.buffers.add(view.buffer);
-            inputAssembler.vertexInput.offsets.add(0);
-            super(inputAssembler, subMesh.draw, 1, model);
+            const ia = inputAssembler_clone(subMesh.inputAssembler);
+            ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
+            ia.vertexInput.buffers.add(view.buffer);
+            ia.vertexInput.offsets.add(0);
             this._view = view;
+            this.local = model;
+            this.inputAssembler = ia;
+            this.draw = subMesh.draw;
         }
 
         upload() {
@@ -149,9 +112,18 @@ export namespace InstanceBatch {
 
             this._lastUploadFrame = frame;
         }
+
+        recycle(): void { }
     }
 
-    export class Multiple extends InstanceBatch {
+    export class Multiple implements InstanceBatch {
+        readonly local: Local = local_empty;
+
+        readonly inputAssembler: InputAssembler;
+
+        readonly draw: Readonly<SubMesh.Draw>;
+
+        private _count = 0;
         get count(): number {
             return this._count;
         }
@@ -170,8 +142,9 @@ export namespace InstanceBatch {
             ia.vertexInputState.attributes.add(createModelAttribute(bufferIndex));
             ia.vertexInput.buffers.add(view.buffer);
             ia.vertexInput.offsets.add(0);
-            super(ia, subMesh.draw, 0);
             this._view = view;
+            this.inputAssembler = ia;
+            this.draw = subMesh.draw;
         }
 
         add(transform: Readonly<Mat4>) {
