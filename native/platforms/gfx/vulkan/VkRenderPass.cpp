@@ -38,10 +38,6 @@ namespace gfx
             colorAttachmentRefs[i].attachment = attachments.size() - 1;
             colorAttachmentRefs[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-            VkClearValue clearValue{};
-            clearValue.color = {{0.0f, 0.0f, 0.0f, 0.0f}};
-            _clearValues.emplace_back(clearValue);
-
             if (gfx_attachment->finalLayout == ImageLayout::SHADER_READ_ONLY)
             {
                 dependency_srcStageMask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -74,10 +70,6 @@ namespace gfx
             depthAttachmentRef->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
             depthAttachmentRef->attachment = attachments.size() - 1;
             depthAttachmentRef->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-            VkClearValue clearValue{};
-            clearValue.depthStencil.depth = 1;
-            _clearValues.emplace_back(clearValue);
         }
 
         std::vector<VkAttachmentReference2> resolveAttachmentRefs(gfx_resolveAttachments->size());

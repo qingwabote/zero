@@ -11,12 +11,8 @@ namespace gfx
 
         VkRenderPass _renderPass{nullptr};
 
-        std::vector<VkClearValue> _clearValues;
-
     public:
         RenderPass_impl(Device_impl *device);
-
-        std::vector<VkClearValue> &clearValues() { return _clearValues; }
 
         bool initialize(const RenderPassInfo &info);
 

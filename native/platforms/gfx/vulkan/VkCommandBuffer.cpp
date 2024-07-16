@@ -186,9 +186,24 @@ namespace gfx
         info.renderArea.offset.y = y;
         info.renderArea.extent = {width, height};
 
-        std::vector<VkClearValue> &clearValues = renderPass->impl().clearValues();
+        static std::vector<VkClearValue> clearValues;
+        clearValues.resize(0);
+        auto colorAttachmentCount = renderPass->info->colors->size();
+        for (size_t i = 0; i < colorAttachmentCount; i++)
+        {
+            VkClearValue clearValue{};
+            clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+            clearValues.emplace_back(clearValue);
+        }
+        if (renderPass->info->depthStencil)
+        {
+            VkClearValue clearValue{};
+            clearValue.depthStencil.depth = 1;
+            clearValues.emplace_back(clearValue);
+        }
         info.pClearValues = clearValues.data();
         info.clearValueCount = clearValues.size();
+
         vkCmdBeginRenderPass(_impl->_commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
     }
 
