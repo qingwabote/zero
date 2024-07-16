@@ -1,7 +1,7 @@
 #include "triangle.hpp"
-#include "../VkDevice_impl.hpp"
-#include "../VkShader_impl.hpp"
-#include "../VkRenderPass_impl.hpp"
+#include "../Device_impl.hpp"
+#include "../Shader_impl.hpp"
+#include "../RenderPass_impl.hpp"
 #include "SDL_events.h"
 #include <thread>
 
