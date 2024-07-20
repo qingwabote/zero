@@ -40,7 +40,10 @@ namespace gfx
 
             if (gfx_attachment->finalLayout == ImageLayout::SHADER_READ_ONLY)
             {
+                // TODO: use VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT in shadow mapping instead
+                // https://docs.vulkan.org/guide/latest/synchronization.html#_pipeline_barriers
                 dependency_srcStageMask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
                 dependency_dstStageMask |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             }
         }
