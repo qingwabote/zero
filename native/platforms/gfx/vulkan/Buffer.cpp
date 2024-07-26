@@ -1,12 +1,12 @@
 #include "gfx/Buffer.hpp"
-#include "Buffer_impl.hpp"
-#include "Device_impl.hpp"
+#include "BufferImpl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    Buffer_impl::Buffer_impl(Device_impl *device, const std::shared_ptr<BufferInfo> &info) : _device(device), info(info) {}
+    BufferImpl::BufferImpl(DeviceImpl *device, const std::shared_ptr<BufferInfo> &info) : _device(device), info(info) {}
 
-    bool Buffer_impl::initialize()
+    bool BufferImpl::initialize()
     {
         // "size must be greater than 0" https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkBufferCreateInfo.html#VUID-VkBufferCreateInfo-size-00912
         if (info->size)
@@ -32,13 +32,13 @@ namespace gfx
         return false;
     }
 
-    void Buffer_impl::update(const void *data, size_t offset, size_t length)
+    void BufferImpl::update(const void *data, size_t offset, size_t length)
     {
         auto start = reinterpret_cast<const uint8_t *>(data) + offset;
         memcpy(_allocationInfo.pMappedData, start, length);
     }
 
-    void Buffer_impl::resize(uint32_t size)
+    void BufferImpl::resize(uint32_t size)
     {
         if (info->size)
         {
@@ -48,12 +48,12 @@ namespace gfx
         info->size = size;
         initialize();
 
-        emit(BufferEvent_impl::RESET);
+        emit(BufferImplEvent::RESET);
     }
 
-    Buffer_impl::~Buffer_impl() { vmaDestroyBuffer(_device->allocator(), _buffer, _allocation); }
+    BufferImpl::~BufferImpl() { vmaDestroyBuffer(_device->allocator(), _buffer, _allocation); }
 
-    Buffer::Buffer(Device_impl *device, const std::shared_ptr<BufferInfo> &info) : impl(std::make_shared<Buffer_impl>(device, info)), info(impl->info) {}
+    Buffer::Buffer(DeviceImpl *device, const std::shared_ptr<BufferInfo> &info) : impl(std::make_shared<BufferImpl>(device, info)), info(impl->info) {}
 
     bool Buffer::initialize() { return impl->initialize(); }
 

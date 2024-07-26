@@ -1,24 +1,24 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    class Fence_impl
+    class FenceImpl
     {
         friend class Fence;
 
     private:
-        Device_impl *_device = nullptr;
+        DeviceImpl *_device = nullptr;
 
         VkFence _fence = nullptr;
 
     public:
-        Fence_impl(Device_impl *device);
+        FenceImpl(DeviceImpl *device);
 
         operator VkFence() { return _fence; }
 
-        ~Fence_impl();
+        ~FenceImpl();
     };
 
 }

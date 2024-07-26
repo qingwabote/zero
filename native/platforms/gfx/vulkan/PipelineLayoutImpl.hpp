@@ -1,22 +1,22 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    class PipelineLayout_impl
+    class PipelineLayoutImpl
     {
     private:
-        Device_impl *_device{nullptr};
+        DeviceImpl *_device{nullptr};
         VkPipelineLayout _layout{nullptr};
 
     public:
-        PipelineLayout_impl(Device_impl *device);
+        PipelineLayoutImpl(DeviceImpl *device);
 
         bool initialize(const PipelineLayoutInfo &info);
 
         operator VkPipelineLayout() const { return _layout; }
 
-        ~PipelineLayout_impl();
+        ~PipelineLayoutImpl();
     };
 }

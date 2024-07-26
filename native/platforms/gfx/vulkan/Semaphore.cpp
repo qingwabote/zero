@@ -1,12 +1,12 @@
 #include "gfx/Semaphore.hpp"
-#include "Semaphore_impl.hpp"
+#include "SemaphoreImpl.hpp"
 
 namespace gfx
 {
-    Semaphore_impl::Semaphore_impl(Device_impl *device) : _device(device) {}
-    Semaphore_impl::~Semaphore_impl() {}
+    SemaphoreImpl::SemaphoreImpl(DeviceImpl *device) : _device(device) {}
+    SemaphoreImpl::~SemaphoreImpl() {}
 
-    Semaphore::Semaphore(Device_impl *device) : impl(std::make_unique<Semaphore_impl>(device)) {}
+    Semaphore::Semaphore(DeviceImpl *device) : impl(std::make_unique<SemaphoreImpl>(device)) {}
 
     bool Semaphore::initialize()
     {

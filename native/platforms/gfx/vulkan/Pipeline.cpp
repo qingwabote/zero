@@ -1,26 +1,26 @@
 #include "gfx/Pipeline.hpp"
-#include "Pipeline_impl.hpp"
+#include "PipelineImpl.hpp"
 
 #include "gfx/Shader.hpp"
-#include "Shader_impl.hpp"
+#include "ShaderImpl.hpp"
 
 #include "gfx/DescriptorSetLayout.hpp"
-#include "DescriptorSetLayout_impl.hpp"
+#include "DescriptorSetLayoutImpl.hpp"
 
 #include "gfx/PipelineLayout.hpp"
-#include "PipelineLayout_impl.hpp"
+#include "PipelineLayoutImpl.hpp"
 
 #include "gfx/RenderPass.hpp"
-#include "RenderPass_impl.hpp"
+#include "RenderPassImpl.hpp"
 
 #include "gfx/Buffer.hpp"
 
 namespace gfx
 {
-    Pipeline_impl::Pipeline_impl(Device_impl *device) : _device(device) {}
-    Pipeline_impl::~Pipeline_impl() {}
+    PipelineImpl::PipelineImpl(DeviceImpl *device) : _device(device) {}
+    PipelineImpl::~PipelineImpl() {}
 
-    Pipeline::Pipeline(Device_impl *device, const std::shared_ptr<PipelineInfo> &info) : impl(std::make_unique<Pipeline_impl>(device)), info(info) {}
+    Pipeline::Pipeline(DeviceImpl *device, const std::shared_ptr<PipelineInfo> &info) : impl(std::make_unique<PipelineImpl>(device)), info(info) {}
 
     bool Pipeline::initialize()
     {

@@ -1,12 +1,12 @@
 #include "gfx/Sampler.hpp"
-#include "Sampler_impl.hpp"
+#include "SamplerImpl.hpp"
 
 namespace gfx
 {
-    Sampler_impl::Sampler_impl(Device_impl *device) : _device(device) {}
-    Sampler_impl::~Sampler_impl() {}
+    SamplerImpl::SamplerImpl(DeviceImpl *device) : _device(device) {}
+    SamplerImpl::~SamplerImpl() {}
 
-    Sampler::Sampler(Device_impl *device) : impl(std::make_shared<Sampler_impl>(device)) {}
+    Sampler::Sampler(DeviceImpl *device) : impl(std::make_shared<SamplerImpl>(device)) {}
 
     bool Sampler::initialize(const std::shared_ptr<SamplerInfo> &info)
     {

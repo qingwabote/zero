@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 #include <queue>
 #include <functional>
 #include <unordered_map>
@@ -10,13 +10,13 @@ namespace gfx
     class DescriptorSet;
     class Pipeline;
 
-    class CommandBuffer_impl
+    class CommandBufferImpl
     {
         friend class CommandBuffer;
 
     private:
         VkCommandBuffer _commandBuffer = nullptr;
-        Device_impl *_device = nullptr;
+        DeviceImpl *_device = nullptr;
 
         std::queue<std::function<void()>> _destructionQueue;
 
@@ -30,10 +30,10 @@ namespace gfx
         void bindDescriptorSets();
 
     public:
-        CommandBuffer_impl(Device_impl *device);
+        CommandBufferImpl(DeviceImpl *device);
 
         operator VkCommandBuffer() const { return _commandBuffer; }
 
-        ~CommandBuffer_impl();
+        ~CommandBufferImpl();
     };
 }

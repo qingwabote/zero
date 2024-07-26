@@ -1,19 +1,19 @@
 #include "gfx/CommandBuffer.hpp"
 
-#include "CommandBuffer_impl.hpp"
-#include "PipelineLayout_impl.hpp"
-#include "DescriptorSet_impl.hpp"
-#include "Buffer_impl.hpp"
-#include "Pipeline_impl.hpp"
-#include "Texture_impl.hpp"
-#include "RenderPass_impl.hpp"
-#include "Framebuffer_impl.hpp"
+#include "CommandBufferImpl.hpp"
+#include "PipelineLayoutImpl.hpp"
+#include "DescriptorSetImpl.hpp"
+#include "BufferImpl.hpp"
+#include "PipelineImpl.hpp"
+#include "TextureImpl.hpp"
+#include "RenderPassImpl.hpp"
+#include "FramebufferImpl.hpp"
 
 namespace gfx
 {
-    CommandBuffer_impl::CommandBuffer_impl(Device_impl *device) : _device(device) {}
+    CommandBufferImpl::CommandBufferImpl(DeviceImpl *device) : _device(device) {}
 
-    VkBuffer CommandBuffer_impl::createStagingBuffer(void const *src, size_t size)
+    VkBuffer CommandBufferImpl::createStagingBuffer(void const *src, size_t size)
     {
         VkBufferCreateInfo bufferInfo = {};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -37,7 +37,7 @@ namespace gfx
         return buffer;
     }
 
-    void CommandBuffer_impl::bindDescriptorSets()
+    void CommandBufferImpl::bindDescriptorSets()
     {
         for (auto &it : _descriptorSets)
         {
@@ -63,9 +63,9 @@ namespace gfx
         _dynamicOffsets.clear();
     }
 
-    CommandBuffer_impl::~CommandBuffer_impl() {}
+    CommandBufferImpl::~CommandBufferImpl() {}
 
-    CommandBuffer::CommandBuffer(Device_impl *device) : impl(std::make_unique<CommandBuffer_impl>(device)) {}
+    CommandBuffer::CommandBuffer(DeviceImpl *device) : impl(std::make_unique<CommandBufferImpl>(device)) {}
 
     bool CommandBuffer::initialize()
     {

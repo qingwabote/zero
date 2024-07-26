@@ -4,15 +4,15 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class Fence_impl;
+    class DeviceImpl;
+    class FenceImpl;
 
     class Fence
     {
     public:
-        const std::unique_ptr<Fence_impl> impl;
+        const std::unique_ptr<FenceImpl> impl;
 
-        Fence(Device_impl *device);
+        Fence(DeviceImpl *device);
 
         bool initialize(bool signaled = false);
 

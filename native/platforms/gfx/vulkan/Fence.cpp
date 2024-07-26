@@ -1,12 +1,12 @@
 #include "gfx/Fence.hpp"
-#include "Fence_impl.hpp"
+#include "FenceImpl.hpp"
 
 namespace gfx
 {
-    Fence_impl::Fence_impl(Device_impl *device) : _device(device) {}
-    Fence_impl::~Fence_impl() {}
+    FenceImpl::FenceImpl(DeviceImpl *device) : _device(device) {}
+    FenceImpl::~FenceImpl() {}
 
-    Fence::Fence(Device_impl *device) : impl(std::make_unique<Fence_impl>(device)) {}
+    Fence::Fence(DeviceImpl *device) : impl(std::make_unique<FenceImpl>(device)) {}
 
     bool Fence::initialize(bool signaled)
     {

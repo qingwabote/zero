@@ -1,24 +1,24 @@
 #include "log.h"
 #include "gfx/DescriptorSet.hpp"
 #include "gfx/DescriptorSetLayout.hpp"
-#include "DescriptorSet_impl.hpp"
-#include "DescriptorSetLayout_impl.hpp"
+#include "DescriptorSetImpl.hpp"
+#include "DescriptorSetLayoutImpl.hpp"
 
 namespace gfx
 {
-    DescriptorSet_impl::DescriptorSet_impl(Device_impl *device) : _device(device) {}
+    DescriptorSetImpl::DescriptorSetImpl(DeviceImpl *device) : _device(device) {}
 
-    void DescriptorSet_impl::initialize(VkDescriptorSet descriptorSet)
+    void DescriptorSetImpl::initialize(VkDescriptorSet descriptorSet)
     {
         _descriptorSet = descriptorSet;
     }
 
-    void DescriptorSet_impl::bindBuffer(uint32_t binding, const std::shared_ptr<Buffer_impl> &buffer, double range)
+    void DescriptorSetImpl::bindBuffer(uint32_t binding, const std::shared_ptr<BufferImpl> &buffer, double range)
     {
         auto it = _buffers.find(binding);
         if (it != _buffers.end())
         {
-            it->second.first->off(BufferEvent_impl::RESET, it->second.second);
+            it->second.first->off(BufferImplEvent::RESET, it->second.second);
         }
 
         auto f = new auto(
@@ -42,7 +42,7 @@ namespace gfx
                 vkUpdateDescriptorSets(*_device, 1, &write, 0, nullptr);
             });
 
-        _buffers[binding] = std::make_pair(buffer, buffer->on(BufferEvent_impl::RESET, f));
+        _buffers[binding] = std::make_pair(buffer, buffer->on(BufferImplEvent::RESET, f));
 
         if (buffer->info->size)
         {
@@ -50,7 +50,7 @@ namespace gfx
         }
     }
 
-    void DescriptorSet_impl::bindTexture(uint32_t binding, const std::shared_ptr<Texture_impl> &texture, const std::shared_ptr<Sampler_impl> &sampler)
+    void DescriptorSetImpl::bindTexture(uint32_t binding, const std::shared_ptr<TextureImpl> &texture, const std::shared_ptr<SamplerImpl> &sampler)
     {
         VkImageUsageFlags usage = static_cast<VkImageUsageFlags>(texture->info->usage);
         VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -78,15 +78,15 @@ namespace gfx
         _samplers[binding] = sampler;
     }
 
-    DescriptorSet_impl::~DescriptorSet_impl()
+    DescriptorSetImpl::~DescriptorSetImpl()
     {
         for (auto &&it : _buffers)
         {
-            it.second.first->off(BufferEvent_impl::RESET, it.second.second);
+            it.second.first->off(BufferImplEvent::RESET, it.second.second);
         }
     }
 
-    DescriptorSet::DescriptorSet(Device_impl *device, const std::shared_ptr<DescriptorSetLayout> &layout) : impl(std::make_unique<DescriptorSet_impl>(device)), layout(layout) {}
+    DescriptorSet::DescriptorSet(DeviceImpl *device, const std::shared_ptr<DescriptorSetLayout> &layout) : impl(std::make_unique<DescriptorSetImpl>(device)), layout(layout) {}
 
     bool DescriptorSet::initialize()
     {

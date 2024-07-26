@@ -1,24 +1,24 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    class RenderPass_impl
+    class RenderPassImpl
     {
     private:
-        Device_impl *_device{nullptr};
+        DeviceImpl *_device{nullptr};
 
         VkRenderPass _renderPass{nullptr};
 
     public:
-        RenderPass_impl(Device_impl *device);
+        RenderPassImpl(DeviceImpl *device);
 
         bool initialize(const RenderPassInfo &info);
 
         operator VkRenderPass() { return _renderPass; }
 
-        ~RenderPass_impl();
+        ~RenderPassImpl();
     };
 
 }

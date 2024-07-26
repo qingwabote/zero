@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 #include "gfx/info.hpp"
 
 #include <unordered_map>
 
 namespace gfx
 {
-    class Shader_impl
+    class ShaderImpl
     {
     private:
-        Device_impl *_device{nullptr};
+        DeviceImpl *_device{nullptr};
 
         std::unordered_map<uint32_t, std::string> _attributeLocations;
 
@@ -21,10 +21,10 @@ namespace gfx
 
         const std::vector<VkPipelineShaderStageCreateInfo> &stages;
 
-        Shader_impl(Device_impl *device);
+        ShaderImpl(DeviceImpl *device);
 
         bool initialize(const ShaderInfo &info);
 
-        ~Shader_impl();
+        ~ShaderImpl();
     };
 }

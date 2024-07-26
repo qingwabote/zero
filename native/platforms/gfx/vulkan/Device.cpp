@@ -1,5 +1,5 @@
 #include "gfx/Device.hpp"
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 #include "log.h"
 
 #define VMA_IMPLEMENTATION
@@ -8,7 +8,7 @@
 #include "glslang/Public/ShaderLang.h"
 
 #include "gfx/Fence.hpp"
-#include "Fence_impl.hpp"
+#include "FenceImpl.hpp"
 
 namespace
 {
@@ -44,7 +44,7 @@ namespace
 
 namespace gfx
 {
-    bool Device_impl::initialize()
+    bool DeviceImpl::initialize()
     {
         if (volkInitialize())
         {
@@ -257,12 +257,12 @@ namespace gfx
         return false;
     }
 
-    void Device_impl::acquireNextImage(VkSemaphore semaphore)
+    void DeviceImpl::acquireNextImage(VkSemaphore semaphore)
     {
         vkAcquireNextImageKHR(_device, _swapchain, 1000000000, semaphore, nullptr, &_swapchainImageIndex);
     }
 
-    Device_impl::~Device_impl()
+    DeviceImpl::~DeviceImpl()
     {
         glslang::FinalizeProcess();
 
@@ -282,7 +282,7 @@ namespace gfx
         vkDestroyInstance(_instance, nullptr);
     }
 
-    Device::Device(SDL_Window *window) : _impl(new Device_impl(window)) {}
+    Device::Device(SDL_Window *window) : _impl(new DeviceImpl(window)) {}
 
     bool Device::initialize()
     {

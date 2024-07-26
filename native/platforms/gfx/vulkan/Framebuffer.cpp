@@ -1,16 +1,16 @@
 #include "gfx/Framebuffer.hpp"
-#include "Framebuffer_impl.hpp"
+#include "FramebufferImpl.hpp"
 #include "gfx/Texture.hpp"
-#include "Texture_impl.hpp"
+#include "TextureImpl.hpp"
 #include "gfx/RenderPass.hpp"
-#include "RenderPass_impl.hpp"
+#include "RenderPassImpl.hpp"
 
 namespace gfx
 {
-    Framebuffer_impl::Framebuffer_impl(Device_impl *device) : _device(device) {}
-    Framebuffer_impl::~Framebuffer_impl() {}
+    FramebufferImpl::FramebufferImpl(DeviceImpl *device) : _device(device) {}
+    FramebufferImpl::~FramebufferImpl() {}
 
-    Framebuffer::Framebuffer(Device_impl *device, const std::shared_ptr<FramebufferInfo> &info) : impl(std::make_unique<Framebuffer_impl>(device)), info(info) {}
+    Framebuffer::Framebuffer(DeviceImpl *device, const std::shared_ptr<FramebufferInfo> &info) : impl(std::make_unique<FramebufferImpl>(device)), info(info) {}
 
     bool Framebuffer::initialize()
     {

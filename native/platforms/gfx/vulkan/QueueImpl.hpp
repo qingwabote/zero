@@ -1,22 +1,22 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    class Queue_impl
+    class QueueImpl
     {
         friend class Queue;
 
     private:
-        Device_impl *_device = nullptr;
+        DeviceImpl *_device = nullptr;
 
     public:
-        Queue_impl(Device_impl *device);
+        QueueImpl(DeviceImpl *device);
 
         operator VkQueue() { return _device->graphicsQueue(); }
 
-        ~Queue_impl();
+        ~QueueImpl();
     };
 
 }

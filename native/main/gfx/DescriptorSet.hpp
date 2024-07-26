@@ -6,17 +6,17 @@
 
 namespace gfx
 {
-    class Device_impl;
+    class DeviceImpl;
     class DescriptorSetLayout;
-    class DescriptorSet_impl;
+    class DescriptorSetImpl;
     class DescriptorSet
     {
     public:
-        const std::unique_ptr<DescriptorSet_impl> impl;
+        const std::unique_ptr<DescriptorSetImpl> impl;
 
         const std::shared_ptr<DescriptorSetLayout> layout;
 
-        DescriptorSet(Device_impl *device, const std::shared_ptr<DescriptorSetLayout> &layout);
+        DescriptorSet(DeviceImpl *device, const std::shared_ptr<DescriptorSetLayout> &layout);
 
         bool initialize();
 

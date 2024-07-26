@@ -1,20 +1,20 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 #include "gfx/info.hpp"
 #include "base/event/Emitter.hpp"
 
 namespace gfx
 {
-    enum class BufferEvent_impl
+    enum class BufferImplEvent
     {
         RESET
     };
 
-    class Buffer_impl : public event::Emitter<BufferEvent_impl>
+    class BufferImpl : public event::Emitter<BufferImplEvent>
     {
     private:
-        Device_impl *_device = nullptr;
+        DeviceImpl *_device = nullptr;
 
         VkBuffer _buffer = nullptr;
         VmaAllocation _allocation = nullptr;
@@ -23,7 +23,7 @@ namespace gfx
     public:
         const std::shared_ptr<BufferInfo> info;
 
-        Buffer_impl(Device_impl *device, const std::shared_ptr<BufferInfo> &info);
+        BufferImpl(DeviceImpl *device, const std::shared_ptr<BufferInfo> &info);
 
         bool initialize();
 
@@ -33,7 +33,7 @@ namespace gfx
 
         operator VkBuffer() { return _buffer; }
 
-        ~Buffer_impl();
+        ~BufferImpl();
     };
 
 }

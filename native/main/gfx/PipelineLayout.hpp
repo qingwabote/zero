@@ -4,15 +4,15 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class PipelineLayout_impl;
+    class DeviceImpl;
+    class PipelineLayoutImpl;
 
     class PipelineLayout
     {
     public:
-        const std::unique_ptr<PipelineLayout_impl> impl;
+        const std::unique_ptr<PipelineLayoutImpl> impl;
 
-        PipelineLayout(Device_impl *device);
+        PipelineLayout(DeviceImpl *device);
 
         bool initialize(const std::shared_ptr<PipelineLayoutInfo> &info);
 

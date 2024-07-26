@@ -12,15 +12,15 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class CommandBuffer_impl;
+    class DeviceImpl;
+    class CommandBufferImpl;
 
     class CommandBuffer
     {
     public:
-        const std::unique_ptr<CommandBuffer_impl> impl;
+        const std::unique_ptr<CommandBufferImpl> impl;
 
-        CommandBuffer(Device_impl *device);
+        CommandBuffer(DeviceImpl *device);
 
         bool initialize();
 

@@ -4,17 +4,17 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class Shader_impl;
+    class DeviceImpl;
+    class ShaderImpl;
 
     class Shader
     {
     public:
-        const std::unique_ptr<Shader_impl> impl;
+        const std::unique_ptr<ShaderImpl> impl;
 
         const std::shared_ptr<ShaderInfo> info;
 
-        Shader(Device_impl *device, const std::shared_ptr<ShaderInfo> &info);
+        Shader(DeviceImpl *device, const std::shared_ptr<ShaderInfo> &info);
 
         bool initialize();
 

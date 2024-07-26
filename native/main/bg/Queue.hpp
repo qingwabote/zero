@@ -11,7 +11,7 @@ namespace bg
         TaskRunner *_background{nullptr};
 
     public:
-        Queue(gfx::Device_impl *device, TaskRunner *background);
+        Queue(gfx::DeviceImpl *device, TaskRunner *background);
 
         virtual void submit(const std::shared_ptr<gfx::SubmitInfo> &info, const std::shared_ptr<gfx::Fence> &fence);
         virtual void present(const std::shared_ptr<gfx::Semaphore> &waitSemaphore);

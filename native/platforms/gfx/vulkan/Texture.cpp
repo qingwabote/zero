@@ -1,11 +1,11 @@
 #include "gfx/Texture.hpp"
-#include "Texture_impl.hpp"
+#include "TextureImpl.hpp"
 
 namespace gfx
 {
-    Texture_impl::Texture_impl(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : _device(device), info(info), _swapchain(swapchain) {}
+    TextureImpl::TextureImpl(DeviceImpl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : _device(device), info(info), _swapchain(swapchain) {}
 
-    bool Texture_impl::initialize()
+    bool TextureImpl::initialize()
     {
         if (_swapchain)
         {
@@ -69,7 +69,7 @@ namespace gfx
         return false;
     }
 
-    Texture_impl::~Texture_impl()
+    TextureImpl::~TextureImpl()
     {
         if (!_swapchain)
         {
@@ -78,7 +78,7 @@ namespace gfx
         }
     }
 
-    Texture::Texture(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : impl(std::make_shared<Texture_impl>(device, info, swapchain)), info(impl->info) {}
+    Texture::Texture(DeviceImpl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : impl(std::make_shared<TextureImpl>(device, info, swapchain)), info(impl->info) {}
 
     bool Texture::initialize()
     {

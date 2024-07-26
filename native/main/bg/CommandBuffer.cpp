@@ -2,7 +2,7 @@
 
 namespace bg
 {
-    CommandBuffer::CommandBuffer(gfx::Device_impl *device, TaskRunner *background) : gfx::CommandBuffer(device), _background(background) {}
+    CommandBuffer::CommandBuffer(gfx::DeviceImpl *device, TaskRunner *background) : gfx::CommandBuffer(device), _background(background) {}
 
     void CommandBuffer::begin()
     {

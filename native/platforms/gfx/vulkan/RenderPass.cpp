@@ -1,11 +1,11 @@
 #include "gfx/RenderPass.hpp"
-#include "RenderPass_impl.hpp"
+#include "RenderPassImpl.hpp"
 
 namespace gfx
 {
-    RenderPass_impl::RenderPass_impl(Device_impl *device) : _device(device) {}
+    RenderPassImpl::RenderPassImpl(DeviceImpl *device) : _device(device) {}
 
-    bool RenderPass_impl::initialize(const RenderPassInfo &info)
+    bool RenderPassImpl::initialize(const RenderPassInfo &info)
     {
         auto gfx_colorAttachments = info.colors.get();
         auto gfx_resolveAttachments = info.resolves.get();
@@ -125,12 +125,12 @@ namespace gfx
         return false;
     }
 
-    RenderPass_impl::~RenderPass_impl()
+    RenderPassImpl::~RenderPassImpl()
     {
         vkDestroyRenderPass(*_device, _renderPass, nullptr);
     }
 
-    RenderPass::RenderPass(Device_impl *device, const std::shared_ptr<RenderPassInfo> &info) : impl(std::make_unique<RenderPass_impl>(device)), info(info) {}
+    RenderPass::RenderPass(DeviceImpl *device, const std::shared_ptr<RenderPassInfo> &info) : impl(std::make_unique<RenderPassImpl>(device)), info(info) {}
 
     bool RenderPass::initialize()
     {

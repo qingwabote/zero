@@ -1,24 +1,24 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    class Sampler_impl
+    class SamplerImpl
     {
         friend class Sampler;
 
     private:
-        Device_impl *_device = nullptr;
+        DeviceImpl *_device = nullptr;
 
         VkSampler _sampler = nullptr;
 
     public:
-        Sampler_impl(Device_impl *device);
+        SamplerImpl(DeviceImpl *device);
 
         operator VkSampler() { return _sampler; }
 
-        ~Sampler_impl();
+        ~SamplerImpl();
     };
 
 }

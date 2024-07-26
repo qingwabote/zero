@@ -4,15 +4,15 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class Sampler_impl;
+    class DeviceImpl;
+    class SamplerImpl;
 
     class Sampler
     {
     public:
-        const std::shared_ptr<Sampler_impl> impl;
+        const std::shared_ptr<SamplerImpl> impl;
 
-        Sampler(Device_impl *device);
+        Sampler(DeviceImpl *device);
 
         bool initialize(const std::shared_ptr<SamplerInfo> &info);
 

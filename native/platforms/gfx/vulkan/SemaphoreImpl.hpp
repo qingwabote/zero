@@ -1,24 +1,24 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    class Semaphore_impl
+    class SemaphoreImpl
     {
         friend class Semaphore;
 
     private:
-        Device_impl *_device = nullptr;
+        DeviceImpl *_device = nullptr;
 
         VkSemaphore _semaphore = nullptr;
 
     public:
-        Semaphore_impl(Device_impl *device);
+        SemaphoreImpl(DeviceImpl *device);
 
         operator VkSemaphore() { return _semaphore; }
 
-        ~Semaphore_impl();
+        ~SemaphoreImpl();
     };
 
 }

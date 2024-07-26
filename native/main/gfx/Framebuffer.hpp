@@ -4,17 +4,17 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class Framebuffer_impl;
+    class DeviceImpl;
+    class FramebufferImpl;
 
     class Framebuffer
     {
     public:
-        const std::unique_ptr<Framebuffer_impl> impl;
+        const std::unique_ptr<FramebufferImpl> impl;
 
         const std::shared_ptr<FramebufferInfo> info;
 
-        Framebuffer(Device_impl *device, const std::shared_ptr<FramebufferInfo> &info);
+        Framebuffer(DeviceImpl *device, const std::shared_ptr<FramebufferInfo> &info);
 
         bool initialize();
 

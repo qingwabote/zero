@@ -1,21 +1,21 @@
 #include "gfx/Queue.hpp"
-#include "Queue_impl.hpp"
+#include "QueueImpl.hpp"
 
 #include "gfx/Fence.hpp"
-#include "Fence_impl.hpp"
+#include "FenceImpl.hpp"
 
 #include "gfx/Semaphore.hpp"
-#include "Semaphore_impl.hpp"
+#include "SemaphoreImpl.hpp"
 
 #include "gfx/CommandBuffer.hpp"
-#include "CommandBuffer_impl.hpp"
+#include "CommandBufferImpl.hpp"
 
 namespace gfx
 {
-    Queue_impl::Queue_impl(Device_impl *device) : _device(device) {}
-    Queue_impl::~Queue_impl() {}
+    QueueImpl::QueueImpl(DeviceImpl *device) : _device(device) {}
+    QueueImpl::~QueueImpl() {}
 
-    Queue::Queue(Device_impl *device) : _impl(std::make_unique<Queue_impl>(device)) {}
+    Queue::Queue(DeviceImpl *device) : _impl(std::make_unique<QueueImpl>(device)) {}
 
     void Queue::submit(const std::shared_ptr<SubmitInfo> &info, const std::shared_ptr<Fence> &fence)
     {

@@ -1,5 +1,5 @@
 #include "gfx/Shader.hpp"
-#include "Shader_impl.hpp"
+#include "ShaderImpl.hpp"
 #include "log.h"
 
 #include "glslang/Public/ShaderLang.h"
@@ -128,9 +128,9 @@ namespace
 
 namespace gfx
 {
-    Shader_impl::Shader_impl(Device_impl *device) : _device(device), attributeLocations(_attributeLocations), stages(_stages) {}
+    ShaderImpl::ShaderImpl(DeviceImpl *device) : _device(device), attributeLocations(_attributeLocations), stages(_stages) {}
 
-    bool Shader_impl::initialize(const ShaderInfo &info)
+    bool ShaderImpl::initialize(const ShaderInfo &info)
     {
         static const int version_semantics = 100; // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt
         static EShMessages messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
@@ -209,7 +209,7 @@ namespace gfx
         return false;
     }
 
-    Shader_impl::~Shader_impl()
+    ShaderImpl::~ShaderImpl()
     {
         for (size_t i = 0; i < _stages.size(); i++)
         {
@@ -217,7 +217,7 @@ namespace gfx
         }
     }
 
-    Shader::Shader(Device_impl *device, const std::shared_ptr<ShaderInfo> &info) : impl(std::make_unique<Shader_impl>(device)), info(info) {}
+    Shader::Shader(DeviceImpl *device, const std::shared_ptr<ShaderInfo> &info) : impl(std::make_unique<ShaderImpl>(device)), info(info) {}
 
     bool Shader::initialize()
     {

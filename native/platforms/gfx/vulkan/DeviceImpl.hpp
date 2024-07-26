@@ -7,7 +7,7 @@
 
 namespace gfx
 {
-    class Device_impl
+    class DeviceImpl
     {
     private:
         SDL_Window *_window{nullptr};
@@ -57,12 +57,12 @@ namespace gfx
 
         operator VkDevice() { return _device; }
 
-        Device_impl(SDL_Window *window) : _window(window) {}
+        DeviceImpl(SDL_Window *window) : _window(window) {}
 
         bool initialize();
 
         void acquireNextImage(VkSemaphore semaphore);
 
-        ~Device_impl();
+        ~DeviceImpl();
     };
 }

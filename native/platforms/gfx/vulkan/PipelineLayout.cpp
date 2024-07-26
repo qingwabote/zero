@@ -1,14 +1,14 @@
 #include "gfx/PipelineLayout.hpp"
-#include "PipelineLayout_impl.hpp"
+#include "PipelineLayoutImpl.hpp"
 
 #include "gfx/DescriptorSetLayout.hpp"
-#include "DescriptorSetLayout_impl.hpp"
+#include "DescriptorSetLayoutImpl.hpp"
 
 namespace gfx
 {
-    PipelineLayout_impl::PipelineLayout_impl(Device_impl *device) : _device(device) {}
+    PipelineLayoutImpl::PipelineLayoutImpl(DeviceImpl *device) : _device(device) {}
 
-    bool PipelineLayout_impl::initialize(const PipelineLayoutInfo &info)
+    bool PipelineLayoutImpl::initialize(const PipelineLayoutInfo &info)
     {
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts(info.layouts->size());
         for (uint32_t i = 0; i < descriptorSetLayouts.size(); ++i)
@@ -28,12 +28,12 @@ namespace gfx
         return false;
     }
 
-    PipelineLayout_impl::~PipelineLayout_impl()
+    PipelineLayoutImpl::~PipelineLayoutImpl()
     {
         vkDestroyPipelineLayout(*_device, _layout, nullptr);
     }
 
-    PipelineLayout::PipelineLayout(Device_impl *device) : impl(std::make_unique<PipelineLayout_impl>(device)) {}
+    PipelineLayout::PipelineLayout(DeviceImpl *device) : impl(std::make_unique<PipelineLayoutImpl>(device)) {}
 
     bool PipelineLayout::initialize(const std::shared_ptr<PipelineLayoutInfo> &info)
     {

@@ -1,26 +1,26 @@
 #pragma once
 
-#include "Device_impl.hpp"
+#include "DeviceImpl.hpp"
 
 namespace gfx
 {
-    class Framebuffer_impl
+    class FramebufferImpl
     {
         friend class Framebuffer;
 
     private:
-        Device_impl *_device = nullptr;
+        DeviceImpl *_device = nullptr;
 
         std::vector<VkFramebuffer> _framebuffers;
 
     public:
-        Framebuffer_impl(Device_impl *device);
+        FramebufferImpl(DeviceImpl *device);
 
         bool isSwapchain() { return _framebuffers.size() > 1; }
 
         operator VkFramebuffer() { return isSwapchain() ? _framebuffers[_device->swapchainImageIndex()] : _framebuffers[0]; }
 
-        ~Framebuffer_impl();
+        ~FramebufferImpl();
     };
 
 }
