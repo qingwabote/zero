@@ -9,11 +9,8 @@ namespace gfx
 
     class Semaphore
     {
-    private:
-        std::unique_ptr<Semaphore_impl> _impl;
-
     public:
-        Semaphore_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<Semaphore_impl> impl;
 
         Semaphore(Device_impl *device);
 

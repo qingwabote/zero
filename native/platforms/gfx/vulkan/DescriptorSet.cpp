@@ -1,5 +1,6 @@
 #include "log.h"
 #include "gfx/DescriptorSet.hpp"
+#include "gfx/DescriptorSetLayout.hpp"
 #include "DescriptorSet_impl.hpp"
 #include "DescriptorSetLayout_impl.hpp"
 
@@ -7,17 +8,9 @@ namespace gfx
 {
     DescriptorSet_impl::DescriptorSet_impl(Device_impl *device) : _device(device) {}
 
-    bool DescriptorSet_impl::initialize(DescriptorSetLayout &layout)
+    void DescriptorSet_impl::initialize(VkDescriptorSet descriptorSet)
     {
-        auto &pool = layout.impl()->pool();
-        if (pool.empty())
-        {
-            pool.multiply();
-            // ZERO_LOG_INFO("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
-        }
-        _descriptorSet = pool.get();
-        _layout = layout.impl();
-        return false;
+        _descriptorSet = descriptorSet;
     }
 
     void DescriptorSet_impl::bindBuffer(uint32_t binding, const std::shared_ptr<Buffer_impl> &buffer, double range)
@@ -42,14 +35,7 @@ namespace gfx
                 write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 write.dstBinding = binding;
                 write.dstSet = _descriptorSet;
-                for (auto &&i : *_layout->info->bindings)
-                {
-                    if (i->binding == binding)
-                    {
-                        write.descriptorType = static_cast<VkDescriptorType>(i->descriptorType);
-                        break;
-                    }
-                }
+                write.descriptorType = range ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 write.descriptorCount = 1;
                 write.pBufferInfo = &bufferInfo;
 
@@ -100,25 +86,33 @@ namespace gfx
         }
     }
 
-    DescriptorSet::DescriptorSet(Device_impl *device, const std::shared_ptr<DescriptorSetLayout> &layout) : _impl(std::make_unique<DescriptorSet_impl>(device)), layout(layout) {}
+    DescriptorSet::DescriptorSet(Device_impl *device, const std::shared_ptr<DescriptorSetLayout> &layout) : impl(std::make_unique<DescriptorSet_impl>(device)), layout(layout) {}
 
     bool DescriptorSet::initialize()
     {
-        return _impl->initialize(*layout);
+        auto &pool = layout->impl->pool;
+        if (pool->empty())
+        {
+            pool->multiply();
+            // ZERO_LOG_INFO("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
+        }
+        impl->initialize(pool->get());
+
+        return false;
     }
 
     void DescriptorSet::bindBuffer(uint32_t binding, const std::shared_ptr<Buffer> &buffer, double range)
     {
-        _impl->bindBuffer(binding, buffer->impl(), range);
+        impl->bindBuffer(binding, buffer->impl, range);
     }
 
     void DescriptorSet::bindTexture(uint32_t binding, const std::shared_ptr<Texture> &texture, const std::shared_ptr<Sampler> &sampler)
     {
-        _impl->bindTexture(binding, texture->impl(), sampler->impl());
+        impl->bindTexture(binding, texture->impl, sampler->impl);
     }
 
     DescriptorSet::~DescriptorSet()
     {
-        _impl->_layout->pool().put(_impl->_descriptorSet);
+        layout->impl->pool->put(*impl);
     };
 }

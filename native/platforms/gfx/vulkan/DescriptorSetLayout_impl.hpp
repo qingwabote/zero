@@ -10,12 +10,11 @@ namespace gfx
     private:
         Device_impl *_device{nullptr};
         VkDescriptorSetLayout _setLayout{nullptr};
-        std::unique_ptr<DescriptorSetPool> _pool;
 
     public:
         const std::shared_ptr<const DescriptorSetLayoutInfo> info;
 
-        DescriptorSetPool &pool() { return *_pool.get(); }
+        const std::unique_ptr<DescriptorSetPool> pool;
 
         DescriptorSetLayout_impl(Device_impl *device, const std::shared_ptr<const DescriptorSetLayoutInfo> &info);
 

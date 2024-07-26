@@ -20,13 +20,13 @@ namespace gfx
     Pipeline_impl::Pipeline_impl(Device_impl *device) : _device(device) {}
     Pipeline_impl::~Pipeline_impl() {}
 
-    Pipeline::Pipeline(Device_impl *device, const std::shared_ptr<PipelineInfo> &info) : _impl(std::make_unique<Pipeline_impl>(device)), info(info) {}
+    Pipeline::Pipeline(Device_impl *device, const std::shared_ptr<PipelineInfo> &info) : impl(std::make_unique<Pipeline_impl>(device)), info(info) {}
 
     bool Pipeline::initialize()
     {
         VkGraphicsPipelineCreateInfo pipelineInfo = {VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
 
-        auto &stageInfos = info->shader->impl()->stages;
+        auto &stageInfos = info->shader->impl->stages;
         pipelineInfo.stageCount = stageInfos.size();
         pipelineInfo.pStages = stageInfos.data();
 
@@ -113,7 +113,7 @@ namespace gfx
         std::vector<VkVertexInputBindingDescription> bindings;
         for (auto &&gfx_attribute : *gfx_attributes)
         {
-            auto &attributesConsumed = info->shader->impl()->attributeLocations;
+            auto &attributesConsumed = info->shader->impl->attributeLocations;
             if (attributesConsumed.find(gfx_attribute->location) == attributesConsumed.end())
             {
                 // avoid warning "Vertex attribute not consumed by vertex shader"
@@ -183,13 +183,13 @@ namespace gfx
         multisampleState.alphaToCoverageEnable = VK_FALSE;
         multisampleState.alphaToOneEnable = VK_FALSE;
         pipelineInfo.pMultisampleState = &multisampleState;
-        pipelineInfo.renderPass = gfx_renderPass->impl();
+        pipelineInfo.renderPass = *gfx_renderPass->impl;
         pipelineInfo.subpass = 0;
 
         // layout
-        pipelineInfo.layout = info->layout->impl();
+        pipelineInfo.layout = *info->layout->impl;
 
-        if (vkCreateGraphicsPipelines(*_impl->_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_impl->_pipeline))
+        if (vkCreateGraphicsPipelines(*impl->_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &impl->_pipeline))
         {
             return true;
         }
@@ -198,8 +198,8 @@ namespace gfx
 
     Pipeline::~Pipeline()
     {
-        VkDevice device = *_impl->_device;
-        VkPipeline pipeline = _impl->_pipeline;
+        VkDevice device = *impl->_device;
+        VkPipeline pipeline = impl->_pipeline;
         vkDestroyPipeline(device, pipeline, nullptr);
     }
 }

@@ -217,11 +217,11 @@ namespace gfx
         }
     }
 
-    Shader::Shader(Device_impl *device, const std::shared_ptr<ShaderInfo> &info) : _impl(std::make_unique<Shader_impl>(device)), info(info) {}
+    Shader::Shader(Device_impl *device, const std::shared_ptr<ShaderInfo> &info) : impl(std::make_unique<Shader_impl>(device)), info(info) {}
 
     bool Shader::initialize()
     {
-        if (_impl->initialize(*info))
+        if (impl->initialize(*info))
         {
             return true;
         }

@@ -6,7 +6,7 @@ namespace gfx
     Sampler_impl::Sampler_impl(Device_impl *device) : _device(device) {}
     Sampler_impl::~Sampler_impl() {}
 
-    Sampler::Sampler(Device_impl *device) : _impl(std::make_shared<Sampler_impl>(device)) {}
+    Sampler::Sampler(Device_impl *device) : impl(std::make_shared<Sampler_impl>(device)) {}
 
     bool Sampler::initialize(const std::shared_ptr<SamplerInfo> &info)
     {
@@ -17,7 +17,7 @@ namespace gfx
         samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        if (vkCreateSampler(*_impl->_device, &samplerInfo, nullptr, &_impl->_sampler))
+        if (vkCreateSampler(*impl->_device, &samplerInfo, nullptr, &impl->_sampler))
         {
             return true;
         }
@@ -27,6 +27,6 @@ namespace gfx
 
     Sampler::~Sampler()
     {
-        vkDestroySampler(*_impl->_device, *_impl, nullptr);
+        vkDestroySampler(*impl->_device, *impl, nullptr);
     }
 }

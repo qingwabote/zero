@@ -395,7 +395,7 @@ namespace gfx
 
     void Device::waitForFence(const std::shared_ptr<Fence> &c_fence)
     {
-        VkFence fence = c_fence->impl();
+        VkFence fence = *c_fence->impl;
         vkWaitForFences(*_impl, 1, &fence, true, 3000000000);
         vkResetFences(*_impl, 1, &fence);
     }

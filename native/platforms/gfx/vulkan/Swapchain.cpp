@@ -21,7 +21,7 @@ namespace gfx
 
     void Swapchain::acquire(const std::shared_ptr<Semaphore> &semaphore)
     {
-        _impl->acquire(semaphore->impl());
+        _impl->acquire(*semaphore->impl);
     }
 
     Swapchain::~Swapchain() {}

@@ -4,10 +4,7 @@
 
 namespace gfx
 {
-    DescriptorSetLayout_impl::DescriptorSetLayout_impl(Device_impl *device, const std::shared_ptr<const DescriptorSetLayoutInfo> &info) : _device(device), info(info)
-    {
-        _pool = std::make_unique<DescriptorSetPool>(*device);
-    }
+    DescriptorSetLayout_impl::DescriptorSetLayout_impl(Device_impl *device, const std::shared_ptr<const DescriptorSetLayoutInfo> &info) : _device(device), info(info), pool(std::make_unique<DescriptorSetPool>(*device)) {}
 
     bool DescriptorSetLayout_impl::initialize()
     {
@@ -47,7 +44,7 @@ namespace gfx
         {
             descriptorPoolSizes.push_back({it.first, it.second});
         }
-        _pool->initialize(descriptorPoolSizes, maxSets, _setLayout);
+        pool->initialize(descriptorPoolSizes, maxSets, _setLayout);
 
         return false;
     }
@@ -57,9 +54,9 @@ namespace gfx
         vkDestroyDescriptorSetLayout(*_device, _setLayout, nullptr);
     }
 
-    DescriptorSetLayout::DescriptorSetLayout(Device_impl *device, const std::shared_ptr<DescriptorSetLayoutInfo> &info) : _impl(std::make_unique<DescriptorSetLayout_impl>(device, info)), info(_impl->info) {}
+    DescriptorSetLayout::DescriptorSetLayout(Device_impl *device, const std::shared_ptr<DescriptorSetLayoutInfo> &info) : impl(std::make_unique<DescriptorSetLayout_impl>(device, info)), info(impl->info) {}
 
-    bool DescriptorSetLayout::initialize() { return _impl->initialize(); }
+    bool DescriptorSetLayout::initialize() { return impl->initialize(); }
 
     DescriptorSetLayout::~DescriptorSetLayout() {}
 }

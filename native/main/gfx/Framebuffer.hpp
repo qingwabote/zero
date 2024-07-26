@@ -9,11 +9,8 @@ namespace gfx
 
     class Framebuffer
     {
-    private:
-        std::unique_ptr<Framebuffer_impl> _impl;
-
     public:
-        Framebuffer_impl &impl() { return *_impl; }
+        const std::unique_ptr<Framebuffer_impl> impl;
 
         const std::shared_ptr<FramebufferInfo> info;
 

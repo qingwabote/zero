@@ -14,7 +14,7 @@ namespace gfx
         for (uint32_t i = 0; i < descriptorSetLayouts.size(); ++i)
         {
 
-            descriptorSetLayouts[i] = *info.layouts->at(i)->impl();
+            descriptorSetLayouts[i] = *info.layouts->at(i)->impl;
         }
 
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
@@ -33,11 +33,11 @@ namespace gfx
         vkDestroyPipelineLayout(*_device, _layout, nullptr);
     }
 
-    PipelineLayout::PipelineLayout(Device_impl *device) : _impl(std::make_unique<PipelineLayout_impl>(device)) {}
+    PipelineLayout::PipelineLayout(Device_impl *device) : impl(std::make_unique<PipelineLayout_impl>(device)) {}
 
     bool PipelineLayout::initialize(const std::shared_ptr<PipelineLayoutInfo> &info)
     {
-        if (_impl->initialize(*info))
+        if (impl->initialize(*info))
         {
             return true;
         }

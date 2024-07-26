@@ -9,11 +9,8 @@ namespace gfx
 
     class PipelineLayout
     {
-    private:
-        std::unique_ptr<PipelineLayout_impl> _impl;
-
     public:
-        PipelineLayout_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<PipelineLayout_impl> impl;
 
         PipelineLayout(Device_impl *device);
 

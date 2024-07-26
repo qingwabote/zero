@@ -6,7 +6,7 @@ namespace gfx
     Fence_impl::Fence_impl(Device_impl *device) : _device(device) {}
     Fence_impl::~Fence_impl() {}
 
-    Fence::Fence(Device_impl *device) : _impl(std::make_unique<Fence_impl>(device)) {}
+    Fence::Fence(Device_impl *device) : impl(std::make_unique<Fence_impl>(device)) {}
 
     bool Fence::initialize(bool signaled)
     {
@@ -16,7 +16,7 @@ namespace gfx
         {
             fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
         }
-        auto res = vkCreateFence(*_impl->_device, &fenceCreateInfo, nullptr, &_impl->_fence);
+        auto res = vkCreateFence(*impl->_device, &fenceCreateInfo, nullptr, &impl->_fence);
         if (res)
         {
             return true;
@@ -26,6 +26,6 @@ namespace gfx
 
     Fence::~Fence()
     {
-        vkDestroyFence(*_impl->_device, _impl->_fence, nullptr);
+        vkDestroyFence(*impl->_device, impl->_fence, nullptr);
     }
 }

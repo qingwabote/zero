@@ -9,11 +9,8 @@ namespace gfx
 
     class RenderPass
     {
-    private:
-        std::unique_ptr<RenderPass_impl> _impl;
-
     public:
-        RenderPass_impl &impl() { return *_impl; }
+        const std::unique_ptr<RenderPass_impl> impl;
 
         const std::shared_ptr<RenderPassInfo> info;
 

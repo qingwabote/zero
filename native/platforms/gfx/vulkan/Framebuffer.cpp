@@ -10,7 +10,7 @@ namespace gfx
     Framebuffer_impl::Framebuffer_impl(Device_impl *device) : _device(device) {}
     Framebuffer_impl::~Framebuffer_impl() {}
 
-    Framebuffer::Framebuffer(Device_impl *device, const std::shared_ptr<FramebufferInfo> &info) : _impl(std::make_unique<Framebuffer_impl>(device)), info(info) {}
+    Framebuffer::Framebuffer(Device_impl *device, const std::shared_ptr<FramebufferInfo> &info) : impl(std::make_unique<Framebuffer_impl>(device)), info(info) {}
 
     bool Framebuffer::initialize()
     {
@@ -25,7 +25,7 @@ namespace gfx
         for (uint32_t i = 0; i < colorAttachments->size(); i++)
         {
             auto attachment = colorAttachments->at(i).get();
-            if (attachment->impl()->swapchain())
+            if (attachment->impl->swapchain())
             {
                 swapchainAttachment = attachment;
                 break;
@@ -36,7 +36,7 @@ namespace gfx
             for (uint32_t i = 0; i < resolveAttachments->size(); i++)
             {
                 auto attachment = resolveAttachments->at(i).get();
-                if (attachment->impl()->swapchain())
+                if (attachment->impl->swapchain())
                 {
                     swapchainAttachment = attachment;
                     break;
@@ -44,8 +44,8 @@ namespace gfx
             }
         }
 
-        _impl->_framebuffers.resize(swapchainAttachment == nullptr ? 1 : _impl->_device->swapchainImageViews().size());
-        for (size_t framebufferIdx = 0; framebufferIdx < _impl->_framebuffers.size(); framebufferIdx++)
+        impl->_framebuffers.resize(swapchainAttachment == nullptr ? 1 : impl->_device->swapchainImageViews().size());
+        for (size_t framebufferIdx = 0; framebufferIdx < impl->_framebuffers.size(); framebufferIdx++)
         {
             VkFramebufferCreateInfo info = {};
             info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -59,16 +59,16 @@ namespace gfx
                 auto attachment = colorAttachments->at(idx).get();
                 if (attachment == swapchainAttachment)
                 {
-                    attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
+                    attachments[attachmentIdx] = impl->_device->swapchainImageViews()[framebufferIdx];
                 }
                 else
                 {
-                    attachments[attachmentIdx] = *attachment->impl();
+                    attachments[attachmentIdx] = *attachment->impl;
                 }
                 attachmentIdx++;
             }
 
-            attachments[attachmentIdx] = *depthStencilAttachment->impl();
+            attachments[attachmentIdx] = *depthStencilAttachment->impl;
             attachmentIdx++;
 
             for (size_t idx = 0; idx < resolveAttachments->size(); idx++)
@@ -76,19 +76,19 @@ namespace gfx
                 auto attachment = resolveAttachments->at(idx).get();
                 if (attachment == swapchainAttachment)
                 {
-                    attachments[attachmentIdx] = _impl->_device->swapchainImageViews()[framebufferIdx];
+                    attachments[attachmentIdx] = impl->_device->swapchainImageViews()[framebufferIdx];
                 }
                 else
                 {
-                    attachments[attachmentIdx] = *attachment->impl();
+                    attachments[attachmentIdx] = *attachment->impl;
                 }
                 attachmentIdx++;
             }
 
             info.pAttachments = attachments.data();
             info.attachmentCount = attachments.size();
-            info.renderPass = renderPass->impl();
-            vkCreateFramebuffer(*_impl->_device, &info, nullptr, &_impl->_framebuffers[framebufferIdx]);
+            info.renderPass = *renderPass->impl;
+            vkCreateFramebuffer(*impl->_device, &info, nullptr, &impl->_framebuffers[framebufferIdx]);
         }
 
         return false;
@@ -96,9 +96,9 @@ namespace gfx
 
     Framebuffer::~Framebuffer()
     {
-        for (size_t i = 0; i < _impl->_framebuffers.size(); i++)
+        for (size_t i = 0; i < impl->_framebuffers.size(); i++)
         {
-            vkDestroyFramebuffer(*_impl->_device, _impl->_framebuffers[i], nullptr);
+            vkDestroyFramebuffer(*impl->_device, impl->_framebuffers[i], nullptr);
         }
     }
 }

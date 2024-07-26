@@ -109,8 +109,6 @@
 
 
 %ignore gfx::Capabilities::Capabilities;
-%attribute(gfx::Capabilities, uint32_t, uniformBufferOffsetAlignment, uniformBufferOffsetAlignment);
-%attribute(gfx::Capabilities, int, clipSpaceMinZ, clipSpaceMinZ);
 %include "gfx/Capabilities.hpp"
 
 %ignore gfx::Buffer::Buffer;

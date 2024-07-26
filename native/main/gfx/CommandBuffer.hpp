@@ -17,11 +17,8 @@ namespace gfx
 
     class CommandBuffer
     {
-    private:
-        std::unique_ptr<CommandBuffer_impl> _impl;
-
     public:
-        CommandBuffer_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<CommandBuffer_impl> impl;
 
         CommandBuffer(Device_impl *device);
 

@@ -9,11 +9,8 @@ namespace gfx
 
     class Pipeline
     {
-    private:
-        std::unique_ptr<Pipeline_impl> _impl;
-
     public:
-        Pipeline_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<Pipeline_impl> impl;
 
         const std::shared_ptr<PipelineInfo> info;
 

@@ -9,11 +9,8 @@ namespace gfx
 
     class Buffer
     {
-    private:
-        std::shared_ptr<Buffer_impl> _impl;
-
     public:
-        const std::shared_ptr<Buffer_impl> &impl() { return _impl; }
+        const std::shared_ptr<Buffer_impl> impl;
 
         const std::shared_ptr<BufferInfo> &info;
 

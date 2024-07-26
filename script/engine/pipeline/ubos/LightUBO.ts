@@ -25,10 +25,6 @@ export class LightUBO extends UBO {
         return this._view.buffer;
     }
 
-    get range(): number {
-        return BlockSize;
-    }
-
     update(dumping: boolean): void {
         const light = Zero.instance.scene.directionalLight!;
 

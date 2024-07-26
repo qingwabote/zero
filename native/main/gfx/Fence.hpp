@@ -9,11 +9,8 @@ namespace gfx
 
     class Fence
     {
-    private:
-        std::unique_ptr<Fence_impl> _impl;
-
     public:
-        Fence_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<Fence_impl> impl;
 
         Fence(Device_impl *device);
 

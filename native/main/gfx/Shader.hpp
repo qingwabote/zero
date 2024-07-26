@@ -9,11 +9,8 @@ namespace gfx
 
     class Shader
     {
-    private:
-        std::unique_ptr<Shader_impl> _impl;
-
     public:
-        Shader_impl *impl() { return _impl.get(); }
+        const std::unique_ptr<Shader_impl> impl;
 
         const std::shared_ptr<ShaderInfo> info;
 

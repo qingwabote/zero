@@ -24,9 +24,9 @@ export class DescriptorSet {
         return this._bufferRanges[binding];
     }
 
-    bindBuffer(binding: number, buffer: Buffer, range?: number): void {
+    bindBuffer(binding: number, buffer: Buffer, range: number = 0): void {
         this._buffers[binding] = buffer;
-        this._bufferRanges[binding] = range ? range : buffer.info.size;
+        this._bufferRanges[binding] = range;
     }
 
     getTexture(binding: number): Texture {

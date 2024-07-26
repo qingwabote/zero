@@ -78,11 +78,11 @@ namespace gfx
         }
     }
 
-    Texture::Texture(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : _impl(std::make_shared<Texture_impl>(device, info, swapchain)), info(_impl->info) {}
+    Texture::Texture(Device_impl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : impl(std::make_shared<Texture_impl>(device, info, swapchain)), info(impl->info) {}
 
     bool Texture::initialize()
     {
-        return _impl->initialize();
+        return impl->initialize();
     }
 
     Texture::~Texture() {}

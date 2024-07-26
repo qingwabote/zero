@@ -11,11 +11,8 @@ namespace gfx
     class DescriptorSet_impl;
     class DescriptorSet
     {
-    private:
-        std::unique_ptr<DescriptorSet_impl> _impl;
-
     public:
-        DescriptorSet_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<DescriptorSet_impl> impl;
 
         const std::shared_ptr<DescriptorSetLayout> layout;
 

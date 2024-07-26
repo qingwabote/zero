@@ -9,11 +9,8 @@ namespace gfx
 
     class Texture
     {
-    private:
-        std::shared_ptr<Texture_impl> _impl;
-
     public:
-        const std::shared_ptr<Texture_impl> &impl() { return _impl; }
+        const std::shared_ptr<Texture_impl> impl;
 
         const std::shared_ptr<TextureInfo> &info;
 

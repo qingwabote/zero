@@ -23,32 +23,28 @@ namespace gfx
 
         if (info->waitSemaphore)
         {
-            static std::vector<VkSemaphore> waitSemaphores(1);
-            waitSemaphores[0] = info->waitSemaphore->impl();
-            submitInfo.pWaitSemaphores = waitSemaphores.data();
-            submitInfo.waitSemaphoreCount = waitSemaphores.size();
+            static VkSemaphore waitSemaphore = *info->waitSemaphore->impl;
+            submitInfo.pWaitSemaphores = &waitSemaphore;
+            submitInfo.waitSemaphoreCount = 1;
         }
 
         if (info->waitDstStageMask)
         {
-            static std::vector<VkPipelineStageFlags> waitDstStageMask(1);
-            waitDstStageMask[0] = info->waitDstStageMask;
-            submitInfo.pWaitDstStageMask = waitDstStageMask.data();
+            static VkPipelineStageFlags waitDstStageMask = info->waitDstStageMask;
+            submitInfo.pWaitDstStageMask = &waitDstStageMask;
         }
 
         if (info->signalSemaphore)
         {
-            static std::vector<VkSemaphore> signalSemaphores(1);
-            signalSemaphores[0] = info->signalSemaphore->impl();
-            submitInfo.pSignalSemaphores = signalSemaphores.data();
-            submitInfo.signalSemaphoreCount = signalSemaphores.size();
+            static VkSemaphore signalSemaphore = *info->signalSemaphore->impl;
+            submitInfo.pSignalSemaphores = &signalSemaphore;
+            submitInfo.signalSemaphoreCount = 1;
         }
 
-        static std::vector<VkCommandBuffer> commandBuffers(1);
-        commandBuffers[0] = info->commandBuffer->impl();
-        submitInfo.pCommandBuffers = commandBuffers.data();
-        submitInfo.commandBufferCount = commandBuffers.size();
-        vkQueueSubmit(*_impl, 1, &submitInfo, fence->impl());
+        VkCommandBuffer commandBuffer = *info->commandBuffer->impl;
+        submitInfo.pCommandBuffers = &commandBuffer;
+        submitInfo.commandBufferCount = 1;
+        vkQueueSubmit(*_impl, 1, &submitInfo, *fence->impl);
     }
 
     void Queue::present(const std::shared_ptr<Semaphore> &c_waitSemaphore)
@@ -57,7 +53,7 @@ namespace gfx
         auto swapchain = _impl->_device->swapchain();
         presentInfo.pSwapchains = &swapchain;
         presentInfo.swapchainCount = 1;
-        VkSemaphore waitSemaphore = c_waitSemaphore->impl();
+        VkSemaphore waitSemaphore = *c_waitSemaphore->impl;
         presentInfo.pWaitSemaphores = &waitSemaphore;
         presentInfo.waitSemaphoreCount = 1;
         auto swapchainImageIndex = _impl->_device->swapchainImageIndex();

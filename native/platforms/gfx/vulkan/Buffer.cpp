@@ -53,15 +53,15 @@ namespace gfx
 
     Buffer_impl::~Buffer_impl() { vmaDestroyBuffer(_device->allocator(), _buffer, _allocation); }
 
-    Buffer::Buffer(Device_impl *device, const std::shared_ptr<BufferInfo> &info) : _impl(std::make_shared<Buffer_impl>(device, info)), info(_impl->info) {}
+    Buffer::Buffer(Device_impl *device, const std::shared_ptr<BufferInfo> &info) : impl(std::make_shared<Buffer_impl>(device, info)), info(impl->info) {}
 
-    bool Buffer::initialize() { return _impl->initialize(); }
+    bool Buffer::initialize() { return impl->initialize(); }
 
-    void Buffer::update(const std::shared_ptr<const void> &data, size_t offset, size_t length) { _impl->update(data.get(), offset, length); }
+    void Buffer::update(const std::shared_ptr<const void> &data, size_t offset, size_t length) { impl->update(data.get(), offset, length); }
 
     void Buffer::resize(uint32_t size)
     {
-        _impl->resize(size);
+        impl->resize(size);
     }
 
     Buffer::~Buffer() {}
