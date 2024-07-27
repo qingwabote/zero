@@ -5,16 +5,16 @@ import { Framebuffer } from "./Framebuffer.js";
 import { Pipeline } from "./Pipeline.js";
 import { RenderPass } from "./RenderPass.js";
 import { Texture } from "./Texture.js";
-import { AttachmentDescription, DescriptorSetLayoutBinding, InputAssembler, Uint32Vector, Vector, VertexAttribute } from "./info.js";
+import { AttachmentDescription, InputAssembler, Uint32Vector, Vector, VertexAttribute } from "./info.js";
 
-function bendFactor2WebGL(factor: BlendFactor): GLenum {
+function bendFactor2WebGL(gl: WebGL2RenderingContext, factor: BlendFactor): GLenum {
     switch (factor) {
-        case BlendFactor.ZERO: return WebGL2RenderingContext.ZERO;
-        case BlendFactor.ONE: return WebGL2RenderingContext.ONE;
-        case BlendFactor.SRC_ALPHA: return WebGL2RenderingContext.SRC_ALPHA;
-        case BlendFactor.DST_ALPHA: return WebGL2RenderingContext.DST_ALPHA;
-        case BlendFactor.ONE_MINUS_SRC_ALPHA: return WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA;
-        case BlendFactor.ONE_MINUS_DST_ALPHA: return WebGL2RenderingContext.ONE_MINUS_DST_ALPHA;
+        case BlendFactor.ZERO: return gl.ZERO;
+        case BlendFactor.ONE: return gl.ONE;
+        case BlendFactor.SRC_ALPHA: return gl.SRC_ALPHA;
+        case BlendFactor.DST_ALPHA: return gl.DST_ALPHA;
+        case BlendFactor.ONE_MINUS_SRC_ALPHA: return gl.ONE_MINUS_SRC_ALPHA;
+        case BlendFactor.ONE_MINUS_DST_ALPHA: return gl.ONE_MINUS_DST_ALPHA;
     }
 }
 
@@ -23,8 +23,13 @@ const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
 export class CommandBuffer {
     private _inputAssembler!: InputAssembler;
 
+    private _pipeline!: Pipeline;
+
     private _framebuffer!: Framebuffer;
     private _viewport!: { x: number, y: number, width: number, height: number };
+
+    private _descriptorSets: Map<number, DescriptorSet> = new Map;
+    private _dynamicOffsets: Map<number, Uint32Vector> = new Map;
 
     constructor(private _gl: WebGL2RenderingContext) { }
 
@@ -71,6 +76,8 @@ export class CommandBuffer {
         const gl = this._gl;
         const info = pipeline.info;
 
+        info.shader!.setLayout(info.layout!);
+
         gl.useProgram(info.shader!.impl);
 
         switch (info.rasterizationState!.cullMode) {
@@ -100,39 +107,23 @@ export class CommandBuffer {
         const blendState = info.blendState;
         if (blendState) {
             gl.blendFuncSeparate(
-                bendFactor2WebGL(blendState.srcRGB),
-                bendFactor2WebGL(blendState.dstRGB),
-                bendFactor2WebGL(blendState.srcAlpha),
-                bendFactor2WebGL(blendState.dstAlpha),
+                bendFactor2WebGL(gl, blendState.srcRGB),
+                bendFactor2WebGL(gl, blendState.dstRGB),
+                bendFactor2WebGL(gl, blendState.srcAlpha),
+                bendFactor2WebGL(gl, blendState.dstAlpha),
             );
             gl.enable(gl.BLEND);
         } else {
             gl.disable(gl.BLEND);
         }
+
+        this._pipeline = pipeline;
     }
 
     bindDescriptorSet(index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void {
-        const gl = this._gl;
-
-        let dynamicIndex = 0;
-        for (const layoutBinding of (descriptorSet.layout.info.bindings as Vector<DescriptorSetLayoutBinding>).data) {
-            if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
-                const buffer = descriptorSet.getBuffer(layoutBinding.binding);
-                gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl);
-            } else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
-                const offset = (dynamicOffsets! as Vector<number>).data[dynamicIndex++];
-                const buffer = descriptorSet.getBuffer(layoutBinding.binding);
-                const range = descriptorSet.getBufferRange(layoutBinding.binding);
-                gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl, offset, range);
-            } else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
-                const texture = descriptorSet.getTexture(layoutBinding.binding);
-                const unit = index * 2 + layoutBinding.binding;
-                gl.activeTexture(gl.TEXTURE0 + unit);
-                gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-
-                const sampler = descriptorSet.getSampler(layoutBinding.binding);
-                gl.bindSampler(unit, sampler.impl);
-            }
+        this._descriptorSets.set(index, descriptorSet);
+        if (dynamicOffsets) {
+            this._dynamicOffsets.set(index, dynamicOffsets);
         }
     }
 
@@ -162,19 +153,19 @@ export class CommandBuffer {
                         case Format.RG32_SFLOAT:
                         case Format.RGB32_SFLOAT:
                         case Format.RGBA32_SFLOAT:
-                            type = WebGL2RenderingContext.FLOAT;
+                            type = gl.FLOAT;
                             isInteger = false;
                             break;
                         case Format.RGBA8_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_BYTE;
+                            type = gl.UNSIGNED_BYTE;
                             isInteger = true;
                             break;
                         case Format.RGBA16_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                            type = gl.UNSIGNED_SHORT;
                             isInteger = true;
                             break;
                         case Format.RGBA32_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_INT;
+                            type = gl.UNSIGNED_INT;
                             isInteger = true;
                             break;
                         default:
@@ -216,6 +207,8 @@ export class CommandBuffer {
     }
 
     draw(vertexCount: number, firstVertex: number, instanceCount: number): void {
+        this.bindDescriptorSets();
+
         const gl = this._gl;
 
         let mode: GLenum;
@@ -229,29 +222,33 @@ export class CommandBuffer {
             default:
                 throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
         }
+
         gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
         gl.bindVertexArray(null);
     }
 
     drawIndexed(indexCount: number, firstIndex: number, instanceCount: number) {
+        this.bindDescriptorSets();
+
+        const gl = this._gl;
+
         const indexInput = this._inputAssembler!.indexInput!;
 
         let type: GLenum;
         let type_bytes: number;
         switch (indexInput.type) {
             case IndexType.UINT16:
-                type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                type = gl.UNSIGNED_SHORT;
                 type_bytes = 2;
                 break;
             case IndexType.UINT32:
-                type = WebGL2RenderingContext.UNSIGNED_INT;
+                type = gl.UNSIGNED_INT;
                 type_bytes = 4;
                 break;
             default:
                 throw 'unsupported index type';
         }
 
-        const gl = this._gl;
         gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, type_bytes * firstIndex, instanceCount);
         gl.bindVertexArray(null);
     }
@@ -273,4 +270,36 @@ export class CommandBuffer {
     }
 
     end(): void { }
+
+    private bindDescriptorSets(): void {
+        const gl = this._gl;
+
+        for (const [index, descriptorSet] of this._descriptorSets) {
+            let dynamicIndex = 0;
+            for (const dslb of descriptorSet.layout.info.bindings.data) {
+                switch (dslb.descriptorType) {
+                    case DescriptorType.SAMPLER_TEXTURE:
+                        const texture = descriptorSet.getTexture(dslb.binding);
+                        const unit = this._pipeline.info.layout!.getFlatBinding(index, dslb.binding);
+                        gl.activeTexture(gl.TEXTURE0 + unit);
+                        gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+
+                        const sampler = descriptorSet.getSampler(dslb.binding);
+                        gl.bindSampler(unit, sampler.impl);
+                        break;
+                    case DescriptorType.UNIFORM_BUFFER:
+                        gl.bindBufferBase(gl.UNIFORM_BUFFER, this._pipeline.info.layout!.getFlatBinding(index, dslb.binding), descriptorSet.getBuffer(dslb.binding).impl);
+                        break;
+                    case DescriptorType.UNIFORM_BUFFER_DYNAMIC:
+                        const offset = this._dynamicOffsets.get(index)!.data[dynamicIndex++];
+                        gl.bindBufferRange(gl.UNIFORM_BUFFER, this._pipeline.info.layout!.getFlatBinding(index, dslb.binding), descriptorSet.getBuffer(dslb.binding).impl, offset, descriptorSet.getBufferRange(dslb.binding));
+                        break;
+                    default:
+                        throw new Error(`unsupported descriptorType: ${dslb.descriptorType}`);
+                }
+            }
+        }
+        this._descriptorSets.clear();
+        this._dynamicOffsets.clear();
+    }
 }

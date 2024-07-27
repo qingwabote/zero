@@ -14,10 +14,12 @@ export namespace glsl {
         readonly size?: number
     }
 
-    export function parse(sources: readonly string[], types: readonly ShaderStageFlagBits[]): {
+    export interface Meta {
         readonly blocks: Record<string, Uniform>;
         readonly samplerTextures: Record<string, Uniform>;
-    } {
+    }
+
+    export function parse(sources: readonly string[], types: readonly ShaderStageFlagBits[]): Meta {
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
         for (let i = 0; i < sources.length; i++) {
