@@ -8,11 +8,13 @@ export class Profile extends EventEmitter.Impl {
     constructor() {
         super(...arguments);
         this.passes = 0;
+        this.pipelines = 0;
         this.draws = 0;
         this.stages = 0;
     }
     clear() {
         this.passes = 0;
+        this.pipelines = 0;
         this.draws = 0;
         this.stages = 0;
     }

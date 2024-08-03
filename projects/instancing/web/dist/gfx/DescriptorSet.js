@@ -6,16 +6,15 @@ export class DescriptorSet {
         this._textures = [];
         this._textureSamplers = [];
     }
-    initialize() { return false; }
     getBuffer(binding) {
         return this._buffers[binding];
     }
     getBufferRange(binding) {
         return this._bufferRanges[binding];
     }
-    bindBuffer(binding, buffer, range) {
+    bindBuffer(binding, buffer, range = 0) {
         this._buffers[binding] = buffer;
-        this._bufferRanges[binding] = range ? range : buffer.info.size;
+        this._bufferRanges[binding] = range;
     }
     getTexture(binding) {
         return this._textures[binding];

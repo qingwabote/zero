@@ -11,13 +11,12 @@ import { ModelArray } from "./render/scene/ModelArray.js";
 var Event;
 (function (Event) {
     Event["FRAME_START"] = "FRAME_START";
+    Event["UPDATE"] = "UPDATE";
+    Event["LATE_UPDATE"] = "LATE_UPDATE";
+    Event["SCENE_UPDATE"] = "SCENE_UPDATE";
+    Event["PIPELINE_UPDATE"] = "PIPELINE_UPDATE";
+    Event["READY_TO_RENDER"] = "READY_TO_RENDER";
     Event["FRAME_END"] = "FRAME_END";
-    Event["LOGIC_START"] = "LOGIC_START";
-    Event["LOGIC_END"] = "LOGIC_END";
-    Event["RENDER_START"] = "RENDER_START";
-    Event["RENDER_END"] = "RENDER_END";
-    Event["HALT_START"] = "HALT_START";
-    Event["HALT_END"] = "HALT_END";
 })(Event || (Event = {}));
 export class Zero extends EventEmitter.Impl {
     static get frameCount() {
@@ -98,24 +97,24 @@ export class Zero extends EventEmitter.Impl {
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
-        this.emit(Event.LOGIC_START);
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
         for (const system of this._systems) {
             system.update(delta);
         }
+        this.emit(Event.UPDATE);
         this._componentScheduler.lateUpdate();
         for (const system of this._systems) {
             system.lateUpdate(delta);
         }
-        this.emit(Event.LOGIC_END);
-        this.emit(Event.RENDER_START);
+        this.emit(Event.LATE_UPDATE);
         this._profile.clear();
         this.scene.update();
+        this.emit(Event.SCENE_UPDATE);
         this._pipeline.update(this._profile);
-        this.emit(Event.HALT_START);
+        this.emit(Event.PIPELINE_UPDATE);
         boot.device.waitForFence(this._fence);
-        this.emit(Event.HALT_END);
+        this.emit(Event.READY_TO_RENDER);
         boot.device.swapchain.acquire(this._swapchainAcquired);
         this._componentScheduler.upload();
         this._pipeline.upload();
@@ -130,7 +129,6 @@ export class Zero extends EventEmitter.Impl {
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
-        this.emit(Event.RENDER_END);
         this.emit(Event.FRAME_END);
         Zero._frameCount++;
     }
