@@ -19,6 +19,8 @@ export class Texture {
         if (this.info.samples == SampleCountFlagBits.X1) {
             this._texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, this._texture);
+            // use texStorage2D to ceate a complete texture. texImage2D is incomplete
+            // https://www.khronos.org/opengl/wiki/Texture#Texture_completeness
             gl.texStorage2D(gl.TEXTURE_2D, 1, format, this.info.width, this.info.height);
             gl.bindTexture(gl.TEXTURE_2D, null);
         }

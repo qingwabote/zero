@@ -9,6 +9,7 @@ var PropsStateBit;
     PropsStateBit[PropsStateBit["EXTERNAL"] = 2] = "EXTERNAL";
     PropsStateBit[PropsStateBit["UNBOUND"] = 4] = "UNBOUND";
 })(PropsStateBit || (PropsStateBit = {}));
+let id = 0;
 export class Pass {
     get props() {
         return this._props;
@@ -16,6 +17,7 @@ export class Pass {
     constructor(state, type = 'default', source) {
         this.state = state;
         this.type = type;
+        this.id = id++;
         this._props_state = PropsStateBit.DONE;
         this._props = undefined;
         this._textures_dirty = new Map;

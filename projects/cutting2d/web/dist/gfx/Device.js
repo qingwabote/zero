@@ -41,14 +41,10 @@ export class Device {
         return new CommandBuffer(this._gl);
     }
     createDescriptorSet(layout) {
-        const descriptorSet = new DescriptorSet(layout);
-        descriptorSet.initialize();
-        return descriptorSet;
+        return new DescriptorSet(layout);
     }
     createDescriptorSetLayout(info) {
-        const descriptorSetLayout = new DescriptorSetLayout();
-        descriptorSetLayout.initialize(info);
-        return descriptorSetLayout;
+        return new DescriptorSetLayout(info);
     }
     createFence(signaled) {
         return new Fence;
@@ -59,19 +55,13 @@ export class Device {
         return framebuffer;
     }
     createPipeline(info) {
-        const pipeline = new Pipeline(info);
-        pipeline.initialize();
-        return pipeline;
+        return new Pipeline(info);
     }
     createPipelineLayout(info) {
-        const pipelineLayout = new PipelineLayout(info);
-        pipelineLayout.initialize();
-        return pipelineLayout;
+        return new PipelineLayout(info);
     }
     createRenderPass(info) {
-        const renderPass = new RenderPass(info);
-        renderPass.initialize();
-        return renderPass;
+        return new RenderPass(info);
     }
     createSampler(info) {
         const sampler = new Sampler(this._gl, info);
