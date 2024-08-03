@@ -6,9 +6,33 @@ export class Shader {
     constructor(_gl, info) {
         this._gl = _gl;
         this.info = info;
+        this._meta = glsl.parse(info.sources.data, info.types.data);
     }
     initialize() {
         return this.compileShader(this.info);
+    }
+    setLayout(layout) {
+        if (this._layout == layout) {
+            return;
+        }
+        const gl = this._gl;
+        const program = this._impl;
+        const meta = this._meta;
+        for (const name in meta.blocks) {
+            const block = meta.blocks[name];
+            const index = gl.getUniformBlockIndex(program, name);
+            gl.uniformBlockBinding(program, index, layout.getFlatBinding(block.set, block.binding));
+        }
+        gl.useProgram(program);
+        for (const name in meta.samplerTextures) {
+            const texture = meta.samplerTextures[name];
+            const loc = gl.getUniformLocation(program, name);
+            if (!loc)
+                continue;
+            gl.uniform1i(loc, layout.getFlatBinding(texture.set, texture.binding)); // set texture unit
+        }
+        gl.useProgram(null);
+        this._layout = layout;
     }
     compileShader(info) {
         const gl = this._gl;
@@ -46,26 +70,6 @@ export class Shader {
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             throw new Error('Failed to link shader.\n' + gl.getProgramInfoLog(program));
         }
-        const meta = glsl.parse(sources, types);
-        for (const name in meta.blocks) {
-            const block = meta.blocks[name];
-            const index = gl.getUniformBlockIndex(program, name);
-            gl.uniformBlockBinding(program, index, block.binding + block.set * 10);
-        }
-        gl.useProgram(program);
-        for (const name in meta.samplerTextures) {
-            const sampler = meta.samplerTextures[name];
-            const loc = gl.getUniformLocation(program, name);
-            if (!loc)
-                continue;
-            if (sampler.binding > 1 || sampler.set > 3) {
-                console.warn(`sampler.binding(${sampler.binding}) > 1 || sampler.set${sampler.set} > 3`);
-                continue;
-            }
-            const unit = sampler.set * 2 + sampler.binding;
-            gl.uniform1i(loc, unit); // set texture unit
-        }
-        gl.useProgram(null);
         //After the link operation, applications are free to modify attached shader objects, compile attached shader objects, detach shader objects, delete shader objects, and attach additional shader objects. None of these operations affects the information log or the program that is part of the program object
         for (const shader of shaders) {
             gl.detachShader(program, shader);

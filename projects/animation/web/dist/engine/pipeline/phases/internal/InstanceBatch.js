@@ -1,53 +1,10 @@
 import { device } from "boot";
-import { BufferUsageFlagBits, DescriptorSetLayoutInfo, Format, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
+import { BufferUsageFlagBits, DescriptorSetLayoutInfo, Format, InputAssembler, VertexAttribute } from "gfx";
 import { Zero } from "../../../core/Zero.js";
 import { BufferView } from "../../../core/render/BufferView.js";
 import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
 import { shaderLib } from "../../../core/shaderLib.js";
-const local_empty = { descriptorSetLayout: device.createDescriptorSetLayout(new DescriptorSetLayoutInfo) };
-export class InstanceBatch {
-    constructor(_inputAssembler, _draw, _count, _local = local_empty) {
-        this._inputAssembler = _inputAssembler;
-        this._draw = _draw;
-        this._count = _count;
-        this._local = _local;
-    }
-    record(profile, commandBuffer, renderPass, context, pass) {
-        this.upload();
-        if (this._local.descriptorSet) {
-            commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, this._local.descriptorSet);
-        }
-        const pipeline = context.getPipeline(pass.state, this._inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, this._local.descriptorSetLayout]);
-        commandBuffer.bindPipeline(pipeline);
-        commandBuffer.bindInputAssembler(this._inputAssembler);
-        let alignment;
-        switch (this._inputAssembler.vertexInputState.primitive) {
-            case PrimitiveTopology.LINE_LIST:
-                alignment = 2;
-                break;
-            case PrimitiveTopology.TRIANGLE_LIST:
-                alignment = 3;
-                break;
-            default:
-                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`;
-        }
-        const subCount = Math.ceil(this._draw.count / InstanceBatch.subDraws / alignment) * alignment;
-        let count = 0;
-        while (count < this._draw.count) {
-            if (this._inputAssembler.indexInput) {
-                commandBuffer.drawIndexed(count + subCount > this._draw.count ? this._draw.count - count : subCount, this._draw.first + count, this._count);
-            }
-            else {
-                commandBuffer.draw(count + subCount > this._draw.count ? this._draw.count - count : subCount, this._draw.first + count, this._count);
-            }
-            count += subCount;
-            profile.draws++;
-        }
-        this.recycle();
-    }
-    recycle() { }
-}
-InstanceBatch.subDraws = 1;
+const descriptorSetLayout_empty = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 const inputAssembler_clone = (function () {
     function vertexInput_clone(out, vertexInput) {
         const buffers = vertexInput.buffers;
@@ -86,21 +43,27 @@ function createModelAttribute(buffer) {
     mat4.multiple = 4;
     return mat4;
 }
+export var InstanceBatch;
 (function (InstanceBatch) {
-    class Single extends InstanceBatch {
+    class Single {
         constructor(model, subIndex) {
-            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16);
-            const subMesh = model.mesh.subMeshes[subIndex];
-            const inputAssembler = inputAssembler_clone(subMesh.inputAssembler);
-            const bufferIndex = inputAssembler.vertexInput.buffers.size();
-            inputAssembler.vertexInputState.attributes.add(createModelAttribute(bufferIndex));
-            inputAssembler.vertexInput.buffers.add(view.buffer);
-            inputAssembler.vertexInput.offsets.add(0);
-            super(inputAssembler, subMesh.draw, 1, model);
             this.model = model;
+            this.count = 1;
             this._view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16);
             this._lastUploadFrame = -1;
+            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16);
+            const subMesh = model.mesh.subMeshes[subIndex];
+            const ia = inputAssembler_clone(subMesh.inputAssembler);
+            ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
+            ia.vertexInput.buffers.add(view.buffer);
+            ia.vertexInput.offsets.add(0);
             this._view = view;
+            this.descriptorSetLayout = model.descriptorSetLayout;
+            if (model.descriptorSet) {
+                this.descriptorSet = model.descriptorSet;
+            }
+            this.inputAssembler = ia;
+            this.draw = subMesh.draw;
         }
         upload() {
             const frame = Zero.frameCount;
@@ -113,9 +76,10 @@ function createModelAttribute(buffer) {
             }
             this._lastUploadFrame = frame;
         }
+        recycle() { }
     }
     InstanceBatch.Single = Single;
-    class Multiple extends InstanceBatch {
+    class Multiple {
         get count() {
             return this._count;
         }
@@ -123,16 +87,18 @@ function createModelAttribute(buffer) {
             return this._lockedFlag.value != 0;
         }
         constructor(subMesh) {
-            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
-            const ia = inputAssembler_clone(subMesh.inputAssembler);
-            const bufferIndex = ia.vertexInput.buffers.size();
-            ia.vertexInputState.attributes.add(createModelAttribute(bufferIndex));
-            ia.vertexInput.buffers.add(view.buffer);
-            ia.vertexInput.offsets.add(0);
-            super(ia, subMesh.draw, 0);
+            this.descriptorSetLayout = descriptorSetLayout_empty;
+            this._count = 0;
             this._view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
             this._lockedFlag = new PeriodicFlag();
+            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+            const ia = inputAssembler_clone(subMesh.inputAssembler);
+            ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
+            ia.vertexInput.buffers.add(view.buffer);
+            ia.vertexInput.offsets.add(0);
             this._view = view;
+            this.inputAssembler = ia;
+            this.draw = subMesh.draw;
         }
         add(transform) {
             this._view.resize(16 * (this._count + 1));

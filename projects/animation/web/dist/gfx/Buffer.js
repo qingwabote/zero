@@ -1,13 +1,13 @@
 import { BufferUsageFlagBits } from "gfx-common";
-function usage2target(usage) {
+function usage2target(gl, usage) {
     if (usage & BufferUsageFlagBits.VERTEX) {
-        return WebGL2RenderingContext.ARRAY_BUFFER;
+        return gl.ARRAY_BUFFER;
     }
     else if (usage & BufferUsageFlagBits.INDEX) {
-        return WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER;
+        return gl.ELEMENT_ARRAY_BUFFER;
     }
     else if (usage & BufferUsageFlagBits.UNIFORM) {
-        return WebGL2RenderingContext.UNIFORM_BUFFER;
+        return gl.UNIFORM_BUFFER;
     }
     return -1;
 }
@@ -26,7 +26,7 @@ export class Buffer {
     }
     update(buffer, offset, length) {
         const gl = this._gl;
-        const target = usage2target(this.info.usage);
+        const target = usage2target(gl, this.info.usage);
         gl.bindVertexArray(null);
         gl.bindBuffer(target, this._impl);
         // gl.bufferSubData(target, 0, new DataView(buffer, offset, length)); // DataView does not work in wx ios.
@@ -35,7 +35,7 @@ export class Buffer {
     }
     resize(size) {
         const gl = this._gl;
-        const target = usage2target(this.info.usage);
+        const target = usage2target(gl, this.info.usage);
         gl.bindBuffer(target, this._impl);
         gl.bufferData(target, size, gl.STATIC_DRAW);
         gl.bindBuffer(target, null);
