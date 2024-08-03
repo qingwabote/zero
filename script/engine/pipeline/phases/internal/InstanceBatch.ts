@@ -8,15 +8,11 @@ import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
 import { SubMesh } from "../../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../../core/shaderLib.js";
 
-interface Local {
-    readonly descriptorSetLayout: DescriptorSetLayout,
-    readonly descriptorSet?: DescriptorSet,
-}
-
-const local_empty: Local = { descriptorSetLayout: device.createDescriptorSetLayout(new DescriptorSetLayoutInfo) }
+const descriptorSetLayout_empty = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 
 export interface InstanceBatch {
-    readonly local: Local;
+    readonly descriptorSetLayout: DescriptorSetLayout;
+    readonly descriptorSet?: DescriptorSet;
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
     readonly count: number;
@@ -74,7 +70,8 @@ function createModelAttribute(buffer: number) {
 
 export namespace InstanceBatch {
     export class Single implements InstanceBatch {
-        readonly local: Local;
+        readonly descriptorSetLayout: DescriptorSetLayout;
+        readonly descriptorSet?: DescriptorSet;
 
         readonly inputAssembler: InputAssembler;
 
@@ -94,7 +91,10 @@ export namespace InstanceBatch {
             ia.vertexInput.buffers.add(view.buffer);
             ia.vertexInput.offsets.add(0);
             this._view = view;
-            this.local = model;
+            this.descriptorSetLayout = model.descriptorSetLayout;
+            if (model.descriptorSet) {
+                this.descriptorSet = model.descriptorSet;
+            }
             this.inputAssembler = ia;
             this.draw = subMesh.draw;
         }
@@ -117,7 +117,8 @@ export namespace InstanceBatch {
     }
 
     export class Multiple implements InstanceBatch {
-        readonly local: Local = local_empty;
+        readonly descriptorSetLayout: DescriptorSetLayout = descriptorSetLayout_empty;
+        readonly descriptorSet?: DescriptorSet;
 
         readonly inputAssembler: InputAssembler;
 
