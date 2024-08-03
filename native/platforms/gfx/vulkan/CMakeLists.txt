@@ -1,22 +1,22 @@
 set(SRC_FILES
     internal/volk/volk.c
-    internal/VkDescriptorSetPool.cpp
-    VkDevice.cpp
-    VkCommandBuffer.cpp
-    VkBuffer.cpp
-    VkTexture.cpp
-    VkSampler.cpp
-    VkShader.cpp
-    VkRenderPass.cpp
-    VkFramebuffer.cpp
-    VkPipelineLayout.cpp
-    VkPipeline.cpp
-    VkDescriptorSetLayout.cpp
-    VkDescriptorSet.cpp
-    VkFence.cpp
-    VkSemaphore.cpp
-    VkQueue.cpp
-    VkSwapchain.cpp
+    internal/DescriptorSetPool.cpp
+    Device.cpp
+    CommandBuffer.cpp
+    Buffer.cpp
+    Texture.cpp
+    Sampler.cpp
+    Shader.cpp
+    RenderPass.cpp
+    Framebuffer.cpp
+    PipelineLayout.cpp
+    Pipeline.cpp
+    DescriptorSetLayout.cpp
+    DescriptorSet.cpp
+    Fence.cpp
+    Semaphore.cpp
+    Queue.cpp
+    Swapchain.cpp
 
     tests/triangle.cpp
 )

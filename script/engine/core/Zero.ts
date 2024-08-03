@@ -15,30 +15,34 @@ import { ModelCollection } from "./render/scene/ModelCollection.js";
 
 enum Event {
     FRAME_START = 'FRAME_START',
+
+    UPDATE = 'UPDATE',
+
+    LATE_UPDATE = 'LATE_UPDATE',
+
+    SCENE_UPDATE = 'SCENE_UPDATE',
+
+    PIPELINE_UPDATE = 'PIPELINE_UPDATE',
+
+    READY_TO_RENDER = 'READY_TO_RENDER',
+
     FRAME_END = 'FRAME_END',
-
-    LOGIC_START = 'LOGIC_START',
-    LOGIC_END = 'LOGIC_END',
-
-    RENDER_START = 'RENDER_START',
-    RENDER_END = 'RENDER_END',
-
-    HALT_START = 'HALT_START',
-    HALT_END = 'HALT_END',
 }
 
 interface EventToListener {
     [Event.FRAME_START]: () => void;
+
+    [Event.UPDATE]: () => void;
+
+    [Event.LATE_UPDATE]: () => void;
+
+    [Event.SCENE_UPDATE]: () => void;
+
+    [Event.PIPELINE_UPDATE]: () => void;
+
+    [Event.READY_TO_RENDER]: () => void;
+
     [Event.FRAME_END]: () => void;
-
-    [Event.LOGIC_START]: () => void;
-    [Event.LOGIC_END]: () => void;
-
-    [Event.RENDER_START]: () => void;
-    [Event.RENDER_END]: () => void;
-
-    [Event.HALT_START]: () => void;
-    [Event.HALT_END]: () => void;
 }
 
 export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
@@ -151,26 +155,26 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         const delta = (time - this._time) / 1000;
         this._time = time;
 
-        this.emit(Event.LOGIC_START);
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
         for (const system of this._systems) {
             system.update(delta);
         }
+        this.emit(Event.UPDATE);
         this._componentScheduler.lateUpdate();
         for (const system of this._systems) {
             system.lateUpdate(delta);
         }
-        this.emit(Event.LOGIC_END);
+        this.emit(Event.LATE_UPDATE);
 
-        this.emit(Event.RENDER_START);
         this._profile.clear();
         this.scene.update();
+        this.emit(Event.SCENE_UPDATE);
         this._pipeline.update(this._profile);
+        this.emit(Event.PIPELINE_UPDATE);
 
-        this.emit(Event.HALT_START);
         boot.device.waitForFence(this._fence);
-        this.emit(Event.HALT_END);
+        this.emit(Event.READY_TO_RENDER);
 
         boot.device.swapchain.acquire(this._swapchainAcquired);
 
@@ -188,7 +192,6 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
-        this.emit(Event.RENDER_END);
 
         this.emit(Event.FRAME_END);
 

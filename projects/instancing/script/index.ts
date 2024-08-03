@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, pipeline, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -122,21 +122,6 @@ export class App extends Zero {
                 })
                 down_container.addElement(textRenderer);
             }
-
-            {
-                const textRenderer = Renderer.create(TextRenderer);
-                textRenderer.impl.text = `draws x${pipeline.ModelPhase.InstanceBatch.subDraws}`;
-                textRenderer.impl.color = vec4.GREEN;
-                textRenderer.impl.size = 50;
-                textRenderer.positionType = PositionType.Absolute;
-                textRenderer.setPosition(Edge.Right, 0);
-                textRenderer.setPosition(Edge.Bottom, 0);
-                textRenderer.emitter.on(Input.TouchEvents.START, async event => {
-                    textRenderer.impl.text = `draws x${++pipeline.ModelPhase.InstanceBatch.subDraws}`;
-                })
-                down_container.addElement(textRenderer);
-            }
-
         }
         doc.addElement(down_container)
     }

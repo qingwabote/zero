@@ -1,7 +1,7 @@
 #include "triangle.hpp"
-#include "../VkDevice_impl.hpp"
-#include "../VkShader_impl.hpp"
-#include "../VkRenderPass_impl.hpp"
+#include "../DeviceImpl.hpp"
+#include "../ShaderImpl.hpp"
+#include "../RenderPassImpl.hpp"
 #include "SDL_events.h"
 #include <thread>
 
@@ -40,7 +40,7 @@ namespace tests::triangle
 {
     bool draw(std::unique_ptr<SDL_Window, void (*)(SDL_Window *)> sdl_window)
     {
-        auto device = new gfx::Device_impl(sdl_window.get());
+        auto device = new gfx::DeviceImpl(sdl_window.get());
         if (device->initialize())
         {
             return true;
@@ -51,7 +51,7 @@ namespace tests::triangle
         shaderInfo.types->emplace_back(static_cast<uint32_t>(gfx::ShaderStageFlagBits::VERTEX));
         shaderInfo.sources->emplace_back(fs);
         shaderInfo.types->emplace_back(static_cast<uint32_t>(gfx::ShaderStageFlagBits::FRAGMENT));
-        auto shader = new gfx::Shader_impl(device);
+        auto shader = new gfx::ShaderImpl(device);
         if (shader->initialize(shaderInfo))
         {
             return true;

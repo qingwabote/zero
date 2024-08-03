@@ -38,7 +38,7 @@ export class Document extends ElementContainer {
             renderer.order = order++;
         }
         for (const child of node.children) {
-            order = this.orderWalk(child, order++)
+            order = this.orderWalk(child, order)
         }
         return order;
     }

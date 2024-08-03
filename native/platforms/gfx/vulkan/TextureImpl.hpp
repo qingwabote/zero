@@ -1,0 +1,36 @@
+#pragma once
+
+#include "DeviceImpl.hpp"
+#include "gfx/info.hpp"
+
+namespace gfx
+{
+    class TextureImpl
+    {
+    private:
+        DeviceImpl *_device{nullptr};
+
+        VkImage _image{nullptr};
+        VmaAllocation _allocation{nullptr};
+        VmaAllocationInfo _allocationInfo{};
+
+        VkImageView _imageView{nullptr};
+
+        bool _swapchain{false};
+
+    public:
+        bool swapchain() { return _swapchain; }
+
+        const std::shared_ptr<TextureInfo> info;
+
+        TextureImpl(DeviceImpl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain = false);
+
+        bool initialize();
+
+        operator VkImage() { return _image; }
+        operator VkImageView() { return _imageView; }
+
+        ~TextureImpl();
+    };
+
+}

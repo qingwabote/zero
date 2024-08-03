@@ -8,6 +8,7 @@ interface State {
 }
 
 export interface Pass {
+    readonly id: number;
     readonly type: string;
     readonly state: State;
     readonly descriptorSetLayout: DescriptorSetLayout;

@@ -5,14 +5,14 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class Swapchain_impl;
+    class DeviceImpl;
+    class SwapchainImpl;
 
     /** a fake swap chain with fake texture */
     class Swapchain
     {
     private:
-        std::unique_ptr<Swapchain_impl> _impl;
+        std::unique_ptr<SwapchainImpl> _impl;
 
     public:
         const std::shared_ptr<Texture> colorTexture;
@@ -20,7 +20,7 @@ namespace gfx
         const uint32_t width;
         const uint32_t height;
 
-        Swapchain(Device_impl *device);
+        Swapchain(DeviceImpl *device);
 
         void acquire(const std::shared_ptr<Semaphore> &semaphore);
 

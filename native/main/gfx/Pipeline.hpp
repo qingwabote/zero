@@ -4,20 +4,17 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class Pipeline_impl;
+    class DeviceImpl;
+    class PipelineImpl;
 
     class Pipeline
     {
-    private:
-        std::unique_ptr<Pipeline_impl> _impl;
-
     public:
-        Pipeline_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<PipelineImpl> impl;
 
         const std::shared_ptr<PipelineInfo> info;
 
-        Pipeline(Device_impl *device, const std::shared_ptr<PipelineInfo> &info);
+        Pipeline(DeviceImpl *device, const std::shared_ptr<PipelineInfo> &info);
 
         bool initialize();
 

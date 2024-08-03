@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "bundling": "file:../../../script/bundling",
-    "engine": "file:../../../script/engine",
-    "flex": "file:../../../script/flex"
-  }
-}

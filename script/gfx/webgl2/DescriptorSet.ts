@@ -10,11 +10,7 @@ export class DescriptorSet {
     private _textures: Texture[] = [];
     private _textureSamplers: Sampler[] = [];
 
-    constructor(readonly layout: DescriptorSetLayout) {
-
-    }
-
-    initialize(): boolean { return false; }
+    constructor(readonly layout: DescriptorSetLayout) { }
 
     getBuffer(binding: number): Buffer {
         return this._buffers[binding];
@@ -24,9 +20,9 @@ export class DescriptorSet {
         return this._bufferRanges[binding];
     }
 
-    bindBuffer(binding: number, buffer: Buffer, range?: number): void {
+    bindBuffer(binding: number, buffer: Buffer, range: number = 0): void {
         this._buffers[binding] = buffer;
-        this._bufferRanges[binding] = range ? range : buffer.info.size;
+        this._bufferRanges[binding] = range;
     }
 
     getTexture(binding: number): Texture {

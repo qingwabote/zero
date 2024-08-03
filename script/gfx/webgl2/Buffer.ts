@@ -1,13 +1,13 @@
 import { BufferUsageFlagBits } from "gfx-common";
 import { BufferInfo } from "./info.js";
 
-function usage2target(usage: BufferUsageFlagBits): GLenum {
+function usage2target(gl: WebGL2RenderingContext, usage: BufferUsageFlagBits): GLenum {
     if (usage & BufferUsageFlagBits.VERTEX) {
-        return WebGL2RenderingContext.ARRAY_BUFFER;
+        return gl.ARRAY_BUFFER;
     } else if (usage & BufferUsageFlagBits.INDEX) {
-        return WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER;
+        return gl.ELEMENT_ARRAY_BUFFER;
     } else if (usage & BufferUsageFlagBits.UNIFORM) {
-        return WebGL2RenderingContext.UNIFORM_BUFFER;
+        return gl.UNIFORM_BUFFER;
     }
     return -1;
 }
@@ -30,7 +30,7 @@ export class Buffer {
     update(buffer: ArrayBuffer, offset: number, length: number): void {
         const gl = this._gl;
 
-        const target = usage2target(this.info.usage);
+        const target = usage2target(gl, this.info.usage);
 
         gl.bindVertexArray(null);
 
@@ -44,7 +44,7 @@ export class Buffer {
     resize(size: number): void {
         const gl = this._gl;
 
-        const target = usage2target(this.info.usage);
+        const target = usage2target(gl, this.info.usage);
         gl.bindBuffer(target, this._impl);
         gl.bufferData(target, size, gl.STATIC_DRAW);
         gl.bindBuffer(target, null);

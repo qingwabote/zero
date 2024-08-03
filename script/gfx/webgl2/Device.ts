@@ -55,15 +55,11 @@ export class Device implements Device {
     }
 
     createDescriptorSet(layout: DescriptorSetLayout): DescriptorSet {
-        const descriptorSet = new DescriptorSet(layout);
-        descriptorSet.initialize();
-        return descriptorSet;
+        return new DescriptorSet(layout);
     }
 
     createDescriptorSetLayout(info: DescriptorSetLayoutInfo): DescriptorSetLayout {
-        const descriptorSetLayout = new DescriptorSetLayout();
-        descriptorSetLayout.initialize(info);
-        return descriptorSetLayout;
+        return new DescriptorSetLayout(info);
     }
 
     createFence(signaled?: boolean): Fence {
@@ -77,21 +73,15 @@ export class Device implements Device {
     }
 
     createPipeline(info: PipelineInfo): Pipeline {
-        const pipeline = new Pipeline(info);
-        pipeline.initialize();
-        return pipeline;
+        return new Pipeline(info);
     }
 
     createPipelineLayout(info: PipelineLayoutInfo): PipelineLayout {
-        const pipelineLayout = new PipelineLayout(info);
-        pipelineLayout.initialize();
-        return pipelineLayout;
+        return new PipelineLayout(info);
     }
 
     createRenderPass(info: RenderPassInfo): RenderPass {
-        const renderPass = new RenderPass(info)
-        renderPass.initialize();
-        return renderPass;
+        return new RenderPass(info);
     }
 
     createSampler(info: SamplerInfo): Sampler {

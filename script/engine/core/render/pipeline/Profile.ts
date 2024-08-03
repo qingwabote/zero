@@ -12,6 +12,7 @@ interface Event2Listener {
 
 interface ProfileReadonly extends EventEmitter.Readonly<Event2Listener> {
     readonly passes: number;
+    readonly pipelines: number;
     readonly draws: number;
     readonly stages: number;
 }
@@ -21,12 +22,15 @@ export class Profile extends EventEmitter.Impl<Event2Listener> implements Profil
 
     passes: number = 0;
 
+    pipelines: number = 0;
+
     draws: number = 0;
 
     stages: number = 0;
 
     clear() {
         this.passes = 0;
+        this.pipelines = 0;
         this.draws = 0;
         this.stages = 0;
     }

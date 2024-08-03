@@ -2,7 +2,7 @@
 
 namespace bg
 {
-    Queue::Queue(gfx::Device_impl *device, TaskRunner *background) : gfx::Queue(device), _background(background) {}
+    Queue::Queue(gfx::DeviceImpl *device, TaskRunner *background) : gfx::Queue(device), _background(background) {}
 
     void Queue::submit(const std::shared_ptr<gfx::SubmitInfo> &info, const std::shared_ptr<gfx::Fence> &fence)
     {

@@ -17,7 +17,9 @@ export abstract class UBO {
 
     abstract get buffer(): Buffer;
 
-    abstract get range(): number;
+    get range(): number {
+        return 0;
+    };
 
     get dynamicOffset(): number {
         return -1;

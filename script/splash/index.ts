@@ -2,7 +2,7 @@
 import { device } from 'boot';
 //
 import { bundle } from 'bundling';
-import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssembler, LOAD_OP, MemoryUsage, PassState, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute } from "gfx";
+import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssembler, LOAD_OP, MemoryUsage, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute } from "gfx";
 
 const TEXTURE_BINDING = 0;
 
@@ -55,17 +55,6 @@ shaderInfo.sources.add(fs);
 shaderInfo.types.add(ShaderStageFlagBits.FRAGMENT);
 const shader = device.createShader(shaderInfo);
 
-const blendState = new BlendState;
-blendState.srcRGB = BlendFactor.SRC_ALPHA;
-blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
-blendState.srcAlpha = BlendFactor.ONE;
-blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
-
-const passState = new PassState;
-passState.shader = shader;
-passState.primitive = PrimitiveTopology.TRIANGLE_LIST;
-passState.blendState = blendState;
-
 const a_position = new VertexAttribute;
 a_position.format = Format.RGB32_SFLOAT;
 a_position.offset = 0;
@@ -103,8 +92,9 @@ const indexBuffer = device.createBuffer(indexBufferInfo);
 indexBuffer.update(indexes.buffer, 0, indexes.byteLength);
 
 const inputAssembler = new InputAssembler;
-inputAssembler.vertexAttributes.add(a_position);
-inputAssembler.vertexAttributes.add(a_texCoord);
+inputAssembler.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
+inputAssembler.vertexInputState.attributes.add(a_position);
+inputAssembler.vertexInputState.attributes.add(a_texCoord);
 inputAssembler.vertexInput.buffers.add(vertexBuffer);
 inputAssembler.vertexInput.offsets.add(0);
 const indexInput = new IndexInput;
@@ -145,10 +135,18 @@ pipelineLayoutInfo.layouts.add(descriptorSetLayout);
 
 const pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
 
+const blendState = new BlendState;
+blendState.srcRGB = BlendFactor.SRC_ALPHA;
+blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
+blendState.srcAlpha = BlendFactor.ONE;
+blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
+
 const pipelineInfo = new PipelineInfo;
-pipelineInfo.attributes = inputAssembler.vertexAttributes;
+pipelineInfo.inputState = inputAssembler.vertexInputState;
 pipelineInfo.layout = pipelineLayout;
-pipelineInfo.passState = passState;
+pipelineInfo.shader = shader;
+pipelineInfo.rasterizationState = new RasterizationState;
+pipelineInfo.blendState = blendState;
 pipelineInfo.renderPass = renderPass;
 
 const pipeline = device.createPipeline(pipelineInfo);

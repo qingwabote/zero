@@ -1,5 +1,0 @@
-{
-    "gfx-common": "./dist/gfx-common/index.js",
-    "gfx": "./dist/gfx/index.js",
-    "main": "./dist/main/index.js"
-}

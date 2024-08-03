@@ -11,7 +11,11 @@ enum PropsStateBit {
     UNBOUND = 1 << 2
 }
 
+let id = 0;
+
 export class Pass implements _Pass {
+    readonly id = id++;
+
     readonly descriptorSetLayout: DescriptorSetLayout
     readonly descriptorSet: DescriptorSet | undefined;
 

@@ -4,18 +4,15 @@
 
 namespace gfx
 {
-    class Device_impl;
-    class Fence_impl;
+    class DeviceImpl;
+    class FenceImpl;
 
     class Fence
     {
-    private:
-        std::unique_ptr<Fence_impl> _impl;
-
     public:
-        Fence_impl &impl() { return *_impl.get(); }
+        const std::unique_ptr<FenceImpl> impl;
 
-        Fence(Device_impl *device);
+        Fence(DeviceImpl *device);
 
         bool initialize(bool signaled = false);
 

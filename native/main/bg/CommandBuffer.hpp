@@ -11,7 +11,7 @@ namespace bg
         TaskRunner *_background{nullptr};
 
     public:
-        CommandBuffer(gfx::Device_impl *device, TaskRunner *background);
+        CommandBuffer(gfx::DeviceImpl *device, TaskRunner *background);
 
         virtual void begin() override;
         virtual void copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<gfx::Buffer> &buffer, size_t offset, size_t length) override;

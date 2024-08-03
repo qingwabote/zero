@@ -20,7 +20,7 @@
 
 namespace gfx
 {
-    class Device_impl;
+    class DeviceImpl;
 
     class Device
     {
@@ -32,7 +32,7 @@ namespace gfx
         std::unique_ptr<Queue> _queue;
 
     protected:
-        Device_impl *_impl{nullptr};
+        DeviceImpl *_impl{nullptr};
 
         virtual std::unique_ptr<Queue> getQueue();
 

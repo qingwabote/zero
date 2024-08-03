@@ -58,7 +58,6 @@ const canvas = wx.createCanvas()
 canvas.width = pixelWidth;
 canvas.height = pixelHeight;
 const gl = canvas.getContext('webgl2', { antialias: false })!;
-globalThis.WebGL2RenderingContext = gl;
 
 export const safeArea = (function () {
     const safeArea = windowInfo;
