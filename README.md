@@ -60,3 +60,11 @@
 # 兼容性
 
 Wasm 没有 GC, 引擎依赖 **FinalizationRegistry** 自动释放 Wasm 对象
+
+# 开发
+
+确保 git 启用符号链接
+```
+[core]
+	symlinks = true
+```
