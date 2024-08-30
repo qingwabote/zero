@@ -71,7 +71,7 @@ const pmQueueBuilder: PbQueueBuilder = (function () {
             if (multiple.count == 0) {
                 batches.push(multiple);
             }
-            multiple.add(model.transform.world_matrix);
+            multiple.add(model);
         },
 
         dump: function* () {

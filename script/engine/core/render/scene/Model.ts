@@ -1,6 +1,7 @@
 import { device } from "boot";
 import { DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
+import { BufferView } from "../BufferView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
@@ -73,6 +74,11 @@ export class Model {
         if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             this._bounds_invalidated = true;
         }
+    }
+
+    fillInstanced(view: BufferView, count: number) {
+        view.resize(16 * (count + 1));
+        view.set(this._transform.world_matrix, 16 * count);
     }
 
     upload() {

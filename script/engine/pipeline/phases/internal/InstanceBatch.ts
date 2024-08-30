@@ -1,7 +1,5 @@
 import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
-import { Zero } from "../../../core/Zero.js";
-import { Mat4 } from "../../../core/math/mat4.js";
 import { BufferView } from "../../../core/render/BufferView.js";
 import { Model } from "../../../core/render/scene/Model.js";
 import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
@@ -79,9 +77,7 @@ export namespace InstanceBatch {
 
         readonly count: number = 1;
 
-        private readonly _view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16)
-
-        private _lastUploadFrame = -1;
+        private readonly _view: BufferView;
 
         constructor(readonly model: Model, subIndex: number) {
             const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16)
@@ -100,17 +96,8 @@ export namespace InstanceBatch {
         }
 
         upload() {
-            const frame = Zero.frameCount;
-            if (frame == this._lastUploadFrame) {
-                return;
-            }
-
-            if (this.model.transform.hasChangedFlag.value || frame - this._lastUploadFrame > 1) {
-                this._view.set(this.model.transform.world_matrix);
-                this._view.update();
-            }
-
-            this._lastUploadFrame = frame;
+            this.model.fillInstanced(this._view, 0);
+            this._view.update();
         }
 
         recycle(): void { }
@@ -129,7 +116,7 @@ export namespace InstanceBatch {
             return this._count;
         }
 
-        private readonly _view: BufferView = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+        private readonly _view: BufferView;
 
         private _lockedFlag = new PeriodicFlag();
         get locked(): boolean {
@@ -147,10 +134,8 @@ export namespace InstanceBatch {
             this.draw = subMesh.draw;
         }
 
-        add(transform: Readonly<Mat4>) {
-            this._view.resize(16 * (this._count + 1));
-            this._view.set(transform, 16 * this._count);
-            this._count++;
+        add(model: Model) {
+            model.fillInstanced(this._view, this._count++);
         }
 
         upload(): void {
