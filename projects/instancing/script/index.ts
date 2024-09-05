@@ -1,13 +1,13 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3, vec4 } from 'engine';
-import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
+import { Animation, Camera, DirectionalLight, GLTF, Node, Pipeline, Zero, bundle as builtin, device, vec3 } from 'engine';
+import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler } from 'flex';
 
 const VisibilityFlagBits = {
     UI: 1 << 29,
     WORLD: 1 << 30
 } as const
 
-const [guardian, plane, batching_off, batching_on] = await Promise.all([
+const [guardian, plane, pipeline] = await Promise.all([
     (async function () {
         const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
         return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1 });
@@ -17,11 +17,7 @@ const [guardian, plane, batching_off, batching_on] = await Promise.all([
         return gltf.instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1 });
     })(),
     (async function () {
-        const pipeline = await bundle.cache('pipelines/batching-off', Pipeline)
-        return pipeline.instantiate(VisibilityFlagBits);
-    })(),
-    (async function () {
-        const pipeline = await bundle.cache('pipelines/batching-on', Pipeline)
+        const pipeline = await builtin.cache('pipelines/shadow', Pipeline)
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
 ])
@@ -103,28 +99,10 @@ export class App extends Zero {
         down_container.setWidth(width);
         down_container.setHeight(height / 2);
         {
-            {
-                const textRenderer = Renderer.create(TextRenderer);
-                textRenderer.impl.text = 'INSTANCING ON';
-                textRenderer.impl.color = vec4.GREEN;
-                textRenderer.impl.size = 50;
-                textRenderer.positionType = PositionType.Absolute;
-                textRenderer.emitter.on(Input.TouchEvents.START, async event => {
-                    if (textRenderer.impl.text == 'INSTANCING OFF') {
-                        textRenderer.impl.text = 'INSTANCING ON';
-                        textRenderer.impl.color = vec4.GREEN;
-                        this.pipeline = batching_on;
-                    } else {
-                        textRenderer.impl.text = 'INSTANCING OFF';
-                        textRenderer.impl.color = vec4.ONE;
-                        this.pipeline = batching_off;
-                    }
-                })
-                down_container.addElement(textRenderer);
-            }
+
         }
         doc.addElement(down_container)
     }
 }
 
-(new App(batching_on)).initialize().attach();
+(new App(pipeline)).initialize().attach();

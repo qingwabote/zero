@@ -4,6 +4,7 @@
         "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/jsb --outDir dist/gfx --watch",
         "boot": "tsc -p ../../../script/boot/jsb --outDir dist/boot --watch",
+        "boot:ins": "cd ../../../script/boot/declare && npm ins && cd ../../../script/boot/jsb && npm ins",
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
         "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",

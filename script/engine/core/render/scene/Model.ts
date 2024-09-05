@@ -53,6 +53,9 @@ export class Model {
 
     type: string = 'default';
 
+    /**
+     * Draw order
+     */
     order: number = 0;
 
     get descriptorSetLayout(): DescriptorSetLayout {

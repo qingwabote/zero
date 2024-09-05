@@ -16,7 +16,6 @@ interface EventToListener extends Element.EventToListener {
 }
 
 export class Slider extends ElementContainer<EventToListener> {
-    private _background: Renderer<SpriteRenderer>;
     private _foreground: Renderer<SpriteRenderer>;
 
     private _value: number = 0.5;
@@ -36,7 +35,6 @@ export class Slider extends ElementContainer<EventToListener> {
         background.setWidth('100%')
         background.setHeight('100%')
         this.addElement(background);
-        this._background = background;
 
         const foreground = Renderer.create(SpriteRenderer);
         foreground.impl.spriteFrame = splash_frame;

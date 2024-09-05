@@ -1,4 +1,3 @@
-import { RecyclePool } from "bastard";
 import { CommandBuffer, Pipeline, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
@@ -12,110 +11,124 @@ import { InstanceBatch } from "./internal/InstanceBatch.js";
 
 interface PB {
     pass: Pass,
-    batch: InstanceBatch;
+    batch: InstanceBatch
 }
 
-interface PbQueueBuilder {
-    add(pass: Pass, model: Model, subIndex: number): void;
-    dump(): Iterable<PB>;
-}
-
-const singleCache = (function () {
-    const model2singles: WeakMap<Model, InstanceBatch.Single[]> = new WeakMap;
-    return function (model: Model, subIndex: number) {
-        let batches = model2singles.get(model);
-        if (!batches) {
-            model2singles.set(model, batches = []);
-        }
-        let batch = batches[subIndex];
-        if (!batch) {
-            batch = batches[subIndex] = new InstanceBatch.Single(model, subIndex);
-        }
-        return batch;
-    }
-})()
-
-const multipleCache = (function () {
-    const subMesh2multiples: WeakMap<SubMesh, InstanceBatch.Multiple[]> = new WeakMap;
-    return function (subMesh: SubMesh): InstanceBatch.Multiple {
-        let multiples = subMesh2multiples.get(subMesh);
-        if (!multiples) {
-            subMesh2multiples.set(subMesh, multiples = []);
-        }
-        let multiple = multiples.find(multiple => !multiple.locked);
-        if (!multiple) {
-            multiple = new InstanceBatch.Multiple(subMesh)
-            multiples.push(multiple);
-        }
-        return multiple;
-    }
-})();
-
-const pmQueueBuilder: PbQueueBuilder = (function () {
-    const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
-    const pb: PB = { pass: null!, batch: null! };
-    return {
-        add: function (pass: Pass, model: Model, subIndex: number): void {
-            let batches = pass2batches.get(pass);
+const decodeModel = (function () {
+    const singleCache = (function () {
+        const model2singles: WeakMap<Model, InstanceBatch.Single[]> = new WeakMap;
+        return function (model: Model, subIndex: number) {
+            let batches = model2singles.get(model);
             if (!batches) {
-                pass2batches.set(pass, batches = []);
+                model2singles.set(model, batches = []);
             }
-
-            // fallback
-            if (model.descriptorSet) {
-                batches.push(singleCache(model, subIndex));
-                return;
+            let batch = batches[subIndex];
+            if (!batch) {
+                batch = batches[subIndex] = new InstanceBatch.Single(model, subIndex);
             }
+            return batch;
+        }
+    })()
 
-            const multiple = multipleCache(model.mesh.subMeshes[subIndex]);
-            if (multiple.count == 0) {
-                batches.push(multiple);
+    const multipleCache = (function () {
+        const subMesh2multiples: WeakMap<SubMesh, InstanceBatch.Multiple[]> = new WeakMap;
+        const multiple2pass: WeakMap<InstanceBatch.Multiple, Pass> = new WeakMap;
+        return function (subMesh: SubMesh, pass: Pass): InstanceBatch.Multiple {
+            let multiples = subMesh2multiples.get(subMesh);
+            if (!multiples) {
+                subMesh2multiples.set(subMesh, multiples = []);
             }
-            multiple.add(model);
-        },
+            let multiple: InstanceBatch.Multiple | undefined;
+            for (const batch of multiples) {
+                if (batch.locked) {
+                    continue;
+                }
+                const p = multiple2pass.get(batch);
+                if (p && p != pass) {
+                    continue;
+                }
+                multiple = batch;
+                break;
+            }
+            if (!multiple) {
+                multiple = new InstanceBatch.Multiple(subMesh)
+                multiples.push(multiple);
+                multiple2pass.set(multiple, pass);
+            }
+            return multiple;
+        }
+    })();
 
-        dump: function* () {
-            for (const [pass, batches] of pass2batches) {
-                for (const batch of batches) {
-                    pb.pass = pass;
-                    pb.batch = batch;
-                    yield pb;
+    return function* (models: Model[], passType: string) {
+        const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
+        let pass2batches_order: number = 0;
+        const pb: PB = { pass: null!, batch: null! }
+        for (const model of models) {
+            const diff = model.order - pass2batches_order;
+            for (let i = 0; i < model.mesh.subMeshes.length; i++) {
+                if (model.mesh.subMeshes[i].draw.count == 0) {
+                    continue;
+                }
+
+                for (const pass of model.materials[i].passes) {
+                    if (pass.type != passType) {
+                        continue;
+                    }
+
+                    if (diff) {
+                        const batches = pass2batches.get(pass);
+                        if (diff == 1 && batches) {
+                            pass2batches.delete(pass);
+                        }
+
+                        for (const [pass, batches] of pass2batches) {
+                            for (const batch of batches) {
+                                pb.pass = pass;
+                                pb.batch = batch;
+                                yield pb;
+                            }
+                        }
+                        pass2batches.clear();
+
+                        if (diff == 1 && batches) {
+                            pass2batches.set(pass, batches);
+                        }
+                    }
+
+                    let batches = pass2batches.get(pass);
+                    if (!batches) {
+                        pass2batches.set(pass, batches = []);
+                    }
+
+                    // fallback
+                    if (model.descriptorSet) {
+                        batches.push(singleCache(model, i));
+                        continue;
+                    }
+
+                    const multiple = multipleCache(model.mesh.subMeshes[i], pass);
+                    if (multiple.count == 0) {
+                        batches.push(multiple);
+                    }
+                    multiple.add(model);
                 }
             }
-            pass2batches.clear();
+
+            pass2batches_order = model.order;
+        }
+        for (const [pass, batches] of pass2batches) {
+            for (const batch of batches) {
+                pb.pass = pass;
+                pb.batch = batch;
+                yield pb;
+            }
         }
     }
 })()
 
-const psQueueBuilder: PbQueueBuilder = (function () {
-    interface PS extends PB {
-        batch: InstanceBatch.Single;
-    }
-
-    function compareFn(a: PS, b: PS) {
-        return a.batch.model.order - b.batch.model.order || a.pass.id - b.pass.id;
-    }
-
-    const pool: RecyclePool<PS> = new RecyclePool(() => { return { pass: null!, batch: null! } });
-    const queue: PS[] = [];
-    return {
-        add: function (pass: Pass, model: Model, subIndex: number): void {
-            const pb = pool.get();
-            pb.pass = pass;
-            pb.batch = singleCache(model, subIndex);
-            queue.push(pb);
-        },
-
-        dump: function* () {
-            queue.sort(compareFn);
-
-            yield* queue;
-
-            pool.recycle();
-            queue.length = 0;
-        }
-    }
-})()
+function compareModel(a: Model, b: Model) {
+    return a.order - b.order;
+}
 
 type Culling = 'View' | 'CSM';
 
@@ -124,7 +137,6 @@ export class ModelPhase extends Phase {
         context: Context,
         visibility: number,
         public culling: Culling = 'View',
-        private _batching: boolean = false,
         /**The model type that indicates which models should run in this phase */
         private _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
@@ -148,31 +160,20 @@ export class ModelPhase extends Phase {
                 throw new Error(`unsupported culling: ${this.culling}`);
         }
 
-        const pbQueueBuilder: PbQueueBuilder = this._batching ? pmQueueBuilder : psQueueBuilder;
+        const modelQueue: Model[] = [];
         for (const model of models) {
             if (model.type != this._model) {
                 continue;
             }
 
             model.upload();
-
-            for (let i = 0; i < model.mesh.subMeshes.length; i++) {
-                if (model.mesh.subMeshes[i].draw.count == 0) {
-                    continue;
-                }
-
-                for (const pass of model.materials[i].passes) {
-                    if (pass.type != this._pass) {
-                        continue;
-                    }
-                    pbQueueBuilder.add(pass, model, i);
-                }
-            }
+            modelQueue.push(model);
         }
+        modelQueue.sort(compareModel);
 
         let current_pass: Pass | undefined;
         let current_pipeline: Pipeline | undefined;
-        for (const { pass, batch } of pbQueueBuilder.dump()) {
+        for (const { pass, batch } of decodeModel(modelQueue, this._pass)) {
             if (current_pass != pass) {
                 pass.upload();
                 if (pass.descriptorSet) {
