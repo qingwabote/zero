@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo } from "gfx";
+import { DescriptorSet, DescriptorSetLayoutInfo } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { BufferView } from "../BufferView.js";
 import { Material } from "./Material.js";
@@ -58,10 +58,6 @@ export class Model {
      */
     order: number = 0;
 
-    get descriptorSetLayout(): DescriptorSetLayout {
-        return (this.constructor as typeof Model).descriptorSetLayout;
-    }
-
     readonly descriptorSet?: DescriptorSet;
 
     protected _hasUploadedFlag = new PeriodicFlag;
@@ -73,15 +69,10 @@ export class Model {
         }
     }
 
-    update() {
+    updateBounds() {
         if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             this._bounds_invalidated = true;
         }
-    }
-
-    fillInstanced(view: BufferView, count: number) {
-        view.resize(16 * (count + 1));
-        view.set(this._transform.world_matrix, 16 * count);
     }
 
     upload() {
@@ -90,6 +81,11 @@ export class Model {
         }
 
         this._hasUploadedFlag.reset(1);
+    }
+
+    fillInstanced(view: BufferView, count: number) {
+        view.resize(16 * (count + 1));
+        view.set(this._transform.world_matrix, 16 * count);
     }
 }
 Model.ChangeBits = ChangeBits;

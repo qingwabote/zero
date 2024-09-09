@@ -3,6 +3,7 @@
         "yaml": "rollup -i ../../../script/engine/node_modules/yaml/browser/index.js -o dist/yaml.js",
         "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/jsb --outDir dist/gfx --watch",
+        "gfx:ins": "cd ../../../script/gfx/declare && npm ins && cd ../../../script/gfx/jsb && npm ins",
         "boot": "tsc -p ../../../script/boot/jsb --outDir dist/boot --watch",
         "boot:ins": "cd ../../../script/boot/declare && npm ins && cd ../../../script/boot/jsb && npm ins",
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",

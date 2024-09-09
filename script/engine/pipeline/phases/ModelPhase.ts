@@ -1,4 +1,4 @@
-import { CommandBuffer, Pipeline, RenderPass } from "gfx";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Pipeline, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
@@ -15,47 +15,35 @@ interface PB {
 }
 
 const decodeModel = (function () {
-    const singleCache = (function () {
-        const model2singles: WeakMap<Model, InstanceBatch.Single[]> = new WeakMap;
-        return function (model: Model, subIndex: number) {
-            let batches = model2singles.get(model);
+    const batchCache = (function () {
+        const subMesh2batches: WeakMap<SubMesh, InstanceBatch[]> = new WeakMap;
+        const batch2pass: WeakMap<InstanceBatch, Pass> = new WeakMap;
+        return function (pass: Pass, subMesh: SubMesh, descriptorSetLayout: DescriptorSetLayout, descriptorSet?: DescriptorSet): InstanceBatch {
+            let batches = subMesh2batches.get(subMesh);
             if (!batches) {
-                model2singles.set(model, batches = []);
+                subMesh2batches.set(subMesh, batches = []);
             }
-            let batch = batches[subIndex];
-            if (!batch) {
-                batch = batches[subIndex] = new InstanceBatch.Single(model, subIndex);
-            }
-            return batch;
-        }
-    })()
-
-    const multipleCache = (function () {
-        const subMesh2multiples: WeakMap<SubMesh, InstanceBatch.Multiple[]> = new WeakMap;
-        const multiple2pass: WeakMap<InstanceBatch.Multiple, Pass> = new WeakMap;
-        return function (subMesh: SubMesh, pass: Pass): InstanceBatch.Multiple {
-            let multiples = subMesh2multiples.get(subMesh);
-            if (!multiples) {
-                subMesh2multiples.set(subMesh, multiples = []);
-            }
-            let multiple: InstanceBatch.Multiple | undefined;
-            for (const batch of multiples) {
-                if (batch.locked) {
+            let batch: InstanceBatch | undefined;
+            for (const b of batches) {
+                if (b.locked) {
                     continue;
                 }
-                const p = multiple2pass.get(batch);
+                if (b.descriptorSet != descriptorSet) {
+                    continue;
+                }
+                const p = batch2pass.get(b);
                 if (p && p != pass) {
                     continue;
                 }
-                multiple = batch;
+                batch = b;
                 break;
             }
-            if (!multiple) {
-                multiple = new InstanceBatch.Multiple(subMesh)
-                multiples.push(multiple);
-                multiple2pass.set(multiple, pass);
+            if (!batch) {
+                batch = new InstanceBatch(subMesh, descriptorSetLayout, descriptorSet)
+                batches.push(batch);
+                batch2pass.set(batch, pass);
             }
-            return multiple;
+            return batch;
         }
     })();
 
@@ -100,17 +88,11 @@ const decodeModel = (function () {
                         pass2batches.set(pass, batches = []);
                     }
 
-                    // fallback
-                    if (model.descriptorSet) {
-                        batches.push(singleCache(model, i));
-                        continue;
+                    const batch = batchCache(pass, model.mesh.subMeshes[i], (model.constructor as typeof Model).descriptorSetLayout, model.descriptorSet);
+                    if (batch.count == 0) {
+                        batches.push(batch);
                     }
-
-                    const multiple = multipleCache(model.mesh.subMeshes[i], pass);
-                    if (multiple.count == 0) {
-                        batches.push(multiple);
-                    }
-                    multiple.add(model);
+                    batch.add(model);
                 }
             }
 

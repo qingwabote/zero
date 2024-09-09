@@ -345,34 +345,24 @@ export class GLTF implements Asset {
         }
 
         const viewInfo = this._json.bufferViews[index];
-        let buffer: Buffer;
-        if (usage & BufferUsageFlagBits.VERTEX) {
-            const info = new BufferInfo();
-            info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
-            info.mem_usage = MemoryUsage.GPU_ONLY;
-            info.size = viewInfo.byteLength;
-            buffer = device.createBuffer(info);
-            if (!_commandBuffer) {
-                _commandBuffer = device.createCommandBuffer();
-            }
-            if (!_fence) {
-                _fence = device.createFence();
-            }
-            _commandBuffer.begin();
-            _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
-            _commandBuffer.end();
-            const submitInfo = new SubmitInfo;
-            submitInfo.commandBuffer = _commandBuffer;
-            device.queue.submit(submitInfo, _fence);
-            device.waitForFence(_fence);
-        } else {
-            const info = new BufferInfo();
-            info.usage = usage;
-            info.mem_usage = MemoryUsage.CPU_TO_GPU;
-            info.size = viewInfo.byteLength;
-            buffer = device.createBuffer(info);
-            buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);
+        const info = new BufferInfo();
+        info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
+        info.mem_usage = MemoryUsage.GPU_ONLY;
+        info.size = viewInfo.byteLength;
+        const buffer = device.createBuffer(info);
+        if (!_commandBuffer) {
+            _commandBuffer = device.createCommandBuffer();
         }
+        if (!_fence) {
+            _fence = device.createFence();
+        }
+        _commandBuffer.begin();
+        _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
+        _commandBuffer.end();
+        const submitInfo = new SubmitInfo;
+        submitInfo.commandBuffer = _commandBuffer;
+        device.queue.submit(submitInfo, _fence);
+        device.waitForFence(_fence);
 
         return this._buffers[index] = buffer;
     }

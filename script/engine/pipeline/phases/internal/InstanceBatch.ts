@@ -1,23 +1,9 @@
-import { device } from "boot";
-import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
+import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
 import { BufferView } from "../../../core/render/BufferView.js";
 import { Model } from "../../../core/render/scene/Model.js";
 import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
 import { SubMesh } from "../../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../../core/shaderLib.js";
-
-const descriptorSetLayout_empty = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
-
-export interface InstanceBatch {
-    readonly descriptorSetLayout: DescriptorSetLayout;
-    readonly descriptorSet?: DescriptorSet;
-    readonly inputAssembler: InputAssembler;
-    readonly draw: Readonly<SubMesh.Draw>;
-    readonly count: number;
-
-    upload(): void;
-    recycle(): void;
-}
 
 const inputAssembler_clone = (function () {
     function vertexInput_clone(out: VertexInput, vertexInput: VertexInput): VertexInput {
@@ -66,85 +52,49 @@ function createModelAttribute(buffer: number) {
     return mat4;
 }
 
-export namespace InstanceBatch {
-    export class Single implements InstanceBatch {
-        readonly descriptorSetLayout: DescriptorSetLayout;
-        readonly descriptorSet?: DescriptorSet;
+export class InstanceBatch {
+    readonly descriptorSetLayout: DescriptorSetLayout;
+    readonly descriptorSet: DescriptorSet | undefined;
 
-        readonly inputAssembler: InputAssembler;
+    readonly inputAssembler: InputAssembler;
 
-        readonly draw: Readonly<SubMesh.Draw>;
+    readonly draw: Readonly<SubMesh.Draw>;
 
-        readonly count: number = 1;
-
-        private readonly _view: BufferView;
-
-        constructor(readonly model: Model, subIndex: number) {
-            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX, 16)
-            const subMesh = model.mesh.subMeshes[subIndex];
-            const ia = inputAssembler_clone(subMesh.inputAssembler);
-            ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
-            ia.vertexInput.buffers.add(view.buffer);
-            ia.vertexInput.offsets.add(0);
-            this._view = view;
-            this.descriptorSetLayout = model.descriptorSetLayout;
-            if (model.descriptorSet) {
-                this.descriptorSet = model.descriptorSet;
-            }
-            this.inputAssembler = ia;
-            this.draw = subMesh.draw;
-        }
-
-        upload() {
-            this.model.fillInstanced(this._view, 0);
-            this._view.update();
-        }
-
-        recycle(): void { }
+    private _count = 0;
+    get count(): number {
+        return this._count;
     }
 
-    export class Multiple implements InstanceBatch {
-        readonly descriptorSetLayout: DescriptorSetLayout = descriptorSetLayout_empty;
-        readonly descriptorSet?: DescriptorSet;
+    private readonly _view: BufferView;
 
-        readonly inputAssembler: InputAssembler;
+    private _lockedFlag = new PeriodicFlag();
+    get locked(): boolean {
+        return this._lockedFlag.value != 0;
+    }
 
-        readonly draw: Readonly<SubMesh.Draw>;
+    constructor(subMesh: SubMesh, descriptorSetLayout: DescriptorSetLayout, descriptorSet?: DescriptorSet) {
+        const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+        const ia = inputAssembler_clone(subMesh.inputAssembler);
+        ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
+        ia.vertexInput.buffers.add(view.buffer);
+        ia.vertexInput.offsets.add(0);
+        this._view = view;
+        this.inputAssembler = ia;
+        this.draw = subMesh.draw;
+        this.descriptorSetLayout = descriptorSetLayout;
+        this.descriptorSet = descriptorSet;
+    }
 
-        private _count = 0;
-        get count(): number {
-            return this._count;
-        }
+    add(model: Model) {
+        model.fillInstanced(this._view, this._count++);
+    }
 
-        private readonly _view: BufferView;
+    upload(): void {
+        this._view.update();
+        this._lockedFlag.reset(1);
+    }
 
-        private _lockedFlag = new PeriodicFlag();
-        get locked(): boolean {
-            return this._lockedFlag.value != 0;
-        }
-
-        constructor(subMesh: SubMesh) {
-            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
-            const ia = inputAssembler_clone(subMesh.inputAssembler);
-            ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
-            ia.vertexInput.buffers.add(view.buffer);
-            ia.vertexInput.offsets.add(0);
-            this._view = view;
-            this.inputAssembler = ia;
-            this.draw = subMesh.draw;
-        }
-
-        add(model: Model) {
-            model.fillInstanced(this._view, this._count++);
-        }
-
-        upload(): void {
-            this._view.update();
-            this._lockedFlag.reset(1);
-        }
-
-        recycle(): void {
-            this._count = 0;
-        }
+    recycle(): void {
+        this._count = 0;
     }
 }

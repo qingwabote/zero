@@ -1,4 +1,4 @@
-Android 项目基于 [SDL](https://github.com/libsdl-org/SDL/tree/release-2.26.5/android-project)
+这其实是一个 [SDL](https://github.com/libsdl-org/SDL/tree/release-2.26.5/android-project) 项目
 
 # bootstrap.json
 
@@ -9,7 +9,7 @@ App 启动时读取此配置文件，将其放置于如下目录：
 ```json
 {
   "root": "/storage/emulated/0/Android/data/org.libsdl.app/files/",
-  "project": "test",
+  "project": "instancing",
   "script": "jsb"
 }
 ```

@@ -57,7 +57,7 @@ export class Scene {
 
         this._event.emit(Event.MODEL_UPDATE_START)
         for (const model of this._models) {
-            model.update();
+            model.updateBounds();
 
             if (this._models_invalidated || (model.hasChanged & Model.ChangeBits.BOUNDS)) {
                 this._models.update(model);
