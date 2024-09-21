@@ -17,12 +17,8 @@ namespace gfx
             bufferInfo.size = info->size;
 
             VmaAllocationCreateInfo allocationCreateInfo = {};
-            allocationCreateInfo.usage = static_cast<VmaMemoryUsage>(info->mem_usage);
-            if (allocationCreateInfo.usage == VMA_MEMORY_USAGE_CPU_TO_GPU)
-            {
-                allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-            }
-
+            allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+            allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
             if (vmaCreateBuffer(_device->allocator(), &bufferInfo, &allocationCreateInfo, &_buffer, &_allocation, &_allocationInfo))
             {
                 return true;

@@ -44,13 +44,6 @@ export enum BufferUsageFlagBits {
     VERTEX = 0x00000080,
 }
 
-// copy values from VmaMemoryUsage in vk_men_alloc.h
-export enum MemoryUsage {
-    NONE = 0,
-    GPU_ONLY = 1,
-    CPU_TO_GPU = 3,
-}
-
 // copy values from VkShaderStageFlagBits in vulkan_core.h
 export enum ShaderStageFlagBits {
     NONE = 0,

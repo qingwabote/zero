@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Buffer, BufferInfo, BufferUsageFlagBits, MemoryUsage } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits } from "gfx";
 
 const format2array = {
     Uint16: Uint16Array,
@@ -34,7 +34,6 @@ export class BufferView {
 
         const info = new BufferInfo;
         info.usage = usage;
-        info.mem_usage = MemoryUsage.CPU_TO_GPU;
         info.size = source.byteLength;
 
         [this._source, this._buffer, this._capacity] = [source, device.createBuffer(info), _length];

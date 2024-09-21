@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { shaderLib } from "../shaderLib.js";
 import { BufferView } from "./BufferView.js";
 
@@ -64,7 +64,6 @@ function createVertexBuffer(width: number, height: number, upsideDown = false) {
     const bufferInfo = new BufferInfo;
     bufferInfo.size = vertexes.byteLength;
     bufferInfo.usage = BufferUsageFlagBits.VERTEX;
-    bufferInfo.mem_usage = MemoryUsage.CPU_TO_GPU;
     const buffer = device.createBuffer(bufferInfo);
     buffer.update(vertexes.buffer, 0, vertexes.byteLength);
 

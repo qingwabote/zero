@@ -70,17 +70,9 @@ namespace gfx
         VERTEX = 0x00000080,
     };
 
-    enum class MemoryUsage
-    {
-        NONE = 0,
-        GPU_ONLY = 1,
-        CPU_TO_GPU = 3,
-    };
-
     struct BufferInfo
     {
         BufferUsageFlagBits usage;
-        MemoryUsage mem_usage;
         uint32_t size;
     };
 
