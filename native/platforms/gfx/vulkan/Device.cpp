@@ -240,6 +240,11 @@ namespace gfx
             return true;
         }
 
+        // char *pStatsString = nullptr;
+        // vmaBuildStatsString(_allocator, &pStatsString, VK_FALSE);
+        // ZERO_LOG_INFO("vmaBuildStatsString: %s", pStatsString);
+        // vmaFreeStatsString(_allocator, pStatsString);
+
         // command pool and a buffer
         VkCommandPoolCreateInfo commandPoolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
         commandPoolInfo.queueFamilyIndex = queueFamilyIndex;

@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, SubmitInfo, VertexAttribute } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
@@ -345,24 +345,13 @@ export class GLTF implements Asset {
         }
 
         const viewInfo = this._json.bufferViews[index];
+
         const info = new BufferInfo();
-        info.usage = usage | BufferUsageFlagBits.TRANSFER_DST;
-        info.mem_usage = MemoryUsage.GPU_ONLY;
+        info.usage = usage;
+        info.mem_usage = MemoryUsage.CPU_TO_GPU;
         info.size = viewInfo.byteLength;
         const buffer = device.createBuffer(info);
-        if (!_commandBuffer) {
-            _commandBuffer = device.createCommandBuffer();
-        }
-        if (!_fence) {
-            _fence = device.createFence();
-        }
-        _commandBuffer.begin();
-        _commandBuffer.copyBuffer(this._bin!, buffer, viewInfo.byteOffset || 0, viewInfo.byteLength);
-        _commandBuffer.end();
-        const submitInfo = new SubmitInfo;
-        submitInfo.commandBuffer = _commandBuffer;
-        device.queue.submit(submitInfo, _fence);
-        device.waitForFence(_fence);
+        buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);
 
         return this._buffers[index] = buffer;
     }
