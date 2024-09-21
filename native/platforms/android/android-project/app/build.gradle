@@ -60,7 +60,8 @@ android {
     lintOptions {
         abortOnError false
     }
-    
+    namespace 'org.libsdl.app'
+
     if (buildAsLibrary) {
         libraryVariants.all { variant ->
             variant.outputs.each { output ->
