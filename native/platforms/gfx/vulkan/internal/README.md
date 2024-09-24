@@ -1,0 +1,1 @@
+Directories vk_video vma volk vulkan copy from VulkanSDK 1.3.290.0
