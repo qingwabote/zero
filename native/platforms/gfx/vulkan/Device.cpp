@@ -10,6 +10,8 @@
 #include "gfx/Fence.hpp"
 #include "FenceImpl.hpp"
 
+#include "vulkan/vk_enum_string_helper.h"
+
 namespace
 {
     VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -49,6 +51,12 @@ namespace gfx
         if (volkInitialize())
         {
             return true;
+        }
+
+        {
+            uint32_t v;
+            vkEnumerateInstanceVersion(&v);
+            ZERO_LOG_INFO("Instance Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
         }
 
         VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
@@ -139,7 +147,25 @@ namespace gfx
             }
         }
 
-        std::vector<const char *> device_extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+        vkGetPhysicalDeviceProperties(gpu, &_gpuProperties);
+        {
+            auto v = _gpuProperties.apiVersion;
+            ZERO_LOG_INFO("Device Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
+        }
+
+        // uint32_t extension_count = 0;
+        // vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extension_count, nullptr);
+        // std::vector<VkExtensionProperties> extensions_supported(extension_count);
+        // vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extension_count, extensions_supported.data());
+        // for (auto &&i : extensions_supported)
+        // {
+        //     ZERO_LOG_INFO("extensions_supported: %s", i.extensionName);
+        // }
+
+        std::vector<const char *> device_extensions{
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            // VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME,
+        };
 
         // Create one queue
         float queuePriorities[] = {1.0f};
@@ -153,12 +179,20 @@ namespace gfx
         device_info.pQueueCreateInfos = &queueInfo;
         device_info.enabledExtensionCount = device_extensions.size();
         device_info.ppEnabledExtensionNames = device_extensions.data();
+        // VkPhysicalDeviceHostImageCopyFeaturesEXT hostImageCopyFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES_EXT};
+        // hostImageCopyFeatures.hostImageCopy = VK_TRUE;
+        // device_info.pNext = &hostImageCopyFeatures;
         VkDevice device;
-        vkCreateDevice(gpu, &device_info, nullptr, &device);
+        {
+            auto res = vkCreateDevice(gpu, &device_info, nullptr, &device);
+            if (res)
+            {
+                ZERO_LOG_ERROR("vkCreateDevice %s", string_VkResult(res));
+                return true;
+            }
+        }
 
         volkLoadDevice(device);
-
-        vkGetPhysicalDeviceProperties(gpu, &_gpuProperties);
 
         vkGetDeviceQueue(device, queueFamilyIndex, 0, &_graphicsQueue);
 

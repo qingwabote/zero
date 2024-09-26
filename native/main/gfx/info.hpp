@@ -122,6 +122,7 @@ namespace gfx
         COLOR = 0x00000010,
         DEPTH_STENCIL = 0x00000020,
         TRANSIENT = 0x00000040,
+        HOST_TRANSFER = 0x00400000,
     };
     GFX_ENUM_BITWISE_OPERATORS(TextureUsageFlagBits);
 

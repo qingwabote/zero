@@ -27,6 +27,8 @@ namespace gfx
 
         bool initialize();
 
+        void update(const void *data, uint32_t width, uint32_t height);
+
         operator VkImage() { return _image; }
         operator VkImageView() { return _imageView; }
 
