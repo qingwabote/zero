@@ -107,9 +107,9 @@ namespace gfx
 
     void CommandBuffer::copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture)
     {
-        VkDeviceSize size = static_cast<VkDeviceSize>(4) * imageBitmap->width() * imageBitmap->height();
+        VkDeviceSize size = static_cast<VkDeviceSize>(4) * imageBitmap->width * imageBitmap->height;
 
-        VkBuffer buffer = impl->createStagingBuffer(imageBitmap->pixels(), size);
+        VkBuffer buffer = impl->createStagingBuffer(imageBitmap->pixels.get(), size);
 
         VkImageSubresourceRange range = {};
         range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -136,8 +136,8 @@ namespace gfx
         copy.imageSubresource.mipLevel = 0;
         copy.imageSubresource.baseArrayLayer = 0;
         copy.imageSubresource.layerCount = 1;
-        copy.imageExtent.width = imageBitmap->width();
-        copy.imageExtent.height = imageBitmap->height();
+        copy.imageExtent.width = imageBitmap->width;
+        copy.imageExtent.height = imageBitmap->height;
         copy.imageExtent.depth = 1;
         vkCmdCopyBufferToImage(impl->_commandBuffer, buffer, *texture->impl, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 

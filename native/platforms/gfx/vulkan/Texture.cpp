@@ -118,7 +118,7 @@ namespace gfx
 
     void Texture::update(const std::shared_ptr<ImageBitmap> &imageBitmap)
     {
-        impl->update(imageBitmap->pixels(), imageBitmap->width(), imageBitmap->height());
+        impl->update(imageBitmap->pixels.get(), imageBitmap->width, imageBitmap->height);
     }
 
     Texture::~Texture() {}
