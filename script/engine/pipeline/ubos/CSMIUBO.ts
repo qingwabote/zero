@@ -1,6 +1,6 @@
 import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { BufferView } from "../../core/render/BufferView.js";
+import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Shadow } from "../../core/render/pipeline/data/Shadow.js";

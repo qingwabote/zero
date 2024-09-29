@@ -1,5 +1,5 @@
 import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
-import { BufferView } from "../../../core/render/BufferView.js";
+import { BufferView } from "../../../core/render/gpu/BufferView.js";
 import { Model } from "../../../core/render/scene/Model.js";
 import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
 import { SubMesh } from "../../../core/render/scene/SubMesh.js";

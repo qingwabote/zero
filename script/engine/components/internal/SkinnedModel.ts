@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits, DescriptorSetLayout } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
-import { BufferView } from "../../core/render/BufferView.js";
+import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { Material } from "../../core/render/scene/Material.js";
 import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";

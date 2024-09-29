@@ -1,7 +1,7 @@
 import { device } from "boot";
 import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { shaderLib } from "../shaderLib.js";
-import { BufferView } from "./BufferView.js";
+import { BufferView } from "./gpu/BufferView.js";
 
 const indexBufferView = new BufferView("Uint16", BufferUsageFlagBits.INDEX);
 

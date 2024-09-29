@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, Sampler, Texture } from "gfx";
-import { BufferView } from "../core/render/BufferView.js";
+import { BufferView } from "../core/render/gpu/BufferView.js";
 import { Pass as _Pass } from '../core/render/scene/Pass.js';
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";

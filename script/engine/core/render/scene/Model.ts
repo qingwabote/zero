@@ -1,7 +1,7 @@
 import { device } from "boot";
 import { DescriptorSet, DescriptorSetLayoutInfo } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { BufferView } from "../BufferView.js";
+import { BufferView } from "../gpu/BufferView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
