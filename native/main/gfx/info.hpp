@@ -43,6 +43,7 @@ namespace gfx
         RGBA8_UNORM = 37,
         RGBA8_UINT = 41,
         RGBA8_SRGB = 43,
+        BGRA8_UNORM = 44,
         R16_UINT = 74,
         RGBA16_UINT = 95,
         R32_UINT = 98,
@@ -130,6 +131,7 @@ namespace gfx
     {
         SampleCountFlagBits samples{SampleCountFlagBits::X1};
         TextureUsageFlagBits usage{TextureUsageFlagBits::NONE};
+        Format format{Format::UNDEFINED};
         uint32_t width{0};
         uint32_t height{0};
     };
@@ -162,6 +164,7 @@ namespace gfx
     };
     struct AttachmentDescription
     {
+        Format format;
         LOAD_OP loadOp;
         ImageLayout initialLayout;
         ImageLayout finalLayout;

@@ -1,4 +1,4 @@
-import { SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
+import { Format, SampleCountFlagBits } from "gfx-common";
 import { TextureInfo } from "./info.js";
 
 export class Texture {
@@ -17,9 +17,19 @@ export class Texture {
     initialize(): boolean {
         const gl = this._gl;
 
-        let format: GLenum = gl.RGBA8;
-        if (this.info.usage & TextureUsageFlagBits.DEPTH_STENCIL) {
-            format = gl.DEPTH_COMPONENT32F
+        let format: GLenum = gl.NONE;
+        switch (this.info.format) {
+            case Format.RGBA8_UNORM:
+                format = gl.RGBA8
+                break;
+            case Format.RGBA32_SFLOAT:
+                format = gl.RGBA32F
+                break;
+            case Format.D32_SFLOAT:
+                format = gl.DEPTH_COMPONENT32F
+                break;
+            default:
+                throw new Error(`unsupported texture format: ${this.info.format}`);
         }
 
         if (this.info.samples == SampleCountFlagBits.X1) {

@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { ClearFlagBits, CommandBuffer, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { ClearFlagBits, CommandBuffer, Format, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { Data } from "./Data.js";
 import { Phase } from "./Phase.js";
@@ -7,17 +7,19 @@ import { Profile } from "./Profile.js";
 import { getRenderPass } from "./rpc.js";
 
 const defaultFramebuffer = (function () {
+    const { width, height } = device.swapchain.color.info;
     const framebufferInfo = new FramebufferInfo;
 
-    framebufferInfo.width = device.swapchain.width;
-    framebufferInfo.height = device.swapchain.height;
+    framebufferInfo.width = width;
+    framebufferInfo.height = height;
 
-    framebufferInfo.colors.add(device.swapchain.colorTexture);
+    framebufferInfo.colors.add(device.swapchain.color);
 
     const depthStencilAttachmentInfo = new TextureInfo;
     depthStencilAttachmentInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
-    depthStencilAttachmentInfo.width = framebufferInfo.width;
-    depthStencilAttachmentInfo.height = framebufferInfo.height;
+    depthStencilAttachmentInfo.format = Format.D32_SFLOAT;
+    depthStencilAttachmentInfo.width = width;
+    depthStencilAttachmentInfo.height = height;
     framebufferInfo.depthStencil = device.createTexture(depthStencilAttachmentInfo);
 
     framebufferInfo.renderPass = getRenderPass(framebufferInfo);

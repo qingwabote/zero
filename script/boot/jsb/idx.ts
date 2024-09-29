@@ -48,7 +48,7 @@ const w = zero.Window.instance();
 
 export const device: Device = w.device();
 
-const { width, height } = device.swapchain;
+const { width, height } = device.swapchain.color.info;
 
 export const safeArea = { left: 0, right: 0, top: 0, bottom: 0, width, height: height };
 

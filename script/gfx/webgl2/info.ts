@@ -44,6 +44,7 @@ export class DescriptorSetLayoutInfo {
 }
 
 export class AttachmentDescription {
+    format: Format = Format.UNDEFINED;
     loadOp: LOAD_OP = 0;
     initialLayout: ImageLayout = 0;
     finalLayout: ImageLayout = 0;
@@ -59,6 +60,7 @@ export class RenderPassInfo {
 export class TextureInfo {
     samples: SampleCountFlagBits = SampleCountFlagBits.X1;
     usage: TextureUsageFlagBits = TextureUsageFlagBits.NONE;
+    format: Format = Format.UNDEFINED;
     width: number = 0;
     height: number = 0;
     swapchain = false;

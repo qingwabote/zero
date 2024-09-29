@@ -12,22 +12,12 @@ namespace gfx
             return false;
         }
 
-        auto format = VK_FORMAT_UNDEFINED;
-        auto aspectMask = VK_IMAGE_ASPECT_NONE;
-        if ((info->usage & TextureUsageFlagBits::COLOR) != TextureUsageFlagBits::NONE)
+        VkFormat format = static_cast<VkFormat>(info->format);
+
+        auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        if ((info->usage & TextureUsageFlagBits::DEPTH_STENCIL) != TextureUsageFlagBits::NONE)
         {
-            format = _device->swapchainImageFormat();
-            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        }
-        else if ((info->usage & TextureUsageFlagBits::DEPTH_STENCIL) != TextureUsageFlagBits::NONE)
-        {
-            format = VK_FORMAT_D32_SFLOAT;
             aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        }
-        else
-        {
-            format = VK_FORMAT_R8G8B8A8_UNORM; // just use linear format and then do gamma correction in shader
-            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         }
 
         VkExtent3D extent{};

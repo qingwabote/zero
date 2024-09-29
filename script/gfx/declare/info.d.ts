@@ -39,6 +39,7 @@ export declare class DescriptorSetLayoutInfo {
 export declare class TextureInfo {
     samples: SampleCountFlagBits;
     usage: TextureUsageFlagBits;
+    format: Format;
     width: number;
     height: number;
 }
@@ -55,7 +56,7 @@ export declare class FramebufferInfo {
 }
 
 export declare class AttachmentDescription {
-    // format: Format;
+    format: Format;
     loadOp: LOAD_OP;
     initialLayout: ImageLayout;
     finalLayout: ImageLayout;
