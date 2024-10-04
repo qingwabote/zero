@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { DescriptorSet, DescriptorSetLayoutInfo } from "gfx";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { BufferView } from "../gpu/BufferView.js";
 import { Material } from "./Material.js";
@@ -75,7 +75,7 @@ export class Model {
         }
     }
 
-    upload() {
+    upload(commandBuffer: CommandBuffer) {
         if (this._hasUploadedFlag.value) {
             return;
         }

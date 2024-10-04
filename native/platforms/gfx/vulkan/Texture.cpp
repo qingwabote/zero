@@ -90,13 +90,26 @@ namespace gfx
         vkCopyMemoryToImageEXT(*_device, &info);
     }
 
-    TextureImpl::~TextureImpl()
+    void TextureImpl::resize(uint32_t width, uint32_t height)
+    {
+        clear();
+        info->width = width;
+        info->height = height;
+        initialize();
+    }
+
+    void TextureImpl::clear()
     {
         if (!_swapchain)
         {
             vkDestroyImageView(*_device, _imageView, nullptr);
             vmaDestroyImage(_device->allocator(), _image, _allocation);
         }
+    }
+
+    TextureImpl::~TextureImpl()
+    {
+        clear();
     }
 
     Texture::Texture(DeviceImpl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : impl(std::make_shared<TextureImpl>(device, info, swapchain)), info(impl->info) {}
@@ -109,6 +122,11 @@ namespace gfx
     void Texture::update(const std::shared_ptr<ImageBitmap> &imageBitmap)
     {
         impl->update(imageBitmap->pixels.get(), imageBitmap->width, imageBitmap->height);
+    }
+
+    void Texture::resize(uint32_t width, uint32_t height)
+    {
+        impl->resize(width, height);
     }
 
     Texture::~Texture() {}

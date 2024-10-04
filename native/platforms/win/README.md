@@ -19,6 +19,9 @@ C:\Users\name\AppData\Roaming\zero\bootstrap.json
 }
 ```
 
+# 控制台显示乱码？
+勾选“使用 Unicode UTF-8 提供全球语言支持”
+
 # glslang
 
 -DENABLE_HLSL=0 -DENABLE_SPVREMAPPER=0

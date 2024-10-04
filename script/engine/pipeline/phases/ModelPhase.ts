@@ -14,44 +14,89 @@ interface PB {
     batch: InstanceBatch
 }
 
-const decodeModel = (function () {
-    const batchCache = (function () {
-        const subMesh2batches: WeakMap<SubMesh, InstanceBatch[]> = new WeakMap;
-        const batch2pass: WeakMap<InstanceBatch, Pass> = new WeakMap;
-        return function (pass: Pass, subMesh: SubMesh, descriptorSetLayout: DescriptorSetLayout, descriptorSet?: DescriptorSet): InstanceBatch {
-            let batches = subMesh2batches.get(subMesh);
-            if (!batches) {
-                subMesh2batches.set(subMesh, batches = []);
-            }
-            let batch: InstanceBatch | undefined;
-            for (const b of batches) {
-                if (b.locked) {
-                    continue;
-                }
-                if (b.descriptorSet != descriptorSet) {
-                    continue;
-                }
-                const p = batch2pass.get(b);
-                if (p && p != pass) {
-                    continue;
-                }
-                batch = b;
-                break;
-            }
-            if (!batch) {
-                batch = new InstanceBatch(subMesh, descriptorSetLayout, descriptorSet)
-                batches.push(batch);
-                batch2pass.set(batch, pass);
-            }
-            return batch;
+const batchCache = (function () {
+    const subMesh2batches: WeakMap<SubMesh, InstanceBatch[]> = new WeakMap;
+    const batch2pass: WeakMap<InstanceBatch, Pass> = new WeakMap;
+    return function (pass: Pass, subMesh: SubMesh, descriptorSetLayout: DescriptorSetLayout, descriptorSet?: DescriptorSet): InstanceBatch {
+        let batches = subMesh2batches.get(subMesh);
+        if (!batches) {
+            subMesh2batches.set(subMesh, batches = []);
         }
-    })();
+        let batch: InstanceBatch | undefined;
+        for (const b of batches) {
+            if (b.locked) {
+                continue;
+            }
+            if (b.descriptorSet != descriptorSet) {
+                continue;
+            }
+            const p = batch2pass.get(b);
+            if (p && p != pass) {
+                continue;
+            }
+            batch = b;
+            break;
+        }
+        if (!batch) {
+            batch = new InstanceBatch(subMesh, descriptorSetLayout, descriptorSet)
+            batches.push(batch);
+            batch2pass.set(batch, pass);
+        }
+        return batch;
+    }
+})();
 
-    return function* (models: Model[], passType: string) {
+function compareModel(a: Model, b: Model) {
+    return a.order - b.order;
+}
+
+type Culling = 'View' | 'CSM';
+
+export class ModelPhase extends Phase {
+    private _pb_buffer: PB[] = [];
+    private _pb_count: number = 0;
+
+    constructor(
+        context: Context,
+        visibility: number,
+        public culling: Culling = 'View',
+        /**The model type that indicates which models should run in this phase */
+        private _model = 'default',
+        /**The pass type that indicates which passes should run in this phase */
+        private _pass = 'default',
+    ) {
+        super(context, visibility);
+    }
+
+    update(commandBuffer: CommandBuffer): void {
+        const data = Zero.instance.pipeline.data;
+
+        let models: Iterable<Model>;
+        switch (this.culling) {
+            case 'View':
+                models = data.culling?.getView(data.current_camera).camera || Zero.instance.scene.models;
+                break;
+            case 'CSM':
+                models = data.culling?.getView(data.current_camera).shadow[data.flowLoopIndex] || Zero.instance.scene.models;
+                break;
+            default:
+                throw new Error(`unsupported culling: ${this.culling}`);
+        }
+
+        const modelQueue: Model[] = [];
+        for (const model of models) {
+            if (model.type == this._model) {
+                modelQueue.push(model);
+            }
+        }
+        modelQueue.sort(compareModel);
+
+        this._pb_count = 0;
         const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
         let pass2batches_order: number = 0;
-        const pb: PB = { pass: null!, batch: null! }
         for (const model of models) {
+            model.upload(commandBuffer);
+
             const diff = model.order - pass2batches_order;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 if (model.mesh.subMeshes[i].draw.count == 0) {
@@ -59,9 +104,11 @@ const decodeModel = (function () {
                 }
 
                 for (const pass of model.materials[i].passes) {
-                    if (pass.type != passType) {
+                    if (pass.type != this._pass) {
                         continue;
                     }
+
+                    pass.upload(commandBuffer);
 
                     if (diff) {
                         const batches = pass2batches.get(pass);
@@ -71,9 +118,13 @@ const decodeModel = (function () {
 
                         for (const [pass, batches] of pass2batches) {
                             for (const batch of batches) {
-                                pb.pass = pass;
-                                pb.batch = batch;
-                                yield pb;
+                                if (this._pb_buffer.length > this._pb_count) {
+                                    this._pb_buffer[this._pb_count].pass = pass;
+                                    this._pb_buffer[this._pb_count].batch = batch;
+                                } else {
+                                    this._pb_buffer.push({ pass, batch });
+                                }
+                                this._pb_count++;
                             }
                         }
                         pass2batches.clear();
@@ -100,64 +151,23 @@ const decodeModel = (function () {
         }
         for (const [pass, batches] of pass2batches) {
             for (const batch of batches) {
-                pb.pass = pass;
-                pb.batch = batch;
-                yield pb;
+                if (this._pb_buffer.length > this._pb_count) {
+                    this._pb_buffer[this._pb_count].pass = pass;
+                    this._pb_buffer[this._pb_count].batch = batch;
+                } else {
+                    this._pb_buffer.push({ pass, batch });
+                }
+                this._pb_count++;
             }
         }
     }
-})()
 
-function compareModel(a: Model, b: Model) {
-    return a.order - b.order;
-}
-
-type Culling = 'View' | 'CSM';
-
-export class ModelPhase extends Phase {
-    constructor(
-        context: Context,
-        visibility: number,
-        public culling: Culling = 'View',
-        /**The model type that indicates which models should run in this phase */
-        private _model = 'default',
-        /**The pass type that indicates which passes should run in this phase */
-        private _pass = 'default',
-    ) {
-        super(context, visibility);
-    }
-
-    record(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
-        const data = Zero.instance.pipeline.data;
-
-        let models: Iterable<Model>;
-        switch (this.culling) {
-            case 'View':
-                models = data.culling?.getView(data.current_camera).camera || Zero.instance.scene.models;
-                break;
-            case 'CSM':
-                models = data.culling?.getView(data.current_camera).shadow[data.flowLoopIndex] || Zero.instance.scene.models;
-                break;
-            default:
-                throw new Error(`unsupported culling: ${this.culling}`);
-        }
-
-        const modelQueue: Model[] = [];
-        for (const model of models) {
-            if (model.type != this._model) {
-                continue;
-            }
-
-            model.upload();
-            modelQueue.push(model);
-        }
-        modelQueue.sort(compareModel);
-
+    render(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
         let current_pass: Pass | undefined;
         let current_pipeline: Pipeline | undefined;
-        for (const { pass, batch } of decodeModel(modelQueue, this._pass)) {
+        for (let i = 0; i < this._pb_count; i++) {
+            const { pass, batch } = this._pb_buffer[i];
             if (current_pass != pass) {
-                pass.upload();
                 if (pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                 }
@@ -166,7 +176,7 @@ export class ModelPhase extends Phase {
                 profile.passes++;
             }
 
-            batch.upload();
+            batch.upload(commandBuffer);
 
             if (batch.descriptorSet) {
                 commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.descriptorSet);

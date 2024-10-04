@@ -22,9 +22,9 @@ export class Pipeline {
         this.data.update(profile, this._dumping);
     }
 
-    upload() {
+    upload(commandBuffer: CommandBuffer) {
         for (const ubo of this.ubos) {
-            ubo.update(this._dumping);
+            ubo.update(commandBuffer, this._dumping);
         }
 
         this._dumping = false;

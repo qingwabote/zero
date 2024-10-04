@@ -42,16 +42,22 @@ export class Stage {
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this.rect ?? camera.rect;
 
-        const { width, height } = this._framebuffer.info;
-        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
-
+        // do transfer before render pass
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.record(profile, commandBuffer, renderPass, camera);
+                phase.update(commandBuffer);
             }
         }
 
+        const { width, height } = this._framebuffer.info;
+        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
+        for (const phase of this.phases) {
+            if (camera.visibilities & phase.visibility) {
+                phase.render(profile, commandBuffer, renderPass);
+            }
+        }
         commandBuffer.endRenderPass();
+
         profile.stages++;
     }
 }

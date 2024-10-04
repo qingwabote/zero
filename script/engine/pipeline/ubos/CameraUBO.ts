@@ -1,4 +1,4 @@
-import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
@@ -41,7 +41,7 @@ export class CameraUBO extends UBO {
         return UBO.align(BlockSize) * this._data.cameraIndex
     };
 
-    update(dumping: boolean): void {
+    update(commandBuffer: CommandBuffer, dumping: boolean): void {
         const size = UBO.align(BlockSize);
         const cameras = Zero.instance.scene.cameras;
 
@@ -59,6 +59,6 @@ export class CameraUBO extends UBO {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }
-        this._view.update();
+        this._view.update(commandBuffer);
     }
 }

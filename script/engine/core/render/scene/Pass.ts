@@ -1,4 +1,4 @@
-import { BlendState, DepthStencilState, DescriptorSet, DescriptorSetLayout, RasterizationState, Shader } from "gfx";
+import { BlendState, CommandBuffer, DepthStencilState, DescriptorSet, DescriptorSetLayout, RasterizationState, Shader } from "gfx";
 
 interface State {
     readonly shader: Shader;
@@ -14,7 +14,7 @@ export interface Pass {
     readonly descriptorSetLayout: DescriptorSetLayout;
     readonly descriptorSet: DescriptorSet | undefined;
 
-    upload(): void;
+    upload(commandBuffer: CommandBuffer): void;
 }
 
 export declare namespace Pass {

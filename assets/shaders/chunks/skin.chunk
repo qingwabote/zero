@@ -1,13 +1,32 @@
-layout(set = 2, binding = 1) uniform Skin {
-    vec4 joints[128 * 3];
-} skin;
+layout(set = 2, binding = 1) uniform sampler2D skin_joints;
 
-mat4 skin_jointMatrix (uint i) {
-    uint base = 3u * i;
+mat4 skin_jointMatrix(uint idx)
+{
+    int width = textureSize(skin_joints, 0).x;
+
+    vec4 m[3];
+
+    int i = int(idx) * 3;
+    int y = i / width;
+    int x = i % width;
+    for (int n = 0; n < 3; n++)
+    {
+        m[n] = texelFetch(skin_joints, ivec2(x, y), 0);
+
+        if (x == width - 1)
+        {
+            y++;
+            x = 0;
+        }
+        else
+        {
+            x++;
+        }
+    }
+
     return mat4(
-        vec4(skin.joints[base + 0u].xyz, 0.0), 
-        vec4(skin.joints[base + 1u].xyz, 0.0), 
-        vec4(skin.joints[base + 2u].xyz, 0.0), 
-        vec4(skin.joints[base + 0u].w, skin.joints[base + 1u].w, skin.joints[base + 2u].w, 1.0)
-    );
+        vec4(m[0].xyz, 0.0),
+        vec4(m[1].xyz, 0.0),
+        vec4(m[2].xyz, 0.0),
+        vec4(m[0].w, m[1].w, m[2].w, 1.0));
 }

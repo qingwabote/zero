@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
 import { BufferView } from "../../../core/render/gpu/BufferView.js";
 import { Model } from "../../../core/render/scene/Model.js";
 import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
@@ -89,8 +89,8 @@ export class InstanceBatch {
         model.fillInstanced(this._view, this._count++);
     }
 
-    upload(): void {
-        this._view.update();
+    upload(commandBuffer: CommandBuffer): void {
+        this._view.update(commandBuffer);
         this._lockedFlag.reset(1);
     }
 

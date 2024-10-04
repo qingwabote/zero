@@ -1,4 +1,4 @@
-import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
@@ -47,7 +47,7 @@ export class CSMIUBO extends UBO {
         data.shadow = new Shadow(visibilities, _num)
     }
 
-    update(dumping: boolean): void {
+    update(commandBuffer: CommandBuffer, dumping: boolean): void {
         const size = UBO.align(BlockSize);
 
         let index = -1;
@@ -64,6 +64,6 @@ export class CSMIUBO extends UBO {
             }
         }
 
-        this._view.update();
+        this._view.update(commandBuffer);
     }
 }

@@ -19,6 +19,8 @@ namespace gfx
 
         void update(const std::shared_ptr<ImageBitmap> &imageBitmap);
 
+        void resize(uint32_t width, uint32_t height);
+
         bool initialize();
 
         ~Texture();

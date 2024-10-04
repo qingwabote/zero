@@ -1,10 +1,4 @@
-
-const format2array = {
-    Uint16: Uint16Array,
-    Float32: Float32Array
-} as const
-
-type Format = keyof typeof format2array;
+import { CommandBuffer } from "gfx";
 
 interface TypedArray {
     readonly BYTES_PER_ELEMENT: number;
@@ -20,7 +14,6 @@ export abstract class MemoryView {
         return this._length;
     }
 
-    private _source: TypedArray;
     get source() {
         return this._source;
     }
@@ -31,9 +24,7 @@ export abstract class MemoryView {
 
     protected _invalidated: boolean = false;
 
-    constructor(private _format: Format, private _length: number) {
-        this._source = new format2array[_format](_length);
-    }
+    constructor(protected _source: TypedArray, private _length: number) { }
 
     set(array: ArrayLike<number>, offset?: number) {
         this._source.set(array, offset);
@@ -57,30 +48,23 @@ export abstract class MemoryView {
         this._length = length;
     }
 
-    reserve(capacity: number): TypedArray | null {
-        if (this._source.length >= capacity) {
-            return null;
-        }
-        const old = this._source;
-        this._source = new format2array[this._format](capacity);
-        return old;
-    }
-
     shrink() { }
 
-    update() {
+    update(commandBuffer: CommandBuffer) {
         if (!this._invalidated) {
             return;
         }
 
-        this.upload(this.source.buffer, this.length * this._source.BYTES_PER_ELEMENT);
+        this.upload(commandBuffer);
 
         this._invalidated = false;
     }
 
-    abstract upload(binary: ArrayBuffer, range: number): void;
+    protected abstract upload(commandBuffer: CommandBuffer): void;
+
+    public abstract reserve(capacity: number): TypedArray | null;
 }
 
 export declare namespace MemoryView {
-    export { Format }
+    export { TypedArray }
 }

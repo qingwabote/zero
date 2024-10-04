@@ -49,14 +49,14 @@ export class App extends Zero {
         const width = 640;
         const height = 960;
 
-        const swapchain = device.swapchain;
-        const scale = Math.min(swapchain.width / width, swapchain.height / height);
+        const { width: w, height: h } = device.swapchain.color.info;
+        const scale = Math.min(w / width, h / height);
 
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = Camera.ClearFlagBits.DEPTH;
-        ui_camera.orthoSize = swapchain.height / scale / 2;
+        ui_camera.orthoSize = h / scale / 2;
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;

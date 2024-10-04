@@ -1,12 +1,13 @@
-import { BufferUsageFlagBits, DescriptorSetLayout } from "gfx";
+import { CommandBuffer, DescriptorSetLayout, Filter } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
-import { BufferView } from "../../core/render/gpu/BufferView.js";
+import { TextureView } from "../../core/render/gpu/TextureView.js";
 import { Material } from "../../core/render/scene/Material.js";
 import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { Transform } from "../../core/render/scene/Transform.js";
+import { getSampler } from "../../core/sc.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 class ModelSpaceTransform {
@@ -39,22 +40,24 @@ export class SkinnedModel extends Model {
         this._joints = undefined;
     }
 
-    private _skinBuffer: BufferView;
+    private _skinBuffer: TextureView;
 
     constructor(transform: Transform, mesh: Mesh, materials: readonly Material[], private _skin: Skin) {
         super(transform, mesh, materials);
 
-        const view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
-        this.descriptorSet!.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, view.buffer);
+        // const view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
+        // this.descriptorSet!.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, view.buffer);
+        const view = new TextureView(4 * 3 * _skin.joints.length);
+        this.descriptorSet?.bindTexture(shaderLib.sets.local.uniforms.Skin.binding, view.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
         this._skinBuffer = view
     }
 
-    override upload(): void {
+    override upload(commandBuffer: CommandBuffer): void {
         if (this._hasUploadedFlag.value) {
             return;
         }
 
-        super.upload();
+        super.upload(commandBuffer);
 
         if (!this._joints) {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths)!);
@@ -88,7 +91,7 @@ export class SkinnedModel extends Model {
             source[base + 11] = mat4_a[14];
         }
         this._skinBuffer.invalidate();
-        this._skinBuffer.update();
+        this._skinBuffer.update(commandBuffer);
     }
 
     private updateModelSpace(joint: Transform) {
