@@ -22,6 +22,9 @@ namespace gfx
                                                        Format format = Format::UNDEFINED;
                                                        switch (device->swapchainImageFormat())
                                                        {
+                                                       case VK_FORMAT_R8G8B8A8_UNORM:
+                                                           format = Format::RGBA8_UNORM;
+                                                           break;
                                                        case VK_FORMAT_B8G8R8A8_UNORM:
                                                            format = Format::BGRA8_UNORM;
                                                            break;
