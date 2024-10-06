@@ -96,6 +96,8 @@ namespace gfx
         info->width = width;
         info->height = height;
         initialize();
+
+        emit(TextureImplEvent::RESET);
     }
 
     void TextureImpl::clear()

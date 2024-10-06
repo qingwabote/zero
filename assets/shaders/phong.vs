@@ -1,8 +1,5 @@
 #include <global/camera>
 #include <local>
-#if USE_SKIN
-    #include <skin>
-#endif
 
 layout(location = 0) in vec4 a_position;
 #if USE_ALBEDO_MAP
@@ -12,6 +9,7 @@ layout(location = 2) in vec3 a_normal;
 #if USE_SKIN
     layout(location = 3) in uvec4 a_joints;
     layout(location = 4) in vec4 a_weights;
+    #include <skin>
 #endif
 
 #if USE_ALBEDO_MAP

@@ -2,10 +2,16 @@
 
 #include "DeviceImpl.hpp"
 #include "gfx/info.hpp"
+#include "base/event/Emitter.hpp"
 
 namespace gfx
 {
-    class TextureImpl
+    enum class TextureImplEvent
+    {
+        RESET
+    };
+
+    class TextureImpl : public event::Emitter<TextureImplEvent>
     {
     private:
         DeviceImpl *_device{nullptr};

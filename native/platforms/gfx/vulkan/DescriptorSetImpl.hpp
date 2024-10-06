@@ -14,7 +14,7 @@ namespace gfx
         VkDescriptorSet _descriptorSet = nullptr;
 
         std::unordered_map<uint32_t, std::pair<std::shared_ptr<BufferImpl>, event::Handle>> _buffers;
-        std::unordered_map<uint32_t, std::shared_ptr<TextureImpl>> _textures;
+        std::unordered_map<uint32_t, std::pair<std::shared_ptr<TextureImpl>, event::Handle>> _textures;
         std::unordered_map<uint32_t, std::shared_ptr<SamplerImpl>> _samplers;
 
     public:

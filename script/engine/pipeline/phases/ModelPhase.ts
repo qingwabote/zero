@@ -1,13 +1,13 @@
-import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Pipeline, RenderPass } from "gfx";
+import { CommandBuffer, Pipeline, RenderPass } from "gfx";
 import { Zero } from "../../core/Zero.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
+import { InstanceBatch } from "../../core/render/scene/InstanceBatch.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../core/shaderLib.js";
-import { InstanceBatch } from "./internal/InstanceBatch.js";
 
 interface PB {
     pass: Pass,
@@ -17,7 +17,8 @@ interface PB {
 const batchCache = (function () {
     const subMesh2batches: WeakMap<SubMesh, InstanceBatch[]> = new WeakMap;
     const batch2pass: WeakMap<InstanceBatch, Pass> = new WeakMap;
-    return function (pass: Pass, subMesh: SubMesh, descriptorSetLayout: DescriptorSetLayout, descriptorSet?: DescriptorSet): InstanceBatch {
+    return function (pass: Pass, model: Model, subMeshIndex: number): InstanceBatch {
+        const subMesh = model.mesh.subMeshes[subMeshIndex];
         let batches = subMesh2batches.get(subMesh);
         if (!batches) {
             subMesh2batches.set(subMesh, batches = []);
@@ -25,9 +26,6 @@ const batchCache = (function () {
         let batch: InstanceBatch | undefined;
         for (const b of batches) {
             if (b.locked) {
-                continue;
-            }
-            if (b.descriptorSet != descriptorSet) {
                 continue;
             }
             const p = batch2pass.get(b);
@@ -38,7 +36,7 @@ const batchCache = (function () {
             break;
         }
         if (!batch) {
-            batch = new InstanceBatch(subMesh, descriptorSetLayout, descriptorSet)
+            batch = model.batch(subMeshIndex);
             batches.push(batch);
             batch2pass.set(batch, pass);
         }
@@ -108,8 +106,6 @@ export class ModelPhase extends Phase {
                         continue;
                     }
 
-                    pass.upload(commandBuffer);
-
                     if (diff) {
                         const batches = pass2batches.get(pass);
                         if (diff == 1 && batches) {
@@ -139,11 +135,11 @@ export class ModelPhase extends Phase {
                         pass2batches.set(pass, batches = []);
                     }
 
-                    const batch = batchCache(pass, model.mesh.subMeshes[i], (model.constructor as typeof Model).descriptorSetLayout, model.descriptorSet);
+                    const batch = batchCache(pass, model, i);
                     if (batch.count == 0) {
                         batches.push(batch);
                     }
-                    batch.add(model);
+                    model.batchUpdate(batch)
                 }
             }
 
@@ -160,6 +156,11 @@ export class ModelPhase extends Phase {
                 this._pb_count++;
             }
         }
+        for (let i = 0; i < this._pb_count; i++) {
+            const { pass, batch } = this._pb_buffer[i];
+            pass.upload(commandBuffer);
+            batch.upload(commandBuffer);
+        }
     }
 
     render(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
@@ -175,8 +176,6 @@ export class ModelPhase extends Phase {
 
                 profile.passes++;
             }
-
-            batch.upload(commandBuffer);
 
             if (batch.descriptorSet) {
                 commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.descriptorSet);

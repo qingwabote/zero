@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from "engine";
+import { Animation, BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider } from 'flex';
 
 const Polyart = await (await bundle.cache('SciFiWarriorPBRHPPolyart/Polyart', GLTF)).instantiate();
@@ -44,6 +44,15 @@ export class App extends Zero {
             Run_gunMiddle_AR.animationClips[0],
         ];
         animation.thresholds = [0, 0.5, 1]
+
+        node = Polyart.createScene("Scene")!;
+        node.visibility = VisibilityFlagBits.WORLD;
+        node.euler = vec3.create(0, 60, 0)
+        node.scale = [0.01, 0.01, 0.01]
+        node.position = [-1, 1, -1];
+        const animation2 = node.addComponent(Animation);
+        animation2.clips = Idle_Shoot_ar.animationClips;
+        animation2.play(Idle_Shoot_ar.animationClips[0].name);
 
         // UI
         const width = 640;

@@ -1,9 +1,9 @@
 import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
-import { BufferView } from "../../../core/render/gpu/BufferView.js";
-import { Model } from "../../../core/render/scene/Model.js";
-import { PeriodicFlag } from "../../../core/render/scene/PeriodicFlag.js";
-import { SubMesh } from "../../../core/render/scene/SubMesh.js";
-import { shaderLib } from "../../../core/shaderLib.js";
+import { shaderLib } from "../../shaderLib.js";
+import { BufferView } from "../gpu/BufferView.js";
+import { MemoryView } from "../gpu/MemoryView.js";
+import { PeriodicFlag } from "./PeriodicFlag.js";
+import { SubMesh } from "./SubMesh.js";
 
 const inputAssembler_clone = (function () {
     function vertexInput_clone(out: VertexInput, vertexInput: VertexInput): VertexInput {
@@ -53,8 +53,6 @@ function createModelAttribute(buffer: number) {
 }
 
 export class InstanceBatch {
-    readonly descriptorSetLayout: DescriptorSetLayout;
-    readonly descriptorSet: DescriptorSet | undefined;
 
     readonly inputAssembler: InputAssembler;
 
@@ -65,32 +63,33 @@ export class InstanceBatch {
         return this._count;
     }
 
-    private readonly _view: BufferView;
+    readonly vertex: BufferView;
 
     private _lockedFlag = new PeriodicFlag();
     get locked(): boolean {
         return this._lockedFlag.value != 0;
     }
 
-    constructor(subMesh: SubMesh, descriptorSetLayout: DescriptorSetLayout, descriptorSet?: DescriptorSet) {
+    constructor(subMesh: SubMesh, readonly descriptorSetLayout: DescriptorSetLayout, readonly descriptorSet?: DescriptorSet, readonly uniforms?: Readonly<Record<string, MemoryView>>) {
         const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
         const ia = inputAssembler_clone(subMesh.inputAssembler);
         ia.vertexInputState.attributes.add(createModelAttribute(ia.vertexInput.buffers.size()));
         ia.vertexInput.buffers.add(view.buffer);
         ia.vertexInput.offsets.add(0);
-        this._view = view;
+        this.vertex = view;
         this.inputAssembler = ia;
         this.draw = subMesh.draw;
-        this.descriptorSetLayout = descriptorSetLayout;
-        this.descriptorSet = descriptorSet;
     }
 
-    add(model: Model) {
-        model.fillInstanced(this._view, this._count++);
+    next() {
+        this._count++;
     }
 
     upload(commandBuffer: CommandBuffer): void {
-        this._view.update(commandBuffer);
+        this.vertex.update(commandBuffer);
+        for (const key in this.uniforms) {
+            this.uniforms[key].update(commandBuffer);
+        }
         this._lockedFlag.reset(1);
     }
 

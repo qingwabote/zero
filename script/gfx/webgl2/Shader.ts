@@ -63,6 +63,8 @@ export class Shader {
             } else {
                 source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*in/g, 'in');
             }
+            //
+            source = source.replace('gl_InstanceIndex', 'gl_InstanceID');
 
             source = `#version 300 es\n${source}`
             const shader = gl.createShader(types[i] == ShaderStageFlagBits.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER)!;

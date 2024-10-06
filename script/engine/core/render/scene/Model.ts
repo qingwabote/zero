@@ -1,7 +1,7 @@
 import { device } from "boot";
-import { CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo } from "gfx";
+import { CommandBuffer, DescriptorSetLayoutInfo } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { BufferView } from "../gpu/BufferView.js";
+import { InstanceBatch } from "./InstanceBatch.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
@@ -12,9 +12,9 @@ enum ChangeBits {
     BOUNDS = 1 << 0,
 }
 
-export class Model {
-    static readonly descriptorSetLayout = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
+const descriptorSetLayout = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 
+export class Model {
     private _bounds_invalidated = true;
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
@@ -58,16 +58,9 @@ export class Model {
      */
     order: number = 0;
 
-    readonly descriptorSet?: DescriptorSet;
-
     protected _hasUploadedFlag = new PeriodicFlag;
 
-    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) {
-        const descriptorSetLayout = (this.constructor as typeof Model).descriptorSetLayout;
-        if (descriptorSetLayout.info.bindings.size()) {
-            this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
-        }
-    }
+    constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) { }
 
     updateBounds() {
         if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
@@ -83,9 +76,15 @@ export class Model {
         this._hasUploadedFlag.reset(1);
     }
 
-    fillInstanced(view: BufferView, count: number) {
-        view.resize(16 * (count + 1));
-        view.set(this._transform.world_matrix, 16 * count);
+    batch(subMeshIndex: number): InstanceBatch {
+        return new InstanceBatch(this.mesh.subMeshes[subMeshIndex], descriptorSetLayout)
+    }
+
+    batchUpdate(batch: InstanceBatch) {
+        const vertex = batch.vertex;
+        vertex.resize(16 * (batch.count + 1));
+        vertex.set(this._transform.world_matrix, 16 * batch.count);
+        batch.next();
     }
 }
 Model.ChangeBits = ChangeBits;

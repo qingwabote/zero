@@ -52,30 +52,42 @@ namespace gfx
 
     void DescriptorSetImpl::bindTexture(uint32_t binding, const std::shared_ptr<TextureImpl> &texture, const std::shared_ptr<SamplerImpl> &sampler)
     {
-        VkImageUsageFlags usage = static_cast<VkImageUsageFlags>(texture->info->usage);
-        VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        auto it = _textures.find(binding);
+        if (it != _textures.end())
         {
-            imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            it->second.first->off(TextureImplEvent::RESET, it->second.second);
         }
 
-        VkDescriptorImageInfo imageBufferInfo = {};
-        imageBufferInfo.sampler = *sampler;
-        imageBufferInfo.imageView = *texture;
-        imageBufferInfo.imageLayout = imageLayout;
+        auto f = new auto(
+            [=]
+            {
+                VkImageUsageFlags usage = static_cast<VkImageUsageFlags>(texture->info->usage);
+                VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+                {
+                    imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+                }
 
-        VkWriteDescriptorSet write = {};
-        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write.dstBinding = binding;
-        write.dstSet = _descriptorSet;
-        write.descriptorCount = 1;
-        write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        write.pImageInfo = &imageBufferInfo;
+                VkDescriptorImageInfo imageBufferInfo = {};
+                imageBufferInfo.sampler = *sampler;
+                imageBufferInfo.imageView = *texture;
+                imageBufferInfo.imageLayout = imageLayout;
 
-        vkUpdateDescriptorSets(*_device, 1, &write, 0, nullptr);
+                VkWriteDescriptorSet write = {};
+                write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write.dstBinding = binding;
+                write.dstSet = _descriptorSet;
+                write.descriptorCount = 1;
+                write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write.pImageInfo = &imageBufferInfo;
 
-        _textures[binding] = texture;
+                vkUpdateDescriptorSets(*_device, 1, &write, 0, nullptr);
+            });
+
+        _textures[binding] = std::make_pair(texture, texture->on(TextureImplEvent::RESET, f));
         _samplers[binding] = sampler;
+
+        (*f)();
     }
 
     DescriptorSetImpl::~DescriptorSetImpl()
@@ -83,6 +95,10 @@ namespace gfx
         for (auto &&it : _buffers)
         {
             it.second.first->off(BufferImplEvent::RESET, it.second.second);
+        }
+        for (auto &&it : _textures)
+        {
+            it.second.first->off(TextureImplEvent::RESET, it.second.second);
         }
     }
 

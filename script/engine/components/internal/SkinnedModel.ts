@@ -1,7 +1,9 @@
+import { device } from "boot";
 import { CommandBuffer, DescriptorSetLayout, Filter } from "gfx";
 import { Skin } from "../../assets/Skin.js";
 import { mat4 } from "../../core/math/mat4.js";
 import { TextureView } from "../../core/render/gpu/TextureView.js";
+import { InstanceBatch } from "../../core/render/scene/InstanceBatch.js";
 import { Material } from "../../core/render/scene/Material.js";
 import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
@@ -9,6 +11,12 @@ import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { Transform } from "../../core/render/scene/Transform.js";
 import { getSampler } from "../../core/sc.js";
 import { shaderLib } from "../../core/shaderLib.js";
+
+const SkinUniform = shaderLib.sets.local.uniforms.Skin;
+
+const META_LENGTH = 1 /* pixels */ * 4 /* RGBA */;
+
+const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
 
 class ModelSpaceTransform {
     hasUpdatedFlag = new PeriodicFlag();
@@ -20,8 +28,6 @@ const mat4_a = mat4.create();
 const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
 
 export class SkinnedModel extends Model {
-    static readonly descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([shaderLib.sets.local.uniforms.Skin]);
-
     private _joints: readonly Transform[] | undefined = undefined;
 
     public get skin(): Skin {
@@ -40,16 +46,11 @@ export class SkinnedModel extends Model {
         this._joints = undefined;
     }
 
-    private _skinBuffer: TextureView;
+    private _jointBuffer: Float32Array;
 
     constructor(transform: Transform, mesh: Mesh, materials: readonly Material[], private _skin: Skin) {
         super(transform, mesh, materials);
-
-        // const view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, shaderLib.sets.local.uniforms.Skin.length);
-        // this.descriptorSet!.bindBuffer(shaderLib.sets.local.uniforms.Skin.binding, view.buffer);
-        const view = new TextureView(4 * 3 * _skin.joints.length);
-        this.descriptorSet?.bindTexture(shaderLib.sets.local.uniforms.Skin.binding, view.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
-        this._skinBuffer = view
+        this._jointBuffer = new Float32Array(4 * 3 * _skin.joints.length);
     }
 
     override upload(commandBuffer: CommandBuffer): void {
@@ -63,7 +64,7 @@ export class SkinnedModel extends Model {
             this._joints = this._skin.joints.map(paths => this.transform.getChildByPath(paths)!);
         }
 
-        const source = this._skinBuffer.source;
+        const jointBuffer = this._jointBuffer;
         for (let i = 0; i < this._joints.length; i++) {
             const joint = this._joints[i];
             this.updateModelSpace(joint);
@@ -72,26 +73,39 @@ export class SkinnedModel extends Model {
 
             const base = 12 * i;
 
-            source[base + 0] = mat4_a[0];
-            source[base + 1] = mat4_a[1];
-            source[base + 2] = mat4_a[2];
+            jointBuffer[base + 0] = mat4_a[0];
+            jointBuffer[base + 1] = mat4_a[1];
+            jointBuffer[base + 2] = mat4_a[2];
 
-            source[base + 3] = mat4_a[12];
+            jointBuffer[base + 3] = mat4_a[12];
 
-            source[base + 4] = mat4_a[4];
-            source[base + 5] = mat4_a[5];
-            source[base + 6] = mat4_a[6];
+            jointBuffer[base + 4] = mat4_a[4];
+            jointBuffer[base + 5] = mat4_a[5];
+            jointBuffer[base + 6] = mat4_a[6];
 
-            source[base + 7] = mat4_a[13];
+            jointBuffer[base + 7] = mat4_a[13];
 
-            source[base + 8] = mat4_a[8];
-            source[base + 9] = mat4_a[9];
-            source[base + 10] = mat4_a[10];
+            jointBuffer[base + 8] = mat4_a[8];
+            jointBuffer[base + 9] = mat4_a[9];
+            jointBuffer[base + 10] = mat4_a[10];
 
-            source[base + 11] = mat4_a[14];
+            jointBuffer[base + 11] = mat4_a[14];
         }
-        this._skinBuffer.invalidate();
-        this._skinBuffer.update(commandBuffer);
+    }
+
+    override batch(subMeshIndex: number): InstanceBatch {
+        const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+        const joints = new TextureView(this._jointBuffer.length + META_LENGTH /* space for one instance by default */);
+        joints.source[0] = 3 * this._skin.joints.length;
+        descriptorSet.bindTexture(SkinUniform.binding, joints.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
+        return new InstanceBatch(this.mesh.subMeshes[subMeshIndex], descriptorSetLayout, descriptorSet, { [SkinUniform.binding]: joints })
+    }
+
+    override batchUpdate(batch: InstanceBatch): void {
+        const joints = batch.uniforms![SkinUniform.binding];
+        joints.resize(this._jointBuffer.length * (batch.count + 1) + META_LENGTH);
+        joints.set(this._jointBuffer, this._jointBuffer.length * batch.count + META_LENGTH);
+        super.batchUpdate(batch);
     }
 
     private updateModelSpace(joint: Transform) {
