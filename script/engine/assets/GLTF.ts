@@ -106,10 +106,7 @@ export class GLTF implements Asset {
         return this._json;
     }
 
-    private _bin!: ArrayBuffer;
-    get bin(): ArrayBuffer {
-        return this._bin;
-    }
+    private _bin!: Uint8Array;
 
     private _textures!: Texture[];
     get textures(): readonly Texture[] {
@@ -222,7 +219,7 @@ export class GLTF implements Asset {
             this._animationClips.push({ name: animation.name, channels });
         }
 
-        this._bin = bin;
+        this._bin = new Uint8Array(bin);
         this._json = json;
         return this;
     }

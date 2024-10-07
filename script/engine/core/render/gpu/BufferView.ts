@@ -38,6 +38,6 @@ export class BufferView extends MemoryView {
         if (this._buffer.info.size < bytes) {
             this._buffer.resize(bytes);
         }
-        this._buffer.update(this._source.buffer, 0, bytes);
+        this._buffer.update(this._source, 0, this.length);
     }
 }

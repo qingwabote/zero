@@ -1,13 +1,6 @@
 import { CommandBuffer } from "gfx";
 
-interface TypedArray {
-    readonly BYTES_PER_ELEMENT: number;
-    readonly buffer: ArrayBufferLike;
-    readonly byteLength: number;
-    readonly length: number;
-    set(array: ArrayLike<number>, offset?: number): void;
-    [index: number]: number;
-}
+type TypedArray = Uint16Array | Float32Array
 
 export abstract class MemoryView {
     get length(): number {

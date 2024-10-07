@@ -300,4 +300,11 @@ namespace gfx
         int32_t waitDstStageMask;
         std::shared_ptr<Semaphore> signalSemaphore;
     };
+
+    struct Span
+    {
+        void *data = nullptr;
+        size_t size = 0;
+        size_t stride = 0;
+    };
 }

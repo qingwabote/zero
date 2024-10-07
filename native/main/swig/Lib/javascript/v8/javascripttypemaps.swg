@@ -76,8 +76,16 @@
       $result = SWIGV8_NULL();
     }
 }
-%typemap(in) std::shared_ptr<const void>& (std::shared_ptr<const void> data) {
-  std::shared_ptr<v8::BackingStore> store = $input.As<v8::ArrayBuffer>()->GetBackingStore();
-  data.reset(store->Data(), [store](void *) {});
-  $1 = &data;
+
+%typemap(in) std::shared_ptr<const gfx::Span>& (std::shared_ptr<const gfx::Span> span) {
+  auto view = $input.As<v8::TypedArray>();
+  std::shared_ptr<v8::BackingStore> store = view->Buffer()->GetBackingStore();
+  span.reset(new gfx::Span {
+    reinterpret_cast<uint8_t *>(store->Data()) + view->ByteOffset(),
+    view->Length(),
+    view->ByteLength() / view ->Length()
+  }, [store](gfx::Span *span) {
+    delete span;
+  });
+  $1 = &span;
 }

@@ -96,23 +96,16 @@ namespace gfx
         vkBeginCommandBuffer(impl->_commandBuffer, &info);
     }
 
-    void CommandBuffer::copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<Buffer> &buffer, size_t offset, size_t length)
-    {
-        auto start = reinterpret_cast<const uint8_t *>(data.get()) + offset;
-
-        VkBufferCopy copy = {};
-        copy.size = length;
-        vkCmdCopyBuffer(impl->_commandBuffer, impl->createStagingBuffer(start, length), *buffer->impl, 1, &copy);
-    }
-
     void CommandBuffer::copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture)
     {
-        copyBufferToTexture({imageBitmap->pixels.get(), [imageBitmap](void *) {}}, texture, 0, 0, imageBitmap->width, imageBitmap->height);
+        copyBufferToTexture({new Span{imageBitmap->pixels.get()}, [imageBitmap](Span *span)
+                             { delete span; }},
+                            texture, 0, 0, imageBitmap->width, imageBitmap->height);
     }
 
-    void CommandBuffer::copyBufferToTexture(const std::shared_ptr<const void> &data, const std::shared_ptr<Texture> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
+    void CommandBuffer::copyBufferToTexture(const std::shared_ptr<const Span> &span, const std::shared_ptr<Texture> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
     {
-        VkBuffer buffer = impl->createStagingBuffer(data.get(), FormatInfos.at(texture->info->format).bytes * extent_x * extent_y);
+        VkBuffer buffer = impl->createStagingBuffer(span->data, FormatInfos.at(texture->info->format).bytes * extent_x * extent_y);
 
         VkImageSubresourceRange range = {};
         range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

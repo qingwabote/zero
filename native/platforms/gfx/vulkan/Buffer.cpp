@@ -28,10 +28,9 @@ namespace gfx
         return false;
     }
 
-    void BufferImpl::update(const void *data, size_t offset, size_t length)
+    void BufferImpl::update(const void *data, size_t length)
     {
-        auto start = reinterpret_cast<const uint8_t *>(data) + offset;
-        memcpy(_allocationInfo.pMappedData, start, length);
+        memcpy(_allocationInfo.pMappedData, data, length);
     }
 
     void BufferImpl::resize(uint32_t size)
@@ -53,7 +52,10 @@ namespace gfx
 
     bool Buffer::initialize() { return impl->initialize(); }
 
-    void Buffer::update(const std::shared_ptr<const void> &data, size_t offset, size_t length) { impl->update(data.get(), offset, length); }
+    void Buffer::update(const std::shared_ptr<const Span> &span, size_t offset, size_t length)
+    {
+        impl->update(reinterpret_cast<uint8_t *>(span->data) + span->stride * offset, span->stride * (length == 0 ? span->size : length));
+    }
 
     void Buffer::resize(uint32_t size)
     {

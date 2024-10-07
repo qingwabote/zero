@@ -46,6 +46,6 @@ export class TextureView extends MemoryView {
             width = extent;
         }
         const height = Math.ceil(Math.ceil(this.length / 4) / width);
-        commandBuffer.copyBufferToTexture(this._source.buffer, this._texture, 0, 0, width, height);
+        commandBuffer.copyBufferToTexture(this._source, this._texture, 0, 0, width, height);
     }
 }

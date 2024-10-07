@@ -65,7 +65,7 @@ function createVertexBuffer(width: number, height: number, upsideDown = false) {
     bufferInfo.size = vertexes.byteLength;
     bufferInfo.usage = BufferUsageFlagBits.VERTEX;
     const buffer = device.createBuffer(bufferInfo);
-    buffer.update(vertexes.buffer, 0, vertexes.byteLength);
+    buffer.update(vertexes, 0, 0);
 
     return buffer;
 }
