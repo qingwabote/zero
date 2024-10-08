@@ -2,7 +2,7 @@
 import { device } from 'boot';
 //
 import { bundle } from 'bundling';
-import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssembler, LOAD_OP, MemoryUsage, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute } from "gfx";
+import { AttachmentDescription, BlendFactor, BlendState, BufferInfo, BufferUsageFlagBits, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FormatInfos, FramebufferInfo, ImageLayout, IndexInput, IndexType, InputAssembler, LOAD_OP, PipelineInfo, PipelineLayoutInfo, PrimitiveTopology, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, SubmitInfo, TextureInfo, TextureUsageFlagBits, VertexAttribute } from "gfx";
 
 const TEXTURE_BINDING = 0;
 
@@ -37,6 +37,7 @@ const bitmap = await bundle.raw.once('favicon.ico', 'bitmap');
 
 const info = new TextureInfo;
 info.usage = TextureUsageFlagBits.SAMPLED | TextureUsageFlagBits.TRANSFER_DST;
+info.format = Format.RGBA8_UNORM;
 info.width = bitmap.width;
 info.height = bitmap.height;
 const texture = device.createTexture(info);
@@ -67,7 +68,7 @@ a_texCoord.offset = FormatInfos[a_position.format].bytes;
 a_texCoord.buffer = 0;
 a_texCoord.location = 1;
 
-const { width, height } = device.swapchain;
+const { width, height } = device.swapchain.color.info;
 const ratio = width / height;
 
 const vertexes = new Float32Array([
@@ -79,17 +80,15 @@ const vertexes = new Float32Array([
 const vertexBufferInfo = new BufferInfo;
 vertexBufferInfo.size = vertexes.byteLength;
 vertexBufferInfo.usage = BufferUsageFlagBits.VERTEX;
-vertexBufferInfo.mem_usage = MemoryUsage.CPU_TO_GPU;
 const vertexBuffer = device.createBuffer(vertexBufferInfo);
-vertexBuffer.update(vertexes.buffer, 0, vertexes.byteLength);
+vertexBuffer.update(vertexes, 0, 0);
 
 const indexes = new Uint16Array([0, 1, 3, 1, 2, 3])
 const indexBufferInfo = new BufferInfo;
 indexBufferInfo.size = indexes.byteLength;
 indexBufferInfo.usage = BufferUsageFlagBits.INDEX;
-indexBufferInfo.mem_usage = MemoryUsage.CPU_TO_GPU;
 const indexBuffer = device.createBuffer(indexBufferInfo);
-indexBuffer.update(indexes.buffer, 0, indexes.byteLength);
+indexBuffer.update(indexes, 0, 0);
 
 const inputAssembler = new InputAssembler;
 inputAssembler.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
@@ -152,16 +151,17 @@ pipelineInfo.renderPass = renderPass;
 const pipeline = device.createPipeline(pipelineInfo);
 
 const framebufferInfo = new FramebufferInfo;
-framebufferInfo.colors.add(device.swapchain.colorTexture);
+framebufferInfo.colors.add(device.swapchain.color);
 const depthStencilTextureInfo = new TextureInfo;
 depthStencilTextureInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
-depthStencilTextureInfo.width = device.swapchain.width;
-depthStencilTextureInfo.height = device.swapchain.height;
+depthStencilTextureInfo.format = Format.D32_SFLOAT;
+depthStencilTextureInfo.width = width;
+depthStencilTextureInfo.height = height;
 const depthStencilTexture = device.createTexture(depthStencilTextureInfo);
 framebufferInfo.depthStencil = depthStencilTexture;
 framebufferInfo.renderPass = renderPass;
-framebufferInfo.width = device.swapchain.width;
-framebufferInfo.height = device.swapchain.height;
+framebufferInfo.width = width;
+framebufferInfo.height = height;
 const framebuffer = device.createFramebuffer(framebufferInfo);
 
 const samplerInfo = new SamplerInfo;
@@ -172,7 +172,7 @@ const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
 descriptorSet.bindTexture(TEXTURE_BINDING, texture, sampler)
 
 commandBuffer.begin()
-commandBuffer.beginRenderPass(renderPass, framebuffer, 0, 0, device.swapchain.width, device.swapchain.height);
+commandBuffer.beginRenderPass(renderPass, framebuffer, 0, 0, width, height);
 commandBuffer.bindPipeline(pipeline);
 commandBuffer.bindInputAssembler(inputAssembler);
 commandBuffer.bindDescriptorSet(0, descriptorSet);
