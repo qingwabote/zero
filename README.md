@@ -57,6 +57,8 @@
 
 无需使用 module bundler 打包引擎 javascript 源码, 引擎使用 [import-maps](https://github.com/WICG/import-maps) 实现 bare import specifiers, 依赖的 npm packages 则使用 rollup 打包
 
+# 支持微信分包加载
+
 # 兼容性
 
 Wasm 没有 GC, 引擎依赖 **FinalizationRegistry** 自动释放 Wasm 对象

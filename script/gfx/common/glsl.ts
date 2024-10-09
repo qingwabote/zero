@@ -1,25 +1,25 @@
 import { ShaderStageFlagBits } from "./constants.js";
 
-export namespace glsl {
-    export interface UniformMember {
-        readonly type: string
-        readonly offset: number
-    }
+interface UniformMember {
+    readonly type: string
+    readonly offset: number
+}
 
-    export interface Uniform {
-        readonly set: number;
-        readonly binding: number;
-        readonly stageFlags: ShaderStageFlagBits;
-        readonly members?: Readonly<Record<string, UniformMember>>;
-        readonly size?: number
-    }
+interface Uniform {
+    readonly set: number;
+    readonly binding: number;
+    readonly stageFlags: ShaderStageFlagBits;
+    readonly members?: Readonly<Record<string, UniformMember>>;
+    readonly size?: number
+}
 
-    export interface Meta {
-        readonly blocks: Record<string, Uniform>;
-        readonly samplerTextures: Record<string, Uniform>;
-    }
+interface Meta {
+    readonly blocks: Record<string, Uniform>;
+    readonly samplerTextures: Record<string, Uniform>;
+}
 
-    export function parse(sources: readonly string[], types: readonly ShaderStageFlagBits[]): Meta {
+export const glsl = {
+    parse(sources: readonly string[], types: readonly ShaderStageFlagBits[]): Meta {
         const blocks: Record<string, Uniform> = {};
         const samplerTextures: Record<string, Uniform> = {};
         for (let i = 0; i < sources.length; i++) {
@@ -60,4 +60,8 @@ export namespace glsl {
             samplerTextures
         }
     }
+}
+
+export declare namespace glsl {
+    export { Uniform, UniformMember, Meta }
 }

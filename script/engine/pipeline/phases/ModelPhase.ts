@@ -1,13 +1,89 @@
-import { CommandBuffer, Pipeline, RenderPass } from "gfx";
+import { device } from "boot";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, InputAssembler, Pipeline, RenderPass, VertexAttribute, VertexInput } from "gfx";
 import { Zero } from "../../core/Zero.js";
+import { BufferView } from "../../core/render/gpu/BufferView.js";
+import { MemoryView } from "../../core/render/gpu/MemoryView.js";
 import { Context } from "../../core/render/pipeline/Context.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
-import { InstanceBatch } from "../../core/render/scene/InstanceBatch.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
+import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../core/shaderLib.js";
+
+const inputAssembler_clone = (function () {
+    function vertexInput_clone(out: VertexInput, vertexInput: VertexInput): VertexInput {
+        const buffers = vertexInput.buffers;
+        const buffers_size = buffers.size();
+        for (let i = 0; i < buffers_size; i++) {
+            out.buffers.add(buffers.get(i));
+        }
+
+        const offsets = vertexInput.offsets;
+        const offsets_size = offsets.size();
+        for (let i = 0; i < offsets_size; i++) {
+            out.offsets.add(offsets.get(i));
+        }
+
+        return out;
+    }
+
+    return function (inputAssembler: InputAssembler): InputAssembler {
+        const out = new InputAssembler;
+
+        const vertexAttributes = inputAssembler.vertexInputState.attributes;
+        const size = vertexAttributes.size();
+        for (let i = 0; i < size; i++) {
+            out.vertexInputState.attributes.add(vertexAttributes.get(i));
+        }
+        out.vertexInputState.primitive = inputAssembler.vertexInputState.primitive;
+
+        vertexInput_clone(out.vertexInput, inputAssembler.vertexInput);
+
+        if (inputAssembler.indexInput) {
+            out.indexInput = inputAssembler.indexInput;
+        }
+
+        return out;
+    }
+})()
+
+const descriptorSetLayoutNull = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
+
+class InstanceBatch {
+    private _count = 0;
+    get count(): number {
+        return this._count;
+    }
+
+    private _lockedFlag = new PeriodicFlag();
+    get locked(): boolean {
+        return this._lockedFlag.value != 0;
+    }
+
+    constructor(readonly inputAssembler: InputAssembler, readonly draw: Readonly<SubMesh.Draw>, readonly vertexes: BufferView, readonly descriptorSetLayout: DescriptorSetLayout = descriptorSetLayoutNull, readonly descriptorSet?: DescriptorSet, readonly uniforms?: Readonly<Record<string, MemoryView>>) { }
+
+    next() {
+        this._count++;
+    }
+
+    upload(commandBuffer: CommandBuffer): void {
+        this.vertexes.update(commandBuffer);
+        for (const key in this.uniforms) {
+            this.uniforms[key].update(commandBuffer);
+        }
+        this._lockedFlag.reset(1);
+    }
+
+    recycle(): void {
+        this.vertexes.reset();
+        for (const key in this.uniforms) {
+            this.uniforms[key].reset();
+        }
+        this._count = 0;
+    }
+}
 
 interface PB {
     pass: Pass,
@@ -36,7 +112,22 @@ const batchCache = (function () {
             break;
         }
         if (!batch) {
-            batch = model.batch(subMeshIndex);
+            const ia = inputAssembler_clone(subMesh.inputAssembler);
+            const info = model.batch();
+            for (const attr of info.attributes) {
+                const attribute = new VertexAttribute;
+                attribute.location = attr.location;
+                attribute.format = attr.format;
+                attribute.offset = attr.offset;
+                attribute.multiple = attr.multiple;
+                attribute.buffer = ia.vertexInput.buffers.size();
+                attribute.instanced = true;
+                ia.vertexInputState.attributes.add(attribute);
+            }
+            ia.vertexInput.buffers.add(info.vertexes.buffer);
+            ia.vertexInput.offsets.add(0);
+
+            batch = new InstanceBatch(ia, subMesh.draw, info.vertexes, info.descriptorSet?.layout, info.descriptorSet, info.uniforms);
             batches.push(batch);
             batch2pass.set(batch, pass);
         }
@@ -93,8 +184,6 @@ export class ModelPhase extends Phase {
         const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
         let pass2batches_order: number = 0;
         for (const model of models) {
-            model.upload(commandBuffer);
-
             const diff = model.order - pass2batches_order;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 if (model.mesh.subMeshes[i].draw.count == 0) {
@@ -139,7 +228,8 @@ export class ModelPhase extends Phase {
                     if (batch.count == 0) {
                         batches.push(batch);
                     }
-                    model.batchUpdate(batch)
+                    model.batchFill(batch.vertexes, batch.uniforms)
+                    batch.next();
                 }
             }
 

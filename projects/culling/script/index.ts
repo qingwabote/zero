@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
 import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 
@@ -62,8 +62,8 @@ class App extends Zero {
                 const rotation = mat3.fromYRotation(mat3.create(), Math.PI * 2 / num);
                 for (let i = 0; i < num; i++) {
                     const guardian = gltf_guardian.createScene("Sketchfab_Scene")!;
-                    // const animation = guardian.addComponent(Animation);
-                    // animation.clips = gltf_guardian.proto.animationClips;
+                    const animation = guardian.addComponent(Animation);
+                    animation.clips = gltf_guardian.proto.animationClips;
                     // animation.play('WalkCycle')
                     guardian.visibility = VisibilityFlagBits.WORLD;
                     guardian.position = vec3.transformMat3(pos, pos, rotation);
@@ -99,11 +99,14 @@ class App extends Zero {
         const width = 640;
         const height = 960;
 
-        const swapchain = device.swapchain;
-        const scale = Math.min(swapchain.width / width, swapchain.height / height);
+        const { width: w, height: h } = device.swapchain.color.info;
+
+        const scaleX = w / width;
+        const scaleY = h / height;
+        const scale = scaleX < scaleY ? scaleX : scaleY;
 
         const ui_camera = Node.build(Camera);
-        ui_camera.orthoSize = swapchain.height / scale / 2;
+        ui_camera.orthoSize = h / scale / 2;
         ui_camera.near = -1;
         ui_camera.far = 1;
         ui_camera.visibilities = VisibilityFlagBits.UI;

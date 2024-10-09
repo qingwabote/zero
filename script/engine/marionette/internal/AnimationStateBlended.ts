@@ -45,9 +45,7 @@ export class AnimationStateBlended extends AnimationState {
                 continue;
             }
             this._context.weight = weight;
-            for (const channel of clip.channels) {
-                channel.sample(time);
-            }
+            clip.sample(time);
         }
 
         this._context.flush();

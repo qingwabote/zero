@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Fence, Format, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, Format, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
@@ -48,9 +48,6 @@ function uri2path(uri: string) {
 function node2name(node: any, index: number): string {
     return node.name == undefined ? `${index}` : node.name;
 }
-
-let _commandBuffer: CommandBuffer;
-let _fence: Fence;
 
 interface MaterialParams {
     albedo: Readonly<Vec4>;
@@ -106,8 +103,6 @@ export class GLTF implements Asset {
         return this._json;
     }
 
-    private _bin!: Uint8Array;
-
     private _textures!: Texture[];
     get textures(): readonly Texture[] {
         return this._textures;
@@ -123,9 +118,10 @@ export class GLTF implements Asset {
         return this._animationClips;
     }
 
-    private _buffers: Buffer[] = [];
-
     private _meshes: Mesh[] = [];
+    public get meshes(): readonly Mesh[] {
+        return this._meshes;
+    }
 
     private _instances: Record<string, Instance> = {};
 
@@ -138,19 +134,118 @@ export class GLTF implements Asset {
         const [, parent, name] = res;
         const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text"));
         const [bin, textures] = await Promise.all([
-            load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer"),
+            await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer"),
             json.images ? Promise.all((json.images as []).map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture))) : Promise.resolve([])
         ]);
-        this._textures = textures
+        this._textures = textures;
+        this._json = json;
 
-        const child2parent: Record<number, number> = {};
+        const node2parent: Record<number, number> = {};
         for (let i = 0; i < json.nodes.length; i++) {
             const node = json.nodes[i];
-            if (!node.children) {
-                continue;
+            if (node.children) {
+                for (const child of node.children) {
+                    node2parent[child] = i;
+                }
             }
-            for (const child of node.children) {
-                child2parent[child] = i;
+        }
+
+        if (json.meshes) {
+            const binView = new Uint8Array(bin);
+            const buffers: Buffer[] = [];
+            function getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
+                if (index in buffers) {
+                    if ((buffers[index].info.usage & usage) != usage) {
+                        throw new Error(`buffer.info.usage(${buffers[index].info.usage}) & usage(${usage})) != usage`);
+                    }
+                    return buffers[index];
+                }
+
+                const viewInfo = json.bufferViews[index];
+
+                const info = new BufferInfo();
+                info.usage = usage;
+                info.size = viewInfo.byteLength;
+                const buffer = device.createBuffer(info);
+                buffer.update(binView, viewInfo.byteOffset || 0, viewInfo.byteLength);
+
+                return buffers[index] = buffer;
+            }
+            for (let i = 0; i < json.meshes.length; i++) {
+                const info = json.meshes[i];
+                const subMeshes: SubMesh[] = [];
+                vec3.set(vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+                vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+                for (const primitive of info.primitives) {
+                    const ia = new InputAssembler;
+                    for (const key in primitive.attributes) {
+                        const accessor = json.accessors[primitive.attributes[key]];
+                        const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
+                        if (format == undefined) {
+                            console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
+                            continue;
+                        }
+                        const name = attributeMap[key];
+                        if (!name) {
+                            // console.log(`unknown attribute: ${key}`);
+                            continue;
+                        }
+                        const builtin = shaderLib.attributes[name];
+                        const attribute: VertexAttribute = new VertexAttribute;
+                        attribute.location = builtin.location;
+                        attribute.format = format;
+                        attribute.buffer = ia.vertexInput.buffers.size();
+                        attribute.offset = 0;
+                        attribute.stride = json.bufferViews[accessor.bufferView].byteStride || 0;
+                        ia.vertexInputState.attributes.add(attribute)
+                        ia.vertexInput.buffers.add(getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                        ia.vertexInput.offsets.add(accessor.byteOffset || 0);
+                    }
+                    ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
+
+                    const indexAccessor = json.accessors[primitive.indices];
+                    const indexBuffer = getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
+
+                    if (indexAccessor.type != "SCALAR") {
+                        throw new Error("unsupported index type");
+                    }
+                    let indexType: IndexType;
+                    switch (indexAccessor.componentType) {
+                        case 5123:
+                            indexType = IndexType.UINT16;
+                            break;
+                        case 5125:
+                            indexType = IndexType.UINT32;
+                            break;
+                        default:
+                            throw new Error("unsupported index type");
+                    }
+
+                    const indexInput = new IndexInput;
+                    indexInput.buffer = indexBuffer;
+                    indexInput.type = indexType;
+                    ia.indexInput = indexInput;
+
+                    if (json.bufferViews[indexAccessor.bufferView].byteStride) {
+                        throw new Error('unsupported stride on index buffer')
+                    }
+
+                    subMeshes.push(
+                        new SubMesh(
+                            ia,
+                            {
+                                count: indexAccessor.count,
+                                first: (indexAccessor.byteOffset || 0) / (indexType == IndexType.UINT16 ? 2 : 4)
+                            }
+                        )
+                    )
+
+                    const posAccessor = json.accessors[primitive.attributes['POSITION']];
+                    vec3.min(vec3_a, vec3_a, posAccessor.min);
+                    vec3.max(vec3_b, vec3_b, posAccessor.max);
+                }
+
+                this._meshes[i] = new Mesh(subMeshes, vec3_a, vec3_b);
             }
         }
 
@@ -158,7 +253,7 @@ export class GLTF implements Asset {
             const paths: string[] = [];
             do {
                 paths.push(node2name(json.nodes[idx], idx));
-                idx = child2parent[idx];
+                idx = node2parent[idx];
             } while (idx != undefined);
             return paths.reverse();
         }
@@ -219,8 +314,6 @@ export class GLTF implements Asset {
             this._animationClips.push({ name: animation.name, channels });
         }
 
-        this._bin = new Uint8Array(bin);
-        this._json = json;
         return this;
     }
 
@@ -251,105 +344,6 @@ export class GLTF implements Asset {
             this._instances[instanceKey] = instance;
         }
         return instance;
-    }
-
-    public getMesh(index: number) {
-        if (index in this._meshes) {
-            return this._meshes[index];
-        }
-
-        const subMeshes: SubMesh[] = [];
-        vec3.set(vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-        vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-        for (const primitive of this._json.meshes[index].primitives) {
-            const ia = new InputAssembler;
-            for (const key in primitive.attributes) {
-                const accessor = this._json.accessors[primitive.attributes[key]];
-                const format: Format = (Format as any)[`${format_part1[accessor.type]}${format_part2[accessor.componentType]}`];
-                if (format == undefined) {
-                    console.log(`unknown format of accessor: type ${accessor.type} componentType ${accessor.componentType}`);
-                    continue;
-                }
-                const name = attributeMap[key];
-                if (!name) {
-                    // console.log(`unknown attribute: ${key}`);
-                    continue;
-                }
-                const builtin = shaderLib.attributes[name];
-                const attribute: VertexAttribute = new VertexAttribute;
-                attribute.location = builtin.location;
-                attribute.format = format;
-                attribute.buffer = ia.vertexInput.buffers.size();
-                attribute.offset = 0;
-                attribute.stride = this._json.bufferViews[accessor.bufferView].byteStride || 0;
-                ia.vertexInputState.attributes.add(attribute)
-                ia.vertexInput.buffers.add(this.getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
-                ia.vertexInput.offsets.add(accessor.byteOffset || 0);
-            }
-            ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
-
-            const indexAccessor = this._json.accessors[primitive.indices];
-            const indexBuffer = this.getBuffer(indexAccessor.bufferView, BufferUsageFlagBits.INDEX);
-
-            if (indexAccessor.type != "SCALAR") {
-                throw new Error("unsupported index type");
-            }
-            let indexType: IndexType;
-            switch (indexAccessor.componentType) {
-                case 5123:
-                    indexType = IndexType.UINT16;
-                    break;
-                case 5125:
-                    indexType = IndexType.UINT32;
-                    break;
-                default:
-                    throw new Error("unsupported index type");
-            }
-
-            const indexInput = new IndexInput;
-            indexInput.buffer = indexBuffer;
-            indexInput.type = indexType;
-            ia.indexInput = indexInput;
-
-            if (this._json.bufferViews[indexAccessor.bufferView].byteStride) {
-                throw new Error('unsupported stride on index buffer')
-            }
-
-            subMeshes.push(
-                new SubMesh(
-                    ia,
-                    {
-                        count: indexAccessor.count,
-                        first: (indexAccessor.byteOffset || 0) / (indexType == IndexType.UINT16 ? 2 : 4)
-                    }
-                )
-            )
-
-            const posAccessor = this._json.accessors[primitive.attributes['POSITION']];
-            vec3.min(vec3_a, vec3_a, posAccessor.min);
-            vec3.max(vec3_b, vec3_b, posAccessor.max);
-        }
-
-        return this._meshes[index] = new Mesh(subMeshes, vec3_a, vec3_b)
-    }
-
-    public getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
-        if (index in this._buffers) {
-            if ((this._buffers[index].info.usage & usage) != usage) {
-                throw new Error(`buffer.info.usage(${this._buffers[index].info.usage}) & usage(${usage})) != usage`);
-            }
-            return this._buffers[index];
-        }
-
-        const viewInfo = this._json.bufferViews[index];
-
-        const info = new BufferInfo();
-        info.usage = usage;
-        info.size = viewInfo.byteLength;
-        const buffer = device.createBuffer(info);
-        buffer.update(this._bin!, viewInfo.byteOffset || 0, viewInfo.byteLength);
-
-        return this._buffers[index] = buffer;
     }
 
     private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
@@ -416,7 +410,7 @@ class Instance {
         } else {
             renderer = node.addComponent(MeshRenderer);
         }
-        renderer.mesh = this.proto.getMesh(info.mesh)
+        renderer.mesh = this.proto.meshes[info.mesh];
         renderer.materials = this.getMaterials(info.mesh);
     }
 

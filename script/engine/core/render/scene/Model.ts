@@ -1,33 +1,43 @@
-import { device } from "boot";
-import { CommandBuffer, DescriptorSetLayoutInfo } from "gfx";
+import { BufferUsageFlagBits, DescriptorSet, Format } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { InstanceBatch } from "./InstanceBatch.js";
+import { shaderLib } from "../../shaderLib.js";
+import { BufferView } from "../gpu/BufferView.js";
+import { MemoryView } from "../gpu/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
 import { Transform } from "./Transform.js";
+
+interface InstancedAttribute {
+    readonly location: number
+    readonly format: Format
+    readonly offset: number
+    readonly multiple: number
+}
+
+interface BatchInfo {
+    readonly attributes: readonly InstancedAttribute[],
+    readonly vertexes: BufferView;
+    readonly descriptorSet?: DescriptorSet;
+    readonly uniforms?: Record<string, MemoryView>;
+}
+
+const instancedAttributes = [{ location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, offset: 0, multiple: 4 }];
 
 enum ChangeBits {
     NONE = 0,
     BOUNDS = 1 << 0,
 }
 
-const descriptorSetLayout = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
-
 export class Model {
-    private _bounds_invalidated = true;
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
-        if (this._bounds_invalidated) {
-            aabb3d.transform(this._bounds, this.mesh.bounds, this._transform.world_matrix);
-            this._bounds_invalidated = false;
-        }
         return this._bounds;
     }
 
-    private _hasChanged = new PeriodicFlag(ChangeBits.BOUNDS);
+    private _hasOwnChanged = new PeriodicFlag(ChangeBits.BOUNDS);
     get hasChanged(): number {
-        let flag = this._hasChanged.value;
+        let flag = this._hasOwnChanged.value;
         if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             flag |= ChangeBits.BOUNDS;
         }
@@ -39,7 +49,7 @@ export class Model {
     }
     public set transform(value: Transform) {
         this._transform = value;
-        this._hasChanged.addBit(ChangeBits.BOUNDS)
+        this._hasOwnChanged.addBit(ChangeBits.BOUNDS)
     }
 
     public get mesh() {
@@ -47,8 +57,7 @@ export class Model {
     }
     public set mesh(value) {
         this._mesh = value;
-        this._bounds_invalidated = true;
-        this._hasChanged.addBit(ChangeBits.BOUNDS)
+        this._hasOwnChanged.addBit(ChangeBits.BOUNDS)
     }
 
     type: string = 'default';
@@ -58,37 +67,22 @@ export class Model {
      */
     order: number = 0;
 
-    protected _hasUploadedFlag = new PeriodicFlag;
-
     constructor(private _transform: Transform, private _mesh: Mesh, public materials: readonly Material[]) { }
 
     updateBounds() {
-        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
-            this._bounds_invalidated = true;
-        }
+        aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
 
-    upload(commandBuffer: CommandBuffer) {
-        if (this._hasUploadedFlag.value) {
-            return;
-        }
-
-        this._hasUploadedFlag.reset(1);
+    batch(): BatchInfo {
+        return { attributes: instancedAttributes, vertexes: new BufferView('Float32', BufferUsageFlagBits.VERTEX) }
     }
 
-    batch(subMeshIndex: number): InstanceBatch {
-        return new InstanceBatch(this.mesh.subMeshes[subMeshIndex], descriptorSetLayout)
-    }
-
-    batchUpdate(batch: InstanceBatch) {
-        const vertex = batch.vertex;
-        vertex.resize(16 * (batch.count + 1));
-        vertex.set(this._transform.world_matrix, 16 * batch.count);
-        batch.next();
+    batchFill(vertexes: BufferView, uniforms?: Record<string, MemoryView>) {
+        vertexes.add(this._transform.world_matrix)
     }
 }
 Model.ChangeBits = ChangeBits;
 
 export declare namespace Model {
-    export { ChangeBits }
+    export { ChangeBits, BatchInfo }
 }

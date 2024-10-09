@@ -1,12 +1,13 @@
 import { bundle } from 'bundling';
-import { Animation, BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from "engine";
+import { Animation, AnimationClip, BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider } from 'flex';
 
-const Polyart = await (await bundle.cache('SciFiWarriorPBRHPPolyart/Polyart', GLTF)).instantiate();
+const Polyart = await (await bundle.cache('walkrun_and_idle/scene', GLTF)).instantiate();
 
-const WalkFront_Shoot_ar = await bundle.cache('SciFiWarriorPBRHPPolyart/WalkFront_Shoot_ar', GLTF);
-const Run_gunMiddle_AR = await bundle.cache('SciFiWarriorPBRHPPolyart/Run_gunMiddle_AR', GLTF);
-const Idle_Shoot_ar = await bundle.cache('SciFiWarriorPBRHPPolyart/Idle_Shoot_ar', GLTF);
+const clips: AnimationClip[] = [];
+clips.push(Polyart.proto.animationClips.find(clip => clip.name == 'Armature|Idle')!)
+clips.push(Polyart.proto.animationClips.find(clip => clip.name == 'Armature|Walk')!)
+clips.push(Polyart.proto.animationClips.find(clip => clip.name == 'Armature|Run')!)
 
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 
@@ -31,28 +32,32 @@ export class App extends Zero {
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
         main_camera.visibilities = VisibilityFlagBits.WORLD;
-        node.position = [0, 0, 8];
+        node.position = [0, 0, 12];
 
-        node = Polyart.createScene("Scene")!;
+        node = Polyart.createScene("Sketchfab_Scene")!;
         node.visibility = VisibilityFlagBits.WORLD;
         node.euler = vec3.create(0, 60, 0)
-        node.scale = [0.01, 0.01, 0.01]
         const animation = node.addComponent(BlendAnimation);
-        animation.clips = [
-            Idle_Shoot_ar.animationClips[0],
-            WalkFront_Shoot_ar.animationClips[0],
-            Run_gunMiddle_AR.animationClips[0],
-        ];
+        animation.clips = clips;
         animation.thresholds = [0, 0.5, 1]
 
-        node = Polyart.createScene("Scene")!;
-        node.visibility = VisibilityFlagBits.WORLD;
-        node.euler = vec3.create(0, 60, 0)
-        node.scale = [0.01, 0.01, 0.01]
-        node.position = [-1, 1, -1];
-        const animation2 = node.addComponent(Animation);
-        animation2.clips = Idle_Shoot_ar.animationClips;
-        animation2.play(Idle_Shoot_ar.animationClips[0].name);
+        {
+            let node = Polyart.createScene("Sketchfab_Scene")!;
+            node.visibility = VisibilityFlagBits.WORLD;
+            node.euler = vec3.create(0, 60, 0)
+            node.position = [-1, 1, -1];
+            let animation = node.addComponent(Animation);
+            animation.clips = clips;
+            animation.play(animation.clips[0].name);
+
+            node = Polyart.createScene("Sketchfab_Scene")!;
+            node.visibility = VisibilityFlagBits.WORLD;
+            node.euler = vec3.create(0, 60, 0)
+            node.position = [1, 1, -1];
+            animation = node.addComponent(Animation);
+            animation.clips = clips;
+            animation.play(animation.clips[1].name);
+        }
 
         // UI
         const width = 640;
@@ -86,7 +91,7 @@ export class App extends Zero {
 
         const panel = Node.build(ElementContainer);
         panel.alignItems = Align.Center;
-        panel.setPosition(Edge.Top, 210);
+        panel.setPosition(Edge.Top, 80);
 
         function updateInput(value: number) {
             animation.input = value;
@@ -95,7 +100,7 @@ export class App extends Zero {
         const slider = Node.build(Slider);
         slider.setWidth(180);
         slider.setHeight(20);
-        slider.value = 0;
+        slider.value = 0.8;
         slider.emitter.on(Slider.EventType.CHANGED, () => {
             updateInput(slider.value);
         })
