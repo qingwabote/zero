@@ -1,6 +1,6 @@
 import { MeshRenderer, Node, Shader, bundle, render, scene, shaderLib, vec3, vec4 } from "engine";
 import { Element } from "flex";
-import { BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, Texture, VertexAttribute, VertexAttributeVector, VertexInput } from "gfx";
 import { Polygon } from "./Polygon.js";
 
 const ss_unlit = await bundle.cache('./shaders/unlit', Shader);
@@ -75,7 +75,6 @@ export default class PolygonsRenderer extends Element {
                     offset += 2
                 }
                 vertexBuffer.invalidate();
-                vertexBuffer.update();
                 vec3.set(vec3_a, ...polygon.vertexPosMin, 0);
                 vec3.set(vec3_b, ...polygon.vertexPosMax, 0);
                 renderer.mesh!.setBoundsByExtremes(vec3_a, vec3_b);
@@ -83,7 +82,6 @@ export default class PolygonsRenderer extends Element {
                 const indexBuffer = this._indexViews[i];
                 triangulate(polygon.vertexes.length, indexBuffer);
                 indexBuffer.invalidate();
-                indexBuffer.update();
 
                 subMesh.draw.count = indexBuffer.length;
 
@@ -95,6 +93,15 @@ export default class PolygonsRenderer extends Element {
                 subMesh.draw.count = 0;
             }
             this._polygons_invalidated = false;
+        }
+    }
+
+    override upload(commandBuffer: CommandBuffer): void {
+        for (const vertexView of this._vertexViews) {
+            vertexView.update(commandBuffer);
+        }
+        for (const indexView of this._indexViews) {
+            indexView.update(commandBuffer);
         }
     }
 

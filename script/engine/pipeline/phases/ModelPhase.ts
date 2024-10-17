@@ -183,7 +183,7 @@ export class ModelPhase extends Phase {
         this._pb_count = 0;
         const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
         let pass2batches_order: number = 0;
-        for (const model of models) {
+        for (const model of modelQueue) {
             const diff = model.order - pass2batches_order;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 if (model.mesh.subMeshes[i].draw.count == 0) {

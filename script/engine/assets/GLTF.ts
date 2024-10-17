@@ -15,8 +15,8 @@ import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { AnimationClip } from "../marionette/AnimationClip.js";
 import { Material } from "../scene/Material.js";
+import { Skin as SceneSkin } from "../scene/Skin.js";
 import { Effect } from "./Effect.js";
-import { Skin } from "./Skin.js";
 import { Texture } from "./Texture.js";
 
 const attributeMap: Record<string, keyof typeof shaderLib.attributes> = {
@@ -96,6 +96,11 @@ const materialFuncHash = (function () {
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
+
+interface Skin {
+    readonly inverseBindMatrices: readonly Readonly<Mat4Like>[];
+    readonly joints: readonly (readonly string[])[];
+}
 
 export class GLTF implements Asset {
     private _json: any;
@@ -361,19 +366,26 @@ class Instance {
         if (!scene) {
             return null;
         }
-        const node = new Node(name);
+        const root = new Node(name);
         for (const index of scene.nodes) {
-            node.addChild(this.createNode(index, node))
+            const skinning: Map<number, Node[]> = new Map;
+            root.addChild(this.createNode(index, root, skinning));
+            for (const [index, nodes] of skinning) {
+                const skin = this.proto.skins[index];
+                const sceneSkin = new SceneSkin(root, skin.joints.map(paths => root.getChildByPath(paths)!), skin.inverseBindMatrices);
+                for (const node of nodes) {
+                    const renderer = node.getComponent(SkinnedMeshRenderer)!;
+                    renderer.skin = sceneSkin;
+                    renderer.transform = root;
+                }
+            }
         }
-        return node;
+        return root;
     }
 
-    private createNode(index: number, root?: Node): Node {
+    private createNode(index: number, root: Node, skinning: Map<number, Node[]>): Node {
         const info = this.proto.json.nodes[index];
         const node = new Node(node2name(info, index));
-        if (!root) {
-            root = node;
-        }
         if (info.matrix) {
             node.matrix = info.matrix;
         } else {
@@ -389,29 +401,27 @@ class Instance {
         }
 
         if (info.mesh != undefined) {
-            this.addMeshRenderer(root, node, info);
+            let renderer: MeshRenderer;
+            if (info.skin != undefined) {
+                let nodes = skinning.get(info.skin);
+                if (!nodes) {
+                    skinning.set(info.skin, nodes = []);
+                }
+                nodes.push(node);
+                renderer = node.addComponent(SkinnedMeshRenderer);
+            } else {
+                renderer = node.addComponent(MeshRenderer);
+            }
+            renderer.mesh = this.proto.meshes[info.mesh];
+            renderer.materials = this.getMaterials(info.mesh);
         }
 
         if (info.children) {
             for (const idx of info.children) {
-                node.addChild(this.createNode(idx, root));
+                node.addChild(this.createNode(idx, root, skinning));
             }
         }
         return node;
-    }
-
-    private addMeshRenderer(root: Node, node: Node, info: any) {
-        let renderer: MeshRenderer;
-        if (info.skin != undefined) {
-            const rdr = node.addComponent(SkinnedMeshRenderer);
-            rdr.skin = this.proto.skins[info.skin];
-            rdr.transform = root;
-            renderer = rdr;
-        } else {
-            renderer = node.addComponent(MeshRenderer);
-        }
-        renderer.mesh = this.proto.meshes[info.mesh];
-        renderer.materials = this.getMaterials(info.mesh);
     }
 
     private getMaterials(meshIndex: number) {

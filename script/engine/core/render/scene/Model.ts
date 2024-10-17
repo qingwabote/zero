@@ -47,10 +47,6 @@ export class Model {
     public get transform(): Transform {
         return this._transform;
     }
-    public set transform(value: Transform) {
-        this._transform = value;
-        this._hasOwnChanged.addBit(ChangeBits.BOUNDS)
-    }
 
     public get mesh() {
         return this._mesh;

@@ -13,7 +13,6 @@ export * from './assets/FNT.js';
 export * from './assets/GLTF.js';
 export * from './assets/Pipeline.js';
 export * from './assets/Shader.js';
-export * from './assets/Skin.js';
 export * from './assets/SpriteFrame.js';
 export * from './assets/Texture.js';
 
