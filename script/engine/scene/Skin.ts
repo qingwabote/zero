@@ -1,15 +1,51 @@
-import { mat4, Mat4Like } from "../core/math/mat4.js";
+import { Mat4, mat4, Mat4Like } from "../core/math/mat4.js";
 import { PeriodicFlag } from "../core/render/scene/PeriodicFlag.js";
 import { Transform } from "../core/render/scene/Transform.js";
 
-class ModelSpaceTransform {
-    hasUpdatedFlag = new PeriodicFlag();
-    matrix = mat4.create();
-}
-
-const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
-
 const mat4_a = mat4.create();
+
+const toModelSpace = (function () {
+    interface ModelSpaceTransform {
+        readonly hasUpdatedFlag: PeriodicFlag;
+        readonly matrix: Mat4;
+    }
+
+    const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
+    const dirtyJoints: Transform[] = [];
+
+    return function (root: Transform, joint: Transform) {
+        let cur: Transform = joint;
+        let modelSpace: ModelSpaceTransform | undefined;
+        let i = 0;
+
+        while (cur != root) {
+            modelSpace = joint2modelSpace.get(cur);
+            if (!modelSpace) {
+                joint2modelSpace.set(cur, modelSpace = { hasUpdatedFlag: new PeriodicFlag, matrix: mat4.create() });
+            }
+            if (modelSpace.hasUpdatedFlag.value) {
+                break;
+            }
+
+            dirtyJoints[i++] = cur;
+            cur = cur.parent!;
+        }
+
+        while (i) {
+            const child = dirtyJoints[--i];
+            modelSpace = joint2modelSpace.get(child)!;
+            if (cur == root) {
+                modelSpace.matrix.splice(0, child.matrix.length, ...child.matrix);
+            } else {
+                mat4.multiply_affine(modelSpace.matrix, joint2modelSpace.get(cur)!.matrix, child.matrix)
+            }
+            modelSpace.hasUpdatedFlag.reset(1);
+            cur = child;
+        }
+
+        return modelSpace!.matrix;
+    }
+})()
 
 export class Skin {
     private _jointData: Float32Array;
@@ -19,7 +55,7 @@ export class Skin {
 
     private _hasUpdatedFlag = new PeriodicFlag;
 
-    constructor(private readonly _root: Transform, readonly joints: readonly Transform[], private readonly _inverseBindMatrices: readonly Readonly<Mat4Like>[]) {
+    constructor(readonly root: Transform, readonly joints: readonly Transform[], private readonly _inverseBindMatrices: readonly Readonly<Mat4Like>[]) {
         this._jointData = new Float32Array(4 * 3 * joints.length);
     }
 
@@ -30,10 +66,7 @@ export class Skin {
 
         const jointData = this._jointData;
         for (let i = 0; i < this.joints.length; i++) {
-            const joint = this.joints[i];
-            this.updateModelSpace(joint);
-
-            mat4.multiply(mat4_a, joint2modelSpace.get(joint)!.matrix, this._inverseBindMatrices[i]);
+            mat4.multiply(mat4_a, toModelSpace(this.root, this.joints[i]), this._inverseBindMatrices[i]);
 
             const base = 12 * i;
 
@@ -56,24 +89,5 @@ export class Skin {
             jointData[base + 11] = mat4_a[14];
         }
         this._hasUpdatedFlag.reset(1);
-    }
-
-    private updateModelSpace(joint: Transform) {
-        let modelSpace = joint2modelSpace.get(joint);
-        if (!modelSpace) {
-            modelSpace = new ModelSpaceTransform;
-            joint2modelSpace.set(joint, modelSpace);
-        }
-        if (modelSpace.hasUpdatedFlag.value) {
-            return;
-        }
-        const parent = joint.parent!;
-        if (parent == this._root) {
-            modelSpace.matrix.splice(0, joint.matrix.length, ...joint.matrix)
-        } else {
-            this.updateModelSpace(parent);
-            mat4.multiply(modelSpace.matrix, joint2modelSpace.get(parent)!.matrix, joint.matrix)
-        }
-        modelSpace.hasUpdatedFlag.reset(1);
     }
 }

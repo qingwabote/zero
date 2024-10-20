@@ -3,7 +3,6 @@ import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Camera } from "../../core/render/scene/Camera.js";
-import { Transform } from "../../core/render/scene/Transform.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -55,7 +54,7 @@ export class CameraUBO extends UBO {
             if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.PROJ))) {
                 this._view.set(camera.proj, offset + Block.members.projection.offset);
             }
-            if (dumping || (camera.transform.hasChangedFlag.hasBit(Transform.ChangeBit.POSITION))) {
+            if (dumping || (camera.transform.hasChangedFlag.value)) {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }

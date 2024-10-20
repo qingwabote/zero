@@ -1,4 +1,4 @@
-import { Component, Node, Vec3, render, vec3 } from 'engine';
+import { Component, Node, Vec3, vec3 } from 'engine';
 import * as phys from 'phys';
 import { RigidBody } from './RigidBody.js';
 
@@ -52,9 +52,9 @@ export class BoxShape extends Component {
     }
 
     override update(): void {
-        if (this.node.hasChangedFlag.hasBit(render.Transform.ChangeBit.SCALE)) {
-            this._dirtyFlags |= DirtyFlagBits.SCALE;
-        }
+        // if (this.node.hasChangedFlag.hasBit(render.Transform.ChangeBit.SCALE)) {
+        //     this._dirtyFlags |= DirtyFlagBits.SCALE;
+        // }
 
         if (this._dirtyFlags & DirtyFlagBits.SCALE) {
             const scale = vec3.multiply(vec3.create(), this._size, this.node.world_scale);

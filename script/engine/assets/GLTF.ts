@@ -50,17 +50,18 @@ function node2name(node: any, index: number): string {
 }
 
 interface MaterialParams {
+    index: number;
     albedo: Readonly<Vec4>;
     skin: boolean;
     texture?: Texture;
 }
 
-type MaterialFunc = (params: MaterialParams) => [string, readonly Readonly<Effect.PassOverridden>[]];
+type MaterialFunc = (params: MaterialParams) => { effect: string, passes: Effect.PassOverridden[] };
 
-const materialFuncPhong: MaterialFunc = function (params: MaterialParams): [string, readonly Readonly<Effect.PassOverridden>[]] {
-    return [
-        bundle.resolve("./effects/phong"),
-        [
+const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
+    return {
+        effect: bundle.resolve("./effects/phong"),
+        passes: [
             {},
             {
                 macros: {
@@ -78,7 +79,7 @@ const materialFuncPhong: MaterialFunc = function (params: MaterialParams): [stri
                 }
             }
         ]
-    ]
+    }
 }
 
 const materialFuncHash = (function () {
@@ -332,18 +333,22 @@ export class GLTF implements Asset {
         }
         let instance = this._instances[instanceKey];
         if (!instance) {
-            const materialDefault = await this.materialLoad(...materialFunc({ albedo: vec4.ONE, skin: false }), macros);
+            const { effect, passes } = materialFunc({ index: -1, albedo: vec4.ONE, skin: false });
+            const materialDefault = await this.materialLoad(effect, passes, macros);
             const materials: Material.Readonly[] = []
-            for (const info of this._json.materials || []) {
-                let textureIdx = -1;
-                if (info.pbrMetallicRoughness.baseColorTexture?.index != undefined) {
-                    textureIdx = this._json.textures[info.pbrMetallicRoughness.baseColorTexture?.index].source;
+            if (this._json.materials) {
+                for (let i = 0; i < this._json.materials.length; i++) {
+                    const info = this._json.materials[i];
+                    const { effect, passes } = materialFunc({
+                        index: i,
+                        ...this._json.textures && {
+                            texture: this._textures[this._json.textures[info.pbrMetallicRoughness.baseColorTexture?.index]?.source]
+                        },
+                        albedo: info.pbrMetallicRoughness.baseColorFactor || vec4.ONE,
+                        skin: this._json.skins != undefined
+                    })
+                    materials.push(await this.materialLoad(effect, passes, macros));
                 }
-                materials.push(await this.materialLoad(...materialFunc({
-                    texture: this._textures[textureIdx],
-                    albedo: info.pbrMetallicRoughness.baseColorFactor || vec4.ONE,
-                    skin: this._json.skins != undefined
-                }), macros));
             }
             instance = new Instance(this, materials, materialDefault);
             this._instances[instanceKey] = instance;
@@ -351,12 +356,13 @@ export class GLTF implements Asset {
         return instance;
     }
 
-    private async materialLoad(effectUrl: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
-        const effect = await cache(effectUrl, Effect)
+    private async materialLoad(effectPath: string, passOverriddens: readonly Readonly<Effect.PassOverridden>[], macros?: Record<string, number>) {
+        const effect = (await cache(effectPath, Effect))
         const passes = await effect.getPasses(passOverriddens, macros);
         return { passes };
     }
 }
+GLTF.materialFuncPhong = materialFuncPhong;
 
 class Instance {
     constructor(readonly proto: GLTF, private readonly _materials: Material.Readonly[], private readonly _materialDefault: Material) { }
@@ -376,7 +382,6 @@ class Instance {
                 for (const node of nodes) {
                     const renderer = node.getComponent(SkinnedMeshRenderer)!;
                     renderer.skin = sceneSkin;
-                    renderer.transform = root;
                 }
             }
         }
@@ -442,5 +447,5 @@ class Instance {
 }
 
 export declare namespace GLTF {
-    export { MaterialParams, MaterialFunc }
+    export { MaterialParams, MaterialFunc, materialFuncPhong }
 }

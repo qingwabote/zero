@@ -112,9 +112,9 @@ pipeline ${this._pipeline_update_average.toFixed(2)}ms
  cull    ${this._cull_average.toFixed(2)}ms
 halt     ${this._halt_average.toFixed(2)}ms
 gfx      ${this._gfx_average.toFixed(2)}ms
-pass     ${Zero.instance.profile.passes}
-pipeline ${Zero.instance.profile.pipelines}
-draw     ${Zero.instance.profile.draws}`
+ pass     ${Zero.instance.profile.passes}
+ pipeline ${Zero.instance.profile.pipelines}
+ draw     ${Zero.instance.profile.draws}`
         //             + `
         // boot     ${boot_time.toFixed(2)}s`;
     }

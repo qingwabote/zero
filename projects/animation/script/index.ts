@@ -56,7 +56,7 @@ export class App extends Zero {
             node.position = [1, 1, -1];
             animation = node.addComponent(Animation);
             animation.clips = clips;
-            animation.play(animation.clips[1].name);
+            animation.play(animation.clips[2].name);
         }
 
         // UI
@@ -100,7 +100,7 @@ export class App extends Zero {
         const slider = Node.build(Slider);
         slider.setWidth(180);
         slider.setHeight(20);
-        slider.value = 0.8;
+        slider.value = 0.3;
         slider.emitter.on(Slider.EventType.CHANGED, () => {
             updateInput(slider.value);
         })

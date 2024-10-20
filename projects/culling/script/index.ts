@@ -64,7 +64,7 @@ class App extends Zero {
                     const guardian = gltf_guardian.createScene("Sketchfab_Scene")!;
                     const animation = guardian.addComponent(Animation);
                     animation.clips = gltf_guardian.proto.animationClips;
-                    // animation.play('WalkCycle')
+                    animation.play('WalkCycle')
                     guardian.visibility = VisibilityFlagBits.WORLD;
                     guardian.position = vec3.transformMat3(pos, pos, rotation);
                 }

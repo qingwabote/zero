@@ -1,5 +1,4 @@
 import { Model } from "../core/render/scene/Model.js";
-import { Transform } from "../core/render/scene/Transform.js";
 import { Skin } from "../scene/Skin.js";
 import { SkinnedModel } from "./internal/SkinnedModel.js";
 import { MeshRenderer } from "./MeshRenderer.js";
@@ -14,18 +13,10 @@ export class SkinnedMeshRenderer extends MeshRenderer {
         this._skin = value;
     }
 
-    private _transform: Transform | null = null;
-    public get transform() {
-        return this._transform
-    }
-    public set transform(value) {
-        this._transform = value;
-    }
-
     protected override createModel(): Model | null {
-        if (!this.mesh || !this.materials || !this._transform || !this._skin) {
+        if (!this.mesh || !this.materials || !this._skin) {
             return null;
         }
-        return new SkinnedModel(this._transform, this.mesh, this.materials, this._skin);
+        return new SkinnedModel(this.mesh, this.materials, this._skin);
     }
 }

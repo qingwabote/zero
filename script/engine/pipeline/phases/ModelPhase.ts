@@ -57,9 +57,9 @@ class InstanceBatch {
         return this._count;
     }
 
-    private _lockedFlag = new PeriodicFlag();
+    private _lockFlag = new PeriodicFlag();
     get locked(): boolean {
-        return this._lockedFlag.value != 0;
+        return this._lockFlag.value != 0;
     }
 
     constructor(readonly inputAssembler: InputAssembler, readonly draw: Readonly<SubMesh.Draw>, readonly vertexes: BufferView, readonly descriptorSetLayout: DescriptorSetLayout = descriptorSetLayoutNull, readonly descriptorSet?: DescriptorSet, readonly uniforms?: Readonly<Record<string, MemoryView>>) { }
@@ -73,7 +73,6 @@ class InstanceBatch {
         for (const key in this.uniforms) {
             this.uniforms[key].update(commandBuffer);
         }
-        this._lockedFlag.reset(1);
     }
 
     recycle(): void {
@@ -82,12 +81,8 @@ class InstanceBatch {
             this.uniforms[key].reset();
         }
         this._count = 0;
+        this._lockFlag.reset(1);
     }
-}
-
-interface PB {
-    pass: Pass,
-    batch: InstanceBatch
 }
 
 const batchCache = (function () {
@@ -142,7 +137,7 @@ function compareModel(a: Model, b: Model) {
 type Culling = 'View' | 'CSM';
 
 export class ModelPhase extends Phase {
-    private _pb_buffer: PB[] = [];
+    private _pb_buffer: [Pass, InstanceBatch][] = [];
     private _pb_count: number = 0;
 
     constructor(
@@ -204,10 +199,10 @@ export class ModelPhase extends Phase {
                         for (const [pass, batches] of pass2batches) {
                             for (const batch of batches) {
                                 if (this._pb_buffer.length > this._pb_count) {
-                                    this._pb_buffer[this._pb_count].pass = pass;
-                                    this._pb_buffer[this._pb_count].batch = batch;
+                                    this._pb_buffer[this._pb_count][0] = pass
+                                    this._pb_buffer[this._pb_count][1] = batch
                                 } else {
-                                    this._pb_buffer.push({ pass, batch });
+                                    this._pb_buffer.push([pass, batch]);
                                 }
                                 this._pb_count++;
                             }
@@ -238,16 +233,16 @@ export class ModelPhase extends Phase {
         for (const [pass, batches] of pass2batches) {
             for (const batch of batches) {
                 if (this._pb_buffer.length > this._pb_count) {
-                    this._pb_buffer[this._pb_count].pass = pass;
-                    this._pb_buffer[this._pb_count].batch = batch;
+                    this._pb_buffer[this._pb_count][0] = pass
+                    this._pb_buffer[this._pb_count][1] = batch
                 } else {
-                    this._pb_buffer.push({ pass, batch });
+                    this._pb_buffer.push([pass, batch]);
                 }
                 this._pb_count++;
             }
         }
         for (let i = 0; i < this._pb_count; i++) {
-            const { pass, batch } = this._pb_buffer[i];
+            const [pass, batch] = this._pb_buffer[i];
             pass.upload(commandBuffer);
             batch.upload(commandBuffer);
         }
@@ -257,7 +252,7 @@ export class ModelPhase extends Phase {
         let current_pass: Pass | undefined;
         let current_pipeline: Pipeline | undefined;
         for (let i = 0; i < this._pb_count; i++) {
-            const { pass, batch } = this._pb_buffer[i];
+            const [pass, batch] = this._pb_buffer[i];
             if (current_pass != pass) {
                 if (pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
