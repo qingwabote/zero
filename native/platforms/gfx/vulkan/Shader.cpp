@@ -146,17 +146,13 @@ namespace gfx
             shader.setStrings(&src_c_str, 1);
             shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, version_semantics);
             shader.setEnvClient(glslang::EShClientVulkan, static_cast<glslang::EShTargetClientVersion>(_device->version()));
-            glslang::EShTargetLanguageVersion version_spirv;
-            switch (_device->version())
+            // https://docs.vulkan.org/guide/latest/versions.html#_spir_v
+            if (_device->version() < VK_API_VERSION_1_1)
             {
-            case VK_API_VERSION_1_3:
-                version_spirv = glslang::EShTargetSpv_1_3;
-                break;
-            default:
                 ZERO_LOG_ERROR("GLSL Unsupported vulkan api version");
                 return true;
             }
-            shader.setEnvTarget(glslang::EShTargetSpv, version_spirv);
+            shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
 
             if (!shader.parse(&DefaultTBuiltInResource, version_semantics, false, messages))
             {

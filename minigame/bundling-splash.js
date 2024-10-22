@@ -7,7 +7,7 @@ System.register(['assets'], (function (exports) {
         }],
         execute: (function () {
 
-            const bundle = exports('bundle', new Bundle("dist/splash/assets"));
+            const bundle = exports('bundle', new Bundle("assets"));
 
         })
     };

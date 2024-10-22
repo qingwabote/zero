@@ -6,6 +6,7 @@ import { Pipeline } from "./Pipeline.js";
 import { RenderPass } from "./RenderPass.js";
 import { Texture } from "./Texture.js";
 import { AttachmentDescription, InputAssembler, Uint32Vector, Vector, VertexAttribute } from "./info.js";
+import { Formats } from "./internal/mapping.js";
 
 function bendFactor2WebGL(gl: WebGL2RenderingContext, factor: BlendFactor): GLenum {
     switch (factor) {
@@ -35,15 +36,20 @@ export class CommandBuffer {
 
     begin(): void { }
 
-    copyBuffer(srcBuffer: ArrayBuffer, dstBuffer: Buffer, srcOffset: number, length: number): void {
-        dstBuffer.update(srcBuffer, srcOffset, length);
-    }
-
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void {
         const gl = this._gl;
+        const format = Formats[texture.info.format];
         gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, format.format, format.type, imageBitmap);
         // gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+
+    copyBufferToTexture(buffer: ArrayBufferView, texture: Texture, offset_x: number, offset_y: number, extent_x: number, extent_y: number): void {
+        const gl = this._gl;
+        const format = Formats[texture.info.format];
+        gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, offset_x, offset_y, extent_x, extent_y, format.format, format.type, buffer);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 

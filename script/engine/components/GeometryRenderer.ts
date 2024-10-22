@@ -1,12 +1,12 @@
 import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, DepthStencilState, Format, FormatInfos, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
+import { BlendFactor, BlendState, BufferUsageFlagBits, CommandBuffer, DepthStencilState, Format, FormatInfos, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { frustum } from "../core/math/frustum.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { BufferView } from "../core/render/BufferView.js";
+import { BufferView } from "../core/render/gpu/BufferView.js";
 import { Mesh } from "../core/render/index.js";
 import { Model } from "../core/render/scene/Model.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
@@ -186,13 +186,13 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(frustum[3], frustum[7], color);
     }
 
-    override upload(): void {
+    override upload(commandBuffer: CommandBuffer): void {
         if (this._vertexCount == 0) {
             this._mesh.subMeshes[0].draw.count = 0;
             return;
         }
 
-        this._buffer.update();
+        this._buffer.update(commandBuffer);
 
         this._mesh.subMeshes[0].draw.count = this._vertexCount;
     }

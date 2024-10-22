@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { ClearFlagBits, CommandBuffer, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { ClearFlagBits, CommandBuffer, Format, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { Data } from "./Data.js";
 import { Phase } from "./Phase.js";
@@ -7,17 +7,19 @@ import { Profile } from "./Profile.js";
 import { getRenderPass } from "./rpc.js";
 
 const defaultFramebuffer = (function () {
+    const { width, height } = device.swapchain.color.info;
     const framebufferInfo = new FramebufferInfo;
 
-    framebufferInfo.width = device.swapchain.width;
-    framebufferInfo.height = device.swapchain.height;
+    framebufferInfo.width = width;
+    framebufferInfo.height = height;
 
-    framebufferInfo.colors.add(device.swapchain.colorTexture);
+    framebufferInfo.colors.add(device.swapchain.color);
 
     const depthStencilAttachmentInfo = new TextureInfo;
     depthStencilAttachmentInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
-    depthStencilAttachmentInfo.width = framebufferInfo.width;
-    depthStencilAttachmentInfo.height = framebufferInfo.height;
+    depthStencilAttachmentInfo.format = Format.D32_SFLOAT;
+    depthStencilAttachmentInfo.width = width;
+    depthStencilAttachmentInfo.height = height;
     framebufferInfo.depthStencil = device.createTexture(depthStencilAttachmentInfo);
 
     framebufferInfo.renderPass = getRenderPass(framebufferInfo);
@@ -40,16 +42,22 @@ export class Stage {
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this.rect ?? camera.rect;
 
-        const { width, height } = this._framebuffer.info;
-        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
-
+        // do transfer before render pass
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.record(profile, commandBuffer, renderPass, camera);
+                phase.update(commandBuffer);
             }
         }
 
+        const { width, height } = this._framebuffer.info;
+        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
+        for (const phase of this.phases) {
+            if (camera.visibilities & phase.visibility) {
+                phase.render(profile, commandBuffer, renderPass);
+            }
+        }
         commandBuffer.endRenderPass();
+
         profile.stages++;
     }
 }

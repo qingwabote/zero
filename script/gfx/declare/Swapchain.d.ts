@@ -1,7 +1,7 @@
+import { Texture } from "./Texture.js";
+
 export declare class Swapchain {
-    readonly colorTexture: Texture;
-    readonly width: number;
-    readonly height: number
+    readonly color: Texture;
 
     acquire(semaphore: Semaphore): void;
 }

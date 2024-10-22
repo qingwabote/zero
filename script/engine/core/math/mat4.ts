@@ -243,6 +243,38 @@ export const mat4 = {
         return out;
     },
 
+    multiply_affine<Out extends Mat4Like>(out: Out, a: Readonly<Mat4Like>, b: Readonly<Mat4Like>) {
+        let x = b[0];
+        let y = b[1];
+        let z = b[2];
+        out[0] = x * a[0] + y * a[4] + z * a[8];
+        out[1] = x * a[1] + y * a[5] + z * a[9];
+        out[2] = x * a[2] + y * a[6] + z * a[10];
+
+        x = b[4];
+        y = b[5];
+        z = b[6];
+        out[4] = x * a[0] + y * a[4] + z * a[8];
+        out[5] = x * a[1] + y * a[5] + z * a[9];
+        out[6] = x * a[2] + y * a[6] + z * a[10];
+
+        x = b[8];
+        y = b[9];
+        z = b[10];
+        out[8] = x * a[0] + y * a[4] + z * a[8];
+        out[9] = x * a[1] + y * a[5] + z * a[9];
+        out[10] = x * a[2] + y * a[6] + z * a[10];
+
+        x = b[12];
+        y = b[13];
+        z = b[14];
+        out[12] = x * a[0] + y * a[4] + z * a[8] + a[12];
+        out[13] = x * a[1] + y * a[5] + z * a[9] + a[13];
+        out[14] = x * a[2] + y * a[6] + z * a[10] + a[14];
+
+        return out;
+    },
+
     orthographic<Out extends Mat4Like>(out: Out, left: number, right: number, bottom: number, top: number, near: number, far: number, minClipZ: number) {
         var lr = 1 / (left - right);
         var bt = 1 / (bottom - top);

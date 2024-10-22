@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Buffer, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Buffer, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Data } from "./Data.js";
 
 interface UBODefinition {
@@ -30,5 +30,5 @@ export abstract class UBO {
         protected readonly _visibilities: number
     ) { }
 
-    abstract update(dumping: boolean): void;
+    abstract update(commandBuffer: CommandBuffer, dumping: boolean): void;
 }

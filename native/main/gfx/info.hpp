@@ -43,6 +43,7 @@ namespace gfx
         RGBA8_UNORM = 37,
         RGBA8_UINT = 41,
         RGBA8_SRGB = 43,
+        BGRA8_UNORM = 44,
         R16_UINT = 74,
         RGBA16_UINT = 95,
         R32_UINT = 98,
@@ -70,17 +71,9 @@ namespace gfx
         VERTEX = 0x00000080,
     };
 
-    enum class MemoryUsage
-    {
-        NONE = 0,
-        GPU_ONLY = 1,
-        CPU_TO_GPU = 3,
-    };
-
     struct BufferInfo
     {
         BufferUsageFlagBits usage;
-        MemoryUsage mem_usage;
         uint32_t size;
     };
 
@@ -130,6 +123,7 @@ namespace gfx
         COLOR = 0x00000010,
         DEPTH_STENCIL = 0x00000020,
         TRANSIENT = 0x00000040,
+        HOST_TRANSFER = 0x00400000,
     };
     GFX_ENUM_BITWISE_OPERATORS(TextureUsageFlagBits);
 
@@ -137,6 +131,7 @@ namespace gfx
     {
         SampleCountFlagBits samples{SampleCountFlagBits::X1};
         TextureUsageFlagBits usage{TextureUsageFlagBits::NONE};
+        Format format{Format::UNDEFINED};
         uint32_t width{0};
         uint32_t height{0};
     };
@@ -169,6 +164,7 @@ namespace gfx
     };
     struct AttachmentDescription
     {
+        Format format;
         LOAD_OP loadOp;
         ImageLayout initialLayout;
         ImageLayout finalLayout;
@@ -303,5 +299,12 @@ namespace gfx
         std::shared_ptr<Semaphore> waitSemaphore;
         int32_t waitDstStageMask;
         std::shared_ptr<Semaphore> signalSemaphore;
+    };
+
+    struct Span
+    {
+        void *data = nullptr;
+        size_t size = 0;
+        size_t stride = 0;
     };
 }

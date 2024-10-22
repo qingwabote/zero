@@ -1,3 +1,4 @@
+import { CommandBuffer } from "gfx";
 import { Node } from "./Node.js";
 
 export abstract class Component {
@@ -6,5 +7,5 @@ export abstract class Component {
     start(): void { }
     update(dt: number): void { }
     lateUpdate(): void { }
-    upload(): void { }
+    upload(commandBuffer: CommandBuffer): void { }
 }

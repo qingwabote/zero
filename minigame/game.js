@@ -86,7 +86,7 @@ new Promise(() => {
     (async function () {
         const boot = await System.import('boot');
         await System.import('splash');
-        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('instancing')]);
-        System.import('instancing')
+        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('skin')]);
+        System.import('skin')
     })()
 })

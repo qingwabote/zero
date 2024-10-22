@@ -28,14 +28,9 @@ const sets = {
         index: 2,
         uniforms: {
             Skin: {
-                type: DescriptorType.UNIFORM_BUFFER,
+                type: DescriptorType.SAMPLER_TEXTURE,
                 stageFlags: ShaderStageFlagBits.VERTEX,
-                binding: 1,
-                members: {
-                    joints: {},
-                },
-                length: 16 * 128,
-                size: (16 * 128) * Float32Array.BYTES_PER_ELEMENT
+                binding: 1
             }
         }
     }

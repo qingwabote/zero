@@ -24,7 +24,7 @@ namespace gfx
             auto gfx_attachment = gfx_colorAttachments->at(i).get();
             VkAttachmentDescription2 attachment{};
             attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
-            attachment.format = _device->swapchainImageFormat();
+            attachment.format = static_cast<VkFormat>(gfx_attachment->format);
             attachment.samples = static_cast<VkSampleCountFlagBits>(info.samples);
             attachment.loadOp = static_cast<VkAttachmentLoadOp>(gfx_attachment->loadOp);
             attachment.initialLayout = static_cast<VkImageLayout>(gfx_attachment->initialLayout);
@@ -59,7 +59,7 @@ namespace gfx
             VkAttachmentDescription2 attachment{};
             attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
             attachment.flags = 0;
-            attachment.format = VK_FORMAT_D32_SFLOAT;
+            attachment.format = static_cast<VkFormat>(gfx_depthStencilAttachment->format);
             attachment.samples = static_cast<VkSampleCountFlagBits>(info.samples);
             attachment.loadOp = static_cast<VkAttachmentLoadOp>(gfx_depthStencilAttachment->loadOp);
             attachment.initialLayout = static_cast<VkImageLayout>(gfx_depthStencilAttachment->initialLayout);
@@ -82,7 +82,7 @@ namespace gfx
 
             VkAttachmentDescription2 attachment{};
             attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
-            attachment.format = _device->swapchainImageFormat();
+            attachment.format = static_cast<VkFormat>(gfx_attachment->format);
             attachment.samples = VK_SAMPLE_COUNT_1_BIT;
             attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;

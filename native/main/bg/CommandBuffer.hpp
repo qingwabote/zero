@@ -14,7 +14,6 @@ namespace bg
         CommandBuffer(gfx::DeviceImpl *device, TaskRunner *background);
 
         virtual void begin() override;
-        virtual void copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<gfx::Buffer> &buffer, size_t offset, size_t length) override;
         virtual void copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<gfx::Texture> &texture) override;
         virtual void beginRenderPass(const std::shared_ptr<gfx::RenderPass> &renderPass, const std::shared_ptr<gfx::Framebuffer> &framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height) override;
         virtual void bindDescriptorSet(uint32_t index, const std::shared_ptr<gfx::DescriptorSet> &descriptorSet, const std::shared_ptr<gfx::Uint32Vector> &dynamicOffsets) override;

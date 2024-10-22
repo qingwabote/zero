@@ -89,12 +89,15 @@ namespace sugar::v8
     }
     unique_isolate isolate_create(std::filesystem::path &importmap_path)
     {
+        auto importmap = std::make_unique<ImportMap>();
+        if (importmap->initialize(importmap_path))
+        {
+            return unique_isolate{nullptr, isolate_deleter};
+        }
+
         _v8::Isolate::CreateParams create_params;
         create_params.array_buffer_allocator_shared = std::shared_ptr<_v8::ArrayBuffer::Allocator>{_v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
         _v8::Isolate *isolate = _v8::Isolate::New(create_params);
-
-        auto importmap = std::make_unique<ImportMap>();
-        importmap->initialize(importmap_path);
 
         isolate_data(isolate, new IsolateData(std::move(importmap)));
 

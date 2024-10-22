@@ -10,6 +10,8 @@
 #include "gfx/Fence.hpp"
 #include "FenceImpl.hpp"
 
+#include "vulkan/vk_enum_string_helper.h"
+
 namespace
 {
     VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -49,6 +51,12 @@ namespace gfx
         if (volkInitialize())
         {
             return true;
+        }
+
+        {
+            uint32_t v;
+            vkEnumerateInstanceVersion(&v);
+            ZERO_LOG_INFO("Instance Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
         }
 
         VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
@@ -139,7 +147,25 @@ namespace gfx
             }
         }
 
-        std::vector<const char *> device_extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+        vkGetPhysicalDeviceProperties(gpu, &_gpuProperties);
+        {
+            auto v = _gpuProperties.apiVersion;
+            ZERO_LOG_INFO("Device Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
+        }
+
+        // uint32_t extension_count = 0;
+        // vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extension_count, nullptr);
+        // std::vector<VkExtensionProperties> extensions_supported(extension_count);
+        // vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extension_count, extensions_supported.data());
+        // for (auto &&i : extensions_supported)
+        // {
+        //     ZERO_LOG_INFO("extensions_supported: %s", i.extensionName);
+        // }
+
+        std::vector<const char *> device_extensions{
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            // VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME,
+        };
 
         // Create one queue
         float queuePriorities[] = {1.0f};
@@ -153,12 +179,20 @@ namespace gfx
         device_info.pQueueCreateInfos = &queueInfo;
         device_info.enabledExtensionCount = device_extensions.size();
         device_info.ppEnabledExtensionNames = device_extensions.data();
+        // VkPhysicalDeviceHostImageCopyFeaturesEXT hostImageCopyFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES_EXT};
+        // hostImageCopyFeatures.hostImageCopy = VK_TRUE;
+        // device_info.pNext = &hostImageCopyFeatures;
         VkDevice device;
-        vkCreateDevice(gpu, &device_info, nullptr, &device);
+        {
+            auto res = vkCreateDevice(gpu, &device_info, nullptr, &device);
+            if (res)
+            {
+                ZERO_LOG_ERROR("vkCreateDevice %s", string_VkResult(res));
+                return true;
+            }
+        }
 
         volkLoadDevice(device);
-
-        vkGetPhysicalDeviceProperties(gpu, &_gpuProperties);
 
         vkGetDeviceQueue(device, queueFamilyIndex, 0, &_graphicsQueue);
 
@@ -183,7 +217,22 @@ namespace gfx
         swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-        swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+        {
+            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        }
+        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR)
+        {
+            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
+        }
+        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR)
+        {
+            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
+        }
+        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR)
+        {
+            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+        }
         swapchainInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
         swapchainInfo.clipped = true;
         VkSwapchainKHR swapchain;
@@ -239,6 +288,11 @@ namespace gfx
         {
             return true;
         }
+
+        // char *pStatsString = nullptr;
+        // vmaBuildStatsString(_allocator, &pStatsString, VK_FALSE);
+        // ZERO_LOG_INFO("vmaBuildStatsString: %s", pStatsString);
+        // vmaFreeStatsString(_allocator, pStatsString);
 
         // command pool and a buffer
         VkCommandPoolCreateInfo commandPoolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};

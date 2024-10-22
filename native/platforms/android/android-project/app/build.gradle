@@ -8,6 +8,7 @@ else {
 }
 
 android {
+    ndkVersion "27.1.12297006"
     compileSdkVersion 31
     defaultConfig {
         if (buildAsApplication) {
@@ -60,7 +61,8 @@ android {
     lintOptions {
         abortOnError false
     }
-    
+    namespace 'org.libsdl.app'
+
     if (buildAsLibrary) {
         libraryVariants.all { variant ->
             variant.outputs.each { output ->

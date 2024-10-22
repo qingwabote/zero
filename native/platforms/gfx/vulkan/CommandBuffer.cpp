@@ -13,7 +13,7 @@ namespace gfx
 {
     CommandBufferImpl::CommandBufferImpl(DeviceImpl *device) : _device(device) {}
 
-    VkBuffer CommandBufferImpl::createStagingBuffer(void const *src, size_t size)
+    VkBuffer CommandBufferImpl::createStagingBuffer(void const *src, VkDeviceSize size)
     {
         VkBufferCreateInfo bufferInfo = {};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -96,26 +96,20 @@ namespace gfx
         vkBeginCommandBuffer(impl->_commandBuffer, &info);
     }
 
-    void CommandBuffer::copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<Buffer> &buffer, size_t offset, size_t length)
-    {
-        auto start = reinterpret_cast<const uint8_t *>(data.get()) + offset;
-
-        VkBufferCopy copy = {};
-        copy.size = length;
-        vkCmdCopyBuffer(impl->_commandBuffer, impl->createStagingBuffer(start, length), *buffer->impl, 1, &copy);
-    }
-
     void CommandBuffer::copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture)
     {
-        VkDeviceSize size = static_cast<VkDeviceSize>(4) * imageBitmap->width() * imageBitmap->height();
+        copyBufferToTexture({new Span{imageBitmap->pixels.get()}, [imageBitmap](Span *span)
+                             { delete span; }},
+                            texture, 0, 0, imageBitmap->width, imageBitmap->height);
+    }
 
-        VkBuffer buffer = impl->createStagingBuffer(imageBitmap->pixels(), size);
+    void CommandBuffer::copyBufferToTexture(const std::shared_ptr<const Span> &span, const std::shared_ptr<Texture> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
+    {
+        VkBuffer buffer = impl->createStagingBuffer(span->data, FormatInfos.at(texture->info->format).bytes * extent_x * extent_y);
 
         VkImageSubresourceRange range = {};
         range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        range.baseMipLevel = 0;
         range.levelCount = 1;
-        range.baseArrayLayer = 0;
         range.layerCount = 1;
 
         VkImageMemoryBarrier imageBarrier_toTransfer = {};
@@ -136,8 +130,10 @@ namespace gfx
         copy.imageSubresource.mipLevel = 0;
         copy.imageSubresource.baseArrayLayer = 0;
         copy.imageSubresource.layerCount = 1;
-        copy.imageExtent.width = imageBitmap->width();
-        copy.imageExtent.height = imageBitmap->height();
+        copy.imageOffset.x = offset_x;
+        copy.imageOffset.y = offset_y;
+        copy.imageExtent.width = extent_x;
+        copy.imageExtent.height = extent_y;
         copy.imageExtent.depth = 1;
         vkCmdCopyBufferToImage(impl->_commandBuffer, buffer, *texture->impl, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 

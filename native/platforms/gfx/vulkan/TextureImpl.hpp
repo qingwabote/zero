@@ -2,10 +2,16 @@
 
 #include "DeviceImpl.hpp"
 #include "gfx/info.hpp"
+#include "base/event/Emitter.hpp"
 
 namespace gfx
 {
-    class TextureImpl
+    enum class TextureImplEvent
+    {
+        RESET
+    };
+
+    class TextureImpl : public event::Emitter<TextureImplEvent>
     {
     private:
         DeviceImpl *_device{nullptr};
@@ -26,6 +32,12 @@ namespace gfx
         TextureImpl(DeviceImpl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain = false);
 
         bool initialize();
+
+        void update(const void *data, uint32_t width, uint32_t height);
+
+        void resize(uint32_t width, uint32_t height);
+
+        void clear();
 
         operator VkImage() { return _image; }
         operator VkImageView() { return _imageView; }

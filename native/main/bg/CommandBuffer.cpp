@@ -14,16 +14,6 @@ namespace bg
         _background->post(f);
     }
 
-    void CommandBuffer::copyBuffer(const std::shared_ptr<const void> &data, const std::shared_ptr<gfx::Buffer> &buffer, size_t offset, size_t length)
-    {
-        auto f = new auto(
-            [=]()
-            {
-                gfx::CommandBuffer::copyBuffer(data, buffer, offset, length);
-            });
-        _background->post(f);
-    }
-
     void CommandBuffer::copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<gfx::Texture> &texture)
     {
         auto f = new auto(

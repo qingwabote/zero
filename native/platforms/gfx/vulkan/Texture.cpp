@@ -12,22 +12,12 @@ namespace gfx
             return false;
         }
 
-        auto format = VK_FORMAT_UNDEFINED;
-        auto aspectMask = VK_IMAGE_ASPECT_NONE;
-        if ((info->usage & TextureUsageFlagBits::COLOR) != TextureUsageFlagBits::NONE)
+        VkFormat format = static_cast<VkFormat>(info->format);
+
+        auto aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        if ((info->usage & TextureUsageFlagBits::DEPTH_STENCIL) != TextureUsageFlagBits::NONE)
         {
-            format = _device->swapchainImageFormat();
-            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        }
-        else if ((info->usage & TextureUsageFlagBits::DEPTH_STENCIL) != TextureUsageFlagBits::NONE)
-        {
-            format = VK_FORMAT_D32_SFLOAT;
             aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        }
-        else
-        {
-            format = VK_FORMAT_R8G8B8A8_UNORM;
-            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         }
 
         VkExtent3D extent{};
@@ -45,20 +35,33 @@ namespace gfx
         imageInfo.usage = static_cast<VkImageUsageFlagBits>(info->usage);
         imageInfo.format = format;
         VmaAllocationCreateInfo allocationCreateInfo = {};
-        allocationCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+        allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
         if (vmaCreateImage(_device->allocator(), &imageInfo, &allocationCreateInfo, &_image, &_allocation, &_allocationInfo))
         {
             return true;
         }
 
-        VkImageViewCreateInfo imageViewInfo = {};
-        imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        if ((info->usage & TextureUsageFlagBits::HOST_TRANSFER) != TextureUsageFlagBits::NONE)
+        {
+            VkImageSubresourceRange subresource_range = {};
+            subresource_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subresource_range.levelCount = 1;
+            subresource_range.layerCount = 1;
+
+            VkHostImageLayoutTransitionInfoEXT host_image_layout_transition_info = {VK_STRUCTURE_TYPE_HOST_IMAGE_LAYOUT_TRANSITION_INFO_EXT};
+            host_image_layout_transition_info.image = _image;
+            host_image_layout_transition_info.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            host_image_layout_transition_info.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            host_image_layout_transition_info.subresourceRange = subresource_range;
+
+            vkTransitionImageLayoutEXT(*_device, 1, &host_image_layout_transition_info);
+        }
+
+        VkImageViewCreateInfo imageViewInfo = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
         imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         imageViewInfo.image = _image;
         imageViewInfo.format = format;
-        imageViewInfo.subresourceRange.baseMipLevel = 0;
         imageViewInfo.subresourceRange.levelCount = 1;
-        imageViewInfo.subresourceRange.baseArrayLayer = 0;
         imageViewInfo.subresourceRange.layerCount = 1;
         imageViewInfo.subresourceRange.aspectMask = aspectMask;
         if (vkCreateImageView(*_device, &imageViewInfo, nullptr, &_imageView))
@@ -69,7 +72,35 @@ namespace gfx
         return false;
     }
 
-    TextureImpl::~TextureImpl()
+    void TextureImpl::update(const void *data, uint32_t width, uint32_t height)
+    {
+        VkMemoryToImageCopyEXT region = {VK_STRUCTURE_TYPE_MEMORY_TO_IMAGE_COPY_EXT};
+        region.pHostPointer = data;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.layerCount = 1;
+        region.imageExtent.width = width;
+        region.imageExtent.height = height;
+        region.imageExtent.depth = 1;
+
+        VkCopyMemoryToImageInfoEXT info = {VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INFO_EXT};
+        info.dstImage = _image;
+        info.dstImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        info.regionCount = 1;
+        info.pRegions = &region;
+        vkCopyMemoryToImageEXT(*_device, &info);
+    }
+
+    void TextureImpl::resize(uint32_t width, uint32_t height)
+    {
+        clear();
+        info->width = width;
+        info->height = height;
+        initialize();
+
+        emit(TextureImplEvent::RESET);
+    }
+
+    void TextureImpl::clear()
     {
         if (!_swapchain)
         {
@@ -78,11 +109,26 @@ namespace gfx
         }
     }
 
+    TextureImpl::~TextureImpl()
+    {
+        clear();
+    }
+
     Texture::Texture(DeviceImpl *device, const std::shared_ptr<TextureInfo> &info, bool swapchain) : impl(std::make_shared<TextureImpl>(device, info, swapchain)), info(impl->info) {}
 
     bool Texture::initialize()
     {
         return impl->initialize();
+    }
+
+    void Texture::update(const std::shared_ptr<ImageBitmap> &imageBitmap)
+    {
+        impl->update(imageBitmap->pixels.get(), imageBitmap->width, imageBitmap->height);
+    }
+
+    void Texture::resize(uint32_t width, uint32_t height)
+    {
+        impl->resize(width, height);
     }
 
     Texture::~Texture() {}

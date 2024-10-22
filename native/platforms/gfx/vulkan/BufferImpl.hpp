@@ -27,7 +27,7 @@ namespace gfx
 
         bool initialize();
 
-        void update(const void *data, size_t offset, size_t length);
+        void update(const void *data, size_t length);
 
         void resize(uint32_t size);
 

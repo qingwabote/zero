@@ -1,6 +1,6 @@
 import { Asset } from "assets";
 import { device, load } from "boot";
-import { CommandBuffer, Fence, Texture as GFX_Texture, SubmitInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { CommandBuffer, Fence, Format, Texture as GFX_Texture, SubmitInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 
 let _commandBuffer: CommandBuffer;
 let _fence: Fence;
@@ -30,6 +30,7 @@ export class Texture implements Asset {
         const bitmap = await load(url, "bitmap");
         const info = new TextureInfo;
         info.usage = TextureUsageFlagBits.SAMPLED | TextureUsageFlagBits.TRANSFER_DST;
+        info.format = Format.RGBA8_UNORM;
         info.width = bitmap.width;
         info.height = bitmap.height;
         const texture = device.createTexture(info);

@@ -4,7 +4,7 @@ import { ChannelBinding } from "./ChannelBinding.js";
 import { ChannelBindingQuat, ChannelBindingVec3 } from "./values.js";
 
 export class ClipBinging {
-    readonly channels: ChannelBinding[];
+    private readonly _channels: ChannelBinding[];
 
     readonly duration: number;
 
@@ -34,6 +34,12 @@ export class ClipBinging {
             channels.push(new ChannelBinding(channel.sampler.input, channel.sampler.output, property));
         }
         this.duration = duration;
-        this.channels = channels;
+        this._channels = channels;
+    }
+
+    sample(time: number): void {
+        for (const channel of this._channels) {
+            channel.sample(time);
+        }
     }
 }

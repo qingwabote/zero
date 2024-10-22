@@ -1,6 +1,6 @@
 import { device } from "boot";
-import { BufferUsageFlagBits, DescriptorSet, DescriptorSetLayout, Sampler, Texture } from "gfx";
-import { BufferView } from "../core/render/BufferView.js";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Sampler, Texture } from "gfx";
+import { BufferView } from "../core/render/gpu/BufferView.js";
 import { Pass as _Pass } from '../core/render/scene/Pass.js';
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -79,7 +79,7 @@ export class Pass implements _Pass {
         return this;
     }
 
-    upload() {
+    upload(commandBuffer: CommandBuffer) {
         if (this.descriptorSet) {
             if (this._props_state & PropsStateBit.UNBOUND) {
                 this.descriptorSet.bindBuffer(shaderLib.getShaderMeta(this.state.shader).blocks['Props'].binding, this._props!.buffer);
@@ -92,7 +92,7 @@ export class Pass implements _Pass {
             }
             this._textures_dirty.clear();
 
-            this._props?.update();
+            this._props?.update(commandBuffer);
         }
     }
 

@@ -43,6 +43,7 @@
 %ignore gfx::BlendFactor;
 %ignore gfx::PrimitiveTopology;
 %ignore gfx::IndexType;
+%ignore gfx::Span;
 
 %shared_ptr(gfx::FloatVector)
 %shared_ptr(gfx::Uint32Vector)

@@ -1,3 +1,4 @@
+import { CommandBuffer } from "gfx";
 import { Component } from "../Component.js";
 
 export class ComponentScheduler {
@@ -41,9 +42,9 @@ export class ComponentScheduler {
         this._busying = false;
     }
 
-    upload() {
+    upload(commandBuffer: CommandBuffer) {
         for (const com of this._components.keys()) {
-            com.upload()
+            com.upload(commandBuffer)
         }
     }
 

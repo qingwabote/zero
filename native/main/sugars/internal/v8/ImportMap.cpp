@@ -15,7 +15,7 @@ namespace sugar::v8
                 auto path = std::filesystem::canonical(i.value(), ec);
                 if (ec)
                 {
-                    ZERO_LOG_ERROR("%s", ec.message().c_str());
+                    ZERO_LOG_ERROR("%s %s", ec.message().c_str(), i.value().dump().c_str());
                     return true;
                 }
                 out.emplace(i.key(), path);

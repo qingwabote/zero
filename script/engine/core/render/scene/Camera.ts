@@ -67,7 +67,7 @@ export class Camera {
     }
 
     get aspect(): number {
-        const { width, height } = device.swapchain
+        const { width, height } = device.swapchain.color.info;
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
 
@@ -131,7 +131,7 @@ export class Camera {
     }
 
     private screenToNdc(out: Vec2Like, x: number, y: number): Vec2Like {
-        const { width, height } = device.swapchain
+        const { width, height } = device.swapchain.color.info;
 
         y = height - y;
 

@@ -1,10 +1,9 @@
+// run env first
+import { gl, pixelRatio, windowInfo } from "./env.js";
+//
 import { Device } from "gfx";
 
-const windowInfo = wx.getWindowInfo();
-
-const pixelRatio: number = windowInfo.pixelRatio;
-const pixelWidth: number = windowInfo.windowWidth * pixelRatio;
-const pixelHeight: number = windowInfo.windowHeight * pixelRatio;
+declare const wx: any;
 
 export interface TouchEvent {
     get count(): number;
@@ -32,8 +31,6 @@ class TouchEventImpl implements TouchEvent {
     }
 }
 
-declare const wx: any;
-
 // copy from weapp-adapter.9568fddf
 if (wx.getPerformance) {
     const { platform } = wx.getSystemInfoSync()
@@ -53,11 +50,6 @@ export interface EventListener {
     onTouchEnd(event: TouchEvent): void;
     onFrame(): void;
 }
-
-const canvas = wx.createCanvas()
-canvas.width = pixelWidth;
-canvas.height = pixelHeight;
-const gl = canvas.getContext('webgl2', { antialias: false })!;
 
 export const safeArea = (function () {
     const safeArea = windowInfo;

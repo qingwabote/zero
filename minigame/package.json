@@ -4,6 +4,7 @@
         "gfx-common": "tsc -p ../script/gfx/common --outDir ./dist/gfx-common --module system --watch",
         "gfx": "tsc -p ../script/gfx/webgl2 --outDir ./dist/gfx --module system --watch",
         "boot": "tsc -p ../script/boot/wx --outDir ./dist/boot --module system --watch",
+        "boot:ins": "cd ../script/boot/declare && npm ins && cd ../wx && npm ins",
         "assets": "tsc -p ../script/assets --outDir ./dist/assets --module system --watch",
         "splash": "tsc -p ../script/splash --outDir ./dist/splash/script --module system --watch",
         "yaml": "rollup --config -i ../script/engine/node_modules/yaml/browser/index.js -f system -o ./dist/subpackages/engine/yaml.js",
@@ -22,7 +23,8 @@
         "vehicle": "tsc -p ../projects/vehicle/script --outDir ./dist/subpackages/projects/vehicle/script --module system --watch",
         "cutting2d": "tsc -p ../projects/cutting2d/script --outDir ./dist/subpackages/projects/cutting2d/script --module system --watch",
         "instancing": "tsc -p ../projects/instancing/script --outDir ./dist/subpackages/projects/instancing/script --module system --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\" \"npm run flex\""
+        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\" \"npm run flex\"",
+        "ins": "npm run boot:ins && node ../minigame-tools/game.js"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.23.3",

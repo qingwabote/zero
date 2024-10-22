@@ -1,7 +1,7 @@
 // http://www.angelcode.com/products/bmfont/doc/render_text.html
 
 import { bundle } from "bundling";
-import { BlendFactor, BlendState } from "gfx";
+import { BlendFactor, BlendState, CommandBuffer } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { Shader } from "../assets/Shader.js";
 import { Node } from "../core/Node.js";
@@ -118,8 +118,8 @@ export class TextRenderer extends BoundedRenderer {
         this.updateData();
     }
 
-    override upload(): void {
-        this._vertexView.update();
+    override upload(commandBuffer: CommandBuffer): void {
+        this._vertexView.update(commandBuffer);
         this._mesh.subMeshes[0].draw.count = 6 * this._quads;
     }
 

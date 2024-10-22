@@ -17,7 +17,7 @@ namespace gfx
         Buffer(DeviceImpl *device, const std::shared_ptr<BufferInfo> &info);
 
         bool initialize();
-        void update(const std::shared_ptr<const void> &data, size_t offset, size_t length);
+        void update(const std::shared_ptr<const Span> &span, size_t offset, size_t length);
         void resize(uint32_t size);
 
         ~Buffer();

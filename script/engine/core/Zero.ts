@@ -178,15 +178,16 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
 
         boot.device.swapchain.acquire(this._swapchainAcquired);
 
-        this._componentScheduler.upload();
-        this._pipeline.upload();
-        quad.indexBufferView.update();
+        const commandBuffer = this._commandBuffer;
+        commandBuffer.begin();
+        this._componentScheduler.upload(commandBuffer);
+        this._pipeline.upload(commandBuffer);
+        quad.indexBufferView.update(commandBuffer);
+        this._pipeline.record(this._profile, commandBuffer, this.scene.cameras);
+        commandBuffer.end();
 
-        this._commandBuffer.begin();
-        this._pipeline.record(this._profile, this._commandBuffer, this.scene.cameras);
-        this._commandBuffer.end();
         const submitInfo = new SubmitInfo;
-        submitInfo.commandBuffer = this._commandBuffer;
+        submitInfo.commandBuffer = commandBuffer;
         submitInfo.waitSemaphore = this._swapchainAcquired;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
         submitInfo.signalSemaphore = this._queueExecuted;
