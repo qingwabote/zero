@@ -6,9 +6,9 @@ function vec3_length(x, y, z) {
     return Math.sqrt(x * x + y * y + z * z);
 }
 export const preTransforms = Object.freeze([
-    Object.freeze([1, 0, 0, 1]),
-    Object.freeze([0, 1, -1, 0]),
-    Object.freeze([-1, 0, 0, -1]),
+    Object.freeze([1, 0, 0, 1]), // SurfaceTransform.IDENTITY
+    Object.freeze([0, 1, -1, 0]), // SurfaceTransform.ROTATE_90
+    Object.freeze([-1, 0, 0, -1]), // SurfaceTransform.ROTATE_180
     Object.freeze([0, -1, 1, 0]), // SurfaceTransform.ROTATE_270
 ]);
 export const mat4 = {
@@ -202,6 +202,33 @@ export const mat4 = {
         out[13] = x * a[1] + y * a[5] + z * a[9] + w * a[13];
         out[14] = x * a[2] + y * a[6] + z * a[10] + w * a[14];
         out[15] = x * a[3] + y * a[7] + z * a[11] + w * a[15];
+        return out;
+    },
+    multiply_affine(out, a, b) {
+        let x = b[0];
+        let y = b[1];
+        let z = b[2];
+        out[0] = x * a[0] + y * a[4] + z * a[8];
+        out[1] = x * a[1] + y * a[5] + z * a[9];
+        out[2] = x * a[2] + y * a[6] + z * a[10];
+        x = b[4];
+        y = b[5];
+        z = b[6];
+        out[4] = x * a[0] + y * a[4] + z * a[8];
+        out[5] = x * a[1] + y * a[5] + z * a[9];
+        out[6] = x * a[2] + y * a[6] + z * a[10];
+        x = b[8];
+        y = b[9];
+        z = b[10];
+        out[8] = x * a[0] + y * a[4] + z * a[8];
+        out[9] = x * a[1] + y * a[5] + z * a[9];
+        out[10] = x * a[2] + y * a[6] + z * a[10];
+        x = b[12];
+        y = b[13];
+        z = b[14];
+        out[12] = x * a[0] + y * a[4] + z * a[8] + a[12];
+        out[13] = x * a[1] + y * a[5] + z * a[9] + a[13];
+        out[14] = x * a[2] + y * a[6] + z * a[10] + a[14];
         return out;
     },
     orthographic(out, left, right, bottom, top, near, far, minClipZ) {

@@ -17,7 +17,7 @@ const phaseFactory = (function () {
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
     return {
         model: async function (info, context, visibility) {
-            return new pipeline.ModelPhase(context, visibility, info.culling, info.batching, info.model, info.pass);
+            return new pipeline.ModelPhase(context, visibility, info.culling, info.model, info.pass);
         },
         fxaa: async function (info, context, visibility) {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
@@ -173,7 +173,7 @@ export class Pipeline extends Yml {
                     if (stage.framebuffer.resolves) {
                         for (const texture of stage.framebuffer.resolves) {
                             if (texture.swapchain) {
-                                framebufferInfo.resolves.add(device.swapchain.colorTexture);
+                                framebufferInfo.resolves.add(device.swapchain.color);
                             }
                             else {
                                 throw new Error('not implemented');
@@ -252,15 +252,31 @@ export class Pipeline extends Yml {
         if (typeof texture == 'string') {
             return this._textures[texture];
         }
-        const info = new gfx.TextureInfo;
-        for (const usage of texture.usage) {
-            info.usage |= gfx.TextureUsageFlagBits[usage];
+        let usage = gfx.TextureUsageFlagBits.NONE;
+        for (const u of texture.usage) {
+            usage |= gfx.TextureUsageFlagBits[u];
         }
+        let format = gfx.Format.UNDEFINED;
+        if (usage & gfx.TextureUsageFlagBits.COLOR) {
+            // The Vulkan spec states: 
+            // If externalFormatResolve is not enabled, each element of pResolveAttachments must have the same VkFormat as its corresponding color attachment
+            // (https://vulkan.lunarg.com/doc/view/1.3.290.0/windows/1.3-extensions/vkspec.html#VUID-VkSubpassDescription2-externalFormatResolve-09339)
+            format = device.swapchain.color.info.format;
+        }
+        else if (usage & gfx.TextureUsageFlagBits.DEPTH_STENCIL) {
+            format = gfx.Format.D32_SFLOAT;
+        }
+        else {
+            throw new Error(`unsupported texture usage: ${usage}`);
+        }
+        const info = new gfx.TextureInfo;
+        info.usage = usage;
+        info.format = format;
         if (samples) {
             info.samples = samples;
         }
-        info.width = ((_a = texture.extent) === null || _a === void 0 ? void 0 : _a[0]) || device.swapchain.width;
-        info.height = ((_b = texture.extent) === null || _b === void 0 ? void 0 : _b[1]) || device.swapchain.height;
+        info.width = ((_a = texture.extent) === null || _a === void 0 ? void 0 : _a[0]) || device.swapchain.color.info.width;
+        info.height = ((_b = texture.extent) === null || _b === void 0 ? void 0 : _b[1]) || device.swapchain.color.info.height;
         return device.createTexture(info);
     }
 }

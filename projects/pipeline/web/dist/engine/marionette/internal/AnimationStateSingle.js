@@ -8,8 +8,6 @@ export class AnimationStateSingle extends AnimationState {
         this._clip = _clip;
     }
     sample(time) {
-        for (const channel of this._clip.channels) {
-            channel.sample(time);
-        }
+        this._clip.sample(time);
     }
 }

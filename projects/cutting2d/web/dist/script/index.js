@@ -22,14 +22,14 @@ export default class App extends Zero {
     start() {
         const width = 640;
         const height = 960;
-        const swapchain = device.swapchain;
-        const scaleX = swapchain.width / width;
-        const scaleY = swapchain.height / height;
+        const { width: w, height: h } = device.swapchain.color.info;
+        const scaleX = w / width;
+        const scaleY = h / height;
         const scale = scaleX < scaleY ? scaleX : scaleY;
         let node;
         node = new Node;
         const camera = node.addComponent(Camera);
-        camera.orthoSize = swapchain.height / scale / 2;
+        camera.orthoSize = h / scale / 2;
         camera.visibilities = VisibilityFlagBits.UI;
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;

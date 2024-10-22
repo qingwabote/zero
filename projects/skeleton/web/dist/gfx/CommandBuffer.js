@@ -1,28 +1,36 @@
 import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP, PrimitiveTopology } from "gfx-common";
-function bendFactor2WebGL(factor) {
+import { Formats } from "./internal/mapping.js";
+function bendFactor2WebGL(gl, factor) {
     switch (factor) {
-        case BlendFactor.ZERO: return WebGL2RenderingContext.ZERO;
-        case BlendFactor.ONE: return WebGL2RenderingContext.ONE;
-        case BlendFactor.SRC_ALPHA: return WebGL2RenderingContext.SRC_ALPHA;
-        case BlendFactor.DST_ALPHA: return WebGL2RenderingContext.DST_ALPHA;
-        case BlendFactor.ONE_MINUS_SRC_ALPHA: return WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA;
-        case BlendFactor.ONE_MINUS_DST_ALPHA: return WebGL2RenderingContext.ONE_MINUS_DST_ALPHA;
+        case BlendFactor.ZERO: return gl.ZERO;
+        case BlendFactor.ONE: return gl.ONE;
+        case BlendFactor.SRC_ALPHA: return gl.SRC_ALPHA;
+        case BlendFactor.DST_ALPHA: return gl.DST_ALPHA;
+        case BlendFactor.ONE_MINUS_SRC_ALPHA: return gl.ONE_MINUS_SRC_ALPHA;
+        case BlendFactor.ONE_MINUS_DST_ALPHA: return gl.ONE_MINUS_DST_ALPHA;
     }
 }
 const input2vao = new WeakMap;
 export class CommandBuffer {
     constructor(_gl) {
         this._gl = _gl;
+        this._descriptorSets = new Map;
+        this._dynamicOffsets = new Map;
     }
     begin() { }
-    copyBuffer(srcBuffer, dstBuffer, srcOffset, length) {
-        dstBuffer.update(srcBuffer, srcOffset, length);
-    }
     copyImageBitmapToTexture(imageBitmap, texture) {
         const gl = this._gl;
+        const format = Formats[texture.info.format];
         gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, format.format, format.type, imageBitmap);
         // gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+    copyBufferToTexture(buffer, texture, offset_x, offset_y, extent_x, extent_y) {
+        const gl = this._gl;
+        const format = Formats[texture.info.format];
+        gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, offset_x, offset_y, extent_x, extent_y, format.format, format.type, buffer);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
     beginRenderPass(renderPass, framebuffer, x, y, width, height) {
@@ -35,7 +43,7 @@ export class CommandBuffer {
         let flag = 0;
         for (const attachment of renderPass.info.colors.data) {
             if (attachment.loadOp == LOAD_OP.CLEAR) {
-                gl.clearColor(0, 0, 0, 0);
+                gl.clearColor(0, 0, 0, 1);
                 flag |= gl.COLOR_BUFFER_BIT;
             }
         }
@@ -50,6 +58,7 @@ export class CommandBuffer {
         var _a;
         const gl = this._gl;
         const info = pipeline.info;
+        info.shader.setLayout(info.layout);
         gl.useProgram(info.shader.impl);
         switch (info.rasterizationState.cullMode) {
             case CullMode.NONE:
@@ -75,93 +84,22 @@ export class CommandBuffer {
         }
         const blendState = info.blendState;
         if (blendState) {
-            gl.blendFuncSeparate(bendFactor2WebGL(blendState.srcRGB), bendFactor2WebGL(blendState.dstRGB), bendFactor2WebGL(blendState.srcAlpha), bendFactor2WebGL(blendState.dstAlpha));
+            gl.blendFuncSeparate(bendFactor2WebGL(gl, blendState.srcRGB), bendFactor2WebGL(gl, blendState.dstRGB), bendFactor2WebGL(gl, blendState.srcAlpha), bendFactor2WebGL(gl, blendState.dstAlpha));
             gl.enable(gl.BLEND);
         }
         else {
             gl.disable(gl.BLEND);
         }
-        this._pipeline = info;
+        this._pipeline = pipeline;
     }
     bindDescriptorSet(index, descriptorSet, dynamicOffsets) {
-        const gl = this._gl;
-        let dynamicIndex = 0;
-        for (const layoutBinding of descriptorSet.layout.info.bindings.data) {
-            if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER) {
-                const buffer = descriptorSet.getBuffer(layoutBinding.binding);
-                gl.bindBufferBase(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl);
-            }
-            else if (layoutBinding.descriptorType == DescriptorType.UNIFORM_BUFFER_DYNAMIC) {
-                const offset = dynamicOffsets.data[dynamicIndex++];
-                const buffer = descriptorSet.getBuffer(layoutBinding.binding);
-                const range = descriptorSet.getBufferRange(layoutBinding.binding);
-                gl.bindBufferRange(gl.UNIFORM_BUFFER, layoutBinding.binding + index * 10, buffer.impl, offset, range);
-            }
-            else if (layoutBinding.descriptorType == DescriptorType.SAMPLER_TEXTURE) {
-                const texture = descriptorSet.getTexture(layoutBinding.binding);
-                const unit = index * 2 + layoutBinding.binding;
-                gl.activeTexture(gl.TEXTURE0 + unit);
-                gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-                const sampler = descriptorSet.getSampler(layoutBinding.binding);
-                gl.bindSampler(unit, sampler.impl);
-            }
+        this._descriptorSets.set(index, descriptorSet);
+        if (dynamicOffsets) {
+            this._dynamicOffsets.set(index, dynamicOffsets);
         }
     }
     bindInputAssembler(inputAssembler) {
-        this._inputAssembler = inputAssembler;
-    }
-    draw(vertexCount, firstVertex, instanceCount) {
-        this.bindVertexArray();
         const gl = this._gl;
-        let mode;
-        switch (this._inputAssembler.vertexInputState.primitive) {
-            case PrimitiveTopology.LINE_LIST:
-                mode = gl.LINES;
-                break;
-            case PrimitiveTopology.TRIANGLE_LIST:
-                mode = gl.TRIANGLES;
-                break;
-            default:
-                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`;
-        }
-        gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
-        gl.bindVertexArray(null);
-    }
-    drawIndexed(indexCount, firstIndex, instanceCount) {
-        this.bindVertexArray();
-        const indexInput = this._inputAssembler.indexInput;
-        let type;
-        let type_bytes;
-        switch (indexInput.type) {
-            case IndexType.UINT16:
-                type = WebGL2RenderingContext.UNSIGNED_SHORT;
-                type_bytes = 2;
-                break;
-            case IndexType.UINT32:
-                type = WebGL2RenderingContext.UNSIGNED_INT;
-                type_bytes = 4;
-                break;
-            default:
-                throw 'unsupported index type';
-        }
-        const gl = this._gl;
-        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, type_bytes * firstIndex, instanceCount);
-        gl.bindVertexArray(null);
-    }
-    endRenderPass() {
-        const gl = this._gl;
-        for (const attachment of this._framebuffer.info.resolves.data) {
-            if (attachment.info.swapchain) {
-                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
-                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-                gl.blitFramebuffer(this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height, this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height, gl.COLOR_BUFFER_BIT, gl.LINEAR);
-            }
-        }
-    }
-    end() { }
-    bindVertexArray() {
-        const gl = this._gl;
-        const inputAssembler = this._inputAssembler;
         let vao = input2vao.get(inputAssembler);
         if (!vao) {
             vao = gl.createVertexArray();
@@ -183,19 +121,19 @@ export class CommandBuffer {
                         case Format.RG32_SFLOAT:
                         case Format.RGB32_SFLOAT:
                         case Format.RGBA32_SFLOAT:
-                            type = WebGL2RenderingContext.FLOAT;
+                            type = gl.FLOAT;
                             isInteger = false;
                             break;
                         case Format.RGBA8_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_BYTE;
+                            type = gl.UNSIGNED_BYTE;
                             isInteger = true;
                             break;
                         case Format.RGBA16_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_SHORT;
+                            type = gl.UNSIGNED_SHORT;
                             isInteger = true;
                             break;
                         case Format.RGBA32_UINT:
-                            type = WebGL2RenderingContext.UNSIGNED_INT;
+                            type = gl.UNSIGNED_INT;
                             isInteger = true;
                             break;
                         default:
@@ -221,5 +159,84 @@ export class CommandBuffer {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         }
         gl.bindVertexArray(vao);
+        this._inputAssembler = inputAssembler;
+    }
+    draw(vertexCount, firstVertex, instanceCount) {
+        this.bindDescriptorSets();
+        const gl = this._gl;
+        let mode;
+        switch (this._inputAssembler.vertexInputState.primitive) {
+            case PrimitiveTopology.LINE_LIST:
+                mode = gl.LINES;
+                break;
+            case PrimitiveTopology.TRIANGLE_LIST:
+                mode = gl.TRIANGLES;
+                break;
+            default:
+                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`;
+        }
+        gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
+        gl.bindVertexArray(null);
+    }
+    drawIndexed(indexCount, firstIndex, instanceCount) {
+        this.bindDescriptorSets();
+        const gl = this._gl;
+        const indexInput = this._inputAssembler.indexInput;
+        let type;
+        let type_bytes;
+        switch (indexInput.type) {
+            case IndexType.UINT16:
+                type = gl.UNSIGNED_SHORT;
+                type_bytes = 2;
+                break;
+            case IndexType.UINT32:
+                type = gl.UNSIGNED_INT;
+                type_bytes = 4;
+                break;
+            default:
+                throw 'unsupported index type';
+        }
+        gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, type_bytes * firstIndex, instanceCount);
+        gl.bindVertexArray(null);
+    }
+    endRenderPass() {
+        const gl = this._gl;
+        for (const attachment of this._framebuffer.info.resolves.data) {
+            if (attachment.info.swapchain) {
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer.impl);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+                gl.blitFramebuffer(this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height, this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.y + this._viewport.height, gl.COLOR_BUFFER_BIT, gl.LINEAR);
+            }
+        }
+    }
+    end() { }
+    bindDescriptorSets() {
+        const gl = this._gl;
+        for (const [index, descriptorSet] of this._descriptorSets) {
+            let dynamicIndex = 0;
+            for (const dslb of descriptorSet.layout.info.bindings.data) {
+                switch (dslb.descriptorType) {
+                    case DescriptorType.SAMPLER_TEXTURE:
+                        const texture = descriptorSet.getTexture(dslb.binding);
+                        const unit = this._pipeline.info.layout.getFlatBinding(index, dslb.binding);
+                        gl.activeTexture(gl.TEXTURE0 + unit);
+                        gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+                        const sampler = descriptorSet.getSampler(dslb.binding);
+                        gl.bindSampler(unit, sampler.impl);
+                        break;
+                    case DescriptorType.UNIFORM_BUFFER:
+                        gl.bindBufferBase(gl.UNIFORM_BUFFER, this._pipeline.info.layout.getFlatBinding(index, dslb.binding), descriptorSet.getBuffer(dslb.binding).impl);
+                        break;
+                    case DescriptorType.UNIFORM_BUFFER_DYNAMIC:
+                        const offset = this._dynamicOffsets.get(index).data[dynamicIndex++];
+                        gl.bindBufferRange(gl.UNIFORM_BUFFER, this._pipeline.info.layout.getFlatBinding(index, dslb.binding), descriptorSet.getBuffer(dslb.binding).impl, offset, descriptorSet.getBufferRange(dslb.binding));
+                        break;
+                    default:
+                        throw new Error(`unsupported descriptorType: ${dslb.descriptorType}`);
+                }
+            }
+        }
+        this._descriptorSets.clear();
+        this._dynamicOffsets.clear();
     }
 }

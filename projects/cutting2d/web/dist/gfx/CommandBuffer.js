@@ -1,4 +1,5 @@
 import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP, PrimitiveTopology } from "gfx-common";
+import { Formats } from "./internal/mapping.js";
 function bendFactor2WebGL(gl, factor) {
     switch (factor) {
         case BlendFactor.ZERO: return gl.ZERO;
@@ -17,14 +18,19 @@ export class CommandBuffer {
         this._dynamicOffsets = new Map;
     }
     begin() { }
-    copyBuffer(srcBuffer, dstBuffer, srcOffset, length) {
-        dstBuffer.update(srcBuffer, srcOffset, length);
-    }
     copyImageBitmapToTexture(imageBitmap, texture) {
         const gl = this._gl;
+        const format = Formats[texture.info.format];
         gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, gl.RGBA, gl.UNSIGNED_BYTE, imageBitmap);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, imageBitmap.width, imageBitmap.height, format.format, format.type, imageBitmap);
         // gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+    copyBufferToTexture(buffer, texture, offset_x, offset_y, extent_x, extent_y) {
+        const gl = this._gl;
+        const format = Formats[texture.info.format];
+        gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, offset_x, offset_y, extent_x, extent_y, format.format, format.type, buffer);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
     beginRenderPass(renderPass, framebuffer, x, y, width, height) {

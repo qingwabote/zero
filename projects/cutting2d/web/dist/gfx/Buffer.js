@@ -24,13 +24,12 @@ export class Buffer {
         this.resize(this.info.size);
         return false;
     }
-    update(buffer, offset, length) {
+    update(src, src_offset, src_length) {
         const gl = this._gl;
         const target = usage2target(gl, this.info.usage);
         gl.bindVertexArray(null);
         gl.bindBuffer(target, this._impl);
-        // gl.bufferSubData(target, 0, new DataView(buffer, offset, length)); // DataView does not work in wx ios.
-        gl.bufferSubData(target, 0, new Uint8Array(buffer, offset, length));
+        gl.bufferSubData(target, 0, src, src_offset, src_length);
         gl.bindBuffer(target, null);
     }
     resize(size) {

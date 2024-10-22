@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { BufferUsageFlagBits } from "gfx";
-import { BufferView } from "../core/render/BufferView.js";
+import { BufferView } from "../core/render/gpu/BufferView.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 var PropsStateBit;
@@ -9,6 +9,7 @@ var PropsStateBit;
     PropsStateBit[PropsStateBit["EXTERNAL"] = 2] = "EXTERNAL";
     PropsStateBit[PropsStateBit["UNBOUND"] = 4] = "UNBOUND";
 })(PropsStateBit || (PropsStateBit = {}));
+let id = 0;
 export class Pass {
     get props() {
         return this._props;
@@ -16,6 +17,7 @@ export class Pass {
     constructor(state, type = 'default', source) {
         this.state = state;
         this.type = type;
+        this.id = id++;
         this._props_state = PropsStateBit.DONE;
         this._props = undefined;
         this._textures_dirty = new Map;
@@ -64,7 +66,7 @@ export class Pass {
         this._textures_dirty.set(name, true);
         return this;
     }
-    upload() {
+    upload(commandBuffer) {
         var _a;
         if (this.descriptorSet) {
             if (this._props_state & PropsStateBit.UNBOUND) {
@@ -76,7 +78,7 @@ export class Pass {
                 this.descriptorSet.bindTexture(binding, ...this._textures.get(name));
             }
             this._textures_dirty.clear();
-            (_a = this._props) === null || _a === void 0 ? void 0 : _a.update();
+            (_a = this._props) === null || _a === void 0 ? void 0 : _a.update(commandBuffer);
         }
     }
     copy() {

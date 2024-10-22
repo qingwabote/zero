@@ -1,6 +1,6 @@
 import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { BufferView } from "../../core/render/BufferView.js";
+import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -34,7 +34,7 @@ export class CSMUBO extends UBO {
         this._num = _num;
         this._view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
     }
-    update(dumping) {
+    update(commandBuffer, dumping) {
         const size = UBO.align(this.range);
         let index = -1;
         for (const camera of Zero.instance.scene.cameras) {
@@ -49,7 +49,7 @@ export class CSMUBO extends UBO {
                 }
             }
         }
-        this._view.update();
+        this._view.update(commandBuffer);
     }
 }
 CSMUBO.definition = Block;

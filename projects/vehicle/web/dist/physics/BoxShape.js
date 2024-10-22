@@ -1,4 +1,4 @@
-import { Component, render, vec3 } from 'engine';
+import { Component, vec3 } from 'engine';
 import * as phys from 'phys';
 import { RigidBody } from './RigidBody.js';
 var DirtyFlagBits;
@@ -39,9 +39,9 @@ export class BoxShape extends Component {
         this.body = body;
     }
     update() {
-        if (this.node.hasChangedFlag.hasBit(render.Transform.ChangeBit.SCALE)) {
-            this._dirtyFlags |= DirtyFlagBits.SCALE;
-        }
+        // if (this.node.hasChangedFlag.hasBit(render.Transform.ChangeBit.SCALE)) {
+        //     this._dirtyFlags |= DirtyFlagBits.SCALE;
+        // }
         if (this._dirtyFlags & DirtyFlagBits.SCALE) {
             const scale = vec3.multiply(vec3.create(), this._size, this.node.world_scale);
             phys_vec3_a.set(...scale);

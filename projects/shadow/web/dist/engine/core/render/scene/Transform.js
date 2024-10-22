@@ -4,18 +4,11 @@ import { quat } from "../../math/quat.js";
 import { vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
-var ChangeBit;
-(function (ChangeBit) {
-    ChangeBit[ChangeBit["NONE"] = 0] = "NONE";
-    ChangeBit[ChangeBit["POSITION"] = 1] = "POSITION";
-    ChangeBit[ChangeBit["ROTATION"] = 2] = "ROTATION";
-    ChangeBit[ChangeBit["SCALE"] = 4] = "SCALE";
-    ChangeBit[ChangeBit["TRS"] = 7] = "TRS";
-})(ChangeBit || (ChangeBit = {}));
 const vec3_a = vec3.create();
 const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
+const dirtyTransforms = [];
 export class Transform {
     get visibility() {
         var _a, _b, _c, _d;
@@ -38,7 +31,7 @@ export class Transform {
     }
     set position(value) {
         vec3.copy(this._position, value);
-        this.dirty(ChangeBit.POSITION);
+        this.invalidate();
     }
     /**
      * rotation is normalized.
@@ -48,24 +41,32 @@ export class Transform {
     }
     set rotation(value) {
         vec4.copy(this._rotation, value);
-        this.dirty(ChangeBit.ROTATION);
+        this.invalidate();
     }
     get scale() {
         return this._scale;
     }
     set scale(value) {
         vec3.copy(this._scale, value);
-        this.dirty(ChangeBit.SCALE);
+        this.invalidate();
     }
     get euler() {
         return quat.toEuler(this._euler, this._rotation);
     }
     set euler(value) {
         quat.fromEuler(this._rotation, value[0], value[1], value[2]);
-        this.dirty(ChangeBit.ROTATION);
+        this.invalidate();
+    }
+    get matrix() {
+        this.local_update();
+        return this._matrix;
+    }
+    set matrix(value) {
+        mat4.toTRS(value, this._position, this._rotation, this._scale);
+        this.invalidate();
     }
     get world_position() {
-        this.update();
+        this.world_update();
         return this._world_position;
     }
     set world_position(value) {
@@ -78,7 +79,7 @@ export class Transform {
         this.position = vec3_a;
     }
     get world_rotation() {
-        this.update();
+        this.world_update();
         return this._world_rotation;
     }
     set world_rotation(value) {
@@ -88,28 +89,20 @@ export class Transform {
         }
         quat.conjugate(this._rotation, this._parent.world_rotation);
         quat.multiply(this._rotation, this._rotation, value);
-        this.dirty(ChangeBit.ROTATION);
+        this.invalidate();
     }
     get world_scale() {
         return this._world_scale;
+    }
+    get world_matrix() {
+        this.world_update();
+        return this._world_matrix;
     }
     get children() {
         return this._children;
     }
     get parent() {
         return this._parent;
-    }
-    get matrix() {
-        this.update();
-        return this._matrix;
-    }
-    set matrix(value) {
-        mat4.toTRS(value, this._position, this._rotation, this._scale);
-        this.dirty(ChangeBit.TRS);
-    }
-    get world_matrix() {
-        this.update();
-        return this._world_matrix;
     }
     get hasChangedFlag() {
         return this._hasChangedFlag;
@@ -118,24 +111,25 @@ export class Transform {
         this.name = name;
         this._explicit_visibility = undefined;
         this._implicit_visibility = undefined;
-        this._changed = ChangeBit.TRS;
+        this._local_invalidated = false;
         this._position = vec3.create();
         this._rotation = quat.create();
         this._scale = vec3.create(1, 1, 1);
         this._euler = vec3.create();
+        this._matrix = mat4.create();
+        this._world_invalidated = false;
         this._world_position = vec3.create();
         this._world_rotation = quat.create();
         this._world_scale = vec3.create(1, 1, 1);
+        this._world_matrix = mat4.create();
         this._children = [];
         this._parent = undefined;
-        this._matrix = mat4.create();
-        this._world_matrix = mat4.create();
-        this._hasChangedFlag = new PeriodicFlag(0xffffffff);
+        this._hasChangedFlag = new PeriodicFlag(1);
     }
     addChild(child) {
         child._implicit_visibility = undefined;
         child._parent = this;
-        child.dirty(ChangeBit.TRS);
+        child.invalidate();
         this._children.push(child);
     }
     getChildByPath(paths) {
@@ -162,34 +156,54 @@ export class Transform {
         quat.fromViewUp(quat_a, vec3_a);
         this.world_rotation = quat_a;
     }
-    dirty(flag) {
-        this._changed |= flag;
-        this._hasChangedFlag.addBit(flag);
-        for (const child of this._children) {
-            child.dirty(flag);
+    invalidate() {
+        let i = 0;
+        dirtyTransforms[i++] = this;
+        while (i) {
+            let cur = dirtyTransforms[--i];
+            cur._world_invalidated = true;
+            cur._hasChangedFlag.reset(1);
+            for (const child of cur._children) {
+                dirtyTransforms[i++] = child;
+            }
         }
+        this._local_invalidated = true;
     }
-    update() {
-        if (this._changed == ChangeBit.NONE)
+    local_update() {
+        if (!this._local_invalidated)
             return;
-        if (!this._parent) {
-            mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
-            this._world_matrix.splice(0, this._matrix.length, ...this._matrix);
-            this._world_position.splice(0, this._position.length, ...this._position);
-            this._world_rotation.splice(0, this._rotation.length, ...this._rotation);
-            this._world_scale.splice(0, this._scale.length, ...this._scale);
-            this._changed = ChangeBit.NONE;
-            return;
-        }
         mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
-        mat4.multiply(this._world_matrix, this._parent.world_matrix, this._matrix);
-        vec3.transformMat4(this._world_position, vec3.ZERO, this._world_matrix);
-        quat.multiply(this._world_rotation, this._parent.world_rotation, this._rotation);
-        quat.conjugate(quat_a, this._world_rotation);
-        mat3.fromQuat(mat3_a, quat_a);
-        mat3.multiplyMat4(mat3_a, mat3_a, this._world_matrix);
-        vec3.set(this._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
-        this._changed = ChangeBit.NONE;
+        this._local_invalidated = false;
+    }
+    world_update() {
+        let i = 0;
+        let cur = this;
+        while (cur) {
+            if (!cur._world_invalidated) {
+                break;
+            }
+            dirtyTransforms[i++] = cur;
+            cur = cur.parent;
+        }
+        while (i) {
+            const child = dirtyTransforms[--i];
+            if (cur) {
+                mat4.multiply(child._world_matrix, cur._world_matrix, child.matrix);
+                vec3.transformMat4(child._world_position, vec3.ZERO, child._world_matrix);
+                quat.multiply(child._world_rotation, cur._world_rotation, child._rotation);
+                quat.conjugate(quat_a, child._world_rotation);
+                mat3.fromQuat(mat3_a, quat_a);
+                mat3.multiplyMat4(mat3_a, mat3_a, child._world_matrix);
+                vec3.set(child._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
+            }
+            else {
+                child._world_matrix.splice(0, child.matrix.length, ...child.matrix);
+                child._world_position.splice(0, child._position.length, ...child._position);
+                child._world_rotation.splice(0, child._rotation.length, ...child._rotation);
+                child._world_scale.splice(0, child._scale.length, ...child._scale);
+            }
+            child._world_invalidated = false;
+            cur = child;
+        }
     }
 }
-Transform.ChangeBit = ChangeBit;

@@ -63,7 +63,7 @@ export class Skeleton extends BoundedRenderer {
     createModel() {
         return new render.Model(this.node, this._mesh, this._materials);
     }
-    upload() {
+    upload(commandBuffer) {
         let key = '';
         let vertex = 0;
         let index = 0;
@@ -152,8 +152,8 @@ export class Skeleton extends BoundedRenderer {
             clipper.clipEndWithSlot(slot);
         }
         clipper.clipEnd();
-        this._vertexView.update();
-        this._indexView.update();
+        this._vertexView.update(commandBuffer);
+        this._indexView.update(commandBuffer);
     }
     createMaterial(blend, texture) {
         let blendState = undefined;

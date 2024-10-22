@@ -1298,10 +1298,10 @@ var Ammo = (() => {
             var sigRet = sig.slice(0, 1);
             var sigParam = sig.slice(1);
             var typeCodes = {
-                'i': 0x7f,
-                'p': 0x7f,
-                'j': 0x7e,
-                'f': 0x7d,
+                'i': 0x7f, // i32
+                'p': 0x7f, // i32
+                'j': 0x7e, // i64
+                'f': 0x7d, // f32
                 'd': 0x7c, // f64
             };
             // Parameters, length + signatures
@@ -1336,8 +1336,8 @@ var Ammo = (() => {
             generateFuncType(sig, typeSectionBody);
             // Rest of the module is static
             var bytes = [
-                0x00, 0x61, 0x73, 0x6d,
-                0x01, 0x00, 0x00, 0x00,
+                0x00, 0x61, 0x73, 0x6d, // magic ("\0asm")
+                0x01, 0x00, 0x00, 0x00, // version: 1
                 0x01, // Type section code
             ];
             // Write the overall length of the type section followed by the body
@@ -5052,11 +5052,11 @@ var Ammo = (() => {
         // Converts big (string or array) values into a C-style storage, in temporary space
         /** @suppress {duplicate} (TODO: avoid emitting this multiple times, it is redundant) */
         var ensureCache = {
-            buffer: 0,
-            size: 0,
-            pos: 0,
-            temps: [],
-            needed: 0,
+            buffer: 0, // the main buffer of temporary storage
+            size: 0, // the size of buffer
+            pos: 0, // the next free offset in buffer
+            temps: [], // extra allocations
+            needed: 0, // the total size we need next time
             prepare: function () {
                 if (ensureCache.needed) {
                     // clear the temps

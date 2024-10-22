@@ -16,8 +16,9 @@ export function getRenderPass(framebuffer, clears = ClearFlagBits.NONE) {
     for (let i = 0; i < colorAttachments.size(); i++) {
         const attachment = colorAttachments.get(i);
         const description = new AttachmentDescription;
+        description.format = attachment.info.format;
         description.loadOp = clears & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
-        if (attachment == device.swapchain.colorTexture) {
+        if (attachment == device.swapchain.color) {
             description.initialLayout = clears & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
             description.finalLayout = ImageLayout.PRESENT_SRC;
         }
@@ -29,8 +30,9 @@ export function getRenderPass(framebuffer, clears = ClearFlagBits.NONE) {
     }
     const resolveAttachments = framebuffer.resolves;
     for (let i = 0; i < resolveAttachments.size(); i++) {
-        // const resolveAttachment = resolveAttachments.get(i);
+        const resolveAttachment = resolveAttachments.get(i);
         const description = new AttachmentDescription;
+        description.format = resolveAttachment.info.format;
         description.loadOp = clears & ClearFlagBits.COLOR ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
         description.initialLayout = clears & ClearFlagBits.COLOR ? ImageLayout.UNDEFINED : ImageLayout.PRESENT_SRC;
         description.finalLayout = ImageLayout.PRESENT_SRC;
@@ -38,6 +40,7 @@ export function getRenderPass(framebuffer, clears = ClearFlagBits.NONE) {
     }
     const depthStencilAttachment = framebuffer.depthStencil;
     const depthStencilDescription = new AttachmentDescription();
+    depthStencilDescription.format = depthStencilAttachment.info.format;
     depthStencilDescription.loadOp = clears & ClearFlagBits.DEPTH ? LOAD_OP.CLEAR : LOAD_OP.LOAD;
     depthStencilDescription.initialLayout = clears & ClearFlagBits.DEPTH ? ImageLayout.UNDEFINED : ImageLayout.DEPTH_STENCIL;
     depthStencilDescription.finalLayout = depthStencilAttachment.info.usage & TextureUsageFlagBits.SAMPLED ? ImageLayout.DEPTH_STENCIL_READ_ONLY : ImageLayout.DEPTH_STENCIL;

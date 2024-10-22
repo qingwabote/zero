@@ -24,7 +24,6 @@ export class Slider extends ElementContainer {
         background.setWidth('100%');
         background.setHeight('100%');
         this.addElement(background);
-        this._background = background;
         const foreground = Renderer.create(SpriteRenderer);
         foreground.impl.spriteFrame = splash_frame;
         foreground.impl.color = vec4.create(0, 1, 0, 1);

@@ -1,5 +1,5 @@
 import { device, load } from "boot";
-import { SubmitInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { Format, SubmitInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 let _commandBuffer;
 let _fence;
 export class Texture {
@@ -27,6 +27,7 @@ export class Texture {
         const bitmap = await load(url, "bitmap");
         const info = new TextureInfo;
         info.usage = TextureUsageFlagBits.SAMPLED | TextureUsageFlagBits.TRANSFER_DST;
+        info.format = Format.RGBA8_UNORM;
         info.width = bitmap.width;
         info.height = bitmap.height;
         const texture = device.createTexture(info);

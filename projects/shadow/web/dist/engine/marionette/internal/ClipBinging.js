@@ -27,6 +27,11 @@ export class ClipBinging {
             channels.push(new ChannelBinding(channel.sampler.input, channel.sampler.output, property));
         }
         this.duration = duration;
-        this.channels = channels;
+        this._channels = channels;
+    }
+    sample(time) {
+        for (const channel of this._channels) {
+            channel.sample(time);
+        }
     }
 }

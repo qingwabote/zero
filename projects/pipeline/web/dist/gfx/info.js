@@ -1,4 +1,4 @@
-import { CullMode, SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
+import { CullMode, Format, SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
 export class Vector {
     constructor() {
         this.data = [];
@@ -25,7 +25,6 @@ export class StringVector extends Vector {
 export class BufferInfo {
     constructor() {
         this.usage = 0;
-        this.mem_usage = 0;
         this.size = 0;
     }
 }
@@ -47,6 +46,7 @@ export class DescriptorSetLayoutInfo {
 }
 export class AttachmentDescription {
     constructor() {
+        this.format = Format.UNDEFINED;
         this.loadOp = 0;
         this.initialLayout = 0;
         this.finalLayout = 0;
@@ -67,6 +67,7 @@ export class TextureInfo {
     constructor() {
         this.samples = SampleCountFlagBits.X1;
         this.usage = TextureUsageFlagBits.NONE;
+        this.format = Format.UNDEFINED;
         this.width = 0;
         this.height = 0;
         this.swapchain = false;

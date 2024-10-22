@@ -7,7 +7,7 @@ const attributes = {
     normal: { name: 'a_normal', location: 2 },
     joints: { name: 'a_joints', location: 3 },
     weights: { name: 'a_weights', location: 4 },
-    color: { name: 'a_color', location: 4 },
+    color: { name: 'a_color', location: 4 }, // a_weights and a_color both are vec4 and not exist in same shader, they can share the same location
     model: {
         name: 'a_model',
         /**5~8 */
@@ -25,14 +25,9 @@ const sets = {
         index: 2,
         uniforms: {
             Skin: {
-                type: DescriptorType.UNIFORM_BUFFER,
+                type: DescriptorType.SAMPLER_TEXTURE,
                 stageFlags: ShaderStageFlagBits.VERTEX,
-                binding: 1,
-                members: {
-                    joints: {},
-                },
-                length: 16 * 128,
-                size: (16 * 128) * Float32Array.BYTES_PER_ELEMENT
+                binding: 1
             }
         }
     }
@@ -46,18 +41,15 @@ const _macros = {
 export const shaderLib = {
     attributes,
     sets,
-    createDescriptorSetLayoutBinding(uniform) {
-        const binding = new DescriptorSetLayoutBinding;
-        binding.descriptorType = uniform.type;
-        binding.stageFlags = uniform.stageFlags;
-        binding.binding = uniform.binding;
-        binding.descriptorCount = 1;
-        return binding;
-    },
     createDescriptorSetLayout(uniforms) {
         const info = new DescriptorSetLayoutInfo;
         for (const uniform of uniforms) {
-            info.bindings.add(this.createDescriptorSetLayoutBinding(uniform));
+            const binding = new DescriptorSetLayoutBinding;
+            binding.descriptorType = uniform.type;
+            binding.stageFlags = uniform.stageFlags;
+            binding.binding = uniform.binding;
+            binding.descriptorCount = 1;
+            info.bindings.add(binding);
         }
         return device.createDescriptorSetLayout(info);
     },

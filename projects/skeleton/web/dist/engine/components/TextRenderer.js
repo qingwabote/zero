@@ -90,8 +90,8 @@ export class TextRenderer extends BoundedRenderer {
     lateUpdate() {
         this.updateData();
     }
-    upload() {
-        this._vertexView.update();
+    upload(commandBuffer) {
+        this._vertexView.update(commandBuffer);
         this._mesh.subMeshes[0].draw.count = 6 * this._quads;
     }
     updateData() {

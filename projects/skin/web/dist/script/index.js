@@ -1,8 +1,14 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, Node, Pipeline, Zero, bundle as builtin, device, quat, vec3 } from "engine";
+import { Animation, Camera, DirectionalLight, GLTF, Node, Pipeline, Zero, bundle as builtin, device, mat3, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, Justify, PositionType, Profiler } from 'flex';
-const skin = await (await bundle.once('killer-whale/scene', GLTF)).instantiate();
-const flow = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
+const gltf = await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate({}, function (params) {
+    const res = GLTF.materialFuncPhong(params);
+    if (params.index == 3 /* hair */) {
+        res.passes[1].rasterizationState = { cullMode: 'FRONT' };
+    }
+    return res;
+});
+const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 var VisibilityFlagBits;
 (function (VisibilityFlagBits) {
     VisibilityFlagBits[VisibilityFlagBits["NONE"] = 0] = "NONE";
@@ -14,50 +20,44 @@ export class App extends Zero {
     start() {
         const width = 640;
         const height = 960;
-        const swapchain = device.swapchain;
-        const scaleX = swapchain.width / width;
-        const scaleY = swapchain.height / height;
+        const { width: w, height: h } = device.swapchain.color.info;
+        const scaleX = w / width;
+        const scaleY = h / height;
         const scale = scaleX < scaleY ? scaleX : scaleY;
         let node;
         // light
         node = new Node;
         node.addComponent(DirectionalLight);
         node.position = [0, 4, 4];
+        node.lookAt(vec3.ZERO);
         node = new Node;
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
         main_camera.visibilities = VisibilityFlagBits.WORLD;
-        node.position = [0, 0, 24];
-        node = skin.createScene('Scene');
-        node.visibility = VisibilityFlagBits.WORLD;
-        node.position = vec3.create(0, -5, 0);
-        node.euler = vec3.create(-30, -80, 0);
-        const joint1 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001']);
-        const joint1_rotation = quat.create(...joint1.rotation);
-        const joint2 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001', 'Bone.002']);
-        const joint2_rotation = quat.create(...joint2.rotation);
-        const joint5 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.001', 'Bone.002', 'Bone.005']);
-        const joint5_rotation = quat.create(...joint5.rotation);
-        const joint3 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.003']);
-        const joint3_rotation = quat.create(...joint3.rotation);
-        const joint4 = node.getChildByPath(['Armature.001', 'Bone', 'Bone.003']);
-        const joint4_rotation = quat.create(...joint4.rotation);
-        let frames = 0;
-        this.setInterval(() => {
-            const d = quat.fromAxisAngle(quat.create(), vec3.create(1, 0, 0), Math.sin(frames) * 0.5);
-            joint1.rotation = quat.multiply(quat.create(), joint1_rotation, d);
-            joint2.rotation = quat.multiply(quat.create(), joint2_rotation, d);
-            joint5.rotation = quat.multiply(quat.create(), joint5_rotation, d);
-            joint3.rotation = quat.multiply(quat.create(), joint3_rotation, d);
-            joint4.rotation = quat.multiply(quat.create(), joint4_rotation, d);
-            frames += 0.01;
-        });
+        node.position = [12, 12, 12];
+        const circles = [
+            [vec3.create(0, 0, -1.5), 6],
+            [vec3.create(0, 0, -3), 10],
+            [vec3.create(0, 0, -4.5), 22]
+        ];
+        for (let i = 0; i < circles.length; i++) {
+            const [origin, steps] = circles[i];
+            const stride = mat3.fromYRotation(mat3.create(), Math.PI * 2 / steps);
+            for (let j = 0; j < steps; j++) {
+                node = gltf.createScene("Sketchfab_Scene");
+                node.visibility = VisibilityFlagBits.WORLD;
+                const animation = node.addComponent(Animation);
+                animation.clips = gltf.proto.animationClips;
+                animation.play(animation.clips[j % 3].name);
+                node.position = vec3.transformMat3(origin, origin, stride);
+            }
+        }
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = 0x2; // ClearFlagBits.DEPTH;
-        ui_camera.orthoSize = swapchain.height / scale / 2;
+        ui_camera.orthoSize = h / scale / 2;
         node.position = vec3.create(0, 0, width / 2);
         node = new Node;
         node.position = vec3.create(-width / 2, height / 2);
@@ -80,4 +80,4 @@ export class App extends Zero {
         doc.addElement(profiler);
     }
 }
-(new App(flow)).initialize().attach();
+(new App(pipeline)).initialize().attach();

@@ -6,7 +6,8 @@ export class PostPhase extends Phase {
         super(context, visibility);
         this._passState = _passState;
     }
-    record(profile, commandBuffer, renderPass) {
+    update(commandBuffer) { }
+    render(profile, commandBuffer, renderPass) {
         const pipeline = this._context.getPipeline(this._passState, inputAssembler.vertexInputState, renderPass);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.bindInputAssembler(inputAssembler);

@@ -1,7 +1,7 @@
 import { device } from "boot";
-import { BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, MemoryUsage, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
+import { BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { shaderLib } from "../shaderLib.js";
-import { BufferView } from "./BufferView.js";
+import { BufferView } from "./gpu/BufferView.js";
 const indexBufferView = new BufferView("Uint16", BufferUsageFlagBits.INDEX);
 let _quads = 0;
 function indexGrowTo(quads) {
@@ -44,17 +44,16 @@ const vertexAttributes = (function () {
 function createVertexBuffer(width, height, upsideDown = false) {
     const [v_top, v_bottom] = upsideDown ? [1, 0] : [0, 1];
     const vertexes = new Float32Array([
-        -width / 2, height / 2, 0, v_top,
-        -width / 2, -height / 2, 0, v_bottom,
-        width / 2, -height / 2, 1, v_bottom,
+        -width / 2, height / 2, 0, v_top, // top left 
+        -width / 2, -height / 2, 0, v_bottom, // bottom left
+        width / 2, -height / 2, 1, v_bottom, // bottom right
         width / 2, height / 2, 1, v_top // top right
     ]);
     const bufferInfo = new BufferInfo;
     bufferInfo.size = vertexes.byteLength;
     bufferInfo.usage = BufferUsageFlagBits.VERTEX;
-    bufferInfo.mem_usage = MemoryUsage.CPU_TO_GPU;
     const buffer = device.createBuffer(bufferInfo);
-    buffer.update(vertexes.buffer, 0, vertexes.byteLength);
+    buffer.update(vertexes, 0, 0);
     return buffer;
 }
 function createVertexBufferView() {

@@ -1,7 +1,9 @@
-import { device } from "boot";
-import { DescriptorSetLayoutInfo } from "gfx";
+import { BufferUsageFlagBits, Format } from "gfx";
 import { aabb3d } from "../../math/aabb3d.js";
+import { shaderLib } from "../../shaderLib.js";
+import { BufferView } from "../gpu/BufferView.js";
 import { PeriodicFlag } from "./PeriodicFlag.js";
+const instancedAttributes = [{ location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, offset: 0, multiple: 4 }];
 var ChangeBits;
 (function (ChangeBits) {
     ChangeBits[ChangeBits["NONE"] = 0] = "NONE";
@@ -9,14 +11,10 @@ var ChangeBits;
 })(ChangeBits || (ChangeBits = {}));
 export class Model {
     get bounds() {
-        if (this._bounds_invalidated) {
-            aabb3d.transform(this._bounds, this.mesh.bounds, this._transform.world_matrix);
-            this._bounds_invalidated = false;
-        }
         return this._bounds;
     }
     get hasChanged() {
-        let flag = this._hasChanged.value;
+        let flag = this._hasOwnChanged.value;
         if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
             flag |= ChangeBits.BOUNDS;
         }
@@ -25,47 +23,33 @@ export class Model {
     get transform() {
         return this._transform;
     }
-    set transform(value) {
-        this._transform = value;
-        this._hasChanged.addBit(ChangeBits.BOUNDS);
-    }
     get mesh() {
         return this._mesh;
     }
     set mesh(value) {
         this._mesh = value;
-        this._bounds_invalidated = true;
-        this._hasChanged.addBit(ChangeBits.BOUNDS);
-    }
-    get descriptorSetLayout() {
-        return this.constructor.descriptorSetLayout;
+        this._hasOwnChanged.addBit(ChangeBits.BOUNDS);
     }
     constructor(_transform, _mesh, materials) {
         this._transform = _transform;
         this._mesh = _mesh;
         this.materials = materials;
-        this._bounds_invalidated = true;
         this._bounds = aabb3d.create();
-        this._hasChanged = new PeriodicFlag(ChangeBits.BOUNDS);
+        this._hasOwnChanged = new PeriodicFlag(ChangeBits.BOUNDS);
         this.type = 'default';
+        /**
+         * Draw order
+         */
         this.order = 0;
-        this._hasUploadedFlag = new PeriodicFlag;
-        const descriptorSetLayout = this.constructor.descriptorSetLayout;
-        if (descriptorSetLayout.info.bindings.size()) {
-            this.descriptorSet = device.createDescriptorSet(descriptorSetLayout);
-        }
     }
-    update() {
-        if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
-            this._bounds_invalidated = true;
-        }
+    updateBounds() {
+        aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
-    upload() {
-        if (this._hasUploadedFlag.value) {
-            return;
-        }
-        this._hasUploadedFlag.reset(1);
+    batch() {
+        return { attributes: instancedAttributes, vertexes: new BufferView('Float32', BufferUsageFlagBits.VERTEX) };
+    }
+    batchFill(vertexes, uniforms) {
+        vertexes.add(this._transform.world_matrix);
     }
 }
-Model.descriptorSetLayout = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 Model.ChangeBits = ChangeBits;

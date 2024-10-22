@@ -4,7 +4,7 @@ import { Shader } from "../assets/Shader.js";
 import { aabb3d } from "../core/math/aabb3d.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { BufferView } from "../core/render/BufferView.js";
+import { BufferView } from "../core/render/gpu/BufferView.js";
 import { Mesh } from "../core/render/index.js";
 import { Model } from "../core/render/scene/Model.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
@@ -152,12 +152,12 @@ export class GeometryRenderer extends BoundedRenderer {
         this.drawLine(frustum[2], frustum[6], color);
         this.drawLine(frustum[3], frustum[7], color);
     }
-    upload() {
+    upload(commandBuffer) {
         if (this._vertexCount == 0) {
             this._mesh.subMeshes[0].draw.count = 0;
             return;
         }
-        this._buffer.update();
+        this._buffer.update(commandBuffer);
         this._mesh.subMeshes[0].draw.count = this._vertexCount;
     }
     clear() {

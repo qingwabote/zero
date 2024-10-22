@@ -1,9 +1,8 @@
 import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { BufferView } from "../../core/render/BufferView.js";
+import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Camera } from "../../core/render/scene/Camera.js";
-import { Transform } from "../../core/render/scene/Transform.js";
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
     stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
@@ -35,7 +34,7 @@ export class CameraUBO extends UBO {
         return UBO.align(BlockSize) * this._data.cameraIndex;
     }
     ;
-    update(dumping) {
+    update(commandBuffer, dumping) {
         const size = UBO.align(BlockSize);
         const cameras = Zero.instance.scene.cameras;
         this._view.resize(size * cameras.length / this._view.BYTES_PER_ELEMENT);
@@ -48,11 +47,11 @@ export class CameraUBO extends UBO {
             if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.PROJ))) {
                 this._view.set(camera.proj, offset + Block.members.projection.offset);
             }
-            if (dumping || (camera.transform.hasChangedFlag.hasBit(Transform.ChangeBit.POSITION))) {
+            if (dumping || (camera.transform.hasChangedFlag.value)) {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }
-        this._view.update();
+        this._view.update(commandBuffer);
     }
 }
 CameraUBO.definition = Block;

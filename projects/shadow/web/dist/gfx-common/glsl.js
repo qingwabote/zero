@@ -1,6 +1,5 @@
-export var glsl;
-(function (glsl) {
-    function parse(sources, types) {
+export const glsl = {
+    parse(sources, types) {
         const blocks = {};
         const samplerTextures = {};
         for (let i = 0; i < sources.length; i++) {
@@ -42,5 +41,4 @@ export var glsl;
             samplerTextures
         };
     }
-    glsl.parse = parse;
-})(glsl || (glsl = {}));
+};

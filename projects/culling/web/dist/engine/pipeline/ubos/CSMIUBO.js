@@ -1,6 +1,6 @@
 import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
-import { BufferView } from "../../core/render/BufferView.js";
+import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Shadow } from "../../core/render/pipeline/data/Shadow.js";
 const Block = {
@@ -37,7 +37,7 @@ export class CSMIUBO extends UBO {
         this._view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
         data.shadow = new Shadow(visibilities, _num);
     }
-    update(dumping) {
+    update(commandBuffer, dumping) {
         const size = UBO.align(BlockSize);
         let index = -1;
         for (const camera of Zero.instance.scene.cameras) {
@@ -52,7 +52,7 @@ export class CSMIUBO extends UBO {
                 }
             }
         }
-        this._view.update();
+        this._view.update(commandBuffer);
     }
 }
 CSMIUBO.definition = Block;

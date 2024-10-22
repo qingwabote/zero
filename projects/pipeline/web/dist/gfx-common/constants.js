@@ -6,6 +6,7 @@ export var Format;
     Format[Format["RGBA8_UNORM"] = 37] = "RGBA8_UNORM";
     Format[Format["RGBA8_UINT"] = 41] = "RGBA8_UINT";
     Format[Format["RGBA8_SRGB"] = 43] = "RGBA8_SRGB";
+    Format[Format["BGRA8_UNORM"] = 44] = "BGRA8_UNORM";
     Format[Format["R16_UINT"] = 74] = "R16_UINT";
     Format[Format["RGBA16_UINT"] = 95] = "RGBA16_UINT";
     Format[Format["R32_UINT"] = 98] = "R32_UINT";
@@ -13,6 +14,7 @@ export var Format;
     Format[Format["RGB32_SFLOAT"] = 106] = "RGB32_SFLOAT";
     Format[Format["RGBA32_UINT"] = 107] = "RGBA32_UINT";
     Format[Format["RGBA32_SFLOAT"] = 109] = "RGBA32_SFLOAT";
+    Format[Format["D32_SFLOAT"] = 126] = "D32_SFLOAT";
 })(Format || (Format = {}));
 export const FormatInfos = {
     [Format.UNDEFINED]: { name: "UNDEFINED", bytes: 0, nums: 0 },
@@ -20,6 +22,7 @@ export const FormatInfos = {
     [Format.RGBA8_UNORM]: { name: "RGBA8_UNORM", bytes: 4, nums: 4 },
     [Format.RGBA8_UINT]: { name: "RGBA8_UINT", bytes: 4, nums: 4 },
     [Format.RGBA8_SRGB]: { name: "RGBA8_SRGB", bytes: 4, nums: 4 },
+    [Format.BGRA8_UNORM]: { name: "BGRA8_UNORM", bytes: 4, nums: 4 },
     [Format.R16_UINT]: { name: "R16_UINT", bytes: 2, nums: 1 },
     [Format.RGBA16_UINT]: { name: "RGBA16_UINT", bytes: 8, nums: 4 },
     [Format.R32_UINT]: { name: "R32_UINT", bytes: 4, nums: 1 },
@@ -27,6 +30,7 @@ export const FormatInfos = {
     [Format.RGB32_SFLOAT]: { name: "RGB32_SFLOAT", bytes: 12, nums: 3 },
     [Format.RGBA32_UINT]: { name: "RGBA32_UINT", bytes: 16, nums: 4 },
     [Format.RGBA32_SFLOAT]: { name: "RGBA32_SFLOAT", bytes: 16, nums: 4 },
+    [Format.D32_SFLOAT]: { name: "D32_SFLOAT", bytes: 44, nums: 1 },
 };
 // copy values from VkBufferUsageFlagBits in vulkan_core.h
 export var BufferUsageFlagBits;
@@ -37,13 +41,6 @@ export var BufferUsageFlagBits;
     BufferUsageFlagBits[BufferUsageFlagBits["INDEX"] = 64] = "INDEX";
     BufferUsageFlagBits[BufferUsageFlagBits["VERTEX"] = 128] = "VERTEX";
 })(BufferUsageFlagBits || (BufferUsageFlagBits = {}));
-// copy values from VmaMemoryUsage in vk_men_alloc.h
-export var MemoryUsage;
-(function (MemoryUsage) {
-    MemoryUsage[MemoryUsage["NONE"] = 0] = "NONE";
-    MemoryUsage[MemoryUsage["GPU_ONLY"] = 1] = "GPU_ONLY";
-    MemoryUsage[MemoryUsage["CPU_TO_GPU"] = 3] = "CPU_TO_GPU";
-})(MemoryUsage || (MemoryUsage = {}));
 // copy values from VkShaderStageFlagBits in vulkan_core.h
 export var ShaderStageFlagBits;
 (function (ShaderStageFlagBits) {

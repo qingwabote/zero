@@ -42,7 +42,7 @@ export class Camera {
         vec4.copy(this._rect, value);
     }
     get aspect() {
-        const { width, height } = device.swapchain;
+        const { width, height } = device.swapchain.color.info;
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
     get hasChangedFlag() {
@@ -110,7 +110,7 @@ export class Camera {
         return vec2.transformMat4(out, vec2_a, matViewProjInv);
     }
     screenToNdc(out, x, y) {
-        const { width, height } = device.swapchain;
+        const { width, height } = device.swapchain.color.info;
         y = height - y;
         x -= width * this._rect[0];
         y -= height * this._rect[1];
