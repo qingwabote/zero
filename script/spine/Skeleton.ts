@@ -1,7 +1,7 @@
 import * as sc from '@esotericsoftware/spine-core';
 import { BoundedRenderer, Node, Shader, bundle, render, scene, shaderLib, vec2, vec3, vec4 } from "engine";
 import { AABB3D } from 'engine/core/math/aabb3d.js';
-import { BlendFactor, BlendState, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from 'gfx';
+import { BlendFactor, BlendState, BufferUsageFlagBits, CommandBuffer, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from 'gfx';
 import { Texture } from './Texture.js';
 
 const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
@@ -89,7 +89,7 @@ export class Skeleton extends BoundedRenderer {
         return new render.Model(this.node, this._mesh, this._materials);
     }
 
-    override upload(): void {
+    override upload(commandBuffer: CommandBuffer): void {
         let key = '';
         let vertex = 0;
         let index = 0;
@@ -195,8 +195,8 @@ export class Skeleton extends BoundedRenderer {
 
         clipper.clipEnd();
 
-        this._vertexView.update();
-        this._indexView.update();
+        this._vertexView.update(commandBuffer);
+        this._indexView.update(commandBuffer);
     }
 
     private createMaterial(blend: sc.BlendMode, texture: Texture): scene.Material {

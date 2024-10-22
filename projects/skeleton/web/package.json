@@ -11,6 +11,7 @@
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
         "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
         "spine": "tsc -p ../../../script/spine --outDir dist/spine --watch",
+        "spine:ins": "cd ../../../script/spine && npm ins",
         "script": "tsc -p ../script --outDir dist/script --watch",
         "server": "http-server ../../../ -p 8003 -o projects/skeleton/web/index.html -c-1",
         "dev": "concurrently \"npm run bastard\" \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\" \"npm run flex\" \"npm run spine\" \"npm run script\" \"npm run server\""

@@ -4,13 +4,12 @@
 
 - [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
 - [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
-- [Skinned Mesh](https://qingwabote.github.io/zero/projects/skin/web/index.html)
+- [Skinning & Instancing](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 - [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
 - [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
-- [GPU Instancing](https://qingwabote.github.io/zero/projects/instancing/web/index.html)
 
 # 跨平台
 
@@ -62,7 +61,7 @@
 
 # 兼容性
 
-Wasm 没有 GC, 引擎依赖 **FinalizationRegistry** 自动释放 Wasm 对象
+Wasm 没有 GC, 引擎依赖 [FinalizationRegistry](https://developers.weixin.qq.com/minigame/dev/reference/api/FinalizationRegistry.html) 自动释放 Wasm 对象
 
 # 开发
 

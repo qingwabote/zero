@@ -367,11 +367,8 @@ GLTF.materialFuncPhong = materialFuncPhong;
 class Instance {
     constructor(readonly proto: GLTF, private readonly _materials: Material.Readonly[], private readonly _materialDefault: Material) { }
 
-    createScene(name?: string): Node | null {
-        const scene = name ? (this.proto.json.scenes as any[]).find(scene => scene.name == name) : this.proto.json.scenes[0];
-        if (!scene) {
-            return null;
-        }
+    createScene(name: string): Node {
+        const scene = (this.proto.json.scenes as any[]).find(scene => scene.name == name);
         const root = new Node(name);
         for (const index of scene.nodes) {
             const skinning: Map<number, Node[]> = new Map;

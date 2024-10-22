@@ -9,7 +9,7 @@ const VisibilityFlagBits = {
     WORLD: 1 << 30
 } as const
 
-const materialFunc: GLTF.MaterialFunc = function (params: GLTF.MaterialParams): [string, Effect.PassOverridden[]] {
+const materialFunc: GLTF.MaterialFunc = function (params: GLTF.MaterialParams) {
     const pass: Effect.PassOverridden = {
         macros: {
             USE_ALBEDO_MAP: params.texture ? 1 : 0,
@@ -25,10 +25,10 @@ const materialFunc: GLTF.MaterialFunc = function (params: GLTF.MaterialParams): 
             }
         }
     }
-    return [
-        bundle.resolve("./effects/test"),
-        [{}, pass, pass]
-    ]
+    return {
+        effect: bundle.resolve("./effects/test"),
+        passes: [{}, pass, pass]
+    }
 }
 
 const [guardian, plane, ss_depth, csm_off, csm_on] = await Promise.all([
@@ -56,9 +56,10 @@ export class App extends Zero {
         const width = 640;
         const height = 960;
 
-        const swapchain = device.swapchain;
-        const scaleX = swapchain.width / width;
-        const scaleY = swapchain.height / height;
+        const { width: w, height: h } = device.swapchain.color.info;
+
+        const scaleX = w / width;
+        const scaleY = h / height;
         const scale = scaleX < scaleY ? scaleX : scaleY;
 
         const light = Node.build(DirectionalLight);
@@ -136,7 +137,7 @@ export class App extends Zero {
         const ui_camera = node.addComponent(Camera);
         ui_camera.visibilities = VisibilityFlagBits.UI;
         ui_camera.clears = Camera.ClearFlagBits.DEPTH;
-        ui_camera.orthoSize = swapchain.height / scale / 2;
+        ui_camera.orthoSize = h / scale / 2;
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
