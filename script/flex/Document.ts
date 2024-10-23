@@ -35,7 +35,7 @@ export class Document extends ElementContainer {
     private orderWalk(node: Node, order: number): number {
         const renderer = node.getComponent(BoundedRenderer);
         if (renderer) {
-            renderer.order = order++;
+            renderer.order(order++);
         }
         for (const child of node.children) {
             order = this.orderWalk(child, order)

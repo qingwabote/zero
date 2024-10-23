@@ -32,7 +32,7 @@ export class Data extends EventEmitter.Impl<EventToListener> {
         this.shadow?.update(dumping);
 
         profile.emit(Profile.Event.CULL_START);
-        this.culling?.cull(this.shadow)
+        this.culling?.update(this.shadow)
         profile.emit(Profile.Event.CULL_END);
 
         this.emit(Event.UPDATE);

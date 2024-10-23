@@ -20,6 +20,6 @@ export class PostPhase extends Phase {
         commandBuffer.bindInputAssembler(inputAssembler);
         commandBuffer.drawIndexed(6, 0, 1)
         profile.draws++;
-        profile.passes++;
+        profile.materials++;
     }
 }

@@ -11,7 +11,7 @@ interface Event2Listener {
 }
 
 interface ProfileReadonly extends EventEmitter.Readonly<Event2Listener> {
-    readonly passes: number;
+    readonly materials: number;
     readonly pipelines: number;
     readonly draws: number;
     readonly stages: number;
@@ -20,7 +20,7 @@ interface ProfileReadonly extends EventEmitter.Readonly<Event2Listener> {
 export class Profile extends EventEmitter.Impl<Event2Listener> implements ProfileReadonly {
     static readonly Event = Event;
 
-    passes: number = 0;
+    materials: number = 0;
 
     pipelines: number = 0;
 
@@ -29,7 +29,7 @@ export class Profile extends EventEmitter.Impl<Event2Listener> implements Profil
     stages: number = 0;
 
     clear() {
-        this.passes = 0;
+        this.materials = 0;
         this.pipelines = 0;
         this.draws = 0;
         this.stages = 0;

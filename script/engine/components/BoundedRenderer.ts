@@ -37,6 +37,12 @@ export abstract class BoundedRenderer extends ModelRenderer implements EventEmit
     }
 
     public abstract get bounds(): Readonly<AABB3D>;
+
+    order(value: number): void {
+        if (this._model) {
+            this._model.order = value;
+        }
+    }
 }
 BoundedRenderer.EventName = EventName;
 

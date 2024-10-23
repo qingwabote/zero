@@ -10,7 +10,7 @@ import { getSampler } from "../../core/sc.js";
 import { shaderLib } from "../../core/shaderLib.js";
 import { Skin } from "../../scene/Skin.js";
 
-const SkinUniform = shaderLib.sets.local.uniforms.Skin;
+const SkinUniform = shaderLib.sets.batch.uniforms.Skin;
 
 const META_LENGTH = 1 /* pixels */ * 4 /* RGBA */;
 

@@ -24,7 +24,7 @@ const sets = {
     material: {
         index: 1
     },
-    local: {
+    batch: {
         index: 2,
         uniforms: {
             Skin: {

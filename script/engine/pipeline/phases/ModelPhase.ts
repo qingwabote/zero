@@ -249,27 +249,25 @@ export class ModelPhase extends Phase {
     }
 
     render(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
-        let current_pass: Pass | undefined;
-        let current_pipeline: Pipeline | undefined;
+        let material: DescriptorSet | undefined;
+        let pipeline: Pipeline | undefined;
         for (let i = 0; i < this._pb_count; i++) {
             const [pass, batch] = this._pb_buffer[i];
-            if (current_pass != pass) {
-                if (pass.descriptorSet) {
-                    commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
-                }
-                current_pass = pass;
+            if (pass.descriptorSet && material != pass.descriptorSet) {
+                commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
+                material = pass.descriptorSet;
 
-                profile.passes++;
+                profile.materials++;
             }
 
             if (batch.descriptorSet) {
-                commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.descriptorSet);
+                commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
             }
 
-            const pipeline = this._context.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout]);
-            if (current_pipeline != pipeline) {
-                commandBuffer.bindPipeline(pipeline);
-                current_pipeline = pipeline;
+            const pl = this._context.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout]);
+            if (pipeline != pl) {
+                commandBuffer.bindPipeline(pl);
+                pipeline = pl;
 
                 profile.pipelines++;
             }
