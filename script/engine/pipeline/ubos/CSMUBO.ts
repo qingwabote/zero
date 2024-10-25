@@ -27,7 +27,7 @@ export class CSMUBO extends UBO {
         return BlockSize * this._num
     }
 
-    override get dynamicOffset(): number {
+    override dynamicOffset(): number {
         let index = -1;
         for (const camera of Zero.instance.scene.cameras) {
             if (camera.visibilities & this._data.shadow!.visibilities) {

@@ -34,13 +34,13 @@ export class Stage {
         readonly visibilities: number,
         private _framebuffer: Framebuffer = defaultFramebuffer,
         private _clears?: ClearFlagBits,
-        public rect?: Readonly<Vec4>
+        private _rect?: Readonly<Vec4>
     ) { }
 
     record(profile: Profile, commandBuffer: CommandBuffer) {
         const camera = this._data.current_camera;
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
-        const rect = this.rect ?? camera.rect;
+        const rect = this._rect ?? camera.rect;
 
         // do transfer before render pass
         for (const phase of this.phases) {

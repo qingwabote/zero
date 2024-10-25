@@ -143,11 +143,12 @@ export class ModelPhase extends Phase {
     constructor(
         context: Context,
         visibility: number,
-        public culling: Culling = 'View',
+        private readonly _flowLoopIndex: number,
+        private readonly _culling: Culling = 'View',
         /**The model type that indicates which models should run in this phase */
-        private _model = 'default',
+        private readonly _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
-        private _pass = 'default',
+        private readonly _pass = 'default',
     ) {
         super(context, visibility);
     }
@@ -156,15 +157,15 @@ export class ModelPhase extends Phase {
         const data = Zero.instance.pipeline.data;
 
         let models: Iterable<Model>;
-        switch (this.culling) {
+        switch (this._culling) {
             case 'View':
                 models = data.culling?.getView(data.current_camera).camera || Zero.instance.scene.models;
                 break;
             case 'CSM':
-                models = data.culling?.getView(data.current_camera).shadow[data.flowLoopIndex] || Zero.instance.scene.models;
+                models = data.culling?.getView(data.current_camera).shadow[this._flowLoopIndex] || Zero.instance.scene.models;
                 break;
             default:
-                throw new Error(`unsupported culling: ${this.culling}`);
+                throw new Error(`unsupported culling: ${this._culling}`);
         }
 
         const modelQueue: Model[] = [];

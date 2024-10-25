@@ -21,7 +21,7 @@ export abstract class UBO {
         return 0;
     };
 
-    get dynamicOffset(): number {
+    dynamicOffset(flowLoopIndex: number): number {
         return -1;
     }
 

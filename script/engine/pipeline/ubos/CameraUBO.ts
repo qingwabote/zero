@@ -36,7 +36,7 @@ export class CameraUBO extends UBO {
         return BlockSize
     }
 
-    override get dynamicOffset(): number {
+    override dynamicOffset(): number {
         return UBO.align(BlockSize) * this._data.cameraIndex
     };
 

@@ -29,7 +29,7 @@ export class CSMIUBO extends UBO {
         return BlockSize;
     }
 
-    override get dynamicOffset(): number {
+    override dynamicOffset(flowLoopIndex: number): number {
         let index = -1;
         for (const camera of Zero.instance.scene.cameras) {
             if (camera.visibilities & this._data.shadow!.visibilities) {
@@ -39,7 +39,7 @@ export class CSMIUBO extends UBO {
                 }
             }
         }
-        return UBO.align(BlockSize) * (this._num * index + this._data.flowLoopIndex);
+        return UBO.align(BlockSize) * (this._num * index + flowLoopIndex);
     }
 
     constructor(data: Data, visibilities: number, private readonly _num: number) {

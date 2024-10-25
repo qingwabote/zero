@@ -22,8 +22,6 @@ export class Data extends EventEmitter.Impl<EventToListener> {
 
     cameraIndex = 0;
 
-    flowLoopIndex = 0;
-
     get current_camera(): Camera {
         return Zero.instance.scene.cameras[this.cameraIndex];
     }
