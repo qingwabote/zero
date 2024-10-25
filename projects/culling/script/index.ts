@@ -85,7 +85,7 @@ class App extends Zero {
                         }
                     } else {
                         const models: render.Model[] = [];
-                        this.scene.models.culler(1)(models, up_camera.frustum, up_camera.visibilities)
+                        this.scene.models.culler()(models, up_camera.frustum, up_camera.visibilities)
                         for (const model of models) {
                             debugDrawer.drawAABB(model.bounds, vec4.ONE);
                         }

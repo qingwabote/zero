@@ -38,8 +38,8 @@ const phaseFactory = (function () {
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
     return {
-        model: async function (info: ModelPhase, context: render.Context, visibility: number, flowLoopIndex: number): Promise<render.Phase> {
-            return new pipeline.ModelPhase(context, visibility, flowLoopIndex, info.culling, info.model, info.pass);
+        model: async function (info: ModelPhase, context: render.Context, visibility: number, flowLoopIndex: number, data: Data): Promise<render.Phase> {
+            return new pipeline.ModelPhase(context, visibility, flowLoopIndex, data, info.culling, info.model, info.pass);
         },
         fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
@@ -248,7 +248,7 @@ export class Pipeline extends Yml {
                     for (const phase of stage.phases!) {
                         const type = phase.type || 'model';
                         if (type in phaseFactory) {
-                            phases.push(await phaseFactory[type](phase as any, context, this.phase_visibilitiy(phase, variables), flowLoopIndex))
+                            phases.push(await phaseFactory[type](phase as any, context, this.phase_visibilitiy(phase, variables), flowLoopIndex, data))
                         } else {
                             throw new Error(`unsupported phase type: ${type}`);
                         }
@@ -301,9 +301,9 @@ export class Pipeline extends Yml {
                         framebuffer = device.createFramebuffer(framebufferInfo);
                         viewport = viewport || vec4.create(0, 0, 1, 1);
                     }
-                    stages.push(new render.Stage(data, phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
+                    stages.push(new render.Stage(phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
                 }
-                flows.push(new render.Flow(data, context, ubos, stages, this.flow_visibilities(flow, variables), flowLoopIndex));
+                flows.push(new render.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), flowLoopIndex));
             }
         }
 

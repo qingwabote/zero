@@ -1,5 +1,6 @@
 import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
+import { Scene } from "../../core/render/Scene.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Camera } from "../../core/render/scene/Camera.js";
@@ -36,8 +37,8 @@ export class CameraUBO extends UBO {
         return BlockSize
     }
 
-    override dynamicOffset(): number {
-        return UBO.align(BlockSize) * this._data.cameraIndex
+    override dynamicOffset(scene: Scene, cameraIndex: number): number {
+        return UBO.align(BlockSize) * cameraIndex;
     };
 
     update(commandBuffer: CommandBuffer, dumping: boolean): void {

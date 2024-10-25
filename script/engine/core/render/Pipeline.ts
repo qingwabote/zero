@@ -3,7 +3,7 @@ import { Data } from "./pipeline/Data.js";
 import { Flow } from "./pipeline/Flow.js";
 import { Profile } from "./pipeline/Profile.js";
 import { UBO } from "./pipeline/UBO.js";
-import { Camera } from "./scene/Camera.js";
+import { Scene } from "./Scene.js";
 
 export class Pipeline {
     private _dumping = false;
@@ -30,11 +30,11 @@ export class Pipeline {
         this._dumping = false;
     }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, cameras: readonly Camera[]) {
-        for (this.data.cameraIndex = 0; this.data.cameraIndex < cameras.length; this.data.cameraIndex++) {
+    record(profile: Profile, commandBuffer: CommandBuffer, scene: Scene) {
+        for (let i = 0; i < scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                if (this.data.current_camera.visibilities & flow.visibilities) {
-                    flow.record(profile, commandBuffer);
+                if (scene.cameras[i].visibilities & flow.visibilities) {
+                    flow.record(profile, commandBuffer, scene, i);
                 }
             }
         }

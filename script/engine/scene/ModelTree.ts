@@ -33,8 +33,8 @@ export class ModelTree implements ModelCollection {
         this._context.model2node.set(model, null);
     }
 
-    culler(times = 1) {
-        const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
+    culler(distinct = false) {
+        const claimed: Map<Model, Model> | undefined = distinct ? new Map : undefined;
         return (results: Model[], frustum: Readonly<Frustum>, visibilities: number) => {
             cull(results, this.root, frustum, visibilities, claimed);
         }

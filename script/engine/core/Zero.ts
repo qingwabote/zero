@@ -183,7 +183,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._componentScheduler.upload(commandBuffer);
         this._pipeline.upload(commandBuffer);
         quad.indexBufferView.update(commandBuffer);
-        this._pipeline.record(this._profile, commandBuffer, this.scene.cameras);
+        this._pipeline.record(this._profile, commandBuffer, this.scene);
         commandBuffer.end();
 
         const submitInfo = new SubmitInfo;

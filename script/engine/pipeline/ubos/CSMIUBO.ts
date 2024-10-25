@@ -1,5 +1,6 @@
 import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Zero } from "../../core/Zero.js";
+import { Scene } from "../../core/render/Scene.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
@@ -29,12 +30,13 @@ export class CSMIUBO extends UBO {
         return BlockSize;
     }
 
-    override dynamicOffset(flowLoopIndex: number): number {
+    override dynamicOffset(scene: Scene, cameraIndex: number, flowLoopIndex: number): number {
         let index = -1;
-        for (const camera of Zero.instance.scene.cameras) {
+        for (let i = 0; i < scene.cameras.length; i++) {
+            const camera = scene.cameras[i];
             if (camera.visibilities & this._data.shadow!.visibilities) {
                 index++;
-                if (camera == this._data.current_camera) {
+                if (i == cameraIndex) {
                     break;
                 }
             }

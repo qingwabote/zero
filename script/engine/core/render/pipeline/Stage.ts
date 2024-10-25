@@ -1,7 +1,7 @@
 import { device } from "boot";
 import { ClearFlagBits, CommandBuffer, Format, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
-import { Data } from "./Data.js";
+import { Scene } from "../Scene.js";
 import { Phase } from "./Phase.js";
 import { Profile } from "./Profile.js";
 import { getRenderPass } from "./rpc.js";
@@ -29,7 +29,6 @@ const defaultFramebuffer = (function () {
 
 export class Stage {
     constructor(
-        private readonly _data: Data,
         public readonly phases: readonly Phase[],
         readonly visibilities: number,
         private _framebuffer: Framebuffer = defaultFramebuffer,
@@ -37,15 +36,15 @@ export class Stage {
         private _rect?: Readonly<Vec4>
     ) { }
 
-    record(profile: Profile, commandBuffer: CommandBuffer) {
-        const camera = this._data.current_camera;
+    record(profile: Profile, commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number) {
+        const camera = scene.cameras[cameraIndex];
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this._rect ?? camera.rect;
 
         // do transfer before render pass
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.update(commandBuffer);
+                phase.update(commandBuffer, scene, cameraIndex);
             }
         }
 

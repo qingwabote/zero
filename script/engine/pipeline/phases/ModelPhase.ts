@@ -1,9 +1,10 @@
 import { device } from "boot";
 import { CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, InputAssembler, Pipeline, RenderPass, VertexAttribute, VertexInput } from "gfx";
-import { Zero } from "../../core/Zero.js";
+import { Scene } from "../../core/render/Scene.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
 import { Context } from "../../core/render/pipeline/Context.js";
+import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
@@ -144,6 +145,7 @@ export class ModelPhase extends Phase {
         context: Context,
         visibility: number,
         private readonly _flowLoopIndex: number,
+        private readonly _data: Data,
         private readonly _culling: Culling = 'View',
         /**The model type that indicates which models should run in this phase */
         private readonly _model = 'default',
@@ -153,16 +155,14 @@ export class ModelPhase extends Phase {
         super(context, visibility);
     }
 
-    update(commandBuffer: CommandBuffer): void {
-        const data = Zero.instance.pipeline.data;
-
+    update(commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number): void {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':
-                models = data.culling?.getView(data.current_camera).camera || Zero.instance.scene.models;
+                models = this._data.culling?.getView(scene.cameras[cameraIndex]).camera || scene.models;
                 break;
             case 'CSM':
-                models = data.culling?.getView(data.current_camera).shadow[this._flowLoopIndex] || Zero.instance.scene.models;
+                models = this._data.culling?.getView(scene.cameras[cameraIndex]).shadow[this._flowLoopIndex] || scene.models;
                 break;
             default:
                 throw new Error(`unsupported culling: ${this._culling}`);

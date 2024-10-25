@@ -15,8 +15,8 @@ export class ModelArray implements ModelCollection {
         this._models.push(model);
     }
 
-    culler(times = 1) {
-        const claimed: Map<Model, Model> | undefined = times > 1 ? new Map : undefined;
+    culler(distinct = false) {
+        const claimed: Map<Model, Model> | undefined = distinct ? new Map : undefined;
         return (results: Model[], frustum: Readonly<Frustum>, visibilities: number) => {
             cull(results, this._models, frustum, visibilities, claimed);
         }
