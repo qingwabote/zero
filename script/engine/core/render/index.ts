@@ -3,9 +3,9 @@ export * from './Pipeline.js';
 export * from './quad.js';
 export * from './Scene.js';
 
-export * from './pipeline/Context.js';
 export * from './pipeline/Data.js';
 export * from './pipeline/Flow.js';
+export * from './pipeline/FlowContext.js';
 export * from './pipeline/Phase.js';
 export * from './pipeline/Profile.js';
 export * from './pipeline/rpc.js';

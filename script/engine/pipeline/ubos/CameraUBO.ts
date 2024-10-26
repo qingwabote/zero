@@ -1,6 +1,5 @@
-import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
-import { Zero } from "../../core/Zero.js";
-import { Scene } from "../../core/render/Scene.js";
+import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Camera } from "../../core/render/scene/Camera.js";
@@ -37,13 +36,13 @@ export class CameraUBO extends UBO {
         return BlockSize
     }
 
-    override dynamicOffset(scene: Scene, cameraIndex: number): number {
+    override dynamicOffset(context: Context, cameraIndex: number): number {
         return UBO.align(BlockSize) * cameraIndex;
     };
 
-    update(commandBuffer: CommandBuffer, dumping: boolean): void {
+    update(context: Context, dumping: boolean): void {
         const size = UBO.align(BlockSize);
-        const cameras = Zero.instance.scene.cameras;
+        const cameras = context.scene.cameras;
 
         this._view.resize(size * cameras.length / this._view.BYTES_PER_ELEMENT);
         for (let i = 0; i < cameras.length; i++) {
@@ -59,6 +58,6 @@ export class CameraUBO extends UBO {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }
-        this._view.update(commandBuffer);
+        this._view.update(context.commandBuffer);
     }
 }

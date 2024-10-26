@@ -1,7 +1,7 @@
 import { device } from "boot";
-import { ClearFlagBits, CommandBuffer, Format, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { ClearFlagBits, Format, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
-import { Scene } from "../Scene.js";
+import { Context } from "../Context.js";
 import { Pass } from "../scene/Pass.js";
 import { Batch } from "./Batch.js";
 import { Phase } from "./Phase.js";
@@ -37,12 +37,12 @@ export class Stage {
         readonly rect?: Readonly<Vec4>
     ) { }
 
-    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number): number {
-        const camera = scene.cameras[cameraIndex];
+    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, context: Context, cameraIndex: number): number {
+        const camera = context.scene.cameras[cameraIndex];
         // do transfer before render pass
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                buffer_index = phase.queue(buffer_pass, buffer_batch, buffer_index, commandBuffer, scene, cameraIndex);
+                buffer_index = phase.queue(buffer_pass, buffer_batch, buffer_index, context, cameraIndex);
             }
         }
         return buffer_index;

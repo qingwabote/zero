@@ -6,6 +6,7 @@ import { Input } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
+import { Context } from "./render/Context.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { Scene } from "./render/Scene.js";
 import { Profile } from "./render/pipeline/Profile.js";
@@ -45,7 +46,7 @@ interface EventToListener {
     [Event.FRAME_END]: () => void;
 }
 
-export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
+export abstract class Zero extends EventEmitter.Impl<EventToListener> implements Context, boot.EventListener {
     private static _frameCount = 1;
     public static get frameCount(): number {
         return this._frameCount;
@@ -73,17 +74,14 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
 
     private readonly _systems: readonly System[];
 
-    private readonly _commandBuffer = boot.device.createCommandBuffer();
+    public readonly commandBuffer = boot.device.createCommandBuffer();
     private readonly _swapchainAcquired = boot.device.createSemaphore();
     private readonly _queueExecuted = boot.device.createSemaphore();
     private readonly _fence = boot.device.createFence(true);
 
     private _time = boot.initial;
 
-    private _profile = new Profile;
-    public get profile(): Profile.Readonly {
-        return this._profile;
-    }
+    public profile = new Profile;
 
     public get pipeline(): Pipeline {
         return this._pipeline;
@@ -167,10 +165,10 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         }
         this.emit(Event.LATE_UPDATE);
 
-        this._profile.clear();
+        this.profile.clear();
         this.scene.update();
         this.emit(Event.SCENE_UPDATE);
-        this._pipeline.update(this._profile);
+        this._pipeline.update(this);
         this.emit(Event.PIPELINE_UPDATE);
 
         boot.device.waitForFence(this._fence);
@@ -178,12 +176,12 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
 
         boot.device.swapchain.acquire(this._swapchainAcquired);
 
-        const commandBuffer = this._commandBuffer;
+        const commandBuffer = this.commandBuffer;
         commandBuffer.begin();
         this._componentScheduler.upload(commandBuffer);
-        this._pipeline.upload(commandBuffer);
+        this._pipeline.upload(this);
         quad.indexBufferView.update(commandBuffer);
-        this._pipeline.record(this._profile, commandBuffer, this.scene);
+        this._pipeline.record(this);
         commandBuffer.end();
 
         const submitInfo = new SubmitInfo;

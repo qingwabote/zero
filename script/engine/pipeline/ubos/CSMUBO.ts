@@ -1,8 +1,8 @@
-import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
-import { Scene } from "../../core/render/Scene.js";
 import { Zero } from "../../core/Zero.js";
 
 const Block = {
@@ -28,10 +28,10 @@ export class CSMUBO extends UBO {
         return BlockSize * this._num
     }
 
-    override dynamicOffset(scene: Scene, cameraIndex: number): number {
+    override dynamicOffset(context: Context, cameraIndex: number): number {
         let index = -1;
-        for (let i = 0; i < scene.cameras.length; i++) {
-            const camera = scene.cameras[i];
+        for (let i = 0; i < context.scene.cameras.length; i++) {
+            const camera = context.scene.cameras[i];
             if (camera.visibilities & this._data.shadow!.visibilities) {
                 index++;
                 if (i == cameraIndex) {
@@ -46,7 +46,7 @@ export class CSMUBO extends UBO {
         super(data, visibilities);
     }
 
-    update(commandBuffer: CommandBuffer, dumping: boolean): void {
+    update(context: Context, dumping: boolean): void {
         const size = UBO.align(this.range);
 
         let index = -1;
@@ -63,7 +63,7 @@ export class CSMUBO extends UBO {
             }
         }
 
-        this._view.update(commandBuffer);
+        this._view.update(context.commandBuffer);
     }
 
 }

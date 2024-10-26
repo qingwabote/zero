@@ -1,5 +1,5 @@
 import { CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler, VertexAttribute, VertexInput } from "gfx";
-import { Scene } from "../../core/render/Scene.js";
+import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
@@ -152,14 +152,14 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number): number {
+    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, context: Context, cameraIndex: number): number {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':
-                models = this._data.culling?.getView(scene.cameras[cameraIndex]).camera || scene.models;
+                models = this._data.culling?.getView(context.scene.cameras[cameraIndex]).camera || context.scene.models;
                 break;
             case 'CSM':
-                models = this._data.culling?.getView(scene.cameras[cameraIndex]).shadow[this._flowLoopIndex] || scene.models;
+                models = this._data.culling?.getView(context.scene.cameras[cameraIndex]).shadow[this._flowLoopIndex] || context.scene.models;
                 break;
             default:
                 throw new Error(`unsupported culling: ${this._culling}`);
@@ -194,9 +194,9 @@ export class ModelPhase extends Phase {
                         }
 
                         for (const [pass, batches] of pass2batches) {
-                            pass.upload(commandBuffer);
+                            pass.upload(context.commandBuffer);
                             for (const batch of batches) {
-                                batch.upload(commandBuffer);
+                                batch.upload(context.commandBuffer);
                                 buffer_pass[buffer_index] = pass;
                                 buffer_batch[buffer_index] = batch;
                                 buffer_index++;
@@ -227,9 +227,9 @@ export class ModelPhase extends Phase {
             pass2batches_order = model.order;
         }
         for (const [pass, batches] of pass2batches) {
-            pass.upload(commandBuffer);
+            pass.upload(context.commandBuffer);
             for (const batch of batches) {
-                batch.upload(commandBuffer);
+                batch.upload(context.commandBuffer);
                 buffer_pass[buffer_index] = pass;
                 buffer_batch[buffer_index] = batch;
                 buffer_index++;

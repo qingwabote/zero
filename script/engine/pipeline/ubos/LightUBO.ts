@@ -1,6 +1,6 @@
-import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
-import { Zero } from "../../core/Zero.js";
+import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { vec3 } from "../../core/math/vec3.js";
+import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 
@@ -25,14 +25,14 @@ export class LightUBO extends UBO {
         return this._view.buffer;
     }
 
-    update(commandBuffer: CommandBuffer, dumping: boolean): void {
-        const light = Zero.instance.scene.directionalLight!;
+    update(context: Context, dumping: boolean): void {
+        const light = context.scene.directionalLight!;
 
         if (dumping || light.transform.hasChangedFlag.value) {
             vec3.transformQuat(vec3_a, vec3.FORWARD, light.transform.world_rotation);
             vec3.negate(vec3_a, vec3_a);
             this._view.set(vec3_a, 0);
-            this._view.update(commandBuffer);
+            this._view.update(context.commandBuffer);
         }
     }
 }

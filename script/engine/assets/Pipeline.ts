@@ -220,7 +220,7 @@ export class Pipeline extends Yml {
                     descriptorSetLayoutInfo.bindings.add(binding);
                 }
             }
-            const context = new render.Context(device.createDescriptorSetLayout(descriptorSetLayoutInfo));
+            const context = new render.FlowContext(device.createDescriptorSetLayout(descriptorSetLayoutInfo));
             const ubos: render.UBO[] = []
             if (flow.bindings) {
                 for (const binding of flow.bindings) {

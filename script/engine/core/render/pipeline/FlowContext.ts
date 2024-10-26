@@ -3,7 +3,7 @@ import { DescriptorSet, DescriptorSetLayout, Pipeline, PipelineInfo, PipelineLay
 import { hashLib } from "../hashLib.js";
 import { Pass } from "../scene/Pass.js";
 
-export class Context {
+export class FlowContext {
     readonly descriptorSet: DescriptorSet;
 
     private _pipelineLayoutCache: Map<Shader, PipelineLayout> = new Map;

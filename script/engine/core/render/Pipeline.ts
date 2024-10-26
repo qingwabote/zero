@@ -1,9 +1,7 @@
-import { CommandBuffer } from "gfx";
+import { Context } from "./Context.js";
 import { Data } from "./pipeline/Data.js";
 import { Flow } from "./pipeline/Flow.js";
-import { Profile } from "./pipeline/Profile.js";
 import { UBO } from "./pipeline/UBO.js";
-import { Scene } from "./Scene.js";
 
 export class Pipeline {
     private _dumping = false;
@@ -18,23 +16,23 @@ export class Pipeline {
         this._dumping = true;
     }
 
-    update(profile: Profile) {
-        this.data.update(profile, this._dumping);
+    update(context: Context) {
+        this.data.update(context.profile, this._dumping);
     }
 
-    upload(commandBuffer: CommandBuffer) {
+    upload(context: Context) {
         for (const ubo of this.ubos) {
-            ubo.update(commandBuffer, this._dumping);
+            ubo.update(context, this._dumping);
         }
 
         this._dumping = false;
     }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, scene: Scene) {
-        for (let i = 0; i < scene.cameras.length; i++) {
+    record(context: Context) {
+        for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                if (scene.cameras[i].visibilities & flow.visibilities) {
-                    flow.record(profile, commandBuffer, scene, i);
+                if (context.scene.cameras[i].visibilities & flow.visibilities) {
+                    flow.record(context, i);
                 }
             }
         }
