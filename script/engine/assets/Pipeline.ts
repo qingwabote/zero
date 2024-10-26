@@ -8,6 +8,7 @@ import { Data } from "../core/render/pipeline/Data.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import * as pipeline from "../pipeline/index.js";
+import { Pass } from "../scene/Pass.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
 
@@ -38,23 +39,23 @@ const phaseFactory = (function () {
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
     return {
-        model: async function (info: ModelPhase, context: render.Context, visibility: number, flowLoopIndex: number, data: Data): Promise<render.Phase> {
-            return new pipeline.ModelPhase(context, visibility, flowLoopIndex, data, info.culling, info.model, info.pass);
+        model: async function (info: ModelPhase, visibility: number, flowLoopIndex: number, data: Data): Promise<render.Phase> {
+            return new pipeline.ModelPhase(visibility, flowLoopIndex, data, info.culling, info.model, info.pass);
         },
-        fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
+        fxaa: async function (info: FxaaPhase, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
+            return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
-        outline: async function (info: OutlinePhase, context: render.Context, visibility: number): Promise<render.Phase> {
+        outline: async function (info: OutlinePhase, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/outline', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
+            return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
-        copy: async function (info: CopyPhase, context: render.Context, visibility: number): Promise<render.Phase> {
+        copy: async function (info: CopyPhase, visibility: number): Promise<render.Phase> {
             const shaderAsset = await bundle.cache('shaders/copy', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
+            return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
     } as const;
 })()
@@ -248,7 +249,7 @@ export class Pipeline extends Yml {
                     for (const phase of stage.phases!) {
                         const type = phase.type || 'model';
                         if (type in phaseFactory) {
-                            phases.push(await phaseFactory[type](phase as any, context, this.phase_visibilitiy(phase, variables), flowLoopIndex, data))
+                            phases.push(await phaseFactory[type](phase as any, this.phase_visibilitiy(phase, variables), flowLoopIndex, data))
                         } else {
                             throw new Error(`unsupported phase type: ${type}`);
                         }

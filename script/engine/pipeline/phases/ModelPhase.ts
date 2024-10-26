@@ -1,17 +1,14 @@
-import { device } from "boot";
-import { CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, InputAssembler, Pipeline, RenderPass, VertexAttribute, VertexInput } from "gfx";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler, VertexAttribute, VertexInput } from "gfx";
 import { Scene } from "../../core/render/Scene.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
-import { Context } from "../../core/render/pipeline/Context.js";
+import { Batch } from "../../core/render/pipeline/Batch.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
-import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
-import { shaderLib } from "../../core/shaderLib.js";
 
 const inputAssembler_clone = (function () {
     function vertexInput_clone(out: VertexInput, vertexInput: VertexInput): VertexInput {
@@ -50,23 +47,35 @@ const inputAssembler_clone = (function () {
     }
 })()
 
-const descriptorSetLayoutNull = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
-
-class InstanceBatch {
-    private _count = 0;
+class InstancedBatch implements Batch {
+    private _countFlag = new PeriodicFlag();
     get count(): number {
-        return this._count;
+        return this._countFlag.value;
     }
 
-    private _lockFlag = new PeriodicFlag();
-    get locked(): boolean {
-        return this._lockFlag.value != 0;
+    private _frozenFlag = new PeriodicFlag();
+    get frozen(): boolean {
+        return this._frozenFlag.value != 0;
     }
 
-    constructor(readonly inputAssembler: InputAssembler, readonly draw: Readonly<SubMesh.Draw>, readonly vertexes: BufferView, readonly descriptorSetLayout: DescriptorSetLayout = descriptorSetLayoutNull, readonly descriptorSet?: DescriptorSet, readonly uniforms?: Readonly<Record<string, MemoryView>>) { }
+    constructor(
+        readonly inputAssembler: InputAssembler,
+        readonly draw: Readonly<SubMesh.Draw>,
+        readonly vertexes: BufferView,
+        readonly descriptorSetLayout: DescriptorSetLayout | undefined = undefined,
+        readonly descriptorSet: DescriptorSet | undefined = undefined,
+        readonly uniforms: Readonly<Record<string, MemoryView>> | undefined = undefined
+    ) { }
+
+    reset(): void {
+        this.vertexes.reset();
+        for (const key in this.uniforms) {
+            this.uniforms[key].reset();
+        }
+    }
 
     next() {
-        this._count++;
+        this._countFlag.reset(this._countFlag.value + 1);
     }
 
     upload(commandBuffer: CommandBuffer): void {
@@ -74,30 +83,22 @@ class InstanceBatch {
         for (const key in this.uniforms) {
             this.uniforms[key].update(commandBuffer);
         }
-    }
-
-    recycle(): void {
-        this.vertexes.reset();
-        for (const key in this.uniforms) {
-            this.uniforms[key].reset();
-        }
-        this._count = 0;
-        this._lockFlag.reset(1);
+        this._frozenFlag.reset(1);
     }
 }
 
 const batchCache = (function () {
-    const subMesh2batches: WeakMap<SubMesh, InstanceBatch[]> = new WeakMap;
-    const batch2pass: WeakMap<InstanceBatch, Pass> = new WeakMap;
-    return function (pass: Pass, model: Model, subMeshIndex: number): InstanceBatch {
+    const subMesh2batches: WeakMap<SubMesh, InstancedBatch[]> = new WeakMap;
+    const batch2pass: WeakMap<InstancedBatch, Pass> = new WeakMap;
+    return function (pass: Pass, model: Model, subMeshIndex: number): InstancedBatch {
         const subMesh = model.mesh.subMeshes[subMeshIndex];
         let batches = subMesh2batches.get(subMesh);
         if (!batches) {
             subMesh2batches.set(subMesh, batches = []);
         }
-        let batch: InstanceBatch | undefined;
+        let batch: InstancedBatch | undefined;
         for (const b of batches) {
-            if (b.locked) {
+            if (b.frozen) {
                 continue;
             }
             const p = batch2pass.get(b);
@@ -123,7 +124,7 @@ const batchCache = (function () {
             ia.vertexInput.buffers.add(info.vertexes.buffer);
             ia.vertexInput.offsets.add(0);
 
-            batch = new InstanceBatch(ia, subMesh.draw, info.vertexes, info.descriptorSet?.layout, info.descriptorSet, info.uniforms);
+            batch = new InstancedBatch(ia, subMesh.draw, info.vertexes, info.descriptorSet?.layout, info.descriptorSet, info.uniforms);
             batches.push(batch);
             batch2pass.set(batch, pass);
         }
@@ -138,11 +139,7 @@ function compareModel(a: Model, b: Model) {
 type Culling = 'View' | 'CSM';
 
 export class ModelPhase extends Phase {
-    private _pb_buffer: [Pass, InstanceBatch][] = [];
-    private _pb_count: number = 0;
-
     constructor(
-        context: Context,
         visibility: number,
         private readonly _flowLoopIndex: number,
         private readonly _data: Data,
@@ -152,10 +149,10 @@ export class ModelPhase extends Phase {
         /**The pass type that indicates which passes should run in this phase */
         private readonly _pass = 'default',
     ) {
-        super(context, visibility);
+        super(visibility);
     }
 
-    update(commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number): void {
+    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number): number {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':
@@ -176,8 +173,7 @@ export class ModelPhase extends Phase {
         }
         modelQueue.sort(compareModel);
 
-        this._pb_count = 0;
-        const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
+        const pass2batches: Map<Pass, InstancedBatch[]> = new Map;
         let pass2batches_order: number = 0;
         for (const model of modelQueue) {
             const diff = model.order - pass2batches_order;
@@ -198,14 +194,12 @@ export class ModelPhase extends Phase {
                         }
 
                         for (const [pass, batches] of pass2batches) {
+                            pass.upload(commandBuffer);
                             for (const batch of batches) {
-                                if (this._pb_buffer.length > this._pb_count) {
-                                    this._pb_buffer[this._pb_count][0] = pass
-                                    this._pb_buffer[this._pb_count][1] = batch
-                                } else {
-                                    this._pb_buffer.push([pass, batch]);
-                                }
-                                this._pb_count++;
+                                batch.upload(commandBuffer);
+                                buffer_pass[buffer_index] = pass;
+                                buffer_batch[buffer_index] = batch;
+                                buffer_index++;
                             }
                         }
                         pass2batches.clear();
@@ -222,6 +216,7 @@ export class ModelPhase extends Phase {
 
                     const batch = batchCache(pass, model, i);
                     if (batch.count == 0) {
+                        batch.reset();
                         batches.push(batch);
                     }
                     model.batchFill(batch.vertexes, batch.uniforms)
@@ -232,62 +227,19 @@ export class ModelPhase extends Phase {
             pass2batches_order = model.order;
         }
         for (const [pass, batches] of pass2batches) {
-            for (const batch of batches) {
-                if (this._pb_buffer.length > this._pb_count) {
-                    this._pb_buffer[this._pb_count][0] = pass
-                    this._pb_buffer[this._pb_count][1] = batch
-                } else {
-                    this._pb_buffer.push([pass, batch]);
-                }
-                this._pb_count++;
-            }
-        }
-        for (let i = 0; i < this._pb_count; i++) {
-            const [pass, batch] = this._pb_buffer[i];
             pass.upload(commandBuffer);
-            batch.upload(commandBuffer);
+            for (const batch of batches) {
+                batch.upload(commandBuffer);
+                buffer_pass[buffer_index] = pass;
+                buffer_batch[buffer_index] = batch;
+                buffer_index++;
+            }
         }
-    }
 
-    render(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
-        let material: DescriptorSet | undefined;
-        let pipeline: Pipeline | undefined;
-        for (let i = 0; i < this._pb_count; i++) {
-            const [pass, batch] = this._pb_buffer[i];
-            if (pass.descriptorSet && material != pass.descriptorSet) {
-                commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
-                material = pass.descriptorSet;
-
-                profile.materials++;
-            }
-
-            if (batch.descriptorSet) {
-                commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
-            }
-
-            const pl = this._context.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout]);
-            if (pipeline != pl) {
-                commandBuffer.bindPipeline(pl);
-                pipeline = pl;
-
-                profile.pipelines++;
-            }
-
-            commandBuffer.bindInputAssembler(batch.inputAssembler);
-
-            if (batch.inputAssembler.indexInput) {
-                commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
-            } else {
-                commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
-            }
-            profile.draws++;
-
-            batch.recycle();
-        }
+        return buffer_index;
     }
 }
-ModelPhase.InstanceBatch = InstanceBatch;
 
 export declare namespace ModelPhase {
-    export { Culling, InstanceBatch }
+    export { Culling }
 }

@@ -2,8 +2,9 @@ import { device } from "boot";
 import { ClearFlagBits, CommandBuffer, Format, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { Scene } from "../Scene.js";
+import { Pass } from "../scene/Pass.js";
+import { Batch } from "./Batch.js";
 import { Phase } from "./Phase.js";
-import { Profile } from "./Profile.js";
 import { getRenderPass } from "./rpc.js";
 
 const defaultFramebuffer = (function () {
@@ -29,34 +30,21 @@ const defaultFramebuffer = (function () {
 
 export class Stage {
     constructor(
-        public readonly phases: readonly Phase[],
+        readonly phases: readonly Phase[],
         readonly visibilities: number,
-        private _framebuffer: Framebuffer = defaultFramebuffer,
-        private _clears?: ClearFlagBits,
-        private _rect?: Readonly<Vec4>
+        readonly framebuffer: Framebuffer = defaultFramebuffer,
+        readonly clears?: ClearFlagBits,
+        readonly rect?: Readonly<Vec4>
     ) { }
 
-    record(profile: Profile, commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number) {
+    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, commandBuffer: CommandBuffer, scene: Scene, cameraIndex: number): number {
         const camera = scene.cameras[cameraIndex];
-        const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
-        const rect = this._rect ?? camera.rect;
-
         // do transfer before render pass
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.update(commandBuffer, scene, cameraIndex);
+                buffer_index = phase.queue(buffer_pass, buffer_batch, buffer_index, commandBuffer, scene, cameraIndex);
             }
         }
-
-        const { width, height } = this._framebuffer.info;
-        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
-        for (const phase of this.phases) {
-            if (camera.visibilities & phase.visibility) {
-                phase.render(profile, commandBuffer, renderPass);
-            }
-        }
-        commandBuffer.endRenderPass();
-
-        profile.stages++;
+        return buffer_index;
     }
 }
