@@ -1,11 +1,16 @@
 import { device } from "boot";
-import { ClearFlagBits, Format, Framebuffer, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { ClearFlagBits, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
+import { shaderLib } from "../../shaderLib.js";
 import { Context } from "../Context.js";
+import { Camera } from "../scene/Camera.js";
 import { Pass } from "../scene/Pass.js";
 import { Batch } from "./Batch.js";
+import { FlowContext } from "./FlowContext.js";
 import { Phase } from "./Phase.js";
 import { getRenderPass } from "./rpc.js";
+
+const descriptorSetLayoutNull = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 
 const defaultFramebuffer = (function () {
     const { width, height } = device.swapchain.color.info;
@@ -29,22 +34,77 @@ const defaultFramebuffer = (function () {
 })();
 
 export class Stage {
+    private _camera2queue: WeakMap<Camera, [Pass[], Batch[]]> = new WeakMap;
+
     constructor(
-        readonly phases: readonly Phase[],
-        readonly visibilities: number,
-        readonly framebuffer: Framebuffer = defaultFramebuffer,
-        readonly clears?: ClearFlagBits,
-        readonly rect?: Readonly<Vec4>
+        private readonly _flow: FlowContext,
+        private readonly _phases: readonly Phase[],
+        private readonly _framebuffer: Framebuffer = defaultFramebuffer,
+        private readonly _clears?: ClearFlagBits,
+        private readonly _rect?: Readonly<Vec4>
     ) { }
 
-    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, context: Context, cameraIndex: number): number {
+    queue(context: Context, cameraIndex: number): void {
+        const buffer_pass: Pass[] = []
+        const buffer_batch: Batch[] = []
+
         const camera = context.scene.cameras[cameraIndex];
         // do transfer before render pass
-        for (const phase of this.phases) {
+        let buffer_index = 0;
+        for (const phase of this._phases) {
             if (camera.visibilities & phase.visibility) {
                 buffer_index = phase.queue(buffer_pass, buffer_batch, buffer_index, context, cameraIndex);
             }
         }
-        return buffer_index;
+        this._camera2queue.set(camera, [buffer_pass, buffer_batch]);
+    }
+
+    render(context: Context, cameraIndex: number) {
+        const camera = context.scene.cameras[cameraIndex];
+        const [passes, batches] = this._camera2queue.get(camera)!;
+
+        const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
+        const rect = this._rect ?? camera.rect;
+
+        const { width, height } = this._framebuffer.info;
+        context.commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
+
+        let material: DescriptorSet | undefined;
+        let pipeline: Pipeline | undefined;
+        for (let i = 0; i < passes.length; i++) {
+            const pass = passes[i];
+            const batch = batches[i];
+            if (pass.descriptorSet && material != pass.descriptorSet) {
+                context.commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
+                material = pass.descriptorSet;
+
+                context.profile.materials++;
+            }
+
+            if (batch.descriptorSet) {
+                context.commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
+            }
+
+            const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout || descriptorSetLayoutNull]);
+            if (pipeline != pl) {
+                context.commandBuffer.bindPipeline(pl);
+                pipeline = pl;
+
+                context.profile.pipelines++;
+            }
+
+            context.commandBuffer.bindInputAssembler(batch.inputAssembler);
+
+            if (batch.inputAssembler.indexInput) {
+                context.commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
+            } else {
+                context.commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
+            }
+            context.profile.draws++;
+        }
+
+        context.commandBuffer.endRenderPass();
+
+        context.profile.stages++;
     }
 }

@@ -31,9 +31,12 @@ export class Pipeline {
     record(context: Context) {
         for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                if (context.scene.cameras[i].visibilities & flow.visibilities) {
-                    flow.record(context, i);
-                }
+                flow.queue(context, i);
+            }
+        }
+        for (let i = 0; i < context.scene.cameras.length; i++) {
+            for (const flow of this.flows) {
+                flow.render(context, i);
             }
         }
     }
