@@ -70,7 +70,7 @@ function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
     if (factor in gfx.BlendFactor) {
         return gfx.BlendFactor[factor];
     }
-    throw `unsupported factor: ${factor}`;
+    throw new Error(`unsupported factor: ${factor}`);
 }
 
 const getPass = (function () {
@@ -131,7 +131,7 @@ export class Effect extends Yml {
                         if (info.rasterizationState.cullMode in gfx.CullMode) {
                             rasterization.cullMode = gfx.CullMode[info.rasterizationState.cullMode];
                         } else {
-                            throw `unsupported cullMode: ${info.rasterizationState?.cullMode}`;
+                            throw new Error(`unsupported cullMode: ${info.rasterizationState?.cullMode}`);
                         }
                     } else {
                         rasterization.cullMode = gfx.CullMode.BACK;

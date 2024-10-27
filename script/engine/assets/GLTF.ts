@@ -62,7 +62,11 @@ const materialFuncPhong: MaterialFunc = function (params: MaterialParams) {
     return {
         effect: bundle.resolve("./effects/phong"),
         passes: [
-            {},
+            {
+                macros: {
+                    USE_SKIN: params.skin ? 1 : 0
+                }
+            },
             {
                 macros: {
                     USE_ALBEDO_MAP: params.texture ? 1 : 0,
@@ -307,7 +311,7 @@ export class GLTF implements Asset {
                             components = 4;
                             break;
                         default:
-                            throw `unsupported accessor type: ${accessor.type}`;
+                            throw new Error(`unsupported accessor type: ${accessor.type}`);
                     }
                     output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
                     // if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {

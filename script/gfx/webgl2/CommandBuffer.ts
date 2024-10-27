@@ -226,7 +226,7 @@ export class CommandBuffer {
                 mode = gl.TRIANGLES;
                 break;
             default:
-                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
+                throw new Error(`unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`)
         }
 
         gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
