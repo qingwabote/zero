@@ -14,7 +14,7 @@ enum VisibilityFlagBits {
     ALL = 0xffffffff
 }
 
-const pipeline = await (await bundle.cache('pipelines/shadow', Pipeline)).instantiate(VisibilityFlagBits);
+const pipeline = await (await bundle.cache('pipelines/forward-csm', Pipeline)).instantiate(VisibilityFlagBits);
 
 export class App extends Zero {
     start() {

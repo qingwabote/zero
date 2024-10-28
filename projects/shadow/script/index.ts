@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, Effect, GLTF, GeometryRenderer, Input, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, Zero, aabb3d, bundle as builtin, device, render, scene, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, Vec3, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -10,36 +10,23 @@ const VisibilityFlagBits = {
 } as const
 
 const materialFunc: GLTF.MaterialFunc = function (params: GLTF.MaterialParams) {
-    const pass: Effect.PassOverridden = {
-        macros: {
-            USE_ALBEDO_MAP: params.texture ? 1 : 0,
-            USE_SKIN: params.skin ? 1 : 0
-        },
-        props: {
-            albedo: params.albedo
-        },
-        ...params.texture &&
-        {
-            textures: {
-                'albedoMap': params.texture
-            }
-        }
-    }
+    const res = GLTF.materialFuncPhong(params)
     return {
         effect: bundle.resolve("./effects/test"),
-        passes: [{}, pass, pass]
+        passes: [res.passes[0], res.passes[1], res.passes[1]]
     }
 }
 
-const [guardian, plane, ss_depth, csm_off, csm_on] = await Promise.all([
-    (async function () {
-        const gltf = await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF);
-        return gltf.instantiate(undefined, materialFunc);
-    })(),
-    (async function () {
-        const gltf = await builtin.cache('models/primitive/scene', GLTF);
-        return gltf.instantiate(undefined, materialFunc);
-    })(),
+const [walkrun_and_idle, plane, ss_depth, csm_off, csm_on] = await Promise.all([
+    await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate(undefined, function (params: GLTF.MaterialParams) {
+        const res = materialFunc(params);
+        if (params.index == 3 /* hair */) {
+            res.passes[0].rasterizationState = { cullMode: 'BACK' };
+            res.passes[1].rasterizationState = { cullMode: 'FRONT' };
+        }
+        return res
+    }),
+    await (await builtin.cache('models/primitive/scene', GLTF)).instantiate(undefined, materialFunc),
     builtin.cache('shaders/depth', Shader),
     bundle.cache('pipelines/csm-off', Pipeline),
     bundle.cache('pipelines/csm-on', Pipeline)
@@ -77,7 +64,7 @@ export class App extends Zero {
         up_camera.fov = 45;
         up_camera.far = 16;
         up_camera.rect = [0, 0.5, 1, 0.5];
-        node.position = [0, 2, 10];
+        node.position = [0, 4, 10];
 
         node = new Node;
         const down_camera = node.addComponent(Camera);
@@ -85,19 +72,29 @@ export class App extends Zero {
         down_camera.orthoSize = 12;
         down_camera.rect = [0, 0, 1, 0.5];
         down_camera.near = -8;
-        node.position = [-8, 8, 8];
+        node.position = light.node.position;
 
-        node = guardian.createScene("Sketchfab_Scene")!;
-        const animation = node.addComponent(Animation);
-        animation.clips = guardian.proto.animationClips;
-        animation.play('WalkCycle')
-        node.visibility = VisibilityFlagBits.WORLD;
-        node.position = [0, -1, 0]
+        const circles: [Vec3, number][] = [
+            [vec3.create(0, 0, -1.5), 6],
+            [vec3.create(0, 0, -3), 10],
+            [vec3.create(0, 0, -4.5), 22]
+        ]
+        for (let i = 0; i < circles.length; i++) {
+            const [origin, steps] = circles[i];
+            const stride = mat3.fromYRotation(mat3.create(), Math.PI * 2 / steps);
+            for (let j = 0; j < steps; j++) {
+                node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
+                node.visibility = VisibilityFlagBits.WORLD;
+                const animation = node.addComponent(Animation);
+                animation.clips = walkrun_and_idle.proto.animationClips;
+                animation.play(animation.clips[j % 3].name);
+                node.position = vec3.transformMat3(origin, origin, stride);
+            }
+        }
 
         node = plane.createScene("Plane")!;
         node.visibility = VisibilityFlagBits.WORLD
         node.scale = [5, 1, 5];
-        node.position = [0, -1, 0];
 
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;

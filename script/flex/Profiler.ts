@@ -28,6 +28,8 @@ export class Profiler extends ElementContainer {
         super(node);
 
         const text = Renderer.create(TextRenderer);
+        text.impl.size = 24;
+        text.impl.color = [0.8, 0.8, 0.8, 1];
         this.addElement(text);
         this._text = text;
 

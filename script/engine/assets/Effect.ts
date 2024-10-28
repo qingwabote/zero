@@ -14,8 +14,12 @@ function merge<T extends {}, U, V, W>(target: T, source1: U, source2: V, source3
 function merge(target: any, ...sources: any[]): any {
     for (const source of sources) {
         for (const key in source) {
-            if (target[key] != undefined && Object.getPrototypeOf(target[key]) == Object.prototype) {
-                merge(target[key], source[key])
+            if (source[key] == undefined) {
+                continue;
+            }
+
+            if (Object.getPrototypeOf(source[key]) == Object.prototype /* plain object */) {
+                merge(target[key] ? target[key] : target[key] = {}, source[key])
             } else {
                 target[key] = source[key];
             }

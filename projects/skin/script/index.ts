@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Vec3, Zero, bundle as builtin, device, mat3, vec3, vec4 } from "engine";
+import { Animation, Camera, DirectionalLight, GLTF, Node, Pipeline, Vec3, Zero, bundle as builtin, device, mat3, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, Justify, PositionType, Profiler } from 'flex';
 
 enum VisibilityFlagBits {
@@ -9,7 +9,7 @@ enum VisibilityFlagBits {
     ALL = 0xffffffff
 }
 
-const macros = { USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 0 }
+const macros = { USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 0, SHADOW_MAP_PCF: 0 }
 
 const [walkrun_and_idle, primitive, pipeline] = await Promise.all([
     await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate(macros, function (params: GLTF.MaterialParams) {
@@ -20,7 +20,7 @@ const [walkrun_and_idle, primitive, pipeline] = await Promise.all([
         return res
     }),
     await (await builtin.cache('models/primitive/scene', GLTF)).instantiate(macros),
-    await (await builtin.cache('pipelines/shadow', Pipeline)).instantiate(VisibilityFlagBits)
+    await (await builtin.cache('pipelines/forward-csm-1', Pipeline)).instantiate(VisibilityFlagBits)
 ])
 
 export class App extends Zero {
@@ -50,9 +50,6 @@ export class App extends Zero {
         node.position = [12, 12, 12];
 
         node = primitive.createScene("Plane")!;
-        const meshRenderer = node.children[0].getComponent(MeshRenderer)!
-        const material = meshRenderer.materials![0];
-        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(0.5, 0.5, 0.5, 1));
         node.visibility = VisibilityFlagBits.WORLD
         node.scale = [5, 1, 5];
         node.position = [0, 0, 0];
