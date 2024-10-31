@@ -44,7 +44,7 @@ export class Stage {
         private readonly _rect?: Readonly<Vec4>
     ) { }
 
-    queue(context: Context, cameraIndex: number): void {
+    batch(context: Context, cameraIndex: number): void {
         const buffer_pass: Pass[] = []
         const buffer_batch: Batch[] = []
 
@@ -53,7 +53,7 @@ export class Stage {
         let buffer_index = 0;
         for (const phase of this._phases) {
             if (camera.visibilities & phase.visibility) {
-                buffer_index = phase.queue(buffer_pass, buffer_batch, buffer_index, context, cameraIndex);
+                buffer_index = phase.batch(buffer_pass, buffer_batch, buffer_index, context, cameraIndex);
             }
         }
         this._camera2queue.set(camera, [buffer_pass, buffer_batch]);

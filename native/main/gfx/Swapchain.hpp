@@ -12,12 +12,12 @@ namespace gfx
     class Swapchain
     {
     private:
-        std::unique_ptr<SwapchainImpl> _impl;
+        SwapchainImpl *_impl;
 
     public:
         const std::shared_ptr<Texture> color;
 
-        Swapchain(DeviceImpl *device);
+        Swapchain(SwapchainImpl *impl);
 
         void acquire(const std::shared_ptr<Semaphore> &semaphore);
 

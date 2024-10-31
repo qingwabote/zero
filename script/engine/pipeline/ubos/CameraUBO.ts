@@ -40,7 +40,7 @@ export class CameraUBO extends UBO {
         return UBO.align(BlockSize) * cameraIndex;
     };
 
-    update(context: Context, dumping: boolean): void {
+    upload(context: Context, dumping: boolean): void {
         const size = UBO.align(BlockSize);
         const cameras = context.scene.cameras;
 

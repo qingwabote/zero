@@ -46,7 +46,7 @@ export class CSMUBO extends UBO {
         super(data, visibilities);
     }
 
-    update(context: Context, dumping: boolean): void {
+    upload(context: Context, dumping: boolean): void {
         const size = UBO.align(this.range);
 
         let index = -1;

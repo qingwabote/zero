@@ -31,5 +31,5 @@ export abstract class UBO {
         protected readonly _visibilities: number
     ) { }
 
-    abstract update(context: Context, dumping: boolean): void;
+    abstract upload(context: Context, dumping: boolean): void;
 }

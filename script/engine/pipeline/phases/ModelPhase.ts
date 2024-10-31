@@ -152,7 +152,7 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, context: Context, cameraIndex: number): number {
+    batch(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, context: Context, cameraIndex: number): number {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':

@@ -196,81 +196,10 @@ namespace gfx
 
         vkGetDeviceQueue(device, queueFamilyIndex, 0, &_graphicsQueue);
 
-        // swapchain
-        VkSurfaceCapabilitiesKHR surface_properties;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface, &surface_properties);
-
-        uint32_t surface_formatCount = 0U;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &surface_formatCount, nullptr);
-        std::vector<VkSurfaceFormatKHR> surface_formats(surface_formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &surface_formatCount, surface_formats.data());
-
-        VkSurfaceFormatKHR &surface_format = surface_formats[0];
-
-        VkSwapchainCreateInfoKHR swapchainInfo{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
-        swapchainInfo.surface = surface;
-        swapchainInfo.minImageCount = 3;
-        swapchainInfo.imageFormat = surface_format.format;
-        swapchainInfo.imageColorSpace = surface_format.colorSpace;
-        swapchainInfo.imageExtent = surface_properties.currentExtent;
-        swapchainInfo.imageArrayLayers = 1;
-        swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        swapchainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-        if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-        {
-            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        }
-        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR)
-        {
-            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
-        }
-        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR)
-        {
-            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
-        }
-        else if (surface_properties.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR)
-        {
-            swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
-        }
-        swapchainInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-        swapchainInfo.clipped = true;
-        VkSwapchainKHR swapchain;
-        if (vkCreateSwapchainKHR(device, &swapchainInfo, nullptr, &swapchain))
-        {
-            return true;
-        }
-
-        uint32_t imageCount;
-        vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
-
-        std::vector<VkImage> images(imageCount);
-        vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data());
-
-        for (VkImage &image : images)
-        {
-            // Create an image view which we can render into.
-            VkImageViewCreateInfo view_info{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-            view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            view_info.format = surface_format.format;
-            view_info.image = image;
-            view_info.subresourceRange.levelCount = 1;
-            view_info.subresourceRange.layerCount = 1;
-            view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            view_info.components.r = VK_COMPONENT_SWIZZLE_R;
-            view_info.components.g = VK_COMPONENT_SWIZZLE_G;
-            view_info.components.b = VK_COMPONENT_SWIZZLE_B;
-            view_info.components.a = VK_COMPONENT_SWIZZLE_A;
-
-            VkImageView view;
-            vkCreateImageView(device, &view_info, nullptr, &view);
-
-            _swapchainImageViews.push_back(view);
-        }
-
-        _swapchainImageFormat = surface_format.format;
-        _swapchainImageExtent = surface_properties.currentExtent;
+        auto swapchain = new SwapchainImpl(device);
+        swapchain->initialize(gpu, surface);
         _swapchain = swapchain;
+
         _surface = surface;
 
         VmaAllocatorCreateInfo allocatorInfo{};
@@ -311,11 +240,6 @@ namespace gfx
         return false;
     }
 
-    void DeviceImpl::acquireNextImage(VkSemaphore semaphore)
-    {
-        vkAcquireNextImageKHR(_device, _swapchain, 1000000000, semaphore, nullptr, &_swapchainImageIndex);
-    }
-
     DeviceImpl::~DeviceImpl()
     {
         glslang::FinalizeProcess();
@@ -324,12 +248,8 @@ namespace gfx
 
         vmaDestroyAllocator(_allocator);
 
-        for (VkImageView &view : _swapchainImageViews)
-        {
-            vkDestroyImageView(_device, view, nullptr);
-        }
+        delete _swapchain;
 
-        vkDestroySwapchainKHR(_device, _swapchain, nullptr);
         vkDestroyDevice(_device, nullptr);
         vkDestroySurfaceKHR(_instance, _surface, nullptr);
         vkDestroyDebugUtilsMessengerEXT(_instance, _debugUtilsMessenger, nullptr);
@@ -347,7 +267,7 @@ namespace gfx
 
         _capabilities = std::make_unique<Capabilities>(_impl->limits().minUniformBufferOffsetAlignment, 0);
 
-        _swapchain = std::make_unique<Swapchain>(_impl);
+        _swapchain = std::make_unique<Swapchain>(_impl->swapchain());
 
         _queue = getQueue();
 

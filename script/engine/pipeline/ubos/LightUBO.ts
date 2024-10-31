@@ -25,7 +25,7 @@ export class LightUBO extends UBO {
         return this._view.buffer;
     }
 
-    update(context: Context, dumping: boolean): void {
+    upload(context: Context, dumping: boolean): void {
         const light = context.scene.directionalLight!;
 
         if (dumping || light.transform.hasChangedFlag.value) {

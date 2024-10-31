@@ -158,7 +158,7 @@ namespace gfx
             // The viewport’s origin in OpenGL is in the lower left of the screen, with Y pointing up.
             // In Vulkan the origin is in the top left of the screen, with Y pointing downwards.
             // https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
-            y = impl->_device->swapchainImageExtent().height - y - height;
+            y = impl->_device->swapchain()->imageExtent().height - y - height;
 
             viewport.y = y + height;
             viewport.height = height * -1.0;

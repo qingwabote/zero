@@ -10,7 +10,7 @@ export class PostPhase extends Phase {
         super(visibility);
     }
 
-    queue(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number): number {
+    batch(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number): number {
         buffer_pass[buffer_index] = this._pass;
         buffer_batch[buffer_index] = batch;
         return ++buffer_index;

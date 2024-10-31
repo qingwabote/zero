@@ -18,7 +18,7 @@ namespace gfx
 
         bool isSwapchain() { return _framebuffers.size() > 1; }
 
-        operator VkFramebuffer() { return isSwapchain() ? _framebuffers[_device->swapchainImageIndex()] : _framebuffers[0]; }
+        operator VkFramebuffer() { return isSwapchain() ? _framebuffers[_device->swapchain()->imageIndex()] : _framebuffers[0]; }
 
         ~FramebufferImpl();
     };

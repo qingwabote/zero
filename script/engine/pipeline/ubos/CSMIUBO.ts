@@ -48,7 +48,7 @@ export class CSMIUBO extends UBO {
         data.shadow = new Shadow(visibilities, _num)
     }
 
-    update(context: Context, dumping: boolean): void {
+    upload(context: Context, dumping: boolean): void {
         const size = UBO.align(BlockSize);
 
         let index = -1;

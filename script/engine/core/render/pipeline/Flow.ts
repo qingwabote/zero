@@ -13,13 +13,13 @@ export class Flow {
         private readonly _flowLoopIndex: number,
     ) { }
 
-    queue(context: Context, cameraIndex: number) {
+    batch(context: Context, cameraIndex: number) {
         if ((context.scene.cameras[cameraIndex].visibilities & this._visibilities) == 0) {
             return;
         }
 
         for (const stage of this._stages) {
-            stage.queue(context, cameraIndex);
+            stage.batch(context, cameraIndex);
         }
     }
 
