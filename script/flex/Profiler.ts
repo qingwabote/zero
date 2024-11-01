@@ -15,12 +15,16 @@ export class Profiler extends ElementContainer {
     private _late_update_average = 0;
     private _scene_update_average = 0;
     private _pipeline_update_average = 0;
-    private _halt_average = 0;
-    private _gfx_average = 0;
+    private _device_sync_average = 0;
+    private _upload_average = 0;
+    private _pipeline_batch_average = 0;
+    private _render_average = 0;
 
     private _model_time = 0;
 
     private _cull_average = 0;
+
+    private _pipeline_batch_upload_average = 0;
 
     private _text!: Renderer<TextRenderer>;
 
@@ -38,11 +42,16 @@ export class Profiler extends ElementContainer {
         let late_update_delta = 0;
         let scene_update_delta = 0;
         let pipeline_update_delta = 0;
-        let halt_delta = 0;
-        let gfx_delta = 0;
+        let device_sync_delta = 0;
+        let upload_delta = 0;
+        let pipeline_batch_delta = 0;
+        let render_delta = 0;
 
         let cull_start = 0;
         let cull_delta = 0;
+
+        let pipeline_batch_upload_start = 0;
+        let pipeline_batch_upload_delta = 0;
 
         let model_start = 0;
         let model_delta = 0
@@ -50,19 +59,24 @@ export class Profiler extends ElementContainer {
         Zero.instance.on(Zero.Event.FRAME_START, () => { time = now(); })
         // Zero.instance.on(Zero.Event.UPDATE, () => { const t = now(); update_delta += t - time; time = t; })
         // Zero.instance.on(Zero.Event.LATE_UPDATE, () => { const t = now(); late_update_delta += t - time; time = t; })
-        Zero.instance.on(Zero.Event.LATE_UPDATE, () => { const t = now(); update_delta += t - time; time = t; })
+        Zero.instance.on(Zero.Event.LATE_UPDATE, () => { const t = now(); update_delta += t - time; time = t; }) // update + late_update
         Zero.instance.on(Zero.Event.SCENE_UPDATE, () => { const t = now(); scene_update_delta += t - time; time = t; })
         Zero.instance.on(Zero.Event.PIPELINE_UPDATE, () => { const t = now(); pipeline_update_delta += t - time; time = t; })
-        Zero.instance.on(Zero.Event.READY_TO_RENDER, () => { const t = now(); halt_delta += t - time; time = t; })
+        Zero.instance.on(Zero.Event.DEVICE_SYNC, () => { const t = now(); device_sync_delta += t - time; time = t; })
+        Zero.instance.on(Zero.Event.UPLOAD, () => { const t = now(); upload_delta += t - time; time = t; })
+        Zero.instance.on(Zero.Event.PIPELINE_BATCH, () => { const t = now(); pipeline_batch_delta += t - time; time = t; })
 
         Zero.instance.profile.on(render.Profile.Event.CULL_START, () => { cull_start = now(); })
         Zero.instance.profile.on(render.Profile.Event.CULL_END, () => { cull_delta += now() - cull_start; })
+
+        Zero.instance.profile.on(render.Profile.Event.BATCH_UPLOAD_START, () => { pipeline_batch_upload_start = now(); })
+        Zero.instance.profile.on(render.Profile.Event.BATCH_UPLOAD_END, () => { pipeline_batch_upload_delta += now() - pipeline_batch_upload_start; })
 
         Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_START, () => { model_start = now(); })
         Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_END, () => { model_delta += now() - model_start; })
 
         Zero.instance.on(Zero.Event.FRAME_END, () => {
-            const t = now(); gfx_delta += t - time; time = t;
+            const t = now(); render_delta += t - time; time = t;
 
             if (Zero.frameCount % 60 == 0) {
                 this._update_average = update_delta / 60;
@@ -77,14 +91,23 @@ export class Profiler extends ElementContainer {
                 this._pipeline_update_average = pipeline_update_delta / 60;
                 pipeline_update_delta = 0;
 
-                this._halt_average = halt_delta / 60;
-                halt_delta = 0;
+                this._device_sync_average = device_sync_delta / 60;
+                device_sync_delta = 0;
 
-                this._gfx_average = gfx_delta / 60;
-                gfx_delta = 0;
+                this._upload_average = upload_delta / 60;
+                upload_delta = 0;
+
+                this._pipeline_batch_average = pipeline_batch_delta / 60;
+                pipeline_batch_delta = 0;
+
+                this._render_average = render_delta / 60;
+                render_delta = 0;
 
                 this._cull_average = cull_delta / 60;
                 cull_delta = 0;
+
+                this._pipeline_batch_upload_average = pipeline_batch_upload_delta / 60;
+                pipeline_batch_upload_delta = 0;
 
                 this._model_time = model_delta / 60;
                 model_delta = 0;
@@ -112,11 +135,14 @@ update   ${this._update_average.toFixed(2)}ms`
 scene    ${this._scene_update_average.toFixed(2)}ms
 pipeline ${this._pipeline_update_average.toFixed(2)}ms
  cull    ${this._cull_average.toFixed(2)}ms
-halt     ${this._halt_average.toFixed(2)}ms
-gfx      ${this._gfx_average.toFixed(2)}ms
- material ${Zero.instance.profile.materials}
- pipeline ${Zero.instance.profile.pipelines}
- draw     ${Zero.instance.profile.draws}`
+sync     ${this._device_sync_average.toFixed(2)}ms
+upload   ${this._upload_average.toFixed(2)}ms
+batch    ${this._pipeline_batch_average.toFixed(2)}ms
+ upload  ${this._pipeline_batch_upload_average.toFixed(2)}ms
+render   ${this._render_average.toFixed(2)}ms
+material ${Zero.instance.profile.materials}
+pipeline ${Zero.instance.profile.pipelines}
+draw     ${Zero.instance.profile.draws}`
         //             + `
         // boot     ${boot_time.toFixed(2)}s`;
     }

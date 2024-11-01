@@ -2,7 +2,9 @@ import { CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler, Vert
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
+import { Profile } from "../../core/render/index.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
+import { BatchQueue } from "../../core/render/pipeline/BatchQueue.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Model } from "../../core/render/scene/Model.js";
@@ -152,7 +154,7 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    batch(buffer_pass: Pass[], buffer_batch: Batch[], buffer_index: number, context: Context, cameraIndex: number): number {
+    batch(out: BatchQueue, context: Context, cameraIndex: number): void {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':
@@ -173,7 +175,7 @@ export class ModelPhase extends Phase {
         }
         modelQueue.sort(compareModel);
 
-        const pass2batches: Map<Pass, InstancedBatch[]> = new Map;
+        let pass2batches = out.add();
         let pass2batches_order: number = 0;
         for (const model of modelQueue) {
             const diff = model.order - pass2batches_order;
@@ -189,22 +191,21 @@ export class ModelPhase extends Phase {
 
                     if (diff) {
                         const batches = pass2batches.get(pass);
-                        if (diff == 1 && batches) {
+                        if (diff == 1 && batches) { // moving to next 
                             pass2batches.delete(pass);
                         }
 
+                        context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
                         for (const [pass, batches] of pass2batches) {
                             pass.upload(context.commandBuffer);
                             for (const batch of batches) {
-                                batch.upload(context.commandBuffer);
-                                buffer_pass[buffer_index] = pass;
-                                buffer_batch[buffer_index] = batch;
-                                buffer_index++;
+                                (batch as InstancedBatch).upload(context.commandBuffer);
                             }
                         }
-                        pass2batches.clear();
+                        context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
+                        pass2batches = out.add();
 
-                        if (diff == 1 && batches) {
+                        if (diff == 1 && batches) { // moved to next
                             pass2batches.set(pass, batches);
                         }
                     }
@@ -226,17 +227,14 @@ export class ModelPhase extends Phase {
 
             pass2batches_order = model.order;
         }
+        context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
         for (const [pass, batches] of pass2batches) {
             pass.upload(context.commandBuffer);
             for (const batch of batches) {
-                batch.upload(context.commandBuffer);
-                buffer_pass[buffer_index] = pass;
-                buffer_batch[buffer_index] = batch;
-                buffer_index++;
+                (batch as InstancedBatch).upload(context.commandBuffer);
             }
         }
-
-        return buffer_index;
+        context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
     }
 }
 

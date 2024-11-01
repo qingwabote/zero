@@ -16,33 +16,25 @@ import { ModelCollection } from "./render/scene/ModelCollection.js";
 
 enum Event {
     FRAME_START = 'FRAME_START',
-
     UPDATE = 'UPDATE',
-
     LATE_UPDATE = 'LATE_UPDATE',
-
     SCENE_UPDATE = 'SCENE_UPDATE',
-
     PIPELINE_UPDATE = 'PIPELINE_UPDATE',
-
-    READY_TO_RENDER = 'READY_TO_RENDER',
-
+    DEVICE_SYNC = 'DEVICE_SYNC',
+    UPLOAD = 'UPLOAD',
+    PIPELINE_BATCH = 'PIPELINE_BATCH',
     FRAME_END = 'FRAME_END',
 }
 
 interface EventToListener {
     [Event.FRAME_START]: () => void;
-
     [Event.UPDATE]: () => void;
-
     [Event.LATE_UPDATE]: () => void;
-
     [Event.SCENE_UPDATE]: () => void;
-
     [Event.PIPELINE_UPDATE]: () => void;
-
-    [Event.READY_TO_RENDER]: () => void;
-
+    [Event.DEVICE_SYNC]: () => void;
+    [Event.UPLOAD]: () => void;
+    [Event.PIPELINE_BATCH]: () => void;
     [Event.FRAME_END]: () => void;
 }
 
@@ -172,20 +164,21 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.emit(Event.PIPELINE_UPDATE);
 
         boot.device.waitForFence(this._fence);
-        this.emit(Event.READY_TO_RENDER);
+        this.emit(Event.DEVICE_SYNC);
+
+        this.commandBuffer.begin();
+        this._componentScheduler.upload(this.commandBuffer);
+        quad.indexBufferView.update(this.commandBuffer);
+        this.emit(Event.UPLOAD);
+        this._pipeline.batch(this);
+        this.emit(Event.PIPELINE_BATCH);
+        this._pipeline.render(this);
+        this.commandBuffer.end();
 
         boot.device.swapchain.acquire(this._swapchainAcquired);
 
-        const commandBuffer = this.commandBuffer;
-        commandBuffer.begin();
-        this._componentScheduler.upload(commandBuffer);
-        quad.indexBufferView.update(commandBuffer);
-        this._pipeline.batch(this);
-        this._pipeline.render(this);
-        commandBuffer.end();
-
         const submitInfo = new SubmitInfo;
-        submitInfo.commandBuffer = commandBuffer;
+        submitInfo.commandBuffer = this.commandBuffer;
         submitInfo.waitSemaphore = this._swapchainAcquired;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
         submitInfo.signalSemaphore = this._queueExecuted;

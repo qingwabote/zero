@@ -6,6 +6,7 @@ import { Context } from "../Context.js";
 import { Camera } from "../scene/Camera.js";
 import { Pass } from "../scene/Pass.js";
 import { Batch } from "./Batch.js";
+import { BatchQueue } from "./BatchQueue.js";
 import { FlowContext } from "./FlowContext.js";
 import { Phase } from "./Phase.js";
 import { getRenderPass } from "./rpc.js";
@@ -34,7 +35,7 @@ const defaultFramebuffer = (function () {
 })();
 
 export class Stage {
-    private _camera2queue: WeakMap<Camera, [Pass[], Batch[]]> = new WeakMap;
+    private _camera2queue: WeakMap<Camera, BatchQueue> = new WeakMap;
 
     constructor(
         private readonly _flow: FlowContext,
@@ -45,23 +46,21 @@ export class Stage {
     ) { }
 
     batch(context: Context, cameraIndex: number): void {
-        const buffer_pass: Pass[] = []
-        const buffer_batch: Batch[] = []
-
         const camera = context.scene.cameras[cameraIndex];
-        // do transfer before render pass
-        let buffer_index = 0;
+        let queue = this._camera2queue.get(camera);
+        if (!queue) {
+            this._camera2queue.set(camera, queue = new BatchQueue);
+        }
         for (const phase of this._phases) {
             if (camera.visibilities & phase.visibility) {
-                buffer_index = phase.batch(buffer_pass, buffer_batch, buffer_index, context, cameraIndex);
+                phase.batch(queue, context, cameraIndex);
             }
         }
-        this._camera2queue.set(camera, [buffer_pass, buffer_batch]);
     }
 
     render(context: Context, cameraIndex: number) {
         const camera = context.scene.cameras[cameraIndex];
-        const [passes, batches] = this._camera2queue.get(camera)!;
+        const queue = this._camera2queue.get(camera)!;
 
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this._rect ?? camera.rect;
@@ -71,36 +70,39 @@ export class Stage {
 
         let material: DescriptorSet | undefined;
         let pipeline: Pipeline | undefined;
-        for (let i = 0; i < passes.length; i++) {
-            const pass = passes[i];
-            const batch = batches[i];
-            if (pass.descriptorSet && material != pass.descriptorSet) {
-                context.commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
-                material = pass.descriptorSet;
+        let pass2batches: Map<Pass, Batch[]> | undefined;
+        while (pass2batches = queue.front()) {
+            for (const [pass, batches] of pass2batches) {
+                if (pass.descriptorSet && material != pass.descriptorSet) {
+                    context.commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
+                    material = pass.descriptorSet;
 
-                context.profile.materials++;
+                    context.profile.materials++;
+                }
+                for (const batch of batches) {
+                    if (batch.descriptorSet) {
+                        context.commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
+                    }
+
+                    const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout || descriptorSetLayoutNull]);
+                    if (pipeline != pl) {
+                        context.commandBuffer.bindPipeline(pl);
+                        pipeline = pl;
+
+                        context.profile.pipelines++;
+                    }
+
+                    context.commandBuffer.bindInputAssembler(batch.inputAssembler);
+
+                    if (batch.inputAssembler.indexInput) {
+                        context.commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
+                    } else {
+                        context.commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
+                    }
+                    context.profile.draws++;
+                }
             }
-
-            if (batch.descriptorSet) {
-                context.commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
-            }
-
-            const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout || descriptorSetLayoutNull]);
-            if (pipeline != pl) {
-                context.commandBuffer.bindPipeline(pl);
-                pipeline = pl;
-
-                context.profile.pipelines++;
-            }
-
-            context.commandBuffer.bindInputAssembler(batch.inputAssembler);
-
-            if (batch.inputAssembler.indexInput) {
-                context.commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
-            } else {
-                context.commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
-            }
-            context.profile.draws++;
+            queue.remove();
         }
 
         context.commandBuffer.endRenderPass();

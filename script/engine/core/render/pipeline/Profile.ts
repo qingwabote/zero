@@ -2,12 +2,18 @@ import { EventEmitter } from "bastard";
 
 enum Event {
     CULL_START = 'CULL_START',
-    CULL_END = 'CULL_END'
+    CULL_END = 'CULL_END',
+
+    BATCH_UPLOAD_START = 'BATCH_UPLOAD_START',
+    BATCH_UPLOAD_END = 'BATCH_UPLOAD_END'
 }
 
 interface Event2Listener {
     [Event.CULL_START]: () => void;
     [Event.CULL_END]: () => void;
+
+    [Event.BATCH_UPLOAD_START]: () => void;
+    [Event.BATCH_UPLOAD_END]: () => void;
 }
 
 interface ProfileReadonly extends EventEmitter.Readonly<Event2Listener> {
