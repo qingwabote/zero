@@ -99,7 +99,7 @@ export class App extends Zero {
         const debugDrawer = Node.build(GeometryRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
-        const vec3_6in10 = Object.freeze(vec3.create(0.6, 0.6, 0.6));
+        const vec3_6in10: Readonly<Vec3> = vec3.create(0.6, 0.6, 0.6);
 
         const debugDraw = () => {
             debugDrawer.clear()

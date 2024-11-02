@@ -25,12 +25,12 @@ export type Mat4Like = {
     readonly length: 16;
 }
 
-export const preTransforms = Object.freeze([
-    Object.freeze([1, 0, 0, 1]), // SurfaceTransform.IDENTITY
-    Object.freeze([0, 1, -1, 0]), // SurfaceTransform.ROTATE_90
-    Object.freeze([-1, 0, 0, -1]), // SurfaceTransform.ROTATE_180
-    Object.freeze([0, -1, 1, 0]), // SurfaceTransform.ROTATE_270
-]);
+export const preTransforms = [
+    [1, 0, 0, 1], // SurfaceTransform.IDENTITY
+    [0, 1, -1, 0], // SurfaceTransform.ROTATE_90
+    [-1, 0, 0, -1], // SurfaceTransform.ROTATE_180
+    [0, -1, 1, 0], // SurfaceTransform.ROTATE_270
+] as const;
 
 export const mat4 = {
     IDENTITY: [

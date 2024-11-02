@@ -12,7 +12,7 @@ function create(x: number = 0, y: number = 0): Vec2 {
 }
 
 export const vec2 = {
-    ZERO: Object.freeze(create(0, 0)),
+    ZERO: create(0, 0) as Readonly<Vec2>,
 
     create,
 
