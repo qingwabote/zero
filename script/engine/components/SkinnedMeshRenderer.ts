@@ -1,11 +1,11 @@
 import { Model } from "../core/render/scene/Model.js";
-import { Skin } from "../scene/Skin.js";
+import { SkinInstance } from "../scene/SkinInstance.js";
 import { SkinnedModel } from "./internal/SkinnedModel.js";
 import { MeshRenderer } from "./MeshRenderer.js";
 
 export class SkinnedMeshRenderer extends MeshRenderer {
 
-    private _skin: Skin | null = null;
+    private _skin: SkinInstance | null = null;
     public get skin() {
         return this._skin;
     }

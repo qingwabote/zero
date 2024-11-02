@@ -10,11 +10,15 @@ const attributes = {
     joints: { name: 'a_joints', location: 3 },
     weights: { name: 'a_weights', location: 4 },
     color: { name: 'a_color', location: 4 }, // a_weights and a_color both are vec4 and not exist in same shader, they can share the same location
+
+    // instanced
+
     model: {
         name: 'a_model',
         /**5~8 */
         location: 5
-    }
+    },
+    skin: { name: 'a_skin', location: 9 }
 } as const
 
 /**

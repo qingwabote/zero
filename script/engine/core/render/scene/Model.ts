@@ -15,7 +15,7 @@ interface InstancedAttribute {
     readonly multiple: number
 }
 
-interface BatchInfo {
+interface InstancedBatchInfo {
     readonly attributes: readonly InstancedAttribute[],
     readonly vertexes: BufferView;
     readonly descriptorSet?: DescriptorSet;
@@ -69,7 +69,7 @@ export class Model {
         aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
 
-    batch(): BatchInfo {
+    batch(): InstancedBatchInfo {
         return { attributes: instancedAttributes, vertexes: new BufferView('Float32', BufferUsageFlagBits.VERTEX) }
     }
 
@@ -80,5 +80,5 @@ export class Model {
 Model.ChangeBits = ChangeBits;
 
 export declare namespace Model {
-    export { ChangeBits, BatchInfo }
+    export { ChangeBits, InstancedBatchInfo }
 }

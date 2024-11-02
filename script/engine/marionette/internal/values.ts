@@ -11,7 +11,7 @@ const vec4_c = vec4.create();
 type FilteredKeys<T, U> = { [P in keyof T]: T[P] extends U ? P : never }[keyof T];
 
 export class ChannelBindingVec3 implements ChannelBinding.Value {
-    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Vec3Like>) { }
+    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Readonly<Vec3Like>>) { }
 
     set(buffer: ArrayLike<number>, index: number): void {
         const start = index * 3;
@@ -30,7 +30,7 @@ export class ChannelBindingVec3 implements ChannelBinding.Value {
 }
 
 export class ChannelBindingQuat implements ChannelBinding.Value {
-    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, QuatLike>) { }
+    constructor(private _transform: TRS, private _property: FilteredKeys<TRS, Readonly<QuatLike>>) { }
 
     set(buffer: ArrayLike<number>, index: number): void {
         const start = index * 4;

@@ -21,8 +21,8 @@ enum Event {
     SCENE_UPDATE = 'SCENE_UPDATE',
     PIPELINE_UPDATE = 'PIPELINE_UPDATE',
     DEVICE_SYNC = 'DEVICE_SYNC',
-    UPLOAD = 'UPLOAD',
     PIPELINE_BATCH = 'PIPELINE_BATCH',
+    UPLOAD = 'UPLOAD',
     FRAME_END = 'FRAME_END',
 }
 
@@ -33,8 +33,8 @@ interface EventToListener {
     [Event.SCENE_UPDATE]: () => void;
     [Event.PIPELINE_UPDATE]: () => void;
     [Event.DEVICE_SYNC]: () => void;
-    [Event.UPLOAD]: () => void;
     [Event.PIPELINE_BATCH]: () => void;
+    [Event.UPLOAD]: () => void;
     [Event.FRAME_END]: () => void;
 }
 
@@ -167,11 +167,11 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.emit(Event.DEVICE_SYNC);
 
         this.commandBuffer.begin();
+        this._pipeline.batch(this);
+        this.emit(Event.PIPELINE_BATCH);
         this._componentScheduler.upload(this.commandBuffer);
         quad.indexBufferView.update(this.commandBuffer);
         this.emit(Event.UPLOAD);
-        this._pipeline.batch(this);
-        this.emit(Event.PIPELINE_BATCH);
         this._pipeline.render(this);
         this.commandBuffer.end();
 

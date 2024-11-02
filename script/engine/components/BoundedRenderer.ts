@@ -1,4 +1,4 @@
-import { EventEmitter } from "bastard";
+import { DeepReadonly, EventEmitter } from "bastard";
 import { AABB3D } from "../core/math/aabb3d.js";
 import { ModelRenderer } from "./internal/ModelRenderer.js";
 
@@ -36,7 +36,7 @@ export abstract class BoundedRenderer extends ModelRenderer implements EventEmit
         this.__emitter?.emit(name, ...args);
     }
 
-    public abstract get bounds(): Readonly<AABB3D>;
+    public abstract get bounds(): DeepReadonly<AABB3D>;
 
     order(value: number): void {
         if (this._model) {

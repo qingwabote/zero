@@ -8,7 +8,7 @@ import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { getSampler } from "../../core/sc.js";
 import { shaderLib } from "../../core/shaderLib.js";
-import { Skin } from "../../scene/Skin.js";
+import { SkinInstance } from "../../scene/SkinInstance.js";
 
 const SkinUniform = shaderLib.sets.batch.uniforms.Skin;
 
@@ -17,11 +17,11 @@ const META_LENGTH = 1 /* pixels */ * 4 /* RGBA */;
 const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
 
 export class SkinnedModel extends Model {
-    constructor(mesh: Mesh, materials: readonly Material[], private _skin: Skin) {
+    constructor(mesh: Mesh, materials: readonly Material[], private _skin: SkinInstance) {
         super(_skin.root, mesh, materials);
     }
 
-    override batch(): Model.BatchInfo {
+    override batch(): Model.InstancedBatchInfo {
         const info = super.batch();
         const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
         const joints = new TextureView(META_LENGTH);

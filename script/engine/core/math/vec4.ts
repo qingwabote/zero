@@ -1,10 +1,7 @@
-import { Vec3Like } from "./vec3.js";
 
 export type Vec4 = [number, number, number, number];
 
-export interface Vec4Like extends Vec3Like {
-    3: number;
-}
+export type Vec4Like = [number, number, number, number, ...number[]];
 
 function create(x = 0, y = 0, z = 0, w = 0): Vec4 {
     return [x, y, z, w];

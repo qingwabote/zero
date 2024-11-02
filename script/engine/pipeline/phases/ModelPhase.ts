@@ -60,20 +60,33 @@ class InstancedBatch implements Batch {
         return this._frozenFlag.value != 0;
     }
 
-    constructor(
-        readonly inputAssembler: InputAssembler,
-        readonly draw: Readonly<SubMesh.Draw>,
-        readonly vertexes: BufferView,
-        readonly descriptorSetLayout: DescriptorSetLayout | undefined = undefined,
-        readonly descriptorSet: DescriptorSet | undefined = undefined,
-        readonly uniforms: Readonly<Record<string, MemoryView>> | undefined = undefined
-    ) { }
+    readonly inputAssembler: InputAssembler;
+    readonly draw: Readonly<SubMesh.Draw>;
+    readonly vertexes: BufferView;
+    readonly descriptorSetLayout: DescriptorSetLayout | undefined;
+    readonly descriptorSet: DescriptorSet | undefined;
+    readonly uniforms: Readonly<Record<string, MemoryView>> | undefined
 
-    reset(): void {
-        this.vertexes.reset();
-        for (const key in this.uniforms) {
-            this.uniforms[key].reset();
+    constructor(subMesh: SubMesh, info: Model.InstancedBatchInfo) {
+        const ia = inputAssembler_clone(subMesh.inputAssembler);
+        for (const attr of info.attributes) {
+            const attribute = new VertexAttribute;
+            attribute.location = attr.location;
+            attribute.format = attr.format;
+            attribute.offset = attr.offset;
+            attribute.multiple = attr.multiple;
+            attribute.buffer = ia.vertexInput.buffers.size();
+            attribute.instanced = true;
+            ia.vertexInputState.attributes.add(attribute);
         }
+        ia.vertexInput.buffers.add(info.vertexes.buffer);
+        ia.vertexInput.offsets.add(0);
+        this.inputAssembler = ia;
+        this.draw = subMesh.draw;
+        this.vertexes = info.vertexes;
+        this.descriptorSetLayout = info.descriptorSet?.layout;
+        this.descriptorSet = info.descriptorSet;
+        this.uniforms = info.uniforms;
     }
 
     next() {
@@ -86,6 +99,13 @@ class InstancedBatch implements Batch {
             this.uniforms[key].update(commandBuffer);
         }
         this._frozenFlag.reset(1);
+    }
+
+    reset(): void {
+        this.vertexes.reset();
+        for (const key in this.uniforms) {
+            this.uniforms[key].reset();
+        }
     }
 }
 
@@ -111,22 +131,7 @@ const batchCache = (function () {
             break;
         }
         if (!batch) {
-            const ia = inputAssembler_clone(subMesh.inputAssembler);
-            const info = model.batch();
-            for (const attr of info.attributes) {
-                const attribute = new VertexAttribute;
-                attribute.location = attr.location;
-                attribute.format = attr.format;
-                attribute.offset = attr.offset;
-                attribute.multiple = attr.multiple;
-                attribute.buffer = ia.vertexInput.buffers.size();
-                attribute.instanced = true;
-                ia.vertexInputState.attributes.add(attribute);
-            }
-            ia.vertexInput.buffers.add(info.vertexes.buffer);
-            ia.vertexInput.offsets.add(0);
-
-            batch = new InstancedBatch(ia, subMesh.draw, info.vertexes, info.descriptorSet?.layout, info.descriptorSet, info.uniforms);
+            batch = new InstancedBatch(subMesh, model.batch());
             batches.push(batch);
             batch2pass.set(batch, pass);
         }

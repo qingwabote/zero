@@ -71,7 +71,7 @@ function fromPoints(out: AABB3D, points: readonly Readonly<Vec3Like>[]) {
     return out;
 }
 
-function fromRect(out: AABB3D, offset: Vec3Like, size: Vec3Like) {
+function fromRect(out: AABB3D, offset: Readonly<Vec3Like>, size: Readonly<Vec3Like>) {
     vec3.add(vec3_c, offset, size);
     return fromExtremes(out, offset, vec3_c);
 }
@@ -87,6 +87,6 @@ function contains(a: Readonly<AABB3D>, point: Vec3Like) {
     );
 }
 
-const ZERO: Readonly<AABB3D> = { center: vec3.ZERO, halfExtent: vec3.ZERO }
+const ZERO = { center: vec3.ZERO, halfExtent: vec3.ZERO } as const
 
 export const aabb3d = { ZERO, create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, contains } as const

@@ -17,13 +17,7 @@ export type Mat4 = [
     number, number, number, number
 ]
 
-export type Mat4Like = {
-    0: number; 1: number; 2: number; 3: number;
-    4: number; 5: number; 6: number; 7: number;
-    8: number; 9: number; 10: number; 11: number;
-    12: number; 13: number; 14: number; 15: number;
-    readonly length: 16;
-}
+export type Mat4Like = Mat4
 
 export const preTransforms = [
     [1, 0, 0, 1], // SurfaceTransform.IDENTITY
@@ -155,7 +149,7 @@ export const mat4 = {
         ]
     },
 
-    translate<Out extends Mat4Like>(out: Out, a: Mat4Like, v: Readonly<Vec3Like>) {
+    translate<Out extends Mat4Like>(out: Out, a: Readonly<Mat4Like>, v: Readonly<Vec3Like>) {
         if (out != a) {
             out[0] = a[0];
             out[1] = a[1];

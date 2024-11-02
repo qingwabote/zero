@@ -3,11 +3,11 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, Format, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
-import { Mat4Like } from "../core/math/mat4.js";
+import { Mat4 } from "../core/math/mat4.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
@@ -15,7 +15,7 @@ import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { AnimationClip } from "../marionette/AnimationClip.js";
 import { Material } from "../scene/Material.js";
-import { Skin as SceneSkin } from "../scene/Skin.js";
+import { Skin } from "../scene/Skin.js";
 import { Effect } from "./Effect.js";
 import { Texture } from "./Texture.js";
 
@@ -101,11 +101,6 @@ const materialFuncHash = (function () {
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
-
-interface Skin {
-    readonly inverseBindMatrices: readonly Readonly<Mat4Like>[];
-    readonly joints: readonly (readonly string[])[];
-}
 
 export class GLTF implements Asset {
     private _json: any;
@@ -200,15 +195,39 @@ export class GLTF implements Asset {
                             // console.log(`unknown attribute: ${key}`);
                             continue;
                         }
+
+                        /**
+                         * When byteStride of the referenced bufferView is not defined, 
+                         * it means that accessor elements are tightly packed, 
+                         * i.e., effective stride equals the size of the element.
+                         * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#data-alignment
+                         */
+                        let stride: number = json.bufferViews[accessor.bufferView].byteStride || 0;
+                        if (!stride) {
+                            for (const k in primitive.attributes) {
+                                const acc = json.accessors[primitive.attributes[k]];
+                                if (acc.bufferView != accessor.bufferView) {
+                                    continue;
+                                }
+
+                                const fmt: Format = (Format as any)[`${format_part1[acc.type]}${format_part2[acc.componentType]}`];
+                                if (fmt == undefined) {
+                                    throw new Error(`unknown format of accessor: type ${acc.type} componentType ${acc.componentType}`);
+                                }
+                                stride += FormatInfos[fmt].bytes;
+                            }
+                        }
+
                         const builtin = shaderLib.attributes[name];
                         const attribute: VertexAttribute = new VertexAttribute;
                         attribute.location = builtin.location;
                         attribute.format = format;
                         attribute.buffer = ia.vertexInput.buffers.size();
-                        attribute.offset = 0;
-                        attribute.stride = json.bufferViews[accessor.bufferView].byteStride || 0;
+                        attribute.stride = stride;
                         ia.vertexInputState.attributes.add(attribute)
                         ia.vertexInput.buffers.add(getBuffer(accessor.bufferView, BufferUsageFlagBits.VERTEX))
+                        // There seem to be no such thing like attribute.offset in gltf, the accessor.byteOffset is relative to bufferView
+                        // I have to add single buffer multiple times with different offets if buffer is interleaved
                         ia.vertexInput.offsets.add(accessor.byteOffset || 0);
                     }
                     ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
@@ -270,14 +289,14 @@ export class GLTF implements Asset {
 
         // skin
         for (const skin of json.skins || []) {
-            const inverseBindMatrices: Mat4Like[] = [];
+            const inverseBindMatrices: Mat4[] = [];
             const accessor = json.accessors[skin.inverseBindMatrices];
             const bufferView = json.bufferViews[accessor.bufferView];
             for (let i = 0; i < accessor.count; i++) {
-                inverseBindMatrices[i] = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as unknown as Mat4Like;
+                inverseBindMatrices[i] = [...new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16)] as Mat4;
             }
             const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
-            this._skins.push({ inverseBindMatrices, joints });
+            this._skins.push(new Skin(inverseBindMatrices, joints));
         }
 
         // animation
@@ -379,10 +398,10 @@ class Instance {
             root.addChild(this.createNode(index, root, skinning));
             for (const [index, nodes] of skinning) {
                 const skin = this.proto.skins[index];
-                const sceneSkin = new SceneSkin(root, skin.joints.map(paths => root.getChildByPath(paths)!), skin.inverseBindMatrices);
+                const instance = skin.instantiate(root);
                 for (const node of nodes) {
                     const renderer = node.getComponent(SkinnedMeshRenderer)!;
-                    renderer.skin = sceneSkin;
+                    renderer.skin = instance;
                 }
             }
         }
