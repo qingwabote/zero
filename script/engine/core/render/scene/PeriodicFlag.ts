@@ -14,29 +14,23 @@ export class PeriodicFlag<FlagBit extends number = number> implements PeriodicFl
         }
         return this._value;
     }
+    set value(val: number) {
+        this._value = val;
+        this._version = Zero.frameCount;
+    }
 
     constructor(private _value: number = 0) { }
 
     hasBit(bit: FlagBit): boolean {
-        if (this._version != Zero.frameCount) {
-            return false;
-        }
-        return (this._value & bit) != 0;
+        return (this.value & bit) != 0;
     }
 
     addBit(bit: FlagBit) {
-        this._value |= bit;
-        this._version = Zero.frameCount;
+        this.value |= bit;
     }
 
     removeBit(bit: FlagBit) {
-        this._value &= ~bit;
-        this._version = Zero.frameCount;
-    }
-
-    reset(value: number = 0) {
-        this._value = value;
-        this._version = Zero.frameCount;
+        this.value &= ~bit;
     }
 }
 

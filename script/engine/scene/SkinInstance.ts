@@ -40,7 +40,7 @@ const toModelSpace = (function () {
             } else {
                 mat4.multiply_affine(modelSpace.matrix, joint2modelSpace.get(cur)!.matrix, child.matrix)
             }
-            modelSpace.hasUpdatedFlag.reset(1);
+            modelSpace.hasUpdatedFlag.value = 1;
             cur = child;
         }
 
@@ -89,7 +89,7 @@ export class SkinInstance {
 
             jointData[base + 11] = mat4_a[14];
         }
-        this._hasUpdatedFlag.reset(1);
+        this._hasUpdatedFlag.value = 1;
     }
 
     upload() {

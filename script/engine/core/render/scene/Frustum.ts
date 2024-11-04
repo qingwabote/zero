@@ -32,14 +32,14 @@ export class Frustum {
         frustum.orthographic(this._vertices_raw, left, right, bottom, top, near, far)
         this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
-        this._hasChangedFlag.reset(1)
+        this._hasChangedFlag.value = 1
     }
 
     perspective(fov: number, aspect: number, near: number, far: number) {
         frustum.perspective(this._vertices_raw, fov, aspect, near, far);
         this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
-        this._hasChangedFlag.reset(1)
+        this._hasChangedFlag.value = 1
     }
 
     transform(m: Readonly<Mat4>) {
@@ -48,7 +48,7 @@ export class Frustum {
         }
         this._vertices = this._vertices_tra;
         this._faces_invalidated = true;
-        this._hasChangedFlag.reset(1)
+        this._hasChangedFlag.value = 1
     }
 
     aabb_out(aabb: Readonly<AABB3D>): boolean {

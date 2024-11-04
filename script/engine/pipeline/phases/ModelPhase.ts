@@ -94,7 +94,7 @@ class InstancedBatch implements Batch {
     }
 
     next() {
-        this._countFlag.reset(this._countFlag.value + 1);
+        this._countFlag.value++;
     }
 
     upload(commandBuffer: CommandBuffer): void {
@@ -104,7 +104,7 @@ class InstancedBatch implements Batch {
         for (const key in this.uniforms) {
             this.uniforms[key].update(commandBuffer);
         }
-        this._frozenFlag.reset(1);
+        this._frozenFlag.value = 1;
     }
 
     reset(): void {
