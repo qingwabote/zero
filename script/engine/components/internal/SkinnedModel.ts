@@ -1,6 +1,5 @@
 import { device } from "boot";
 import { DescriptorSetLayout, Filter } from "gfx";
-import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
 import { TextureView } from "../../core/render/gpu/TextureView.js";
 import { Material } from "../../core/render/scene/Material.js";
@@ -29,14 +28,13 @@ export class SkinnedModel extends Model {
         descriptorSet.bindTexture(SkinUniform.binding, joints.texture, getSampler(Filter.NEAREST, Filter.NEAREST))
         return {
             attributes: info.attributes,
-            vertexes: info.vertexes,
             descriptorSet,
             uniforms: { [SkinUniform.binding]: joints }
         }
     }
 
-    override batchFill(vertexes: BufferView, uniforms?: Record<string, MemoryView>) {
-        super.batchFill(vertexes, uniforms);
+    override batchAdd(attributes: Readonly<Record<string, MemoryView>>, uniforms?: Readonly<Record<string, MemoryView>>) {
+        super.batchAdd(attributes, uniforms);
         this._skin.update();
         uniforms![SkinUniform.binding].add(this._skin.jointData);
     }

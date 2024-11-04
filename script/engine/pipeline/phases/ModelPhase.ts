@@ -1,4 +1,4 @@
-import { CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler, VertexAttribute, VertexInput } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler, VertexAttribute, VertexInput } from "gfx";
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
@@ -62,28 +62,32 @@ class InstancedBatch implements Batch {
 
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
-    readonly vertexes: BufferView;
+    readonly attributes: Readonly<Record<string, MemoryView>>;
     readonly descriptorSetLayout: DescriptorSetLayout | undefined;
     readonly descriptorSet: DescriptorSet | undefined;
     readonly uniforms: Readonly<Record<string, MemoryView>> | undefined
 
     constructor(subMesh: SubMesh, info: Model.InstancedBatchInfo) {
         const ia = inputAssembler_clone(subMesh.inputAssembler);
+        const attributes: Record<string, BufferView> = {};
         for (const attr of info.attributes) {
             const attribute = new VertexAttribute;
             attribute.location = attr.location;
             attribute.format = attr.format;
-            attribute.offset = attr.offset;
             attribute.multiple = attr.multiple;
             attribute.buffer = ia.vertexInput.buffers.size();
             attribute.instanced = true;
             ia.vertexInputState.attributes.add(attribute);
+
+            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+            ia.vertexInput.buffers.add(view.buffer);
+            ia.vertexInput.offsets.add(0);
+            attributes[attr.location] = view;
         }
-        ia.vertexInput.buffers.add(info.vertexes.buffer);
-        ia.vertexInput.offsets.add(0);
+
         this.inputAssembler = ia;
         this.draw = subMesh.draw;
-        this.vertexes = info.vertexes;
+        this.attributes = attributes;
         this.descriptorSetLayout = info.descriptorSet?.layout;
         this.descriptorSet = info.descriptorSet;
         this.uniforms = info.uniforms;
@@ -94,7 +98,9 @@ class InstancedBatch implements Batch {
     }
 
     upload(commandBuffer: CommandBuffer): void {
-        this.vertexes.update(commandBuffer);
+        for (const key in this.attributes) {
+            this.attributes[key].update(commandBuffer);
+        }
         for (const key in this.uniforms) {
             this.uniforms[key].update(commandBuffer);
         }
@@ -102,7 +108,9 @@ class InstancedBatch implements Batch {
     }
 
     reset(): void {
-        this.vertexes.reset();
+        for (const key in this.attributes) {
+            this.attributes[key].reset();
+        }
         for (const key in this.uniforms) {
             this.uniforms[key].reset();
         }
@@ -225,7 +233,7 @@ export class ModelPhase extends Phase {
                         batch.reset();
                         batches.push(batch);
                     }
-                    model.batchFill(batch.vertexes, batch.uniforms)
+                    model.batchAdd(batch.attributes, batch.uniforms)
                     batch.next();
                 }
             }

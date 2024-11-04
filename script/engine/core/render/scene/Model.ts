@@ -1,7 +1,6 @@
-import { BufferUsageFlagBits, DescriptorSet, Format } from "gfx";
+import { DescriptorSet, Format } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { shaderLib } from "../../shaderLib.js";
-import { BufferView } from "../gpu/BufferView.js";
 import { MemoryView } from "../gpu/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
@@ -11,18 +10,18 @@ import { Transform } from "./Transform.js";
 interface InstancedAttribute {
     readonly location: number
     readonly format: Format
-    readonly offset: number
     readonly multiple: number
 }
 
 interface InstancedBatchInfo {
     readonly attributes: readonly InstancedAttribute[],
-    readonly vertexes: BufferView;
     readonly descriptorSet?: DescriptorSet;
     readonly uniforms?: Record<string, MemoryView>;
 }
 
-const instancedAttributes = [{ location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, offset: 0, multiple: 4 }];
+const a_model: InstancedAttribute = { location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, multiple: 4 }
+
+const instancedAttributes: readonly InstancedAttribute[] = [a_model];
 
 enum ChangeBits {
     NONE = 0,
@@ -70,11 +69,11 @@ export class Model {
     }
 
     batch(): InstancedBatchInfo {
-        return { attributes: instancedAttributes, vertexes: new BufferView('Float32', BufferUsageFlagBits.VERTEX) }
+        return { attributes: instancedAttributes }
     }
 
-    batchFill(vertexes: BufferView, uniforms?: Record<string, MemoryView>) {
-        vertexes.add(this._transform.world_matrix)
+    batchAdd(attributes: Readonly<Record<string, MemoryView>>, uniforms?: Readonly<Record<string, MemoryView>>) {
+        attributes[a_model.location].add(this._transform.world_matrix)
     }
 }
 Model.ChangeBits = ChangeBits;
