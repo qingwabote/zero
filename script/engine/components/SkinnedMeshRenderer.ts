@@ -1,3 +1,4 @@
+import { CommandBuffer } from "gfx";
 import { Model } from "../core/render/scene/Model.js";
 import { SkinInstance } from "../scene/SkinInstance.js";
 import { SkinnedModel } from "./internal/SkinnedModel.js";
@@ -18,5 +19,9 @@ export class SkinnedMeshRenderer extends MeshRenderer {
             return null;
         }
         return new SkinnedModel(this.mesh, this.materials, this._skin);
+    }
+
+    override upload(commandBuffer: CommandBuffer): void {
+        this._skin?.upload(commandBuffer);
     }
 }

@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler, VertexAttribute, VertexInput } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
@@ -74,12 +74,25 @@ class InstancedBatch implements Batch {
             const attribute = new VertexAttribute;
             attribute.location = attr.location;
             attribute.format = attr.format;
-            attribute.multiple = attr.multiple;
+            attribute.multiple = attr.multiple || 1;
             attribute.buffer = ia.vertexInput.buffers.size();
             attribute.instanced = true;
             ia.vertexInputState.attributes.add(attribute);
 
-            const view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+            let view: BufferView;
+            switch (attr.format) {
+                case Format.R16_UINT:
+                    view = new BufferView('Uint16', BufferUsageFlagBits.VERTEX);
+                    break;
+                case Format.R32_UINT:
+                    view = new BufferView('Uint32', BufferUsageFlagBits.VERTEX);
+                    break;
+                case Format.RGBA32_SFLOAT:
+                    view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+                    break;
+                default:
+                    throw new Error(`unsupported attribute format: ${attr.format}`);
+            }
             ia.vertexInput.buffers.add(view.buffer);
             ia.vertexInput.offsets.add(0);
             attributes[attr.location] = view;

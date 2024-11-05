@@ -7,8 +7,8 @@ const attributes = {
     position: { name: 'a_position', location: 0 },
     uv: { name: 'a_texCoord', location: 1 },
     normal: { name: 'a_normal', location: 2 },
-    joints: { name: 'a_joints', location: 3 },
-    weights: { name: 'a_weights', location: 4 },
+    skin_joints: { name: 'a_skin_joints', location: 3 },
+    skin_weights: { name: 'a_skin_weights', location: 4 },
     color: { name: 'a_color', location: 4 }, // a_weights and a_color both are vec4 and not exist in same shader, they can share the same location
 
     // instanced
@@ -18,7 +18,7 @@ const attributes = {
         /**5~8 */
         location: 5
     },
-    skin: { name: 'a_skin', location: 9 }
+    skin_index: { name: 'a_skin_index', location: 9 }
 } as const
 
 /**

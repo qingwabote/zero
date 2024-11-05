@@ -19,24 +19,24 @@ export enum Format {
 interface FormatInfo {
     readonly name: string;
     readonly bytes: number
-    readonly nums: number;
+    readonly elements: number;
 }
 
 export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
-    [Format.UNDEFINED]: { name: "UNDEFINED", bytes: 0, nums: 0 },
-    [Format.R8_UINT]: { name: "R8_UINT", bytes: 1, nums: 1 },
-    [Format.RGBA8_UNORM]: { name: "RGBA8_UNORM", bytes: 4, nums: 4 },
-    [Format.RGBA8_UINT]: { name: "RGBA8_UINT", bytes: 4, nums: 4 },
-    [Format.RGBA8_SRGB]: { name: "RGBA8_SRGB", bytes: 4, nums: 4 },
-    [Format.BGRA8_UNORM]: { name: "BGRA8_UNORM", bytes: 4, nums: 4 },
-    [Format.R16_UINT]: { name: "R16_UINT", bytes: 2, nums: 1 },
-    [Format.RGBA16_UINT]: { name: "RGBA16_UINT", bytes: 8, nums: 4 },
-    [Format.R32_UINT]: { name: "R32_UINT", bytes: 4, nums: 1 },
-    [Format.RG32_SFLOAT]: { name: "RG32_SFLOAT", bytes: 8, nums: 2 },
-    [Format.RGB32_SFLOAT]: { name: "RGB32_SFLOAT", bytes: 12, nums: 3 },
-    [Format.RGBA32_UINT]: { name: "RGBA32_UINT", bytes: 16, nums: 4 },
-    [Format.RGBA32_SFLOAT]: { name: "RGBA32_SFLOAT", bytes: 16, nums: 4 },
-    [Format.D32_SFLOAT]: { name: "D32_SFLOAT", bytes: 44, nums: 1 },
+    [Format.UNDEFINED]: { name: "UNDEFINED", bytes: 0, elements: 0 },
+    [Format.R8_UINT]: { name: "R8_UINT", bytes: 1, elements: 1 },
+    [Format.RGBA8_UNORM]: { name: "RGBA8_UNORM", bytes: 4, elements: 4 },
+    [Format.RGBA8_UINT]: { name: "RGBA8_UINT", bytes: 4, elements: 4 },
+    [Format.RGBA8_SRGB]: { name: "RGBA8_SRGB", bytes: 4, elements: 4 },
+    [Format.BGRA8_UNORM]: { name: "BGRA8_UNORM", bytes: 4, elements: 4 },
+    [Format.R16_UINT]: { name: "R16_UINT", bytes: 2, elements: 1 },
+    [Format.RGBA16_UINT]: { name: "RGBA16_UINT", bytes: 8, elements: 4 },
+    [Format.R32_UINT]: { name: "R32_UINT", bytes: 4, elements: 1 },
+    [Format.RG32_SFLOAT]: { name: "RG32_SFLOAT", bytes: 8, elements: 2 },
+    [Format.RGB32_SFLOAT]: { name: "RGB32_SFLOAT", bytes: 12, elements: 3 },
+    [Format.RGBA32_UINT]: { name: "RGBA32_UINT", bytes: 16, elements: 4 },
+    [Format.RGBA32_SFLOAT]: { name: "RGBA32_SFLOAT", bytes: 16, elements: 4 },
+    [Format.D32_SFLOAT]: { name: "D32_SFLOAT", bytes: 44, elements: 1 },
 }
 
 // copy values from VkBufferUsageFlagBits in vulkan_core.h

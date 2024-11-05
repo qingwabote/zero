@@ -166,27 +166,29 @@ export class CommandBuffer {
                             type = gl.UNSIGNED_BYTE;
                             isInteger = true;
                             break;
+                        case Format.R16_UINT:
                         case Format.RGBA16_UINT:
                             type = gl.UNSIGNED_SHORT;
                             isInteger = true;
                             break;
+                        case Format.R32_UINT:
                         case Format.RGBA32_UINT:
                             type = gl.UNSIGNED_INT;
                             isInteger = true;
                             break;
                         default:
-                            throw 'unsupported vertex type';
+                            throw new Error('unsupported vertex type');
                     }
                     if (isInteger) {
                         gl.vertexAttribIPointer(
                             location,
-                            formatInfo.nums,
+                            formatInfo.elements,
                             type,
                             stride, bufferOffset + offset);
                     } else {
                         gl.vertexAttribPointer(
                             location,
-                            formatInfo.nums,
+                            formatInfo.elements,
                             type,
                             false,
                             stride,

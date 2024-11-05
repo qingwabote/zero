@@ -10,7 +10,7 @@ export class PeriodicFlag<FlagBit extends number = number> implements PeriodicFl
 
     get value(): number {
         if (this._version != Zero.frameCount) {
-            return 0;
+            return this._default;
         }
         return this._value;
     }
@@ -19,7 +19,7 @@ export class PeriodicFlag<FlagBit extends number = number> implements PeriodicFl
         this._version = Zero.frameCount;
     }
 
-    constructor(private _value: number = 0) { }
+    constructor(private _value: number = 0, private readonly _default = 0) { }
 
     hasBit(bit: FlagBit): boolean {
         return (this.value & bit) != 0;

@@ -23,8 +23,8 @@ const attributeMap: Record<string, keyof typeof shaderLib.attributes> = {
     "POSITION": "position",
     "TEXCOORD_0": "uv",
     "NORMAL": "normal",
-    "JOINTS_0": "joints",
-    "WEIGHTS_0": "weights"
+    "JOINTS_0": "skin_joints",
+    "WEIGHTS_0": "skin_weights"
 }
 
 const format_part1: Record<string, string> = {

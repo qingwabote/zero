@@ -1,6 +1,6 @@
 import { CommandBuffer } from "gfx";
 
-type TypedArray = Uint16Array | Float32Array
+type TypedArray = Uint16Array | Uint32Array | Float32Array
 
 export abstract class MemoryView {
     private readonly _length_default: number;
@@ -28,10 +28,21 @@ export abstract class MemoryView {
         this.invalidate();
     }
 
+    setElement(element: number, offset: number) {
+        this._source[offset] = element;
+        this.invalidate();
+    }
+
     add(array: ArrayLike<number>) {
         const offset = this._length;
         this.resize(this._length + array.length);
         this.set(array, offset);
+    }
+
+    addElement(element: number) {
+        const offset = this._length;
+        this.resize(this._length + 1);
+        this.setElement(element, offset);
     }
 
     invalidate() {

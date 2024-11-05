@@ -1,3 +1,4 @@
+import { CommandBuffer } from "gfx";
 import { Mat4, mat4 } from "../core/math/mat4.js";
 import { PeriodicFlag } from "../core/render/scene/PeriodicFlag.js";
 import { Transform } from "../core/render/scene/Transform.js";
@@ -49,25 +50,32 @@ const toModelSpace = (function () {
 })()
 
 export class SkinInstance {
-    readonly joints: readonly Transform[];
+    get descriptorSet() {
+        return this._proto.batch.descriptorSet;
+    }
 
-    readonly jointData: Float32Array;
+    private _indexFlag = new PeriodicFlag(-1, -1);
+    get index() {
+        return this._indexFlag.value;
+    }
 
-    private _hasUpdatedFlag = new PeriodicFlag;
+    private readonly _joints: readonly Transform[];
+
+    private readonly _jointData: Float32Array;
 
     constructor(readonly root: Transform, private readonly _proto: Skin) {
-        this.joints = _proto.joints.map(paths => root.getChildByPath(paths)!)
-        this.jointData = new Float32Array(4 * 3 * _proto.joints.length);
+        this._joints = _proto.joints.map(paths => root.getChildByPath(paths)!)
+        this._jointData = new Float32Array(4 * 3 * _proto.joints.length);
     }
 
     update() {
-        if (this._hasUpdatedFlag.value) {
+        if (this._indexFlag.value != -1) {
             return;
         }
 
-        const jointData = this.jointData;
-        for (let i = 0; i < this.joints.length; i++) {
-            mat4.multiply_affine(mat4_a, toModelSpace(this.root, this.joints[i]), this._proto.inverseBindMatrices[i]);
+        const jointData = this._jointData;
+        for (let i = 0; i < this._joints.length; i++) {
+            mat4.multiply_affine(mat4_a, toModelSpace(this.root, this._joints[i]), this._proto.inverseBindMatrices[i]);
 
             const base = 12 * i;
 
@@ -89,10 +97,11 @@ export class SkinInstance {
 
             jointData[base + 11] = mat4_a[14];
         }
-        this._hasUpdatedFlag.value = 1;
+
+        this._indexFlag.value = this._proto.batch.add(jointData);
     }
 
-    upload() {
-
+    upload(commandBuffer: CommandBuffer) {
+        this._proto.batch.upload(commandBuffer);
     }
 }

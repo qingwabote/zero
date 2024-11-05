@@ -10,13 +10,13 @@ import { Transform } from "./Transform.js";
 interface InstancedAttribute {
     readonly location: number
     readonly format: Format
-    readonly multiple: number
+    readonly multiple?: number
 }
 
 interface InstancedBatchInfo {
     readonly attributes: readonly InstancedAttribute[],
     readonly descriptorSet?: DescriptorSet;
-    readonly uniforms?: Record<string, MemoryView>;
+    readonly uniforms?: Readonly<Record<string, MemoryView>>;
 }
 
 const a_model: InstancedAttribute = { location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, multiple: 4 }
@@ -79,5 +79,5 @@ export class Model {
 Model.ChangeBits = ChangeBits;
 
 export declare namespace Model {
-    export { ChangeBits, InstancedBatchInfo }
+    export { InstancedAttribute, InstancedBatchInfo, ChangeBits }
 }

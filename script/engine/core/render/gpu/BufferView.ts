@@ -4,6 +4,7 @@ import { MemoryView } from "./MemoryView.js";
 
 const format2array = {
     Uint16: Uint16Array,
+    Uint32: Uint32Array,
     Float32: Float32Array
 } as const
 
