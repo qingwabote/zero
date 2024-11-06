@@ -1,6 +1,6 @@
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { Vec3, vec3 } from "../../math/vec3.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
+import { Periodic } from "./Periodic.js";
 import { SubMesh } from "./SubMesh.js";
 
 export class Mesh {
@@ -9,7 +9,7 @@ export class Mesh {
         return this._bounds;
     }
 
-    private _hasChangedFlag = new PeriodicFlag();
+    private _hasChangedFlag: Periodic = new Periodic(0, 0);
     get hasChanged(): number {
         return this._hasChangedFlag.value;
     }

@@ -48,10 +48,10 @@ export class CameraUBO extends UBO {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             const offset = (size / this._view.source.BYTES_PER_ELEMENT) * i;
-            if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.VIEW))) {
+            if (dumping || (camera.hasChangedFlag.value & Camera.ChangeBit.VIEW) != 0) {
                 this._view.set(camera.view, offset + Block.members.view.offset);
             }
-            if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.PROJ))) {
+            if (dumping || (camera.hasChangedFlag.value & Camera.ChangeBit.PROJ) != 0) {
                 this._view.set(camera.proj, offset + Block.members.projection.offset);
             }
             if (dumping || (camera.transform.hasChangedFlag.value)) {

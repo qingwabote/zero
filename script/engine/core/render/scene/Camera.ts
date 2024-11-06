@@ -5,7 +5,7 @@ import { Vec2Like, vec2 } from "../../math/vec2.js";
 import { Vec3Like, vec3 } from "../../math/vec3.js";
 import { Vec4, vec4 } from "../../math/vec4.js";
 import { Frustum } from "./Frustum.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
+import { Periodic } from "./Periodic.js";
 import { Transform } from "./Transform.js";
 
 const vec2_a = vec2.create();
@@ -71,8 +71,8 @@ export class Camera {
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
 
-    private _hasChangedFlag: PeriodicFlag<ChangeBit> = new PeriodicFlag(0xffffffff)
-    get hasChangedFlag(): PeriodicFlag.Readonly<ChangeBit> {
+    private _hasChangedFlag: Periodic = new Periodic(0xffffffff, 0)
+    get hasChangedFlag(): Readonly<Periodic> {
         return this._hasChangedFlag;
     }
 
@@ -94,12 +94,12 @@ export class Camera {
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
 
-            this._hasChangedFlag.addBit(ChangeBit.PROJ);
+            this._hasChangedFlag.value |= ChangeBit.PROJ;
         }
 
         if (this._view_invalidated) {
             mat4.invert(this._view, this.transform.world_matrix);
-            this._hasChangedFlag.addBit(ChangeBit.VIEW);
+            this._hasChangedFlag.value |= ChangeBit.VIEW;
         }
 
         if (this._proj_invalidated || this._view_invalidated) {

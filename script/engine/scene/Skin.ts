@@ -2,7 +2,7 @@ import { device } from "boot";
 import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Filter } from "gfx";
 import { Mat4Like } from "../core/math/mat4.js";
 import { TextureView } from "../core/render/gpu/TextureView.js";
-import { PeriodicFlag } from "../core/render/scene/PeriodicFlag.js";
+import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -15,7 +15,7 @@ const META_LENGTH = 1 /* pixels */ * 4 /* RGBA */;
 const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
 
 class Batch {
-    private _countFlag = new PeriodicFlag;
+    private _countFlag = new Periodic(0, 0);
     get count(): number {
         return this._countFlag.value;
     }

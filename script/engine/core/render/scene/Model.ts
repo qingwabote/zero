@@ -4,7 +4,7 @@ import { shaderLib } from "../../shaderLib.js";
 import { MemoryView } from "../gpu/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
+import { Periodic } from "./Periodic.js";
 import { Transform } from "./Transform.js";
 
 interface InstancedAttribute {
@@ -13,15 +13,7 @@ interface InstancedAttribute {
     readonly multiple?: number
 }
 
-interface InstancedBatchInfo {
-    readonly attributes: readonly InstancedAttribute[],
-    readonly descriptorSet?: DescriptorSet;
-    readonly uniforms?: Readonly<Record<string, MemoryView>>;
-}
-
 const a_model: InstancedAttribute = { location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, multiple: 4 }
-
-const instancedAttributes: readonly InstancedAttribute[] = [a_model];
 
 enum ChangeBits {
     NONE = 0,
@@ -29,12 +21,18 @@ enum ChangeBits {
 }
 
 export class Model {
+    static readonly attributes: readonly InstancedAttribute[] = [a_model];
+
+    get descriptorSet(): DescriptorSet | undefined {
+        return undefined;
+    }
+
     private _bounds = aabb3d.create();
     public get bounds(): Readonly<AABB3D> {
         return this._bounds;
     }
 
-    private _hasOwnChanged = new PeriodicFlag(ChangeBits.BOUNDS);
+    private _hasOwnChanged = new Periodic(ChangeBits.BOUNDS, ChangeBits.NONE);
     get hasChanged(): number {
         let flag = this._hasOwnChanged.value;
         if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {
@@ -52,7 +50,7 @@ export class Model {
     }
     public set mesh(value) {
         this._mesh = value;
-        this._hasOwnChanged.addBit(ChangeBits.BOUNDS)
+        this._hasOwnChanged.value |= ChangeBits.BOUNDS;
     }
 
     type: string = 'default';
@@ -68,16 +66,12 @@ export class Model {
         aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
 
-    batch(): InstancedBatchInfo {
-        return { attributes: instancedAttributes }
-    }
-
-    batchAdd(attributes: Readonly<Record<string, MemoryView>>, uniforms?: Readonly<Record<string, MemoryView>>) {
+    upload(attributes: Readonly<Record<string, MemoryView>>) {
         attributes[a_model.location].add(this._transform.world_matrix)
     }
 }
 Model.ChangeBits = ChangeBits;
 
 export declare namespace Model {
-    export { InstancedAttribute, InstancedBatchInfo, ChangeBits }
+    export { InstancedAttribute, ChangeBits }
 }

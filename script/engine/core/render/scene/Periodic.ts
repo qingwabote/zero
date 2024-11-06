@@ -1,0 +1,18 @@
+import { Zero } from "../../Zero.js";
+
+export class Periodic<T = number> {
+    private _version = Zero.frameCount;
+
+    get value(): T {
+        if (this._version != Zero.frameCount) {
+            return this._default;
+        }
+        return this._value;
+    }
+    set value(val: T) {
+        this._value = val;
+        this._version = Zero.frameCount;
+    }
+
+    constructor(private _value: T, private readonly _default: T) { }
+}

@@ -1,6 +1,6 @@
 import { CommandBuffer } from "gfx";
 import { Mat4, mat4 } from "../core/math/mat4.js";
-import { PeriodicFlag } from "../core/render/scene/PeriodicFlag.js";
+import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { Skin } from "./Skin.js";
 
@@ -8,7 +8,7 @@ const mat4_a = mat4.create();
 
 const toModelSpace = (function () {
     interface ModelSpaceTransform {
-        readonly hasUpdatedFlag: PeriodicFlag;
+        readonly hasUpdatedFlag: Periodic;
         readonly matrix: Mat4;
     }
 
@@ -23,7 +23,7 @@ const toModelSpace = (function () {
         while (cur != root) {
             modelSpace = joint2modelSpace.get(cur);
             if (!modelSpace) {
-                joint2modelSpace.set(cur, modelSpace = { hasUpdatedFlag: new PeriodicFlag, matrix: mat4.create() });
+                joint2modelSpace.set(cur, modelSpace = { hasUpdatedFlag: new Periodic(0, 0), matrix: mat4.create() });
             }
             if (modelSpace.hasUpdatedFlag.value) {
                 break;
@@ -54,7 +54,7 @@ export class SkinInstance {
         return this._proto.batch.descriptorSet;
     }
 
-    private _indexFlag = new PeriodicFlag(-1, -1);
+    private _indexFlag: Periodic = new Periodic(-1, -1);
     get index() {
         return this._indexFlag.value;
     }

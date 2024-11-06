@@ -2,7 +2,7 @@ import { AABB3D } from "../../math/aabb3d.js";
 import { frustum } from "../../math/frustum.js";
 import { Mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
+import { Periodic } from "./Periodic.js";
 
 export class Frustum {
     private _vertices_raw = frustum.vertices();
@@ -23,7 +23,7 @@ export class Frustum {
         return this._faces
     }
 
-    private _hasChangedFlag = new PeriodicFlag();
+    private _hasChangedFlag: Periodic = new Periodic(0, 0);
     get hasChanged(): number {
         return this._hasChangedFlag.value;
     }
