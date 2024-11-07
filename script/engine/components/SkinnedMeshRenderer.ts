@@ -18,7 +18,7 @@ export class SkinnedMeshRenderer extends MeshRenderer {
         if (!this.mesh || !this.materials || !this._skin) {
             return null;
         }
-        return new SkinnedModel(this.mesh, this.materials, this._skin);
+        return new SkinnedModel(this.node, this.mesh, this.materials, this._skin);
     }
 
     override upload(commandBuffer: CommandBuffer): void {

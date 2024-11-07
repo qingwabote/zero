@@ -3,6 +3,7 @@ import { MemoryView } from "../../core/render/gpu/MemoryView.js";
 import { Material } from "../../core/render/scene/Material.js";
 import { Mesh } from "../../core/render/scene/Mesh.js";
 import { Model } from "../../core/render/scene/Model.js";
+import { Transform } from "../../core/render/scene/Transform";
 import { shaderLib } from "../../core/shaderLib.js";
 import { SkinInstance } from "../../scene/SkinInstance.js";
 
@@ -15,13 +16,13 @@ export class SkinnedModel extends Model {
         return this._skin.descriptorSet;
     }
 
-    constructor(mesh: Mesh, materials: readonly Material[], private _skin: SkinInstance) {
-        super(_skin.root, mesh, materials);
+    constructor(transform: Transform, mesh: Mesh, materials: readonly Material[], private _skin: SkinInstance) {
+        super(transform, mesh, materials);
     }
 
     override upload(attributes: Readonly<Record<string, MemoryView>>) {
-        super.upload(attributes);
         this._skin.update();
+        attributes[Model.a_model.location].add(this._skin.root.world_matrix)
         attributes[a_skin_index.location].addElement(this._skin.index)
     }
 }

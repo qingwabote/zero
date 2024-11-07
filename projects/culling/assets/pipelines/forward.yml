@@ -1,0 +1,11 @@
+flows:
+  - bindings:
+      - ubo: Camera
+        binding: 1
+      - ubo: Light
+        binding: 2
+    stages:
+      - phases:
+          - pass: default
+          - type: stroke
+            visibility: ${DOWN}

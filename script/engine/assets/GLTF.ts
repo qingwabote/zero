@@ -8,7 +8,7 @@ import { MeshRenderer } from "../components/MeshRenderer.js";
 import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
 import { Mat4 } from "../core/math/mat4.js";
-import { vec3 } from "../core/math/vec3.js";
+import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
@@ -101,6 +101,8 @@ const materialFuncHash = (function () {
 
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
+
+const rotationX90: Readonly<Vec3> = vec3.create(90);
 
 export class GLTF implements Asset {
     private _json: any;
@@ -434,6 +436,12 @@ class Instance {
                 }
                 nodes.push(node);
                 renderer = node.addComponent(SkinnedMeshRenderer);
+
+                // for bounding box
+                if (!vec3.equals(node.euler, vec3.ZERO, 0)) {
+                    throw new Error("hard code failed");
+                }
+                node.euler = rotationX90;
             } else {
                 renderer = node.addComponent(MeshRenderer);
             }

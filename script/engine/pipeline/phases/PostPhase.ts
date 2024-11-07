@@ -12,7 +12,6 @@ export class PostPhase extends Phase {
     }
 
     batch(out: BatchQueue): void {
-        const pass2batches = out.add();
-        pass2batches.set(this._pass, batches)
+        out.push().set(this._pass, batches);
     }
 }

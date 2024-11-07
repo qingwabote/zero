@@ -152,5 +152,7 @@ export const shaderLib = {
 
     getShaderMeta(shader: Shader): Meta {
         return _shader2meta.get(shader)!;
-    }
+    },
+
+    preprocessor
 } as const

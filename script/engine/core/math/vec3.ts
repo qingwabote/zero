@@ -160,7 +160,7 @@ export const vec3 = {
         }
     },
 
-    equals(a: Vec3Like, b: Vec3Like, epsilon = 0.000001) {
+    equals(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>, epsilon = 0.000001) {
         return (
             Math.abs(a[0] - b[0])
             <= epsilon * Math.max(1.0, Math.abs(a[0]), Math.abs(b[0]))

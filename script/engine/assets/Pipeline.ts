@@ -30,6 +30,9 @@ interface OutlinePhase extends PhaseBase {
 interface CopyPhase extends PhaseBase {
     type: 'copy';
 }
+interface StrokePhase extends PhaseBase {
+    type: 'stroke'
+}
 
 const phaseFactory = (function () {
     const blendState = new gfx.BlendState;
@@ -56,6 +59,9 @@ const phaseFactory = (function () {
             const shaderAsset = await bundle.cache('shaders/copy', Shader);
             const shader = shaderLib.getShader(shaderAsset);
             return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
+        },
+        stroke: async function (info: StrokePhase, visibility: number): Promise<render.Phase> {
+            return new pipeline.StrokePhase(visibility);
         },
     } as const;
 })()

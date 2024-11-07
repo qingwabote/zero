@@ -39,7 +39,7 @@ export class Stage {
 
     constructor(
         private readonly _flow: FlowContext,
-        private readonly _phases: readonly Phase[],
+        readonly phases: readonly Phase[],
         private readonly _framebuffer: Framebuffer = defaultFramebuffer,
         private readonly _clears?: ClearFlagBits,
         private readonly _rect?: Readonly<Vec4>
@@ -51,7 +51,7 @@ export class Stage {
         if (!queue) {
             this._camera2queue.set(camera, queue = new BatchQueue);
         }
-        for (const phase of this._phases) {
+        for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
                 phase.batch(queue, context, cameraIndex);
             }
@@ -70,7 +70,7 @@ export class Stage {
 
         let material: DescriptorSet | undefined;
         let pipeline: Pipeline | undefined;
-        let pass2batches: Map<Pass, Batch[]> | undefined;
+        let pass2batches: ReadonlyMap<Pass, Batch[]> | undefined;
         while (pass2batches = queue.front()) {
             for (const [pass, batches] of pass2batches) {
                 if (pass.descriptorSet && material != pass.descriptorSet) {
@@ -102,7 +102,7 @@ export class Stage {
                     context.profile.draws++;
                 }
             }
-            queue.remove();
+            queue.pop();
         }
 
         context.commandBuffer.endRenderPass();

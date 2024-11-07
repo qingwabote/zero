@@ -8,7 +8,7 @@ export class Flow {
     constructor(
         private readonly _context: FlowContext,
         private readonly _ubos: readonly UBO[],
-        private readonly _stages: readonly Stage[],
+        readonly stages: readonly Stage[],
         private readonly _visibilities: number,
         private readonly _flowLoopIndex: number,
     ) { }
@@ -18,7 +18,7 @@ export class Flow {
             return;
         }
 
-        for (const stage of this._stages) {
+        for (const stage of this.stages) {
             stage.batch(context, cameraIndex);
         }
     }
@@ -37,7 +37,7 @@ export class Flow {
         }
         context.commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
 
-        for (const stage of this._stages) {
+        for (const stage of this.stages) {
             stage.render(context, cameraIndex);
         }
     }

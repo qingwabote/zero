@@ -6,18 +6,18 @@ export class BatchQueue {
     private _index = 0;
     private _count = 0;
 
-    add(): Map<Pass, Batch[]> {
+    push(): Map<Pass, Batch[]> {
         if (this._data.length > this._count == false) {
             this._data.push(new Map);
         }
         return this._data[this._count++];
     }
 
-    front(): Map<Pass, Batch[]> | undefined {
+    front(): ReadonlyMap<Pass, Batch[]> | undefined {
         return this._index < this._count ? this._data[this._index] : undefined;
     }
 
-    remove(): void {
+    pop(): void {
         this._data[this._index].clear();
         if (this._index + 1 < this._count) {
             this._index++;

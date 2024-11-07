@@ -21,6 +21,8 @@ enum ChangeBits {
 }
 
 export class Model {
+    static readonly a_model = a_model;
+
     static readonly attributes: readonly InstancedAttribute[] = [a_model];
 
     get descriptorSet(): DescriptorSet | undefined {

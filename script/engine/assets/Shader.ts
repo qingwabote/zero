@@ -1,7 +1,7 @@
 import { Asset } from "assets";
 import { load } from "boot";
 import { ShaderStageFlagBits } from "gfx";
-import { preprocessor } from "../core/internal/preprocessor.js";
+import { shaderLib } from "../core/shaderLib.js";
 
 export class Shader implements Asset {
     name: string = '';
@@ -13,6 +13,8 @@ export class Shader implements Asset {
     macros: Set<string> = new Set;
 
     async load(path: string): Promise<this> {
+        const preprocessor = shaderLib.preprocessor;
+
         let vs = await load(`${path}.vs`, "text");
         vs = await preprocessor.includeExpand(vs);
         this.sources.push(vs)

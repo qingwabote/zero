@@ -1,5 +1,5 @@
-import { CachedFactory } from "bastard";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute, VertexInput } from "gfx";
+import { CachedFactory, empty } from "bastard";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute } from "gfx";
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
@@ -12,62 +12,26 @@ import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { Periodic } from "../../core/render/scene/Periodic.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
-
-const inputAssembler_clone = (function () {
-    function vertexInput_clone(out: VertexInput, vertexInput: VertexInput): VertexInput {
-        const buffers = vertexInput.buffers;
-        const buffers_size = buffers.size();
-        for (let i = 0; i < buffers_size; i++) {
-            out.buffers.add(buffers.get(i));
-        }
-
-        const offsets = vertexInput.offsets;
-        const offsets_size = offsets.size();
-        for (let i = 0; i < offsets_size; i++) {
-            out.offsets.add(offsets.get(i));
-        }
-
-        return out;
-    }
-
-    return function (inputAssembler: InputAssembler): InputAssembler {
-        const out = new InputAssembler;
-
-        const vertexAttributes = inputAssembler.vertexInputState.attributes;
-        const size = vertexAttributes.size();
-        for (let i = 0; i < size; i++) {
-            out.vertexInputState.attributes.add(vertexAttributes.get(i));
-        }
-        out.vertexInputState.primitive = inputAssembler.vertexInputState.primitive;
-
-        vertexInput_clone(out.vertexInput, inputAssembler.vertexInput);
-
-        if (inputAssembler.indexInput) {
-            out.indexInput = inputAssembler.indexInput;
-        }
-
-        return out;
-    }
-})()
+import { gfxUtil } from "../../gfxUtil.js";
 
 class InstancedBatch implements Batch {
-    private _countFlag: Periodic = new Periodic(0, 0);
-    get count(): number {
-        return this._countFlag.value;
-    }
+    readonly attributes: Readonly<Record<string, MemoryView>>;
 
-    private _frozenFlag: Periodic = new Periodic(0, 0);
-    get frozen(): boolean {
-        return this._frozenFlag.value != 0;
+    private _uploadFlag: Periodic = new Periodic(0, 0);
+    get uploaded(): boolean {
+        return this._uploadFlag.value != 0;
     }
 
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
-    readonly attributes: Readonly<Record<string, MemoryView>>;
+    private _countFlag: Periodic = new Periodic(0, 0);
+    get count(): number {
+        return this._countFlag.value;
+    }
     readonly descriptorSetLayout: DescriptorSetLayout | undefined;
 
     constructor(subMesh: SubMesh, attributes: readonly Model.InstancedAttribute[], readonly descriptorSet?: DescriptorSet) {
-        const ia = inputAssembler_clone(subMesh.inputAssembler);
+        const ia = gfxUtil.cloneInputAssembler(subMesh.inputAssembler);
         const attributeViews: Record<string, BufferView> = {};
         for (const attr of attributes) {
             const attribute = new VertexAttribute;
@@ -96,10 +60,10 @@ class InstancedBatch implements Batch {
             ia.vertexInput.offsets.add(0);
             attributeViews[attr.location] = view;
         }
+        this.attributes = attributeViews;
 
         this.inputAssembler = ia;
         this.draw = subMesh.draw;
-        this.attributes = attributeViews;
         this.descriptorSetLayout = descriptorSet?.layout;
     }
 
@@ -111,7 +75,7 @@ class InstancedBatch implements Batch {
         for (const key in this.attributes) {
             this.attributes[key].update(commandBuffer);
         }
-        this._frozenFlag.value = 1;
+        this._uploadFlag.value = 1;
     }
 
     reset(): void {
@@ -121,37 +85,9 @@ class InstancedBatch implements Batch {
     }
 }
 
-const batch2pass: WeakMap<InstancedBatch, Periodic<Pass | null>> = new WeakMap;
+const cache_keys: [SubMesh, DescriptorSet] = [undefined!, undefined!];
 
-const cache_keys: [SubMesh] = [undefined!];
-const cache_args: [Pass, readonly Model.InstancedAttribute[], DescriptorSet | undefined] = [undefined!, undefined!, undefined];
-
-const cache: CachedFactory<typeof cache_keys, InstancedBatch, typeof cache_args> = new CachedFactory(
-    function (keys, args) {
-        const batch = new InstancedBatch(keys[0], args[1], args[2]);
-
-        let p = batch2pass.get(batch);
-        if (!p) {
-            batch2pass.set(batch, p = new Periodic(null, null));
-        }
-        p.value = args[0];
-
-        return batch;
-    },
-    function (batch, args) {
-        if (batch.frozen) {
-            return false;
-        }
-
-        const p = batch2pass.get(batch);
-        if (p && p.value && p.value != args[0]) {
-            return false;
-        }
-
-        return true;
-    },
-    true
-)
+const cache: CachedFactory<typeof cache_keys, InstancedBatch[]> = new CachedFactory(function () { return []; }, true)
 
 function compareModel(a: Model, b: Model) {
     return a.order - b.order;
@@ -194,8 +130,9 @@ export class ModelPhase extends Phase {
         }
         modelQueue.sort(compareModel);
 
-        let pass2batches = out.add();
+        let pass2batches = out.push();
         let pass2batches_order: number = 0; // The models with smaller order value will be draw first, but the models with the same order value may not be draw by their access order for better batching 
+        const batch2pass: Map<InstancedBatch, Pass> = new Map;
         for (const model of modelQueue) {
             const diff = model.order - pass2batches_order;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
@@ -222,7 +159,7 @@ export class ModelPhase extends Phase {
                             }
                         }
                         context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
-                        pass2batches = out.add();
+                        pass2batches = out.push();
 
                         if (diff == 1 && batches) { // moved to next
                             pass2batches.set(pass, batches);
@@ -234,17 +171,34 @@ export class ModelPhase extends Phase {
                         pass2batches.set(pass, batches = []);
                     }
 
+                    let batch: InstancedBatch | undefined;
                     cache_keys[0] = model.mesh.subMeshes[i];
-                    cache_args[0] = pass;
-                    cache_args[1] = (model.constructor as typeof Model).attributes
-                    cache_args[2] = model.descriptorSet;
-                    const batch = cache.get(cache_keys, cache_args);
+                    cache_keys[1] = model.descriptorSet || empty.obj as DescriptorSet;
+                    const bucket = cache.get(cache_keys);
+                    for (const bat of bucket) {
+                        if (bat.uploaded) {
+                            continue;
+                        }
+
+                        const p = batch2pass.get(bat);
+                        if (p && p != pass) {
+                            continue;
+                        }
+
+                        batch = bat;
+                        break;
+                    }
+                    if (!batch) {
+                        batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, model.descriptorSet);
+                        bucket.push(batch);
+                    }
                     if (batch.count == 0) {
                         batch.reset();
                         batches.push(batch);
                     }
                     model.upload(batch.attributes)
                     batch.next();
+                    batch2pass.set(batch, pass);
                 }
             }
 

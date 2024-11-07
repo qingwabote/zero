@@ -11,7 +11,7 @@ enum VisibilityFlagBits {
 
 const macros = { USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 0, SHADOW_MAP_PCF: 0 }
 
-const [walkrun_and_idle, primitive, pipeline] = await Promise.all([
+const [model, primitive, pipeline] = await Promise.all([
     await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate(macros, function (params: GLTF.MaterialParams) {
         const res = GLTF.materialFuncPhong(params);
         if (params.index == 3 /* hair */) {
@@ -63,10 +63,10 @@ export class App extends Zero {
             const [origin, steps] = circles[i];
             const stride = mat3.fromYRotation(mat3.create(), Math.PI * 2 / steps);
             for (let j = 0; j < steps; j++) {
-                node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
+                node = model.createScene("Sketchfab_Scene")!;
                 node.visibility = VisibilityFlagBits.WORLD;
                 const animation = node.addComponent(Animation);
-                animation.clips = walkrun_and_idle.proto.animationClips;
+                animation.clips = model.proto.animationClips;
                 animation.play(animation.clips[j % 3].name);
                 node.position = vec3.transformMat3(origin, origin, stride);
             }
