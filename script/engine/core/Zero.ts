@@ -67,7 +67,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     private readonly _systems: readonly System[];
 
     public readonly commandBuffer = boot.device.createCommandBuffer();
-    private readonly _swapchainAcquired = boot.device.createSemaphore();
+    private readonly _swapchainUsable = boot.device.createSemaphore();
     private readonly _queueExecuted = boot.device.createSemaphore();
     private readonly _fence = boot.device.createFence(true);
 
@@ -164,6 +164,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.emit(Event.PIPELINE_UPDATE);
 
         boot.device.waitForFence(this._fence);
+        boot.device.swapchain.acquire(this._swapchainUsable);
         this.emit(Event.DEVICE_SYNC);
 
         this.commandBuffer.begin();
@@ -175,11 +176,9 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._pipeline.render(this);
         this.commandBuffer.end();
 
-        boot.device.swapchain.acquire(this._swapchainAcquired);
-
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this.commandBuffer;
-        submitInfo.waitSemaphore = this._swapchainAcquired;
+        submitInfo.waitSemaphore = this._swapchainUsable;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);

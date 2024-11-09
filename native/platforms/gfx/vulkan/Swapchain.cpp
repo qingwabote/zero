@@ -89,7 +89,11 @@ namespace gfx
 
     void SwapchainImpl::acquire(VkSemaphore semaphore)
     {
-        vkAcquireNextImageKHR(_device, _swapchain, 1000000000, semaphore, nullptr, &_imageIndex);
+        auto res = vkAcquireNextImageKHR(_device, _swapchain, ~0ULL, semaphore, nullptr, &_imageIndex);
+        if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR)
+        {
+            throw "vkAcquireNextImageKHR failed";
+        }
     }
 
     SwapchainImpl::~SwapchainImpl()
