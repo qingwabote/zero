@@ -41,10 +41,11 @@ export * from './core/math/vec2.js';
 export * from './core/math/vec3.js';
 export * from './core/math/vec4.js';
 
+export * as render from './core/render/index.js';
+
 export * from './core/sc.js';
 export * from './core/shaderLib.js';
 
-export * as render from './core/render/index.js';
 export * as pipeline from './pipeline/index.js';
 export * as scene from './scene/index.js';
 

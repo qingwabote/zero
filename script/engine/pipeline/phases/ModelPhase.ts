@@ -3,11 +3,11 @@ import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout,
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
-import { Profile } from "../../core/render/index.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
 import { BatchQueue } from "../../core/render/pipeline/BatchQueue.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
+import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { Periodic } from "../../core/render/scene/Periodic.js";

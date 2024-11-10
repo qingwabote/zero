@@ -3,7 +3,7 @@ import { bundle } from "bundling";
 import * as gfx from "gfx";
 import { Vec2 } from "../core/math/vec2.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import * as render from '../core/render/index.js';
+import * as render from "../core/render/index.js";
 import { Data } from "../core/render/pipeline/Data.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -42,25 +42,25 @@ const phaseFactory = (function () {
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
     return {
-        model: async function (info: ModelPhase, visibility: number, flowLoopIndex: number, data: Data): Promise<render.Phase> {
+        model: async function (info: ModelPhase, visibility: number, flowLoopIndex: number, data: Data): Promise<pipeline.Phase> {
             return new pipeline.ModelPhase(visibility, flowLoopIndex, data, info.culling, info.model, info.pass);
         },
-        fxaa: async function (info: FxaaPhase, visibility: number): Promise<render.Phase> {
+        fxaa: async function (info: FxaaPhase, visibility: number): Promise<pipeline.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
             const shader = shaderLib.getShader(shaderAsset);
             return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
-        outline: async function (info: OutlinePhase, visibility: number): Promise<render.Phase> {
+        outline: async function (info: OutlinePhase, visibility: number): Promise<pipeline.Phase> {
             const shaderAsset = await bundle.cache('shaders/outline', Shader);
             const shader = shaderLib.getShader(shaderAsset);
             return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
-        copy: async function (info: CopyPhase, visibility: number): Promise<render.Phase> {
+        copy: async function (info: CopyPhase, visibility: number): Promise<pipeline.Phase> {
             const shaderAsset = await bundle.cache('shaders/copy', Shader);
             const shader = shaderLib.getShader(shaderAsset);
             return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
-        stroke: async function (info: StrokePhase, visibility: number): Promise<render.Phase> {
+        stroke: async function (info: StrokePhase, visibility: number): Promise<pipeline.Phase> {
             return new pipeline.StrokePhase(visibility);
         },
     } as const;
@@ -184,7 +184,7 @@ export class Pipeline extends Yml {
             }
         }
 
-        const uboMap: Map<keyof typeof uboFactory, render.UBO> = new Map;
+        const uboMap: Map<keyof typeof uboFactory, pipeline.UBO> = new Map;
         if (this._info.ubos) {
             for (const ubo of this._info.ubos) {
                 uboMap.set(ubo.type, uboFactory[ubo.type](data, uboVisibilities.get(ubo.type)!, ubo as any));
@@ -200,7 +200,7 @@ export class Pipeline extends Yml {
             }
         }
 
-        const flows: render.Flow[] = [];
+        const flows: pipeline.Flow[] = [];
         for (const flow of this._info.flows) {
             const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
             if (flow.bindings) {
@@ -212,7 +212,7 @@ export class Pipeline extends Yml {
                         if (!ubo) {
                             throw new Error(`undefined ubo: ${bindingInfo.ubo}`)
                         }
-                        const definition = (ubo.constructor as typeof render.UBO).definition;
+                        const definition = (ubo.constructor as typeof pipeline.UBO).definition;
                         binding.descriptorType = definition.type;
                         binding.stageFlags = definition.stageFlags;
                         binding.binding = bindingInfo.binding;
@@ -226,8 +226,8 @@ export class Pipeline extends Yml {
                     descriptorSetLayoutInfo.bindings.add(binding);
                 }
             }
-            const context = new render.FlowContext(device.createDescriptorSetLayout(descriptorSetLayoutInfo));
-            const ubos: render.UBO[] = []
+            const context = new pipeline.FlowContext(device.createDescriptorSetLayout(descriptorSetLayoutInfo));
+            const ubos: pipeline.UBO[] = []
             if (flow.bindings) {
                 for (const binding of flow.bindings) {
                     if ('ubo' in binding) {
@@ -247,11 +247,11 @@ export class Pipeline extends Yml {
             const count = flow.loops?.length || 1;
             for (let flowLoopIndex = 0; flowLoopIndex < count; flowLoopIndex++) {
                 const _flow = flow.loops?.[flowLoopIndex];
-                const stages: render.Stage[] = [];
+                const stages: pipeline.Stage[] = [];
                 for (let i = 0; i < flow.stages!.length; i++) {
                     const stage = flow.stages![i];
 
-                    const phases: render.Phase[] = [];
+                    const phases: pipeline.Phase[] = [];
                     for (const phase of stage.phases!) {
                         const type = phase.type || 'model';
                         if (type in phaseFactory) {
@@ -304,13 +304,13 @@ export class Pipeline extends Yml {
                         framebufferInfo.width = width;
                         framebufferInfo.height = height;
 
-                        framebufferInfo.renderPass = render.getRenderPass(framebufferInfo, clears);
+                        framebufferInfo.renderPass = pipeline.getRenderPass(framebufferInfo, clears);
                         framebuffer = device.createFramebuffer(framebufferInfo);
                         viewport = viewport || vec4.create(0, 0, 1, 1);
                     }
-                    stages.push(new render.Stage(context, phases, framebuffer, clears, viewport));
+                    stages.push(new pipeline.Stage(context, phases, framebuffer, clears, viewport));
                 }
-                flows.push(new render.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), flowLoopIndex));
+                flows.push(new pipeline.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), flowLoopIndex));
             }
         }
 

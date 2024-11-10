@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, device, mat3, pipeline, render, scene, vec3, vec4 } from "engine";
+import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, device, mat3, pipeline, scene, vec3, vec4 } from "engine";
 import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
 
@@ -23,7 +23,7 @@ const [model, forward] = await Promise.all([
 
 const tree_bounds = aabb3d.create(vec3.create(0, 4, 0), vec3.create(14, 14, 14));
 
-function tree_cull(results: ModelTreeNode[], node: ModelTreeNode, frustum: Readonly<render.Frustum>, visibilities: number): ModelTreeNode[] {
+function tree_cull(results: ModelTreeNode[], node: ModelTreeNode, frustum: Readonly<scene.Frustum>, visibilities: number): ModelTreeNode[] {
     if (frustum.aabb_out(node.bounds)) {
         return results;
     }
@@ -81,7 +81,7 @@ class App extends Zero {
         if (debug) {
             const stroke = (this.pipeline.flows[0].stages[0].phases[1] as pipeline.StrokePhase).stroke;
 
-            this.pipeline.data.on(render.Data.Event.UPDATE, () => {
+            this.pipeline.data.on(pipeline.Data.Event.UPDATE, () => {
                 stroke.clear();
 
                 if (this.pipeline.data.culling) {
@@ -90,7 +90,7 @@ class App extends Zero {
                             stroke.drawAABB(node.bounds, vec4.GREEN);
                         }
                     } else {
-                        const models: render.Model[] = [];
+                        const models: scene.Model[] = [];
                         this.scene.models.culler()(models, up_camera.frustum, up_camera.visibilities)
                         for (const model of models) {
                             stroke.drawAABB(model.bounds, vec4.GREEN);
@@ -163,7 +163,7 @@ class App extends Zero {
                         textRenderer.impl.text = 'TREE OFF';
                         textRenderer.impl.color = vec4.ONE;
                         this.scene.models = new scene.ModelArray(this.scene.models);
-                        this.pipeline.data.culling = new render.Culling;
+                        this.pipeline.data.culling = new pipeline.Culling;
                     },
                     () => {
                         textRenderer.impl.text = 'NONE';
@@ -175,7 +175,7 @@ class App extends Zero {
                         textRenderer.impl.text = 'TREE ON';
                         textRenderer.impl.color = vec4.GREEN;
                         this.scene.models = new scene.ModelTree(tree_bounds, this.scene.models);
-                        this.pipeline.data.culling = new render.Culling;
+                        this.pipeline.data.culling = new pipeline.Culling;
                     },
                 ]
                 let optionIndex = 0

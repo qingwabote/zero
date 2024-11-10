@@ -1,5 +1,5 @@
 import { now } from "boot";
-import { Node, TextRenderer, Zero, render } from "engine";
+import { Node, TextRenderer, Zero, pipeline, render } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";
 
@@ -66,11 +66,11 @@ export class Profiler extends ElementContainer {
         Zero.instance.on(Zero.Event.PIPELINE_BATCH, () => { const t = now(); pipeline_batch_delta += t - time; time = t; })
         Zero.instance.on(Zero.Event.UPLOAD, () => { const t = now(); upload_delta += t - time; time = t; })
 
-        Zero.instance.profile.on(render.Profile.Event.CULL_START, () => { cull_start = now(); })
-        Zero.instance.profile.on(render.Profile.Event.CULL_END, () => { cull_delta += now() - cull_start; })
+        Zero.instance.profile.on(pipeline.Profile.Event.CULL_START, () => { cull_start = now(); })
+        Zero.instance.profile.on(pipeline.Profile.Event.CULL_END, () => { cull_delta += now() - cull_start; })
 
-        Zero.instance.profile.on(render.Profile.Event.BATCH_UPLOAD_START, () => { pipeline_batch_upload_start = now(); })
-        Zero.instance.profile.on(render.Profile.Event.BATCH_UPLOAD_END, () => { pipeline_batch_upload_delta += now() - pipeline_batch_upload_start; })
+        Zero.instance.profile.on(pipeline.Profile.Event.BATCH_UPLOAD_START, () => { pipeline_batch_upload_start = now(); })
+        Zero.instance.profile.on(pipeline.Profile.Event.BATCH_UPLOAD_END, () => { pipeline_batch_upload_delta += now() - pipeline_batch_upload_start; })
 
         Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_START, () => { model_start = now(); })
         Zero.instance.scene.event.on(render.Scene.Event.MODEL_UPDATE_END, () => { model_delta += now() - model_start; })

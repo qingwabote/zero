@@ -12,14 +12,14 @@ const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
     position.format = Format.RG32_SFLOAT;
     position.location = shaderLib.attributes.position.location;
     attributes.add(position);
-    elements += FormatInfos[position.format].nums;
+    elements += FormatInfos[position.format].elements;
 
     const texCoord = new VertexAttribute;
     texCoord.format = Format.RG32_SFLOAT;
     texCoord.offset = FormatInfos[position.format].bytes;
     texCoord.location = shaderLib.attributes.uv.location;
     attributes.add(texCoord);
-    elements += FormatInfos[texCoord.format].nums;
+    elements += FormatInfos[texCoord.format].elements;
 
     return [attributes, elements];
 })()
@@ -41,7 +41,7 @@ const vec3_b = vec3.create();
 export class Skeleton extends BoundedRenderer {
     static readonly PIXELS_PER_UNIT = 1;
 
-    private _mesh: render.Mesh;
+    private _mesh: scene.Mesh;
     private _materials: scene.Material[] = [];
 
     public get bounds(): Readonly<AABB3D> {
@@ -82,11 +82,11 @@ export class Skeleton extends BoundedRenderer {
         indexInput.type = IndexType.UINT16;
         ia.indexInput = indexInput;
 
-        this._mesh = new render.Mesh([new render.SubMesh(ia)]);;
+        this._mesh = new scene.Mesh([new scene.SubMesh(ia)]);;
     }
 
-    protected createModel(): render.Model | null {
-        return new render.Model(this.node, this._mesh, this._materials);
+    protected createModel(): scene.Model | null {
+        return new scene.Model(this.node, this._mesh, this._materials);
     }
 
     override upload(commandBuffer: CommandBuffer): void {
