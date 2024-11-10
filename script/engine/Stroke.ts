@@ -84,7 +84,7 @@ export class Stroke {
         this.mesh = new Mesh([new SubMesh(ia)])
     }
 
-    drawLine(from: Readonly<Vec3>, to: Readonly<Vec3>, color = vec4.ONE): void {
+    line(from: Readonly<Vec3>, to: Readonly<Vec3>, color = vec4.ONE): void {
         const draw = this.mesh.subMeshes[0].draw;
 
         const length = (draw.count + 2) * VERTEX_COMPONENTS;
@@ -120,7 +120,7 @@ export class Stroke {
         draw.count += 2;
     }
 
-    drawAABB(aabb: Readonly<AABB3D>, color = vec4.ONE) {
+    aabb(aabb: Readonly<AABB3D>, color = vec4.ONE) {
         const left_up_far = drawAABB.vec3_a;
         const left_up_near = drawAABB.vec3_b;
         const right_up_near = drawAABB.vec3_c;
@@ -141,37 +141,37 @@ export class Stroke {
         vec3.set(right_down_near, right_up_near[0], left_down_far[1], right_up_near[2]);
         vec3.set(right_down_far, right_up_near[0], left_down_far[1], left_down_far[2]);
 
-        this.drawLine(left_up_far, left_up_near, color);
-        this.drawLine(left_up_near, right_up_near, color);
-        this.drawLine(right_up_near, right_up_far, color);
-        this.drawLine(right_up_far, left_up_far, color);
+        this.line(left_up_far, left_up_near, color);
+        this.line(left_up_near, right_up_near, color);
+        this.line(right_up_near, right_up_far, color);
+        this.line(right_up_far, left_up_far, color);
 
-        this.drawLine(left_down_far, left_down_near, color);
-        this.drawLine(left_down_near, right_down_near, color);
-        this.drawLine(right_down_near, right_down_far, color);
-        this.drawLine(right_down_far, left_down_far, color);
+        this.line(left_down_far, left_down_near, color);
+        this.line(left_down_near, right_down_near, color);
+        this.line(right_down_near, right_down_far, color);
+        this.line(right_down_far, left_down_far, color);
 
-        this.drawLine(left_up_far, left_down_far, color);
-        this.drawLine(left_up_near, left_down_near, color);
-        this.drawLine(right_up_near, right_down_near, color);
-        this.drawLine(right_up_far, right_down_far, color);
+        this.line(left_up_far, left_down_far, color);
+        this.line(left_up_near, left_down_near, color);
+        this.line(right_up_near, right_down_near, color);
+        this.line(right_up_far, right_down_far, color);
     }
 
-    drawFrustum(frustum: Readonly<frustum.Vertices>, color = vec4.ONE) {
-        this.drawLine(frustum[0], frustum[1], color);
-        this.drawLine(frustum[1], frustum[2], color);
-        this.drawLine(frustum[2], frustum[3], color);
-        this.drawLine(frustum[3], frustum[0], color);
+    frustum(frustum: Readonly<frustum.Vertices>, color = vec4.ONE) {
+        this.line(frustum[0], frustum[1], color);
+        this.line(frustum[1], frustum[2], color);
+        this.line(frustum[2], frustum[3], color);
+        this.line(frustum[3], frustum[0], color);
 
-        this.drawLine(frustum[4], frustum[5], color);
-        this.drawLine(frustum[5], frustum[6], color);
-        this.drawLine(frustum[6], frustum[7], color);
-        this.drawLine(frustum[7], frustum[4], color);
+        this.line(frustum[4], frustum[5], color);
+        this.line(frustum[5], frustum[6], color);
+        this.line(frustum[6], frustum[7], color);
+        this.line(frustum[7], frustum[4], color);
 
-        this.drawLine(frustum[0], frustum[4], color);
-        this.drawLine(frustum[1], frustum[5], color);
-        this.drawLine(frustum[2], frustum[6], color);
-        this.drawLine(frustum[3], frustum[7], color);
+        this.line(frustum[0], frustum[4], color);
+        this.line(frustum[1], frustum[5], color);
+        this.line(frustum[2], frustum[6], color);
+        this.line(frustum[3], frustum[7], color);
     }
 
     upload(commandBuffer: CommandBuffer): void {

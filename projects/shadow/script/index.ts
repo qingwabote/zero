@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, TextRenderer, Vec3, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, shaderLib, vec3, vec4 } from 'engine';
+import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, StrokeRenderer, TextRenderer, Vec3, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, scene, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -96,7 +96,7 @@ export class App extends Zero {
         node.visibility = VisibilityFlagBits.WORLD
         node.scale = [5, 1, 5];
 
-        const debugDrawer = Node.build(GeometryRenderer);
+        const debugDrawer = Node.build(StrokeRenderer);
         debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
 
         const vec3_6in10: Readonly<Vec3> = vec3.create(0.6, 0.6, 0.6);
@@ -109,8 +109,8 @@ export class App extends Zero {
             const bounds_color = vec4.create(...vec4.YELLOW);
             const frusta_color = vec4.create(...vec4.ONE);
             for (let i = 0; i < cascades.num; i++) {
-                debugDrawer.drawFrustum(cascades.boundaries[i].vertices, bounds_color);
-                debugDrawer.drawFrustum(cascades.frusta[i].vertices, frusta_color);
+                debugDrawer.frustum(cascades.boundaries[i].vertices, bounds_color);
+                debugDrawer.frustum(cascades.frusta[i].vertices, frusta_color);
                 vec3.multiply(bounds_color, bounds_color, vec3_6in10)
                 vec3.multiply(frusta_color, frusta_color, vec3_6in10)
             }
@@ -120,14 +120,14 @@ export class App extends Zero {
             //         continue;
             //     }
             //     if (frustum.aabb(up_camera.frustum_faces, model.world_bounds)) {
-            //         debugDrawer.drawAABB(model.world_bounds, vec4.RED);
+            //         debugDrawer.aabb(model.world_bounds, vec4.RED);
             //     } else {
-            //         debugDrawer.drawAABB(model.world_bounds, vec4.ONE);
+            //         debugDrawer.aabb(model.world_bounds, vec4.ONE);
             //     }
             // }
         }
-        csm_off_instance.data.on(render.Data.Event.UPDATE, debugDraw)
-        csm_on_instance.data.on(render.Data.Event.UPDATE, debugDraw)
+        csm_off_instance.data.on(pipeline.Data.Event.UPDATE, debugDraw)
+        csm_on_instance.data.on(pipeline.Data.Event.UPDATE, debugDraw)
 
         // UI
         node = new Node;

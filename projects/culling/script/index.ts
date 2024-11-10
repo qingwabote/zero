@@ -87,17 +87,17 @@ class App extends Zero {
                 if (this.pipeline.data.culling) {
                     if (this.scene.models instanceof scene.ModelTree) {
                         for (const node of tree_cull([], this.scene.models.root, up_camera.frustum, up_camera.visibilities)) {
-                            stroke.drawAABB(node.bounds, vec4.GREEN);
+                            stroke.aabb(node.bounds, vec4.GREEN);
                         }
                     } else {
                         const models: scene.Model[] = [];
                         this.scene.models.culler()(models, up_camera.frustum, up_camera.visibilities)
                         for (const model of models) {
-                            stroke.drawAABB(model.bounds, vec4.GREEN);
+                            stroke.aabb(model.bounds, vec4.GREEN);
                         }
                     }
 
-                    stroke.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
+                    stroke.frustum(up_camera.frustum.vertices, vec4.ONE);
                 }
             })
         }

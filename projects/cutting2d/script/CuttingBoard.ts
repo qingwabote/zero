@@ -1,4 +1,4 @@
-import { GeometryRenderer, Input, Node, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
+import { Input, Node, StrokeRenderer, Vec2, Vec4, mat4, vec2, vec3, vec4 } from "engine";
 import { Align, Element, ElementContainer, Justify, Renderer } from "flex";
 import { Texture } from "gfx";
 import { Polygon, Vertex } from "./Polygon.js";
@@ -140,7 +140,7 @@ export class CuttingBoard extends ElementContainer<EventToListener> {
 
     private _polygonsRenderer!: PolygonsRenderer;
 
-    private _primitive!: GeometryRenderer;
+    private _primitive!: StrokeRenderer;
 
     start(): void {
         this.justifyContent = Justify.Center;
@@ -150,7 +150,7 @@ export class CuttingBoard extends ElementContainer<EventToListener> {
         this._polygonsRenderer = node.addComponent(PolygonsRenderer);
         this.addElement(this._polygonsRenderer);
 
-        const primitive = Renderer.create(GeometryRenderer);
+        const primitive = Renderer.create(StrokeRenderer);
         // primitive.positionType = PositionType.Absolute
         // primitive.setWidth('100%');
         // primitive.setHeight('100%');
@@ -246,7 +246,7 @@ export class CuttingBoard extends ElementContainer<EventToListener> {
         vec3.set(vec3_a, from[0], from[1], 0);
         vec3.set(vec3_b, to[0], to[1], 0);
         this._primitive.clear();
-        this._primitive.drawLine(vec3_a, vec3_b, color);
+        this._primitive.line(vec3_a, vec3_b, color);
     }
 }
 CuttingBoard.EventType = EventType;
