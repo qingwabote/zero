@@ -14,33 +14,18 @@ const META_LENGTH = 1 /* pixels */ * 4 /* RGBA */;
 
 const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
 
-class Batch {
-    private _countFlag = new Periodic(0, 0);
-    get count(): number {
-        return this._countFlag.value;
-    }
-
+class JointStore {
     readonly descriptorSet: DescriptorSet;
 
-    private readonly _view: TextureView;
+    protected readonly _view: TextureView;
 
-    constructor(joints_per_instance: number) {
+    constructor(stride: number) {
         const view = new TextureView(META_LENGTH);
-        view.source[0] = 3 * joints_per_instance;
+        view.source[0] = 3 * stride;
         const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
         descriptorSet.bindTexture(SkinUniform.binding, view.texture, getSampler(Filter.NEAREST, Filter.NEAREST));
         this.descriptorSet = descriptorSet;
         this._view = view;
-    }
-
-    add(joints: ArrayLike<number>) {
-        if (this._countFlag.value == 0) {
-            this._view.reset();
-        }
-
-        this._view.add(joints)
-
-        return this._countFlag.value++;
     }
 
     upload(commandBuffer: CommandBuffer) {
@@ -48,18 +33,50 @@ class Batch {
     }
 }
 
-export class Skin {
-    private _batch?: Batch = undefined;
-    get batch() {
-        if (!this._batch) {
-            this._batch = new Batch(this.joints.length);
+class JointAlive extends JointStore {
+    private readonly _count = new Periodic(0, 0);
+
+    add(joints: ArrayLike<number>): number {
+        if (this._count.value == 0) {
+            this._view.reset();
         }
-        return this._batch;
+
+        this._view.add(joints)
+
+        return this._count.value++;
+    }
+}
+
+class JointBaked extends JointStore {
+    private _count = 0;
+
+    add(joints: ArrayLike<number>): number {
+        this._view.add(joints)
+        return this._count++;
+    }
+}
+
+export class Skin {
+    private _alive?: JointAlive = undefined;
+    get alive() {
+        if (!this._alive) {
+            this._alive = new JointAlive(this.joints.length);
+        }
+        return this._alive;
+    }
+
+    private _baked?: JointBaked = undefined;
+    public get baked(): JointBaked {
+        if (!this._baked) {
+            this._baked = new JointBaked(this.joints.length);
+        }
+        return this._baked;
     }
 
     constructor(
         readonly inverseBindMatrices: readonly Readonly<Mat4Like>[],
-        readonly joints: readonly (readonly string[])[]
+        readonly joints: readonly (readonly string[])[],
+        readonly jointData: Float32Array
     ) { }
 
     instantiate(root: Transform): SkinInstance {

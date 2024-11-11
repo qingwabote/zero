@@ -10,7 +10,7 @@ export declare class CommandBuffer {
     private constructor(...args);
     begin(): void;
     copyImageBitmapToTexture(imageBitmap: ImageBitmap, texture: Texture): void;
-    copyBufferToTexture(buffer: ArrayBufferView, texture: Texture, offset_x: number, offset_y: number, extent_x: number, extent_y: number): void;
+    copyBufferToTexture(buffer: ArrayBufferView, offset: number, texture: Texture, offset_x: number, offset_y: number, extent_x: number, extent_y: number): void;
     beginRenderPass(renderPass: RenderPass, framebuffer: Framebuffer, x: number, y: number, w: number, h: number): void;
     bindPipeline(pipeline: Pipeline): void;
     bindDescriptorSet(index: number, descriptorSet: DescriptorSet, dynamicOffsets?: Uint32Vector): void;

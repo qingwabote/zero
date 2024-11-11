@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Buffer, BufferInfo, BufferUsageFlagBits } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer } from "gfx";
 import { MemoryView } from "./MemoryView.js";
 
 const format2array = {
@@ -34,11 +34,13 @@ export class BufferView extends MemoryView {
         return old;
     }
 
-    protected override upload() {
+    protected override upload(commandBuffer: CommandBuffer, offset: number, length: number) {
         const bytes = this.length * this._source.BYTES_PER_ELEMENT;
         if (this._buffer.info.size < bytes) {
             this._buffer.resize(bytes);
+            offset = 0;
+            length = this.length;
         }
-        this._buffer.update(this._source, 0, this.length);
+        this._buffer.update(this._source, offset, length);
     }
 }

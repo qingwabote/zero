@@ -196,7 +196,7 @@ export class TextRenderer extends BoundedRenderer {
             this._vertexView.source[16 * quads + 14] = tex_r;
             this._vertexView.source[16 * quads + 15] = tex_t;
 
-            this._vertexView.invalidate();
+            this._vertexView.invalidate(16 * quads + 0, 16);
 
             l = Math.min(l, pos_l);
             r = Math.max(r, pos_r);

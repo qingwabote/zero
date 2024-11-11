@@ -17,20 +17,21 @@ export abstract class MemoryView {
         return this._source.BYTES_PER_ELEMENT;
     }
 
-    protected _invalidated: boolean = false;
+    private _invalidated_start: number = 0;
+    private _invalidated_end: number = 0;
 
     constructor(protected _source: TypedArray, private _length: number) {
         this._length_default = _length;
     }
 
-    set(array: ArrayLike<number>, offset?: number) {
+    set(array: ArrayLike<number>, offset: number = 0) {
         this._source.set(array, offset);
-        this.invalidate();
+        this.invalidate(offset, array.length);
     }
 
-    setElement(element: number, offset: number) {
+    setElement(element: number, offset: number = 0) {
         this._source[offset] = element;
-        this.invalidate();
+        this.invalidate(offset, 1);
     }
 
     add(array: ArrayLike<number>) {
@@ -45,8 +46,9 @@ export abstract class MemoryView {
         this.setElement(element, offset);
     }
 
-    invalidate() {
-        this._invalidated = true;
+    invalidate(offset: number, length: number) {
+        this._invalidated_start = Math.min(offset, this._invalidated_start);
+        this._invalidated_end = Math.max(offset + length, this._invalidated_end);
     }
 
     reset(length: number = this._length_default) {
@@ -65,16 +67,17 @@ export abstract class MemoryView {
     shrink() { }
 
     update(commandBuffer: CommandBuffer) {
-        if (!this._invalidated) {
+        const length = this._invalidated_end - this._invalidated_start;
+        if (length < 1) {
             return;
         }
 
-        this.upload(commandBuffer);
+        this.upload(commandBuffer, this._invalidated_start, length);
 
-        this._invalidated = false;
+        this._invalidated_start = this._invalidated_end = 0;
     }
 
-    protected abstract upload(commandBuffer: CommandBuffer): void;
+    protected abstract upload(commandBuffer: CommandBuffer, offset: number, length: number): void;
 
     public abstract reserve(capacity: number): TypedArray | null;
 }

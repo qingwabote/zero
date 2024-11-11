@@ -21,8 +21,8 @@ function indexGrowTo(quads: number) {
         indexBufferView.source[6 * _quads + 3] = 4 * _quads + 2;
         indexBufferView.source[6 * _quads + 4] = 4 * _quads + 3;
         indexBufferView.source[6 * _quads + 5] = 4 * _quads + 0;
+        indexBufferView.invalidate(6 * _quads + 0, 6);
     }
-    indexBufferView.invalidate();
 }
 indexGrowTo(1);
 

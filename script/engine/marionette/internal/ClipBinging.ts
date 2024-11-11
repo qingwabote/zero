@@ -3,19 +3,22 @@ import { AnimationClip } from "../AnimationClip.js";
 import { ChannelBinding } from "./ChannelBinding.js";
 import { ChannelBindingQuat, ChannelBindingVec3 } from "./values.js";
 
+/**
+ * Bind clip and target, call sample to update target by time
+ */
 export class ClipBinging {
     private readonly _channels: ChannelBinding[];
 
     readonly duration: number;
 
-    constructor(clip: AnimationClip, getTRS: (path: readonly string[]) => TRS) {
+    constructor(clip: AnimationClip, getTarget: (path: readonly string[]) => TRS) {
         const channels: ChannelBinding[] = [];
         let duration = 0;
         for (const channel of clip.channels) {
             if (channel.sampler.interpolation != 'LINEAR') {
                 throw new Error(`unsupported interpolation: ${channel.sampler.interpolation}`);
             }
-            const node = getTRS(channel.node)
+            const node = getTarget(channel.node)
             let property: ChannelBinding.Value;
             switch (channel.path) {
                 case 'translation':

@@ -100,12 +100,12 @@ namespace gfx
     {
         copyBufferToTexture({new Span{imageBitmap->pixels.get()}, [imageBitmap](Span *span)
                              { delete span; }},
-                            texture, 0, 0, imageBitmap->width, imageBitmap->height);
+                            0, texture, 0, 0, imageBitmap->width, imageBitmap->height);
     }
 
-    void CommandBuffer::copyBufferToTexture(const std::shared_ptr<const Span> &span, const std::shared_ptr<Texture> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
+    void CommandBuffer::copyBufferToTexture(const std::shared_ptr<const Span> &span, uint32_t offset, const std::shared_ptr<Texture> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
     {
-        VkBuffer buffer = impl->createStagingBuffer(span->data, FormatInfos.at(texture->info->format).bytes * extent_x * extent_y);
+        VkBuffer buffer = impl->createStagingBuffer(reinterpret_cast<uint8_t *>(span->data) + span->stride * offset, FormatInfos.at(texture->info->format).bytes * extent_x * extent_y);
 
         VkImageSubresourceRange range = {};
         range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
