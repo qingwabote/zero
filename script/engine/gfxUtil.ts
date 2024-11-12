@@ -39,7 +39,7 @@ export const gfxUtil = {
         }
     })(),
 
-    compressAffineMat4(out: Float32Array, offset: number, m: Mat4) {
+    compressAffineMat4(out: { [index: number]: number }, offset: number, m: Mat4) {
         out[offset + 0] = m[0];
         out[offset + 1] = m[1];
         out[offset + 2] = m[2];

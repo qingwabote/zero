@@ -19,9 +19,8 @@ class JointStore {
 
     protected readonly _view: TextureView;
 
-    constructor(stride: number) {
-        const view = new TextureView(META_LENGTH);
-        view.source[0] = 3 * stride;
+    constructor(protected readonly _stride: number) {
+        const view = new TextureView;
         const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
         descriptorSet.bindTexture(SkinUniform.binding, view.texture, getSampler(Filter.NEAREST, Filter.NEAREST));
         this.descriptorSet = descriptorSet;
@@ -34,16 +33,15 @@ class JointStore {
 }
 
 class JointAlive extends JointStore {
-    private readonly _count = new Periodic(0, 0);
+    private readonly _reset = new Periodic(0, 0);
 
-    add(joints: ArrayLike<number>): number {
-        if (this._count.value == 0) {
+    add() {
+        if (this._reset.value == 0) {
             this._view.reset();
+            this._reset.value = 1;
         }
 
-        this._view.add(joints)
-
-        return this._count.value++;
+        return this._view.addBlock(4 * 3 * this._stride)
     }
 }
 

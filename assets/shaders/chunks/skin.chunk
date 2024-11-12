@@ -1,18 +1,17 @@
 layout(location = 3) in uvec4 a_skin_joints;
 layout(location = 4) in vec4 a_skin_weights;
 
-layout(location = 9) in uint a_skin_index;
+layout(location = 9) in uint a_skin_offset;
 
 layout(set = 2, binding = 1) uniform sampler2D skin_joints;
 
 mat4 skin_jointMatrix(uint idx)
 {
-    vec4 meta = texelFetch(skin_joints, ivec2(0), 0);
     uint width = uint(textureSize(skin_joints, 0).x);
 
     vec4 m[3];   
 
-    uint i = idx * 3u + uint(meta.x) * a_skin_index + 1u;
+    uint i = idx * 3u + a_skin_offset;
     uint y = i / width;
     uint x = i % width;
     for (uint n = 0u; n < 3u; n++)

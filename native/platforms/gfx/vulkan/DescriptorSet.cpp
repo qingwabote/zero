@@ -87,7 +87,10 @@ namespace gfx
         _textures[binding] = std::make_pair(texture, texture->on(TextureImplEvent::RESET, f));
         _samplers[binding] = sampler;
 
-        (*f)();
+        if (texture->info->width && texture->info->height)
+        {
+            (*f)();
+        }
     }
 
     DescriptorSetImpl::~DescriptorSetImpl()

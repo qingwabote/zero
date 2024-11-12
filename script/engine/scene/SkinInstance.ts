@@ -55,32 +55,30 @@ export class SkinInstance {
         return this._proto.alive.descriptorSet;
     }
 
-    private _indexFlag: Periodic = new Periodic(-1, -1);
-    get index() {
-        return this._indexFlag.value;
+    private _offset: Periodic = new Periodic(-1, -1);
+    get offset() {
+        return this._offset.value;
     }
 
     private readonly _joints: readonly Transform[];
 
-    private readonly _jointData: Float32Array;
-
     constructor(readonly root: Transform, private readonly _proto: Skin) {
         this._joints = _proto.joints.map(paths => root.getChildByPath(paths)!)
-        this._jointData = new Float32Array(4 * 3 * _proto.joints.length);
     }
 
     update() {
-        if (this._indexFlag.value != -1) {
+        if (this._offset.value != -1) {
             return;
         }
 
-        const jointData = this._jointData;
+        const [source, offset] = this._proto.alive.add();
+
         for (let i = 0; i < this._joints.length; i++) {
             mat4.multiply_affine(mat4_a, toModelSpace(this.root, this._joints[i]), this._proto.inverseBindMatrices[i]);
-            gfxUtil.compressAffineMat4(jointData, 12 * i, mat4_a)
+            gfxUtil.compressAffineMat4(source, 4 * 3 * i + offset, mat4_a);
         }
 
-        this._indexFlag.value = this._proto.alive.add(jointData);
+        this._offset.value = offset / 4;
     }
 
     upload(commandBuffer: CommandBuffer) {

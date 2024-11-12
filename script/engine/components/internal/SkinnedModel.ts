@@ -23,6 +23,6 @@ export class SkinnedModel extends Model {
     override upload(attributes: Readonly<Record<string, MemoryView>>) {
         this._skin.update();
         attributes[Model.a_model.location].add(this._skin.root.world_matrix)
-        attributes[a_skin_index.location].addElement(this._skin.index)
+        attributes[a_skin_index.location].addElement(this._skin.offset)
     }
 }
