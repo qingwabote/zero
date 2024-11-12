@@ -17,6 +17,8 @@ export abstract class MemoryView {
         return this._source.BYTES_PER_ELEMENT;
     }
 
+    private _block: [TypedArray, number] = [undefined!, 0];
+
     private _invalidated_start: number = 0;
     private _invalidated_end: number = 0;
 
@@ -44,6 +46,16 @@ export abstract class MemoryView {
         const offset = this._length;
         this.resize(this._length + 1);
         this.setElement(element, offset);
+    }
+
+    addBlock(length: number): readonly [TypedArray, number] {
+        const offset = this._length;
+        this.resize(offset + length);
+        this.invalidate(offset, length);
+
+        this._block[0] = this._source;
+        this._block[1] = offset;
+        return this._block;
     }
 
     invalidate(offset: number, length: number) {

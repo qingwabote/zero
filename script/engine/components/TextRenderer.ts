@@ -143,8 +143,7 @@ export class TextRenderer extends BoundedRenderer {
             return;
         }
 
-        // just a redundant size
-        this._vertexView.reset(4 * 4 * this._text.length);
+        this._vertexView.reset();
 
         const tex = fnt_zero.texture.impl.info;
         let [x, y, l, r, t, b, quads, scale] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0, this._size / fnt_zero.info.size];
@@ -176,27 +175,27 @@ export class TextRenderer extends BoundedRenderer {
             const pos_t = y - yoffset;
             const pos_b = y - yoffset - height;
 
-            this._vertexView.source[16 * quads + 0] = pos_l;
-            this._vertexView.source[16 * quads + 1] = pos_t;
-            this._vertexView.source[16 * quads + 2] = tex_l;
-            this._vertexView.source[16 * quads + 3] = tex_t;
+            const [source, offset] = this._vertexView.addBlock(16);
 
-            this._vertexView.source[16 * quads + 4] = pos_l;
-            this._vertexView.source[16 * quads + 5] = pos_b;
-            this._vertexView.source[16 * quads + 6] = tex_l;
-            this._vertexView.source[16 * quads + 7] = tex_b;
+            source[offset + 0] = pos_l;
+            source[offset + 1] = pos_t;
+            source[offset + 2] = tex_l;
+            source[offset + 3] = tex_t;
 
-            this._vertexView.source[16 * quads + 8] = pos_r;
-            this._vertexView.source[16 * quads + 9] = pos_b;
-            this._vertexView.source[16 * quads + 10] = tex_r;
-            this._vertexView.source[16 * quads + 11] = tex_b;
+            source[offset + 4] = pos_l;
+            source[offset + 5] = pos_b;
+            source[offset + 6] = tex_l;
+            source[offset + 7] = tex_b;
 
-            this._vertexView.source[16 * quads + 12] = pos_r;
-            this._vertexView.source[16 * quads + 13] = pos_t;
-            this._vertexView.source[16 * quads + 14] = tex_r;
-            this._vertexView.source[16 * quads + 15] = tex_t;
+            source[offset + 8] = pos_r;
+            source[offset + 9] = pos_b;
+            source[offset + 10] = tex_r;
+            source[offset + 11] = tex_b;
 
-            this._vertexView.invalidate(16 * quads + 0, 16);
+            source[offset + 12] = pos_r;
+            source[offset + 13] = pos_t;
+            source[offset + 14] = tex_r;
+            source[offset + 15] = tex_t;
 
             l = Math.min(l, pos_l);
             r = Math.max(r, pos_r);

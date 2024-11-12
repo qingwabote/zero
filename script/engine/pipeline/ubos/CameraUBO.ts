@@ -41,9 +41,9 @@ export class CameraUBO extends UBO {
     };
 
     upload(context: Context, dumping: boolean): void {
-        const size = UBO.align(BlockSize);
         const cameras = context.scene.cameras;
 
+        const size = UBO.align(BlockSize);
         this._view.resize(size * cameras.length / this._view.BYTES_PER_ELEMENT);
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
