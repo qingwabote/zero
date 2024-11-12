@@ -1,5 +1,5 @@
-import { TRS } from "../../core/math/TRS.js";
-import { AnimationClip } from "../AnimationClip.js";
+import { TRS } from "../core/math/TRS.js";
+import { AnimationClip } from "./AnimationClip.js";
 import { ChannelBinding } from "./ChannelBinding.js";
 import { ChannelBindingQuat, ChannelBindingVec3 } from "./values.js";
 

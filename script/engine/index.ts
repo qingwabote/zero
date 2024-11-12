@@ -4,8 +4,8 @@ export { device, loadBundle, platform, reboot, safeArea } from 'boot';
 
 export * from 'bundling';
 
+export * from './animating/AnimationClip.js';
 export * from './marionette/Animation.js';
-export * from './marionette/AnimationClip.js';
 export * from './marionette/BlendAnimation.js';
 
 export * from './assets/Effect.js';
