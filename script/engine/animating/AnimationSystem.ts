@@ -1,5 +1,5 @@
-import { System } from "../../core/System.js";
-import { Zero } from "../../core/Zero.js";
+import { System } from "../core/System.js";
+import { Zero } from "../core/Zero.js";
 import { AnimationState } from "./AnimationState.js";
 
 export class AnimationSystem extends System {
@@ -9,6 +9,10 @@ export class AnimationSystem extends System {
 
     addAnimation(state: AnimationState) {
         this._states.set(state, state);
+    }
+
+    removeAnimation(state: AnimationState) {
+        this._states.delete(state);
     }
 
     override update(dt: number): void {

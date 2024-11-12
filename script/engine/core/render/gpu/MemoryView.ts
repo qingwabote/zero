@@ -19,8 +19,8 @@ export abstract class MemoryView {
 
     private _block: [TypedArray, number] = [undefined!, 0];
 
-    private _invalidated_start: number = 0;
-    private _invalidated_end: number = 0;
+    private _invalidated_start: number = Number.MAX_SAFE_INTEGER;
+    private _invalidated_end: number = Number.MIN_SAFE_INTEGER;
 
     constructor(protected _source: TypedArray, private _length: number) {
         this._length_default = _length;
@@ -86,7 +86,8 @@ export abstract class MemoryView {
 
         this.upload(commandBuffer, this._invalidated_start, length);
 
-        this._invalidated_start = this._invalidated_end = 0;
+        this._invalidated_start = Number.MAX_SAFE_INTEGER
+        this._invalidated_end = Number.MIN_SAFE_INTEGER;;
     }
 
     protected abstract upload(commandBuffer: CommandBuffer, offset: number, length: number): void;

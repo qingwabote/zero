@@ -1,4 +1,5 @@
 import { AnimationClip } from "../animating/AnimationClip.js";
+import { AnimationSystem } from "../animating/AnimationSystem.js";
 import { ClipBinging } from "../animating/ClipBinging.js";
 import { Component } from "../core/Component.js";
 import { TRS } from "../core/math/TRS.js";
@@ -7,7 +8,6 @@ import { Vec3Like, vec3 } from "../core/math/vec3.js";
 import { Vec4Like } from "../core/math/vec4.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { AnimationStateBlended } from "./internal/AnimationStateBlended.js";
-import { AnimationSystem } from "./internal/AnimationSystem.js";
 
 class BlendTRS implements TRS {
     private _position_default = vec3.create();

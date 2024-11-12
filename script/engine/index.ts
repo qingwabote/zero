@@ -5,6 +5,7 @@ export { device, loadBundle, platform, reboot, safeArea } from 'boot';
 export * from 'bundling';
 
 export * from './animating/AnimationClip.js';
+
 export * from './marionette/Animation.js';
 export * from './marionette/BlendAnimation.js';
 
@@ -24,6 +25,7 @@ export * from './components/SpriteRenderer.js';
 export * from './components/StrokeRenderer.js';
 export * from './components/TextRenderer.js';
 
+export * from './skinning/SkinnedAnimation.js';
 export * from './skinning/SkinnedMeshRenderer.js';
 
 export * from './core/Component.js';

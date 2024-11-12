@@ -1,8 +1,8 @@
 import { AnimationClip } from "../animating/AnimationClip.js";
+import { AnimationSystem } from "../animating/AnimationSystem.js";
 import { ClipBinging } from "../animating/ClipBinging.js";
 import { Component } from "../core/Component.js";
 import { AnimationStateSingle } from "./internal/AnimationStateSingle.js";
-import { AnimationSystem } from "./internal/AnimationSystem.js";
 
 export class Animation extends Component {
     private _name2state: Record<string, AnimationStateSingle> = {};

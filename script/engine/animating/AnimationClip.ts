@@ -13,9 +13,16 @@ interface Channel {
     readonly sampler: Sampler;
 }
 
-export interface AnimationClip {
-    readonly name: string;
-    readonly channels: readonly Channel[];
+export class AnimationClip {
+    readonly duration: number;
+
+    constructor(readonly channels: readonly Channel[], readonly name: string) {
+        let duration = 0;
+        for (const channel of channels) {
+            duration = Math.max(duration, channel.sampler.input[channel.sampler.input.length - 1]);
+        }
+        this.duration = duration;
+    }
 }
 
 export declare namespace AnimationClip {

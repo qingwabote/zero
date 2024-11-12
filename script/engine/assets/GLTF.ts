@@ -380,7 +380,7 @@ export class GLTF implements Asset {
 
                 channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation: sampler.interpolation } })
             }
-            this._animationClips.push({ name: animation.name, channels });
+            this._animationClips.push(new AnimationClip(channels, animation.name));
         }
 
         return this;

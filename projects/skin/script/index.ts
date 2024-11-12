@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Node, Pipeline, Vec3, Zero, bundle as builtin, device, mat3, vec3 } from "engine";
+import { Camera, DirectionalLight, GLTF, Node, Pipeline, SkinnedAnimation, Vec3, Zero, bundle as builtin, device, mat3, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, Justify, PositionType, Profiler } from 'flex';
 
 enum VisibilityFlagBits {
@@ -65,7 +65,7 @@ export class App extends Zero {
             for (let j = 0; j < steps; j++) {
                 node = model.createScene("Sketchfab_Scene")!;
                 node.visibility = VisibilityFlagBits.WORLD;
-                const animation = node.addComponent(Animation);
+                const animation = node.addComponent(SkinnedAnimation);
                 animation.clips = model.proto.animationClips;
                 animation.play(animation.clips[j % 3].name);
                 node.position = vec3.transformMat3(origin, origin, stride);

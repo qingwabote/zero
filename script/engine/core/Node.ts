@@ -24,10 +24,18 @@ export class Node extends Transform {
         return component;
     }
 
-    getComponent<T extends Component>(constructor: AbstractConstructor<T>): T | null {
+    getComponent<T extends Component>(constructor: AbstractConstructor<T>, recursive: boolean = false): T | null {
         for (const component of this._components) {
             if (component instanceof constructor) {
                 return component
+            }
+        }
+        if (recursive) {
+            for (const child of this.children) {
+                const component = child.getComponent(constructor, recursive);
+                if (component) {
+                    return component;
+                }
             }
         }
         return null
