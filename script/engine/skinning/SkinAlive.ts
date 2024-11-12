@@ -4,6 +4,7 @@ import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { gfxUtil } from "../gfxUtil.js";
 import { Skin } from "./Skin.js";
+import { SkinStrategy } from "./SkinStrategy.js";
 
 const mat4_a = mat4.create();
 
@@ -50,7 +51,7 @@ const toModelSpace = (function () {
     }
 })()
 
-export class SkinInstance {
+export class SkinAlive implements SkinStrategy {
     get descriptorSet() {
         return this._proto.alive.descriptorSet;
     }

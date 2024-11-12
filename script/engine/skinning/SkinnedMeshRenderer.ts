@@ -1,8 +1,8 @@
 import { CommandBuffer } from "gfx";
+import { MeshRenderer } from "../components/MeshRenderer.js";
 import { Model } from "../core/render/scene/Model.js";
-import { SkinInstance } from "../scene/SkinInstance.js";
-import { SkinnedModel } from "./internal/SkinnedModel.js";
-import { MeshRenderer } from "./MeshRenderer.js";
+import { SkinInstance } from "./SkinInstance.js";
+import { SkinnedModel } from "./SkinnedModel.js";
 
 export class SkinnedMeshRenderer extends MeshRenderer {
 

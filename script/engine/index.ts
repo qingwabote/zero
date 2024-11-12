@@ -20,10 +20,11 @@ export * from './components/BoundedRenderer.js';
 export * from './components/Camera.js';
 export * from './components/DirectionalLight.js';
 export * from './components/MeshRenderer.js';
-export * from './components/SkinnedMeshRenderer.js';
 export * from './components/SpriteRenderer.js';
 export * from './components/StrokeRenderer.js';
 export * from './components/TextRenderer.js';
+
+export * from './skinning/SkinnedMeshRenderer.js';
 
 export * from './core/Component.js';
 export * from './core/Input.js';

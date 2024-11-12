@@ -5,7 +5,6 @@ import { device, load } from "boot";
 import { bundle } from "bundling";
 import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
 import { MeshRenderer } from "../components/MeshRenderer.js";
-import { SkinnedMeshRenderer } from "../components/SkinnedMeshRenderer.js";
 import { Node } from "../core/Node.js";
 import { mat4, Mat4 } from "../core/math/mat4.js";
 import { quat } from "../core/math/quat.js";
@@ -17,7 +16,8 @@ import { shaderLib } from "../core/shaderLib.js";
 import { gfxUtil } from "../gfxUtil.js";
 import { AnimationClip } from "../marionette/AnimationClip.js";
 import { Material } from "../scene/Material.js";
-import { Skin } from "../scene/Skin.js";
+import { Skin } from "../skinning/Skin.js";
+import { SkinnedMeshRenderer } from "../skinning/SkinnedMeshRenderer.js";
 import { Effect } from "./Effect.js";
 import { Texture } from "./Texture.js";
 

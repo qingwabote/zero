@@ -1,7 +1,6 @@
 export * from './Material.js';
 export * from './ModelTree.js';
 export * from './Pass.js';
-export * from './SkinInstance.js';
 
 export * from '../core/render/scene/Camera.js';
 export * from '../core/render/scene/Frustum.js';

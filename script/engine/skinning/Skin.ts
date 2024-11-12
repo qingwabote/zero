@@ -10,8 +10,6 @@ import { SkinInstance } from "./SkinInstance.js";
 
 const SkinUniform = shaderLib.sets.batch.uniforms.Skin;
 
-const META_LENGTH = 1 /* pixels */ * 4 /* RGBA */;
-
 const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
 
 class JointStore {
@@ -46,11 +44,8 @@ class JointAlive extends JointStore {
 }
 
 class JointBaked extends JointStore {
-    private _count = 0;
-
-    add(joints: ArrayLike<number>): number {
-        this._view.add(joints)
-        return this._count++;
+    add() {
+        return this._view.addBlock(4 * 3 * this._stride)
     }
 }
 
