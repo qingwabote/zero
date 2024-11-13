@@ -8,22 +8,25 @@ export class Pipeline {
     dump() {
         this._dumping = true;
     }
-    update(profile) {
-        this.data.update(profile, this._dumping);
+    update(context) {
+        this.data.update(context.profile, this._dumping);
     }
-    upload(commandBuffer) {
-        for (const ubo of this.ubos) {
-            ubo.update(commandBuffer, this._dumping);
-        }
-        this._dumping = false;
-    }
-    record(profile, commandBuffer, cameras) {
-        for (this.data.cameraIndex = 0; this.data.cameraIndex < cameras.length; this.data.cameraIndex++) {
+    batch(context) {
+        for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                if (this.data.current_camera.visibilities & flow.visibilities) {
-                    flow.record(profile, commandBuffer);
-                }
+                flow.batch(context, i);
             }
         }
+    }
+    render(context) {
+        for (const ubo of this.ubos) {
+            ubo.upload(context, this._dumping);
+        }
+        for (let i = 0; i < context.scene.cameras.length; i++) {
+            for (const flow of this.flows) {
+                flow.render(context, i);
+            }
+        }
+        this._dumping = false;
     }
 }

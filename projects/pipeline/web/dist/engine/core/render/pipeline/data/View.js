@@ -20,7 +20,7 @@ export class View {
     }
     cull() {
         if (this._shadow) {
-            const cull = this._scene.models.culler(this._shadow.num);
+            const cull = this._scene.models.culler(true);
             for (let i = 0; i < this._shadow.num; i++) {
                 this._modelsInCascades[i].length = 0;
                 cull(this._modelsInCascades[i], this._shadow.boundaries[i], this._camera.visibilities);

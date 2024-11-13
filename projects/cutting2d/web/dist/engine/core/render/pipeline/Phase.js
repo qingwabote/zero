@@ -1,6 +1,5 @@
 export class Phase {
-    constructor(_context, visibility) {
-        this._context = _context;
+    constructor(visibility) {
         this.visibility = visibility;
     }
 }

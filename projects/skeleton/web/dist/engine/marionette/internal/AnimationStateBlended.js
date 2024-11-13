@@ -1,4 +1,4 @@
-import { AnimationState } from "./AnimationState.js";
+import { AnimationState } from "../../animating/AnimationState.js";
 export class AnimationStateBlended extends AnimationState {
     get weights() {
         return this._weights;

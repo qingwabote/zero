@@ -12,8 +12,8 @@ export class SkinnedModel extends Model {
     }
     upload(attributes) {
         this._skin.update();
-        attributes[Model.a_model.location].add(this._skin.root.world_matrix);
         attributes[a_skin_index.location].addElement(this._skin.offset);
+        attributes[Model.a_model.location].add(this._skin.root.world_matrix);
     }
 }
 SkinnedModel.attributes = [...Model.attributes, a_skin_index];

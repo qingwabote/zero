@@ -14,10 +14,18 @@ export class Node extends Transform {
         this._components.push(component);
         return component;
     }
-    getComponent(constructor) {
+    getComponent(constructor, recursive = false) {
         for (const component of this._components) {
             if (component instanceof constructor) {
                 return component;
+            }
+        }
+        if (recursive) {
+            for (const child of this.children) {
+                const component = child.getComponent(constructor, recursive);
+                if (component) {
+                    return component;
+                }
             }
         }
         return null;

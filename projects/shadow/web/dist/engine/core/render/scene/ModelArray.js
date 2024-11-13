@@ -6,8 +6,8 @@ export class ModelArray {
     add(model) {
         this._models.push(model);
     }
-    culler(times = 1) {
-        const claimed = times > 1 ? new Map : undefined;
+    culler(distinct = false) {
+        const claimed = distinct ? new Map : undefined;
         return (results, frustum, visibilities) => {
             cull(results, this._models, frustum, visibilities, claimed);
         };

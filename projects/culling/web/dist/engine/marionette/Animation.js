@@ -1,7 +1,7 @@
+import { AnimationSystem } from "../animating/AnimationSystem.js";
+import { ClipBinging } from "../animating/ClipBinging.js";
 import { Component } from "../core/Component.js";
 import { AnimationStateSingle } from "./internal/AnimationStateSingle.js";
-import { AnimationSystem } from "./internal/AnimationSystem.js";
-import { ClipBinging } from "./internal/ClipBinging.js";
 export class Animation extends Component {
     constructor() {
         super(...arguments);

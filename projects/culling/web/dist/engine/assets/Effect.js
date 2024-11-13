@@ -9,8 +9,11 @@ import { Shader } from "./Shader.js";
 function merge(target, ...sources) {
     for (const source of sources) {
         for (const key in source) {
-            if (target[key] != undefined && Object.getPrototypeOf(target[key]) == Object.prototype) {
-                merge(target[key], source[key]);
+            if (source[key] == undefined) {
+                continue;
+            }
+            if (Object.getPrototypeOf(source[key]) == Object.prototype /* plain object */) {
+                merge(target[key] ? target[key] : target[key] = {}, source[key]);
             }
             else {
                 target[key] = source[key];
@@ -23,7 +26,7 @@ function gfx_BlendFactor(factor) {
     if (factor in gfx.BlendFactor) {
         return gfx.BlendFactor[factor];
     }
-    throw `unsupported factor: ${factor}`;
+    throw new Error(`unsupported factor: ${factor}`);
 }
 const getPass = (function () {
     const cache = {};
@@ -73,7 +76,7 @@ export class Effect extends Yml {
                             rasterization.cullMode = gfx.CullMode[info.rasterizationState.cullMode];
                         }
                         else {
-                            throw `unsupported cullMode: ${(_b = info.rasterizationState) === null || _b === void 0 ? void 0 : _b.cullMode}`;
+                            throw new Error(`unsupported cullMode: ${(_b = info.rasterizationState) === null || _b === void 0 ? void 0 : _b.cullMode}`);
                         }
                     }
                     else {

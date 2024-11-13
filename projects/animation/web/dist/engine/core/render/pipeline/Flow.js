@@ -1,30 +1,34 @@
 import { Uint32Vector } from "gfx";
 export class Flow {
-    constructor(_data, _context, _ubos, stages, visibilities, _loops) {
-        this._data = _data;
+    constructor(_context, _ubos, stages, _visibilities, _flowLoopIndex) {
         this._context = _context;
         this._ubos = _ubos;
         this.stages = stages;
-        this.visibilities = visibilities;
-        this._loops = _loops;
+        this._visibilities = _visibilities;
+        this._flowLoopIndex = _flowLoopIndex;
     }
-    record(commandCalls, commandBuffer) {
-        var _a, _b, _c;
-        for (this._data.flowLoopIndex = 0; this._data.flowLoopIndex < ((_b = (_a = this._loops) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 1); this._data.flowLoopIndex++) {
-            (_c = this._loops) === null || _c === void 0 ? void 0 : _c[this._data.flowLoopIndex]();
-            const dynamicOffsets = new Uint32Vector;
-            for (const uniform of this._ubos) {
-                const offset = uniform.dynamicOffset;
-                if (offset != -1) {
-                    dynamicOffsets.add(offset);
-                }
+    batch(context, cameraIndex) {
+        if ((context.scene.cameras[cameraIndex].visibilities & this._visibilities) == 0) {
+            return;
+        }
+        for (const stage of this.stages) {
+            stage.batch(context, cameraIndex);
+        }
+    }
+    render(context, cameraIndex) {
+        if ((context.scene.cameras[cameraIndex].visibilities & this._visibilities) == 0) {
+            return;
+        }
+        const dynamicOffsets = new Uint32Vector;
+        for (const uniform of this._ubos) {
+            const offset = uniform.dynamicOffset(context, cameraIndex, this._flowLoopIndex);
+            if (offset != -1) {
+                dynamicOffsets.add(offset);
             }
-            commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
-            for (const stage of this.stages) {
-                if (this._data.current_camera.visibilities & stage.visibilities) {
-                    stage.record(commandCalls, commandBuffer);
-                }
-            }
+        }
+        context.commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
+        for (const stage of this.stages) {
+            stage.render(context, cameraIndex);
         }
     }
 }

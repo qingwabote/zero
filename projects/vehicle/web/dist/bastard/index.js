@@ -1,3 +1,4 @@
+export * from './CachedFactory.js';
 export * from './CallbackCollection.js';
 export * from './empty.js';
 export * from './EventEmitter.js';

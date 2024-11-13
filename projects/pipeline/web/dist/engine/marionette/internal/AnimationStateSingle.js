@@ -1,4 +1,4 @@
-import { AnimationState } from "./AnimationState.js";
+import { AnimationState } from "../../animating/AnimationState.js";
 export class AnimationStateSingle extends AnimationState {
     get duration() {
         return this._clip.duration;

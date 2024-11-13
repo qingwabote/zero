@@ -28,7 +28,7 @@ export class Document extends ElementContainer {
     orderWalk(node, order) {
         const renderer = node.getComponent(BoundedRenderer);
         if (renderer) {
-            renderer.order = order++;
+            renderer.order(order++);
         }
         for (const child of node.children) {
             order = this.orderWalk(child, order);

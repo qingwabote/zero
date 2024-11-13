@@ -8,7 +8,7 @@ export class UBO {
         return 0;
     }
     ;
-    get dynamicOffset() {
+    dynamicOffset(context, cameraIndex, flowLoopIndex) {
         return -1;
     }
     constructor(_data, _visibilities) {

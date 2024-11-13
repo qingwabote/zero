@@ -31,6 +31,11 @@ export class BoundedRenderer extends ModelRenderer {
         var _a;
         (_a = this.__emitter) === null || _a === void 0 ? void 0 : _a.emit(name, ...args);
     }
+    order(value) {
+        if (this._model) {
+            this._model.order = value;
+        }
+    }
 }
 BoundedRenderer.PIXELS_PER_UNIT = 100;
 BoundedRenderer.EventName = EventName;

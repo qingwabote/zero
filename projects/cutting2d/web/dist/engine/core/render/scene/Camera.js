@@ -5,7 +5,7 @@ import { vec2 } from "../../math/vec2.js";
 import { vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
 import { Frustum } from "./Frustum.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
+import { Periodic } from "./Periodic.js";
 const vec2_a = vec2.create();
 const mat4_a = mat4.create();
 const mat4_b = mat4.create();
@@ -65,7 +65,7 @@ export class Camera {
         this.visibilities = 0;
         this.clears = ClearFlagBits.COLOR | ClearFlagBits.DEPTH;
         this._rect = vec4.create(0, 0, 1, 1);
-        this._hasChangedFlag = new PeriodicFlag(0xffffffff);
+        this._hasChangedFlag = new Periodic(0xffffffff, 0);
     }
     update() {
         if (this.transform.hasChangedFlag.value) {
@@ -82,11 +82,11 @@ export class Camera {
                 mat4.orthographic(this._proj, -x, x, -y, y, this.near, this.far, device.capabilities.clipSpaceMinZ);
                 this.frustum.orthographic(-x, x, -y, y, this.near, this.far);
             }
-            this._hasChangedFlag.addBit(ChangeBit.PROJ);
+            this._hasChangedFlag.value |= ChangeBit.PROJ;
         }
         if (this._view_invalidated) {
             mat4.invert(this._view, this.transform.world_matrix);
-            this._hasChangedFlag.addBit(ChangeBit.VIEW);
+            this._hasChangedFlag.value |= ChangeBit.VIEW;
         }
         if (this._proj_invalidated || this._view_invalidated) {
             this.frustum.transform(this.transform.world_matrix);

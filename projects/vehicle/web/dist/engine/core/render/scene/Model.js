@@ -1,15 +1,17 @@
-import { BufferUsageFlagBits, Format } from "gfx";
+import { Format } from "gfx";
 import { aabb3d } from "../../math/aabb3d.js";
 import { shaderLib } from "../../shaderLib.js";
-import { BufferView } from "../gpu/BufferView.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
-const instancedAttributes = [{ location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, offset: 0, multiple: 4 }];
+import { Periodic } from "./Periodic.js";
+const a_model = { location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, multiple: 4 };
 var ChangeBits;
 (function (ChangeBits) {
     ChangeBits[ChangeBits["NONE"] = 0] = "NONE";
     ChangeBits[ChangeBits["BOUNDS"] = 1] = "BOUNDS";
 })(ChangeBits || (ChangeBits = {}));
 export class Model {
+    get descriptorSet() {
+        return undefined;
+    }
     get bounds() {
         return this._bounds;
     }
@@ -28,14 +30,14 @@ export class Model {
     }
     set mesh(value) {
         this._mesh = value;
-        this._hasOwnChanged.addBit(ChangeBits.BOUNDS);
+        this._hasOwnChanged.value |= ChangeBits.BOUNDS;
     }
     constructor(_transform, _mesh, materials) {
         this._transform = _transform;
         this._mesh = _mesh;
         this.materials = materials;
         this._bounds = aabb3d.create();
-        this._hasOwnChanged = new PeriodicFlag(ChangeBits.BOUNDS);
+        this._hasOwnChanged = new Periodic(ChangeBits.BOUNDS, ChangeBits.NONE);
         this.type = 'default';
         /**
          * Draw order
@@ -45,11 +47,10 @@ export class Model {
     updateBounds() {
         aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
-    batch() {
-        return { attributes: instancedAttributes, vertexes: new BufferView('Float32', BufferUsageFlagBits.VERTEX) };
-    }
-    batchFill(vertexes, uniforms) {
-        vertexes.add(this._transform.world_matrix);
+    upload(attributes) {
+        attributes[a_model.location].add(this._transform.world_matrix);
     }
 }
+Model.a_model = a_model;
+Model.attributes = [a_model];
 Model.ChangeBits = ChangeBits;

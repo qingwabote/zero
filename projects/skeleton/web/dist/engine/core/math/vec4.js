@@ -2,11 +2,11 @@ function create(x = 0, y = 0, z = 0, w = 0) {
     return [x, y, z, w];
 }
 export const vec4 = {
-    ZERO: Object.freeze(create(0, 0, 0, 0)),
-    ONE: Object.freeze(create(1, 1, 1, 1)),
-    RED: Object.freeze(create(1, 0, 0, 1)),
-    GREEN: Object.freeze(create(0, 1, 0, 1)),
-    YELLOW: Object.freeze(create(1, 1, 0, 1)),
+    ZERO: create(0, 0, 0, 0),
+    ONE: create(1, 1, 1, 1),
+    RED: create(1, 0, 0, 1),
+    GREEN: create(0, 1, 0, 1),
+    YELLOW: create(1, 1, 0, 1),
     create,
     set(out, x, y, z, w) {
         out[0] = x;

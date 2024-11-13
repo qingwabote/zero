@@ -2,7 +2,7 @@ function create(x = 0, y = 0) {
     return [x, y];
 }
 export const vec2 = {
-    ZERO: Object.freeze(create(0, 0)),
+    ZERO: create(0, 0),
     create,
     set(out, x, y) {
         out[0] = x;

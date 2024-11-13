@@ -1,5 +1,4 @@
 import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
-import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Shadow } from "../../core/render/pipeline/data/Shadow.js";
@@ -19,17 +18,18 @@ export class CSMIUBO extends UBO {
     get range() {
         return BlockSize;
     }
-    get dynamicOffset() {
+    dynamicOffset(context, cameraIndex, flowLoopIndex) {
         let index = -1;
-        for (const camera of Zero.instance.scene.cameras) {
+        for (let i = 0; i < context.scene.cameras.length; i++) {
+            const camera = context.scene.cameras[i];
             if (camera.visibilities & this._data.shadow.visibilities) {
                 index++;
-                if (camera == this._data.current_camera) {
+                if (i == cameraIndex) {
                     break;
                 }
             }
         }
-        return UBO.align(BlockSize) * (this._num * index + this._data.flowLoopIndex);
+        return UBO.align(BlockSize) * (this._num * index + flowLoopIndex);
     }
     constructor(data, visibilities, _num) {
         super(data, visibilities);
@@ -37,10 +37,10 @@ export class CSMIUBO extends UBO {
         this._view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
         data.shadow = new Shadow(visibilities, _num);
     }
-    update(commandBuffer, dumping) {
+    upload(context, dumping) {
         const size = UBO.align(BlockSize);
         let index = -1;
-        for (const camera of Zero.instance.scene.cameras) {
+        for (const camera of context.scene.cameras) {
             if (camera.visibilities & this._data.shadow.visibilities) {
                 index++;
                 const cascades = this._data.shadow.getCascades(camera);
@@ -52,7 +52,7 @@ export class CSMIUBO extends UBO {
                 }
             }
         }
-        this._view.update(commandBuffer);
+        this._view.update(context.commandBuffer);
     }
 }
 CSMIUBO.definition = Block;

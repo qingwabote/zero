@@ -36,22 +36,25 @@ export class Shader {
     }
     compileShader(info) {
         const gl = this._gl;
-        const sources = info.sources.data;
         const types = info.types.data;
-        const shaders = [];
-        for (let i = 0; i < sources.length; i++) {
-            let source = sources[i];
+        const sources = info.sources.data.map((source, i) => {
             // remove unsupported layout qualifier for WebGL, e.g. descriptor sets, no such concept in WebGL, even OpenGL
-            source = source.replace(/layout.*uniform/g, 'uniform');
+            source = source.replace(/layout.*uniform\s*(\w*)\s+(\w+)\s*/g, function (_, type, name) {
+                return type ? `uniform ${type} ${name}` : `layout(std140) uniform ${name}` /* add std140 to uniform blocks explicitly for error when link shader on wx android */;
+            });
             if (types[i] == ShaderStageFlagBits.VERTEX) {
                 source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*out/g, 'out');
             }
             else {
                 source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*in/g, 'in');
             }
-            //
             source = source.replace('gl_InstanceIndex', 'gl_InstanceID');
             source = `#version 300 es\n${source}`;
+            return source;
+        });
+        const shaders = [];
+        for (let i = 0; i < sources.length; i++) {
+            const source = sources[i];
             const shader = gl.createShader(types[i] == ShaderStageFlagBits.VERTEX ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
             gl.shaderSource(shader, source);
             gl.compileShader(shader);

@@ -1,7 +1,7 @@
 import { BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
-import { Zero } from "../../core/Zero.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
+import { Zero } from "../../core/Zero.js";
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
     stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
@@ -17,12 +17,13 @@ export class CSMUBO extends UBO {
     get range() {
         return BlockSize * this._num;
     }
-    get dynamicOffset() {
+    dynamicOffset(context, cameraIndex) {
         let index = -1;
-        for (const camera of Zero.instance.scene.cameras) {
+        for (let i = 0; i < context.scene.cameras.length; i++) {
+            const camera = context.scene.cameras[i];
             if (camera.visibilities & this._data.shadow.visibilities) {
                 index++;
-                if (camera == this._data.current_camera) {
+                if (i == cameraIndex) {
                     return UBO.align(this.range) * index;
                 }
             }
@@ -34,7 +35,7 @@ export class CSMUBO extends UBO {
         this._num = _num;
         this._view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
     }
-    update(commandBuffer, dumping) {
+    upload(context, dumping) {
         const size = UBO.align(this.range);
         let index = -1;
         for (const camera of Zero.instance.scene.cameras) {
@@ -49,7 +50,7 @@ export class CSMUBO extends UBO {
                 }
             }
         }
-        this._view.update(commandBuffer);
+        this._view.update(context.commandBuffer);
     }
 }
 CSMUBO.definition = Block;

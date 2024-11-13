@@ -8,13 +8,13 @@ const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
     position.format = Format.RG32_SFLOAT;
     position.location = shaderLib.attributes.position.location;
     attributes.add(position);
-    elements += FormatInfos[position.format].nums;
+    elements += FormatInfos[position.format].elements;
     const texCoord = new VertexAttribute;
     texCoord.format = Format.RG32_SFLOAT;
     texCoord.offset = FormatInfos[position.format].bytes;
     texCoord.location = shaderLib.attributes.uv.location;
     attributes.add(texCoord);
-    elements += FormatInfos[texCoord.format].nums;
+    elements += FormatInfos[texCoord.format].elements;
     return [attributes, elements];
 })();
 const ss_spine = await bundle.cache('./shaders/unlit', Shader);
@@ -45,8 +45,8 @@ export class Skeleton extends BoundedRenderer {
     constructor(node) {
         super(node);
         this._materials = [];
-        this._vertexView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, VERTEX_ELEMENTS * 2048);
-        this._indexView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 2048 * 3);
+        this._vertexView = new render.BufferView("Float32", BufferUsageFlagBits.VERTEX, 0, VERTEX_ELEMENTS * 2048);
+        this._indexView = new render.BufferView("Uint16", BufferUsageFlagBits.INDEX, 0, 2048 * 3);
         this._materialCache = {};
         const ia = new InputAssembler;
         ia.vertexInputState.attributes = VERTEX_ATTRIBUTES;
@@ -57,20 +57,20 @@ export class Skeleton extends BoundedRenderer {
         indexInput.buffer = this._indexView.buffer;
         indexInput.type = IndexType.UINT16;
         ia.indexInput = indexInput;
-        this._mesh = new render.Mesh([new render.SubMesh(ia)]);
+        this._mesh = new scene.Mesh([new scene.SubMesh(ia)]);
         ;
     }
     createModel() {
-        return new render.Model(this.node, this._mesh, this._materials);
+        return new scene.Model(this.node, this._mesh, this._materials);
     }
     upload(commandBuffer) {
         let key = '';
         let vertex = 0;
         let index = 0;
-        this._vertexView.invalidate();
-        this._indexView.invalidate();
         this._materials.length = 0;
         this._skeleton.updateWorldTransform();
+        this._vertexView.reset();
+        this._indexView.reset();
         for (const slot of this._skeleton.drawOrder) {
             const attachment = slot.getAttachment();
             if (!slot.bone.active) {
@@ -108,27 +108,27 @@ export class Skeleton extends BoundedRenderer {
                     clipper.clipTriangles(attachment_positions, attachment_vertex * 2, attachment_triangles, attachment_triangles.length, attachment_uvs, sc_color_a, sc_color_a, false);
                     attachment_vertex = clipper.clippedVertices.length >> 3;
                     for (let i = 0; i < attachment_vertex; i++) {
-                        const j = VERTEX_ELEMENTS * (vertex + i);
                         const k = 8 * i;
-                        this._vertexView.source[j] = clipper.clippedVertices[k];
-                        this._vertexView.source[j + 1] = clipper.clippedVertices[k + 1];
-                        this._vertexView.source[j + 2] = clipper.clippedVertices[k + 6];
-                        this._vertexView.source[j + 3] = clipper.clippedVertices[k + 7];
+                        const [source, offset] = this._vertexView.addBlock(4);
+                        source[offset + 0] = clipper.clippedVertices[k];
+                        source[offset + 1] = clipper.clippedVertices[k + 1];
+                        source[offset + 2] = clipper.clippedVertices[k + 6];
+                        source[offset + 3] = clipper.clippedVertices[k + 7];
                     }
                     attachment_triangles = clipper.clippedTriangles;
                 }
                 else {
                     for (let i = 0; i < attachment_vertex; i++) {
-                        const j = VERTEX_ELEMENTS * (vertex + i);
                         const k = 2 * i;
-                        this._vertexView.source[j] = attachment_positions[k];
-                        this._vertexView.source[j + 1] = attachment_positions[k + 1];
-                        this._vertexView.source[j + 2] = attachment_uvs[k];
-                        this._vertexView.source[j + 3] = attachment_uvs[k + 1];
+                        const [source, offset] = this._vertexView.addBlock(4);
+                        source[offset + 0] = attachment_positions[k];
+                        source[offset + 1] = attachment_positions[k + 1];
+                        source[offset + 2] = attachment_uvs[k];
+                        source[offset + 3] = attachment_uvs[k + 1];
                     }
                 }
                 for (let i = 0; i < attachment_triangles.length; i++) {
-                    this._indexView.source[index + i] = attachment_triangles[i] + vertex;
+                    this._indexView.addElement(attachment_triangles[i] + vertex);
                 }
                 // const blend = slot.data.blendMode;
                 const blend = sc.BlendMode.Normal;

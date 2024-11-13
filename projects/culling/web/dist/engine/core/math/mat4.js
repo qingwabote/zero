@@ -5,12 +5,12 @@ const mat3_a = mat3.create();
 function vec3_length(x, y, z) {
     return Math.sqrt(x * x + y * y + z * z);
 }
-export const preTransforms = Object.freeze([
-    Object.freeze([1, 0, 0, 1]), // SurfaceTransform.IDENTITY
-    Object.freeze([0, 1, -1, 0]), // SurfaceTransform.ROTATE_90
-    Object.freeze([-1, 0, 0, -1]), // SurfaceTransform.ROTATE_180
-    Object.freeze([0, -1, 1, 0]), // SurfaceTransform.ROTATE_270
-]);
+export const preTransforms = [
+    [1, 0, 0, 1], // SurfaceTransform.IDENTITY
+    [0, 1, -1, 0], // SurfaceTransform.ROTATE_90
+    [-1, 0, 0, -1], // SurfaceTransform.ROTATE_180
+    [0, -1, 1, 0], // SurfaceTransform.ROTATE_270
+];
 export const mat4 = {
     IDENTITY: [
         1, 0, 0, 0,
@@ -170,65 +170,67 @@ export const mat4 = {
         return out;
     },
     multiply(out, a, b) {
+        const a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3], a04 = a[4], a05 = a[5], a06 = a[6], a07 = a[7], a08 = a[8], a09 = a[9], a10 = a[10], a11 = a[11], a12 = a[12], a13 = a[13], a14 = a[14], a15 = a[15];
         let x = b[0];
         let y = b[1];
         let z = b[2];
         let w = b[3];
-        out[0] = x * a[0] + y * a[4] + z * a[8] + w * a[12];
-        out[1] = x * a[1] + y * a[5] + z * a[9] + w * a[13];
-        out[2] = x * a[2] + y * a[6] + z * a[10] + w * a[14];
-        out[3] = x * a[3] + y * a[7] + z * a[11] + w * a[15];
+        out[0] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[1] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[2] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[3] = x * a03 + y * a07 + z * a11 + w * a15;
         x = b[4];
         y = b[5];
         z = b[6];
         w = b[7];
-        out[4] = x * a[0] + y * a[4] + z * a[8] + w * a[12];
-        out[5] = x * a[1] + y * a[5] + z * a[9] + w * a[13];
-        out[6] = x * a[2] + y * a[6] + z * a[10] + w * a[14];
-        out[7] = x * a[3] + y * a[7] + z * a[11] + w * a[15];
+        out[4] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[5] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[6] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[7] = x * a03 + y * a07 + z * a11 + w * a15;
         x = b[8];
         y = b[9];
         z = b[10];
         w = b[11];
-        out[8] = x * a[0] + y * a[4] + z * a[8] + w * a[12];
-        out[9] = x * a[1] + y * a[5] + z * a[9] + w * a[13];
-        out[10] = x * a[2] + y * a[6] + z * a[10] + w * a[14];
-        out[11] = x * a[3] + y * a[7] + z * a[11] + w * a[15];
+        out[8] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[9] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[10] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[11] = x * a03 + y * a07 + z * a11 + w * a15;
         x = b[12];
         y = b[13];
         z = b[14];
         w = b[15];
-        out[12] = x * a[0] + y * a[4] + z * a[8] + w * a[12];
-        out[13] = x * a[1] + y * a[5] + z * a[9] + w * a[13];
-        out[14] = x * a[2] + y * a[6] + z * a[10] + w * a[14];
-        out[15] = x * a[3] + y * a[7] + z * a[11] + w * a[15];
+        out[12] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[13] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[14] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[15] = x * a03 + y * a07 + z * a11 + w * a15;
         return out;
     },
     multiply_affine(out, a, b) {
+        const a00 = a[0], a01 = a[1], a02 = a[2], a04 = a[4], a05 = a[5], a06 = a[6], a08 = a[8], a09 = a[9], a10 = a[10], a12 = a[12], a13 = a[13], a14 = a[14];
         let x = b[0];
         let y = b[1];
         let z = b[2];
-        out[0] = x * a[0] + y * a[4] + z * a[8];
-        out[1] = x * a[1] + y * a[5] + z * a[9];
-        out[2] = x * a[2] + y * a[6] + z * a[10];
+        out[0] = x * a00 + y * a04 + z * a08;
+        out[1] = x * a01 + y * a05 + z * a09;
+        out[2] = x * a02 + y * a06 + z * a10;
         x = b[4];
         y = b[5];
         z = b[6];
-        out[4] = x * a[0] + y * a[4] + z * a[8];
-        out[5] = x * a[1] + y * a[5] + z * a[9];
-        out[6] = x * a[2] + y * a[6] + z * a[10];
+        out[4] = x * a00 + y * a04 + z * a08;
+        out[5] = x * a01 + y * a05 + z * a09;
+        out[6] = x * a02 + y * a06 + z * a10;
         x = b[8];
         y = b[9];
         z = b[10];
-        out[8] = x * a[0] + y * a[4] + z * a[8];
-        out[9] = x * a[1] + y * a[5] + z * a[9];
-        out[10] = x * a[2] + y * a[6] + z * a[10];
+        out[8] = x * a00 + y * a04 + z * a08;
+        out[9] = x * a01 + y * a05 + z * a09;
+        out[10] = x * a02 + y * a06 + z * a10;
         x = b[12];
         y = b[13];
         z = b[14];
-        out[12] = x * a[0] + y * a[4] + z * a[8] + a[12];
-        out[13] = x * a[1] + y * a[5] + z * a[9] + a[13];
-        out[14] = x * a[2] + y * a[6] + z * a[10] + a[14];
+        out[12] = x * a00 + y * a04 + z * a08 + a12;
+        out[13] = x * a01 + y * a05 + z * a09 + a13;
+        out[14] = x * a02 + y * a06 + z * a10 + a14;
         return out;
     },
     orthographic(out, left, right, bottom, top, near, far, minClipZ) {

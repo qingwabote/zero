@@ -1,4 +1,4 @@
-import { GeometryRenderer, Input, vec2, vec3 } from "engine";
+import { Input, StrokeRenderer, vec2, vec3 } from "engine";
 import { ElementContainer, Renderer } from "flex";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
@@ -16,7 +16,7 @@ export class Joystick extends ElementContainer {
         super(node);
         this._point = vec2.create();
         const color = [0, 1, 0, 1];
-        const primitive = Renderer.create(GeometryRenderer);
+        const primitive = Renderer.create(StrokeRenderer);
         primitive.setWidth('100%');
         primitive.setHeight('100%');
         this.draw(primitive, this._point, color);
@@ -47,18 +47,18 @@ export class Joystick extends ElementContainer {
         vec3.set(vec3_b, -1 - halfPoint, -1 - halfPoint, 0);
         vec3.set(vec3_c, 1 + halfPoint, -1 - halfPoint, 0);
         vec3.set(vec3_d, 1 + halfPoint, 1 + halfPoint, 0);
-        impl.drawLine(vec3_a, vec3_b, color);
-        impl.drawLine(vec3_b, vec3_c, color);
-        impl.drawLine(vec3_c, vec3_d, color);
-        impl.drawLine(vec3_d, vec3_a, color);
+        impl.line(vec3_a, vec3_b, color);
+        impl.line(vec3_b, vec3_c, color);
+        impl.line(vec3_c, vec3_d, color);
+        impl.line(vec3_d, vec3_a, color);
         vec3.set(vec3_a, point[0] - halfPoint, point[1] + halfPoint, 0);
         vec3.set(vec3_b, point[0] - halfPoint, point[1] - halfPoint, 0);
         vec3.set(vec3_c, point[0] + halfPoint, point[1] - halfPoint, 0);
         vec3.set(vec3_d, point[0] + halfPoint, point[1] + halfPoint, 0);
-        impl.drawLine(vec3_a, vec3_b, color);
-        impl.drawLine(vec3_b, vec3_c, color);
-        impl.drawLine(vec3_c, vec3_d, color);
-        impl.drawLine(vec3_d, vec3_a, color);
+        impl.line(vec3_a, vec3_b, color);
+        impl.line(vec3_b, vec3_c, color);
+        impl.line(vec3_c, vec3_d, color);
+        impl.line(vec3_d, vec3_a, color);
     }
 }
 Joystick.EventType = EventType;

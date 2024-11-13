@@ -5,14 +5,16 @@ const attributes = {
     position: { name: 'a_position', location: 0 },
     uv: { name: 'a_texCoord', location: 1 },
     normal: { name: 'a_normal', location: 2 },
-    joints: { name: 'a_joints', location: 3 },
-    weights: { name: 'a_weights', location: 4 },
+    skin_joints: { name: 'a_skin_joints', location: 3 },
+    skin_weights: { name: 'a_skin_weights', location: 4 },
     color: { name: 'a_color', location: 4 }, // a_weights and a_color both are vec4 and not exist in same shader, they can share the same location
+    // instanced
     model: {
         name: 'a_model',
         /**5~8 */
         location: 5
-    }
+    },
+    skin_index: { name: 'a_skin_index', location: 9 }
 };
 /**
  * The pipeline layout can include entries that are not used by a particular pipeline, or that are dead-code eliminated from any of the shaders
@@ -21,7 +23,7 @@ const sets = {
     material: {
         index: 1
     },
-    local: {
+    batch: {
         index: 2,
         uniforms: {
             Skin: {
@@ -120,5 +122,6 @@ export const shaderLib = {
     },
     getShaderMeta(shader) {
         return _shader2meta.get(shader);
-    }
+    },
+    preprocessor
 };

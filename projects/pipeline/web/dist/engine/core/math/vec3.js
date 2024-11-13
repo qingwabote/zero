@@ -2,13 +2,13 @@ function create(x = 0, y = 0, z = 0) {
     return [x, y, z];
 }
 export const vec3 = {
-    UNIT_X: Object.freeze(create(1, 0, 0)),
-    UNIT_Y: Object.freeze(create(0, 1, 0)),
-    UNIT_Z: Object.freeze(create(0, 0, 1)),
-    ZERO: Object.freeze(create(0, 0, 0)),
-    ONE: Object.freeze(create(1, 1, 1)),
-    UP: Object.freeze(create(0, 1, 0)),
-    FORWARD: Object.freeze(create(0, 0, -1)),
+    UNIT_X: create(1, 0, 0),
+    UNIT_Y: create(0, 1, 0),
+    UNIT_Z: create(0, 0, 1),
+    ZERO: create(0, 0, 0),
+    ONE: create(1, 1, 1),
+    UP: create(0, 1, 0),
+    FORWARD: create(0, 0, -1),
     create,
     set(out, x, y, z) {
         out[0] = x;

@@ -1,6 +1,6 @@
 import { load } from "boot";
 import { ShaderStageFlagBits } from "gfx";
-import { preprocessor } from "../core/internal/preprocessor.js";
+import { shaderLib } from "../core/shaderLib.js";
 export class Shader {
     constructor() {
         this.name = '';
@@ -9,6 +9,7 @@ export class Shader {
         this.macros = new Set;
     }
     async load(path) {
+        const preprocessor = shaderLib.preprocessor;
         let vs = await load(`${path}.vs`, "text");
         vs = await preprocessor.includeExpand(vs);
         this.sources.push(vs);

@@ -15,7 +15,9 @@ var Event;
     Event["LATE_UPDATE"] = "LATE_UPDATE";
     Event["SCENE_UPDATE"] = "SCENE_UPDATE";
     Event["PIPELINE_UPDATE"] = "PIPELINE_UPDATE";
-    Event["READY_TO_RENDER"] = "READY_TO_RENDER";
+    Event["DEVICE_SYNC"] = "DEVICE_SYNC";
+    Event["PIPELINE_BATCH"] = "PIPELINE_BATCH";
+    Event["UPLOAD"] = "UPLOAD";
     Event["FRAME_END"] = "FRAME_END";
 })(Event || (Event = {}));
 export class Zero extends EventEmitter.Impl {
@@ -31,9 +33,6 @@ export class Zero extends EventEmitter.Impl {
     get input() {
         return this._input;
     }
-    get profile() {
-        return this._profile;
-    }
     get pipeline() {
         return this._pipeline;
     }
@@ -47,12 +46,12 @@ export class Zero extends EventEmitter.Impl {
         this._input = new Input;
         this._componentScheduler = new ComponentScheduler;
         this._timeScheduler = new TimeScheduler;
-        this._commandBuffer = boot.device.createCommandBuffer();
-        this._swapchainAcquired = boot.device.createSemaphore();
+        this.commandBuffer = boot.device.createCommandBuffer();
+        this._swapchainUsable = boot.device.createSemaphore();
         this._queueExecuted = boot.device.createSemaphore();
         this._fence = boot.device.createFence(true);
         this._time = boot.initial;
-        this._profile = new Profile;
+        this.profile = new Profile;
         this.scene = new Scene(models);
         const systems = [...Zero._system2priority.keys()];
         systems.sort(function (a, b) {
@@ -108,24 +107,25 @@ export class Zero extends EventEmitter.Impl {
             system.lateUpdate(delta);
         }
         this.emit(Event.LATE_UPDATE);
-        this._profile.clear();
+        this.profile.clear();
         this.scene.update();
         this.emit(Event.SCENE_UPDATE);
-        this._pipeline.update(this._profile);
+        this._pipeline.update(this);
         this.emit(Event.PIPELINE_UPDATE);
         boot.device.waitForFence(this._fence);
-        this.emit(Event.READY_TO_RENDER);
-        boot.device.swapchain.acquire(this._swapchainAcquired);
-        const commandBuffer = this._commandBuffer;
-        commandBuffer.begin();
-        this._componentScheduler.upload(commandBuffer);
-        this._pipeline.upload(commandBuffer);
-        quad.indexBufferView.update(commandBuffer);
-        this._pipeline.record(this._profile, commandBuffer, this.scene.cameras);
-        commandBuffer.end();
+        boot.device.swapchain.acquire(this._swapchainUsable);
+        this.emit(Event.DEVICE_SYNC);
+        this.commandBuffer.begin();
+        this._pipeline.batch(this);
+        this.emit(Event.PIPELINE_BATCH);
+        this._componentScheduler.upload(this.commandBuffer);
+        quad.indexBufferView.update(this.commandBuffer);
+        this.emit(Event.UPLOAD);
+        this._pipeline.render(this);
+        this.commandBuffer.end();
         const submitInfo = new SubmitInfo;
-        submitInfo.commandBuffer = commandBuffer;
-        submitInfo.waitSemaphore = this._swapchainAcquired;
+        submitInfo.commandBuffer = this.commandBuffer;
+        submitInfo.waitSemaphore = this._swapchainUsable;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);

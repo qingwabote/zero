@@ -1,9 +1,9 @@
+import { AnimationSystem } from "../animating/AnimationSystem.js";
+import { ClipBinging } from "../animating/ClipBinging.js";
 import { Component } from "../core/Component.js";
 import { quat } from "../core/math/quat.js";
 import { vec3 } from "../core/math/vec3.js";
 import { AnimationStateBlended } from "./internal/AnimationStateBlended.js";
-import { AnimationSystem } from "./internal/AnimationSystem.js";
-import { ClipBinging } from "./internal/ClipBinging.js";
 class BlendTRS {
     get position() {
         return this._position;

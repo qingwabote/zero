@@ -1,18 +1,12 @@
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { quad } from "../../core/render/quad.js";
-const inputAssembler = quad.createInputAssembler(quad.createVertexBuffer(2, 2, true));
+const batches = [{ inputAssembler: quad.createInputAssembler(quad.createVertexBuffer(2, 2, true)), draw: { count: 6, first: 0 }, count: 1 }];
 export class PostPhase extends Phase {
-    constructor(context, _passState, visibility) {
-        super(context, visibility);
-        this._passState = _passState;
+    constructor(_pass, visibility) {
+        super(visibility);
+        this._pass = _pass;
     }
-    update(commandBuffer) { }
-    render(profile, commandBuffer, renderPass) {
-        const pipeline = this._context.getPipeline(this._passState, inputAssembler.vertexInputState, renderPass);
-        commandBuffer.bindPipeline(pipeline);
-        commandBuffer.bindInputAssembler(inputAssembler);
-        commandBuffer.drawIndexed(6, 0, 1);
-        profile.draws++;
-        profile.passes++;
+    batch(out) {
+        out.push().set(this._pass, batches);
     }
 }

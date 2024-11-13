@@ -3,7 +3,7 @@ import { vec3 } from "./vec3.js";
 const vec3_a = vec3.create();
 const vec3_b = vec3.create();
 const mat3_a = mat3.create();
-const vec3_half = Object.freeze(vec3.create(0.5, 0.5, 0.5));
+const vec3_half = vec3.create(0.5, 0.5, 0.5);
 function create(center = vec3.ZERO, halfExtent = vec3.ZERO) {
     return { center: vec3.create(...center), halfExtent: vec3.create(...halfExtent) };
 }
@@ -58,5 +58,5 @@ function contains(a, point) {
         point[1] > max[1] || point[1] < min[1] ||
         point[2] > max[2] || point[2] < min[2]);
 }
-const ZERO = Object.freeze({ center: vec3.ZERO, halfExtent: vec3.ZERO });
+const ZERO = { center: vec3.ZERO, halfExtent: vec3.ZERO };
 export const aabb3d = { ZERO, create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, contains };

@@ -21,7 +21,11 @@ export class Buffer {
         this._impl = _gl.createBuffer();
     }
     initialize() {
-        this.resize(this.info.size);
+        const gl = this._gl;
+        const target = usage2target(gl, this.info.usage);
+        gl.bindBuffer(target, this._impl);
+        gl.bufferData(target, this.info.size, gl.STATIC_DRAW);
+        gl.bindBuffer(target, null);
         return false;
     }
     update(src, src_offset, src_length) {
@@ -33,10 +37,7 @@ export class Buffer {
         gl.bindBuffer(target, null);
     }
     resize(size) {
-        const gl = this._gl;
-        const target = usage2target(gl, this.info.usage);
-        gl.bindBuffer(target, this._impl);
-        gl.bufferData(target, size, gl.STATIC_DRAW);
-        gl.bindBuffer(target, null);
+        this.info.size = size;
+        this.initialize();
     }
 }

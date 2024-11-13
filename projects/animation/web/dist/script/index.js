@@ -1,11 +1,17 @@
 import { bundle } from 'bundling';
 import { Animation, BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider } from 'flex';
-const Polyart = await (await bundle.cache('walkrun_and_idle/scene', GLTF)).instantiate();
+const gltf = await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate({}, function (params) {
+    const res = GLTF.materialFuncPhong(params);
+    if (params.index == 3 /* hair */) {
+        res.passes[1].rasterizationState = { cullMode: 'FRONT' };
+    }
+    return res;
+});
 const clips = [];
-clips.push(Polyart.proto.animationClips.find(clip => clip.name == 'Armature|Idle'));
-clips.push(Polyart.proto.animationClips.find(clip => clip.name == 'Armature|Walk'));
-clips.push(Polyart.proto.animationClips.find(clip => clip.name == 'Armature|Run'));
+clips.push(gltf.proto.animationClips.find(clip => clip.name == 'Armature|Idle'));
+clips.push(gltf.proto.animationClips.find(clip => clip.name == 'Armature|Walk'));
+clips.push(gltf.proto.animationClips.find(clip => clip.name == 'Armature|Run'));
 const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 var VisibilityFlagBits;
 (function (VisibilityFlagBits) {
@@ -27,21 +33,21 @@ export class App extends Zero {
         main_camera.fov = 45;
         main_camera.visibilities = VisibilityFlagBits.WORLD;
         node.position = [0, 0, 12];
-        node = Polyart.createScene("Sketchfab_Scene");
+        node = gltf.createScene("Sketchfab_Scene");
         node.visibility = VisibilityFlagBits.WORLD;
         node.euler = vec3.create(0, 60, 0);
         const animation = node.addComponent(BlendAnimation);
         animation.clips = clips;
         animation.thresholds = [0, 0.5, 1];
         {
-            let node = Polyart.createScene("Sketchfab_Scene");
+            let node = gltf.createScene("Sketchfab_Scene");
             node.visibility = VisibilityFlagBits.WORLD;
             node.euler = vec3.create(0, 60, 0);
             node.position = [-1, 1, -1];
             let animation = node.addComponent(Animation);
             animation.clips = clips;
             animation.play(animation.clips[0].name);
-            node = Polyart.createScene("Sketchfab_Scene");
+            node = gltf.createScene("Sketchfab_Scene");
             node.visibility = VisibilityFlagBits.WORLD;
             node.euler = vec3.create(0, 60, 0);
             node.position = [1, 1, -1];

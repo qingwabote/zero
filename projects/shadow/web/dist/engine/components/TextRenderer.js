@@ -7,8 +7,8 @@ import { aabb2d } from "../core/math/aabb2d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { vec4 } from "../core/math/vec4.js";
-import { Mesh } from "../core/render/index.js";
 import { quad } from "../core/render/quad.js";
+import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -108,8 +108,7 @@ export class TextRenderer extends BoundedRenderer {
             }
             return;
         }
-        // just a redundant size
-        this._vertexView.reset(4 * 4 * this._text.length);
+        this._vertexView.reset();
         const tex = fnt_zero.texture.impl.info;
         let [x, y, l, r, t, b, quads, scale] = [0, 0, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0, this._size / fnt_zero.info.size];
         for (let i = 0; i < this._text.length; i++) {
@@ -136,23 +135,23 @@ export class TextRenderer extends BoundedRenderer {
             const pos_r = x + xoffset + width;
             const pos_t = y - yoffset;
             const pos_b = y - yoffset - height;
-            this._vertexView.source[16 * quads + 0] = pos_l;
-            this._vertexView.source[16 * quads + 1] = pos_t;
-            this._vertexView.source[16 * quads + 2] = tex_l;
-            this._vertexView.source[16 * quads + 3] = tex_t;
-            this._vertexView.source[16 * quads + 4] = pos_l;
-            this._vertexView.source[16 * quads + 5] = pos_b;
-            this._vertexView.source[16 * quads + 6] = tex_l;
-            this._vertexView.source[16 * quads + 7] = tex_b;
-            this._vertexView.source[16 * quads + 8] = pos_r;
-            this._vertexView.source[16 * quads + 9] = pos_b;
-            this._vertexView.source[16 * quads + 10] = tex_r;
-            this._vertexView.source[16 * quads + 11] = tex_b;
-            this._vertexView.source[16 * quads + 12] = pos_r;
-            this._vertexView.source[16 * quads + 13] = pos_t;
-            this._vertexView.source[16 * quads + 14] = tex_r;
-            this._vertexView.source[16 * quads + 15] = tex_t;
-            this._vertexView.invalidate();
+            const [source, offset] = this._vertexView.addBlock(16);
+            source[offset + 0] = pos_l;
+            source[offset + 1] = pos_t;
+            source[offset + 2] = tex_l;
+            source[offset + 3] = tex_t;
+            source[offset + 4] = pos_l;
+            source[offset + 5] = pos_b;
+            source[offset + 6] = tex_l;
+            source[offset + 7] = tex_b;
+            source[offset + 8] = pos_r;
+            source[offset + 9] = pos_b;
+            source[offset + 10] = tex_r;
+            source[offset + 11] = tex_b;
+            source[offset + 12] = pos_r;
+            source[offset + 13] = pos_t;
+            source[offset + 14] = tex_r;
+            source[offset + 15] = tex_t;
             l = Math.min(l, pos_l);
             r = Math.max(r, pos_r);
             t = Math.max(t, pos_t);

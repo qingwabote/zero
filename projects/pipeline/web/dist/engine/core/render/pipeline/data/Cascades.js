@@ -5,7 +5,7 @@ import { frustum } from "../../../math/frustum.js";
 import { mat4 } from "../../../math/mat4.js";
 import { vec3 } from "../../../math/vec3.js";
 import { Frustum } from "../../scene/Frustum.js";
-import { PeriodicFlag } from "../../scene/PeriodicFlag.js";
+import { Periodic } from "../../scene/Periodic.js";
 const frustum_a = frustum.vertices();
 const aabb_a = aabb3d.create();
 const vec3_a = vec3.create();
@@ -27,7 +27,7 @@ export class Cascades {
     constructor(_camera, num) {
         this._camera = _camera;
         this.num = num;
-        this._hasChangedFlag = new PeriodicFlag(1);
+        this._hasChangedFlag = new Periodic(1, 0);
         const frusta = [];
         const boundaries = [];
         const viewProjs = [];

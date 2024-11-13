@@ -18,8 +18,8 @@ export class ModelTree {
     add(model) {
         this._context.model2node.set(model, null);
     }
-    culler(times = 1) {
-        const claimed = times > 1 ? new Map : undefined;
+    culler(distinct = false) {
+        const claimed = distinct ? new Map : undefined;
         return (results, frustum, visibilities) => {
             cull(results, this.root, frustum, visibilities, claimed);
         };
