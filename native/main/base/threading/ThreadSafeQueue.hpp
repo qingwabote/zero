@@ -13,6 +13,8 @@ private:
     std::queue<T> _queue;
 
 public:
+    uint32_t size() { return _queue.size(); }
+
     void push(T &&val)
     {
         {

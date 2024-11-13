@@ -5,7 +5,7 @@
 
 namespace bg
 {
-    Device::Device(SDL_Window *window) : gfx::Device(window){};
+    Device::Device(SDL_Window *window) : gfx::Device(window) {};
 
     std::unique_ptr<gfx::Queue> Device::getQueue() { return std::make_unique<Queue>(_impl, _background.get()); }
 

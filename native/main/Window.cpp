@@ -7,7 +7,7 @@
 #include "v8/libplatform/libplatform.h"
 #include "InspectorClient.hpp"
 #include "internal/console.hpp"
-// #include "bg/Device.hpp"
+#include "bg/Device.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -34,6 +34,12 @@ double Window::now()
 
 int Window::loop(SDL_Window *sdl_window)
 {
+    bool debug = false;
+#ifndef NDEBUG
+    debug = true;
+#endif
+    ZERO_LOG_INFO("zero engine version: %s", debug ? "debug" : "release");
+
     const char *err = nullptr;
     std::string bootstrap_path = env::bootstrap(&err);
     if (err)
@@ -96,7 +102,7 @@ int Window::loop(SDL_Window *sdl_window)
         auto inspector = std::make_unique<InspectorClient>();
 
         _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
-        _device = std::make_unique<gfx::Device>(sdl_window);
+        _device = std::make_unique<bg::Device>(sdl_window);
         _device->initialize();
         _sdl_window = sdl_window;
 
