@@ -22,6 +22,6 @@ export class SkinnedMeshRenderer extends MeshRenderer {
     }
 
     override upload(commandBuffer: CommandBuffer): void {
-        this._skin?.upload(commandBuffer);
+        this._skin?.store.upload(commandBuffer);
     }
 }

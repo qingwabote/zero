@@ -2,7 +2,7 @@
 
 - [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
 - [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
-- [Skinning & Instancing](https://qingwabote.github.io/zero/projects/skin/web/index.html)
+- [Skinning & Instancing & baking](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 - [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
 - [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
@@ -27,7 +27,7 @@
 - 冯氏光照
 - 级联阴影
 - 动画混合 (一维)
-- 蒙皮动画
+- 蒙皮动画 (烘焙)
 - 场景剔除 (八叉树)
 - 骨骼动画 (spine)
 - 物理引擎 (ammo)

@@ -49,8 +49,6 @@ export class App extends Zero {
 
         const ground = primitive.createScene("Cube")!.children[0];
         let meshRenderer = ground.getComponent(MeshRenderer)!
-        const material = meshRenderer.materials![0];
-        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(0.5, 0.5, 0.5, 1));
         ground.visibility = VisibilityFlagBits.WORLD;
         let shape = ground.addComponent(BoxShape);
         let aabb = meshRenderer.bounds;

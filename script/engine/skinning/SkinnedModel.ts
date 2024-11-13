@@ -13,7 +13,7 @@ export class SkinnedModel extends Model {
     static readonly attributes: readonly Model.InstancedAttribute[] = [...Model.attributes, a_skin_index];
 
     get descriptorSet(): DescriptorSet {
-        return this._skin.descriptorSet;
+        return this._skin.store.descriptorSet;
     }
 
     constructor(transform: Transform, mesh: Mesh, materials: readonly Material[], private _skin: SkinInstance) {
@@ -22,7 +22,7 @@ export class SkinnedModel extends Model {
 
     override upload(attributes: Readonly<Record<string, MemoryView>>) {
         this._skin.update();
-        attributes[Model.a_model.location].add(this._skin.root.world_matrix)
         attributes[a_skin_index.location].addElement(this._skin.offset)
+        attributes[Model.a_model.location].add(this._skin.root.world_matrix)
     }
 }

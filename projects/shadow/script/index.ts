@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, Shader, SpriteFrame, SpriteRenderer, StrokeRenderer, TextRenderer, Vec3, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, scene, shaderLib, vec3, vec4 } from 'engine';
+import { Camera, DirectionalLight, GLTF, Input, Node, Pipeline, Shader, SkinnedAnimation, SpriteFrame, SpriteRenderer, StrokeRenderer, TextRenderer, Vec3, Zero, aabb3d, bundle as builtin, device, mat3, pipeline, scene, shaderLib, vec3, vec4 } from 'engine';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
@@ -85,7 +85,7 @@ export class App extends Zero {
             for (let j = 0; j < steps; j++) {
                 node = walkrun_and_idle.createScene("Sketchfab_Scene")!;
                 node.visibility = VisibilityFlagBits.WORLD;
-                const animation = node.addComponent(Animation);
+                const animation = node.addComponent(SkinnedAnimation);
                 animation.clips = walkrun_and_idle.proto.animationClips;
                 animation.play(animation.clips[j % 3].name);
                 node.position = vec3.transformMat3(origin, origin, stride);

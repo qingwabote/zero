@@ -70,8 +70,8 @@ export default class PolygonsRenderer extends Element {
                 let offset = 0;
                 for (let i = 0; i < polygon.vertexes.length; i++) {
                     const vertex = polygon.vertexes[i];
-                    vertexBuffer.source[offset++] = vertex.pos[0]
-                    vertexBuffer.source[offset++] = vertex.pos[1]
+                    vertexBuffer.set(vertex.pos, offset);
+                    offset += 2
                     vertexBuffer.set(vertex.uv, offset);
                     offset += 2
                 }

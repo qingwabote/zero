@@ -28,7 +28,7 @@ class SkinnedAnimationState extends AnimationState {
     }
 
     protected sample(time: number): void {
-        this._skin.baked = this.baked;
+        this._skin.store = this.baked ? this._skin.proto.baked : this._skin.proto.alive;
 
         if (this.baked) {
             const ratio = time / this.duration;
@@ -44,6 +44,8 @@ class SkinnedAnimationState extends AnimationState {
             } else {
                 this._skin.offset = offset;
             }
+        } else {
+            this._binding.sample(time);
         }
     }
 }

@@ -2,14 +2,17 @@ import { CommandBuffer } from "gfx";
 
 type TypedArray = Uint16Array | Uint32Array | Float32Array
 
-export abstract class MemoryView {
-    private readonly _length_default: number;
+type Source = {
+    [index: number]: number;
+    readonly length: number;
+}
 
+export abstract class MemoryView {
     get length(): number {
         return this._length;
     }
 
-    get source() {
+    get source(): Source {
         return this._source;
     }
 
@@ -17,10 +20,12 @@ export abstract class MemoryView {
         return this._source.BYTES_PER_ELEMENT;
     }
 
-    private _block: [TypedArray, number] = [undefined!, 0];
+    private _block: [Source, number] = [undefined!, 0];
 
     private _invalidated_start: number = Number.MAX_SAFE_INTEGER;
     private _invalidated_end: number = Number.MIN_SAFE_INTEGER;
+
+    private readonly _length_default: number;
 
     constructor(protected _source: TypedArray, private _length: number) {
         this._length_default = _length;
@@ -48,7 +53,7 @@ export abstract class MemoryView {
         this.setElement(element, offset);
     }
 
-    addBlock(length: number): readonly [TypedArray, number] {
+    addBlock(length: number): readonly [Source, number] {
         const offset = this._length;
         this.resize(offset + length);
         this.invalidate(offset, length);

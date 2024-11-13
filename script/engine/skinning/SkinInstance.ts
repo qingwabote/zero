@@ -1,4 +1,3 @@
-import { CommandBuffer } from "gfx";
 import { Mat4, mat4 } from "../core/math/mat4.js";
 import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
@@ -51,25 +50,21 @@ const toModelSpace = (function () {
 })()
 
 export class SkinInstance {
-    get descriptorSet() {
-        const store: Skin.JointStore = this.baked ? this.proto.baked : this.proto.alive;
-        return store.descriptorSet;
-    }
+    public store: Skin.JointStore;
 
     private _offset: Periodic = new Periodic(-1, -1);
-    get offset() {
+    public get offset() {
         return this._offset.value;
     }
-    set offset(value: number) {
+    public set offset(value: number) {
         this._offset.value = value;
     }
-
-    baked: boolean = true;
 
     private readonly _joints: readonly Transform[];
 
     constructor(readonly proto: Skin, readonly root: Transform) {
         this._joints = proto.joints.map(paths => root.getChildByPath(paths)!)
+        this.store = this.proto.alive;
     }
 
     update() {
@@ -77,9 +72,7 @@ export class SkinInstance {
             return;
         }
 
-        const store: Skin.JointStore = this.baked ? this.proto.baked : this.proto.alive;
-
-        const [source, offset] = store.add();
+        const [source, offset] = this.store.add();
 
         for (let i = 0; i < this._joints.length; i++) {
             mat4.multiply_affine(mat4_a, toModelSpace(this.root, this._joints[i]), this.proto.inverseBindMatrices[i]);
@@ -87,10 +80,5 @@ export class SkinInstance {
         }
 
         this._offset.value = offset / 4;
-    }
-
-    upload(commandBuffer: CommandBuffer) {
-        const store: Skin.JointStore = this.baked ? this.proto.baked : this.proto.alive;
-        store.upload(commandBuffer);
     }
 }

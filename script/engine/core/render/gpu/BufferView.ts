@@ -16,12 +16,13 @@ export class BufferView extends MemoryView {
         return this._buffer;
     }
 
-    constructor(private readonly _format: Format, usage: BufferUsageFlagBits, length: number = 0) {
-        super(new format2array[_format](length), length);
+    constructor(private readonly _format: Format, usage: BufferUsageFlagBits, length: number = 0, capacity: number = 0) {
+        const source = new format2array[_format](Math.max(capacity, length))
+        super(source, length);
 
         const info = new BufferInfo;
         info.usage = usage;
-        info.size = this._source.byteLength;
+        info.size = source.byteLength;
         this._buffer = device.createBuffer(info);
     }
 
