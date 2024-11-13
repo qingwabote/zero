@@ -1,11 +1,7 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, GeometryRenderer, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, bundle as builtin, device, mat3, render, scene, vec3, vec4 } from "engine";
+import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, device, mat3, pipeline, scene, vec3, vec4 } from "engine";
 import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
 import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
-
-const forward = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
-
-const gltf_guardian = await (await bundle.cache('guardian_zelda_botw_fan-art/scene', GLTF)).instantiate();
 
 enum VisibilityFlagBits {
     UP = 1 << 1,
@@ -14,9 +10,20 @@ enum VisibilityFlagBits {
     WORLD = 1 << 30
 }
 
+const [model, forward] = await Promise.all([
+    await (await bundle.once('guardian_zelda_botw_fan-art/scene', GLTF)).instantiate(undefined, function (params: GLTF.MaterialParams) {
+        const res = GLTF.materialFuncPhong(params);
+        if (params.index == 3 /* hair */) {
+            res.passes[1].rasterizationState = { cullMode: 'FRONT' };
+        }
+        return res
+    }),
+    await (await bundle.cache('pipelines/forward', Pipeline)).instantiate(VisibilityFlagBits)
+])
+
 const tree_bounds = aabb3d.create(vec3.create(0, 4, 0), vec3.create(14, 14, 14));
 
-function tree_cull(results: ModelTreeNode[], node: ModelTreeNode, frustum: Readonly<render.Frustum>, visibilities: number): ModelTreeNode[] {
+function tree_cull(results: ModelTreeNode[], node: ModelTreeNode, frustum: Readonly<scene.Frustum>, visibilities: number): ModelTreeNode[] {
     if (frustum.aabb_out(node.bounds)) {
         return results;
     }
@@ -61,10 +68,10 @@ class App extends Zero {
                 const pos = origins[i];
                 const rotation = mat3.fromYRotation(mat3.create(), Math.PI * 2 / num);
                 for (let i = 0; i < num; i++) {
-                    const guardian = gltf_guardian.createScene("Sketchfab_Scene")!;
+                    const guardian = model.createScene("Sketchfab_Scene")!;
                     const animation = guardian.addComponent(Animation);
-                    animation.clips = gltf_guardian.proto.animationClips;
-                    animation.play('WalkCycle')
+                    animation.clips = model.proto.animationClips;
+                    animation.play(animation.clips[0].name);
                     guardian.visibility = VisibilityFlagBits.WORLD;
                     guardian.position = vec3.transformMat3(pos, pos, rotation);
                 }
@@ -72,26 +79,25 @@ class App extends Zero {
         }
 
         if (debug) {
-            const debugDrawer = Node.build(GeometryRenderer);
-            debugDrawer.node.visibility = VisibilityFlagBits.DOWN;
+            const stroke = (this.pipeline.flows[0].stages[0].phases[1] as pipeline.StrokePhase).stroke;
 
-            this.pipeline.data.on(render.Data.Event.UPDATE, () => {
-                debugDrawer.clear();
+            this.pipeline.data.on(pipeline.Data.Event.UPDATE, () => {
+                stroke.clear();
 
                 if (this.pipeline.data.culling) {
                     if (this.scene.models instanceof scene.ModelTree) {
                         for (const node of tree_cull([], this.scene.models.root, up_camera.frustum, up_camera.visibilities)) {
-                            debugDrawer.drawAABB(node.bounds, vec4.ONE);
+                            stroke.aabb(node.bounds, vec4.GREEN);
                         }
                     } else {
-                        const models: render.Model[] = [];
-                        this.scene.models.culler(1)(models, up_camera.frustum, up_camera.visibilities)
+                        const models: scene.Model[] = [];
+                        this.scene.models.culler()(models, up_camera.frustum, up_camera.visibilities)
                         for (const model of models) {
-                            debugDrawer.drawAABB(model.bounds, vec4.ONE);
+                            stroke.aabb(model.bounds, vec4.GREEN);
                         }
                     }
 
-                    debugDrawer.drawFrustum(up_camera.frustum.vertices, vec4.ONE);
+                    stroke.frustum(up_camera.frustum.vertices, vec4.ONE);
                 }
             })
         }
@@ -157,7 +163,7 @@ class App extends Zero {
                         textRenderer.impl.text = 'TREE OFF';
                         textRenderer.impl.color = vec4.ONE;
                         this.scene.models = new scene.ModelArray(this.scene.models);
-                        this.pipeline.data.culling = new render.Culling;
+                        this.pipeline.data.culling = new pipeline.Culling;
                     },
                     () => {
                         textRenderer.impl.text = 'NONE';
@@ -169,7 +175,7 @@ class App extends Zero {
                         textRenderer.impl.text = 'TREE ON';
                         textRenderer.impl.color = vec4.GREEN;
                         this.scene.models = new scene.ModelTree(tree_bounds, this.scene.models);
-                        this.pipeline.data.culling = new render.Culling;
+                        this.pipeline.data.culling = new pipeline.Culling;
                     },
                 ]
                 let optionIndex = 0

@@ -1,3 +1,4 @@
+import { DeepReadonly } from "bastard";
 import { AABB2D, BoundedRenderer, Node, vec3 } from "engine";
 import { Element } from "./Element.js";
 import * as yoga from "./yoga/index.js";
@@ -16,7 +17,7 @@ export class Renderer<T extends BoundedRenderer> extends Element {
         return this.node.getComponent(BoundedRenderer) as T;
     }
 
-    override get bounds(): Readonly<AABB2D> {
+    override get bounds(): DeepReadonly<AABB2D> {
         return this.impl.bounds;
     }
 

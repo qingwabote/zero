@@ -1,28 +1,25 @@
 import { Mat3Like } from "./mat3.js";
 import { Mat4Like } from "./mat4.js";
 import { QuatLike } from "./quat.js";
-import { Vec2Like } from "./vec2.js";
 
 export type Vec3 = [number, number, number];
 
-export interface Vec3Like extends Vec2Like {
-    2: number;
-}
+export type Vec3Like = [number, number, number, ...number[]];
 
 function create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
     return [x, y, z]
 }
 
 export const vec3 = {
-    UNIT_X: Object.freeze(create(1, 0, 0)),
-    UNIT_Y: Object.freeze(create(0, 1, 0)),
-    UNIT_Z: Object.freeze(create(0, 0, 1)),
+    UNIT_X: create(1, 0, 0) as Readonly<Vec3>,
+    UNIT_Y: create(0, 1, 0) as Readonly<Vec3>,
+    UNIT_Z: create(0, 0, 1) as Readonly<Vec3>,
 
-    ZERO: Object.freeze(create(0, 0, 0)),
-    ONE: Object.freeze(create(1, 1, 1)),
+    ZERO: create(0, 0, 0) as Readonly<Vec3>,
+    ONE: create(1, 1, 1) as Readonly<Vec3>,
 
-    UP: Object.freeze(create(0, 1, 0)),
-    FORWARD: Object.freeze(create(0, 0, -1)),
+    UP: create(0, 1, 0) as Readonly<Vec3>,
+    FORWARD: create(0, 0, -1) as Readonly<Vec3>,
 
     create,
 
@@ -140,14 +137,14 @@ export const vec3 = {
         return out;
     },
 
-    min<Out extends Vec3Like>(out: Out, a: Vec3Like, b: Vec3Like) {
+    min<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
         out[0] = Math.min(a[0], b[0]);
         out[1] = Math.min(a[1], b[1]);
         out[2] = Math.min(a[2], b[2]);
         return out;
     },
 
-    max<Out extends Vec3Like>(out: Out, a: Vec3Like, b: Vec3Like) {
+    max<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
         out[0] = Math.max(a[0], b[0]);
         out[1] = Math.max(a[1], b[1]);
         out[2] = Math.max(a[2], b[2]);
@@ -163,7 +160,7 @@ export const vec3 = {
         }
     },
 
-    equals(a: Vec3Like, b: Vec3Like, epsilon = 0.000001) {
+    equals(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>, epsilon = 0.000001) {
         return (
             Math.abs(a[0] - b[0])
             <= epsilon * Math.max(1.0, Math.abs(a[0]), Math.abs(b[0]))

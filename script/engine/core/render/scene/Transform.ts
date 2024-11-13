@@ -4,7 +4,7 @@ import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
+import { Periodic } from "./Periodic.js";
 
 const vec3_a = vec3.create();
 const mat3_a = mat3.create();
@@ -138,8 +138,8 @@ export class Transform implements TRS {
         return this._parent;
     }
 
-    private _hasChangedFlag: PeriodicFlag = new PeriodicFlag(1);
-    get hasChangedFlag(): PeriodicFlag.Readonly {
+    private _hasChangedFlag = new Periodic(1, 0);
+    get hasChangedFlag(): Readonly<Periodic> {
         return this._hasChangedFlag;
     }
 
@@ -186,7 +186,7 @@ export class Transform implements TRS {
         while (i) {
             let cur = dirtyTransforms[--i];
             cur._world_invalidated = true;
-            cur._hasChangedFlag.reset(1);
+            cur._hasChangedFlag.value = 1;
             for (const child of cur._children) {
                 dirtyTransforms[i++] = child;
             }

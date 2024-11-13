@@ -10,7 +10,7 @@ export class Culling {
         return this._camera2view.get(camera)!
     }
 
-    cull(shadow: Shadow | null) {
+    update(shadow: Shadow | null) {
         const scene = Zero.instance.scene;
         for (const camera of scene.cameras) {
             let view = this._camera2view.get(camera);

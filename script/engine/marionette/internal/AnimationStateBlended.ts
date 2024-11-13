@@ -1,5 +1,5 @@
-import { AnimationState } from "./AnimationState.js";
-import { ClipBinging } from "./ClipBinging.js";
+import { AnimationState } from "../../animating/AnimationState.js";
+import { ClipBinging } from "../../animating/ClipBinging.js";
 
 interface Context {
     weight: number;

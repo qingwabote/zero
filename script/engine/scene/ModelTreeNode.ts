@@ -67,13 +67,7 @@ export class ModelTreeNode {
         if (this._depth < 8 - 1) {
             const child_min = vec3_a;
             const child_max = vec3_b;
-            // aabb3d.toExtremes(child_min, child_max, this.bounds);
-            child_min[0] = this.bounds.center[0] - this.bounds.halfExtent[0];
-            child_min[1] = this.bounds.center[1] - this.bounds.halfExtent[1];
-            child_min[2] = this.bounds.center[2] - this.bounds.halfExtent[2];
-            child_max[0] = this.bounds.center[0] + this.bounds.halfExtent[0];
-            child_max[1] = this.bounds.center[1] + this.bounds.halfExtent[1];
-            child_max[2] = this.bounds.center[2] + this.bounds.halfExtent[2];
+            aabb3d.toExtremes(child_min, child_max, this.bounds);
 
             const node_bounds = model.bounds;
 
@@ -99,13 +93,7 @@ export class ModelTreeNode {
 
             const model_min = vec3_c;
             const model_max = vec3_d;
-            // aabb3d.toExtremes(model_min, model_max, node_bounds);
-            model_min[0] = node_bounds.center[0] - node_bounds.halfExtent[0];
-            model_min[1] = node_bounds.center[1] - node_bounds.halfExtent[1];
-            model_min[2] = node_bounds.center[2] - node_bounds.halfExtent[2];
-            model_max[0] = node_bounds.center[0] + node_bounds.halfExtent[0];
-            model_max[1] = node_bounds.center[1] + node_bounds.halfExtent[1];
-            model_max[2] = node_bounds.center[2] + node_bounds.halfExtent[2];
+            aabb3d.toExtremes(model_min, model_max, node_bounds);
 
             if (contains(child_min, child_max, model_min) && contains(child_min, child_max, model_max)) {
                 let child = this._children.get(child_index);

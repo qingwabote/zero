@@ -11,12 +11,7 @@ export type Mat3 = [
     number, number, number
 ]
 
-export type Mat3Like = {
-    0: number; 1: number; 2: number;
-    3: number; 4: number; 5: number;
-    6: number; 7: number; 8: number;
-    readonly length: 9;
-}
+export type Mat3Like = Mat3;
 
 function set<Out extends Mat3Like>(
     out: Out,
@@ -73,7 +68,7 @@ export const mat3 = {
      * @param view The view(z-axis) direction, it's must be normalized.
      * @param up The up direction, it's must be normalized, default value is (0, 1, 0).
      */
-    fromViewUp<Out extends Mat3Like>(out: Out, view: Vec3Like, up: Vec3Like = vec3.UP) {
+    fromViewUp<Out extends Mat3Like>(out: Out, view: Vec3Like, up: Readonly<Vec3Like> = vec3.UP) {
         const EPSILON = 0.000001;
 
         if (vec3.lengthSqr(view) < EPSILON * EPSILON) {

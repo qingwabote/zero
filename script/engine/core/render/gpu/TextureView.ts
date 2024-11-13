@@ -38,14 +38,18 @@ export class TextureView extends MemoryView {
         return old;
     }
 
-    protected override upload(commandBuffer: CommandBuffer) {
+    protected override upload(commandBuffer: CommandBuffer, offset: number, length: number) {
         const extent = length2extent(this.length);
         let width = this._texture.info.width;
         if (width < extent) {
             this._texture.resize(extent, extent);
             width = extent;
+            offset = 0;
+            length = this.length;
         }
-        const height = Math.ceil(Math.ceil(this.length / 4) / width);
-        commandBuffer.copyBufferToTexture(this._source, this._texture, 0, 0, width, height);
+
+        const row_start = Math.floor(Math.floor(offset / 4) / width);
+        const row_end = Math.ceil(Math.ceil((offset + length) / 4) / width);
+        commandBuffer.copyBufferToTexture(this._source, row_start * width * 4, this._texture, 0, row_start, width, row_end - row_start);
     }
 }

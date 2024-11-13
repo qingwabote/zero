@@ -1,9 +1,10 @@
 import { device } from "boot";
-import { Buffer, BufferInfo, BufferUsageFlagBits } from "gfx";
+import { Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer } from "gfx";
 import { MemoryView } from "./MemoryView.js";
 
 const format2array = {
     Uint16: Uint16Array,
+    Uint32: Uint32Array,
     Float32: Float32Array
 } as const
 
@@ -15,12 +16,13 @@ export class BufferView extends MemoryView {
         return this._buffer;
     }
 
-    constructor(private readonly _format: Format, usage: BufferUsageFlagBits, length: number = 0) {
-        super(new format2array[_format](length), length);
+    constructor(private readonly _format: Format, usage: BufferUsageFlagBits, length: number = 0, capacity: number = 0) {
+        const source = new format2array[_format](Math.max(capacity, length))
+        super(source, length);
 
         const info = new BufferInfo;
         info.usage = usage;
-        info.size = this._source.byteLength;
+        info.size = source.byteLength;
         this._buffer = device.createBuffer(info);
     }
 
@@ -33,11 +35,13 @@ export class BufferView extends MemoryView {
         return old;
     }
 
-    protected override upload() {
+    protected override upload(commandBuffer: CommandBuffer, offset: number, length: number) {
         const bytes = this.length * this._source.BYTES_PER_ELEMENT;
         if (this._buffer.info.size < bytes) {
             this._buffer.resize(bytes);
+            offset = 0;
+            length = this.length;
         }
-        this._buffer.update(this._source, 0, this.length);
+        this._buffer.update(this._source, offset, length);
     }
 }

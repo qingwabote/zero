@@ -1,9 +1,7 @@
-import { CommandBuffer, RenderPass } from "gfx";
-import { Context } from "./Context.js";
-import { Profile } from "./Profile.js";
+import { Context } from "../Context.js";
+import { BatchQueue } from "./BatchQueue.js";
 
 export abstract class Phase {
-    constructor(protected _context: Context, readonly visibility: number) { }
-    abstract update(commandBuffer: CommandBuffer): void;
-    abstract render(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass): void;
+    constructor(readonly visibility: number) { }
+    abstract batch(out: BatchQueue, context: Context, cameraIndex: number): void;
 }

@@ -1,134 +1,93 @@
-import { device } from "boot";
-import { CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorSetLayoutInfo, InputAssembler, Pipeline, RenderPass, VertexAttribute, VertexInput } from "gfx";
-import { Zero } from "../../core/Zero.js";
+import { CachedFactory, empty } from "bastard";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute } from "gfx";
+import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
-import { Context } from "../../core/render/pipeline/Context.js";
+import { Batch } from "../../core/render/pipeline/Batch.js";
+import { BatchQueue } from "../../core/render/pipeline/BatchQueue.js";
+import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
-import { PeriodicFlag } from "../../core/render/scene/PeriodicFlag.js";
+import { Periodic } from "../../core/render/scene/Periodic.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
-import { shaderLib } from "../../core/shaderLib.js";
+import { gfxUtil } from "../../gfxUtil.js";
 
-const inputAssembler_clone = (function () {
-    function vertexInput_clone(out: VertexInput, vertexInput: VertexInput): VertexInput {
-        const buffers = vertexInput.buffers;
-        const buffers_size = buffers.size();
-        for (let i = 0; i < buffers_size; i++) {
-            out.buffers.add(buffers.get(i));
-        }
+class InstancedBatch implements Batch {
+    readonly attributes: Readonly<Record<string, MemoryView>>;
 
-        const offsets = vertexInput.offsets;
-        const offsets_size = offsets.size();
-        for (let i = 0; i < offsets_size; i++) {
-            out.offsets.add(offsets.get(i));
-        }
-
-        return out;
+    private _uploadFlag: Periodic = new Periodic(0, 0);
+    get uploaded(): boolean {
+        return this._uploadFlag.value != 0;
     }
 
-    return function (inputAssembler: InputAssembler): InputAssembler {
-        const out = new InputAssembler;
-
-        const vertexAttributes = inputAssembler.vertexInputState.attributes;
-        const size = vertexAttributes.size();
-        for (let i = 0; i < size; i++) {
-            out.vertexInputState.attributes.add(vertexAttributes.get(i));
-        }
-        out.vertexInputState.primitive = inputAssembler.vertexInputState.primitive;
-
-        vertexInput_clone(out.vertexInput, inputAssembler.vertexInput);
-
-        if (inputAssembler.indexInput) {
-            out.indexInput = inputAssembler.indexInput;
-        }
-
-        return out;
-    }
-})()
-
-const descriptorSetLayoutNull = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
-
-class InstanceBatch {
-    private _count = 0;
+    readonly inputAssembler: InputAssembler;
+    readonly draw: Readonly<SubMesh.Draw>;
+    private _countFlag: Periodic = new Periodic(0, 0);
     get count(): number {
-        return this._count;
+        return this._countFlag.value;
     }
+    readonly descriptorSetLayout: DescriptorSetLayout | undefined;
 
-    private _lockFlag = new PeriodicFlag();
-    get locked(): boolean {
-        return this._lockFlag.value != 0;
+    constructor(subMesh: SubMesh, attributes: readonly Model.InstancedAttribute[], readonly descriptorSet?: DescriptorSet) {
+        const ia = gfxUtil.cloneInputAssembler(subMesh.inputAssembler);
+        const attributeViews: Record<string, BufferView> = {};
+        for (const attr of attributes) {
+            const attribute = new VertexAttribute;
+            attribute.location = attr.location;
+            attribute.format = attr.format;
+            attribute.multiple = attr.multiple || 1;
+            attribute.buffer = ia.vertexInput.buffers.size();
+            attribute.instanced = true;
+            ia.vertexInputState.attributes.add(attribute);
+
+            let view: BufferView;
+            switch (attr.format) {
+                case Format.R16_UINT:
+                    view = new BufferView('Uint16', BufferUsageFlagBits.VERTEX);
+                    break;
+                case Format.R32_UINT:
+                    view = new BufferView('Uint32', BufferUsageFlagBits.VERTEX);
+                    break;
+                case Format.RGBA32_SFLOAT:
+                    view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+                    break;
+                default:
+                    throw new Error(`unsupported attribute format: ${attr.format}`);
+            }
+            ia.vertexInput.buffers.add(view.buffer);
+            ia.vertexInput.offsets.add(0);
+            attributeViews[attr.location] = view;
+        }
+        this.attributes = attributeViews;
+
+        this.inputAssembler = ia;
+        this.draw = subMesh.draw;
+        this.descriptorSetLayout = descriptorSet?.layout;
     }
-
-    constructor(readonly inputAssembler: InputAssembler, readonly draw: Readonly<SubMesh.Draw>, readonly vertexes: BufferView, readonly descriptorSetLayout: DescriptorSetLayout = descriptorSetLayoutNull, readonly descriptorSet?: DescriptorSet, readonly uniforms?: Readonly<Record<string, MemoryView>>) { }
 
     next() {
-        this._count++;
+        this._countFlag.value++;
     }
 
     upload(commandBuffer: CommandBuffer): void {
-        this.vertexes.update(commandBuffer);
-        for (const key in this.uniforms) {
-            this.uniforms[key].update(commandBuffer);
+        for (const key in this.attributes) {
+            this.attributes[key].update(commandBuffer);
         }
+        this._uploadFlag.value = 1;
     }
 
-    recycle(): void {
-        this.vertexes.reset();
-        for (const key in this.uniforms) {
-            this.uniforms[key].reset();
+    reset(): void {
+        for (const key in this.attributes) {
+            this.attributes[key].reset();
         }
-        this._count = 0;
-        this._lockFlag.reset(1);
     }
 }
 
-const batchCache = (function () {
-    const subMesh2batches: WeakMap<SubMesh, InstanceBatch[]> = new WeakMap;
-    const batch2pass: WeakMap<InstanceBatch, Pass> = new WeakMap;
-    return function (pass: Pass, model: Model, subMeshIndex: number): InstanceBatch {
-        const subMesh = model.mesh.subMeshes[subMeshIndex];
-        let batches = subMesh2batches.get(subMesh);
-        if (!batches) {
-            subMesh2batches.set(subMesh, batches = []);
-        }
-        let batch: InstanceBatch | undefined;
-        for (const b of batches) {
-            if (b.locked) {
-                continue;
-            }
-            const p = batch2pass.get(b);
-            if (p && p != pass) {
-                continue;
-            }
-            batch = b;
-            break;
-        }
-        if (!batch) {
-            const ia = inputAssembler_clone(subMesh.inputAssembler);
-            const info = model.batch();
-            for (const attr of info.attributes) {
-                const attribute = new VertexAttribute;
-                attribute.location = attr.location;
-                attribute.format = attr.format;
-                attribute.offset = attr.offset;
-                attribute.multiple = attr.multiple;
-                attribute.buffer = ia.vertexInput.buffers.size();
-                attribute.instanced = true;
-                ia.vertexInputState.attributes.add(attribute);
-            }
-            ia.vertexInput.buffers.add(info.vertexes.buffer);
-            ia.vertexInput.offsets.add(0);
+const cache_keys: [SubMesh, DescriptorSet] = [undefined!, undefined!];
 
-            batch = new InstanceBatch(ia, subMesh.draw, info.vertexes, info.descriptorSet?.layout, info.descriptorSet, info.uniforms);
-            batches.push(batch);
-            batch2pass.set(batch, pass);
-        }
-        return batch;
-    }
-})();
+const cache: CachedFactory<typeof cache_keys, InstancedBatch[]> = new CachedFactory(function () { return []; }, true)
 
 function compareModel(a: Model, b: Model) {
     return a.order - b.order;
@@ -137,34 +96,30 @@ function compareModel(a: Model, b: Model) {
 type Culling = 'View' | 'CSM';
 
 export class ModelPhase extends Phase {
-    private _pb_buffer: [Pass, InstanceBatch][] = [];
-    private _pb_count: number = 0;
-
     constructor(
-        context: Context,
         visibility: number,
-        public culling: Culling = 'View',
+        private readonly _flowLoopIndex: number,
+        private readonly _data: Data,
+        private readonly _culling: Culling = 'View',
         /**The model type that indicates which models should run in this phase */
-        private _model = 'default',
+        private readonly _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
-        private _pass = 'default',
+        private readonly _pass = 'default',
     ) {
-        super(context, visibility);
+        super(visibility);
     }
 
-    update(commandBuffer: CommandBuffer): void {
-        const data = Zero.instance.pipeline.data;
-
+    batch(out: BatchQueue, context: Context, cameraIndex: number): void {
         let models: Iterable<Model>;
-        switch (this.culling) {
+        switch (this._culling) {
             case 'View':
-                models = data.culling?.getView(data.current_camera).camera || Zero.instance.scene.models;
+                models = this._data.culling?.getView(context.scene.cameras[cameraIndex]).camera || context.scene.models;
                 break;
             case 'CSM':
-                models = data.culling?.getView(data.current_camera).shadow[data.flowLoopIndex] || Zero.instance.scene.models;
+                models = this._data.culling?.getView(context.scene.cameras[cameraIndex]).shadow[this._flowLoopIndex] || context.scene.models;
                 break;
             default:
-                throw new Error(`unsupported culling: ${this.culling}`);
+                throw new Error(`unsupported culling: ${this._culling}`);
         }
 
         const modelQueue: Model[] = [];
@@ -175,9 +130,9 @@ export class ModelPhase extends Phase {
         }
         modelQueue.sort(compareModel);
 
-        this._pb_count = 0;
-        const pass2batches: Map<Pass, InstanceBatch[]> = new Map;
-        let pass2batches_order: number = 0;
+        let pass2batches = out.push();
+        let pass2batches_order: number = 0; // The models with smaller order value will be draw first, but the models with the same order value may not be draw by their access order for better batching 
+        const batch2pass: Map<InstancedBatch, Pass> = new Map;
         for (const model of modelQueue) {
             const diff = model.order - pass2batches_order;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
@@ -192,24 +147,21 @@ export class ModelPhase extends Phase {
 
                     if (diff) {
                         const batches = pass2batches.get(pass);
-                        if (diff == 1 && batches) {
+                        if (diff == 1 && batches) { // moving to next 
                             pass2batches.delete(pass);
                         }
 
+                        context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
                         for (const [pass, batches] of pass2batches) {
+                            pass.upload(context.commandBuffer);
                             for (const batch of batches) {
-                                if (this._pb_buffer.length > this._pb_count) {
-                                    this._pb_buffer[this._pb_count][0] = pass
-                                    this._pb_buffer[this._pb_count][1] = batch
-                                } else {
-                                    this._pb_buffer.push([pass, batch]);
-                                }
-                                this._pb_count++;
+                                (batch as InstancedBatch).upload(context.commandBuffer);
                             }
                         }
-                        pass2batches.clear();
+                        context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
+                        pass2batches = out.push();
 
-                        if (diff == 1 && batches) {
+                        if (diff == 1 && batches) { // moved to next
                             pass2batches.set(pass, batches);
                         }
                     }
@@ -219,76 +171,50 @@ export class ModelPhase extends Phase {
                         pass2batches.set(pass, batches = []);
                     }
 
-                    const batch = batchCache(pass, model, i);
+                    let batch: InstancedBatch | undefined;
+                    cache_keys[0] = model.mesh.subMeshes[i];
+                    cache_keys[1] = model.descriptorSet || empty.obj as DescriptorSet;
+                    const bucket = cache.get(cache_keys);
+                    for (const bat of bucket) {
+                        if (bat.uploaded) {
+                            continue;
+                        }
+
+                        const p = batch2pass.get(bat);
+                        if (p && p != pass) {
+                            continue;
+                        }
+
+                        batch = bat;
+                        break;
+                    }
+                    if (!batch) {
+                        batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, model.descriptorSet);
+                        bucket.push(batch);
+                    }
                     if (batch.count == 0) {
+                        batch.reset();
                         batches.push(batch);
                     }
-                    model.batchFill(batch.vertexes, batch.uniforms)
+                    model.upload(batch.attributes)
                     batch.next();
+                    batch2pass.set(batch, pass);
                 }
             }
 
             pass2batches_order = model.order;
         }
+        context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
         for (const [pass, batches] of pass2batches) {
+            pass.upload(context.commandBuffer);
             for (const batch of batches) {
-                if (this._pb_buffer.length > this._pb_count) {
-                    this._pb_buffer[this._pb_count][0] = pass
-                    this._pb_buffer[this._pb_count][1] = batch
-                } else {
-                    this._pb_buffer.push([pass, batch]);
-                }
-                this._pb_count++;
+                (batch as InstancedBatch).upload(context.commandBuffer);
             }
         }
-        for (let i = 0; i < this._pb_count; i++) {
-            const [pass, batch] = this._pb_buffer[i];
-            pass.upload(commandBuffer);
-            batch.upload(commandBuffer);
-        }
-    }
-
-    render(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
-        let current_pass: Pass | undefined;
-        let current_pipeline: Pipeline | undefined;
-        for (let i = 0; i < this._pb_count; i++) {
-            const [pass, batch] = this._pb_buffer[i];
-            if (current_pass != pass) {
-                if (pass.descriptorSet) {
-                    commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
-                }
-                current_pass = pass;
-
-                profile.passes++;
-            }
-
-            if (batch.descriptorSet) {
-                commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.descriptorSet);
-            }
-
-            const pipeline = this._context.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout]);
-            if (current_pipeline != pipeline) {
-                commandBuffer.bindPipeline(pipeline);
-                current_pipeline = pipeline;
-
-                profile.pipelines++;
-            }
-
-            commandBuffer.bindInputAssembler(batch.inputAssembler);
-
-            if (batch.inputAssembler.indexInput) {
-                commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
-            } else {
-                commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
-            }
-            profile.draws++;
-
-            batch.recycle();
-        }
+        context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
     }
 }
-ModelPhase.InstanceBatch = InstanceBatch;
 
 export declare namespace ModelPhase {
-    export { Culling, InstanceBatch }
+    export { Culling }
 }

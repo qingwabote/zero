@@ -14,8 +14,12 @@ function merge<T extends {}, U, V, W>(target: T, source1: U, source2: V, source3
 function merge(target: any, ...sources: any[]): any {
     for (const source of sources) {
         for (const key in source) {
-            if (target[key] != undefined && Object.getPrototypeOf(target[key]) == Object.prototype) {
-                merge(target[key], source[key])
+            if (source[key] == undefined) {
+                continue;
+            }
+
+            if (Object.getPrototypeOf(source[key]) == Object.prototype /* plain object */) {
+                merge(target[key] ? target[key] : target[key] = {}, source[key])
             } else {
                 target[key] = source[key];
             }
@@ -70,7 +74,7 @@ function gfx_BlendFactor(factor: BlendFactor): gfx.BlendFactor {
     if (factor in gfx.BlendFactor) {
         return gfx.BlendFactor[factor];
     }
-    throw `unsupported factor: ${factor}`;
+    throw new Error(`unsupported factor: ${factor}`);
 }
 
 const getPass = (function () {
@@ -131,7 +135,7 @@ export class Effect extends Yml {
                         if (info.rasterizationState.cullMode in gfx.CullMode) {
                             rasterization.cullMode = gfx.CullMode[info.rasterizationState.cullMode];
                         } else {
-                            throw `unsupported cullMode: ${info.rasterizationState?.cullMode}`;
+                            throw new Error(`unsupported cullMode: ${info.rasterizationState?.cullMode}`);
                         }
                     } else {
                         rasterization.cullMode = gfx.CullMode.BACK;

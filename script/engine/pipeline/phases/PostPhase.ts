@@ -1,25 +1,17 @@
-import { CommandBuffer, RenderPass } from "gfx";
-import { Context } from "../../core/render/pipeline/Context.js";
+import { Batch } from "../../core/render/pipeline/Batch.js";
+import { BatchQueue } from "../../core/render/pipeline/BatchQueue.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
-import { Profile } from "../../core/render/pipeline/Profile.js";
 import { quad } from "../../core/render/quad.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 
-const inputAssembler = quad.createInputAssembler(quad.createVertexBuffer(2, 2, true));
+const batches: Batch[] = [{ inputAssembler: quad.createInputAssembler(quad.createVertexBuffer(2, 2, true)), draw: { count: 6, first: 0 }, count: 1 }]
 
 export class PostPhase extends Phase {
-    constructor(context: Context, private _passState: Pass.State, visibility: number) {
-        super(context, visibility);
+    constructor(private readonly _pass: Pass, visibility: number) {
+        super(visibility);
     }
 
-    update(commandBuffer: CommandBuffer): void { }
-
-    render(profile: Profile, commandBuffer: CommandBuffer, renderPass: RenderPass) {
-        const pipeline = this._context.getPipeline(this._passState, inputAssembler.vertexInputState, renderPass);
-        commandBuffer.bindPipeline(pipeline);
-        commandBuffer.bindInputAssembler(inputAssembler);
-        commandBuffer.drawIndexed(6, 0, 1)
-        profile.draws++;
-        profile.passes++;
+    batch(out: BatchQueue): void {
+        out.push().set(this._pass, batches);
     }
 }

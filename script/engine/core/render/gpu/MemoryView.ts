@@ -1,15 +1,18 @@
 import { CommandBuffer } from "gfx";
 
-type TypedArray = Uint16Array | Float32Array
+type TypedArray = Uint16Array | Uint32Array | Float32Array
+
+type Source = {
+    [index: number]: number;
+    readonly length: number;
+}
 
 export abstract class MemoryView {
-    private readonly _length_default: number;
-
     get length(): number {
         return this._length;
     }
 
-    get source() {
+    get source(): Source {
         return this._source;
     }
 
@@ -17,15 +20,25 @@ export abstract class MemoryView {
         return this._source.BYTES_PER_ELEMENT;
     }
 
-    protected _invalidated: boolean = false;
+    private _block: [Source, number] = [undefined!, 0];
+
+    private _invalidated_start: number = Number.MAX_SAFE_INTEGER;
+    private _invalidated_end: number = Number.MIN_SAFE_INTEGER;
+
+    private readonly _length_default: number;
 
     constructor(protected _source: TypedArray, private _length: number) {
         this._length_default = _length;
     }
 
-    set(array: ArrayLike<number>, offset?: number) {
+    set(array: ArrayLike<number>, offset: number = 0) {
         this._source.set(array, offset);
-        this.invalidate();
+        this.invalidate(offset, array.length);
+    }
+
+    setElement(element: number, offset: number = 0) {
+        this._source[offset] = element;
+        this.invalidate(offset, 1);
     }
 
     add(array: ArrayLike<number>) {
@@ -34,8 +47,25 @@ export abstract class MemoryView {
         this.set(array, offset);
     }
 
-    invalidate() {
-        this._invalidated = true;
+    addElement(element: number) {
+        const offset = this._length;
+        this.resize(this._length + 1);
+        this.setElement(element, offset);
+    }
+
+    addBlock(length: number): readonly [Source, number] {
+        const offset = this._length;
+        this.resize(offset + length);
+        this.invalidate(offset, length);
+
+        this._block[0] = this._source;
+        this._block[1] = offset;
+        return this._block;
+    }
+
+    invalidate(offset: number, length: number) {
+        this._invalidated_start = Math.min(offset, this._invalidated_start);
+        this._invalidated_end = Math.max(offset + length, this._invalidated_end);
     }
 
     reset(length: number = this._length_default) {
@@ -54,16 +84,18 @@ export abstract class MemoryView {
     shrink() { }
 
     update(commandBuffer: CommandBuffer) {
-        if (!this._invalidated) {
+        const length = this._invalidated_end - this._invalidated_start;
+        if (length < 1) {
             return;
         }
 
-        this.upload(commandBuffer);
+        this.upload(commandBuffer, this._invalidated_start, length);
 
-        this._invalidated = false;
+        this._invalidated_start = Number.MAX_SAFE_INTEGER
+        this._invalidated_end = Number.MIN_SAFE_INTEGER;;
     }
 
-    protected abstract upload(commandBuffer: CommandBuffer): void;
+    protected abstract upload(commandBuffer: CommandBuffer, offset: number, length: number): void;
 
     public abstract reserve(capacity: number): TypedArray | null;
 }

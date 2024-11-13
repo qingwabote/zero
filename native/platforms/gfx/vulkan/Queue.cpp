@@ -50,13 +50,13 @@ namespace gfx
     void Queue::present(const std::shared_ptr<Semaphore> &c_waitSemaphore)
     {
         VkPresentInfoKHR presentInfo = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
-        auto swapchain = _impl->_device->swapchain();
+        VkSwapchainKHR swapchain = *_impl->_device->swapchain();
         presentInfo.pSwapchains = &swapchain;
         presentInfo.swapchainCount = 1;
         VkSemaphore waitSemaphore = *c_waitSemaphore->impl;
         presentInfo.pWaitSemaphores = &waitSemaphore;
         presentInfo.waitSemaphoreCount = 1;
-        auto swapchainImageIndex = _impl->_device->swapchainImageIndex();
+        auto swapchainImageIndex = _impl->_device->swapchain()->imageIndex();
         presentInfo.pImageIndices = &swapchainImageIndex;
         vkQueuePresentKHR(*_impl, &presentInfo);
     }

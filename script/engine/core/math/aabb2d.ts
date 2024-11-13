@@ -1,3 +1,4 @@
+import { DeepReadonly } from "bastard";
 import { vec2, Vec2Like } from "./vec2.js";
 
 const vec2_a = vec2.create();
@@ -26,7 +27,7 @@ export const aabb2d = {
         return out;
     },
 
-    toExtremes(min: Vec2Like, max: Vec2Like, a: Readonly<AABB2D>) {
+    toExtremes(min: Vec2Like, max: Vec2Like, a: DeepReadonly<AABB2D>) {
         vec2.subtract(min, a.center, a.halfExtent);
         vec2.add(max, a.center, a.halfExtent);
     },
@@ -52,7 +53,7 @@ export const aabb2d = {
         return this.fromExtremes(out, vec2_c, vec2_d);
     },
 
-    contains(a: Readonly<AABB2D>, point: Vec2Like) {
+    contains(a: DeepReadonly<AABB2D>, point: Readonly<Vec2Like>) {
         const min = vec2_a;
         const max = vec2_b;
         this.toExtremes(min, max, a);

@@ -45,11 +45,11 @@ export class CommandBuffer {
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    copyBufferToTexture(buffer: ArrayBufferView, texture: Texture, offset_x: number, offset_y: number, extent_x: number, extent_y: number): void {
+    copyBufferToTexture(buffer: ArrayBufferView, offset: number, texture: Texture, offset_x: number, offset_y: number, extent_x: number, extent_y: number): void {
         const gl = this._gl;
         const format = Formats[texture.info.format];
         gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, offset_x, offset_y, extent_x, extent_y, format.format, format.type, buffer);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, offset_x, offset_y, extent_x, extent_y, format.format, format.type, buffer, offset);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
@@ -166,27 +166,29 @@ export class CommandBuffer {
                             type = gl.UNSIGNED_BYTE;
                             isInteger = true;
                             break;
+                        case Format.R16_UINT:
                         case Format.RGBA16_UINT:
                             type = gl.UNSIGNED_SHORT;
                             isInteger = true;
                             break;
+                        case Format.R32_UINT:
                         case Format.RGBA32_UINT:
                             type = gl.UNSIGNED_INT;
                             isInteger = true;
                             break;
                         default:
-                            throw 'unsupported vertex type';
+                            throw new Error('unsupported vertex type');
                     }
                     if (isInteger) {
                         gl.vertexAttribIPointer(
                             location,
-                            formatInfo.nums,
+                            formatInfo.elements,
                             type,
                             stride, bufferOffset + offset);
                     } else {
                         gl.vertexAttribPointer(
                             location,
-                            formatInfo.nums,
+                            formatInfo.elements,
                             type,
                             false,
                             stride,
@@ -226,7 +228,7 @@ export class CommandBuffer {
                 mode = gl.TRIANGLES;
                 break;
             default:
-                throw `unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`
+                throw new Error(`unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`)
         }
 
         gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);

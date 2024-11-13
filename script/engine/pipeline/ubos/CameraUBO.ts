@@ -1,5 +1,5 @@
-import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
-import { Zero } from "../../core/Zero.js";
+import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Camera } from "../../core/render/scene/Camera.js";
@@ -36,28 +36,28 @@ export class CameraUBO extends UBO {
         return BlockSize
     }
 
-    override get dynamicOffset(): number {
-        return UBO.align(BlockSize) * this._data.cameraIndex
+    override dynamicOffset(context: Context, cameraIndex: number): number {
+        return UBO.align(BlockSize) * cameraIndex;
     };
 
-    update(commandBuffer: CommandBuffer, dumping: boolean): void {
-        const size = UBO.align(BlockSize);
-        const cameras = Zero.instance.scene.cameras;
+    upload(context: Context, dumping: boolean): void {
+        const cameras = context.scene.cameras;
 
+        const size = UBO.align(BlockSize);
         this._view.resize(size * cameras.length / this._view.BYTES_PER_ELEMENT);
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
-            const offset = (size / this._view.source.BYTES_PER_ELEMENT) * i;
-            if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.VIEW))) {
+            const offset = (size / this._view.BYTES_PER_ELEMENT) * i;
+            if (dumping || (camera.hasChangedFlag.value & Camera.ChangeBit.VIEW) != 0) {
                 this._view.set(camera.view, offset + Block.members.view.offset);
             }
-            if (dumping || (camera.hasChangedFlag.hasBit(Camera.ChangeBit.PROJ))) {
+            if (dumping || (camera.hasChangedFlag.value & Camera.ChangeBit.PROJ) != 0) {
                 this._view.set(camera.proj, offset + Block.members.projection.offset);
             }
             if (dumping || (camera.transform.hasChangedFlag.value)) {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }
-        this._view.update(commandBuffer);
+        this._view.update(context.commandBuffer);
     }
 }

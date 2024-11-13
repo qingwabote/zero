@@ -1,21 +1,18 @@
-import { Vec3Like } from "./vec3.js";
 
 export type Vec4 = [number, number, number, number];
 
-export interface Vec4Like extends Vec3Like {
-    3: number;
-}
+export type Vec4Like = [number, number, number, number, ...number[]];
 
 function create(x = 0, y = 0, z = 0, w = 0): Vec4 {
     return [x, y, z, w];
 }
 
 export const vec4 = {
-    ZERO: Object.freeze(create(0, 0, 0, 0)),
-    ONE: Object.freeze(create(1, 1, 1, 1)),
-    RED: Object.freeze(create(1, 0, 0, 1)),
-    GREEN: Object.freeze(create(0, 1, 0, 1)),
-    YELLOW: Object.freeze(create(1, 1, 0, 1)),
+    ZERO: create(0, 0, 0, 0) as Readonly<Vec4>,
+    ONE: create(1, 1, 1, 1) as Readonly<Vec4>,
+    RED: create(1, 0, 0, 1) as Readonly<Vec4>,
+    GREEN: create(0, 1, 0, 1) as Readonly<Vec4>,
+    YELLOW: create(1, 1, 0, 1) as Readonly<Vec4>,
 
     create,
 

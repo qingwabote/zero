@@ -3,11 +3,12 @@ import { bundle } from "bundling";
 import * as gfx from "gfx";
 import { Vec2 } from "../core/math/vec2.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import * as render from '../core/render/index.js';
+import * as render from "../core/render/index.js";
 import { Data } from "../core/render/pipeline/Data.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import * as pipeline from "../pipeline/index.js";
+import { Pass } from "../scene/Pass.js";
 import { Shader } from "./Shader.js";
 import { Yml } from "./internal/Yml.js";
 
@@ -29,6 +30,9 @@ interface OutlinePhase extends PhaseBase {
 interface CopyPhase extends PhaseBase {
     type: 'copy';
 }
+interface StrokePhase extends PhaseBase {
+    type: 'stroke'
+}
 
 const phaseFactory = (function () {
     const blendState = new gfx.BlendState;
@@ -38,23 +42,26 @@ const phaseFactory = (function () {
     blendState.dstAlpha = gfx.BlendFactor.ONE_MINUS_SRC_ALPHA;
 
     return {
-        model: async function (info: ModelPhase, context: render.Context, visibility: number): Promise<render.Phase> {
-            return new pipeline.ModelPhase(context, visibility, info.culling, info.model, info.pass);
+        model: async function (info: ModelPhase, visibility: number, flowLoopIndex: number, data: Data): Promise<pipeline.Phase> {
+            return new pipeline.ModelPhase(visibility, flowLoopIndex, data, info.culling, info.model, info.pass);
         },
-        fxaa: async function (info: FxaaPhase, context: render.Context, visibility: number): Promise<render.Phase> {
+        fxaa: async function (info: FxaaPhase, visibility: number): Promise<pipeline.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
+            return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
-        outline: async function (info: OutlinePhase, context: render.Context, visibility: number): Promise<render.Phase> {
+        outline: async function (info: OutlinePhase, visibility: number): Promise<pipeline.Phase> {
             const shaderAsset = await bundle.cache('shaders/outline', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
+            return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
         },
-        copy: async function (info: CopyPhase, context: render.Context, visibility: number): Promise<render.Phase> {
+        copy: async function (info: CopyPhase, visibility: number): Promise<pipeline.Phase> {
             const shaderAsset = await bundle.cache('shaders/copy', Shader);
             const shader = shaderLib.getShader(shaderAsset);
-            return new pipeline.PostPhase(context, { shader, blendState }, visibility);
+            return new pipeline.PostPhase(new Pass({ shader, blendState }), visibility);
+        },
+        stroke: async function (info: StrokePhase, visibility: number): Promise<pipeline.Phase> {
+            return new pipeline.StrokePhase(visibility);
         },
     } as const;
 })()
@@ -129,13 +136,13 @@ interface TextureBinding extends Binding {
     filter?: string
 }
 
-interface FlowLoop {
-    bindings?: (UBOBinding | TextureBinding)[];
+interface _Flow {
     stages?: Stage[];
 }
 
-interface Flow extends FlowLoop {
-    loops?: FlowLoop[]
+interface Flow extends _Flow {
+    bindings?: (UBOBinding | TextureBinding)[];
+    loops?: _Flow[]
 }
 
 type UBO = CameraUBO | LightUBO | CSMIUBO | CSMUBO
@@ -177,7 +184,7 @@ export class Pipeline extends Yml {
             }
         }
 
-        const uboMap: Map<keyof typeof uboFactory, render.UBO> = new Map;
+        const uboMap: Map<keyof typeof uboFactory, pipeline.UBO> = new Map;
         if (this._info.ubos) {
             for (const ubo of this._info.ubos) {
                 uboMap.set(ubo.type, uboFactory[ubo.type](data, uboVisibilities.get(ubo.type)!, ubo as any));
@@ -193,7 +200,7 @@ export class Pipeline extends Yml {
             }
         }
 
-        const flows: render.Flow[] = [];
+        const flows: pipeline.Flow[] = [];
         for (const flow of this._info.flows) {
             const descriptorSetLayoutInfo = new gfx.DescriptorSetLayoutInfo;
             if (flow.bindings) {
@@ -205,7 +212,7 @@ export class Pipeline extends Yml {
                         if (!ubo) {
                             throw new Error(`undefined ubo: ${bindingInfo.ubo}`)
                         }
-                        const definition = (ubo.constructor as typeof render.UBO).definition;
+                        const definition = (ubo.constructor as typeof pipeline.UBO).definition;
                         binding.descriptorType = definition.type;
                         binding.stageFlags = definition.stageFlags;
                         binding.binding = bindingInfo.binding;
@@ -219,9 +226,8 @@ export class Pipeline extends Yml {
                     descriptorSetLayoutInfo.bindings.add(binding);
                 }
             }
-            const descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
-            const context = new render.Context(descriptorSetLayout);
-            const ubos: render.UBO[] = []
+            const context = new pipeline.FlowContext(device.createDescriptorSetLayout(descriptorSetLayoutInfo));
+            const ubos: pipeline.UBO[] = []
             if (flow.bindings) {
                 for (const binding of flow.bindings) {
                     if ('ubo' in binding) {
@@ -238,93 +244,74 @@ export class Pipeline extends Yml {
                 }
             }
 
-            const stages: render.Stage[] = [];
-            for (let i = 0; i < flow.stages!.length; i++) {
-                const stage = flow.stages![i];
+            const count = flow.loops?.length || 1;
+            for (let flowLoopIndex = 0; flowLoopIndex < count; flowLoopIndex++) {
+                const _flow = flow.loops?.[flowLoopIndex];
+                const stages: pipeline.Stage[] = [];
+                for (let i = 0; i < flow.stages!.length; i++) {
+                    const stage = flow.stages![i];
 
-                const phases: render.Phase[] = [];
-                for (const phase of stage.phases!) {
-                    const type = phase.type || 'model';
-                    if (type in phaseFactory) {
-                        phases.push(await phaseFactory[type](phase as any, context, this.phase_visibilitiy(phase, variables)))
-                    } else {
-                        throw new Error(`unsupported phase type: ${type}`);
-                    }
-                }
-                let framebuffer: gfx.Framebuffer | undefined;
-                let viewport: Vec4 | undefined;
-                let clears: gfx.ClearFlagBits | undefined;
-                if (stage.clears) {
-                    clears = gfx.ClearFlagBits.NONE;
-                    for (const clear of stage.clears) {
-                        clears |= gfx.ClearFlagBits[clear];
-                    }
-                }
-                if (stage.framebuffer) {
-                    const framebufferInfo = new gfx.FramebufferInfo;
-                    if (stage.framebuffer.colors) {
-                        for (const texture of stage.framebuffer.colors) {
-                            framebufferInfo.colors.add(this.createTexture(texture, stage.framebuffer.samples));
+                    const phases: pipeline.Phase[] = [];
+                    for (const phase of stage.phases!) {
+                        const type = phase.type || 'model';
+                        if (type in phaseFactory) {
+                            phases.push(await phaseFactory[type](phase as any, this.phase_visibilitiy(phase, variables), flowLoopIndex, data))
+                        } else {
+                            throw new Error(`unsupported phase type: ${type}`);
                         }
                     }
-                    if (stage.framebuffer.resolves) {
-                        for (const texture of stage.framebuffer.resolves) {
-                            if (texture.swapchain) {
-                                framebufferInfo.resolves.add(device.swapchain.color);
-                            } else {
-                                throw new Error('not implemented')
+                    let framebuffer: gfx.Framebuffer | undefined;
+                    let viewport = _flow?.stages?.[i].viewport;
+                    let clears: gfx.ClearFlagBits | undefined;
+                    if (stage.clears) {
+                        clears = gfx.ClearFlagBits.NONE;
+                        for (const clear of stage.clears) {
+                            clears |= gfx.ClearFlagBits[clear];
+                        }
+                    }
+                    if (stage.framebuffer) {
+                        const framebufferInfo = new gfx.FramebufferInfo;
+                        if (stage.framebuffer.colors) {
+                            for (const texture of stage.framebuffer.colors) {
+                                framebufferInfo.colors.add(this.createTexture(texture, stage.framebuffer.samples));
                             }
                         }
-                    }
-                    if (stage.framebuffer.depthStencil) {
-                        framebufferInfo.depthStencil = this.createTexture(stage.framebuffer.depthStencil, stage.framebuffer.samples);
-                    }
-
-                    let width: number | undefined;
-                    let height: number | undefined;
-                    for (let i = 0; i < framebufferInfo.colors.size(); i++) {
-                        if (width && height) {
-                            break;
-                        }
-                        const texture = framebufferInfo.colors.get(i);
-                        ({ width, height } = texture.info);
-                    }
-                    if (!width || !height) {
-                        ({ width, height } = framebufferInfo.depthStencil!.info);
-                    }
-                    framebufferInfo.width = width;
-                    framebufferInfo.height = height;
-
-                    framebufferInfo.renderPass = render.getRenderPass(framebufferInfo, clears);
-                    framebuffer = device.createFramebuffer(framebufferInfo);
-                    viewport = vec4.create(0, 0, 1, 1);
-                }
-                stages.push(new render.Stage(data, phases, this.stage_visibilities(stage, variables), framebuffer, clears, viewport));
-            }
-            let loops: Function[] | undefined;
-            if (flow.loops) {
-                loops = [];
-                for (let loop_i = 0; loop_i < flow.loops.length; loop_i++) {
-                    const loop = flow.loops[loop_i];
-                    const setters: Function[] = [];
-                    if (loop.stages) {
-                        for (let stage_i = 0; stage_i < loop.stages.length; stage_i++) {
-                            const stage = loop.stages[stage_i];
-                            if (stage.viewport) {
-                                setters.push(function () {
-                                    stages[stage_i].rect = stage.viewport;
-                                })
+                        if (stage.framebuffer.resolves) {
+                            for (const texture of stage.framebuffer.resolves) {
+                                if (texture.swapchain) {
+                                    framebufferInfo.resolves.add(device.swapchain.color);
+                                } else {
+                                    throw new Error('not implemented')
+                                }
                             }
                         }
-                    }
-                    loops.push(function () {
-                        for (const setter of setters) {
-                            setter();
+                        if (stage.framebuffer.depthStencil) {
+                            framebufferInfo.depthStencil = this.createTexture(stage.framebuffer.depthStencil, stage.framebuffer.samples);
                         }
-                    })
+
+                        let width: number | undefined;
+                        let height: number | undefined;
+                        for (let i = 0; i < framebufferInfo.colors.size(); i++) {
+                            if (width && height) {
+                                break;
+                            }
+                            const texture = framebufferInfo.colors.get(i);
+                            ({ width, height } = texture.info);
+                        }
+                        if (!width || !height) {
+                            ({ width, height } = framebufferInfo.depthStencil!.info);
+                        }
+                        framebufferInfo.width = width;
+                        framebufferInfo.height = height;
+
+                        framebufferInfo.renderPass = pipeline.getRenderPass(framebufferInfo, clears);
+                        framebuffer = device.createFramebuffer(framebufferInfo);
+                        viewport = viewport || vec4.create(0, 0, 1, 1);
+                    }
+                    stages.push(new pipeline.Stage(context, phases, framebuffer, clears, viewport));
                 }
+                flows.push(new pipeline.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), flowLoopIndex));
             }
-            flows.push(new render.Flow(data, context, ubos, stages, this.flow_visibilities(flow, variables), loops));
         }
 
         return new render.Pipeline(data, [...uboMap.values()], flows);

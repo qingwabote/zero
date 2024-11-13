@@ -6,7 +6,7 @@ import { Mat4, mat4 } from "../../../math/mat4.js";
 import { vec3 } from "../../../math/vec3.js";
 import { Camera } from "../../scene/Camera.js";
 import { Frustum } from "../../scene/Frustum.js";
-import { PeriodicFlag } from "../../scene/PeriodicFlag.js";
+import { Periodic } from "../../scene/Periodic.js";
 
 const frustum_a = frustum.vertices();
 const aabb_a = aabb3d.create();
@@ -16,7 +16,7 @@ const mat4_b = mat4.create();
 
 export class Cascades {
 
-    private _hasChangedFlag = new PeriodicFlag(1);
+    private _hasChangedFlag = new Periodic(1, 0);
     get hasChanged(): number {
         return this._hasChangedFlag.value || this._camera.hasChangedFlag.value || this._camera.transform.hasChangedFlag.value || Zero.instance.scene.directionalLight!.hasChanged;
     }

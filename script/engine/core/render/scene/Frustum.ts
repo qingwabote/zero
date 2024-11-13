@@ -2,7 +2,7 @@ import { AABB3D } from "../../math/aabb3d.js";
 import { frustum } from "../../math/frustum.js";
 import { Mat4 } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { PeriodicFlag } from "./PeriodicFlag.js";
+import { Periodic } from "./Periodic.js";
 
 export class Frustum {
     private _vertices_raw = frustum.vertices();
@@ -23,7 +23,7 @@ export class Frustum {
         return this._faces
     }
 
-    private _hasChangedFlag = new PeriodicFlag();
+    private _hasChangedFlag: Periodic = new Periodic(0, 0);
     get hasChanged(): number {
         return this._hasChangedFlag.value;
     }
@@ -32,14 +32,14 @@ export class Frustum {
         frustum.orthographic(this._vertices_raw, left, right, bottom, top, near, far)
         this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
-        this._hasChangedFlag.reset(1)
+        this._hasChangedFlag.value = 1
     }
 
     perspective(fov: number, aspect: number, near: number, far: number) {
         frustum.perspective(this._vertices_raw, fov, aspect, near, far);
         this._vertices = this._vertices_raw;
         this._faces_invalidated = true;
-        this._hasChangedFlag.reset(1)
+        this._hasChangedFlag.value = 1
     }
 
     transform(m: Readonly<Mat4>) {
@@ -48,7 +48,7 @@ export class Frustum {
         }
         this._vertices = this._vertices_tra;
         this._faces_invalidated = true;
-        this._hasChangedFlag.reset(1)
+        this._hasChangedFlag.value = 1
     }
 
     aabb_out(aabb: Readonly<AABB3D>): boolean {

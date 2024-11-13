@@ -1,3 +1,4 @@
+import { DeepReadonly } from "bastard";
 import { AABB3D, aabb3d } from "../core/math/aabb3d.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
@@ -21,7 +22,7 @@ export class MeshRenderer extends BoundedRenderer {
         this._materials = value;
     }
 
-    public get bounds(): Readonly<AABB3D> {
+    public get bounds(): DeepReadonly<AABB3D> {
         return this._mesh?.bounds ?? aabb3d.ZERO;
     }
 

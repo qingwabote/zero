@@ -37,7 +37,7 @@ export abstract class Yml implements Asset {
             if (value != undefined) {
                 return value;
             }
-            throw `unsupported variable: ${name}`;
+            throw new Error(`unsupported variable: ${name}`);
         })
     }
 }

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <vector>
 #include "volk/volk.h"
 #include "SDL_vulkan.h"
 #include "vma/vk_mem_alloc.h"
-#include <vector>
+#include "SwapchainImpl.hpp"
 
 namespace gfx
 {
@@ -22,30 +23,20 @@ namespace gfx
 
         VkDevice _device{nullptr};
 
-        VkFormat _swapchainImageFormat{};
-        VkExtent2D _swapchainImageExtent{};
-        VkSwapchainKHR _swapchain{nullptr};
-        std::vector<VkImageView> _swapchainImageViews;
-
         VmaAllocator _allocator{nullptr};
 
         VkCommandPool _commandPool{nullptr};
 
-        uint32_t _swapchainImageIndex{0};
-
         VkQueue _graphicsQueue{nullptr};
+
+        SwapchainImpl *_swapchain{nullptr};
 
     public:
         uint32_t version() { return VK_API_VERSION_1_3; }
 
         VkPhysicalDeviceLimits &limits() { return _gpuProperties.limits; }
 
-        VkFormat swapchainImageFormat() { return _swapchainImageFormat; }
-        VkExtent2D &swapchainImageExtent() { return _swapchainImageExtent; }
-        VkSwapchainKHR swapchain() { return _swapchain; }
-        std::vector<VkImageView> &swapchainImageViews() { return _swapchainImageViews; }
-
-        uint32_t swapchainImageIndex() { return _swapchainImageIndex; }
+        SwapchainImpl *swapchain() { return _swapchain; }
 
         VkQueue graphicsQueue() { return _graphicsQueue; }
 
@@ -60,8 +51,6 @@ namespace gfx
         DeviceImpl(SDL_Window *window) : _window(window) {}
 
         bool initialize();
-
-        void acquireNextImage(VkSemaphore semaphore);
 
         ~DeviceImpl();
     };

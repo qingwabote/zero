@@ -1,3 +1,4 @@
+import { DeepReadonly } from "bastard";
 import { bundle } from "bundling";
 import { Filter } from "gfx";
 import { Shader } from "../assets/Shader.js";
@@ -30,7 +31,7 @@ export class SpriteRenderer extends BoundedRenderer {
         this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
     }
 
-    public get bounds(): Readonly<AABB3D> {
+    public get bounds(): DeepReadonly<AABB3D> {
         return this._spriteFrame?.mesh.bounds ?? aabb3d.ZERO;
     }
 

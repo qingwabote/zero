@@ -1,17 +1,15 @@
-**Zero** 是一款跨平台 3D 游戏引擎
-
-# 示例(H5)
+# Showcase (h5)
 
 - [Animation Blend](https://qingwabote.github.io/zero/projects/animation/web/index.html)
 - [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
-- [Skinning & Instancing](https://qingwabote.github.io/zero/projects/skin/web/index.html)
+- [Skinning & Instancing & baking](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 - [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
 - [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
 
-# 跨平台
+# Cross platforms
 
 ## WebGL2
 
@@ -29,7 +27,7 @@
 - 冯氏光照
 - 级联阴影
 - 动画混合 (一维)
-- 蒙皮动画
+- 蒙皮动画 (烘焙)
 - 场景剔除 (八叉树)
 - 骨骼动画 (spine)
 - 物理引擎 (ammo)
@@ -62,6 +60,8 @@
 # 兼容性
 
 Wasm 没有 GC, 引擎依赖 [FinalizationRegistry](https://developers.weixin.qq.com/minigame/dev/reference/api/FinalizationRegistry.html) 自动释放 Wasm 对象
+
+[Note: The finalization callback does not run immediately after garbage-collecting the event listener, so don't use it for important logic or metrics. The timing of garbage collection and finalization callbacks is unspecified. In fact, an engine that never garbage-collects would be fully compliant. However, it's safe to assume that engines will garbage collect, and finalization callbacks will be called at some later time, unless the environment is discarded (such as the tab closing, or the worker terminating). Keep this uncertainty in mind when writing code.](https://v8.dev/features/weak-references)
 
 # 开发
 

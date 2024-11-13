@@ -1,7 +1,7 @@
 import { AABB2D } from "./aabb2d.js";
 import { mat3 } from "./mat3.js";
 import { Mat4Like } from "./mat4.js";
-import { Vec3Like, vec3 } from "./vec3.js";
+import { Vec3, Vec3Like, vec3 } from "./vec3.js";
 
 export interface AABB3D extends AABB2D {
     center: Vec3Like;
@@ -13,7 +13,7 @@ const vec3_b = vec3.create();
 
 const mat3_a = mat3.create();
 
-const vec3_half = Object.freeze(vec3.create(0.5, 0.5, 0.5));
+const vec3_half: Readonly<Vec3> = vec3.create(0.5, 0.5, 0.5);
 
 function create(center = vec3.ZERO, halfExtent = vec3.ZERO) {
     return { center: vec3.create(...center), halfExtent: vec3.create(...halfExtent) };
@@ -71,7 +71,7 @@ function fromPoints(out: AABB3D, points: readonly Readonly<Vec3Like>[]) {
     return out;
 }
 
-function fromRect(out: AABB3D, offset: Vec3Like, size: Vec3Like) {
+function fromRect(out: AABB3D, offset: Readonly<Vec3Like>, size: Readonly<Vec3Like>) {
     vec3.add(vec3_c, offset, size);
     return fromExtremes(out, offset, vec3_c);
 }
@@ -87,6 +87,6 @@ function contains(a: Readonly<AABB3D>, point: Vec3Like) {
     );
 }
 
-const ZERO = Object.freeze({ center: vec3.ZERO, halfExtent: vec3.ZERO })
+const ZERO = { center: vec3.ZERO, halfExtent: vec3.ZERO } as const
 
 export const aabb3d = { ZERO, create, set, fromExtremes, toExtremes, fromPoints, fromRect, transform, contains } as const

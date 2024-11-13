@@ -57,7 +57,7 @@ namespace gfx
     {
         std::string name;
         uint32_t bytes;
-        uint32_t nums;
+        uint32_t elements;
     };
 
     extern const std::unordered_map<Format, FormatInfo> FormatInfos;

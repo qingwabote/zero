@@ -1,16 +1,6 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Node, Pipeline, Vec3, Zero, bundle as builtin, device, mat3, vec3 } from "engine";
+import { Camera, DirectionalLight, GLTF, Node, Pipeline, SkinnedAnimation, Vec3, Zero, bundle as builtin, device, mat3, vec3 } from "engine";
 import { Align, CameraControlPanel, Document, Edge, Justify, PositionType, Profiler } from 'flex';
-
-const gltf = await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate({}, function (params: GLTF.MaterialParams) {
-    const res = GLTF.materialFuncPhong(params);
-    if (params.index == 3 /* hair */) {
-        res.passes[1].rasterizationState = { cullMode: 'FRONT' };
-    }
-    return res
-});
-
-const pipeline = await (await builtin.cache('pipelines/forward', Pipeline)).instantiate();
 
 enum VisibilityFlagBits {
     NONE = 0,
@@ -18,6 +8,20 @@ enum VisibilityFlagBits {
     WORLD = 1 << 30,
     ALL = 0xffffffff
 }
+
+const macros = { USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 0, SHADOW_MAP_PCF: 0 }
+
+const [model, primitive, pipeline] = await Promise.all([
+    await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate(macros, function (params: GLTF.MaterialParams) {
+        const res = GLTF.materialFuncPhong(params);
+        if (params.index == 3 /* hair */) {
+            res.passes[1].rasterizationState = { cullMode: 'FRONT' };
+        }
+        return res
+    }),
+    await (await builtin.cache('models/primitive/scene', GLTF)).instantiate(macros),
+    await (await builtin.cache('pipelines/forward-csm-1', Pipeline)).instantiate(VisibilityFlagBits)
+])
 
 export class App extends Zero {
     start() {
@@ -35,14 +39,20 @@ export class App extends Zero {
         // light
         node = new Node;
         node.addComponent(DirectionalLight);
-        node.position = [0, 4, 4];
+        node.position = [4, 4, 4];
         node.lookAt(vec3.ZERO);
 
         node = new Node;
         const main_camera = node.addComponent(Camera);
         main_camera.fov = 45;
+        main_camera.far = 32;
         main_camera.visibilities = VisibilityFlagBits.WORLD;
         node.position = [12, 12, 12];
+
+        node = primitive.createScene("Plane")!;
+        node.visibility = VisibilityFlagBits.WORLD
+        node.scale = [5, 1, 5];
+        node.position = [0, 0, 0];
 
         const circles: [Vec3, number][] = [
             [vec3.create(0, 0, -1.5), 6],
@@ -53,10 +63,10 @@ export class App extends Zero {
             const [origin, steps] = circles[i];
             const stride = mat3.fromYRotation(mat3.create(), Math.PI * 2 / steps);
             for (let j = 0; j < steps; j++) {
-                node = gltf.createScene("Sketchfab_Scene")!;
+                node = model.createScene("Sketchfab_Scene")!;
                 node.visibility = VisibilityFlagBits.WORLD;
-                const animation = node.addComponent(Animation);
-                animation.clips = gltf.proto.animationClips;
+                const animation = node.addComponent(SkinnedAnimation);
+                animation.clips = model.proto.animationClips;
                 animation.play(animation.clips[j % 3].name);
                 node.position = vec3.transformMat3(origin, origin, stride);
             }

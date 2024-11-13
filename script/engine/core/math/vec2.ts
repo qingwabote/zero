@@ -2,17 +2,14 @@ import { Mat4Like } from "./mat4.js";
 
 export type Vec2 = [number, number];
 
-export interface Vec2Like {
-    0: number;
-    1: number;
-}
+export type Vec2Like = [number, number, ...number[]];
 
 function create(x: number = 0, y: number = 0): Vec2 {
     return [x, y];
 }
 
 export const vec2 = {
-    ZERO: Object.freeze(create(0, 0)),
+    ZERO: create(0, 0) as Readonly<Vec2>,
 
     create,
 
@@ -36,13 +33,13 @@ export const vec2 = {
         return out;
     },
 
-    min<Out extends Vec2Like>(out: Out, a: Vec2Like, b: Vec2Like) {
+    min<Out extends Vec2Like>(out: Out, a: Readonly<Vec2Like>, b: Readonly<Vec2Like>) {
         out[0] = Math.min(a[0], b[0]);
         out[1] = Math.min(a[1], b[1]);
         return out;
     },
 
-    max<Out extends Vec2Like>(out: Out, a: Vec2Like, b: Vec2Like) {
+    max<Out extends Vec2Like>(out: Out, a: Readonly<Vec2Like>, b: Readonly<Vec2Like>) {
         out[0] = Math.max(a[0], b[0]);
         out[1] = Math.max(a[1], b[1]);
         return out;

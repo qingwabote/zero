@@ -44,7 +44,7 @@ namespace gfx
             }
         }
 
-        impl->_framebuffers.resize(swapchainAttachment == nullptr ? 1 : impl->_device->swapchainImageViews().size());
+        impl->_framebuffers.resize(swapchainAttachment == nullptr ? 1 : impl->_device->swapchain()->imageViews().size());
         for (size_t framebufferIdx = 0; framebufferIdx < impl->_framebuffers.size(); framebufferIdx++)
         {
             VkFramebufferCreateInfo info = {};
@@ -59,7 +59,7 @@ namespace gfx
                 auto attachment = colorAttachments->at(idx).get();
                 if (attachment == swapchainAttachment)
                 {
-                    attachments[attachmentIdx] = impl->_device->swapchainImageViews()[framebufferIdx];
+                    attachments[attachmentIdx] = impl->_device->swapchain()->imageViews()[framebufferIdx];
                 }
                 else
                 {
@@ -76,7 +76,7 @@ namespace gfx
                 auto attachment = resolveAttachments->at(idx).get();
                 if (attachment == swapchainAttachment)
                 {
-                    attachments[attachmentIdx] = impl->_device->swapchainImageViews()[framebufferIdx];
+                    attachments[attachmentIdx] = impl->_device->swapchain()->imageViews()[framebufferIdx];
                 }
                 else
                 {

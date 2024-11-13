@@ -1,4 +1,4 @@
-import { EventEmitter, SmartRef } from "bastard";
+import { DeepReadonly, EventEmitter, SmartRef } from "bastard";
 import { AABB2D, Component, Input, Node, Vec2, aabb2d, vec2, vec3 } from "engine";
 import { LayoutSystem } from "./LayoutSystem.js";
 import * as yoga from "./yoga/index.js";
@@ -38,7 +38,7 @@ export abstract class Element<T extends EventToListener = EventToListener> exten
     readonly yg_node = new SmartRef(yoga.impl.Node.create(), yg_node_free);
 
     protected _bounds = aabb2d.create();
-    public get bounds(): Readonly<AABB2D> {
+    public get bounds(): DeepReadonly<AABB2D> {
         return this._bounds;
     }
 

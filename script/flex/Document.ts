@@ -1,5 +1,5 @@
 import { TouchEvent } from "boot";
-import { BoundedRenderer, Input, Node, Vec2, Zero, aabb2d, mat4, render, vec2 } from "engine";
+import { BoundedRenderer, Input, Node, Vec2, Zero, aabb2d, mat4, scene, vec2 } from "engine";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -35,7 +35,7 @@ export class Document extends ElementContainer {
     private orderWalk(node: Node, order: number): number {
         const renderer = node.getComponent(BoundedRenderer);
         if (renderer) {
-            renderer.order = order++;
+            renderer.order(order++);
         }
         for (const child of node.children) {
             order = this.orderWalk(child, order)
@@ -57,7 +57,7 @@ export class Document extends ElementContainer {
         }
     }
 
-    private touchWalk(element: Element, cameras: readonly render.Camera[], world_positions: readonly Readonly<Vec2>[], name: Input.TouchEvents | Input.GestureEvents, event: TouchEvent) {
+    private touchWalk(element: Element, cameras: readonly scene.Camera[], world_positions: readonly Readonly<Vec2>[], name: Input.TouchEvents | Input.GestureEvents, event: TouchEvent) {
         for (let i = 0; i < cameras.length; i++) {
             const camera = cameras[i];
             if (!(element.node.visibility & camera.visibilities)) {

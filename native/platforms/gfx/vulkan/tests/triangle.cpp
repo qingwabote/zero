@@ -65,7 +65,7 @@ namespace tests::triangle
         }
 
         VkAttachmentDescription attachmentDescription{};
-        attachmentDescription.format = device->swapchainImageFormat();
+        attachmentDescription.format = device->swapchain()->imageFormat();
         attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
         attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -179,12 +179,12 @@ namespace tests::triangle
         }
         memcpy(allocationInfo.pMappedData, positions, sizeof(positions));
 
-        auto &swapchainExtent = device->swapchainImageExtent();
-        std::vector<VkFramebuffer> framebuffers{device->swapchainImageViews().size()};
-        for (size_t i = 0; i < device->swapchainImageViews().size(); i++)
+        auto &swapchainExtent = device->swapchain()->imageExtent();
+        std::vector<VkFramebuffer> framebuffers{device->swapchain()->imageViews().size()};
+        for (size_t i = 0; i < device->swapchain()->imageViews().size(); i++)
         {
             std::vector<VkImageView> attachments;
-            attachments.emplace_back(device->swapchainImageViews()[i]);
+            attachments.emplace_back(device->swapchain()->imageViews()[i]);
 
             VkFramebufferCreateInfo framebufferInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
             framebufferInfo.width = swapchainExtent.width;
@@ -207,7 +207,7 @@ namespace tests::triangle
         VkSemaphore acquiredSemaphore;
         vkCreateSemaphore(*device, &semaphoreCreateInfo, nullptr, &acquiredSemaphore);
 
-        device->acquireNextImage(acquiredSemaphore);
+        device->swapchain()->acquire(acquiredSemaphore);
 
         VkCommandBufferBeginInfo beginInfo = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -225,7 +225,7 @@ namespace tests::triangle
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-        renderPassBeginInfo.framebuffer = framebuffers[device->swapchainImageIndex()];
+        renderPassBeginInfo.framebuffer = framebuffers[device->swapchain()->imageIndex()];
         renderPassBeginInfo.renderPass = renderPass;
         renderPassBeginInfo.renderArea.extent = {swapchainExtent.width, swapchainExtent.height};
         std::vector<VkClearValue> clearValues{1};
@@ -260,12 +260,12 @@ namespace tests::triangle
         vkQueueSubmit(device->graphicsQueue(), 1, &submitInfo, nullptr);
 
         VkPresentInfoKHR presentInfo = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
-        auto swapchain = device->swapchain();
+        VkSwapchainKHR swapchain = *device->swapchain();
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = &swapchain;
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = &submitedSemaphore;
-        auto swapchainImageIndex = device->swapchainImageIndex();
+        auto swapchainImageIndex = device->swapchain()->imageIndex();
         presentInfo.pImageIndices = &swapchainImageIndex;
         vkQueuePresentKHR(device->graphicsQueue(), &presentInfo);
 

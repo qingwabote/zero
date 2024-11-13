@@ -12,17 +12,17 @@ function indexGrowTo(quads: number) {
         return;
     }
 
-    indexBufferView.resize(6 * quads);
+    let [source, offset] = indexBufferView.addBlock(6 * (quads - _quads))
     for (; _quads < quads; _quads++) {
         // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
-        indexBufferView.source[6 * _quads + 0] = 4 * _quads + 0;
-        indexBufferView.source[6 * _quads + 1] = 4 * _quads + 1;
-        indexBufferView.source[6 * _quads + 2] = 4 * _quads + 2;
-        indexBufferView.source[6 * _quads + 3] = 4 * _quads + 2;
-        indexBufferView.source[6 * _quads + 4] = 4 * _quads + 3;
-        indexBufferView.source[6 * _quads + 5] = 4 * _quads + 0;
+        source[offset + 0] = 4 * _quads + 0;
+        source[offset + 1] = 4 * _quads + 1;
+        source[offset + 2] = 4 * _quads + 2;
+        source[offset + 3] = 4 * _quads + 2;
+        source[offset + 4] = 4 * _quads + 3;
+        source[offset + 5] = 4 * _quads + 0;
+        offset += 6;
     }
-    indexBufferView.invalidate();
 }
 indexGrowTo(1);
 
