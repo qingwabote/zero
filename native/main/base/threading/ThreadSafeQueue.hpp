@@ -49,22 +49,4 @@ public:
         _queue.pop();
         return true;
     }
-
-    // std::vector<T> flush(bool blocked = false)
-    // {
-    //     std::unique_lock<std::mutex> lock(_mutex);
-    //     if (_queue.size() == 0 && blocked)
-    //     {
-    //         _cv.wait(lock);
-    //     }
-    //     auto copy = std::move(_queue); // https://stackoverflow.com/questions/9168823/reusing-a-moved-container
-    //     _queue.clear();
-    //     return copy;
-    // }
-
-    // void unblock()
-    // {
-    //     // std::unique_lock<std::mutex> lock(_mutex);
-    //     _cv.notify_all();
-    // }
 };
