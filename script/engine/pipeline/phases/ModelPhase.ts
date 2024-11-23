@@ -1,10 +1,9 @@
-import { CachedFactory, empty } from "bastard";
+import { CachedFactory, empty, RecycleQueue } from "bastard";
 import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute } from "gfx";
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { MemoryView } from "../../core/render/gpu/MemoryView.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
-import { BatchQueue } from "../../core/render/pipeline/BatchQueue.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
@@ -109,7 +108,7 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    batch(out: BatchQueue, context: Context, cameraIndex: number): void {
+    batch(out: RecycleQueue<Map<Pass, Batch[]>>, context: Context, cameraIndex: number): void {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':
