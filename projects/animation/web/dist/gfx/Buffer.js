@@ -28,12 +28,12 @@ export class Buffer {
         gl.bindBuffer(target, null);
         return false;
     }
-    update(src, src_offset, src_length) {
+    update(src, src_offset, src_length, dst_offset) {
         const gl = this._gl;
         const target = usage2target(gl, this.info.usage);
         gl.bindVertexArray(null);
         gl.bindBuffer(target, this._impl);
-        gl.bufferSubData(target, 0, src, src_offset, src_length);
+        gl.bufferSubData(target, dst_offset, src, src_offset, src_length);
         gl.bindBuffer(target, null);
     }
     resize(size) {

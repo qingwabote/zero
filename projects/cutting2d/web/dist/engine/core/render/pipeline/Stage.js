@@ -1,7 +1,7 @@
+import { RecycleQueue } from "bastard";
 import { device } from "boot";
 import { DescriptorSetLayoutInfo, Format, FramebufferInfo, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { shaderLib } from "../../shaderLib.js";
-import { BatchQueue } from "./BatchQueue.js";
 import { getRenderPass } from "./rpc.js";
 const descriptorSetLayoutNull = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 const defaultFramebuffer = (function () {
@@ -19,6 +19,12 @@ const defaultFramebuffer = (function () {
     framebufferInfo.renderPass = getRenderPass(framebufferInfo);
     return device.createFramebuffer(framebufferInfo);
 })();
+function pass2batch_create() {
+    return new Map;
+}
+function pass2batch_recycle(value) {
+    value.clear();
+}
 export class Stage {
     constructor(_flow, phases, _framebuffer = defaultFramebuffer, _clears, _rect) {
         this._flow = _flow;
@@ -32,7 +38,7 @@ export class Stage {
         const camera = context.scene.cameras[cameraIndex];
         let queue = this._camera2queue.get(camera);
         if (!queue) {
-            this._camera2queue.set(camera, queue = new BatchQueue);
+            this._camera2queue.set(camera, queue = new RecycleQueue(pass2batch_create, pass2batch_recycle));
         }
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {

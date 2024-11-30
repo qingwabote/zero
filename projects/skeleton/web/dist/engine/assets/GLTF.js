@@ -134,7 +134,7 @@ export class GLTF {
                 info.usage = usage;
                 info.size = viewInfo.byteLength;
                 const buffer = device.createBuffer(info);
-                buffer.update(binView, viewInfo.byteOffset || 0, viewInfo.byteLength);
+                buffer.update(binView, viewInfo.byteOffset || 0, viewInfo.byteLength, 0);
                 return buffers[index] = buffer;
             }
             for (let i = 0; i < json.meshes.length; i++) {

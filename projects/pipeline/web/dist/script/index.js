@@ -48,7 +48,7 @@ const [guardian, plane, unlit, phong, csm1, csm] = await Promise.all([
         return pipeline.instantiate(VisibilityFlagBits);
     })(),
 ]);
-const text_size = 50;
+const text_size = 64;
 const text_color_normal = [0.5, 0.5, 0.5, 1];
 const text_color_selected = [0, 1, 0, 1];
 export class App extends Zero {
@@ -99,7 +99,7 @@ export class App extends Zero {
         doc.addElement(cameraControlPanel);
         const pipelineBar = (new Node).addComponent(ElementContainer);
         pipelineBar.flexDirection = FlexDirection.Row;
-        pipelineBar.setGap(Gutter.Column, 32);
+        pipelineBar.setGap(Gutter.Column, 16);
         {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'UNLIT';

@@ -23,7 +23,7 @@ export class StrokePhase extends Phase {
         bufferInfo.usage = BufferUsageFlagBits.VERTEX;
         bufferInfo.size = model.byteLength;
         const buffer = device.createBuffer(bufferInfo);
-        buffer.update(model, 0, 0);
+        buffer.update(model, 0, 0, 0);
         ia.vertexInput.buffers.add(buffer);
         ia.vertexInput.offsets.add(0);
         this._batches = [{ inputAssembler: ia, draw: subMesh.draw, count: 1 }];

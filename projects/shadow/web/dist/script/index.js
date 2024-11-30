@@ -32,6 +32,7 @@ const csm_off_instance = await csm_off.instantiate(VisibilityFlagBits);
 const csm_on_instance = await csm_on.instantiate(VisibilityFlagBits);
 const csm_off_shadowmap = new SpriteFrame(csm_off.textures['shadowmap']);
 const csm_on_shadowmap = new SpriteFrame(csm_on.textures['shadowmap']);
+const text_size = 64;
 export class App extends Zero {
     start() {
         const width = 640;
@@ -158,7 +159,7 @@ export class App extends Zero {
                 const textRenderer = Renderer.create(TextRenderer);
                 textRenderer.impl.text = 'CSM ON';
                 textRenderer.impl.color = vec4.GREEN;
-                textRenderer.impl.size = 50;
+                textRenderer.impl.size = text_size;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                     if (textRenderer.impl.text == 'CSM OFF') {
@@ -180,7 +181,7 @@ export class App extends Zero {
                 const textRenderer = Renderer.create(TextRenderer);
                 textRenderer.impl.text = 'TREE OFF';
                 textRenderer.impl.color = vec4.ONE;
-                textRenderer.impl.size = 50;
+                textRenderer.impl.size = text_size;
                 textRenderer.positionType = PositionType.Absolute;
                 textRenderer.setPosition(Edge.Right, 0);
                 textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {

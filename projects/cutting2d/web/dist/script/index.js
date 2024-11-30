@@ -7,6 +7,7 @@ const msaa = await (await builtin.cache('pipelines/unlit-ms', Pipeline)).instant
 const fxaa = await (await builtin.cache('pipelines/unlit-fxaa', Pipeline)).instantiate();
 const text_color_normal = [0.5, 0.5, 0.5, 1];
 const text_color_selected = [0, 1, 0, 1];
+const text_size = 64;
 var VisibilityFlagBits;
 (function (VisibilityFlagBits) {
     VisibilityFlagBits[VisibilityFlagBits["NONE"] = 0] = "NONE";
@@ -47,6 +48,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'NORMAL';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                 this.onPipelineText(normal, textRenderer.impl);
             });
@@ -57,6 +59,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'MSAA';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                 this.onPipelineText(msaa, textRenderer.impl);
             });
@@ -66,6 +69,7 @@ export default class App extends Zero {
             const textRenderer = Renderer.create(TextRenderer);
             textRenderer.impl.text = 'FXAA';
             textRenderer.impl.color = text_color_normal;
+            textRenderer.impl.size = text_size;
             textRenderer.emitter.on(Input.TouchEvents.START, async (event) => {
                 this.onPipelineText(fxaa, textRenderer.impl);
             });
