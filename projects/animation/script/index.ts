@@ -104,8 +104,8 @@ export class App extends Zero {
         }
 
         const slider = Node.build(Slider);
-        slider.setWidth(180);
-        slider.setHeight(20);
+        slider.setWidth(256);
+        slider.setHeight(64);
         slider.value = 0.3;
         slider.emitter.on(Slider.EventType.CHANGED, () => {
             updateInput(slider.value);
