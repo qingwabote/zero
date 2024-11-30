@@ -24,6 +24,16 @@ namespace bg
         _background->post(f);
     }
 
+    void CommandBuffer::copyBufferToTexture(const std::shared_ptr<const gfx::Span> &span, uint32_t offset, const std::shared_ptr<gfx::Texture> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
+    {
+        auto f = new auto(
+            [=]()
+            {
+                gfx::CommandBuffer::copyBufferToTexture(span, offset, texture, offset_x, offset_y, extent_x, extent_y);
+            });
+        _background->post(f);
+    }
+
     void CommandBuffer::beginRenderPass(const std::shared_ptr<gfx::RenderPass> &renderPass, const std::shared_ptr<gfx::Framebuffer> &framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height)
     {
         auto f = new auto(

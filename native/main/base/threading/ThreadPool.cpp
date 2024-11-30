@@ -22,14 +22,9 @@ void ThreadPool::post(std::unique_ptr<callable::Callable<void>> &&callable)
             _threads[i] = std::make_unique<std::thread>(
                 [this]()
                 {
-                    while (_running)
+                    std::unique_ptr<callable::Callable<void>> f{};
+                    while (_running.load(std::memory_order_relaxed))
                     {
-                        // auto functionQueue = _functionQueue.flush(true);
-                        // for (auto &func : functionQueue)
-                        // {
-                        //     func();
-                        // }
-                        std::unique_ptr<callable::Callable<void>> f{};
                         _functionQueue.pop(f, true);
                         f->call();
                     }
@@ -41,7 +36,7 @@ void ThreadPool::post(std::unique_ptr<callable::Callable<void>> &&callable)
 
 void ThreadPool::join()
 {
-    _running = false;
+    _running.store(false, std::memory_order_relaxed);
     for (size_t i = 0; i < _threads.size(); i++)
     {
         auto nudge = new auto(
@@ -59,7 +54,7 @@ void ThreadPool::join()
 
 ThreadPool::~ThreadPool()
 {
-    if (_running)
+    if (_running.load(std::memory_order_relaxed))
     {
         join();
     }

@@ -1,3 +1,4 @@
+import { RecycleQueue } from "bastard";
 import { device } from "boot";
 import { ClearFlagBits, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
@@ -6,7 +7,6 @@ import { Context } from "../Context.js";
 import { Camera } from "../scene/Camera.js";
 import { Pass } from "../scene/Pass.js";
 import { Batch } from "./Batch.js";
-import { BatchQueue } from "./BatchQueue.js";
 import { FlowContext } from "./FlowContext.js";
 import { Phase } from "./Phase.js";
 import { getRenderPass } from "./rpc.js";
@@ -34,8 +34,16 @@ const defaultFramebuffer = (function () {
     return device.createFramebuffer(framebufferInfo)
 })();
 
+function pass2batch_create(): Map<Pass, Batch[]> {
+    return new Map;
+}
+
+function pass2batch_recycle(value: Map<Pass, Batch[]>) {
+    value.clear();
+}
+
 export class Stage {
-    private _camera2queue: WeakMap<Camera, BatchQueue> = new WeakMap;
+    private _camera2queue: WeakMap<Camera, RecycleQueue<Map<Pass, Batch[]>>> = new WeakMap;
 
     constructor(
         private readonly _flow: FlowContext,
@@ -49,7 +57,7 @@ export class Stage {
         const camera = context.scene.cameras[cameraIndex];
         let queue = this._camera2queue.get(camera);
         if (!queue) {
-            this._camera2queue.set(camera, queue = new BatchQueue);
+            this._camera2queue.set(camera, queue = new RecycleQueue(pass2batch_create, pass2batch_recycle));
         }
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
@@ -70,7 +78,7 @@ export class Stage {
 
         let material: DescriptorSet | undefined;
         let pipeline: Pipeline | undefined;
-        let pass2batches: ReadonlyMap<Pass, Batch[]> | undefined;
+        let pass2batches: ReadonlyMap<Pass, Batch[]> | null;
         while (pass2batches = queue.front()) {
             for (const [pass, batches] of pass2batches) {
                 if (pass.descriptorSet && material != pass.descriptorSet) {

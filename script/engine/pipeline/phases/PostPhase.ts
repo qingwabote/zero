@@ -1,5 +1,5 @@
+import { RecycleQueue } from "bastard";
 import { Batch } from "../../core/render/pipeline/Batch.js";
-import { BatchQueue } from "../../core/render/pipeline/BatchQueue.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { quad } from "../../core/render/quad.js";
 import { Pass } from "../../core/render/scene/Pass.js";
@@ -11,7 +11,7 @@ export class PostPhase extends Phase {
         super(visibility);
     }
 
-    batch(out: BatchQueue): void {
+    batch(out: RecycleQueue<Map<Pass, Batch[]>>): void {
         out.push().set(this._pass, batches);
     }
 }

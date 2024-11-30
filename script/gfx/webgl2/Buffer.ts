@@ -33,7 +33,7 @@ export class Buffer {
         return false;
     }
 
-    update(src: ArrayBufferView, src_offset: number, src_length: number): void {
+    update(src: ArrayBufferView, src_offset: number, src_length: number, dst_offset: number): void {
         const gl = this._gl;
 
         const target = usage2target(gl, this.info.usage);
@@ -41,7 +41,7 @@ export class Buffer {
         gl.bindVertexArray(null);
 
         gl.bindBuffer(target, this._impl);
-        gl.bufferSubData(target, 0, src, src_offset, src_length);
+        gl.bufferSubData(target, dst_offset, src, src_offset, src_length);
 
         gl.bindBuffer(target, null);
     }

@@ -37,6 +37,48 @@ namespace gfx
         return buffer;
     }
 
+    void CommandBufferImpl::copyBufferToTexture(void const *src, const std::shared_ptr<TextureImpl> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
+    {
+        VkBuffer buffer = createStagingBuffer(src, FormatInfos.at(texture->info->format).bytes * extent_x * extent_y);
+
+        VkImageSubresourceRange range = {};
+        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        range.levelCount = 1;
+        range.layerCount = 1;
+
+        VkImageMemoryBarrier imageBarrier_toTransfer = {};
+        imageBarrier_toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imageBarrier_toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageBarrier_toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        imageBarrier_toTransfer.image = *texture;
+        imageBarrier_toTransfer.subresourceRange = range;
+        imageBarrier_toTransfer.srcAccessMask = 0;
+        imageBarrier_toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        vkCmdPipelineBarrier(_commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toTransfer);
+
+        VkBufferImageCopy copy = {};
+        copy.bufferOffset = 0;
+        copy.bufferRowLength = 0;
+        copy.bufferImageHeight = 0;
+        copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        copy.imageSubresource.mipLevel = 0;
+        copy.imageSubresource.baseArrayLayer = 0;
+        copy.imageSubresource.layerCount = 1;
+        copy.imageOffset.x = offset_x;
+        copy.imageOffset.y = offset_y;
+        copy.imageExtent.width = extent_x;
+        copy.imageExtent.height = extent_y;
+        copy.imageExtent.depth = 1;
+        vkCmdCopyBufferToImage(_commandBuffer, buffer, *texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+
+        VkImageMemoryBarrier imageBarrier_toReadable = imageBarrier_toTransfer;
+        imageBarrier_toReadable.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        imageBarrier_toReadable.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageBarrier_toReadable.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        imageBarrier_toReadable.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        vkCmdPipelineBarrier(_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
+    }
+
     void CommandBufferImpl::bindDescriptorSets()
     {
         for (auto &it : _descriptorSets)
@@ -98,51 +140,12 @@ namespace gfx
 
     void CommandBuffer::copyImageBitmapToTexture(const std::shared_ptr<ImageBitmap> &imageBitmap, const std::shared_ptr<Texture> &texture)
     {
-        copyBufferToTexture({new Span{imageBitmap->pixels.get()}, [imageBitmap](Span *span)
-                             { delete span; }},
-                            0, texture, 0, 0, imageBitmap->width, imageBitmap->height);
+        impl->copyBufferToTexture(imageBitmap->pixels.get(), texture->impl, 0, 0, imageBitmap->width, imageBitmap->height);
     }
 
     void CommandBuffer::copyBufferToTexture(const std::shared_ptr<const Span> &span, uint32_t offset, const std::shared_ptr<Texture> &texture, uint32_t offset_x, uint32_t offset_y, uint32_t extent_x, uint32_t extent_y)
     {
-        VkBuffer buffer = impl->createStagingBuffer(reinterpret_cast<uint8_t *>(span->data) + span->stride * offset, FormatInfos.at(texture->info->format).bytes * extent_x * extent_y);
-
-        VkImageSubresourceRange range = {};
-        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        range.levelCount = 1;
-        range.layerCount = 1;
-
-        VkImageMemoryBarrier imageBarrier_toTransfer = {};
-        imageBarrier_toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        imageBarrier_toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageBarrier_toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        imageBarrier_toTransfer.image = *texture->impl;
-        imageBarrier_toTransfer.subresourceRange = range;
-        imageBarrier_toTransfer.srcAccessMask = 0;
-        imageBarrier_toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        vkCmdPipelineBarrier(impl->_commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toTransfer);
-
-        VkBufferImageCopy copy = {};
-        copy.bufferOffset = 0;
-        copy.bufferRowLength = 0;
-        copy.bufferImageHeight = 0;
-        copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        copy.imageSubresource.mipLevel = 0;
-        copy.imageSubresource.baseArrayLayer = 0;
-        copy.imageSubresource.layerCount = 1;
-        copy.imageOffset.x = offset_x;
-        copy.imageOffset.y = offset_y;
-        copy.imageExtent.width = extent_x;
-        copy.imageExtent.height = extent_y;
-        copy.imageExtent.depth = 1;
-        vkCmdCopyBufferToImage(impl->_commandBuffer, buffer, *texture->impl, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
-
-        VkImageMemoryBarrier imageBarrier_toReadable = imageBarrier_toTransfer;
-        imageBarrier_toReadable.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        imageBarrier_toReadable.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageBarrier_toReadable.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        imageBarrier_toReadable.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        vkCmdPipelineBarrier(impl->_commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
+        impl->copyBufferToTexture(reinterpret_cast<uint8_t *>(span->data) + span->stride * offset, texture->impl, offset_x, offset_y, extent_x, extent_y);
     }
 
     void CommandBuffer::beginRenderPass(const std::shared_ptr<RenderPass> &renderPass, const std::shared_ptr<Framebuffer> &framebuffer, int32_t x, int32_t y, uint32_t width, uint32_t height)
