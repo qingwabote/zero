@@ -39,7 +39,7 @@
 
 - [无光照](assets/pipelines/unlit.yml)
 - [光照](assets/pipelines/forward.yml)
-- [级联阴影](assets/pipelines/shadow.yml)
+- [级联阴影](assets/pipelines/forward-csm.yml)
 - [MSAA](assets/pipelines/unlit-ms.yml)
 - [FXAA](assets/pipelines/unlit-fxaa.yml)
 
