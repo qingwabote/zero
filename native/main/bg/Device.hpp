@@ -2,7 +2,7 @@
 
 #include <thread>
 #include "gfx/Device.hpp"
-#include "base/threading/readerwriterqueue/readerwriterqueue.h"
+#include "base/threading/ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
 
 namespace bg
@@ -10,7 +10,7 @@ namespace bg
     class Device : public gfx::Device, public TaskRunner
     {
     private:
-        moodycamel::BlockingReaderWriterQueue<std::unique_ptr<callable::Callable<void>>> _bg_queue;
+        ThreadSafeQueue<std::unique_ptr<callable::Callable<void>>> _bg_queue;
         std::thread _bg_thread;
         std::atomic<bool> _bg_running{true};
 

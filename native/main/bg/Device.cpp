@@ -13,7 +13,7 @@ namespace bg
                 std::unique_ptr<callable::Callable<void>> f{};
                 while (_bg_running.load(std::memory_order_relaxed))
                 {
-                    _bg_queue.wait_dequeue(f);
+                    _bg_queue.pop(f, true);
                     f->call();
                 }
             });
@@ -58,6 +58,6 @@ namespace bg
 
     void Device::post(std::unique_ptr<callable::Callable<void>> &&callable)
     {
-        _bg_queue.enqueue(std::forward<std::unique_ptr<callable::Callable<void>>>(callable));
+        _bg_queue.push(std::forward<std::unique_ptr<callable::Callable<void>>>(callable));
     }
 }
