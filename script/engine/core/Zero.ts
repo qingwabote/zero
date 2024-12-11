@@ -23,6 +23,7 @@ enum Event {
     DEVICE_SYNC = 'DEVICE_SYNC',
     PIPELINE_BATCH = 'PIPELINE_BATCH',
     UPLOAD = 'UPLOAD',
+    RENDER = 'RENDER',
     FRAME_END = 'FRAME_END',
 }
 
@@ -35,6 +36,7 @@ interface EventToListener {
     [Event.DEVICE_SYNC]: () => void;
     [Event.PIPELINE_BATCH]: () => void;
     [Event.UPLOAD]: () => void;
+    [Event.RENDER]: () => void;
     [Event.FRAME_END]: () => void;
 }
 
@@ -151,6 +153,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
             system.update(delta);
         }
         this.emit(Event.UPDATE);
+
         this._componentScheduler.lateUpdate();
         for (const system of this._systems) {
             system.lateUpdate(delta);
@@ -160,6 +163,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.profile.clear();
         this.scene.update();
         this.emit(Event.SCENE_UPDATE);
+
         this._pipeline.update(this);
         this.emit(Event.PIPELINE_UPDATE);
 
@@ -170,11 +174,15 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this.commandBuffer.begin();
         this._pipeline.batch(this);
         this.emit(Event.PIPELINE_BATCH);
+
         this._componentScheduler.upload(this.commandBuffer);
         quad.indexBufferView.update(this.commandBuffer);
+        this._pipeline.upload(this);
         this.emit(Event.UPLOAD);
+
         this._pipeline.render(this);
         this.commandBuffer.end();
+        this.emit(Event.RENDER);
 
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this.commandBuffer;
@@ -183,7 +191,6 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
-
         this.emit(Event.FRAME_END);
 
         Zero._frameCount++;
