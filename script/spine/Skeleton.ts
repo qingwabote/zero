@@ -207,6 +207,7 @@ export class Skeleton extends BoundedRenderer {
         switch (blend) {
             case sc.BlendMode.Normal:
                 blendState = new BlendState;
+                // blendState.srcRGB = BlendFactor.SRC_ALPHA;
                 blendState.srcRGB = BlendFactor.ONE; // premultipliedAlpha
                 blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
                 blendState.srcAlpha = BlendFactor.ONE;

@@ -8,7 +8,7 @@ const spine_atlas = new spine.core.TextureAtlas(spine_atlas_src);
 for (const page of spine_atlas.pages) {
     page.setTexture(new spine.Texture(await bundle.once(`spineboy/${page.name}`, Texture)))
 }
-const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text');
+const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.skel', 'buffer');
 
 const pipeline = await (await bundle.cache('pipelines/post', Pipeline)).instantiate()
 
@@ -47,8 +47,8 @@ export class App extends Zero {
         doc.setWidth(width);
         doc.setHeight(height);
 
-        const json = new spine.core.SkeletonJson(new spine.core.AtlasAttachmentLoader(spine_atlas));
-        const skeletonData = json.readSkeletonData(spine_data_src);
+        const skeletonBinary = new spine.core.SkeletonBinary(new spine.core.AtlasAttachmentLoader(spine_atlas));
+        const skeletonData = skeletonBinary.readSkeletonData(new Uint8Array(spine_data_src));
 
         const skeleton = Renderer.create(spine.Animation);
         skeleton.impl.data = skeletonData;
