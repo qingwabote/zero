@@ -1,5 +1,5 @@
-import { DescriptorType } from "gfx-common";
 import { PipelineLayoutInfo } from "./info";
+import { DescriptorType } from "./shared/constants.js";
 
 export class PipelineLayout {
     readonly _flatBindings: Record<number, number>;

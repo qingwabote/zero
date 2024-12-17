@@ -1,7 +1,7 @@
-import { Format } from "gfx-common";
 import { Semaphore } from "./Semaphore.js";
 import { Texture } from "./Texture.js";
 import { TextureInfo } from "./info.js";
+import { Format } from "./shared/constants.js";
 
 export class Swapchain {
     readonly color: Texture;

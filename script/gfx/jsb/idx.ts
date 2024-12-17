@@ -1,4 +1,4 @@
-export * from 'gfx-common';
+export * from './shared/index.js';
 
 export const {
     Vector,

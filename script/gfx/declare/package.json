@@ -1,6 +1,3 @@
 {
-    "name": "gfx",
-    "dependencies": {
-        "gfx-common": "file:../common"
-    }
+    "name": "gfx"
 }

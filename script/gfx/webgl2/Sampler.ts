@@ -1,5 +1,5 @@
-import { Filter } from 'gfx-common';
 import { SamplerInfo } from './info.js';
+import { Filter } from './shared/constants.js';
 
 function getFilter(gl: WebGL2RenderingContext, val: Filter): GLenum {
     switch (val) {

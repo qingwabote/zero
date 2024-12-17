@@ -1,5 +1,5 @@
-import { BufferUsageFlagBits } from "gfx-common";
 import { BufferInfo } from "./info.js";
+import { BufferUsageFlagBits } from "./shared/constants.js";
 
 function usage2target(gl: WebGL2RenderingContext, usage: BufferUsageFlagBits): GLenum {
     if (usage & BufferUsageFlagBits.VERTEX) {
