@@ -3,6 +3,8 @@
 #include <spine/extension.h>
 #include <stdio.h>
 
+#define VERTEX_STRIDE 4 /*xyuv*/
+
 typedef struct spiSubModel
 {
     int range;
@@ -128,9 +130,11 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
 
         if (attachment->type == SP_ATTACHMENT_REGION)
         {
-            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + 4) * 4)->items;
             spRegionAttachment *region = (spRegionAttachment *)attachment;
-            spRegionAttachment_computeWorldVertices(region, slot->bone, vertices, model_vertexCount * 4, 4 /*xyuv*/);
+
+            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + 4) * VERTEX_STRIDE)->items;
+            spRegionAttachment_computeWorldVertices(region, slot->bone, vertices, model_vertexCount * VERTEX_STRIDE, VERTEX_STRIDE);
+
             uvs = region->uvs;
             vertexCount = 4;
             indices = quadIndices;
@@ -141,8 +145,16 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
         else if (attachment->type == SP_ATTACHMENT_MESH)
         {
             spMeshAttachment *mesh = (spMeshAttachment *)attachment;
+
+            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + (SUPER(mesh)->worldVerticesLength >> 1)) * VERTEX_STRIDE)->items;
+            spVertexAttachment_computeWorldVertices(SUPER(mesh), slot, 0, SUPER(mesh)->worldVerticesLength, vertices, model_vertexCount * VERTEX_STRIDE, VERTEX_STRIDE);
+
+            uvs = mesh->uvs;
+            vertexCount = SUPER(mesh)->worldVerticesLength >> 1;
+            indices = mesh->triangles;
+            indexCount = mesh->trianglesCount;
+
             rendererObject = ((spAtlasRegion *)mesh->rendererObject)->page->rendererObject;
-            printf("SP_ATTACHMENT_MESH unimplemented\n");
         }
         else
         {
