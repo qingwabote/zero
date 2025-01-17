@@ -21,8 +21,8 @@ enum Event {
     SCENE_UPDATE = 'SCENE_UPDATE',
     PIPELINE_UPDATE = 'PIPELINE_UPDATE',
     DEVICE_SYNC = 'DEVICE_SYNC',
-    PIPELINE_BATCH = 'PIPELINE_BATCH',
     UPLOAD = 'UPLOAD',
+    PIPELINE_BATCH = 'PIPELINE_BATCH',
     RENDER = 'RENDER',
     FRAME_END = 'FRAME_END',
 }
@@ -34,8 +34,8 @@ interface EventToListener {
     [Event.SCENE_UPDATE]: () => void;
     [Event.PIPELINE_UPDATE]: () => void;
     [Event.DEVICE_SYNC]: () => void;
-    [Event.PIPELINE_BATCH]: () => void;
     [Event.UPLOAD]: () => void;
+    [Event.PIPELINE_BATCH]: () => void;
     [Event.RENDER]: () => void;
     [Event.FRAME_END]: () => void;
 }
@@ -147,14 +147,17 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         const delta = (time - this._time) / 1000;
         this._time = time;
 
+        // updates component, responds to user input
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
+        // updates systems, applies physics and then animation
         for (const system of this._systems) {
             system.update(delta);
         }
         this.emit(Event.UPDATE);
-
+        // after the update of components and systems
         this._componentScheduler.lateUpdate();
+        // layout engine works here, after all positions and sizes set by the above settle down
         for (const system of this._systems) {
             system.lateUpdate(delta);
         }
@@ -171,14 +174,14 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         boot.device.swapchain.acquire(this._swapchainUsable);
         this.emit(Event.DEVICE_SYNC);
 
-        this.commandBuffer.begin();
-        this._pipeline.batch(this);
-        this.emit(Event.PIPELINE_BATCH);
-
         this._componentScheduler.upload(this.commandBuffer);
         quad.indexBufferView.update(this.commandBuffer);
         this._pipeline.upload(this);
         this.emit(Event.UPLOAD);
+
+        this.commandBuffer.begin();
+        this._pipeline.batch(this);
+        this.emit(Event.PIPELINE_BATCH);
 
         this._pipeline.render(this);
         this.commandBuffer.end();

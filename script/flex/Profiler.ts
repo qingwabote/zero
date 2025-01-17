@@ -14,8 +14,8 @@ export class Profiler extends ElementContainer {
     private _scene_update_delta = 0;
     private _pipeline_update_delta = 0;
     private _device_sync_delta = 0;
-    private _pipeline_batch_delta = 0;
     private _upload_delta = 0;
+    private _pipeline_batch_delta = 0;
     private _render_delta = 0;
 
     private _model_delta = 0;
@@ -47,8 +47,8 @@ export class Profiler extends ElementContainer {
         Zero.instance.on(Zero.Event.SCENE_UPDATE, () => { const t = now(); this._scene_update_delta += t - time; time = t; })
         Zero.instance.on(Zero.Event.PIPELINE_UPDATE, () => { const t = now(); this._pipeline_update_delta += t - time; time = t; })
         Zero.instance.on(Zero.Event.DEVICE_SYNC, () => { const t = now(); this._device_sync_delta += t - time; time = t; })
-        Zero.instance.on(Zero.Event.PIPELINE_BATCH, () => { const t = now(); this._pipeline_batch_delta += t - time; time = t; })
         Zero.instance.on(Zero.Event.UPLOAD, () => { const t = now(); this._upload_delta += t - time; time = t; })
+        Zero.instance.on(Zero.Event.PIPELINE_BATCH, () => { const t = now(); this._pipeline_batch_delta += t - time; time = t; })
 
         Zero.instance.profile.on(pipeline.Profile.Event.CULL_START, () => { cull_start = now(); })
         Zero.instance.profile.on(pipeline.Profile.Event.CULL_END, () => { this._cull_delta += now() - cull_start; })
@@ -68,8 +68,8 @@ export class Profiler extends ElementContainer {
                 this._scene_update_delta = 0;
                 this._pipeline_update_delta = 0;
                 this._device_sync_delta = 0;
-                this._pipeline_batch_delta = 0;
                 this._upload_delta = 0;
+                this._pipeline_batch_delta = 0;
                 this._render_delta = 0;
                 this._cull_delta = 0;
                 this._pipeline_batch_upload_delta = 0;
@@ -96,9 +96,9 @@ scene    ${(this._scene_update_delta / this._frames).toFixed(2)}ms
 pipeline ${(this._pipeline_update_delta / this._frames).toFixed(2)}ms
  cull    ${(this._cull_delta / this._frames).toFixed(2)}ms
 sync     ${(this._device_sync_delta / this._frames).toFixed(2)}ms
+upload   ${(this._upload_delta / this._frames).toFixed(2)}ms
 batch    ${(this._pipeline_batch_delta / this._frames).toFixed(2)}ms
  upload  ${(this._pipeline_batch_upload_delta / this._frames).toFixed(2)}ms
-upload   ${(this._upload_delta / this._frames).toFixed(2)}ms
 render   ${(this._render_delta / this._frames).toFixed(2)}ms
 material ${Zero.instance.profile.materials}
 pipeline ${Zero.instance.profile.pipelines}

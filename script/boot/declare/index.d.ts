@@ -33,6 +33,9 @@ export declare const device: Device;
 
 export declare const initial: number;
 
+export declare function textEncode(source: string, destination: Uint8Array): number;
+export declare function textDecode(input: Uint8Array): string;
+
 /**milliseconds */
 export declare function now(): number;
 

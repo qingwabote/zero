@@ -7,6 +7,7 @@
 #include "v8/libplatform/libplatform.h"
 #include "InspectorClient.hpp"
 #include "internal/console.hpp"
+#include "internal/text.hpp"
 #include "bg/Device.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
@@ -116,6 +117,7 @@ int Window::loop(SDL_Window *sdl_window)
         ImageBitmap_initialize(ns_zero);
         Loader_initialize(ns_zero);
         Window_initialize(ns_zero);
+        text_initialize(context, ns_zero);
         console_initialize(context, ns_global);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), ns_zero).ToChecked();
 

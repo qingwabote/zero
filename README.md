@@ -4,7 +4,7 @@
 - [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
 - [Skinning & Instancing & baking](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 - [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
-- [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
+- [Spine](https://qingwabote.github.io/zero/projects/skeleton2/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
@@ -23,14 +23,14 @@
 
 # Foundations
 
-- 模型渲染 (gltf)
+- 模型渲染（gltf）
 - 冯氏光照
 - 级联阴影
-- 动画混合 (一维)
-- 蒙皮动画 (烘焙)
-- 场景剔除 (八叉树)
-- 骨骼动画 (spine)
-- 物理引擎 (ammo)
+- 动画混合（一维）
+- 蒙皮动画（烘焙）
+- 场景剔除（八叉树）
+- 骨骼动画（spine-c wasm）
+- 物理引擎（ammo）
 - MSAA & FXAA
 - GPU Instancing
 

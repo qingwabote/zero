@@ -69,6 +69,8 @@ export const device = new Device(gl);
 
 export const initial = performance.now();
 
+export * from './text.js';
+
 export function now() {
     return performance.now();
 }

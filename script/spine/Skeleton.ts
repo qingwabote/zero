@@ -1,5 +1,5 @@
 import * as sc from '@esotericsoftware/spine-core';
-import { BoundedRenderer, Node, Shader, bundle, render, scene, shaderLib, vec2, vec3, vec4 } from "engine";
+import { BoundedRenderer, Node, Shader, bundle, render, scene, shaderLib, vec3, vec4 } from "engine";
 import { AABB3D } from 'engine/core/math/aabb3d.js';
 import { BlendFactor, BlendState, BufferUsageFlagBits, CommandBuffer, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from 'gfx';
 import { Texture } from './Texture.js';
@@ -54,11 +54,11 @@ export class Skeleton extends BoundedRenderer {
     }
     public set data(value: sc.SkeletonData) {
         const skeleton = new sc.Skeleton(value);
-        skeleton.updateWorldTransform();
-        skeleton.getBounds(sc_vec2_a, sc_vec2_b);
-        vec2.set(vec3_a, sc_vec2_a.x, sc_vec2_a.y);
-        vec2.set(vec3_b, sc_vec2_b.x, sc_vec2_b.y);
-        this._mesh.setBoundsByRect(vec3_a, vec3_b)
+        // skeleton.updateWorldTransform(sc.Physics.none);
+        // skeleton.getBounds(sc_vec2_a, sc_vec2_b);
+        // vec2.set(vec3_a, sc_vec2_a.x, sc_vec2_a.y);
+        // vec2.set(vec3_b, sc_vec2_b.x, sc_vec2_b.y);
+        // this._mesh.setBoundsByRect(vec3_a, vec3_b)
         this._skeleton = skeleton;
         this.emit(BoundedRenderer.EventName.BOUNDS_CHANGED);
     }
@@ -96,7 +96,7 @@ export class Skeleton extends BoundedRenderer {
 
         this._materials.length = 0;
 
-        this._skeleton.updateWorldTransform();
+        this._skeleton.updateWorldTransform(sc.Physics.none);
 
         this._vertexView.reset();
         this._indexView.reset();
