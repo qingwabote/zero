@@ -1,7 +1,0 @@
-{
-  "name": "3.6.53-wasm",
-  "dependencies": {
-    "boot": "file:../../boot/declare",
-    "bundling": "file:../../bundling"
-  }
-}
