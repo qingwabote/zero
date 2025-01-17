@@ -147,14 +147,17 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         const delta = (time - this._time) / 1000;
         this._time = time;
 
+        // updates component, responds to user input
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
+        // updates systems, applies physics and then animation
         for (const system of this._systems) {
             system.update(delta);
         }
         this.emit(Event.UPDATE);
-
+        // after the update of components and systems
         this._componentScheduler.lateUpdate();
+        // layout engine works here, after all positions and sizes set by the above settle down
         for (const system of this._systems) {
             system.lateUpdate(delta);
         }

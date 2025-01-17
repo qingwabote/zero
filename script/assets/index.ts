@@ -90,8 +90,8 @@ export async function once<T extends Asset>(url: string, type: new () => T): Pro
     return asset.load(url);
 }
 
-
-export class Raw {
+/**Wrapping raw resource types to reuse asset cache*/
+class Raw {
     constructor(private _root: string) { }
     async cache<T extends keyof ResultTypes>(path: string, type: T): Promise<ResultTypes[T]> {
         switch (type) {
@@ -112,7 +112,7 @@ export class Raw {
             case 'buffer':
                 return (await once(resolve(this._root, path), Buffer)).content as ResultTypes[T];
             case 'bitmap':
-                return (await cache(resolve(this._root, path), Bitmap)).content as ResultTypes[T];
+                return (await once(resolve(this._root, path), Bitmap)).content as ResultTypes[T];
             default:
                 throw new Error(`unsupported type: ${type}`);
         }

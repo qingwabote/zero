@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<script type="Module">
+
+    let HEAPU8;
+    let HEAPU32;
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    // emscripten and https://blog.dkwr.de/development/wasi-load-fd-write/
+    function fd_write(fd, iov, iovcnt, pnum) {
+      // hack to support printf in SYSCALLS_REQUIRE_FILESYSTEM=0
+      var num = 0;
+      for (var i = 0; i < iovcnt; i++) {
+        var ptr = HEAPU32[((iov)>>2)];
+        var len = HEAPU32[(((iov)+(4))>>2)];
+        const text = decoder.decode(HEAPU8.subarray(ptr, ptr + len));
+        console.log(text);
+        iov += 8;
+        num += len;
+      }
+      HEAPU32[((pnum)>>2)] = num;
+      return 0;
+    };
+
+    const response = await fetch("./dist/standalone/standalone.wasm");
+    const source = await WebAssembly.instantiate(await response.arrayBuffer(), {
+        wasi_snapshot_preview1: {
+            fd_write
+        }
+    })
+
+    const exports = source.instance.exports;
+
+    HEAPU8 = new Uint8Array(exports.memory.buffer);
+    HEAPU32 = new Uint32Array(exports.memory.buffer);
+
+    const str = "hel哈喽lo";
+    const bufferSize = str.length * 3 + 1;
+    const bufferPointer = exports.malloc(bufferSize);
+    const buffer = HEAPU8.subarray(bufferPointer, bufferPointer + bufferSize);
+    const stats = encoder.encodeInto(str, buffer);
+    buffer[stats.written] = 0;
+    exports.setString(bufferPointer);
+    exports.free(bufferPointer);
+
+    const head = exports.getString();
+    let tail = head;
+    while (HEAPU8[++tail]);
+    console.log(decoder.decode(HEAPU8.subarray(head, tail)));
+
+    // import init from "./dist/build/cmake-proj.js";
+
+    // const Module = await init();
+
+    // const HEAPU8 = Module.HEAPU8;
+
+    // const decoder = new TextDecoder();
+
+    // const head = Module._getString();
+    // let tail = head;
+    // while (HEAPU8[++tail]);
+    // console.log(decoder.decode(HEAPU8.subarray(head, tail)));
+
+    // const str = "hel哈喽lo";
+    // const bufferSize = str.length * 3 + 1;
+    // const bufferPointer = Module._malloc(bufferSize);
+    // const buffer = HEAPU8.subarray(bufferPointer, bufferPointer + bufferSize);
+    // const encoder = new TextEncoder();
+    // const stats = encoder.encodeInto(str, buffer);
+    // buffer[stats.written] = 0;
+    // Module._setString(bufferPointer);
+    // Module._free(bufferPointer);
+</script>
+
+</html>

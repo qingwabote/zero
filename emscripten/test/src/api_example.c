@@ -1,0 +1,16 @@
+// api_example.c
+#include <stdio.h>
+#include <emscripten.h>
+
+EMSCRIPTEN_KEEPALIVE
+void sayHi()
+{
+    printf("Hi!\n");
+}
+
+EMSCRIPTEN_KEEPALIVE
+int daysInWeek()
+{
+    int a = 0;
+    return 1 / a;
+}

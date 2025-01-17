@@ -1,0 +1,6 @@
+services:
+  spine-runtimes-3.6.53-debug:
+    volumes:
+      - ../:/zero
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Debug -S /zero/emscripten/spine-runtimes-3.6.53 -B /zero/emscripten/build/spine-runtimes-3.6.53-debug && cmake --build /zero/emscripten/build/spine-runtimes-3.6.53-debug"    
