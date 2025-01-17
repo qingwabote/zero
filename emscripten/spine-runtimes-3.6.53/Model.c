@@ -44,13 +44,23 @@ spiModel *spiModel_create()
     spiModel *model = NEW(spiModel);
     model->vertices = spFloatArray_create(1024);
     model->indices = spUnsignedShortArray_create(512);
-    model->subModels = spiSubModelArray_create(1);
+    model->subModels = spiSubModelArray_create(0);
     return model;
 }
 
 EMSCRIPTEN_KEEPALIVE
 void spiModel_dispose(spiModel *self)
 {
+    spFloatArray_dispose(self->vertices);
+
+    spUnsignedShortArray_dispose(self->indices);
+
+    for (int i = 0; i < self->subModels->capacity; i++)
+    {
+        FREE(self->subModels->items[i]);
+    }
+    spiSubModelArray_dispose(self->subModels);
+
     FREE(self);
 }
 
@@ -99,10 +109,9 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
 
     spSkeleton_updateWorldTransform(skeleton);
 
-    int vertexCount = 0;
-    int indexCount = 0;
-    void *rendererObject = 0;
-    int blend = 0;
+    spiSubModelArray_clear(self->subModels);
+    int model_vertexCount = 0;
+    int model_indexCount = 0;
     for (int i = 0; i < skeleton->slotsCount; i++)
     {
         spSlot *slot = skeleton->drawOrder[i];
@@ -110,29 +119,29 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
         if (!attachment)
             continue;
 
-        float *attachment_uvs = 0;
-        int attachment_verticesCount = 0;
-        unsigned short *attachment_indices = 0;
-        int attachment_indicesCount = 0;
+        float *uvs = 0;
+        int vertexCount = 0;
+        unsigned short *indices = 0;
+        int indexCount = 0;
 
-        void *attachment_rendererObject = 0;
+        void *rendererObject = 0;
 
         if (attachment->type == SP_ATTACHMENT_REGION)
         {
-            float *vertices = spFloatArray_setSize(self->vertices, (vertexCount + 4) * 4)->items;
+            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + 4) * 4)->items;
             spRegionAttachment *region = (spRegionAttachment *)attachment;
-            spRegionAttachment_computeWorldVertices(region, slot->bone, vertices, vertexCount * 4, 4 /*xyuv*/);
-            attachment_uvs = region->uvs;
-            attachment_verticesCount = 4;
-            attachment_indices = quadIndices;
-            attachment_indicesCount = 6;
+            spRegionAttachment_computeWorldVertices(region, slot->bone, vertices, model_vertexCount * 4, 4 /*xyuv*/);
+            uvs = region->uvs;
+            vertexCount = 4;
+            indices = quadIndices;
+            indexCount = 6;
 
-            attachment_rendererObject = ((spAtlasRegion *)region->rendererObject)->page->rendererObject;
+            rendererObject = ((spAtlasRegion *)region->rendererObject)->page->rendererObject;
         }
         else if (attachment->type == SP_ATTACHMENT_MESH)
         {
             spMeshAttachment *mesh = (spMeshAttachment *)attachment;
-            attachment_rendererObject = ((spAtlasRegion *)mesh->rendererObject)->page->rendererObject;
+            rendererObject = ((spAtlasRegion *)mesh->rendererObject)->page->rendererObject;
             printf("SP_ATTACHMENT_MESH unimplemented\n");
         }
         else
@@ -140,40 +149,48 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
             printf("unimplemented\n");
         }
 
-        if (attachment_rendererObject)
+        if (rendererObject)
         {
-            float *vertices = self->vertices->items;
-            for (int i = 0; i < attachment_verticesCount; i++)
+            float *model_vertices = self->vertices->items;
+            for (int i = 0; i < vertexCount; i++)
             {
-                vertices[(vertexCount + i) * 4 + 2] = attachment_uvs[2 * i];
-                vertices[(vertexCount + i) * 4 + 3] = attachment_uvs[2 * i + 1];
+                model_vertices[(model_vertexCount + i) * 4 + 2] = uvs[2 * i];
+                model_vertices[(model_vertexCount + i) * 4 + 3] = uvs[2 * i + 1];
             }
 
-            unsigned short *indices = spUnsignedShortArray_setSize(self->indices, indexCount + attachment_indicesCount)->items;
-            for (int i = 0; i < attachment_indicesCount; i++)
+            unsigned short *model_indices = spUnsignedShortArray_setSize(self->indices, model_indexCount + indexCount)->items;
+            for (int i = 0; i < indexCount; i++)
             {
-                indices[indexCount + i] = attachment_indices[i] + vertexCount;
+                model_indices[model_indexCount + i] = indices[i] + model_vertexCount;
             }
 
-            indexCount += attachment_indicesCount;
-            vertexCount += attachment_verticesCount;
+            model_indexCount += indexCount;
+            model_vertexCount += vertexCount;
 
-            rendererObject = attachment_rendererObject;
+            spiSubModel *subModel = self->subModels->size ? spiSubModelArray_peek(self->subModels) : 0;
+            if (subModel)
+            {
+                if (subModel->blend == slot->data->blendMode && subModel->rendererObject == rendererObject)
+                {
+                    subModel->range += indexCount;
+                    continue;
+                }
+            }
 
-            blend = slot->data->blendMode;
+            if (self->subModels->size < self->subModels->capacity)
+            {
+                spiSubModelArray_setSize(self->subModels, self->subModels->size + 1);
+                subModel = spiSubModelArray_peek(self->subModels);
+            }
+            else
+            {
+                spiSubModelArray_ensureCapacity(self->subModels, self->subModels->size + 1); // ensure capacity add one at a time
+                subModel = NEW(spiSubModel);
+                spiSubModelArray_add(self->subModels, subModel);
+            }
+            subModel->blend = slot->data->blendMode;
+            subModel->rendererObject = rendererObject;
+            subModel->range = indexCount;
         }
-    }
-
-    if (self->subModels->size <= 1)
-    {
-        int size = self->subModels->size;
-        spiSubModelArray_setSize(self->subModels, 1)->items[0] = NEW(spiSubModel);
-    }
-    for (int i = 0; i < 1; i++)
-    {
-        spiSubModel *submodel = self->subModels->items[0];
-        submodel->range = indexCount;
-        submodel->rendererObject = rendererObject;
-        submodel->blend = blend;
     }
 }

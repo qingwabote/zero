@@ -64,7 +64,9 @@ const material_cache = await (async function () {
 export class SkeletonRenderer extends BoundedRenderer {
     static readonly PIXELS_PER_UNIT = 1;
 
-    private _mesh: scene.Mesh;
+    private _subMeshes: scene.SubMesh[] = [];
+
+    private _mesh = new scene.Mesh(this._subMeshes);
     private _materials: scene.Material[] = [];
 
     public get bounds() {
@@ -90,7 +92,9 @@ export class SkeletonRenderer extends BoundedRenderer {
     private readonly _vertexBuffer: Buffer;
     private readonly _indexBuffer: Buffer;
 
-    private readonly _spiModel: number;
+    private readonly _inputAssembler: InputAssembler;
+
+    private readonly _spiModel: number = wasm.exports.spiModel_create();
 
     constructor(node: Node) {
         super(node);
@@ -103,8 +107,6 @@ export class SkeletonRenderer extends BoundedRenderer {
         indexInfo.usage = BufferUsageFlagBits.INDEX;
         const indexBuffer = device.createBuffer(indexInfo);
 
-        this._spiModel = wasm.exports.spiModel_create();
-
         const ia = new InputAssembler;
         ia.vertexInputState.attributes = VERTEX_ATTRIBUTES;
         ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
@@ -116,19 +118,13 @@ export class SkeletonRenderer extends BoundedRenderer {
         indexInput.type = IndexType.UINT16;
         ia.indexInput = indexInput;
 
+        this._inputAssembler = ia;
         this._vertexBuffer = vertexBuffer;
         this._indexBuffer = indexBuffer;
-
-        this._mesh = new scene.Mesh([new scene.SubMesh(ia)]);
     }
 
     protected createModel(): scene.Model | null {
         return new scene.Model(this.node, this._mesh, this._materials);
-    }
-
-    override update(dt: number): void {
-        super.update(dt);
-        wasm.exports.spiSkeleton_update(this._pointer, dt);
     }
 
     override lateUpdate(): void {
@@ -149,12 +145,21 @@ export class SkeletonRenderer extends BoundedRenderer {
         this._materials.length = 0;
         const subModelsSize = wasm.exports.spiModel_getSubModelsSize(this._spiModel);
         const subModels = wasm.exports.spiModel_getSubModels(this._spiModel);
+        let first = 0;
         for (let i = 0; i < subModelsSize; i++) {
             const subModel = wasm.HEAPU32[(subModels + 4 * i) >> 2];
             const range = wasm.exports.spiSubModel_getRange(subModel);
             const texture = wasm.exports.spiSubModel_getRendererObject(subModel);
             this._materials.push(material_cache(0, texture));
-            this._mesh.subMeshes[i].draw.count = range;
+            if (this._subMeshes.length == i) {
+                this._subMeshes.push(new scene.SubMesh(this._inputAssembler))
+            }
+            const draw = this._subMeshes[i].draw;
+            draw.first = first;
+            draw.count = range;
+
+            first += range;
         }
+        this._subMeshes.length = subModelsSize;
     }
 }
