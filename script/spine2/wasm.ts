@@ -30,12 +30,13 @@ const source = await loadWasm(bundle.resolve('spine-c.wasm'), {
     }
 })
 
-const exports = source.instance.exports as any;
+/**name "exports" conflicts with systemjs*/
+const exports_ = source.instance.exports as any;
 
-HEAPU8 = new Uint8Array(exports.memory.buffer);
-HEAPU16 = new Uint16Array(exports.memory.buffer);
-HEAPU32 = new Uint32Array(exports.memory.buffer);
-HEAPF32 = new Float32Array(exports.memory.buffer);
+HEAPU8 = new Uint8Array(exports_.memory.buffer);
+HEAPU16 = new Uint16Array(exports_.memory.buffer);
+HEAPU32 = new Uint32Array(exports_.memory.buffer);
+HEAPF32 = new Float32Array(exports_.memory.buffer);
 
 const encoder = new TextEncoder();
 
@@ -46,13 +47,13 @@ export const wasm = {
     HEAPF32,
     string_malloc(value: string): number {
         const size = value.length * 3 + 1; // Pessimistic
-        const ptr = exports.malloc(size);
+        const ptr = exports_.malloc(size);
         const buffer = HEAPU8.subarray(ptr, ptr + size);
         const stats = encoder.encodeInto(value, buffer);
         buffer[stats.written] = 0;
         return ptr;
     },
-    string_free: exports.free as (ptr: number) => void,
+    string_free: exports_.free as (ptr: number) => void,
     string_decode(c_string: number): string {
         let end = c_string;
         while (HEAPU8[end]) {
@@ -60,5 +61,5 @@ export const wasm = {
         }
         return decoder.decode(HEAPU8.subarray(c_string, end));
     },
-    exports
+    exports: exports_
 } as const
