@@ -48,6 +48,7 @@ export class App extends Zero {
         doc.setHeight(height);
 
         const skeletonBinary = new spine.core.SkeletonBinary(new spine.core.AtlasAttachmentLoader(spine_atlas));
+        skeletonBinary.scale = 0.5
         const skeletonData = skeletonBinary.readSkeletonData(new Uint8Array(spine_data_src));
 
         const skeleton = Renderer.create(spine.Animation);

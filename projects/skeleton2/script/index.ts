@@ -3,8 +3,8 @@ import { bundle as builtin, Camera, device, Node, Pipeline, vec3, Zero } from 'e
 import { Align, Document, Edge, Justify, PositionType, Profiler, Renderer } from 'flex';
 import { Atlas, SkeletonAnimation, SkeletonData } from 'spine2';
 
-const atlas = await bundle.once('101012', Atlas);
-const skel = await bundle.raw.once('101012.skel', 'buffer');
+const atlas = await bundle.once('spineboy/spineboy-pma', Atlas);
+const skel = await bundle.raw.once('spineboy/spineboy-pro.skel', 'buffer');
 
 const pipeline = await (await builtin.once('pipelines/unlit', Pipeline)).instantiate()
 
@@ -43,11 +43,11 @@ export class App extends Zero {
         doc.setWidth(width);
         doc.setHeight(height);
 
-        const skeletonData = new SkeletonData(skel, atlas);
+        const skeletonData = new SkeletonData(skel, atlas, 0.5);
 
         const skeleton = Renderer.create(SkeletonAnimation);
         skeleton.impl.data = skeletonData;
-        skeleton.impl.state!.addAnimationByName(0, 'battle_idle', true, 0);
+        skeleton.impl.state!.addAnimationByName(0, 'portal', true, 0);
         doc.addElement(skeleton)
 
         node = new Node(Profiler.name)

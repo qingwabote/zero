@@ -24,7 +24,7 @@ function fd_write(fd: number, iov: number, iovcnt: number, pnum: number) {
     return 0;
 };
 
-const source = await loadWasm(bundle.resolve('spine-3.6.53.wasm'), {
+const source = await loadWasm(bundle.resolve('spine-c.wasm'), {
     wasi_snapshot_preview1: {
         fd_write
     }
