@@ -105,9 +105,13 @@ spiSubModel **spiModel_getSubModels(spiModel *self)
 EMSCRIPTEN_KEEPALIVE
 void spiModel_update(spiModel *self, const spSkeleton *skeleton)
 {
-    // static float vertexPositions[1];
-
     static unsigned short quadIndices[6] = {0, 1, 2, 2, 3, 0};
+
+    static spSkeletonClipping *clipper = 0;
+    if (!clipper)
+    {
+        clipper = spSkeletonClipping_create();
+    }
 
     spSkeleton_updateWorldTransform(skeleton, 0);
 
@@ -119,9 +123,10 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
         spSlot *slot = skeleton->drawOrder[i];
         spAttachment *attachment = slot->attachment;
         if (!attachment)
+        {
             continue;
+        }
 
-        float *uvs = 0;
         int vertexCount = 0;
         unsigned short *indices = 0;
         int indexCount = 0;
@@ -132,11 +137,15 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
         {
             spRegionAttachment *region = (spRegionAttachment *)attachment;
 
-            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + 4) * VERTEX_STRIDE)->items;
-            spRegionAttachment_computeWorldVertices(region, slot, vertices, model_vertexCount * VERTEX_STRIDE, VERTEX_STRIDE);
-
-            uvs = region->uvs;
             vertexCount = 4;
+            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + vertexCount) * VERTEX_STRIDE)->items + model_vertexCount * VERTEX_STRIDE;
+            spRegionAttachment_computeWorldVertices(region, slot, vertices, 0, VERTEX_STRIDE);
+            for (int i = 0; i < vertexCount; i++)
+            {
+                vertices[VERTEX_STRIDE * i + 2] = region->uvs[2 * i];
+                vertices[VERTEX_STRIDE * i + 3] = region->uvs[2 * i + 1];
+            }
+
             indices = quadIndices;
             indexCount = 6;
 
@@ -146,63 +155,87 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
         {
             spMeshAttachment *mesh = (spMeshAttachment *)attachment;
 
-            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + (SUPER(mesh)->worldVerticesLength >> 1)) * VERTEX_STRIDE)->items;
-            spVertexAttachment_computeWorldVertices(SUPER(mesh), slot, 0, SUPER(mesh)->worldVerticesLength, vertices, model_vertexCount * VERTEX_STRIDE, VERTEX_STRIDE);
-
-            uvs = mesh->uvs;
             vertexCount = SUPER(mesh)->worldVerticesLength >> 1;
+            float *vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + vertexCount) * VERTEX_STRIDE)->items + model_vertexCount * VERTEX_STRIDE;
+            spVertexAttachment_computeWorldVertices(SUPER(mesh), slot, 0, SUPER(mesh)->worldVerticesLength, vertices, 0, VERTEX_STRIDE);
+            for (int i = 0; i < vertexCount; i++)
+            {
+                vertices[VERTEX_STRIDE * i + 2] = mesh->uvs[2 * i];
+                vertices[VERTEX_STRIDE * i + 3] = mesh->uvs[2 * i + 1];
+            }
+
             indices = mesh->triangles;
             indexCount = mesh->trianglesCount;
 
             rendererObject = ((spAtlasRegion *)mesh->rendererObject)->page->rendererObject;
         }
+        else if (attachment->type == SP_ATTACHMENT_CLIPPING)
+        {
+            spSkeletonClipping_clipStart(clipper, slot, (spClippingAttachment *)slot->attachment);
+            continue;
+        }
         else
         {
+            spSkeletonClipping_clipEnd(clipper, slot);
+            continue;
             printf("unimplemented\n");
         }
 
-        if (rendererObject)
+        if (spSkeletonClipping_isClipping(clipper))
         {
-            float *model_vertices = self->vertices->items;
+            float *vertices = self->vertices->items + model_vertexCount * VERTEX_STRIDE;
+            spSkeletonClipping_clipTriangles(clipper, vertices, vertexCount * VERTEX_STRIDE, indices, indexCount, vertices + 2, VERTEX_STRIDE);
+            float *positions = clipper->clippedVertices->items;
+            float *uvs = clipper->clippedUVs->items;
+            vertexCount = clipper->clippedVertices->size >> 1;
+            vertices = spFloatArray_setSize(self->vertices, (model_vertexCount + vertexCount) * VERTEX_STRIDE)->items + model_vertexCount * VERTEX_STRIDE;
             for (int i = 0; i < vertexCount; i++)
             {
-                model_vertices[(model_vertexCount + i) * 4 + 2] = uvs[2 * i];
-                model_vertices[(model_vertexCount + i) * 4 + 3] = uvs[2 * i + 1];
+                vertices[VERTEX_STRIDE * i] = positions[2 * i];
+                vertices[VERTEX_STRIDE * i + 1] = positions[2 * i + 1];
+                vertices[VERTEX_STRIDE * i + 2] = uvs[2 * i];
+                vertices[VERTEX_STRIDE * i + 3] = uvs[2 * i + 1];
             }
 
-            unsigned short *model_indices = spUnsignedShortArray_setSize(self->indices, model_indexCount + indexCount)->items;
-            for (int i = 0; i < indexCount; i++)
-            {
-                model_indices[model_indexCount + i] = indices[i] + model_vertexCount;
-            }
-
-            model_indexCount += indexCount;
-            model_vertexCount += vertexCount;
-
-            spiSubModel *subModel = self->subModels->size ? spiSubModelArray_peek(self->subModels) : 0;
-            if (subModel)
-            {
-                if (subModel->blend == slot->data->blendMode && subModel->rendererObject == rendererObject)
-                {
-                    subModel->range += indexCount;
-                    continue;
-                }
-            }
-
-            if (self->subModels->size < self->subModels->capacity)
-            {
-                spiSubModelArray_setSize(self->subModels, self->subModels->size + 1);
-                subModel = spiSubModelArray_peek(self->subModels);
-            }
-            else
-            {
-                spiSubModelArray_ensureCapacity(self->subModels, self->subModels->size + 1); // ensure capacity add one at a time
-                subModel = NEW(spiSubModel);
-                spiSubModelArray_add(self->subModels, subModel);
-            }
-            subModel->blend = slot->data->blendMode;
-            subModel->rendererObject = rendererObject;
-            subModel->range = indexCount;
+            indices = clipper->clippedTriangles->items;
+            indexCount = clipper->clippedTriangles->size;
         }
+
+        unsigned short *model_indices = spUnsignedShortArray_setSize(self->indices, model_indexCount + indexCount)->items;
+        for (int i = 0; i < indexCount; i++)
+        {
+            model_indices[model_indexCount + i] = indices[i] + model_vertexCount;
+        }
+
+        model_indexCount += indexCount;
+        model_vertexCount += vertexCount;
+
+        spSkeletonClipping_clipEnd(clipper, slot);
+
+        spiSubModel *subModel = self->subModels->size ? spiSubModelArray_peek(self->subModels) : 0;
+        if (subModel)
+        {
+            if (subModel->blend == slot->data->blendMode && subModel->rendererObject == rendererObject)
+            {
+                subModel->range += indexCount;
+                continue;
+            }
+        }
+
+        if (self->subModels->size < self->subModels->capacity)
+        {
+            spiSubModelArray_setSize(self->subModels, self->subModels->size + 1);
+            subModel = spiSubModelArray_peek(self->subModels);
+        }
+        else
+        {
+            spiSubModelArray_ensureCapacity(self->subModels, self->subModels->size + 1); // ensure capacity add one at a time
+            subModel = NEW(spiSubModel);
+            spiSubModelArray_add(self->subModels, subModel);
+        }
+        subModel->blend = slot->data->blendMode;
+        subModel->rendererObject = rendererObject;
+        subModel->range = indexCount;
     }
+    spSkeletonClipping_clipEnd2(clipper);
 }
