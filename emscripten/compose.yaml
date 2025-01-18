@@ -13,5 +13,10 @@ services:
     volumes:
       - ../:/zero
     image: "emscripten/emsdk"
-    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DSPINE_C=spine-c-4.2 -S /zero/emscripten/spine-runtimes -B /zero/emscripten/build/spine-runtimes-4.2-debug && cmake --build /zero/emscripten/build/spine-runtimes-4.2-debug"  
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DSPINE_C=spine-c-4.2 -S /zero/emscripten/spine-runtimes -B /zero/emscripten/build/spine-runtimes-4.2-debug && cmake --build /zero/emscripten/build/spine-runtimes-4.2-debug"
+  spine-runtimes-4.2-release:
+    volumes:
+      - ../:/zero
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Release -DSPINE_C=spine-c-4.2 -S /zero/emscripten/spine-runtimes -B /zero/emscripten/build/spine-runtimes-4.2-release && cmake --build /zero/emscripten/build/spine-runtimes-4.2-release"  
     

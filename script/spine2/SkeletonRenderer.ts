@@ -1,5 +1,5 @@
 import { BoundedRenderer, bundle, device, Node, scene, Shader, shaderLib, vec4 } from "engine";
-import { BlendFactor, BlendState, Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
+import { BlendFactor, BlendState, Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { textureMap } from "./context.js";
 import { SkeletonData } from "./SkeletonData.js";
 import { wasm } from "./wasm.js";
@@ -127,7 +127,7 @@ export class SkeletonRenderer extends BoundedRenderer {
         return new scene.Model(this.node, this._mesh, this._materials);
     }
 
-    override lateUpdate(): void {
+    override upload(commandBuffer: CommandBuffer): void {
         wasm.exports.spiModel_update(this._spiModel, this._pointer);
 
         const verticesSize = wasm.exports.spiModel_getVerticesSize(this._spiModel);

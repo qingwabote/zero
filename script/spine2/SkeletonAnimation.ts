@@ -1,3 +1,4 @@
+import { CommandBuffer } from "gfx";
 import { AnimationState } from "./AnimationState.js";
 import { SkeletonData } from "./SkeletonData.js";
 import { SkeletonRenderer } from "./SkeletonRenderer.js";
@@ -23,8 +24,8 @@ export class SkeletonAnimation extends SkeletonRenderer {
         super.data = value;
     }
 
-    override lateUpdate(): void {
+    override upload(commandBuffer: CommandBuffer): void {
         wasm.exports.spiAnimationState_apply(this._state!.pointer, this._pointer);
-        super.lateUpdate();
+        super.upload(commandBuffer);
     }
 }
