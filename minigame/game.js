@@ -1,6 +1,3 @@
-require('polyfill/TextDecoder.js');
-require('polyfill/TextEncoder.js');
-
 wx.onError(function (e) {
     wx.showModal({ title: 'wx.onError', content: e.message + '\n' + e.stack });
 });
