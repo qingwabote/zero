@@ -54,6 +54,13 @@ export const safeArea = { left: 0, right: 0, top: 0, bottom: 0, width, height: h
 
 export const initial: number = w.now();
 
+export function textEncode(source: string, destination: Uint8Array) {
+    return zero.textEncode(source, destination);
+}
+export function textDecode(input: Uint8Array): string {
+    return zero.textDecode(input);
+}
+
 export function now(): number {
     return w.now();
 }

@@ -1,0 +1,10 @@
+{
+    "name": "spine2",
+    "dependencies": {
+        "assets": "file:../assets",
+        "boot": "file:../boot/declare",
+        "bundling": "file:../bundling",
+        "engine": "file:../engine",
+        "gfx": "file:../gfx/declare"
+    }
+}

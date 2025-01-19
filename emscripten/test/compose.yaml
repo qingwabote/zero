@@ -1,0 +1,38 @@
+services:
+  api_example:
+    volumes:
+      - ./src:/src
+      - ./dist:/dist
+    image: "emscripten/emsdk"
+    command: emcc -g -sLINKABLE=1 -o /dist/api_example.js api_example.c
+  hello_world:
+    volumes:
+      - ./src:/src
+      - ./dist:/dist
+    image: "emscripten/emsdk"
+    command: emcc -gsource-map -o /dist/hello_world.js hello_world.c
+  quick_example:
+    volumes:
+      - ./src:/src
+      - ./dist:/dist
+    image: "emscripten/emsdk"
+    command: emcc -gsource-map -lembind -o /dist/quick_example.js quick_example.cpp
+  MyClass:
+    volumes:
+      - ./src:/src
+      - ./dist:/dist
+    image: "emscripten/emsdk"
+    command: emcc -gsource-map -sEXPORTED_RUNTIME_METHODS=['wasmTable'] -lembind -o /dist/MyClass.js MyClass.cpp
+  cmake-proj:
+    volumes:
+      - ./src:/src
+      - ./dist:/dist
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -S /src/cmake-proj -B /dist/build && cmake --build /dist/build"
+  standalone:
+    volumes:
+      - ./src:/src
+      - ./dist:/dist
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -S /src/standalone -B /dist/standalone && cmake --build /dist/standalone"
+    

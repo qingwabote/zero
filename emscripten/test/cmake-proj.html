@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<script type="Module">
+    import init from "./dist/build/cmake-proj.js";
+
+    const Module = await init();
+
+    const HEAPU8 = Module.HEAPU8;
+
+    const decoder = new TextDecoder();
+
+    const head = Module._getString();
+    let tail = head;
+    while (HEAPU8[++tail]);
+    console.log(decoder.decode(HEAPU8.subarray(head, tail)));
+
+    const str = "hel哈喽lo";
+    const bufferSize = str.length * 3 + 1;
+    const bufferPointer = Module._malloc(bufferSize);
+    const buffer = HEAPU8.subarray(bufferPointer, bufferPointer + bufferSize);
+    const encoder = new TextEncoder();
+    const stats = encoder.encodeInto(str, buffer);
+    buffer[stats.written] = 0;
+    Module._setString(bufferPointer);
+    Module._free(bufferPointer);
+</script>
+
+</html>

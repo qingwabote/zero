@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<script>
+    var Module = {
+        onRuntimeInitialized: function () {
+            var instance = new Module.MyClass(10, "hello");
+            var incrementX = Module.wasmTable.get(6);
+            incrementX(instance.$$.ptr);
+            console.log('instance.x', instance.x); // 11
+
+            const other = instance.getOther();
+            console.log('getY', other.getY())
+
+            const other2 = instance.getOther();
+            console.log('other == other2', other == other2)
+
+            // instance.incrementX();
+            // console.log('instance.x', instance.x); // 11
+            // instance.x = 20; // 20
+            // Module.MyClass.getStringFromInstance(instance); // "hello"
+            // instance.delete();
+        }
+    };
+</script>
+<script src="dist/MyClass.js"></script>
+
+</html>

@@ -1,6 +1,6 @@
-import { SampleCountFlagBits } from "gfx-common";
-import { Texture } from "./Texture.js";
 import { FramebufferInfo, Vector } from "./info.js";
+import { SampleCountFlagBits } from "./shared/constants.js";
+import { Texture } from "./Texture.js";
 
 export class Framebuffer {
     private _impl: WebGLFramebuffer | null = null;

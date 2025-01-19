@@ -1,5 +1,5 @@
 import { bundle } from 'bundling';
-import { Camera, Node, Pipeline, Texture, Zero, device, vec3 } from 'engine';
+import { Camera, Node, Pipeline, Texture, Zero, bundle as builtin, device, vec3 } from 'engine';
 import { Align, Document, Edge, Justify, PositionType, Profiler, Renderer } from 'flex';
 import * as spine from 'spine';
 
@@ -8,9 +8,9 @@ const spine_atlas = new spine.core.TextureAtlas(spine_atlas_src);
 for (const page of spine_atlas.pages) {
     page.setTexture(new spine.Texture(await bundle.once(`spineboy/${page.name}`, Texture)))
 }
-const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text');
+const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.skel', 'buffer');
 
-const pipeline = await (await bundle.cache('pipelines/post', Pipeline)).instantiate()
+const pipeline = await (await builtin.once('pipelines/unlit', Pipeline)).instantiate()
 
 enum VisibilityFlagBits {
     NONE = 0,
@@ -47,8 +47,9 @@ export class App extends Zero {
         doc.setWidth(width);
         doc.setHeight(height);
 
-        const json = new spine.core.SkeletonJson(new spine.core.AtlasAttachmentLoader(spine_atlas));
-        const skeletonData = json.readSkeletonData(spine_data_src);
+        const skeletonBinary = new spine.core.SkeletonBinary(new spine.core.AtlasAttachmentLoader(spine_atlas));
+        skeletonBinary.scale = 0.5
+        const skeletonData = skeletonBinary.readSkeletonData(new Uint8Array(spine_data_src));
 
         const skeleton = Renderer.create(spine.Animation);
         skeleton.impl.data = skeletonData;

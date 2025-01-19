@@ -11,6 +11,10 @@
             "root": "dist/subpackages/spine"
         },
         {
+            "name": "spine2",
+            "root": "dist/subpackages/spine2"
+        },
+        {
             "name": "physics",
             "root": "dist/subpackages/physics"
         },
@@ -33,6 +37,10 @@
         {
             "name": "skeleton",
             "root": "dist/subpackages/projects/skeleton"
+        },
+        {
+            "name": "skeleton2",
+            "root": "dist/subpackages/projects/skeleton2"
         },
         {
             "name": "vehicle",

@@ -1,6 +1,6 @@
-import { SampleCountFlagBits } from "gfx-common";
 import { TextureInfo } from "./info.js";
 import { Formats } from "./internal/mapping.js";
+import { SampleCountFlagBits } from "./shared/constants.js";
 
 export class Texture {
     private _texture!: WebGLTexture;

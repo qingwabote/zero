@@ -12,6 +12,7 @@ set(SRC_FILES
     tests/v8.cpp
     tests/websockets.cpp
     internal/console.cpp
+    internal/text.cpp
     swig/auto/ImageBitmap_wrap.cpp
     swig/auto/Loader_wrap.cpp
     swig/auto/gfx_wrap.cpp

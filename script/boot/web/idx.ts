@@ -82,6 +82,15 @@ export const device = new Device(canvas.getContext('webgl2', { antialias: false 
 
 export const initial = performance.now();
 
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+export function textEncode(source: string, destination: Uint8Array) {
+    return textEncoder.encodeInto(source, destination).written;
+}
+export function textDecode(input: Uint8Array): string {
+    return textDecoder.decode(input);
+}
+
 export function now() { return performance.now(); }
 
 export interface ResultTypes {

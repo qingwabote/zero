@@ -1,4 +1,3 @@
-import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP, PrimitiveTopology } from "gfx-common";
 import { Buffer } from "./Buffer.js";
 import { DescriptorSet } from "./DescriptorSet.js";
 import { Framebuffer } from "./Framebuffer.js";
@@ -7,6 +6,7 @@ import { RenderPass } from "./RenderPass.js";
 import { Texture } from "./Texture.js";
 import { AttachmentDescription, InputAssembler, Uint32Vector, Vector, VertexAttribute } from "./info.js";
 import { Formats } from "./internal/mapping.js";
+import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP, PrimitiveTopology } from "./shared/constants.js";
 
 function bendFactor2WebGL(gl: WebGL2RenderingContext, factor: BlendFactor): GLenum {
     switch (factor) {

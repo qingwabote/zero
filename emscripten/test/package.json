@@ -1,0 +1,11 @@
+{
+    "type": "module",
+    "scripts": {
+        "api_example": "http-server . -p 8003 -o api_example.html -c-1",
+        "hello_world": "http-server . -p 8003 -o hello_world.html -c-1",
+        "quick_example": "http-server . -p 8003 -o quick_example.html -c-1",
+        "MyClass": "http-server . -p 8003 -o MyClass.html -c-1",
+        "cmake-proj": "http-server . -p 8003 -o cmake-proj.html -c-1",
+        "standalone": "http-server . -p 8003 -o standalone.html -c-1"
+    }
+}
