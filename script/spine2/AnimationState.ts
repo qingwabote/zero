@@ -9,9 +9,9 @@ export class AnimationState {
     }
 
     addAnimationByName(trackIndex: number, animationName: string, loop: boolean, delay: number) {
-        const animationNamePtr = wasm.string_malloc(animationName);
+        const animationNamePtr = wasm.string.malloc(animationName);
         wasm.exports.spiAnimationState_addAnimationByName(this.pointer, trackIndex, animationNamePtr, loop ? 1 : 0, delay);
-        wasm.string_free(animationNamePtr);
+        wasm.string.free(animationNamePtr);
     }
 
     update(dt: number): void {

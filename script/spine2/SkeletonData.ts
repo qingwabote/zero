@@ -11,7 +11,7 @@ export class SkeletonData {
         wasm.HEAPU8.set(new Uint8Array(buffer), binaryPtr);
         const dataPtr = wasm.exports.spiSkeletonBinary_readSkeletonData(sbPtr, binaryPtr, buffer.byteLength);
         if (!dataPtr) {
-            throw new Error(wasm.string_decode(wasm.exports.spiSkeletonBinary_getError(sbPtr)));
+            throw new Error(wasm.string.decode(wasm.exports.spiSkeletonBinary_getError(sbPtr)));
         }
         wasm.exports.free(binaryPtr);
         wasm.exports.spiSkeletonBinary_dispose(sbPtr);

@@ -36,7 +36,7 @@ export class Atlas implements Asset {
                 (async () => {
                     const page = pagePtr;
                     const name = wasm.exports.spiAtlasPage_getName(page);
-                    const texture = await once(`${base}/${wasm.string_decode(name)}`, Texture);
+                    const texture = await once(`${base}/${wasm.string.decode(name)}`, Texture);
                     wasm.exports.spiAtlasPage_setRendererObject(page, textureMap.register(texture.impl));
                     this._textures.push(texture);
                 })()

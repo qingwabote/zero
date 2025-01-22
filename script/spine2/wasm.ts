@@ -11,14 +11,14 @@ function fd_write(fd: number, iov: number, iovcnt: number, pnum: number) {
     // hack to support printf in SYSCALLS_REQUIRE_FILESYSTEM=0
     var num = 0;
     for (var i = 0; i < iovcnt; i++) {
-        var ptr = HEAPU32[((iov) >> 2)];
-        var len = HEAPU32[(((iov) + (4)) >> 2)];
+        var ptr = HEAPU32[iov >> 2];
+        var len = HEAPU32[iov + 4 >> 2];
         const text = textDecode(HEAPU8.subarray(ptr, ptr + len))
         console.log(text);
         iov += 8;
         num += len;
     }
-    HEAPU32[((pnum) >> 2)] = num;
+    HEAPU32[pnum >> 2] = num;
     return 0;
 };
 
@@ -41,21 +41,22 @@ export const wasm = {
     HEAPU16,
     HEAPU32,
     HEAPF32,
-    string_malloc(value: string): number {
-        const size = value.length * 3 + 1; // Pessimistic
-        const ptr = exports_.malloc(size);
-        const buffer = HEAPU8.subarray(ptr, ptr + size);
-        const written = textEncode(value, buffer);
-        buffer[written] = 0;
-        return ptr;
-    },
-    string_free: exports_.free as (ptr: number) => void,
-    string_decode(c_string: number): string {
-        let end = c_string;
-        while (HEAPU8[end]) {
-            end++;
+    string: {
+        malloc(value: string): number {
+            const size = value.length * 3 + 1; // Pessimistic
+            const ptr = exports_.malloc(size);
+            const buffer = HEAPU8.subarray(ptr, ptr + size);
+            buffer[textEncode(value, buffer)] = 0;
+            return ptr;
+        },
+        free: exports_.free as (ptr: number) => void,
+        decode(c_string: number): string {
+            let end = c_string;
+            while (HEAPU8[end]) {
+                end++;
+            }
+            return textDecode(HEAPU8.subarray(c_string, end));
         }
-        return textDecode(HEAPU8.subarray(c_string, end));
     },
     exports: exports_
 } as const
