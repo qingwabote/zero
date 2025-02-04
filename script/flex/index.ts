@@ -1,3 +1,4 @@
+export * from './CameraControl.js';
 export * from './CameraControlPanel.js';
 export * from './Document.js';
 export * from './Element.js';

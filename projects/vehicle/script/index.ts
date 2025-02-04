@@ -1,6 +1,6 @@
 
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
-import { CameraControlPanel, Document, Edge, PositionType, Profiler } from 'flex';
+import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
 import { Joystick } from "./Joystick.js";
 import Vehicle from "./Vehicle.js";
@@ -110,18 +110,14 @@ export class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
-        node.position = vec3.create(-width / 2, height / 2);
+        node.position = vec3.create(-w / scale / 2, h / scale / 2);
         node.visibility = VisibilityFlagBits.UI;
         const doc = node.addComponent(Document);
-        doc.setWidth(width);
-        doc.setHeight(height);
+        doc.setWidth(w / scale);
+        doc.setHeight(h / scale);
 
-        node = new Node;
-        const cameraControlPanel = node.addComponent(CameraControlPanel);
-        cameraControlPanel.setWidth(width);
-        cameraControlPanel.setHeight(height);
-        cameraControlPanel.camera = main_camera;
-        doc.addElement(cameraControlPanel);
+        const cameraControl = doc.node.addComponent(CameraControl);
+        cameraControl.camera = main_camera;
 
         node = new Node;
         const joystick = node.addComponent(Joystick);

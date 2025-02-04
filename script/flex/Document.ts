@@ -49,12 +49,8 @@ export class Document extends ElementContainer {
         for (let i = 0; i < cameras.length; i++) {
             world_positions[i] = cameras[i].screenToWorld(vec2.create(), event.x(0), event.y(0));
         }
-        const children = this.node.children;
-        for (let i = children.length - 1; i > -1; i--) {
-            if (this.touchWalk(children[i].getComponent(Element)!, cameras, world_positions, name, event)) {
-                return;
-            }
-        }
+
+        this.touchWalk(this, cameras, world_positions, name, event);
     }
 
     private touchWalk(element: Element, cameras: readonly scene.Camera[], world_positions: readonly Readonly<Vec2>[], name: Input.TouchEvents | Input.GestureEvents, event: TouchEvent) {
@@ -89,9 +85,9 @@ export class Document extends ElementContainer {
                 for (let j = children.length - 1; j > -1; j--) {
                     if (this.touchWalk(children[j].getComponent(Element)!, cameras, world_positions, name, event)) {
                         // bubbling
-                        if (element.emitter.has(name)) {
-                            element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
-                        }
+                        // if (element.emitter.has(name)) {
+                        //     element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
+                        // }
                         if (name == Input.TouchEvents.START) {
                             this._touchClaimed.set(element, element);
                         }
@@ -111,5 +107,9 @@ export class Document extends ElementContainer {
         return false;
     }
 
-    override layout_update(): void { }
+    override layout_update(): void {
+        const layout = this.yg_node.deref().getComputedLayout();
+        vec2.set(this._bounds.halfExtent, layout.width / 2, layout.height / 2);
+        vec2.set(this._bounds.center, layout.width / 2, -layout.height / 2);
+    }
 }
