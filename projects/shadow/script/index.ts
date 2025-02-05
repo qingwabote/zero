@@ -28,12 +28,9 @@ const [walkrun_and_idle, plane, ss_depth, csm_off, csm_on] = await Promise.all([
     }),
     await (await builtin.cache('models/primitive/scene', GLTF)).instantiate(undefined, materialFunc),
     builtin.cache('shaders/depth', Shader),
-    bundle.cache('pipelines/csm-off', Pipeline),
-    bundle.cache('pipelines/csm-on', Pipeline)
+    await ((await bundle.cache('pipelines/csm-off', Pipeline)).instantiate(VisibilityFlagBits)),
+    await ((await bundle.cache('pipelines/csm-on', Pipeline)).instantiate(VisibilityFlagBits))
 ])
-
-const csm_off_instance = await csm_off.instantiate(VisibilityFlagBits);
-const csm_on_instance = await csm_on.instantiate(VisibilityFlagBits);
 
 const csm_off_shadowmap = new SpriteFrame(csm_off.textures['shadowmap']);
 const csm_on_shadowmap = new SpriteFrame(csm_on.textures['shadowmap']);
@@ -128,8 +125,8 @@ export class App extends Zero {
             //     }
             // }
         }
-        csm_off_instance.data.on(pipeline.Data.Event.UPDATE, debugDraw)
-        csm_on_instance.data.on(pipeline.Data.Event.UPDATE, debugDraw)
+        csm_off.data.on(pipeline.Data.Event.UPDATE, debugDraw)
+        csm_on.data.on(pipeline.Data.Event.UPDATE, debugDraw)
 
         // UI
         node = new Node;
@@ -194,12 +191,12 @@ export class App extends Zero {
                         textRenderer.impl.text = 'CSM ON';
                         textRenderer.impl.color = vec4.GREEN;
                         sprite.impl.spriteFrame = csm_on_shadowmap;
-                        this.pipeline = csm_on_instance;
+                        this.pipeline = csm_on;
                     } else {
                         textRenderer.impl.text = 'CSM OFF';
                         textRenderer.impl.color = vec4.ONE;
                         sprite.impl.spriteFrame = csm_off_shadowmap;
-                        this.pipeline = csm_off_instance;
+                        this.pipeline = csm_off;
                     }
                 })
                 down_container.addElement(textRenderer);
@@ -240,4 +237,4 @@ export class App extends Zero {
     }
 }
 
-(new App(csm_on_instance)).initialize().attach();
+(new App(csm_on)).initialize().attach();

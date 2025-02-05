@@ -1,3 +1,4 @@
+import { Texture } from "gfx";
 import { Context } from "./Context.js";
 import { Data } from "./pipeline/Data.js";
 import { Flow } from "./pipeline/Flow.js";
@@ -8,6 +9,7 @@ export class Pipeline {
 
     constructor(
         public readonly data: Data,
+        public readonly textures: Readonly<Record<string, Texture>>,
         public readonly ubos: readonly UBO[],
         public readonly flows: readonly Flow[]
     ) { }

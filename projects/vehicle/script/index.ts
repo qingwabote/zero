@@ -87,6 +87,7 @@ export class App extends Zero {
 
         node = new Node();
         const vehicle = node.addComponent(Vehicle);
+        vehicle.primitive = primitive;
         node.visibility = VisibilityFlagBits.WORLD;
         node.position = [0, 3, 0];
 
