@@ -1,0 +1,14 @@
+services:
+  spine-runtimes-4.2-debug:
+    volumes:
+      - ../../:/zero
+      - ./build/:/src
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DSPINE_C=spine-c-4.2 -S /zero/puttyknife/spine-runtimes-wasm -B ./spine-runtimes-4.2-debug && cmake --build ./spine-runtimes-4.2-debug"
+  spine-runtimes-4.2-release:
+    volumes:
+      - ../../:/zero
+      - ./build/:/src
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Release -DSPINE_C=spine-c-4.2 -S /zero/puttyknife/spine-runtimes-wasm -B ./spine-runtimes-4.2-release && cmake --build ./spine-runtimes-4.2-release"  
+    

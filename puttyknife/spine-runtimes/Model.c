@@ -1,4 +1,3 @@
-#include <emscripten.h>
 #include <spine/spine.h>
 #include <spine/extension.h>
 #include <stdio.h>
@@ -12,19 +11,16 @@ typedef struct spiSubModel
     void *rendererObject;
 } spiSubModel;
 
-EMSCRIPTEN_KEEPALIVE
 int spiSubModel_getRange(spiSubModel *self)
 {
     return self->range;
 }
 
-EMSCRIPTEN_KEEPALIVE
 spBlendMode spiSubModel_getBlend(spiSubModel *self)
 {
     return self->blend;
 }
 
-EMSCRIPTEN_KEEPALIVE
 void *spiSubModel_getRendererObject(spiSubModel *self)
 {
     return self->rendererObject;
@@ -40,7 +36,6 @@ typedef struct spiModel
     spiSubModelArray *subModels;
 } spiModel;
 
-EMSCRIPTEN_KEEPALIVE
 spiModel *spiModel_create()
 {
     spiModel *model = NEW(spiModel);
@@ -50,7 +45,6 @@ spiModel *spiModel_create()
     return model;
 }
 
-EMSCRIPTEN_KEEPALIVE
 void spiModel_dispose(spiModel *self)
 {
     spFloatArray_dispose(self->vertices);
@@ -66,43 +60,36 @@ void spiModel_dispose(spiModel *self)
     FREE(self);
 }
 
-EMSCRIPTEN_KEEPALIVE
 int spiModel_getVerticesSize(spiModel *self)
 {
     return self->vertices->size;
 }
 
-EMSCRIPTEN_KEEPALIVE
 float *spiModel_getVertices(spiModel *self)
 {
     return self->vertices->items;
 }
 
-EMSCRIPTEN_KEEPALIVE
 int spiModel_getIndicesSize(spiModel *self)
 {
     return self->indices->size;
 }
 
-EMSCRIPTEN_KEEPALIVE
 unsigned short *spiModel_getIndices(spiModel *self)
 {
     return self->indices->items;
 }
 
-EMSCRIPTEN_KEEPALIVE
 int spiModel_getSubModelsSize(spiModel *self)
 {
     return self->subModels->size;
 }
 
-EMSCRIPTEN_KEEPALIVE
 spiSubModel **spiModel_getSubModels(spiModel *self)
 {
     return self->subModels->items;
 }
 
-EMSCRIPTEN_KEEPALIVE
 void spiModel_update(spiModel *self, const spSkeleton *skeleton)
 {
     static unsigned short quadIndices[6] = {0, 1, 2, 2, 3, 0};
