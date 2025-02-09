@@ -1,8 +1,8 @@
-#include "Atlas.h"
+#include <spi/Atlas.h>
 
-spAtlas *spiAtlas_create(const char *data, int length, const char *dir, void *rendererObject)
+spAtlas *spiAtlas_create(const char *data, int length)
 {
-    return spAtlas_create(data, length, dir, rendererObject);
+    return spAtlas_create(data, length, "", 0);
 }
 
 spAtlasPage *spiAtlas_getPages(const spAtlas *self)

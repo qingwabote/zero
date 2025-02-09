@@ -1,9 +1,9 @@
 import { CommandBuffer } from "gfx";
+import { spi } from "spi";
 import { AnimationState } from "./AnimationState.js";
 import { SkeletonData } from "./SkeletonData.js";
 import { SkeletonRenderer } from "./SkeletonRenderer.js";
 import { SkeletonSystem } from "./SkeletonSystem.js";
-import { wasm } from "./wasm.js";
 
 export class SkeletonAnimation extends SkeletonRenderer {
     private _state?: AnimationState | undefined = undefined;
@@ -25,7 +25,7 @@ export class SkeletonAnimation extends SkeletonRenderer {
     }
 
     override upload(commandBuffer: CommandBuffer): void {
-        wasm.exports.spiAnimationState_apply(this._state!.pointer, this._pointer);
+        spi.fn.spiAnimationState_apply(this._state!.pointer, this._pointer);
         super.upload(commandBuffer);
     }
 }

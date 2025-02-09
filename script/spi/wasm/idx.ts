@@ -1,5 +1,6 @@
-import { loadWasm, textDecode, textEncode } from 'boot';
+import { loadWasm, textDecode } from 'boot';
 import { bundle } from 'bundling';
+import { PuttyKnife } from 'puttyknife';
 
 let HEAPU8!: Uint8Array;
 let HEAPU16!: Uint16Array;
@@ -22,7 +23,7 @@ function fd_write(fd: number, iov: number, iovcnt: number, pnum: number) {
     return 0;
 };
 
-const source = await loadWasm(bundle.resolve('spine-c.wasm'), {
+const source = await loadWasm(bundle.resolve('spi.wasm'), {
     wasi_snapshot_preview1: {
         fd_write
     }
@@ -36,27 +37,7 @@ HEAPU16 = new Uint16Array(exports_.memory.buffer);
 HEAPU32 = new Uint32Array(exports_.memory.buffer);
 HEAPF32 = new Float32Array(exports_.memory.buffer);
 
-export const wasm = {
-    HEAPU8,
-    HEAPU16,
-    HEAPU32,
-    HEAPF32,
-    string: {
-        malloc(value: string): number {
-            const size = value.length * 3 + 1; // Pessimistic
-            const ptr = exports_.malloc(size);
-            const buffer = HEAPU8.subarray(ptr, ptr + size);
-            buffer[textEncode(value, buffer)] = 0;
-            return ptr;
-        },
-        free: exports_.free as (ptr: number) => void,
-        decode(c_string: number): string {
-            let end = c_string;
-            while (HEAPU8[end]) {
-                end++;
-            }
-            return textDecode(HEAPU8.subarray(c_string, end));
-        }
-    },
-    exports: exports_
+export const spi = {
+    fn: exports_,
+    heap: new PuttyKnife(exports_)
 } as const

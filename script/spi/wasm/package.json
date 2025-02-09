@@ -1,0 +1,9 @@
+{
+  "name": "spi",
+  "dependencies": {
+    "boot": "file:../../boot/declare",
+    "bundling": "file:../../bundling",
+    "puttyknife": "file:../../../puttyknife/wasm",
+    "spi": "file:../declare"
+  }
+}

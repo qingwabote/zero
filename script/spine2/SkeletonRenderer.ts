@@ -1,8 +1,8 @@
 import { BoundedRenderer, bundle, device, Node, scene, Shader, shaderLib, vec4 } from "engine";
 import { BlendFactor, BlendState, Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
+import { spi } from "spi";
 import { textureMap } from "./context.js";
 import { SkeletonData } from "./SkeletonData.js";
-import { wasm } from "./wasm.js";
 
 const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
     const attributes = new VertexAttributeVector;
@@ -81,10 +81,10 @@ export class SkeletonRenderer extends BoundedRenderer {
     }
     public set data(value: SkeletonData) {
         if (this._pointer) {
-            wasm.exports.spiSkeleton_dispose(this._pointer);
+            spi.fn.spiSkeleton_dispose(this._pointer);
         }
-        const skeletonPtr = wasm.exports.spiSkeleton_create(value.pointer);
-        // wasm.exports.spiSkeleton_updateWorldTransform(skeletonPtr);
+        const skeletonPtr = spi.fn.spiSkeleton_create(value.pointer);
+        // spi.fn.spiSkeleton_updateWorldTransform(skeletonPtr);
         this._pointer = skeletonPtr;
         this._data = value;
     }
@@ -94,7 +94,7 @@ export class SkeletonRenderer extends BoundedRenderer {
 
     private readonly _inputAssembler: InputAssembler;
 
-    private readonly _spiModel: number = wasm.exports.spiModel_create();
+    private readonly _spiModel: number = spi.fn.spiModel_create();
 
     constructor(node: Node) {
         super(node);
@@ -128,28 +128,28 @@ export class SkeletonRenderer extends BoundedRenderer {
     }
 
     override upload(commandBuffer: CommandBuffer): void {
-        wasm.exports.spiModel_update(this._spiModel, this._pointer);
+        spi.fn.spiModel_update(this._spiModel, this._pointer);
 
-        const verticesSize = wasm.exports.spiModel_getVerticesSize(this._spiModel);
-        const verticesPtr = wasm.exports.spiModel_getVertices(this._spiModel);
-        const vertices = wasm.HEAPF32.subarray(verticesPtr >> 2, (verticesPtr >> 2) + verticesSize);
+        const verticesSize = spi.fn.spiModel_getVerticesSize(this._spiModel);
+        const verticesPtr = spi.fn.spiModel_getVertices(this._spiModel);
+        const vertices = spi.heap.getBuffer(verticesPtr, verticesSize * 4);
         this._vertexBuffer.resize(vertices.byteLength);
         this._vertexBuffer.update(vertices, 0, vertices.length, 0);
 
-        const indicesSize = wasm.exports.spiModel_getIndicesSize(this._spiModel);
-        const indicesPtr = wasm.exports.spiModel_getIndices(this._spiModel);
-        const indices = wasm.HEAPU16.subarray(indicesPtr >> 1, (indicesPtr >> 1) + indicesSize);
+        const indicesSize = spi.fn.spiModel_getIndicesSize(this._spiModel);
+        const indicesPtr = spi.fn.spiModel_getIndices(this._spiModel);
+        const indices = spi.heap.getBuffer(indicesPtr, indicesSize * 2)
         this._indexBuffer.resize(indices.byteLength);
         this._indexBuffer.update(indices, 0, indices.length, 0);
 
         this._materials.length = 0;
-        const subModelsSize = wasm.exports.spiModel_getSubModelsSize(this._spiModel);
-        const subModels = wasm.exports.spiModel_getSubModels(this._spiModel);
+        const subModelsSize = spi.fn.spiModel_getSubModelsSize(this._spiModel);
+        const subModels = spi.fn.spiModel_getSubModels(this._spiModel);
         let first = 0;
         for (let i = 0; i < subModelsSize; i++) {
-            const subModel = wasm.HEAPU32[(subModels + 4 * i) >> 2];
-            const range = wasm.exports.spiSubModel_getRange(subModel);
-            const texture = wasm.exports.spiSubModel_getRendererObject(subModel);
+            const subModel = spi.heap.ptrAtArr(subModels, i)
+            const range = spi.fn.spiSubModel_getRange(subModel);
+            const texture = spi.fn.spiSubModel_getRendererObject(subModel);
             this._materials.push(material_cache(0, texture));
             if (this._subMeshes.length == i) {
                 this._subMeshes.push(new scene.SubMesh(this._inputAssembler))

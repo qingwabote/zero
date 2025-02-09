@@ -1,5 +1,5 @@
 node_modules/
 build/
 dist/
-assets/spine-c.wasm
+assets/spi.wasm
 .vscode/c_cpp_properties.json

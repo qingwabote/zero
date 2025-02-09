@@ -1,20 +1,20 @@
+import { spi } from "spi";
 import { SkeletonData } from "./SkeletonData.js";
-import { wasm } from "./wasm.js";
 
 export class AnimationState {
     readonly pointer: number;
 
     constructor(data: SkeletonData) {
-        this.pointer = wasm.exports.spiAnimationState_create(data.pointer);
+        this.pointer = spi.fn.spiAnimationState_create(data.pointer);
     }
 
     addAnimationByName(trackIndex: number, animationName: string, loop: boolean, delay: number) {
-        const animationNamePtr = wasm.string.malloc(animationName);
-        wasm.exports.spiAnimationState_addAnimationByName(this.pointer, trackIndex, animationNamePtr, loop ? 1 : 0, delay);
-        wasm.string.free(animationNamePtr);
+        const animationNamePtr = spi.heap.addString(animationName);
+        spi.fn.spiAnimationState_addAnimationByName(this.pointer, trackIndex, animationNamePtr, loop ? 1 : 0, delay);
+        spi.heap.delString(animationNamePtr);
     }
 
     update(dt: number): void {
-        wasm.exports.spiAnimationState_update(this.pointer, dt);
+        spi.fn.spiAnimationState_update(this.pointer, dt);
     }
 }

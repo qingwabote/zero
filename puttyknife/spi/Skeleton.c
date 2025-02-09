@@ -1,4 +1,4 @@
-#include <spine/Skeleton.h>
+#include <spi/Skeleton.h>
 
 spSkeleton *spiSkeleton_create(spSkeletonData *data)
 {

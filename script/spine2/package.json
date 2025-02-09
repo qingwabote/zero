@@ -5,6 +5,7 @@
         "boot": "file:../boot/declare",
         "bundling": "file:../bundling",
         "engine": "file:../engine",
-        "gfx": "file:../gfx/declare"
+        "gfx": "file:../gfx/declare",
+        "spi": "file:../spi/declare"
     }
 }

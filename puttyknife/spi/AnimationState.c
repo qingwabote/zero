@@ -1,6 +1,4 @@
-#include <spine/SkeletonData.h>
-#include <spine/AnimationState.h>
-#include <spine/Skeleton.h>
+#include <spi/AnimationState.h>
 
 spAnimationState *spiAnimationState_create(spSkeletonData *skeletonData)
 {

@@ -1,6 +1,4 @@
-#include <spine/Atlas.h>
-#include <spine/SkeletonData.h>
-#include <spine/SkeletonBinary.h>
+#include <spi/SkeletonBinary.h>
 
 spSkeletonBinary *spiSkeletonBinary_create(spAtlas *atlas)
 {

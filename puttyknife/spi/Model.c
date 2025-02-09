@@ -1,15 +1,6 @@
-#include <spine/spine.h>
-#include <spine/extension.h>
-#include <stdio.h>
+#include <spi/Model.h>
 
 #define VERTEX_STRIDE 4 /*xyuv*/
-
-typedef struct spiSubModel
-{
-    int range;
-    spBlendMode blend;
-    void *rendererObject;
-} spiSubModel;
 
 int spiSubModel_getRange(spiSubModel *self)
 {
@@ -26,15 +17,7 @@ void *spiSubModel_getRendererObject(spiSubModel *self)
     return self->rendererObject;
 }
 
-_SP_ARRAY_DECLARE_TYPE(spiSubModelArray, spiSubModel *)
 _SP_ARRAY_IMPLEMENT_TYPE(spiSubModelArray, spiSubModel *)
-
-typedef struct spiModel
-{
-    spFloatArray *vertices;
-    spUnsignedShortArray *indices;
-    spiSubModelArray *subModels;
-} spiModel;
 
 spiModel *spiModel_create()
 {
@@ -164,8 +147,8 @@ void spiModel_update(spiModel *self, const spSkeleton *skeleton)
         else
         {
             spSkeletonClipping_clipEnd(clipper, slot);
+            // printf("unimplemented\n");
             continue;
-            printf("unimplemented\n");
         }
 
         if (spSkeletonClipping_isClipping(clipper))
