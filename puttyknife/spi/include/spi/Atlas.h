@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spine/Atlas.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -15,7 +16,7 @@ extern "C"
 
     const char *spiAtlasPage_getName(spAtlasPage *self);
 
-    void spiAtlasPage_setRendererObject(spAtlasPage *self, void *rendererObject);
+    void spiAtlasPage_setRendererObject(spAtlasPage *self, uintptr_t rendererObject);
 
 #ifdef __cplusplus
 }

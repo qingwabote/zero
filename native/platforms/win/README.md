@@ -2,7 +2,7 @@
 
 ```ps
 cd native\platforms\win
-cmake -G "Visual Studio 17 2022" -A x64 -S . -B build
+cmake -DSPINE_C="spine-c-4.2" -G "Visual Studio 17 2022" -A x64 -S . -B build
 ```
 
 # bootstrap.json

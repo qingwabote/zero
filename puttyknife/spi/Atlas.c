@@ -20,7 +20,7 @@ const char *spiAtlasPage_getName(spAtlasPage *self)
     return self->name;
 }
 
-void spiAtlasPage_setRendererObject(spAtlasPage *self, void *rendererObject)
+void spiAtlasPage_setRendererObject(spAtlasPage *self, uintptr_t rendererObject)
 {
-    self->rendererObject = rendererObject;
+    self->rendererObject = (void *)rendererObject;
 }

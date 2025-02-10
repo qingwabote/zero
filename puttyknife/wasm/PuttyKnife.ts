@@ -17,10 +17,6 @@ export class PuttyKnife {
         this._f32 = new Float32Array(_exports.memory.buffer);
     }
 
-    newBuffer(size: number): Pointer {
-        return this._exports.malloc(size);
-    }
-
     addBuffer(buffer: TypedArray): Pointer {
         const ptr = this._exports.malloc(buffer.byteLength);
         this._u8.set(buffer, ptr);

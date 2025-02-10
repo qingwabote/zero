@@ -12,9 +12,9 @@ spBlendMode spiSubModel_getBlend(spiSubModel *self)
     return self->blend;
 }
 
-void *spiSubModel_getRendererObject(spiSubModel *self)
+uintptr_t spiSubModel_getRendererObject(spiSubModel *self)
 {
-    return self->rendererObject;
+    return (uintptr_t)self->rendererObject;
 }
 
 _SP_ARRAY_IMPLEMENT_TYPE(spiSubModelArray, spiSubModel *)

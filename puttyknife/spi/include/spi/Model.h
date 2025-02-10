@@ -19,9 +19,11 @@ extern "C"
 
     spBlendMode spiSubModel_getBlend(spiSubModel *self);
 
-    void *spiSubModel_getRendererObject(spiSubModel *self);
+    uintptr_t spiSubModel_getRendererObject(spiSubModel *self);
 
+#ifndef SWIG
     _SP_ARRAY_DECLARE_TYPE(spiSubModelArray, spiSubModel *)
+#endif
 
     typedef struct spiModel
     {

@@ -5,7 +5,6 @@ type TypedArray = Uint8Array | Uint16Array | Uint32Array | Float32Array
 export declare class PuttyKnife {
     constructor(...args);
 
-    newBuffer(size: number): Pointer;
     addBuffer(buffer: TypedArray): Pointer;
     getBuffer(ptr: Pointer, size: number): Uint8Array;
     delBuffer(ptr: Pointer): void;

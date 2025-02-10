@@ -1,0 +1,6 @@
+{
+  "name": "spi",
+  "dependencies": {
+    "spi": "file:../declare"
+  }
+}
