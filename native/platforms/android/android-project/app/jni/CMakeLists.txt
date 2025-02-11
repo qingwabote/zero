@@ -1,5 +1,5 @@
-# "3.10.2" Nothing special, just a supported version of android sdk
-cmake_minimum_required(VERSION 3.10.2)
+# https://cmake.org/cmake/help/latest/policy/CMP0079.html
+cmake_minimum_required(VERSION 3.13)
 
 project(zero)
 

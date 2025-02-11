@@ -1,6 +1,6 @@
 let textEncode: (source: string, destination: Uint8Array) => number;
-if (TextEncoder) {
-    const encoder = new TextEncoder();
+if (globalThis.TextEncoder) {
+    const encoder = new globalThis.TextEncoder();
     textEncode = function (source: string, destination: Uint8Array) { return encoder.encodeInto(source, destination).written; }
 } else {
     // the implementations copy from emscripten
@@ -50,8 +50,8 @@ if (TextEncoder) {
 }
 
 let textDecode: (input: Uint8Array) => string;
-if (TextDecoder) {
-    const decoder = new TextDecoder();
+if (globalThis.TextDecoder) {
+    const decoder = new globalThis.TextDecoder();
     textDecode = function (input: Uint8Array): string { return decoder.decode(input); }
 } else {
     // the implementations copy from emscripten
