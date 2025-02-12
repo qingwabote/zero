@@ -3,14 +3,15 @@
     "scripts": {
         "yaml": "rollup -i ../../../script/engine/node_modules/yaml/browser/index.js -o dist/yaml.js",
         "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
-        "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/webgl2 --outDir dist/gfx --watch",
         "boot": "tsc -p ../../../script/boot/web --outDir dist/boot --watch",
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
-        "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
+        "puttyknife": "tsc -p ../../../puttyknife/wasm --outDir dist/puttyknife --watch",
+        "yoga": "tsc -p ../../../script/yoga/wasm --outDir dist/yoga --watch",
+        "flex": "tsc -p ../../../script/flex2 --outDir dist/flex --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",
         "server": "http-server ../../../ -p 8003 -o projects/cutting2d/web/index.html -c-1",
-        "dev": "concurrently \"npm run bastard\" \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\" \"npm run flex\" \"npm run script\" \"npm run server\""
+        "dev": "concurrently \"npm run bastard\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\" \"npm run puttyknife\" \"npm run yoga\" \"npm run flex\" \"npm run script\" \"npm run server\""
     }
 }

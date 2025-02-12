@@ -30,9 +30,12 @@ new Promise(() => {
             "yaml": "./dist/subpackages/engine/yaml.js",
             "bastard": "./dist/subpackages/engine/bastard/index.js",
             "engine": "./dist/subpackages/engine/script/index.js",
+            "puttyknife": "./dist/subpackages/engine/puttyknife/index.js",
+            "yoga": "./dist/subpackages/engine/flex/yoga/script/index.js",
             "flex": "./dist/subpackages/engine/flex/script/index.js",
             "@esotericsoftware/spine-core": "./dist/subpackages/spine/spine-core.js",
             "spine": "./dist/subpackages/spine/index.js",
+            "spi": "./dist/subpackages/spine2/spi/index.js",
             "spine2": "./dist/subpackages/spine2/script/index.js",
             "phys": "./dist/subpackages/physics/phys/script/index.js",
             "physics": "./dist/subpackages/physics/index.js",
@@ -53,11 +56,11 @@ new Promise(() => {
             "./dist/subpackages/engine/": {
                 "bundling": "./bundling-engine.js"
             },
-            "./dist/subpackages/engine/flex/": {
-                "bundling": "./bundling-flex.js"
+            "./dist/subpackages/engine/flex/yoga/": {
+                "bundling": "./bundling-yoga.js"
             },
-            "./dist/subpackages/spine2/": {
-                "bundling": "./bundling-spine2.js"
+            "./dist/subpackages/spine2/spi/": {
+                "bundling": "./bundling-spi.js"
             },
             "./dist/subpackages/physics/phys/": {
                 "bundling": "./bundling-phys.js"

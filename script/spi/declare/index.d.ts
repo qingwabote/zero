@@ -1,6 +1,6 @@
-import { PuttyKnife } from 'puttyknife';
+import { Runtime } from 'puttyknife';
 
 declare export const spi: {
     readonly fn: any,
-    readonly heap: PuttyKnife
+    readonly heap: Runtime
 } 

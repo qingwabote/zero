@@ -1,0 +1,1 @@
+c:\portable\swigwin-4.3.0\swig.exe -javascript -v8 -Ic:\Users\logan\Documents\GitHub\zero\puttyknife\yoga\include -Ic:\Users\logan\Documents\GitHub\zero\puttyknife\yoga\yoga-3.2.0 -o .\build\yoga_swig.cpp yoga.i

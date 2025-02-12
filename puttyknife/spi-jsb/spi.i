@@ -1,27 +1,15 @@
-%module spi_jsb
+%module puttyknife_spi_swig
 
 %include <stdint.i>
 %include "../jsb/bigint_ptr.i"
 
-%typemap(in) const char * {
-    uint64_t address = $input.As<v8::BigInt>()->Uint64Value();
-    $1 = reinterpret_cast<char *>(address);
-}
-%typemap(freearg) const char * {}
-%typemap(out) const char * {
-    uint64_t address = reinterpret_cast<uint64_t>($1);
-    $result = v8::BigInt::NewFromUnsigned(v8::Isolate::GetCurrent(), address);
-}
+typedef int spBlendMode;
 
-%typemap(in) const unsigned char * {
-    uint64_t address = $input.As<v8::BigInt>()->Uint64Value();
-    $1 = reinterpret_cast<unsigned char *>(address);
-}
-%typemap(out) const unsigned char * {
-    uint64_t address = reinterpret_cast<uint64_t>($1);
-    $result = v8::BigInt::NewFromUnsigned(v8::Isolate::GetCurrent(), address);
-}
+%ignore spiModel;
+%ignore spiSubModel;
 
+%bigint_ptr(const char)
+%bigint_ptr(const unsigned char)
 %bigint_ptr(float)
 %bigint_ptr(unsigned short)
 

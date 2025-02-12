@@ -147,7 +147,7 @@ export class SkeletonRenderer extends BoundedRenderer {
         const subModels = spi.fn.spiModel_getSubModels(this._spiModel);
         let first = 0;
         for (let i = 0; i < subModelsSize; i++) {
-            const subModel = spi.heap.ptrAtArr(subModels, i)
+            const subModel = spi.heap.objAtArr(subModels, i)
             const range = spi.fn.spiSubModel_getRange(subModel);
             const texture = spi.fn.spiSubModel_getRendererObject(subModel);
             this._materials.push(material_cache(0, texture));
