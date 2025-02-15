@@ -13,5 +13,9 @@ export declare class PuttyKnife {
     getString(ptr: Pointer): string;
     delString(ptr: Pointer): void;
 
+    addFunction(f: (args: Pointer) => any): Pointer;
+
+    ptrAtArg(ptr: Pointer, n: number): Pointer;
+
     ptrAtArr(ptr: Pointer, n: number): Pointer;
 }

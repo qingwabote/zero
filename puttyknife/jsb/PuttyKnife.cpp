@@ -101,6 +101,33 @@ void PuttyKnife_initialize(v8::Local<v8::Context> context, v8::Local<v8::Object>
                         ->GetFunction(context)
                         .ToLocalChecked());
 
+    puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate, "addFunction"),
+                    v8::FunctionTemplate::New(isolate,
+                                              [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                                              {
+                                                  info.GetReturnValue().Set(info[0]);
+                                              })
+                        ->GetFunction(context)
+                        .ToLocalChecked());
+
+    puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate, "ptrAtArg"),
+                    v8::FunctionTemplate::New(isolate,
+                                              [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                                              {
+                                                  auto isolate = info.GetIsolate();
+                                                  v8::HandleScope scope(isolate);
+
+                                                  auto context = isolate->GetCurrentContext();
+
+                                                  uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
+                                                  uint32_t n = info[1].As<v8::Number>()->Uint32Value(context).ToChecked();
+
+                                                  uint64_t *ptr = reinterpret_cast<uint64_t *>(address);
+                                                  info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, *(ptr + n)));
+                                              })
+                        ->GetFunction(context)
+                        .ToLocalChecked());
+
     puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate, "ptrAtArr"),
                     v8::FunctionTemplate::New(isolate,
                                               [](const v8::FunctionCallbackInfo<v8::Value> &info)

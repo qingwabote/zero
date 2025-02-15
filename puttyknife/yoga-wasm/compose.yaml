@@ -1,0 +1,8 @@
+services:
+  yoga-debug:
+    volumes:
+      - ../../:/zero
+      - ./build/:/src
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Debug -S /zero/puttyknife/yoga-wasm -B ./yoga-debug && cmake --build ./yoga-debug"
+    

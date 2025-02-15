@@ -4,17 +4,34 @@ type Pointer = number;
 
 type TypedArray = Uint8Array | Uint16Array | Uint32Array | Float32Array
 
-export class PuttyKnife {
-    private readonly _u8: Uint8Array;
-    private readonly _u16: Uint16Array;
-    private readonly _u32: Uint32Array;
-    private readonly _f32: Float32Array;
+const noop = function () { };
 
-    constructor(private readonly _exports: any) {
-        this._u8 = new Uint8Array(_exports.memory.buffer);
-        this._u16 = new Uint16Array(_exports.memory.buffer);
-        this._u32 = new Uint32Array(_exports.memory.buffer);
-        this._f32 = new Float32Array(_exports.memory.buffer);
+export class PuttyKnife {
+    private _u8!: Uint8Array;
+    private _u16!: Uint16Array;
+    private _i32!: Int32Array;
+    private _u32!: Uint32Array;
+    private _f32!: Float32Array;
+
+    private _exports: any;
+
+    private readonly _callback_table: (Function | null)[] = [noop];
+
+    readonly env = {
+        pk_callback_table_invoke: (index: number, args: number) => {
+            this._callback_table[index]!(args);
+        }
+    }
+
+    init(instance: WebAssembly.Instance) {
+        const buffer = (instance.exports.memory as any).buffer
+        this._u8 = new Uint8Array(buffer);
+        this._u16 = new Uint16Array(buffer);
+        this._u32 = new Uint32Array(buffer);
+        this._i32 = new Int32Array(buffer);
+        this._f32 = new Float32Array(buffer);
+
+        this._exports = instance.exports;
     }
 
     addBuffer(buffer: TypedArray): Pointer {
@@ -49,6 +66,21 @@ export class PuttyKnife {
             end++;
         }
         return textDecode(this._u8.subarray(ptr, end));
+    }
+
+    addFunction(f: Function): Pointer {
+        let i = 0;
+        for (; i < this._callback_table.length; i++) {
+            if (!this._callback_table[i]) {
+                break;
+            }
+        }
+        this._callback_table[i] = f;
+        return i;
+    }
+
+    ptrAtArg(ptr: Pointer, n: number): Pointer {
+        return this._u32[(ptr + 4 * n) >> 2];
     }
 
     ptrAtArr(ptr: Pointer, n: number): Pointer {

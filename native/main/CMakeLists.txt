@@ -44,4 +44,8 @@ add_subdirectory(../../puttyknife/spi-jsb spi-jsb-build)
 target_link_libraries(spi-jsb PRIVATE v8)
 target_link_libraries(zero_main PRIVATE spi-jsb)
 
+add_subdirectory(../../puttyknife/yoga-jsb yoga-jsb-build)
+target_link_libraries(yoga-jsb PRIVATE v8)
+target_link_libraries(zero_main PRIVATE yoga-jsb)
+
 add_library(zero::main ALIAS zero_main)

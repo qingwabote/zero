@@ -1,0 +1,6 @@
+{
+  "name": "yoga",
+  "dependencies": {
+    "yoga": "file:../declare"
+  }
+}

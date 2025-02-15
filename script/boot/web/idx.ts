@@ -147,7 +147,9 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
 }
 
 export async function loadWasm(url: string, imports: WebAssembly.Imports): Promise<WebAssembly.WebAssemblyInstantiatedSource> {
-    return WebAssembly.instantiate(await load(url, 'buffer'), imports);
+    const module = await WebAssembly.compile(await load(url, 'buffer'));
+    const instance = await WebAssembly.instantiate(module, imports);
+    return { module, instance };
 }
 
 export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
