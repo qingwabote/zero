@@ -11,8 +11,8 @@
 #include "bg/Device.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
-#include <puttyknife/PuttyKnife.hpp>
-#include <puttyknife/yoga/js.hpp>
+#include <puttyknife/runtime.hpp>
+#include <puttyknife/yoga.hpp>
 
 extern "C"
 {
@@ -116,10 +116,10 @@ int Window::loop(SDL_Window *sdl_window)
         gfx_initialize(ns_gfx);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), ns_gfx).ToChecked();
 
-        PuttyKnife_initialize(context, ns_global);
+        puttyknife::Runtime(context, ns_global);
 
         auto ns_yoga = v8::Object::New(isolate.get());
-        puttyknife_yoga_js(context, ns_yoga);
+        puttyknife::Yoga(context, ns_yoga);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "yoga"), ns_yoga).ToChecked();
 
         auto ns_spi = v8::Object::New(isolate.get());

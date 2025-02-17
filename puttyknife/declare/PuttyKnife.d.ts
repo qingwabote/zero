@@ -2,6 +2,12 @@ type Pointer = number | bigint;
 
 type TypedArray = Uint8Array | Uint16Array | Uint32Array | Float32Array
 
+export declare interface ArgTypes {
+    p: Pointer,
+    i32: number,
+    f32: number,
+}
+
 export declare class PuttyKnife {
     constructor(...args);
 
@@ -15,7 +21,7 @@ export declare class PuttyKnife {
 
     addFunction(f: (args: Pointer) => any): Pointer;
 
-    ptrAtArg(ptr: Pointer, n: number): Pointer;
+    getArgs<T extends (keyof ArgTypes)[]>(ptr: Pointer, ...types: T): { [P in keyof T]: ArgTypes[T[P]]; };
 
     ptrAtArr(ptr: Pointer, n: number): Pointer;
 }

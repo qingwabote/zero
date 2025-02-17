@@ -1,6 +1,12 @@
 import { PuttyKnife } from 'puttyknife';
 
-declare export const yoga: {
+export declare const yoga: {
     readonly fn: any,
     readonly heap: PuttyKnife
-} 
+}
+
+type Node = number | bigint;
+
+export declare namespace yoga {
+    export { Node }
+}

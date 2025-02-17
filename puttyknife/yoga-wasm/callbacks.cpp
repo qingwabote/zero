@@ -1,5 +1,5 @@
 #include <yoga/Yoga.h>
-#include "../wasm/c/imports.h"
+#include "../wasm/imports.h"
 
 YG_EXTERN_C_BEGIN
 
