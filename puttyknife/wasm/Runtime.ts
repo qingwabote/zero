@@ -1,13 +1,11 @@
-import type { ArgTypes } from 'puttyknife';
+import type { ArgHandle, ArgTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle } from 'puttyknife';
 import { textDecode, textEncode } from './text.js';
-
-type Pointer = number;
 
 type TypedArray = Uint8Array | Uint16Array | Uint32Array | Float32Array
 
 const noop = function () { };
 
-export class PuttyKnife {
+export class Runtime {
     private _u8!: Uint8Array;
     private _u16!: Uint16Array;
     private _i32!: Int32Array;
@@ -37,21 +35,21 @@ export class PuttyKnife {
         this._exports = instance.exports;
     }
 
-    addBuffer(buffer: TypedArray): Pointer {
+    addBuffer(buffer: TypedArray): BufferHandle {
         const ptr = this._exports.malloc(buffer.byteLength);
         this._u8.set(buffer, ptr);
         return ptr;
     }
 
-    getBuffer(ptr: Pointer, size: number) {
-        return this._u8.subarray(ptr, ptr + size);
+    getBuffer(ptr: BufferHandle, size: number) {
+        return this._u8.subarray(ptr as unknown as number, ptr as unknown as number + size);
     }
 
-    delBuffer(ptr: Pointer) {
-        this._exports.free(ptr);
+    delBuffer(ptr: BufferHandle) {
+        this._exports.free(ptr as unknown as number);
     }
 
-    addString(value: string): Pointer {
+    addString(value: string): StringHandle {
         const size = value.length * 3 + 1; // Pessimistic
         const ptr = this._exports.malloc(size);
         const buffer = this._u8.subarray(ptr, ptr + size);
@@ -59,19 +57,19 @@ export class PuttyKnife {
         return ptr;
     }
 
-    delString(ptr: Pointer) {
+    delString(ptr: StringHandle) {
         this._exports.free(ptr);
     }
 
-    getString(ptr: Pointer): string {
-        let end = ptr;
+    getString(ptr: StringHandle): string {
+        let end = ptr as unknown as number;
         while (this._u8[end]) {
             end++;
         }
-        return textDecode(this._u8.subarray(ptr, end));
+        return textDecode(this._u8.subarray(ptr as unknown as number, end));
     }
 
-    addFunction(f: Function): Pointer {
+    addFunction(f: Function): FunctionHandle {
         let i = 0;
         for (; i < this._callback_table.length; i++) {
             if (!this._callback_table[i]) {
@@ -79,10 +77,10 @@ export class PuttyKnife {
             }
         }
         this._callback_table[i] = f;
-        return i;
+        return i as unknown as FunctionHandle;
     }
 
-    getArgs<T extends (keyof ArgTypes)[]>(ptr: Pointer, ...types: T): { [P in keyof T]: ArgTypes[T[P]]; } {
+    getArgs<T extends (keyof ArgTypes)[]>(ptr: ArgHandle, ...types: T): { [P in keyof T]: ArgTypes[T[P]]; } {
         const args: number[] = new Array(types.length);
         let offset = 0;
         for (let i = 0; i < types.length; i++) {
@@ -90,17 +88,17 @@ export class PuttyKnife {
             switch (t) {
                 case 'p':
                     offset += offset % 4;
-                    args[i] = this._u32[(ptr + offset) >> 2];
+                    args[i] = this._u32[(ptr as unknown as number + offset) >> 2];
                     offset += 4;
                     break;
                 case 'i32':
                     offset += offset % 4;
-                    args[i] = this._i32[(ptr + offset) >> 2];
+                    args[i] = this._i32[(ptr as unknown as number + offset) >> 2];
                     offset += 4;
                     break;
                 case 'f32':
                     offset += offset % 8;
-                    args[i] = this._f64[(ptr + offset) >> 3];
+                    args[i] = this._f64[(ptr as unknown as number + offset) >> 3];
                     offset += 8;
                     break;
                 default:
@@ -110,8 +108,7 @@ export class PuttyKnife {
         return args as any;
     }
 
-
-    ptrAtArr(ptr: Pointer, n: number): Pointer {
-        return this._u32[(ptr + 4 * n) >> 2];
+    objAtArr(ptr: ObjectHandle, n: number): ObjectHandle {
+        return this._u32[(ptr as unknown as number + 4 * n) >> 2] as unknown as ObjectHandle;
     }
 }

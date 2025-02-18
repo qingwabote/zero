@@ -1,8 +1,8 @@
-import { PuttyKnife } from 'puttyknife';
+import { Runtime } from 'puttyknife';
 
 export declare const yoga: {
     readonly fn: any,
-    readonly heap: PuttyKnife
+    readonly heap: Runtime
 }
 
 type Node = number | bigint;

@@ -126,7 +126,7 @@ namespace puttyknife
                             ->GetFunction(context)
                             .ToLocalChecked());
 
-        puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate, "ptrAtArr"),
+        puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate, "objAtArr"),
                         v8::FunctionTemplate::New(isolate,
                                                   [](const v8::FunctionCallbackInfo<v8::Value> &info)
                                                   {
