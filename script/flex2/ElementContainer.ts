@@ -1,25 +1,26 @@
 import { yoga } from "yoga";
 import { Element } from "./Element.js";
+import { Align, FlexDirection, Justify } from "./enums.js";
 
 export class ElementContainer<T extends Element.EventToListener = Element.EventToListener> extends Element<T> {
-    public get flexDirection(): number {
+    public get flexDirection(): FlexDirection {
         return yoga.fn.YGNodeStyleGetFlexDirection(this.yg_node)
     }
-    public set flexDirection(value: number) {
+    public set flexDirection(value: FlexDirection) {
         yoga.fn.YGNodeStyleSetFlexDirection(this.yg_node, value)
     }
 
-    public get justifyContent(): number {
+    public get justifyContent(): Justify {
         return yoga.fn.YGNodeStyleGetJustifyContent(this.yg_node);
     }
-    public set justifyContent(value: number) {
+    public set justifyContent(value: Justify) {
         yoga.fn.YGNodeStyleSetJustifyContent(this.yg_node, value);
     }
 
-    public get alignItems(): number {
+    public get alignItems(): Align {
         return yoga.fn.YGNodeStyleGetAlignItems(this.yg_node);
     }
-    public set alignItems(value: number) {
+    public set alignItems(value: Align) {
         yoga.fn.YGNodeStyleSetAlignItems(this.yg_node, value)
     }
 

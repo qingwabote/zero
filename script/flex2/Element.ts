@@ -1,6 +1,7 @@
 import { DeepReadonly, EventEmitter } from "bastard";
 import { AABB2D, Component, Input, Vec2, aabb2d, vec2, vec3 } from "engine";
 import { yoga } from "yoga";
+import { Edge, Gutter, PositionType } from "./enums.js";
 
 const vec3_a = vec3.create();
 
@@ -39,10 +40,10 @@ export abstract class Element<T extends EventToListener = EventToListener> exten
         return this._bounds;
     }
 
-    public get positionType(): number {
+    public get positionType(): PositionType {
         return yoga.fn.YGNodeStyleGetPositionType();
     }
-    public set positionType(value: number) {
+    public set positionType(value: PositionType) {
         yoga.fn.YGNodeStyleSetPositionType(this.yg_node, value);
     }
 
@@ -66,27 +67,27 @@ export abstract class Element<T extends EventToListener = EventToListener> exten
         yoga.fn.YGNodeStyleSetHeightAuto(this.yg_node);
     }
 
-    setPosition(edge: number, value: number) {
+    setPosition(edge: Edge, value: number) {
         yoga.fn.YGNodeStyleSetPosition(this.yg_node, edge, value);
     }
-    setPositionPercent(edge: number, value: number) {
+    setPositionPercent(edge: Edge, value: number) {
         yoga.fn.YGNodeStyleSetPositionPercent(this.yg_node, edge, value);
     }
-    setPositionAuto(edge: number) {
+    setPositionAuto(edge: Edge) {
         yoga.fn.YGNodeStyleSetPositionAuto(this.yg_node, edge);
     }
 
-    setPadding(edge: number, value: number) {
+    setPadding(edge: Edge, value: number) {
         yoga.fn.YGNodeStyleSetPadding(this.yg_node, edge, value);
     }
-    setPaddingPercent(edge: number, value: number) {
+    setPaddingPercent(edge: Edge, value: number) {
         yoga.fn.YGNodeStyleSetPaddingPercent(this.yg_node, edge, value);
     }
 
-    setGap(gutter: number, value: number) {
+    setGap(gutter: Gutter, value: number) {
         yoga.fn.YGNodeStyleSetGap(this.yg_node, gutter, value);
     }
-    setGapPercent(gutter: number, value: number) {
+    setGapPercent(gutter: Gutter, value: number) {
         yoga.fn.YGNodeStyleSetGapPercent(this.yg_node, gutter, value);
     }
 

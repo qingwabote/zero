@@ -90,8 +90,8 @@ export class App extends Zero {
 
         const cameraControl = Node.build(CameraControlPanel);
         cameraControl.camera = main_camera;
-        cameraControl.setWidth('100%');
-        cameraControl.setHeight('100%');
+        cameraControl.setWidthPercent(100);
+        cameraControl.setHeightPercent(100);
         cameraControl.positionType = PositionType.Absolute;
         doc.addElement(cameraControl);
 

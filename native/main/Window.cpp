@@ -13,6 +13,7 @@
 #include <nlohmann/json.hpp>
 #include <puttyknife/runtime.hpp>
 #include <puttyknife/yoga.hpp>
+#include <puttyknife/spi.hpp>
 
 extern "C"
 {
@@ -20,7 +21,6 @@ extern "C"
     void Loader_initialize(v8::Local<v8::Object> exports_obj);
     void gfx_initialize(v8::Local<v8::Object> exports_obj);
     void Window_initialize(v8::Local<v8::Object> exports_obj);
-    void spi_jsb_initialize(v8::Local<v8::Object> exports_obj);
 }
 
 #define NANOSECONDS_60FPS 16666667LL
@@ -116,15 +116,17 @@ int Window::loop(SDL_Window *sdl_window)
         gfx_initialize(ns_gfx);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), ns_gfx).ToChecked();
 
-        puttyknife::Runtime(context, ns_global);
-
+        auto ns_puttyknife = v8::Object::New(isolate.get());
+        auto ns_runtime = v8::Object::New(isolate.get());
+        puttyknife::Runtime(context, ns_runtime);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "runtime"), ns_runtime).ToChecked();
         auto ns_yoga = v8::Object::New(isolate.get());
         puttyknife::Yoga(context, ns_yoga);
-        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "yoga"), ns_yoga).ToChecked();
-
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "yoga"), ns_yoga).ToChecked();
         auto ns_spi = v8::Object::New(isolate.get());
-        spi_jsb_initialize(ns_spi);
-        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "spi"), ns_spi).ToChecked();
+        puttyknife::Spi(context, ns_spi);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "spi"), ns_spi).ToChecked();
+        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "puttyknife"), ns_puttyknife).ToChecked();
 
         auto ns_zero = v8::Object::New(isolate.get());
         ImageBitmap_initialize(ns_zero);

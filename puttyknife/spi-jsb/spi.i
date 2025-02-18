@@ -1,4 +1,4 @@
-%module spi_jsb
+%module puttyknife_spi_swig
 
 %include <stdint.i>
 %include "../jsb/bigint_ptr.i"

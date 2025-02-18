@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22)
 
 project(spi-wasm)
 
+set(CMAKE_C_FLAGS "-fno-exceptions -sSUPPORT_LONGJMP=0")
+
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3 -flto")
 

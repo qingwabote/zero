@@ -4,6 +4,10 @@ export function preview1(on_fd_write: (input: Uint8Array) => void) {
 
     return {
         init(instance: WebAssembly.Instance) {
+            // https://emscripten.org/docs/compiling/Building-Projects.html#emscripten-linker-output-files
+            (instance.exports._start as CallableFunction)?.();
+            (instance.exports._initialize as CallableFunction)?.();
+
             const memory = instance.exports.memory as WebAssembly.Memory;
             HEAPU8 = new Uint8Array(memory.buffer);
             HEAPU32 = new Uint32Array(memory.buffer);

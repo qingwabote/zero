@@ -1,4 +1,6 @@
+declare const puttyknife: any
+
 export const spi = {
-    fn: (globalThis as any).spi,
-    heap: (globalThis as any).puttyknife
+    fn: puttyknife.spi,
+    heap: puttyknife.runtime
 } as const

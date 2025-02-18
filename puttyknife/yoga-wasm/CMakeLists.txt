@@ -2,10 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(yoga-wasm)
 
-# https://emscripten.org/docs/porting/exceptions.html#webassembly-exception-handling-based-support
-# set(CMAKE_CXX_FLAGS "-fwasm-exceptions")
-
-set(CMAKE_CXX_FLAGS "-fno-exceptions -sDISABLE_EXCEPTION_CATCHING=1")
+set(CMAKE_CXX_FLAGS "-fno-exceptions -sSUPPORT_LONGJMP=0 -sDISABLE_EXCEPTION_CATCHING=1")
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto")

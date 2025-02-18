@@ -7,7 +7,7 @@ System.register(['assets'], (function (exports) {
         }],
         execute: (function () {
 
-            const bundle = exports('bundle', new Bundle("dist/subpackages/engine/flex/assets"));
+            const bundle = exports('bundle', new Bundle("dist/subpackages/engine/flex/yoga/assets"));
 
         })
     };
