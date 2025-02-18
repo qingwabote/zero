@@ -1,5 +1,6 @@
 #include <v8.h>
 #include <yoga/YGNode.h>
+#include "NodeContext.hpp"
 
 namespace puttyknife::yoga
 {
@@ -23,11 +24,7 @@ namespace puttyknife::yoga
                     uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
                     YGNode *node = reinterpret_cast<YGNode *>(address);
 
-                    auto f = info[1].As<v8::Function>();
-
-                    v8::Global<v8::Function> *fn = new v8::Global<v8::Function>(isolate, f);
-
-                    YGNodeSetContext(node, fn);
+                    reinterpret_cast<NodeContext *>(YGNodeGetContext(node))->dirtiedFunc.Reset(isolate, info[1].As<v8::Function>());
                     YGNodeSetDirtiedFunc(
                         node,
                         [](YGNodeConstRef node)
@@ -41,10 +38,9 @@ namespace puttyknife::yoga
 
                             auto arr = v8::Array::New(isolate, args, std::size(args)).As<v8::Value>();
 
-                            auto fn = reinterpret_cast<v8::Global<v8::Function> *>(YGNodeGetContext(node));
-                            fn->Get(isolate)->Call(context, context->Global(), 1, &arr);
+                            auto &fn = reinterpret_cast<NodeContext *>(YGNodeGetContext(node))->dirtiedFunc;
+                            fn.Get(isolate)->Call(context, context->Global(), 1, &arr);
                         });
-                    // (*YGNodeGetDirtiedFunc(node))(node);
                 })
                 ->GetFunction(context)
                 .ToLocalChecked());
@@ -64,11 +60,7 @@ namespace puttyknife::yoga
                     uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
                     YGNode *node = reinterpret_cast<YGNode *>(address);
 
-                    auto f = info[1].As<v8::Function>();
-
-                    v8::Global<v8::Function> *fn = new v8::Global<v8::Function>(isolate, f);
-
-                    YGNodeSetContext(node, fn);
+                    reinterpret_cast<NodeContext *>(YGNodeGetContext(node))->measureFunc.Reset(isolate, info[1].As<v8::Function>());
                     YGNodeSetMeasureFunc(
                         node,
                         [](YGNodeConstRef node, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
@@ -78,7 +70,10 @@ namespace puttyknife::yoga
 
                             auto context = isolate->GetCurrentContext();
 
+                            YGSize size{};
+
                             v8::Local<v8::Value> args[] = {
+                                v8::BigInt::NewFromUnsigned(isolate, reinterpret_cast<uint64_t>(&size)),
                                 v8::BigInt::NewFromUnsigned(isolate, reinterpret_cast<uint64_t>(node)),
                                 v8::Number::New(isolate, width),
                                 v8::Number::New(isolate, widthMode),
@@ -88,11 +83,10 @@ namespace puttyknife::yoga
 
                             auto arr = v8::Array::New(isolate, args, std::size(args)).As<v8::Value>();
 
-                            auto fn = reinterpret_cast<v8::Global<v8::Function> *>(YGNodeGetContext(node));
-                            auto res = fn->Get(isolate)->Call(context, context->Global(), 1, &arr).ToLocalChecked();
-                            YGSize *size = reinterpret_cast<YGSize *>(res.As<v8::BigInt>()->Uint64Value());
+                            auto &fn = reinterpret_cast<NodeContext *>(YGNodeGetContext(node))->measureFunc;
+                            fn.Get(isolate)->Call(context, context->Global(), 1, &arr);
 
-                            return *size;
+                            return size;
                         });
                 })
                 ->GetFunction(context)

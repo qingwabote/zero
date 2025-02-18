@@ -1,3 +1,4 @@
+import type { ArgTypes } from 'puttyknife';
 import { textDecode, textEncode } from './text.js';
 
 type Pointer = number;
@@ -12,6 +13,7 @@ export class PuttyKnife {
     private _i32!: Int32Array;
     private _u32!: Uint32Array;
     private _f32!: Float32Array;
+    private _f64!: Float64Array;
 
     private _exports: any;
 
@@ -30,6 +32,7 @@ export class PuttyKnife {
         this._u32 = new Uint32Array(buffer);
         this._i32 = new Int32Array(buffer);
         this._f32 = new Float32Array(buffer);
+        this._f64 = new Float64Array(buffer);
 
         this._exports = instance.exports;
     }
@@ -79,9 +82,34 @@ export class PuttyKnife {
         return i;
     }
 
-    ptrAtArg(ptr: Pointer, n: number): Pointer {
-        return this._u32[(ptr + 4 * n) >> 2];
+    getArgs<T extends (keyof ArgTypes)[]>(ptr: Pointer, ...types: T): { [P in keyof T]: ArgTypes[T[P]]; } {
+        const args: number[] = new Array(types.length);
+        let offset = 0;
+        for (let i = 0; i < types.length; i++) {
+            const t = types[i];
+            switch (t) {
+                case 'p':
+                    offset += offset % 4;
+                    args[i] = this._u32[(ptr + offset) >> 2];
+                    offset += 4;
+                    break;
+                case 'i32':
+                    offset += offset % 4;
+                    args[i] = this._i32[(ptr + offset) >> 2];
+                    offset += 4;
+                    break;
+                case 'f32':
+                    offset += offset % 8;
+                    args[i] = this._f64[(ptr + offset) >> 3];
+                    offset += 8;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return args as any;
     }
+
 
     ptrAtArr(ptr: Pointer, n: number): Pointer {
         return this._u32[(ptr + 4 * n) >> 2];

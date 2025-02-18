@@ -32,7 +32,7 @@ export abstract class Element<T extends EventToListener = EventToListener> exten
         return this._emitter ?? (this._emitter = new EventEmitter.Impl);
     }
 
-    readonly yg_node: yoga.Node = yoga.fn.YGNodeNew();
+    readonly yg_node: yoga.Node = yoga.fn.YGNodeNew_PK();
 
     protected _bounds = aabb2d.create();
     public get bounds(): DeepReadonly<AABB2D> {
@@ -102,12 +102,13 @@ export abstract class Element<T extends EventToListener = EventToListener> exten
         this.doLayout();
 
         for (const child of this.node.children) {
-            if (child instanceof Element) {
-                child.applyLayout();
+            const element = child.getComponent(Element)
+            if (element) {
+                element.applyLayout();
             }
         }
 
-        yoga.fn.YGNodeSetHasNewLayout(this.yg_node, 0);
+        yoga.fn.YGNodeSetHasNewLayout(this.yg_node, false);
     }
 
     protected doLayout() {

@@ -24,12 +24,10 @@ export class Renderer<T extends BoundedRenderer> extends Element {
     constructor(node: Node) {
         super(node);
         const f = yoga.heap.addFunction((args) => {
-            // const width = yoga.heap.f32AtArg(args, 0);
-            // const height = yoga.heap.f32AtArg(args, 2);
+            const [size, node, width, widthMode, height, heightMode] = yoga.heap.getArgs(args, 'p', 'p', 'f32', 'i32', 'f32', 'i32');
             const PIXELS_PER_UNIT = (this.impl.constructor as typeof BoundedRenderer).PIXELS_PER_UNIT;
             const halfExtent = this.impl.bounds.halfExtent;
-            const size = yoga.fn.YGSizeNew(halfExtent[0] * 2 * PIXELS_PER_UNIT, halfExtent[1] * 2 * PIXELS_PER_UNIT)
-            return size;
+            yoga.fn.YGSizeSet(size, halfExtent[0] * 2 * PIXELS_PER_UNIT, halfExtent[1] * 2 * PIXELS_PER_UNIT)
         })
         yoga.fn.YGNodeSetMeasureFunc_PK(this.yg_node, f);
 

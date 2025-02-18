@@ -33,14 +33,22 @@ typedef int YGWrap;
 
 %ignore YGSize;
 %bigint_ptr(YGSize)
+%ignore YGNodeClone;
+%ignore YGNodeNew;
+%ignore YGNodeNewWithConfig;
+%ignore YGNodeFree;
+%ignore YGNodeFreeRecursive;
+%ignore YGNodeFinalize;
 %bigint_ptr(struct YGNode)
 
 %include <yoga/YGNode.h>
 %include <yoga/YGNodeStyle.h>
+%include <yoga/YGNodeLayout.h>
 %include <yoga/extension.h>
 
 %{
-    #include <yoga/YGNode.h>
-    #include <yoga/YGNodeStyle.h>
-    #include <yoga/extension.h>
+#include <yoga/YGNode.h>
+#include <yoga/YGNodeStyle.h>
+#include <yoga/YGNodeLayout.h>
+#include <yoga/extension.h>
 %}
