@@ -89,8 +89,8 @@ export default class App extends Zero {
         node = new Node;
         const cuttingBoard = node.addComponent(CuttingBoard);
         cuttingBoard.texture = favicon.impl;
-        cuttingBoard.setWidth('100%');
-        cuttingBoard.setHeight('100%');
+        cuttingBoard.setWidthPercent(100);
+        cuttingBoard.setHeightPercent(100);
         cuttingBoard.emitter.on(CuttingBoard.EventType.POLYGONS_CHANGED, () => {
             if (cuttingBoard.polygons.length > 9) {
                 cuttingBoard.reset();

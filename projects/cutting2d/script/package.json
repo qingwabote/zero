@@ -2,7 +2,7 @@
   "dependencies": {
     "bundling": "file:../../../script/bundling",
     "engine": "file:../../../script/engine",
-    "flex": "file:../../../script/flex",
+    "flex": "file:../../../script/flex2",
     "gfx": "file:../../../script/gfx/declare"
   }
 }

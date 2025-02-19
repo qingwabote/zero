@@ -2,7 +2,7 @@
   "name": "main",
   "dependencies": {
     "engine": "file:../../../script/engine",
-    "flex": "file:../../../script/flex",
+    "flex": "file:../../../script/flex2",
     "physics": "file:../../../script/physics"
   }
 }

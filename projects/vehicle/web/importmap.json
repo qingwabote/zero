@@ -1,16 +1,15 @@
 {
     "imports": {
-        "@esotericsoftware/spine-core": "./dist/spine-core.js",
         "yaml": "./dist/yaml.js",
         "bastard": "./dist/bastard/index.js",
-        "gfx-common": "./dist/gfx-common/index.js",
         "gfx": "./dist/gfx/index.js",
-        "loader": "./dist/loader/index.js",
-        "phys": "./dist/phys/index.js",
         "boot": "./dist/boot/index.js",
         "assets": "./dist/assets/index.js",
         "engine": "./dist/engine/index.js",
+        "puttyknife": "./dist/puttyknife/index.js",
+        "yoga": "./dist/yoga/index.js",
         "flex": "./dist/flex/index.js",
+        "phys": "./dist/phys/index.js",
         "physics": "./dist/physics/index.js",
         "bundling": "./bundling-builtin.js"
     },

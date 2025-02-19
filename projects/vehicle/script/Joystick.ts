@@ -26,8 +26,8 @@ export class Joystick extends ElementContainer<EventToListener> {
         const color: Vec4 = [0, 1, 0, 1]
 
         const primitive = Renderer.create(StrokeRenderer);
-        primitive.setWidth('100%');
-        primitive.setHeight('100%');
+        primitive.setWidthPercent(100);
+        primitive.setHeightPercent(100);
         this.draw(primitive, this._point, color)
         this.addElement(primitive);
 
