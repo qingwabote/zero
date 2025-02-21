@@ -36,16 +36,20 @@ FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download
 FetchContent_MakeAvailable(json)
 target_link_libraries(zero_main PRIVATE nlohmann_json::nlohmann_json)
 
-add_subdirectory(../../puttyknife/jsb puttyknife-build)
+add_subdirectory(../../puttyknife/jsb puttyknife)
 target_link_libraries(puttyknife PRIVATE v8)
 target_link_libraries(zero_main PRIVATE puttyknife)
 
-add_subdirectory(../../puttyknife/spi-jsb spi-jsb-build)
+add_subdirectory(../../puttyknife/spi-jsb spi-jsb)
 target_link_libraries(spi-jsb PRIVATE v8)
 target_link_libraries(zero_main PRIVATE spi-jsb)
 
-add_subdirectory(../../puttyknife/yoga-jsb yoga-jsb-build)
+add_subdirectory(../../puttyknife/yoga-jsb yoga-jsb)
 target_link_libraries(yoga-jsb PRIVATE v8)
 target_link_libraries(zero_main PRIVATE yoga-jsb)
+
+add_subdirectory(../../puttyknife/phys-jsb phys-jsb)
+target_link_libraries(phys-jsb PRIVATE v8)
+target_link_libraries(zero_main PRIVATE phys-jsb)
 
 add_library(zero::main ALIAS zero_main)

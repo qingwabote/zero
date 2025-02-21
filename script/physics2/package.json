@@ -1,0 +1,7 @@
+{
+    "name": "physics",
+    "dependencies": {
+        "engine": "file:../engine",
+        "phys": "file:../phys2/declare"
+    }
+}

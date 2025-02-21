@@ -1,0 +1,6 @@
+{
+  "name": "phys",
+  "dependencies": {
+    "puttyknife": "file:../../../puttyknife/declare"
+  }
+}

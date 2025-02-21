@@ -14,6 +14,7 @@
 #include <puttyknife/runtime.hpp>
 #include <puttyknife/yoga.hpp>
 #include <puttyknife/spi.hpp>
+#include <puttyknife/phys.hpp>
 
 extern "C"
 {
@@ -126,6 +127,9 @@ int Window::loop(SDL_Window *sdl_window)
         auto ns_spi = v8::Object::New(isolate.get());
         puttyknife::Spi(context, ns_spi);
         ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "spi"), ns_spi).ToChecked();
+        auto ns_phys = v8::Object::New(isolate.get());
+        puttyknife::Phys(context, ns_phys);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "phys"), ns_phys).ToChecked();
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "puttyknife"), ns_puttyknife).ToChecked();
 
         auto ns_zero = v8::Object::New(isolate.get());

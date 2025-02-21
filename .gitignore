@@ -3,4 +3,5 @@ build/
 dist/
 assets/spi.wasm
 assets/yoga.wasm
+assets/phys.wasm
 .vscode/c_cpp_properties.json
