@@ -1,8 +1,6 @@
 #include <yoga/extension.h>
 #include <yoga/context.h>
 
-YG_EXTERN_C_BEGIN
-
 YGNodeRef YGNodeNew_PK()
 {
     void *context = YGNodeContextNew();
@@ -32,5 +30,3 @@ void YGSizeFree(YGSize *size)
 {
     delete size;
 }
-
-YG_EXTERN_C_END

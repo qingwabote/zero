@@ -1,0 +1,1 @@
+the dir "bullet" copy from https://github.com/kripken/ammo.js/tree/1ed8b58c7058a5f697f2642ceef8ee20fdd55e10/bullet
