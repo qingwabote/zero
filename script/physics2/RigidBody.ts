@@ -47,6 +47,10 @@ export class RigidBody extends Component {
     }
 
     override lateUpdate(): void {
+        if (!this._mass) {
+            return;
+        }
+
         const transform = phys.fn.physRigidBody_getWorldTransform(this.pointer);
 
         const position = phys.fn.physTransform_getPosition(transform);

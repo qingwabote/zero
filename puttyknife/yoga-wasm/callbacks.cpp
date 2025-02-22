@@ -1,10 +1,11 @@
 #include <yoga/Yoga.h>
 #include "../wasm/imports.h"
+#include "../portation.h"
 #include "NodeContext.hpp"
 
 YG_EXTERN_C_BEGIN
 
-void YGNodeSetDirtiedFunc_PK(YGNodeRef node, int index)
+PK_EXPORT void YGNodeSetDirtiedFunc_PK(YGNodeRef node, int index)
 {
     reinterpret_cast<puttyknife::yoga::NodeContext *>(YGNodeGetContext(node))->dirtiedFunc = index;
     YGNodeSetDirtiedFunc(node,
@@ -15,7 +16,7 @@ void YGNodeSetDirtiedFunc_PK(YGNodeRef node, int index)
                          });
 }
 
-void YGNodeSetMeasureFunc_PK(YGNodeRef node, int index)
+PK_EXPORT void YGNodeSetMeasureFunc_PK(YGNodeRef node, int index)
 {
     reinterpret_cast<puttyknife::yoga::NodeContext *>(YGNodeGetContext(node))->measureFunc = index;
     YGNodeSetMeasureFunc(node,

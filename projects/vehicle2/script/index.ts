@@ -2,6 +2,8 @@
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
+import { Joystick } from './Joystick.js';
+import Vehicle from './Vehicle.js';
 
 const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
 
@@ -83,6 +85,12 @@ export class App extends Zero {
             }
         }
 
+        node = new Node();
+        const vehicle = node.addComponent(Vehicle);
+        vehicle.primitive = primitive;
+        node.visibility = VisibilityFlagBits.WORLD;
+        node.position = [0, 3, 0];
+
         // UI
         node = new Node;
         const ui_camera = node.addComponent(Camera);
@@ -100,6 +108,37 @@ export class App extends Zero {
 
         const cameraControl = doc.node.addComponent(CameraControl);
         cameraControl.camera = main_camera;
+
+        node = new Node;
+        const joystick = node.addComponent(Joystick);
+        this.setInterval(() => {
+            // const speed = vehicle.speedKmHour;
+
+            // let breakingForce = 0;
+            let engineForce = 0;
+            let steering = 0;
+            if (joystick.point[1] > 0) {
+                engineForce = 2
+            } else if (joystick.point[1] < 0) {
+                engineForce = -2
+            }
+            if (joystick.point[0] > 0) {
+                steering = 6;
+            } else if (joystick.point[0] < 0) {
+                steering = -6;
+            }
+
+            vehicle.setEngineForce(engineForce, 2);
+            vehicle.setEngineForce(engineForce, 3);
+            vehicle.setSteeringValue(steering, 0);
+            vehicle.setSteeringValue(steering, 1);
+        })
+        joystick.positionType = PositionType.Absolute;
+        joystick.setPosition(Edge.Right, 0);
+        joystick.setPosition(Edge.Bottom, 0);
+        joystick.setWidth(height / 4);
+        joystick.setHeight(height / 4);
+        doc.addElement(joystick);
 
         node = new Node(Profiler.name)
         const profiler = node.addComponent(Profiler)

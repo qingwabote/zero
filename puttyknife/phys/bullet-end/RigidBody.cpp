@@ -3,11 +3,6 @@
 #include <BulletCollision/CollisionShapes/btCompoundShape.h>
 #include <LinearMath/btTransform.h>
 
-namespace phys
-{
-
-}
-
 phys::RigidBody *physRigidBody_new()
 {
     btCompoundShape *compound = new btCompoundShape();

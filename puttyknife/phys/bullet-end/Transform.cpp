@@ -23,7 +23,9 @@ void physTransform_setPosition(phys::Transform *t, const phys::Vector3 *v3)
 
 const phys::Quat *physTransform_getRotation(phys::Transform *t)
 {
-    return &t->getRotation();
+    static btQuaternion temp;
+    temp = t->getRotation();
+    return &temp;
 }
 
 void physTransform_setRotation(phys::Transform *t, const phys::Quat *q)
