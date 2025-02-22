@@ -2,6 +2,7 @@
 
 #include <spine/spine.h>
 #include <spine/extension.h>
+#include "../../../portation.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -15,11 +16,11 @@ extern "C"
         void *rendererObject;
     } spiSubModel;
 
-    int spiSubModel_getRange(spiSubModel *self);
+    PK_EXPORT int spiSubModel_getRange(spiSubModel *self);
 
-    spBlendMode spiSubModel_getBlend(spiSubModel *self);
+    PK_EXPORT spBlendMode spiSubModel_getBlend(spiSubModel *self);
 
-    uintptr_t spiSubModel_getRendererObject(spiSubModel *self);
+    PK_EXPORT uintptr_t spiSubModel_getRendererObject(spiSubModel *self);
 
 #ifndef SWIG
     _SP_ARRAY_DECLARE_TYPE(spiSubModelArray, spiSubModel *)
@@ -32,23 +33,23 @@ extern "C"
         spiSubModelArray *subModels;
     } spiModel;
 
-    spiModel *spiModel_create();
+    PK_EXPORT spiModel *spiModel_create();
 
-    void spiModel_dispose(spiModel *self);
+    PK_EXPORT void spiModel_dispose(spiModel *self);
 
-    int spiModel_getVerticesSize(spiModel *self);
+    PK_EXPORT int spiModel_getVerticesSize(spiModel *self);
 
-    float *spiModel_getVertices(spiModel *self);
+    PK_EXPORT float *spiModel_getVertices(spiModel *self);
 
-    int spiModel_getIndicesSize(spiModel *self);
+    PK_EXPORT int spiModel_getIndicesSize(spiModel *self);
 
-    unsigned short *spiModel_getIndices(spiModel *self);
+    PK_EXPORT unsigned short *spiModel_getIndices(spiModel *self);
 
-    int spiModel_getSubModelsSize(spiModel *self);
+    PK_EXPORT int spiModel_getSubModelsSize(spiModel *self);
 
-    spiSubModel **spiModel_getSubModels(spiModel *self);
+    PK_EXPORT spiSubModel **spiModel_getSubModels(spiModel *self);
 
-    void spiModel_update(spiModel *self, const spSkeleton *skeleton);
+    PK_EXPORT void spiModel_update(spiModel *self, const spSkeleton *skeleton);
 
 #ifdef __cplusplus
 }

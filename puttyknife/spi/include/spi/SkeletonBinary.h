@@ -3,21 +3,22 @@
 #include <spine/Atlas.h>
 #include <spine/SkeletonData.h>
 #include <spine/SkeletonBinary.h>
+#include "../../../portation.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    spSkeletonBinary *spiSkeletonBinary_create(spAtlas *atlas);
+    PK_EXPORT spSkeletonBinary *spiSkeletonBinary_create(spAtlas *atlas);
 
-    const char *spiSkeletonBinary_getError(spSkeletonBinary *self);
+    PK_EXPORT const char *spiSkeletonBinary_getError(spSkeletonBinary *self);
 
-    void spiSkeletonBinary_dispose(spSkeletonBinary *self);
+    PK_EXPORT void spiSkeletonBinary_dispose(spSkeletonBinary *self);
 
-    void spiSkeletonBinary_setScale(spSkeletonBinary *self, float scale);
+    PK_EXPORT void spiSkeletonBinary_setScale(spSkeletonBinary *self, float scale);
 
-    spSkeletonData *spiSkeletonBinary_readSkeletonData(spSkeletonBinary *self, const unsigned char *binary, const int length);
+    PK_EXPORT spSkeletonData *spiSkeletonBinary_readSkeletonData(spSkeletonBinary *self, const unsigned char *binary, const int length);
 
 #ifdef __cplusplus
 }
