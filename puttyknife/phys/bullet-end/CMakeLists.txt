@@ -1,6 +1,7 @@
-set(BUILD_MULTITHREADING OFF)
-set(BUILD_EXTRAS OFF)
-set(USE_GLUT OFF)
+# https://cmake.org/cmake/help/latest/policy/CMP0077.html#policy:CMP0077
+set(BUILD_MULTITHREADING OFF CACHE BOOL "OFF Option BUILD_MULTITHREADING")
+set(BUILD_EXTRAS OFF CACHE BOOL "OFF Option BUILD_EXTRAS")
+set(USE_GLUT OFF CACHE BOOL "OFF Option USE_GLUT")
 
 add_compile_definitions(BT_NO_PROFILE=1)
 

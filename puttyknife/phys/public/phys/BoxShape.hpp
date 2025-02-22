@@ -1,8 +1,9 @@
 #pragma once
 
 #include <phys/type.hpp>
+#include "../../../portation.h"
 
 extern "C"
 {
-    phys::BoxShape *physBoxShape_new();
+    PK_EXPORT phys::BoxShape *physBoxShape_new();
 }

@@ -12,11 +12,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto")
 add_executable(phys-wasm ./null.cpp)
 
 add_subdirectory(../phys/${PHYS} phys)
-target_link_libraries(phys-wasm PRIVATE phys)
+target_link_libraries(phys-wasm PRIVATE -Wl,--whole-archive phys -Wl,--no-whole-archive)
 
 target_link_options(phys-wasm PRIVATE --no-entry -sFILESYSTEM=0 "-sEXPORTED_FUNCTIONS=[\
-    '_malloc','_free',\
-    '_physWorld_new','_physWorld_stepSimulation'\
+    '_malloc','_free'\
 ]")
 set_target_properties(phys-wasm PROPERTIES RUNTIME_OUTPUT_DIRECTORY /zero/assets 
                                        RUNTIME_OUTPUT_NAME phys)
