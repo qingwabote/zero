@@ -1,4 +1,4 @@
-import { Filter } from 'gfx-common';
+import { Filter } from './shared/constants.js';
 function getFilter(gl, val) {
     switch (val) {
         case Filter.NEAREST:

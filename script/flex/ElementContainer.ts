@@ -1,30 +1,31 @@
+import { yoga } from "yoga";
 import { Element } from "./Element.js";
-import type * as yoga from "./yoga/index.js";
+import { Align, FlexDirection, Justify } from "./enums.js";
 
 export class ElementContainer<T extends Element.EventToListener = Element.EventToListener> extends Element<T> {
-    public get flexDirection(): yoga.FlexDirection {
-        return this.yg_node.deref().getFlexDirection();
+    public get flexDirection(): FlexDirection {
+        return yoga.fn.YGNodeStyleGetFlexDirection(this.yg_node)
     }
-    public set flexDirection(value: yoga.FlexDirection) {
-        this.yg_node.deref().setFlexDirection(value);
-    }
-
-    public get justifyContent(): yoga.Justify {
-        return this.yg_node.deref().getJustifyContent();
-    }
-    public set justifyContent(value: yoga.Justify) {
-        this.yg_node.deref().setJustifyContent(value);
+    public set flexDirection(value: FlexDirection) {
+        yoga.fn.YGNodeStyleSetFlexDirection(this.yg_node, value)
     }
 
-    public get alignItems(): yoga.Align {
-        return this.yg_node.deref().getAlignItems();
+    public get justifyContent(): Justify {
+        return yoga.fn.YGNodeStyleGetJustifyContent(this.yg_node);
     }
-    public set alignItems(value: yoga.Align) {
-        this.yg_node.deref().setAlignItems(value);
+    public set justifyContent(value: Justify) {
+        yoga.fn.YGNodeStyleSetJustifyContent(this.yg_node, value);
+    }
+
+    public get alignItems(): Align {
+        return yoga.fn.YGNodeStyleGetAlignItems(this.yg_node);
+    }
+    public set alignItems(value: Align) {
+        yoga.fn.YGNodeStyleSetAlignItems(this.yg_node, value)
     }
 
     addElement(element: Element) {
-        this.yg_node.deref().insertChild(element.yg_node.deref(), this.yg_node.deref().getChildCount());
+        yoga.fn.YGNodeInsertChild(this.yg_node, element.yg_node, yoga.fn.YGNodeGetChildCount(this.yg_node))
         this.node.addChild(element.node);
     }
 }

@@ -1,25 +1,26 @@
+import { yoga } from "yoga";
 import { Element } from "./Element.js";
 export class ElementContainer extends Element {
     get flexDirection() {
-        return this.yg_node.deref().getFlexDirection();
+        return yoga.fn.YGNodeStyleGetFlexDirection(this.yg_node);
     }
     set flexDirection(value) {
-        this.yg_node.deref().setFlexDirection(value);
+        yoga.fn.YGNodeStyleSetFlexDirection(this.yg_node, value);
     }
     get justifyContent() {
-        return this.yg_node.deref().getJustifyContent();
+        return yoga.fn.YGNodeStyleGetJustifyContent(this.yg_node);
     }
     set justifyContent(value) {
-        this.yg_node.deref().setJustifyContent(value);
+        yoga.fn.YGNodeStyleSetJustifyContent(this.yg_node, value);
     }
     get alignItems() {
-        return this.yg_node.deref().getAlignItems();
+        return yoga.fn.YGNodeStyleGetAlignItems(this.yg_node);
     }
     set alignItems(value) {
-        this.yg_node.deref().setAlignItems(value);
+        yoga.fn.YGNodeStyleSetAlignItems(this.yg_node, value);
     }
     addElement(element) {
-        this.yg_node.deref().insertChild(element.yg_node.deref(), this.yg_node.deref().getChildCount());
+        yoga.fn.YGNodeInsertChild(this.yg_node, element.yg_node, yoga.fn.YGNodeGetChildCount(this.yg_node));
         this.node.addChild(element.node);
     }
 }

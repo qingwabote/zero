@@ -1,4 +1,3 @@
-import { CallbackCollection } from "./CallbackCollection.js";
 export var EventEmitter;
 (function (EventEmitter) {
     class Impl {
@@ -11,19 +10,23 @@ export var EventEmitter;
         on(name, listener) {
             let callbacks = this._event2callbacks.get(name);
             if (!callbacks) {
-                callbacks = new CallbackCollection;
-                this._event2callbacks.set(name, callbacks);
+                this._event2callbacks.set(name, callbacks = new Set);
             }
-            callbacks.set(listener);
+            callbacks.add(listener);
             return listener;
         }
         off(name, listener) {
-            let callbacks = this._event2callbacks.get(name);
-            callbacks === null || callbacks === void 0 ? void 0 : callbacks.delete(listener);
+            var _a;
+            (_a = this._event2callbacks.get(name)) === null || _a === void 0 ? void 0 : _a.delete(listener);
         }
         emit(name, ...args) {
             const callbacks = this._event2callbacks.get(name);
-            callbacks === null || callbacks === void 0 ? void 0 : callbacks.call(...args);
+            if (!callbacks) {
+                return;
+            }
+            for (const fn of callbacks) {
+                fn(...args);
+            }
         }
     }
     EventEmitter.Impl = Impl;

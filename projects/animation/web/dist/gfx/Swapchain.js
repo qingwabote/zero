@@ -1,6 +1,6 @@
-import { Format } from "gfx-common";
 import { Texture } from "./Texture.js";
 import { TextureInfo } from "./info.js";
+import { Format } from "./shared/constants.js";
 export class Swapchain {
     constructor(gl) {
         const colorInfo = new TextureInfo;

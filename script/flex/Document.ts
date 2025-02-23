@@ -1,5 +1,6 @@
 import { TouchEvent } from "boot";
 import { BoundedRenderer, Input, Node, Vec2, Zero, aabb2d, mat4, scene, vec2 } from "engine";
+import { yoga } from "yoga";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -25,7 +26,7 @@ export class Document extends ElementContainer {
         Zero.instance.input.on(Input.TouchEvents.MOVE, event => this.eventHandler(event, Input.TouchEvents.MOVE));
         Zero.instance.input.on(Input.GestureEvents.PINCH, event => this.eventHandler(event, Input.GestureEvents.PINCH));
 
-        LayoutSystem.instance.addRoot(this.yg_node);
+        LayoutSystem.instance.addDocument(this);
     }
 
     override lateUpdate(): void {
@@ -49,12 +50,8 @@ export class Document extends ElementContainer {
         for (let i = 0; i < cameras.length; i++) {
             world_positions[i] = cameras[i].screenToWorld(vec2.create(), event.x(0), event.y(0));
         }
-        const children = this.node.children;
-        for (let i = children.length - 1; i > -1; i--) {
-            if (this.touchWalk(children[i].getComponent(Element)!, cameras, world_positions, name, event)) {
-                return;
-            }
-        }
+
+        this.touchWalk(this, cameras, world_positions, name, event);
     }
 
     private touchWalk(element: Element, cameras: readonly scene.Camera[], world_positions: readonly Readonly<Vec2>[], name: Input.TouchEvents | Input.GestureEvents, event: TouchEvent) {
@@ -89,9 +86,9 @@ export class Document extends ElementContainer {
                 for (let j = children.length - 1; j > -1; j--) {
                     if (this.touchWalk(children[j].getComponent(Element)!, cameras, world_positions, name, event)) {
                         // bubbling
-                        if (element.emitter.has(name)) {
-                            element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
-                        }
+                        // if (element.emitter.has(name)) {
+                        //     element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
+                        // }
                         if (name == Input.TouchEvents.START) {
                             this._touchClaimed.set(element, element);
                         }
@@ -111,5 +108,10 @@ export class Document extends ElementContainer {
         return false;
     }
 
-    override layout_update(): void { }
+    override doLayout(): void {
+        const width = yoga.fn.YGNodeLayoutGetWidth(this.yg_node);
+        const height = yoga.fn.YGNodeLayoutGetHeight(this.yg_node);
+        vec2.set(this._bounds.halfExtent, width / 2, height / 2);
+        vec2.set(this._bounds.center, width / 2, -height / 2);
+    }
 }

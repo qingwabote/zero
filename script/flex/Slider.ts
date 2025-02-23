@@ -2,7 +2,7 @@ import { Input, Node, SpriteFrame, SpriteRenderer, Texture, Vec2, bundle, vec4 }
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";
-import * as yoga from "./yoga/index.js";
+import { Edge, PositionType } from "./enums.js";
 
 const splash_texture = await bundle.cache('images/splash.png', Texture);
 const splash_frame = new SpriteFrame(splash_texture.impl);
@@ -32,16 +32,17 @@ export class Slider extends ElementContainer<EventToListener> {
 
         const background = Renderer.create(SpriteRenderer);
         background.impl.spriteFrame = splash_frame;
-        background.setWidth('100%')
-        background.setHeight('100%')
+        background.setWidthPercent(100)
+        background.setHeightPercent(100)
         this.addElement(background);
 
         const foreground = Renderer.create(SpriteRenderer);
         foreground.impl.spriteFrame = splash_frame;
         foreground.impl.color = vec4.create(0, 1, 0, 1);
-        foreground.setHeight('100%')
-        foreground.positionType = yoga.PositionType.Absolute
-        foreground.setPosition(yoga.Edge.Top, 0)
+        foreground.setHeightPercent(100)
+        foreground.positionType = PositionType.Absolute
+        foreground.setPosition(Edge.Top, 0)
+        foreground.setPosition(Edge.Left, 0)
         this.addElement(foreground);
         this._foreground = foreground;
 
@@ -56,7 +57,7 @@ export class Slider extends ElementContainer<EventToListener> {
     }
 
     private onValue() {
-        this._foreground.setWidth(`${this._value * 100}%`)
+        this._foreground.setWidthPercent(this._value * 100)
     }
 
     private onTouch(pos: Readonly<Vec2>) {

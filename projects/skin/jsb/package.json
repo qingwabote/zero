@@ -1,7 +1,6 @@
 {
     "scripts": {
         "yaml": "rollup -i ../../../script/engine/node_modules/yaml/browser/index.js -o dist/yaml.js",
-        "gfx-common": "tsc -p ../../../script/gfx/common --outDir dist/gfx-common --watch",
         "gfx": "tsc -p ../../../script/gfx/jsb --outDir dist/gfx --watch",
         "gfx:ins": "cd ../../../script/gfx/declare && npm ins && cd ../../../script/gfx/jsb && npm ins",
         "boot": "tsc -p ../../../script/boot/jsb --outDir dist/boot --watch",
@@ -9,8 +8,9 @@
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
         "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
+        "yoga": "tsc -p ../../../script/yoga/jsb --outDir dist/yoga --watch",
         "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",
-        "dev": "concurrently \"npm run gfx-common\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\" \"npm run flex\" \"npm run script\""
+        "dev": "concurrently \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\" \"npm run yoga\" \"npm run flex\" \"npm run script\""
     }
 }

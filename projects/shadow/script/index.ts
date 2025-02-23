@@ -28,12 +28,9 @@ const [walkrun_and_idle, plane, ss_depth, csm_off, csm_on] = await Promise.all([
     }),
     await (await builtin.cache('models/primitive/scene', GLTF)).instantiate(undefined, materialFunc),
     builtin.cache('shaders/depth', Shader),
-    bundle.cache('pipelines/csm-off', Pipeline),
-    bundle.cache('pipelines/csm-on', Pipeline)
+    await ((await bundle.cache('pipelines/csm-off', Pipeline)).instantiate(VisibilityFlagBits)),
+    await ((await bundle.cache('pipelines/csm-on', Pipeline)).instantiate(VisibilityFlagBits))
 ])
-
-const csm_off_instance = await csm_off.instantiate(VisibilityFlagBits);
-const csm_on_instance = await csm_on.instantiate(VisibilityFlagBits);
 
 const csm_off_shadowmap = new SpriteFrame(csm_off.textures['shadowmap']);
 const csm_on_shadowmap = new SpriteFrame(csm_on.textures['shadowmap']);
@@ -128,8 +125,8 @@ export class App extends Zero {
             //     }
             // }
         }
-        csm_off_instance.data.on(pipeline.Data.Event.UPDATE, debugDraw)
-        csm_on_instance.data.on(pipeline.Data.Event.UPDATE, debugDraw)
+        csm_off.data.on(pipeline.Data.Event.UPDATE, debugDraw)
+        csm_on.data.on(pipeline.Data.Event.UPDATE, debugDraw)
 
         // UI
         node = new Node;
@@ -166,8 +163,8 @@ export class App extends Zero {
         {
             const controlPanel = Node.build(CameraControlPanel);
             controlPanel.camera = up_camera;
-            controlPanel.setWidth('100%');
-            controlPanel.setHeight('100%');
+            controlPanel.setWidthPercent(100);
+            controlPanel.setHeightPercent(100);
             up_container.addElement(controlPanel);
         }
         doc.addElement(up_container)
@@ -179,8 +176,8 @@ export class App extends Zero {
             const controlPanel = Node.build(CameraControlPanel);
             controlPanel.camera = down_camera;
             controlPanel.positionType = PositionType.Absolute;
-            controlPanel.setWidth('100%');
-            controlPanel.setHeight('100%');
+            controlPanel.setWidthPercent(100);
+            controlPanel.setHeightPercent(100);
             down_container.addElement(controlPanel);
 
             {
@@ -189,17 +186,18 @@ export class App extends Zero {
                 textRenderer.impl.color = vec4.GREEN;
                 textRenderer.impl.size = text_size;
                 textRenderer.positionType = PositionType.Absolute;
+                textRenderer.setPosition(Edge.Left, 0);
                 textRenderer.emitter.on(Input.TouchEvents.START, async event => {
                     if (textRenderer.impl.text == 'CSM OFF') {
                         textRenderer.impl.text = 'CSM ON';
                         textRenderer.impl.color = vec4.GREEN;
                         sprite.impl.spriteFrame = csm_on_shadowmap;
-                        this.pipeline = csm_on_instance;
+                        this.pipeline = csm_on;
                     } else {
                         textRenderer.impl.text = 'CSM OFF';
                         textRenderer.impl.color = vec4.ONE;
                         sprite.impl.spriteFrame = csm_off_shadowmap;
-                        this.pipeline = csm_off_instance;
+                        this.pipeline = csm_off;
                     }
                 })
                 down_container.addElement(textRenderer);
@@ -240,4 +238,4 @@ export class App extends Zero {
     }
 }
 
-(new App(csm_on_instance)).initialize().attach();
+(new App(csm_on)).initialize().attach();

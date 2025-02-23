@@ -75,7 +75,8 @@ export async function once(url, type) {
     const asset = new type;
     return asset.load(url);
 }
-export class Raw {
+/**Wrapping raw resource types to reuse asset cache*/
+class Raw {
     constructor(_root) {
         this._root = _root;
     }
@@ -98,7 +99,7 @@ export class Raw {
             case 'buffer':
                 return (await once(resolve(this._root, path), Buffer)).content;
             case 'bitmap':
-                return (await cache(resolve(this._root, path), Bitmap)).content;
+                return (await once(resolve(this._root, path), Bitmap)).content;
             default:
                 throw new Error(`unsupported type: ${type}`);
         }

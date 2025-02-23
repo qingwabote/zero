@@ -16,8 +16,9 @@ var Event;
     Event["SCENE_UPDATE"] = "SCENE_UPDATE";
     Event["PIPELINE_UPDATE"] = "PIPELINE_UPDATE";
     Event["DEVICE_SYNC"] = "DEVICE_SYNC";
-    Event["PIPELINE_BATCH"] = "PIPELINE_BATCH";
     Event["UPLOAD"] = "UPLOAD";
+    Event["PIPELINE_BATCH"] = "PIPELINE_BATCH";
+    Event["RENDER"] = "RENDER";
     Event["FRAME_END"] = "FRAME_END";
 })(Event || (Event = {}));
 export class Zero extends EventEmitter.Impl {
@@ -96,13 +97,17 @@ export class Zero extends EventEmitter.Impl {
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
+        // updates component, responds to user input
         this._componentScheduler.update(delta);
         this._timeScheduler.update();
+        // updates systems, applies physics and then animation
         for (const system of this._systems) {
             system.update(delta);
         }
         this.emit(Event.UPDATE);
+        // after the update of components and systems
         this._componentScheduler.lateUpdate();
+        // layout engine works here, after all positions and sizes set by the above settle down
         for (const system of this._systems) {
             system.lateUpdate(delta);
         }
@@ -115,14 +120,16 @@ export class Zero extends EventEmitter.Impl {
         boot.device.waitForFence(this._fence);
         boot.device.swapchain.acquire(this._swapchainUsable);
         this.emit(Event.DEVICE_SYNC);
+        this._componentScheduler.upload(this.commandBuffer);
+        quad.indexBufferView.update(this.commandBuffer);
+        this._pipeline.upload(this);
+        this.emit(Event.UPLOAD);
         this.commandBuffer.begin();
         this._pipeline.batch(this);
         this.emit(Event.PIPELINE_BATCH);
-        this._componentScheduler.upload(this.commandBuffer);
-        quad.indexBufferView.update(this.commandBuffer);
-        this.emit(Event.UPLOAD);
         this._pipeline.render(this);
         this.commandBuffer.end();
+        this.emit(Event.RENDER);
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = this.commandBuffer;
         submitInfo.waitSemaphore = this._swapchainUsable;

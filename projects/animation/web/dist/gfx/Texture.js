@@ -1,5 +1,5 @@
-import { SampleCountFlagBits } from "gfx-common";
 import { Formats } from "./internal/mapping.js";
+import { SampleCountFlagBits } from "./shared/constants.js";
 export class Texture {
     get texture() {
         return this._texture;

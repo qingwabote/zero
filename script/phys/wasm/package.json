@@ -1,0 +1,10 @@
+{
+  "name": "phys",
+  "dependencies": {
+    "bastard": "file:../../bastard",
+    "boot": "file:../../boot/declare",
+    "bundling": "file:../../bundling",
+    "puttyknife": "file:../../../puttyknife/wasm",
+    "phys": "file:../declare"
+  }
+}

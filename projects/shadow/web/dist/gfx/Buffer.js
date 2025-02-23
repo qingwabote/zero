@@ -1,4 +1,4 @@
-import { BufferUsageFlagBits } from "gfx-common";
+import { BufferUsageFlagBits } from "./shared/constants.js";
 function usage2target(gl, usage) {
     if (usage & BufferUsageFlagBits.VERTEX) {
         return gl.ARRAY_BUFFER;

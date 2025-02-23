@@ -11,6 +11,10 @@
 #include "bg/Device.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
+#include <puttyknife/runtime.hpp>
+#include <puttyknife/yoga.hpp>
+#include <puttyknife/spi.hpp>
+#include <puttyknife/phys.hpp>
 
 extern "C"
 {
@@ -113,13 +117,30 @@ int Window::loop(SDL_Window *sdl_window)
         gfx_initialize(ns_gfx);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), ns_gfx).ToChecked();
 
+        auto ns_puttyknife = v8::Object::New(isolate.get());
+        auto ns_runtime = v8::Object::New(isolate.get());
+        puttyknife::Runtime(context, ns_runtime);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "runtime"), ns_runtime).ToChecked();
+        auto ns_yoga = v8::Object::New(isolate.get());
+        puttyknife::Yoga(context, ns_yoga);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "yoga"), ns_yoga).ToChecked();
+        auto ns_spi = v8::Object::New(isolate.get());
+        puttyknife::Spi(context, ns_spi);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "spi"), ns_spi).ToChecked();
+        auto ns_phys = v8::Object::New(isolate.get());
+        puttyknife::Phys(context, ns_phys);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "phys"), ns_phys).ToChecked();
+        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "puttyknife"), ns_puttyknife).ToChecked();
+
         auto ns_zero = v8::Object::New(isolate.get());
         ImageBitmap_initialize(ns_zero);
         Loader_initialize(ns_zero);
         Window_initialize(ns_zero);
+
         text_initialize(context, ns_zero);
-        console_initialize(context, ns_global);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "zero"), ns_zero).ToChecked();
+
+        console_initialize(context, ns_global);
 
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "require"),
                        v8::FunctionTemplate::New(isolate.get(),

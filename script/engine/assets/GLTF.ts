@@ -511,7 +511,8 @@ class Instance {
         return materials;
     }
 }
+GLTF.Instance = Instance;
 
 export declare namespace GLTF {
-    export { MaterialParams, MaterialFunc, materialFuncPhong }
+    export { MaterialParams, MaterialFunc, materialFuncPhong, Instance }
 }

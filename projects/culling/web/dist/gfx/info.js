@@ -1,4 +1,4 @@
-import { CullMode, Format, SampleCountFlagBits, TextureUsageFlagBits } from "gfx-common";
+import { CullMode, Format, SampleCountFlagBits, TextureUsageFlagBits } from "./shared/constants.js";
 export class Vector {
     constructor() {
         this.data = [];

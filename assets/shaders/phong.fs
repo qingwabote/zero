@@ -51,6 +51,7 @@ layout(location = 0) out vec4 fragColor;
         for(int i = 0; i < CSM_NUM; i++) {
             vec4 position = csm.viewProj[i] * vec4(v_position, 1.0);
 
+            // scale pos to 0 ~ 1
             #if CLIP_SPACE_MIN_Z_0
                 vec3 pos = position.xyz * vec3(0.5, 0.5, 1.0) + vec3(0.5, 0.5, 0.0);
             #else
@@ -69,7 +70,7 @@ layout(location = 0) out vec4 fragColor;
                 }
             #endif
 
-            pos.xy = CSMAtlas[i].xy + pos.xy * CSMAtlas[i].zw;
+            pos.xy = pos.xy * CSMAtlas[i].zw + CSMAtlas[i].xy;
 
             #if SHADOW_MAP_PCF
                 vec2 texelSize = 1.0 / atlasSize;

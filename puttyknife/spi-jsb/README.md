@@ -1,0 +1,1 @@
+c:\portable\swigwin-4.3.0\swig.exe -javascript -v8 -Ic:\Users\logan\Documents\GitHub\zero\puttyknife\spi\include -o .\build\spi_swig.cpp spi.i

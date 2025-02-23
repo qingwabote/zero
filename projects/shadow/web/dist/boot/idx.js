@@ -51,6 +51,14 @@ class WheelEventImpl extends MouseEventImpl {
 }
 export const device = new Device(canvas.getContext('webgl2', { antialias: false }));
 export const initial = performance.now();
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+export function textEncode(source, destination) {
+    return textEncoder.encodeInto(source, destination).written;
+}
+export function textDecode(input) {
+    return textDecoder.decode(input);
+}
 export function now() { return performance.now(); }
 export function load(url, type, onProgress) {
     return new Promise((resolve, reject) => {
@@ -101,7 +109,9 @@ export function load(url, type, onProgress) {
     });
 }
 export async function loadWasm(url, imports) {
-    return WebAssembly.instantiate(await load(url, 'buffer'), imports);
+    const module = await WebAssembly.compile(await load(url, 'buffer'));
+    const instance = await WebAssembly.instantiate(module, imports);
+    return { module, instance };
 }
 export function loadBundle(name) { throw new Error("unimplemented"); }
 export function attach(listener) {

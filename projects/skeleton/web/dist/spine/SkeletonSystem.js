@@ -2,15 +2,17 @@ import { System, Zero } from "engine";
 export class SkeletonSystem extends System {
     constructor() {
         super(...arguments);
-        this._states = new Map;
+        this._states = new Set;
     }
-    addAnimation(state, skeleton) {
-        this._states.set(state, skeleton);
+    addAnimation(state) {
+        this._states.add(state);
+    }
+    removeAnimation(state) {
+        this._states.delete(state);
     }
     update(dt) {
-        for (const [state, skeleton] of this._states) {
+        for (const state of this._states) {
             state.update(dt);
-            state.apply(skeleton);
         }
     }
 }

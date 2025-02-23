@@ -1,9 +1,9 @@
 
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
-import { CameraControlPanel, Document, Edge, PositionType, Profiler } from 'flex';
+import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
-import { Joystick } from "./Joystick.js";
-import Vehicle from "./Vehicle.js";
+import { Joystick } from './Joystick.js';
+import Vehicle from './Vehicle.js';
 
 const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
 
@@ -87,19 +87,9 @@ export class App extends Zero {
 
         node = new Node();
         const vehicle = node.addComponent(Vehicle);
+        vehicle.primitive = primitive;
         node.visibility = VisibilityFlagBits.WORLD;
         node.position = [0, 3, 0];
-
-        // const lit_frustum = Node.build(Frustum);
-        // lit_frustum.orthoSize = shadow.orthoSize;
-        // lit_frustum.aspect = shadow.aspect;
-        // lit_frustum.near = shadow.near;
-        // lit_frustum.far = shadow.far;
-        // lit_frustum.color = [1, 1, 0, 1];
-        // const view = vec3.normalize(vec3.create(), light.node.position);
-        // lit_frustum.node.rotation = quat.fromViewUp(quat.create(), view);
-        // lit_frustum.node.position = light.node.position;
-        // lit_frustum.node.visibility = VisibilityFlagBits.DEFAULT;
 
         // UI
         node = new Node;
@@ -110,18 +100,14 @@ export class App extends Zero {
         node.position = vec3.create(0, 0, width / 2);
 
         node = new Node;
-        node.position = vec3.create(-width / 2, height / 2);
+        node.position = vec3.create(-w / scale / 2, h / scale / 2);
         node.visibility = VisibilityFlagBits.UI;
         const doc = node.addComponent(Document);
-        doc.setWidth(width);
-        doc.setHeight(height);
+        doc.setWidth(w / scale);
+        doc.setHeight(h / scale);
 
-        node = new Node;
-        const cameraControlPanel = node.addComponent(CameraControlPanel);
-        cameraControlPanel.setWidth(width);
-        cameraControlPanel.setHeight(height);
-        cameraControlPanel.camera = main_camera;
-        doc.addElement(cameraControlPanel);
+        const cameraControl = doc.node.addComponent(CameraControl);
+        cameraControl.camera = main_camera;
 
         node = new Node;
         const joystick = node.addComponent(Joystick);

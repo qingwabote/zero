@@ -1,4 +1,4 @@
-import { SampleCountFlagBits } from "gfx-common";
+import { SampleCountFlagBits } from "./shared/constants.js";
 export class Framebuffer {
     /** null for default framebuffer */
     get impl() {

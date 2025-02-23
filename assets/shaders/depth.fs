@@ -8,5 +8,5 @@ layout(location = 0) out vec4 fragColor;
 
 void main() {
     float depth = texture(albedoMap, vec2(v_uv.x, 1.0 - v_uv.y)).r;
-    fragColor = vec4(vec3(depth), 1.0); // orthographic
+    fragColor = vec4(vec3(1.0 - depth), 1.0); // orthographic
 }

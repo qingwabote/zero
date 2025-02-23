@@ -1,14 +1,10 @@
 import { bundle } from 'bundling';
-import { Camera, Node, Pipeline, Texture, Zero, device, vec3 } from 'engine';
+import { bundle as builtin, Camera, device, Node, Pipeline, vec3, Zero } from 'engine';
 import { Align, Document, Edge, Justify, PositionType, Profiler, Renderer } from 'flex';
-import * as spine from 'spine';
-const spine_atlas_src = await bundle.raw.once('spineboy/spineboy-pma.atlas', 'text');
-const spine_atlas = new spine.core.TextureAtlas(spine_atlas_src);
-for (const page of spine_atlas.pages) {
-    page.setTexture(new spine.Texture(await bundle.once(`spineboy/${page.name}`, Texture)));
-}
-const spine_data_src = await bundle.raw.once('spineboy/spineboy-pro.json', 'text');
-const pipeline = await (await bundle.cache('pipelines/post', Pipeline)).instantiate();
+import { Atlas, SkeletonAnimation, SkeletonData } from 'spine';
+const atlas = await bundle.once('spineboy/spineboy-pma', Atlas);
+const skel = await bundle.raw.once('spineboy/spineboy-pro.skel', 'buffer');
+const pipeline = await (await builtin.once('pipelines/unlit', Pipeline)).instantiate();
 var VisibilityFlagBits;
 (function (VisibilityFlagBits) {
     VisibilityFlagBits[VisibilityFlagBits["NONE"] = 0] = "NONE";
@@ -38,11 +34,10 @@ export class App extends Zero {
         doc.alignItems = Align.Center;
         doc.setWidth(width);
         doc.setHeight(height);
-        const json = new spine.core.SkeletonJson(new spine.core.AtlasAttachmentLoader(spine_atlas));
-        const skeletonData = json.readSkeletonData(spine_data_src);
-        const skeleton = Renderer.create(spine.Animation);
+        const skeletonData = new SkeletonData(skel, atlas, 0.5);
+        const skeleton = Renderer.create(SkeletonAnimation);
         skeleton.impl.data = skeletonData;
-        skeleton.impl.state.setAnimation(0, 'portal', true);
+        skeleton.impl.state.addAnimationByName(0, 'portal', true, 0);
         doc.addElement(skeleton);
         node = new Node(Profiler.name);
         const profiler = node.addComponent(Profiler);

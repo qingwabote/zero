@@ -1,10 +1,15 @@
-import { EventEmitter, SmartRef } from "bastard";
+import { EventEmitter } from "bastard";
 import { Component, Input, aabb2d, vec2, vec3 } from "engine";
-import { LayoutSystem } from "./LayoutSystem.js";
-import * as yoga from "./yoga/index.js";
+import { yoga } from "yoga";
+import { Direction } from "./enums.js";
 const vec3_a = vec3.create();
-function yg_node_free(node) { node.free(); }
 export class Element extends Component {
+    constructor() {
+        super(...arguments);
+        this._emitter = undefined;
+        this.yg_node = yoga.fn.YGNodeNew_PK();
+        this._bounds = aabb2d.create();
+    }
     get emitter() {
         var _a;
         return (_a = this._emitter) !== null && _a !== void 0 ? _a : (this._emitter = new EventEmitter.Impl);
@@ -13,39 +18,73 @@ export class Element extends Component {
         return this._bounds;
     }
     get positionType() {
-        return this.yg_node.deref().getPositionType();
+        return yoga.fn.YGNodeStyleGetPositionType();
     }
     set positionType(value) {
-        this.yg_node.deref().setPositionType(value);
-    }
-    constructor(node) {
-        super(node);
-        this._emitter = undefined;
-        this.yg_node = new SmartRef(yoga.impl.Node.create(), yg_node_free);
-        this._bounds = aabb2d.create();
-        const dirtiedFunc = () => { LayoutSystem.instance.markDirty(this); };
-        this.yg_node.deref().setDirtiedFunc(dirtiedFunc);
-        dirtiedFunc();
+        yoga.fn.YGNodeStyleSetPositionType(this.yg_node, value);
     }
     setWidth(value) {
-        this.yg_node.deref().setWidth(value);
+        yoga.fn.YGNodeStyleSetWidth(this.yg_node, value);
+    }
+    setWidthPercent(value) {
+        yoga.fn.YGNodeStyleSetWidthPercent(this.yg_node, value);
+    }
+    setWidthAuto() {
+        yoga.fn.YGNodeStyleSetWidthAuto(this.yg_node);
     }
     setHeight(value) {
-        this.yg_node.deref().setHeight(value);
+        yoga.fn.YGNodeStyleSetHeight(this.yg_node, value);
+    }
+    setHeightPercent(value) {
+        yoga.fn.YGNodeStyleSetHeightPercent(this.yg_node, value);
+    }
+    setHeightAuto() {
+        yoga.fn.YGNodeStyleSetHeightAuto(this.yg_node);
     }
     setPosition(edge, value) {
-        this.yg_node.deref().setPosition(edge, value);
+        yoga.fn.YGNodeStyleSetPosition(this.yg_node, edge, value);
+    }
+    setPositionPercent(edge, value) {
+        yoga.fn.YGNodeStyleSetPositionPercent(this.yg_node, edge, value);
+    }
+    setPositionAuto(edge) {
+        yoga.fn.YGNodeStyleSetPositionAuto(this.yg_node, edge);
     }
     setPadding(edge, value) {
-        this.yg_node.deref().setPadding(edge, value);
+        yoga.fn.YGNodeStyleSetPadding(this.yg_node, edge, value);
+    }
+    setPaddingPercent(edge, value) {
+        yoga.fn.YGNodeStyleSetPaddingPercent(this.yg_node, edge, value);
     }
     setGap(gutter, value) {
-        this.yg_node.deref().setGap(gutter, value);
+        yoga.fn.YGNodeStyleSetGap(this.yg_node, gutter, value);
     }
-    layout_update() {
-        const layout = this.yg_node.deref().getComputedLayout();
-        this.node.position = vec2.set(vec3_a, layout.left, -layout.top);
-        vec2.set(this._bounds.halfExtent, layout.width / 2, layout.height / 2);
-        vec2.set(this._bounds.center, layout.width / 2, -layout.height / 2);
+    setGapPercent(gutter, value) {
+        yoga.fn.YGNodeStyleSetGapPercent(this.yg_node, gutter, value);
+    }
+    calculateLayout() {
+        yoga.fn.YGNodeCalculateLayout(this.yg_node, NaN, NaN, Direction.LTR);
+    }
+    applyLayout() {
+        if (!yoga.fn.YGNodeGetHasNewLayout(this.yg_node)) {
+            return;
+        }
+        this.doLayout();
+        for (const child of this.node.children) {
+            const element = child.getComponent(Element);
+            if (element) {
+                element.applyLayout();
+            }
+        }
+        yoga.fn.YGNodeSetHasNewLayout(this.yg_node, false);
+    }
+    doLayout() {
+        const left = yoga.fn.YGNodeLayoutGetLeft(this.yg_node);
+        const top = yoga.fn.YGNodeLayoutGetTop(this.yg_node);
+        const width = yoga.fn.YGNodeLayoutGetWidth(this.yg_node);
+        const height = yoga.fn.YGNodeLayoutGetHeight(this.yg_node);
+        this.node.position = vec2.set(vec3_a, left, -top);
+        vec2.set(this._bounds.halfExtent, width / 2, height / 2);
+        vec2.set(this._bounds.center, width / 2, -height / 2);
     }
 }

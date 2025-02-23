@@ -1,4 +1,4 @@
-import { Format } from "gfx-common";
+import { Format } from "../shared/constants.js";
 const gl = WebGL2RenderingContext;
 export const Formats = {
     [Format.UNDEFINED]: {

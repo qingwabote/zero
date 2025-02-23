@@ -40,6 +40,35 @@ const phaseFactory = (function () {
         },
     };
 })();
+function createTexture(texture, samples) {
+    var _a, _b;
+    let usage = gfx.TextureUsageFlagBits.NONE;
+    for (const u of texture.usage) {
+        usage |= gfx.TextureUsageFlagBits[u];
+    }
+    let format = gfx.Format.UNDEFINED;
+    if (usage & gfx.TextureUsageFlagBits.COLOR) {
+        // The Vulkan spec states: 
+        // If externalFormatResolve is not enabled, each element of pResolveAttachments must have the same VkFormat as its corresponding color attachment
+        // (https://vulkan.lunarg.com/doc/view/1.3.290.0/windows/1.3-extensions/vkspec.html#VUID-VkSubpassDescription2-externalFormatResolve-09339)
+        format = device.swapchain.color.info.format;
+    }
+    else if (usage & gfx.TextureUsageFlagBits.DEPTH_STENCIL) {
+        format = gfx.Format.D32_SFLOAT;
+    }
+    else {
+        throw new Error(`unsupported texture usage: ${usage}`);
+    }
+    const info = new gfx.TextureInfo;
+    info.usage = usage;
+    info.format = format;
+    if (samples) {
+        info.samples = samples;
+    }
+    info.width = ((_a = texture.extent) === null || _a === void 0 ? void 0 : _a[0]) || device.swapchain.color.info.width;
+    info.height = ((_b = texture.extent) === null || _b === void 0 ? void 0 : _b[1]) || device.swapchain.color.info.height;
+    return device.createTexture(info);
+}
 const uboFactory = {
     Camera: function (data, visibilities, info) {
         return new pipeline.CameraUBO(data, visibilities);
@@ -57,21 +86,15 @@ const uboFactory = {
     }
 };
 export class Pipeline extends Yml {
-    constructor() {
-        super(...arguments);
-        this._textures = {};
-    }
-    get textures() {
-        return this._textures;
-    }
     async onParse(res) {
         this._info = res;
     }
     async instantiate(variables) {
         var _a, _b, _c;
+        const textures = {};
         if (this._info.textures) {
             for (const texture of this._info.textures) {
-                this._textures[texture.name] = this.createTexture(texture);
+                textures[texture.name] = createTexture(texture);
             }
         }
         const data = new Data;
@@ -141,7 +164,7 @@ export class Pipeline extends Yml {
                     }
                     else if ('texture' in binding) {
                         const filter = binding.filter ? gfx.Filter[binding.filter] : gfx.Filter.NEAREST;
-                        context.descriptorSet.bindTexture(binding.binding, this._textures[binding.texture], getSampler(filter, filter));
+                        context.descriptorSet.bindTexture(binding.binding, textures[binding.texture], getSampler(filter, filter));
                     }
                 }
             }
@@ -174,7 +197,7 @@ export class Pipeline extends Yml {
                         const framebufferInfo = new gfx.FramebufferInfo;
                         if (stage.framebuffer.colors) {
                             for (const texture of stage.framebuffer.colors) {
-                                framebufferInfo.colors.add(this.createTexture(texture, stage.framebuffer.samples));
+                                framebufferInfo.colors.add(typeof texture == 'string' ? textures[texture] : createTexture(texture, stage.framebuffer.samples));
                             }
                         }
                         if (stage.framebuffer.resolves) {
@@ -188,7 +211,7 @@ export class Pipeline extends Yml {
                             }
                         }
                         if (stage.framebuffer.depthStencil) {
-                            framebufferInfo.depthStencil = this.createTexture(stage.framebuffer.depthStencil, stage.framebuffer.samples);
+                            framebufferInfo.depthStencil = typeof stage.framebuffer.depthStencil == 'string' ? textures[stage.framebuffer.depthStencil] : createTexture(stage.framebuffer.depthStencil, stage.framebuffer.samples);
                         }
                         let width;
                         let height;
@@ -213,7 +236,7 @@ export class Pipeline extends Yml {
                 flows.push(new pipeline.Flow(context, ubos, stages, this.flow_visibilities(flow, variables), flowLoopIndex));
             }
         }
-        return new render.Pipeline(data, [...uboMap.values()], flows);
+        return new render.Pipeline(data, textures, [...uboMap.values()], flows);
     }
     flow_visibilities(flow, variables) {
         let res = 0;
@@ -231,37 +254,5 @@ export class Pipeline extends Yml {
     }
     phase_visibilitiy(phase, variables) {
         return phase.visibility ? Number(this.resolveVar(phase.visibility, variables)) : 0xffffffff;
-    }
-    createTexture(texture, samples) {
-        var _a, _b;
-        if (typeof texture == 'string') {
-            return this._textures[texture];
-        }
-        let usage = gfx.TextureUsageFlagBits.NONE;
-        for (const u of texture.usage) {
-            usage |= gfx.TextureUsageFlagBits[u];
-        }
-        let format = gfx.Format.UNDEFINED;
-        if (usage & gfx.TextureUsageFlagBits.COLOR) {
-            // The Vulkan spec states: 
-            // If externalFormatResolve is not enabled, each element of pResolveAttachments must have the same VkFormat as its corresponding color attachment
-            // (https://vulkan.lunarg.com/doc/view/1.3.290.0/windows/1.3-extensions/vkspec.html#VUID-VkSubpassDescription2-externalFormatResolve-09339)
-            format = device.swapchain.color.info.format;
-        }
-        else if (usage & gfx.TextureUsageFlagBits.DEPTH_STENCIL) {
-            format = gfx.Format.D32_SFLOAT;
-        }
-        else {
-            throw new Error(`unsupported texture usage: ${usage}`);
-        }
-        const info = new gfx.TextureInfo;
-        info.usage = usage;
-        info.format = format;
-        if (samples) {
-            info.samples = samples;
-        }
-        info.width = ((_a = texture.extent) === null || _a === void 0 ? void 0 : _a[0]) || device.swapchain.color.info.width;
-        info.height = ((_b = texture.extent) === null || _b === void 0 ? void 0 : _b[1]) || device.swapchain.color.info.height;
-        return device.createTexture(info);
     }
 }

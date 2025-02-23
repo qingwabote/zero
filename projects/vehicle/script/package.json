@@ -1,8 +1,9 @@
 {
-  "name": "main",
   "dependencies": {
+    "bundling": "file:../../../script/bundling",
     "engine": "file:../../../script/engine",
     "flex": "file:../../../script/flex",
-    "physics": "file:../../../script/physics"
+    "physics": "file:../../../script/physics",
+    "phys": "file:../../../script/phys/declare"
   }
 }

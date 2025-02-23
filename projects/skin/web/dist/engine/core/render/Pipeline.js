@@ -1,6 +1,7 @@
 export class Pipeline {
-    constructor(data, ubos, flows) {
+    constructor(data, textures, ubos, flows) {
         this.data = data;
+        this.textures = textures;
         this.ubos = ubos;
         this.flows = flows;
         this._dumping = false;
@@ -18,15 +19,17 @@ export class Pipeline {
             }
         }
     }
-    render(context) {
+    upload(context) {
         for (const ubo of this.ubos) {
             ubo.upload(context, this._dumping);
         }
+        this._dumping = false;
+    }
+    render(context) {
         for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
                 flow.render(context, i);
             }
         }
-        this._dumping = false;
     }
 }

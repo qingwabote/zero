@@ -446,3 +446,4 @@ class Instance {
         return materials;
     }
 }
+GLTF.Instance = Instance;

@@ -1,0 +1,6 @@
+{
+  "name": "phys",
+  "dependencies": {
+    "phys": "file:../declare"
+  }
+}

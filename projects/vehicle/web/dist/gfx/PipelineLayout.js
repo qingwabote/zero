@@ -1,4 +1,4 @@
-import { DescriptorType } from "gfx-common";
+import { DescriptorType } from "./shared/constants.js";
 export class PipelineLayout {
     constructor(info) {
         this.info = info;

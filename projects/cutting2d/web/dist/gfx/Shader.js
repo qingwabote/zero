@@ -1,4 +1,5 @@
-import { ShaderStageFlagBits, glsl } from "gfx-common";
+import { ShaderStageFlagBits } from "./shared/constants.js";
+import { glsl } from "./shared/glsl.js";
 export class Shader {
     get impl() {
         return this._impl;

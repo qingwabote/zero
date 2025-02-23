@@ -1,22 +1,14 @@
 import { System, Zero } from 'engine';
-import { World, impl } from 'phys';
+import { phys } from 'phys';
 
 export class PhysicsSystem extends System {
 
     static readonly instance = new PhysicsSystem();
 
-    private _world?: World = undefined
-    get world(): World {
-        if (!this._world) {
-            this._world = new World;
-        }
-        return this._world;
-    }
-
-    readonly impl = impl;
+    readonly pointer = phys.fn.physWorld_new();
 
     override update(dt: number): void {
-        this._world?.update(dt);
+        phys.fn.physWorld_stepSimulation(this.pointer, dt, 1, 1 / 60);
     }
 }
 Zero.registerSystem(PhysicsSystem.instance, 1)

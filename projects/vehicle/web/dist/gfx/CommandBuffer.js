@@ -1,5 +1,5 @@
-import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP, PrimitiveTopology } from "gfx-common";
 import { Formats } from "./internal/mapping.js";
+import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP, PrimitiveTopology } from "./shared/constants.js";
 function bendFactor2WebGL(gl, factor) {
     switch (factor) {
         case BlendFactor.ZERO: return gl.ZERO;

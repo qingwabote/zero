@@ -76,7 +76,7 @@ foreach(name IN LISTS glslang_libs)
     )
 endforeach()
 
-add_subdirectory(../../main ${CMAKE_CURRENT_BINARY_DIR}/main)
+add_subdirectory(../../main main)
 target_link_libraries(zero PRIVATE zero::main)
 
 add_subdirectory(../gfx/vulkan gfx)
