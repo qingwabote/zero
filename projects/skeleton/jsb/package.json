@@ -8,7 +8,7 @@
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
         "puttyknife": "tsc -p ../../../puttyknife/wasm --outDir dist/puttyknife --watch",
         "yoga": "tsc -p ../../../script/yoga/jsb --outDir dist/yoga --watch",
-        "flex": "tsc -p ../../../script/flex2 --outDir dist/flex --watch",
+        "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
         "spi": "tsc -p ../../../script/spi/jsb --outDir dist/spi --watch",
         "spine": "tsc -p ../../../script/spine --outDir dist/spine --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",
