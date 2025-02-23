@@ -163,8 +163,8 @@ export class App extends Zero {
         {
             const controlPanel = Node.build(CameraControlPanel);
             controlPanel.camera = up_camera;
-            controlPanel.setWidth('100%');
-            controlPanel.setHeight('100%');
+            controlPanel.setWidthPercent(100);
+            controlPanel.setHeightPercent(100);
             up_container.addElement(controlPanel);
         }
         doc.addElement(up_container)
@@ -176,8 +176,8 @@ export class App extends Zero {
             const controlPanel = Node.build(CameraControlPanel);
             controlPanel.camera = down_camera;
             controlPanel.positionType = PositionType.Absolute;
-            controlPanel.setWidth('100%');
-            controlPanel.setHeight('100%');
+            controlPanel.setWidthPercent(100);
+            controlPanel.setHeightPercent(100);
             down_container.addElement(controlPanel);
 
             {
@@ -186,6 +186,7 @@ export class App extends Zero {
                 textRenderer.impl.color = vec4.GREEN;
                 textRenderer.impl.size = text_size;
                 textRenderer.positionType = PositionType.Absolute;
+                textRenderer.setPosition(Edge.Left, 0);
                 textRenderer.emitter.on(Input.TouchEvents.START, async event => {
                     if (textRenderer.impl.text == 'CSM OFF') {
                         textRenderer.impl.text = 'CSM ON';

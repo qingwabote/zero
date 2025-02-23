@@ -1,5 +1,5 @@
 import { Component, Node, Vec3, vec3 } from 'engine';
-import * as phys from 'phys';
+import { phys } from 'phys';
 import { RigidBody } from './RigidBody.js';
 
 enum DirtyFlagBits {
@@ -9,8 +9,8 @@ enum DirtyFlagBits {
     ALL = 0xffffffff
 }
 
-const phys_vec3_a = new phys.Vec3;
-const phys_transform_a = new phys.Transform;
+const physV3_a = phys.fn.physVector3_new();
+const physT_a = phys.fn.physTransform_new();
 
 export class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;
@@ -35,7 +35,7 @@ export class BoxShape extends Component {
 
     readonly body: RigidBody;
 
-    private _impl: phys.BoxShape;
+    readonly pointer = phys.fn.physBoxShape_new();
 
     constructor(node: Node) {
         super(node);
@@ -45,8 +45,7 @@ export class BoxShape extends Component {
             body = this.node.addComponent(RigidBody);
         }
 
-        this._impl = new phys.BoxShape;
-        body.impl.addShape(this._impl);
+        phys.fn.physRigidBody_addShape(body.pointer, this.pointer);
 
         this.body = body;
     }
@@ -58,16 +57,16 @@ export class BoxShape extends Component {
 
         if (this._dirtyFlags & DirtyFlagBits.SCALE) {
             const scale = vec3.multiply(vec3.create(), this._size, this.node.world_scale);
-            phys_vec3_a.set(...scale);
-            this._impl.scale = phys_vec3_a;
+            phys.fn.physVector3_set(physV3_a, ...scale)
+            phys.fn.physCollisionShape_setScale(this.pointer, physV3_a);
         }
 
         if (this._dirtyFlags & DirtyFlagBits.ORIGIN) {
-            phys_vec3_a.set(...this._origin);
-            phys_transform_a.identity();
-            phys_transform_a.position = phys_vec3_a;
+            phys.fn.physVector3_set(physV3_a, ...this._origin)
+            phys.fn.physTransform_identity(physT_a);
+            phys.fn.physTransform_setPosition(physT_a, physV3_a)
             const body = this.node.getComponent(RigidBody)!;
-            body.impl.updateShapeTransform(this._impl, phys_transform_a);
+            phys.fn.physRigidBody_updateShapeTransform(body.pointer, this.pointer, physT_a);
         }
 
         this._dirtyFlags = DirtyFlagBits.NONE;

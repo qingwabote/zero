@@ -1,5 +1,6 @@
 import { TouchEvent } from "boot";
 import { BoundedRenderer, Input, Node, Vec2, Zero, aabb2d, mat4, scene, vec2 } from "engine";
+import { yoga } from "yoga";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -25,7 +26,7 @@ export class Document extends ElementContainer {
         Zero.instance.input.on(Input.TouchEvents.MOVE, event => this.eventHandler(event, Input.TouchEvents.MOVE));
         Zero.instance.input.on(Input.GestureEvents.PINCH, event => this.eventHandler(event, Input.GestureEvents.PINCH));
 
-        LayoutSystem.instance.addRoot(this.yg_node);
+        LayoutSystem.instance.addDocument(this);
     }
 
     override lateUpdate(): void {
@@ -107,9 +108,10 @@ export class Document extends ElementContainer {
         return false;
     }
 
-    override layout_update(): void {
-        const layout = this.yg_node.deref().getComputedLayout();
-        vec2.set(this._bounds.halfExtent, layout.width / 2, layout.height / 2);
-        vec2.set(this._bounds.center, layout.width / 2, -layout.height / 2);
+    override doLayout(): void {
+        const width = yoga.fn.YGNodeLayoutGetWidth(this.yg_node);
+        const height = yoga.fn.YGNodeLayoutGetHeight(this.yg_node);
+        vec2.set(this._bounds.halfExtent, width / 2, height / 2);
+        vec2.set(this._bounds.center, width / 2, -height / 2);
     }
 }

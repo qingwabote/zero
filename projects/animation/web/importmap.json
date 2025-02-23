@@ -1,7 +1,6 @@
 {
     "imports": {
         "yaml": "./dist/yaml.js",
-        "gfx-common": "./dist/gfx-common/index.js",
         "gfx": "./dist/gfx/index.js",
         "boot": "./dist/boot/index.js",
         "assets": "./dist/assets/index.js",

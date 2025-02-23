@@ -3,7 +3,8 @@
   "dependencies": {
     "bastard": "file:../bastard",
     "boot": "file:../boot/declare",
+    "bundling": "file:../bundling",
     "engine": "file:../engine",
-    "bundling": "file:../bundling"
+    "yoga": "file:../yoga/declare"
   }
 }

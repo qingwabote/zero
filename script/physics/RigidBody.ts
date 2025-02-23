@@ -1,62 +1,64 @@
 import { Component, Node, quat, vec3 } from 'engine';
-import * as phys from 'phys';
+import { phys } from 'phys';
 import { PhysicsSystem } from "./PhysicsSystem.js";
 
-const phys_transform_a = new phys.Transform();
-const phys_vec3_a = new phys.Vec3();
-const phys_quat_a = new phys.Quat();
+const physV3_a = phys.fn.physVector3_new();
+const physQ_a = phys.fn.physQuat_new();
+const physT_a = phys.fn.physTransform_new();
+
+const v3_a = vec3.create();
+const q_a = quat.create();
 
 export class RigidBody extends Component {
-    readonly impl: phys.RigidBody;
+    readonly pointer = phys.fn.physRigidBody_new();
 
+    private _mass: number = 0;
     public get mass(): number {
-        return this.impl.mass;
+        return this._mass;
     }
     public set mass(value: number) {
-        this.impl.mass = value;
+        const shape = phys.fn.physRigidBody_getCollisionShape(this.pointer);
+        phys.fn.physCollisionShape_calculateLocalInertia(shape, value, physV3_a);
+        phys.fn.physRigidBody_setMassProps(this.pointer, value, physV3_a);
+        this._mass = value;
     }
 
     constructor(node: Node) {
         super(node);
 
-        const motionState = new phys.MotionState();
-        motionState.getWorldTransform = () => {
-            // const bt_transform = ammo.wrapPointer(ptr_bt_transform, ammo.btTransform);
-            // ps.bt_vec3_a.setValue(...node.world_position);
-            // bt_transform.setOrigin(ps.bt_vec3_a);
-
-            // ps.bt_quat_a.setValue(...node.world_rotation);
-            // bt_transform.setRotation(ps.bt_quat_a);
-        }
-        motionState.setWorldTransform = () => {
-            // const bt_transform = ammo.wrapPointer(ptr_bt_transform, ammo.btTransform);
-            // https://github.com/bulletphysics/bullet3/issues/1104#issuecomment-300428776
-            const bt_transform = this.impl.worldTransform;
-            const origin = bt_transform.position;
-            node.world_position = vec3.create(origin.x, origin.y, origin.z);
-            const rotation = bt_transform.rotation
-            node.world_rotation = quat.create(rotation.x, rotation.y, rotation.z, rotation.w);
-        }
-
-        this.impl = new phys.RigidBody(motionState)
-
-        PhysicsSystem.instance.world.addRigidBody(this.impl);
+        phys.fn.physWorld_addRigidBody(PhysicsSystem.instance.pointer, this.pointer)
 
         // set after addRigidBody
-        this.impl.mass = 0;
+        this.mass = 0;
     }
 
     override update(): void {
         if (this.node.hasChangedFlag.value) {
-            phys_transform_a.identity()
+            phys.fn.physTransform_identity(physT_a);
 
-            phys_vec3_a.set(...this.node.world_position);
-            phys_transform_a.position = phys_vec3_a;
+            phys.fn.physVector3_set(physV3_a, ...this.node.world_position)
+            phys.fn.physTransform_setPosition(physT_a, physV3_a)
 
-            phys_quat_a.set(...this.node.world_rotation);
-            phys_transform_a.rotation = phys_quat_a;
+            phys.fn.physQuat_set(physQ_a, ...this.node.world_rotation);
+            phys.fn.physTransform_setRotation(physT_a, physQ_a)
 
-            this.impl.worldTransform = phys_transform_a;
+            phys.fn.physRigidBody_setWorldTransform(this.pointer, physT_a);
         }
+    }
+
+    override lateUpdate(): void {
+        if (!this._mass) {
+            return;
+        }
+
+        const transform = phys.fn.physRigidBody_getWorldTransform(this.pointer);
+
+        const position = phys.fn.physTransform_getPosition(transform);
+        vec3.set(v3_a, phys.fn.physVector3_getX(position), phys.fn.physVector3_getY(position), phys.fn.physVector3_getZ(position));
+        this.node.world_position = v3_a;
+
+        const rotation = phys.fn.physTransform_getRotation(transform);
+        quat.set(q_a, phys.fn.physQuat_getX(rotation), phys.fn.physQuat_getY(rotation), phys.fn.physQuat_getZ(rotation), phys.fn.physQuat_getW(rotation));
+        this.node.world_rotation = q_a;
     }
 }

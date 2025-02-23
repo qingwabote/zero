@@ -9,14 +9,11 @@
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
         "puttyknife": "tsc -p ../../../puttyknife/wasm --outDir dist/puttyknife --watch",
         "yoga": "tsc -p ../../../script/yoga/wasm --outDir dist/yoga --watch",
-        "flex": "tsc -p ../../../script/flex2 --outDir dist/flex --watch",
+        "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",
-        "phys": "tsc -p ../../../script/phys/ammo --outDir dist/phys --watch",
-        "phys:ins": "cd ../../../script/phys/ammo && npm ins",
+        "phys": "tsc -p ../../../script/phys/wasm --outDir dist/phys --watch",
         "physics": "tsc -p ../../../script/physics --outDir dist/physics --watch",
-        "physics:ins": "cd ../../../script/physics && npm ins",
         "server": "http-server ../../../ -p 8003 -o projects/vehicle/web/index.html -c-1",
-        "dev": "concurrently \"npm run bastard\" \"npm run boot\" \"npm run gfx-common\" \"npm run gfx\" \"npm run assets\" \"npm run engine\" \"npm run puttyknife\" \"npm run yoga\" \"npm run flex\" \"npm run script\" \"npm run phys\" \"npm run physics\" \"npm run server\"",
-        "ins": "npm run phys:ins && npm run physics:ins"
+        "dev": "concurrently \"npm run bastard\" \"npm run boot\" \"npm run gfx\" \"npm run assets\" \"npm run engine\" \"npm run puttyknife\" \"npm run yoga\" \"npm run flex\" \"npm run script\" \"npm run phys\" \"npm run physics\" \"npm run server\""
     }
 }

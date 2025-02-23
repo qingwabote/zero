@@ -2,8 +2,8 @@
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape } from 'physics';
-import { Joystick } from "./Joystick.js";
-import Vehicle from "./Vehicle.js";
+import { Joystick } from './Joystick.js';
+import Vehicle from './Vehicle.js';
 
 const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
 
@@ -90,17 +90,6 @@ export class App extends Zero {
         vehicle.primitive = primitive;
         node.visibility = VisibilityFlagBits.WORLD;
         node.position = [0, 3, 0];
-
-        // const lit_frustum = Node.build(Frustum);
-        // lit_frustum.orthoSize = shadow.orthoSize;
-        // lit_frustum.aspect = shadow.aspect;
-        // lit_frustum.near = shadow.near;
-        // lit_frustum.far = shadow.far;
-        // lit_frustum.color = [1, 1, 0, 1];
-        // const view = vec3.normalize(vec3.create(), light.node.position);
-        // lit_frustum.node.rotation = quat.fromViewUp(quat.create(), view);
-        // lit_frustum.node.position = light.node.position;
-        // lit_frustum.node.visibility = VisibilityFlagBits.DEFAULT;
 
         // UI
         node = new Node;

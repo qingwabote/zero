@@ -1,6 +1,5 @@
-export * as core from '@esotericsoftware/spine-core';
-export * from './Animation.js';
-export * from './Skeleton.js';
-export * from './Texture.js';
-
+export * from './Atlas.js';
+export * from './SkeletonAnimation.js';
+export * from './SkeletonData.js';
+export * from './SkeletonRenderer.js';
 

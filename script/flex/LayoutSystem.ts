@@ -1,32 +1,24 @@
-import { SmartRef } from 'bastard';
 import { System, Zero } from 'engine';
-import { Element } from './Element.js';
-import * as yoga from "./yoga/index.js";
+import { Document } from './Document.js';
 
 export class LayoutSystem extends System {
 
     static readonly instance = new LayoutSystem();
 
-    private _roots: SmartRef<yoga.Node>[] = [];
+    private _documents: Set<Document> = new Set;
 
-    private _dirties: Set<Element> = new Set;
-
-    addRoot(node: SmartRef<yoga.Node>) {
-        this._roots.push(node);
-    }
-
-    markDirty(element: Element) {
-        this._dirties.add(element)
+    addDocument(doc: Document) {
+        this._documents.add(doc)
     }
 
     override lateUpdate(dt: number): void {
-        for (const node of this._roots) {
-            node.deref().calculateLayout('auto', 'auto', yoga.Direction.LTR);
+        for (const doc of this._documents) {
+            doc.calculateLayout()
         }
-        for (const dirty of this._dirties) {
-            dirty.layout_update();
+
+        for (const doc of this._documents) {
+            doc.applyLayout();
         }
-        this._dirties.clear();
     }
 }
 

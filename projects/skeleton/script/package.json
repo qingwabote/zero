@@ -1,5 +1,4 @@
 {
-  "name": "main",
   "dependencies": {
     "bundling": "file:../../../script/bundling",
     "engine": "file:../../../script/engine",

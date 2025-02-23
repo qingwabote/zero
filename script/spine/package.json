@@ -1,8 +1,11 @@
 {
     "name": "spine",
     "dependencies": {
-        "@esotericsoftware/spine-core": "^4.2.70",
+        "assets": "file:../assets",
+        "boot": "file:../boot/declare",
+        "bundling": "file:../bundling",
         "engine": "file:../engine",
-        "gfx": "file:../gfx/declare"
+        "gfx": "file:../gfx/declare",
+        "spi": "file:../spi/declare"
     }
 }

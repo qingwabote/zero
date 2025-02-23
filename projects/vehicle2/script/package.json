@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "bundling": "file:../../../script/bundling",
-    "engine": "file:../../../script/engine",
-    "flex": "file:../../../script/flex2",
-    "physics": "file:../../../script/physics2",
-    "phys": "file:../../../script/phys2/declare"
-  }
-}
