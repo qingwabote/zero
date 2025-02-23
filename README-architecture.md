@@ -1,5 +1,5 @@
 ```plantuml
-skinparam handwritten true
+!option handwritten true
 
 rectangle logic {
     rectangle Node

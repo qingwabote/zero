@@ -4,7 +4,7 @@
 - [Cascaded Shadow Mapping](https://qingwabote.github.io/zero/projects/shadow/web/index.html)
 - [Skinning & Instancing & baking](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 - [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
-- [Spine](https://qingwabote.github.io/zero/projects/skeleton2/web/index.html)
+- [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
 - [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
@@ -29,8 +29,8 @@
 - 动画混合（一维）
 - 蒙皮动画（烘焙）
 - 场景剔除（八叉树）
-- 骨骼动画（spine-c wasm）
-- 物理引擎（ammo）
+- 骨骼动画（spine）
+- 物理引擎（bullet）
 - MSAA & FXAA
 - GPU Instancing
 
@@ -55,7 +55,7 @@
 
 # 架构
 
-![](https://www.plantuml.com/plantuml/svg/RP5DJWCn34RtEKKkC1iEq0MLO5D-90Gi40ipSHEhYHF56RKZrBkZcRPgvM7fftn-TYmxuW8LaWt0Rb-fDMJRwe36LEmRi8zeO_RKsrzZhRLN-fmTAhJEgMH6RkPucvTH6gP50s1Aq2YpubA8TUSIHg5U58qmva792XMCnBZGlT-_AF8GyrwXjmPUkry32AgDUlp7i8Q45HJSa0zDiQViC6eBY9YZEVNelW8vX_ozEiLlr7vxM8W_yUTnSwVWnn1tmDFSy_qwrwtciStbXxfw8USNKpsVofYPJn6_FLm3v_eF)
+![](https://www.plantuml.com/plantuml/svg/RP71JiCm38RlUOhm0Btm03im2IxRG4B00N4mZPTOf7QKfDggQUy-jTkqoUNeJ_dzsV63f4h2DW2xNQPQaMtDFHgJiQt0FgADugcr1sEjjJUw4OSABQLBmiZL7E_pPIWLkra3OEfWb2jU4h7kdC9Gg2sAHXYaLx942ICnpdGVJw-AF4VPAVHUmMltMu22QgCM_p4ieSCC2gx8XwhOMXn6RO5IpD6SUpJVWPn3_bcSutTglztFn5_u-x9wLF2pZt_0uzpJ_HhNBAQnpVM7cdmbbnTZFPtAc8cF4R_TtmAN-WG0)
 
 # 兼容性
 
