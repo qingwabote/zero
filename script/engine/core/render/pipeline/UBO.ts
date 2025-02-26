@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { Buffer, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Buffer, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Context } from "../Context.js";
 import { Data } from "./Data.js";
 
@@ -31,5 +31,5 @@ export abstract class UBO {
         protected readonly _visibilities: number
     ) { }
 
-    abstract upload(context: Context, dumping: boolean): void;
+    abstract upload(context: Context, commandBuffer: CommandBuffer, dumping: boolean): void;
 }

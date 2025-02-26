@@ -68,14 +68,12 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
 
     private readonly _systems: readonly System[];
 
-    public readonly commandBuffer = boot.device.createCommandBuffer();
+    private readonly _commandBuffer = boot.device.createCommandBuffer();
     private readonly _swapchainUsable = boot.device.createSemaphore();
     private readonly _queueExecuted = boot.device.createSemaphore();
     private readonly _fence = boot.device.createFence(true);
 
     private _time = boot.initial;
-
-    public profile = new Profile;
 
     public get pipeline(): Pipeline {
         return this._pipeline;
@@ -85,7 +83,8 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._pipeline.dump();
     }
 
-    readonly scene: Scene;
+    public readonly scene: Scene;
+    public readonly profile = new Profile;
 
     constructor(private _pipeline: Pipeline, models: ModelCollection = new ModelArray) {
         super();
@@ -174,21 +173,22 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         boot.device.swapchain.acquire(this._swapchainUsable);
         this.emit(Event.DEVICE_SYNC);
 
-        this.commandBuffer.begin();
-        this._pipeline.batch(this);
+        const cmd = this._commandBuffer;
+        cmd.begin();
+        this._pipeline.batch(this, cmd);
         this.emit(Event.PIPELINE_BATCH);
 
-        this._componentScheduler.upload(this.commandBuffer);
-        quad.indexBufferView.update(this.commandBuffer);
-        this._pipeline.upload(this);
+        this._componentScheduler.upload(cmd);
+        quad.indexBufferView.update(cmd);
+        this._pipeline.upload(this, cmd);
         this.emit(Event.UPLOAD);
 
-        this._pipeline.render(this);
-        this.commandBuffer.end();
+        this._pipeline.render(this, cmd);
+        cmd.end();
         this.emit(Event.RENDER);
 
         const submitInfo = new SubmitInfo;
-        submitInfo.commandBuffer = this.commandBuffer;
+        submitInfo.commandBuffer = cmd;
         submitInfo.waitSemaphore = this._swapchainUsable;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
         submitInfo.signalSemaphore = this._queueExecuted;
