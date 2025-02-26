@@ -28,7 +28,7 @@ namespace gfx
         return false;
     }
 
-    void BufferImpl::update(const void *src, size_t src_size, size_t dst_offset)
+    void BufferImpl::upload(const void *src, size_t src_size, size_t dst_offset)
     {
         memcpy(reinterpret_cast<uint8_t *>(_allocationInfo.pMappedData) + dst_offset, src, src_size);
     }
@@ -52,9 +52,9 @@ namespace gfx
 
     bool Buffer::initialize() { return impl->initialize(); }
 
-    void Buffer::update(const std::shared_ptr<const Span> &src, size_t src_offset, size_t src_length, size_t dst_offset)
+    void Buffer::upload(const std::shared_ptr<const Span> &src, size_t src_offset, size_t src_length, size_t dst_offset)
     {
-        impl->update(reinterpret_cast<uint8_t *>(src->data) + src->stride * src_offset,
+        impl->upload(reinterpret_cast<uint8_t *>(src->data) + src->stride * src_offset,
                      src->stride * (src_length == 0 ? src->size : src_length),
                      dst_offset);
     }

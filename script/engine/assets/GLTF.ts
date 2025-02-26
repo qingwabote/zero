@@ -171,7 +171,7 @@ export class GLTF implements Asset {
                 info.usage = usage;
                 info.size = viewInfo.byteLength;
                 const buffer = device.createBuffer(info);
-                buffer.update(binView, viewInfo.byteOffset || 0, viewInfo.byteLength, 0);
+                buffer.upload(binView, viewInfo.byteOffset || 0, viewInfo.byteLength, 0);
 
                 return buffers[index] = buffer;
             }

@@ -156,12 +156,12 @@ export class SkeletonRenderer extends BoundedRenderer {
         const verticesPtr = spi.fn.spiModel_getVertices(this._spiModel);
         const vertices = spi.heap.getBuffer(verticesPtr, 'f32', verticesSize);
         this._vertexBuffer.resize(vertices.byteLength);
-        this._vertexBuffer.update(vertices, 0, 0, 0);
+        this._vertexBuffer.upload(vertices, 0, 0, 0);
 
         const indicesSize = spi.fn.spiModel_getIndicesSize(this._spiModel);
         const indicesPtr = spi.fn.spiModel_getIndices(this._spiModel);
         const indices = spi.heap.getBuffer(indicesPtr, 'u16', indicesSize)
         this._indexBuffer.resize(indices.byteLength);
-        this._indexBuffer.update(indices, 0, 0, 0);
+        this._indexBuffer.upload(indices, 0, 0, 0);
     }
 }
