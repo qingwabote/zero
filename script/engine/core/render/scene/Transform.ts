@@ -1,5 +1,4 @@
 import { TRS } from "../../math/TRS.js";
-import { mat3 } from "../../math/mat3.js";
 import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
@@ -7,33 +6,12 @@ import { vec4 } from "../../math/vec4.js";
 import { Periodic } from "./Periodic.js";
 
 const vec3_a = vec3.create();
-const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
 
 const dirtyTransforms: Transform[] = [];
 
 export class Transform implements TRS {
-    private _explicit_visibility?: number = undefined;
-    private _implicit_visibility: number | undefined = undefined;
-    public get visibility(): number {
-        return this._explicit_visibility ?? this._implicit_visibility ?? (this._implicit_visibility = this._parent?.visibility) ?? 0;
-    }
-    public set visibility(value) {
-        const stack = [...this.children];
-        let child;
-        while (child = stack.pop()) {
-            if (child._explicit_visibility != undefined) {
-                continue;
-            }
-            child._implicit_visibility = value;
-            stack.push(...child.children);
-        }
-        this._explicit_visibility = value;
-    }
-
-    private _local_invalidated = false;
-
     private _position = vec3.create();
     get position(): Readonly<Vec3> {
         return this._position;
@@ -73,9 +51,11 @@ export class Transform implements TRS {
         this.invalidate();
     }
 
+    private _invalidated = false;
+
     private _matrix = mat4.create();
     public get matrix(): Readonly<Mat4> {
-        this.local_update();
+        this.update();
         return this._matrix;
     }
     public set matrix(value: Readonly<Mat4Like>) {
@@ -97,8 +77,8 @@ export class Transform implements TRS {
         }
 
         mat4.invert(mat4_a, this._parent.world_matrix);
-        vec3.transformMat4(vec3_a, value, mat4_a);
-        this.position = vec3_a;
+        vec3.transformMat4(this._position, value, mat4_a);
+        this.invalidate();
     }
 
     private _world_rotation = quat.create()
@@ -143,10 +123,28 @@ export class Transform implements TRS {
         return this._hasChangedFlag;
     }
 
+    private _vis_exp?: number = undefined;
+    private _vis_imp: number | undefined = undefined;
+    public get visibility(): number {
+        return this._vis_exp ?? this._vis_imp ?? (this._vis_imp = this._parent?.visibility) ?? 0;
+    }
+    public set visibility(value) {
+        const stack = [...this.children];
+        let child;
+        while (child = stack.pop()) {
+            if (child._vis_exp != undefined) {
+                continue;
+            }
+            child._vis_imp = value;
+            stack.push(...child.children);
+        }
+        this._vis_exp = value;
+    }
+
     constructor(public readonly name: string = '') { }
 
     addChild(child: this): void {
-        child._implicit_visibility = undefined;
+        child._vis_imp = undefined;
         child._parent = this;
         child.invalidate();
 
@@ -192,15 +190,13 @@ export class Transform implements TRS {
             }
         }
 
-        this._local_invalidated = true;
+        this._invalidated = true;
     }
 
-    private local_update(): void {
-        if (!this._local_invalidated) return;
-
+    private update(): void {
+        if (!this._invalidated) return;
         mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
-
-        this._local_invalidated = false;
+        this._invalidated = false;
     }
 
     private world_update(): void {
@@ -220,14 +216,7 @@ export class Transform implements TRS {
             if (cur) {
                 mat4.multiply(child._world_matrix, cur._world_matrix, child.matrix);
 
-                vec3.transformMat4(child._world_position, vec3.ZERO, child._world_matrix);
-
-                quat.multiply(child._world_rotation, cur._world_rotation, child._rotation);
-
-                quat.conjugate(quat_a, child._world_rotation);
-                mat3.fromQuat(mat3_a, quat_a);
-                mat3.multiplyMat4(mat3_a, mat3_a, child._world_matrix);
-                vec3.set(child._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
+                mat4.toTRS(child._world_matrix, child._world_position, child._world_rotation, child._world_scale);
             } else {
                 child._world_matrix.splice(0, child.matrix.length, ...child.matrix);
 
