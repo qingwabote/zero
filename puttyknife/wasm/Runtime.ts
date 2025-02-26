@@ -1,4 +1,4 @@
-import type { ArgHandle, ArgTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle } from 'puttyknife';
+import type { ArgHandle, ArrayTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle, Types } from 'puttyknife';
 import { textDecode, textEncode } from './text.js';
 
 type TypedArray = Uint8Array | Uint16Array | Uint32Array | Float32Array
@@ -41,8 +41,27 @@ export class Runtime {
         return ptr;
     }
 
-    getBuffer(ptr: BufferHandle, size: number) {
-        return this._u8.subarray(ptr as unknown as number, ptr as unknown as number + size);
+    getBuffer<T extends keyof ArrayTypes>(handle: BufferHandle, type: T, elements: number): ArrayTypes[T] {
+        let begin: number;
+        switch (type) {
+            case 'p':
+                begin = handle as unknown as number >> 2;
+                return this._u32.subarray(begin, begin + elements) as ArrayTypes[T];
+            case 'u8':
+                begin = handle as unknown as number;
+                return this._u8.subarray(begin, begin + elements) as ArrayTypes[T];
+            case 'u16':
+                begin = handle as unknown as number >> 1;
+                return this._u16.subarray(begin, begin + elements) as ArrayTypes[T];
+            case 'i32':
+                begin = handle as unknown as number >> 2;
+                return this._i32.subarray(begin, begin + elements) as ArrayTypes[T];
+            case 'f32':
+                begin = handle as unknown as number >> 2;
+                return this._f32.subarray(begin, begin + elements) as ArrayTypes[T];
+            default:
+                throw new Error(`unsupported type: ${type}`);
+        }
     }
 
     delBuffer(ptr: BufferHandle) {
@@ -80,7 +99,7 @@ export class Runtime {
         return i as unknown as FunctionHandle;
     }
 
-    getArgs<T extends (keyof ArgTypes)[]>(ptr: ArgHandle, ...types: T): { [P in keyof T]: ArgTypes[T[P]]; } {
+    getArgs<T extends (keyof Types)[]>(ptr: ArgHandle, ...types: T): { [P in keyof T]: Types[T[P]]; } {
         const args: number[] = new Array(types.length);
         let offset = 0;
         for (let i = 0; i < types.length; i++) {

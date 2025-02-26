@@ -127,20 +127,8 @@ export class SkeletonRenderer extends BoundedRenderer {
         return new scene.Model(this.node, this._mesh, this._materials);
     }
 
-    override upload(commandBuffer: CommandBuffer): void {
+    override lateUpdate(): void {
         spi.fn.spiModel_update(this._spiModel, this._pointer);
-
-        const verticesSize = spi.fn.spiModel_getVerticesSize(this._spiModel);
-        const verticesPtr = spi.fn.spiModel_getVertices(this._spiModel);
-        const vertices = spi.heap.getBuffer(verticesPtr, verticesSize * 4);
-        this._vertexBuffer.resize(vertices.byteLength);
-        this._vertexBuffer.update(vertices, 0, vertices.length, 0);
-
-        const indicesSize = spi.fn.spiModel_getIndicesSize(this._spiModel);
-        const indicesPtr = spi.fn.spiModel_getIndices(this._spiModel);
-        const indices = spi.heap.getBuffer(indicesPtr, indicesSize * 2)
-        this._indexBuffer.resize(indices.byteLength);
-        this._indexBuffer.update(indices, 0, indices.length, 0);
 
         this._materials.length = 0;
         const subModelsSize = spi.fn.spiModel_getSubModelsSize(this._spiModel);
@@ -161,5 +149,19 @@ export class SkeletonRenderer extends BoundedRenderer {
             first += range;
         }
         this._subMeshes.length = subModelsSize;
+    }
+
+    override upload(commandBuffer: CommandBuffer): void {
+        const verticesSize = spi.fn.spiModel_getVerticesSize(this._spiModel);
+        const verticesPtr = spi.fn.spiModel_getVertices(this._spiModel);
+        const vertices = spi.heap.getBuffer(verticesPtr, 'f32', verticesSize);
+        this._vertexBuffer.resize(vertices.byteLength);
+        this._vertexBuffer.update(vertices, 0, 0, 0);
+
+        const indicesSize = spi.fn.spiModel_getIndicesSize(this._spiModel);
+        const indicesPtr = spi.fn.spiModel_getIndices(this._spiModel);
+        const indices = spi.heap.getBuffer(indicesPtr, 'u16', indicesSize)
+        this._indexBuffer.resize(indices.byteLength);
+        this._indexBuffer.update(indices, 0, 0, 0);
     }
 }

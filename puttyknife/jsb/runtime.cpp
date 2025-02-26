@@ -32,11 +32,28 @@ namespace puttyknife
                                                        auto context = isolate->GetCurrentContext();
 
                                                        uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
-                                                       uint32_t size = info[1].As<v8::Number>()->Uint32Value(context).ToChecked();
+                                                       v8::String::Utf8Value type(isolate, info[1]);
+                                                       uint32_t elements = info[2].As<v8::Number>()->Uint32Value(context).ToChecked();
 
-                                                       auto store = v8::ArrayBuffer::NewBackingStore(reinterpret_cast<void *>(address), size, v8::BackingStore::EmptyDeleter, nullptr);
-                                                       auto buffer = v8::ArrayBuffer::New(isolate, std::move(store));
-                                                       info.GetReturnValue().Set(v8::Uint8Array::New(buffer, 0, size));
+                                                       v8::Local<v8::TypedArray> array;
+                                                       if (strcmp(*type, "u16") == 0)
+                                                       {
+                                                           size_t size = elements * 2;
+                                                           auto store = v8::ArrayBuffer::NewBackingStore(reinterpret_cast<void *>(address), size, v8::BackingStore::EmptyDeleter, nullptr);
+                                                           array = v8::Uint16Array::New(v8::ArrayBuffer::New(isolate, std::move(store)), 0, elements);
+                                                       }
+                                                       else if (strcmp(*type, "f32") == 0)
+                                                       {
+                                                           size_t size = elements * 4;
+                                                           auto store = v8::ArrayBuffer::NewBackingStore(reinterpret_cast<void *>(address), size, v8::BackingStore::EmptyDeleter, nullptr);
+                                                           array = v8::Float32Array::New(v8::ArrayBuffer::New(isolate, std::move(store)), 0, elements);
+                                                       }
+                                                       else
+                                                       {
+                                                           std::string msg{"unsupported type: \"" + std::string(*type) + "\""};
+                                                           isolate->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
+                                                       }
+                                                       info.GetReturnValue().Set(array);
                                                    })
                              ->GetFunction(context)
                              .ToLocalChecked());
