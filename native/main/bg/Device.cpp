@@ -5,7 +5,7 @@
 
 namespace bg
 {
-    Device::Device(SDL_Window *window) : gfx::Device(window)
+    Device::Device(SDL_Window *window, std::function<void()> &&debugMessengerCallback) : gfx::Device(window, std::move(debugMessengerCallback))
     {
         _bg_thread = std::thread(
             [this]()

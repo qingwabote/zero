@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include "SDL_video.h"
 #include "Capabilities.hpp"
 #include "info.hpp"
@@ -41,7 +42,7 @@ namespace gfx
         Swapchain &swapchain() { return *_swapchain; }
         Queue &queue() { return *_queue; }
 
-        Device(SDL_Window *window);
+        Device(SDL_Window *window, std::function<void()> &&debugMessengerCallback);
 
         bool initialize();
 

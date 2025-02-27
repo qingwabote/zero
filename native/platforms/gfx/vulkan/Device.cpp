@@ -14,32 +14,35 @@
 
 namespace
 {
+    // A callback will always be executed in the same thread as the originating Vulkan call
+    // The application should always return VK_FALSE. The VK_TRUE value is reserved for use in layer development
     VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                                VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
                                                                const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
-                                                               void * /*userData*/)
+                                                               void *userData)
     {
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
         {
             ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
-            return VK_FALSE;
         }
-        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
             ZERO_LOG_WARN("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
-            return VK_FALSE;
         }
-        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+        else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
             ZERO_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
-            return VK_FALSE;
         }
-        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+        else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
         {
             ZERO_LOG_VERBOSE("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
-            return VK_FALSE;
         }
-        ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+        else
+        {
+            ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+        }
+        gfx::DeviceImpl *device = reinterpret_cast<gfx::DeviceImpl *>(userData);
+        device->debugMessengerCallback();
         return VK_FALSE;
     }
 }
@@ -85,8 +88,12 @@ namespace gfx
             // VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debugUtilsCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugUtilsCreateInfo.messageType =
+            VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         debugUtilsCreateInfo.pfnUserCallback = debugUtilsMessengerCallback;
+        debugUtilsCreateInfo.pUserData = this;
 
         VkInstanceCreateInfo instance_info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
         instance_info.pApplicationInfo = &appInfo;
@@ -256,7 +263,7 @@ namespace gfx
         vkDestroyInstance(_instance, nullptr);
     }
 
-    Device::Device(SDL_Window *window) : _impl(new DeviceImpl(window)) {}
+    Device::Device(SDL_Window *window, std::function<void()> &&debugMessengerCallback) : _impl(new DeviceImpl(window, std::move(debugMessengerCallback))) {}
 
     bool Device::initialize()
     {

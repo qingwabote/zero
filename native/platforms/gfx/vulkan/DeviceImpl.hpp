@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 #include "volk/volk.h"
 #include "SDL_vulkan.h"
 #include "vma/vk_mem_alloc.h"
@@ -48,7 +49,9 @@ namespace gfx
 
         operator VkDevice() { return _device; }
 
-        DeviceImpl(SDL_Window *window) : _window(window) {}
+        std::function<void()> const debugMessengerCallback;
+
+        DeviceImpl(SDL_Window *window, std::function<void()> &&debugMessengerCallback) : _window(window), debugMessengerCallback(std::move(debugMessengerCallback)) {}
 
         bool initialize();
 

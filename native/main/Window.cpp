@@ -10,6 +10,7 @@
 #include "internal/text.hpp"
 #include "bg/Device.hpp"
 #include <chrono>
+#include <atomic>
 #include <nlohmann/json.hpp>
 #include <puttyknife/runtime.hpp>
 #include <puttyknife/yoga.hpp>
@@ -73,6 +74,9 @@ int Window::loop(SDL_Window *sdl_window)
     v8::V8::SetFlagsFromString("--expose-gc-as=__gc__");
     v8::V8::Initialize();
 
+    // atomic for access by bg device
+    std::atomic<int> running = 1;
+
     // Isolate Scope
     {
         const std::string script_name = bootstrap_json["script"];
@@ -107,7 +111,11 @@ int Window::loop(SDL_Window *sdl_window)
         auto inspector = std::make_unique<InspectorClient>();
 
         _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
-        _device = std::make_unique<gfx::Device>(sdl_window);
+        _device = std::make_unique<gfx::Device>(sdl_window,
+                                                [&]
+                                                {
+                                                    running = -1;
+                                                });
         _device->initialize();
         _sdl_window = sdl_window;
 
@@ -186,111 +194,107 @@ int Window::loop(SDL_Window *sdl_window)
             pixelRatio = static_cast<float>(widthInPixels) / width;
         }
 
+        std::unordered_map<SDL_FingerID, std::shared_ptr<Touch>> touches;
+        while (running > 0)
         {
-            std::unordered_map<SDL_FingerID, std::shared_ptr<Touch>> touches;
+            inspector->tick();
 
-            bool running = true;
-            while (running)
+            std::unique_ptr<callable::Callable<void>> f{};
+            while (_beforeTickQueue.pop(f))
             {
-                inspector->tick();
-
-                std::unique_ptr<callable::Callable<void>> f{};
-                while (_beforeTickQueue.pop(f))
-                {
-                    f->call();
-                }
-
-                while (v8::platform::PumpMessageLoop(platform.get(), isolate.get()))
-                {
-                }
-
-                if (!index_promise.IsEmpty())
-                {
-                    if (index_promise->State() == v8::Promise::PromiseState::kRejected)
-                    {
-                        return -1;
-                    }
-                    if (index_promise->State() == v8::Promise::PromiseState::kPending)
-                    {
-                        continue;
-                    }
-                    index_promise.Clear();
-                }
-
-                SDL_Event event;
-                while (SDL_PollEvent(&event))
-                {
-                    switch (event.type)
-                    {
-                    case SDL_FINGERDOWN:
-                    case SDL_FINGERUP:
-                    case SDL_FINGERMOTION:
-                    {
-                        callable::Callable<void, std::shared_ptr<TouchEvent>> *touchCb = nullptr;
-                        if (event.type == SDL_FINGERDOWN)
-                        {
-                            touches.emplace(event.tfinger.fingerId, new Touch{int32_t(event.tfinger.x * width * pixelRatio), int32_t(event.tfinger.y * height * pixelRatio)});
-                            touchCb = _touchStartCb.get();
-                        }
-                        else if (event.type == SDL_FINGERUP)
-                        {
-                            touches.erase(event.tfinger.fingerId);
-                            touchCb = _touchEndCb.get();
-                        }
-                        else if (event.type == SDL_FINGERMOTION)
-                        {
-                            auto &touch = touches.find(event.tfinger.fingerId)->second;
-                            touch->x = event.tfinger.x * width * pixelRatio;
-                            touch->y = event.tfinger.y * height * pixelRatio;
-                            touchCb = _touchMoveCb.get();
-                        }
-
-                        auto e = std::make_shared<TouchEvent>();
-                        e->touches = std::make_shared<TouchVector>();
-                        for (auto &&i : touches)
-                        {
-                            e->touches->emplace_back(i.second);
-                        }
-                        touchCb->call(std::move(e));
-                        break;
-                    }
-                    case SDL_MOUSEWHEEL:
-                    {
-                        if (_wheelCb)
-                        {
-                            auto touches = std::make_shared<TouchVector>();
-                            touches->emplace_back(new Touch{int32_t(event.wheel.mouseX * pixelRatio), int32_t(event.wheel.mouseY * pixelRatio)});
-                            _wheelCb->call(std::shared_ptr<WheelEvent>(new WheelEvent{touches, event.wheel.y * 100}));
-                        }
-                        break;
-                    }
-                    case SDL_QUIT:
-                    {
-                        running = false;
-                        break;
-                    }
-                    default:
-                        break;
-                    }
-                }
-
-                if (_frameCb)
-                {
-                    _frameCb->call();
-                }
-
-                static std::chrono::steady_clock::time_point time;
-                static std::chrono::steady_clock::time_point now;
-
-                now = std::chrono::steady_clock::now();
-                auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count();
-                if (dt < NANOSECONDS_60FPS)
-                {
-                    std::this_thread::sleep_for(std::chrono::nanoseconds(NANOSECONDS_60FPS - dt));
-                    now = std::chrono::steady_clock::now();
-                }
-                time = now;
+                f->call();
             }
+
+            while (v8::platform::PumpMessageLoop(platform.get(), isolate.get()))
+            {
+            }
+
+            if (!index_promise.IsEmpty())
+            {
+                if (index_promise->State() == v8::Promise::PromiseState::kRejected)
+                {
+                    return -1;
+                }
+                if (index_promise->State() == v8::Promise::PromiseState::kPending)
+                {
+                    continue;
+                }
+                index_promise.Clear();
+            }
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event))
+            {
+                switch (event.type)
+                {
+                case SDL_FINGERDOWN:
+                case SDL_FINGERUP:
+                case SDL_FINGERMOTION:
+                {
+                    callable::Callable<void, std::shared_ptr<TouchEvent>> *touchCb = nullptr;
+                    if (event.type == SDL_FINGERDOWN)
+                    {
+                        touches.emplace(event.tfinger.fingerId, new Touch{int32_t(event.tfinger.x * width * pixelRatio), int32_t(event.tfinger.y * height * pixelRatio)});
+                        touchCb = _touchStartCb.get();
+                    }
+                    else if (event.type == SDL_FINGERUP)
+                    {
+                        touches.erase(event.tfinger.fingerId);
+                        touchCb = _touchEndCb.get();
+                    }
+                    else if (event.type == SDL_FINGERMOTION)
+                    {
+                        auto &touch = touches.find(event.tfinger.fingerId)->second;
+                        touch->x = event.tfinger.x * width * pixelRatio;
+                        touch->y = event.tfinger.y * height * pixelRatio;
+                        touchCb = _touchMoveCb.get();
+                    }
+
+                    auto e = std::make_shared<TouchEvent>();
+                    e->touches = std::make_shared<TouchVector>();
+                    for (auto &&i : touches)
+                    {
+                        e->touches->emplace_back(i.second);
+                    }
+                    touchCb->call(std::move(e));
+                    break;
+                }
+                case SDL_MOUSEWHEEL:
+                {
+                    if (_wheelCb)
+                    {
+                        auto touches = std::make_shared<TouchVector>();
+                        touches->emplace_back(new Touch{int32_t(event.wheel.mouseX * pixelRatio), int32_t(event.wheel.mouseY * pixelRatio)});
+                        _wheelCb->call(std::shared_ptr<WheelEvent>(new WheelEvent{touches, event.wheel.y * 100}));
+                    }
+                    break;
+                }
+                case SDL_QUIT:
+                {
+                    running = 0;
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+
+            if (_frameCb)
+            {
+                _frameCb->call();
+            }
+
+            static std::chrono::steady_clock::time_point time;
+            static std::chrono::steady_clock::time_point now;
+
+            now = std::chrono::steady_clock::now();
+            auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>(now - time).count();
+            if (dt < NANOSECONDS_60FPS)
+            {
+                std::this_thread::sleep_for(std::chrono::nanoseconds(NANOSECONDS_60FPS - dt));
+                now = std::chrono::steady_clock::now();
+            }
+            time = now;
         }
 
         _touchStartCb = nullptr;
@@ -308,5 +312,5 @@ int Window::loop(SDL_Window *sdl_window)
     v8::V8::Dispose();
     v8::V8::DisposePlatform();
 
-    return 0;
+    return running;
 }

@@ -20,7 +20,7 @@ namespace bg
         void post(std::unique_ptr<callable::Callable<void>> &&callable) override;
 
     public:
-        Device(SDL_Window *window);
+        Device(SDL_Window *window, std::function<void()> &&debugMessengerCallback);
 
         gfx::CommandBuffer *createCommandBuffer() override;
 
