@@ -10,8 +10,6 @@ export declare type FunctionHandle = { readonly [kind]: 'Function' }
 
 export declare type ArgHandle = { readonly [kind]: 'Arg' }
 
-type TypedArray = Uint8Array | Uint16Array | Int32Array | Uint32Array | Float32Array
-
 export declare interface Types {
     p: ObjectHandle,
     u16: number;
@@ -20,18 +18,22 @@ export declare interface Types {
 }
 
 export declare interface ArrayTypes {
-    p: TypedArray,
+    /** BigInt64Array in jsb*/
+    p: Uint32Array,
     u8: Uint8Array,
     u16: Uint16Array,
     i32: Int32Array,
     f32: Float32Array,
 }
 
+export declare type TypedArray = ArrayTypes[keyof ArrayTypes];
+
 export declare class Runtime {
     constructor(...args: any[]);
 
     addBuffer(buffer: TypedArray): BufferHandle;
     getBuffer<T extends keyof ArrayTypes>(handle: BufferHandle, type: T, elements: number): ArrayTypes[T];
+    cpyBuffer<Out extends number[], T extends keyof ArrayTypes>(out: Out, handle: BufferHandle, type: T, elements: number): Out;
     delBuffer(handle: BufferHandle): void;
 
     addString(value: string): StringHandle;

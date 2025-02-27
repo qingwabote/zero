@@ -57,6 +57,45 @@ namespace puttyknife
                                                    })
                              ->GetFunction(context)
                              .ToLocalChecked());
+        exports_obj->Set(context, v8::String::NewFromUtf8Literal(isolate, "cpyBuffer"),
+                         v8::FunctionTemplate::New(isolate,
+                                                   [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                                                   {
+                                                       auto isolate = info.GetIsolate();
+                                                       v8::HandleScope scope(isolate);
+
+                                                       auto context = isolate->GetCurrentContext();
+
+                                                       v8::Local<v8::Array> out = info[0].As<v8::Array>();
+                                                       uint64_t address = info[1].As<v8::BigInt>()->Uint64Value();
+                                                       v8::String::Utf8Value type(isolate, info[2]);
+                                                       uint32_t elements = info[3].As<v8::Number>()->Uint32Value(context).ToChecked();
+
+                                                       if (strcmp(*type, "u16") == 0)
+                                                       {
+                                                           uint16_t *p = reinterpret_cast<uint16_t *>(address);
+                                                           for (uint32_t i = 0; i < elements; i++)
+                                                           {
+                                                               out->Set(context, i, v8::Number::New(isolate, *(p + i)));
+                                                           }
+                                                       }
+                                                       else if (strcmp(*type, "f32") == 0)
+                                                       {
+                                                           float *p = reinterpret_cast<float *>(address);
+                                                           for (uint32_t i = 0; i < elements; i++)
+                                                           {
+                                                               out->Set(context, i, v8::Number::New(isolate, *(p + i)));
+                                                           }
+                                                       }
+                                                       else
+                                                       {
+                                                           std::string msg{"unsupported type: \"" + std::string(*type) + "\""};
+                                                           isolate->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()).ToLocalChecked()));
+                                                       }
+                                                       info.GetReturnValue().Set(out);
+                                                   })
+                             ->GetFunction(context)
+                             .ToLocalChecked());
         exports_obj->Set(context, v8::String::NewFromUtf8Literal(isolate, "delBuffer"),
                          v8::FunctionTemplate::New(isolate,
                                                    [](const v8::FunctionCallbackInfo<v8::Value> &info) {})

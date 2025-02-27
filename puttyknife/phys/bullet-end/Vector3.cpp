@@ -21,6 +21,11 @@ float physVector3_getZ(phys::Vector3 *v3)
     return v3->getZ();
 }
 
+float *physVector3_get(phys::Vector3 *v3)
+{
+    return *v3;
+}
+
 void physVector3_set(phys::Vector3 *v3, float x, float y, float z)
 {
     v3->setValue(x, y, z);

@@ -4,6 +4,8 @@
 
 #define PK_EXPORT
 
+%bigint_ptr(float)
+
 %bigint_ptr(phys::Vector3)
 %bigint_ptr(phys::Quat)
 %bigint_ptr(phys::Transform)

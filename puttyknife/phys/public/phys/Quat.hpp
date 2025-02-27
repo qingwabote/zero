@@ -12,5 +12,6 @@ extern "C"
     PK_EXPORT float physQuat_getZ(phys::Quat *q);
     PK_EXPORT float physQuat_getW(phys::Quat *q);
 
+    PK_EXPORT float *physQuat_get(phys::Quat *q);
     PK_EXPORT void physQuat_set(phys::Quat *v4, float x, float y, float z, float w);
 }

@@ -54,11 +54,9 @@ export class RigidBody extends Component {
         const transform = phys.fn.physRigidBody_getWorldTransform(this.pointer);
 
         const position = phys.fn.physTransform_getPosition(transform);
-        vec3.set(v3_a, phys.fn.physVector3_getX(position), phys.fn.physVector3_getY(position), phys.fn.physVector3_getZ(position));
-        this.node.world_position = v3_a;
+        this.node.world_position = phys.heap.cpyBuffer(v3_a, phys.fn.physVector3_get(position), 'f32', 3);
 
         const rotation = phys.fn.physTransform_getRotation(transform);
-        quat.set(q_a, phys.fn.physQuat_getX(rotation), phys.fn.physQuat_getY(rotation), phys.fn.physQuat_getZ(rotation), phys.fn.physQuat_getW(rotation));
-        this.node.world_rotation = q_a;
+        this.node.world_rotation = phys.heap.cpyBuffer(q_a, phys.fn.physQuat_get(rotation), 'f32', 4);
     }
 }

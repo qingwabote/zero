@@ -1,7 +1,5 @@
-import type { ArgHandle, ArrayTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle, Types } from 'puttyknife';
+import type { ArgHandle, ArrayTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle, TypedArray, Types } from 'puttyknife';
 import { textDecode, textEncode } from './text.js';
-
-type TypedArray = Uint8Array | Uint16Array | Uint32Array | Float32Array
 
 const noop = function () { };
 
@@ -43,25 +41,65 @@ export class Runtime {
 
     getBuffer<T extends keyof ArrayTypes>(handle: BufferHandle, type: T, elements: number): ArrayTypes[T] {
         let begin: number;
+        let source: TypedArray;
         switch (type) {
             case 'p':
                 begin = handle as unknown as number >> 2;
-                return this._u32.subarray(begin, begin + elements) as ArrayTypes[T];
+                source = this._u32;
+                break;
             case 'u8':
                 begin = handle as unknown as number;
-                return this._u8.subarray(begin, begin + elements) as ArrayTypes[T];
+                source = this._u8;
+                break;
             case 'u16':
                 begin = handle as unknown as number >> 1;
-                return this._u16.subarray(begin, begin + elements) as ArrayTypes[T];
+                source = this._u16;
+                break;
             case 'i32':
                 begin = handle as unknown as number >> 2;
-                return this._i32.subarray(begin, begin + elements) as ArrayTypes[T];
+                source = this._i32;
+                break;
             case 'f32':
                 begin = handle as unknown as number >> 2;
-                return this._f32.subarray(begin, begin + elements) as ArrayTypes[T];
+                source = this._f32;
+                break;
             default:
                 throw new Error(`unsupported type: ${type}`);
         }
+        return source.subarray(begin, begin + elements) as ArrayTypes[T];
+    }
+
+    cpyBuffer<Out extends number[], T extends keyof ArrayTypes>(out: Out, handle: BufferHandle, type: T, elements: number): Out {
+        let begin: number;
+        let source: TypedArray;
+        switch (type) {
+            case 'p':
+                begin = handle as unknown as number >> 2;
+                source = this._u32;
+                break;
+            case 'u8':
+                begin = handle as unknown as number;
+                source = this._u8;
+                break;
+            case 'u16':
+                begin = handle as unknown as number >> 1;
+                source = this._u16;
+                break;
+            case 'i32':
+                begin = handle as unknown as number >> 2;
+                source = this._i32;
+                break;
+            case 'f32':
+                begin = handle as unknown as number >> 2;
+                source = this._f32;
+                break;
+            default:
+                throw new Error(`unsupported type: ${type}`);
+        }
+        for (let i = 0; i < elements; i++) {
+            out[i] = source[begin + i];
+        }
+        return out;
     }
 
     delBuffer(ptr: BufferHandle) {

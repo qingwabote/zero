@@ -102,13 +102,12 @@ export default class Vehicle extends Component {
 
     override lateUpdate(): void {
         for (let i = 0; i < this._wheels.length; i++) {
-            // this._impl.updateWheelTransform(i, true);
             const t = phys.fn.physVehicle_getWheelTransform(this._pointer, i);
             const p = phys.fn.physTransform_getPosition(t);
             const q = phys.fn.physTransform_getRotation(t);
             const node = this._wheels[i];
-            node.world_position = vec3.set(v3_a, phys.fn.physVector3_getX(p), phys.fn.physVector3_getY(p), phys.fn.physVector3_getZ(p));
-            node.world_rotation = quat.set(q_a, phys.fn.physQuat_getX(q), phys.fn.physQuat_getY(q), phys.fn.physQuat_getZ(q), phys.fn.physQuat_getW(q));
+            node.world_position = phys.heap.cpyBuffer(v3_a, p, 'f32', 3);
+            node.world_rotation = phys.heap.cpyBuffer(q_a, q, 'f32', 4);
         }
     }
 }
