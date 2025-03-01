@@ -3,22 +3,15 @@ import { AABB3D } from "../core/math/aabb3d.js";
 import { frustum } from "../core/math/frustum.js";
 import { Vec3 } from "../core/math/vec3.js";
 import { Vec4 } from "../core/math/vec4.js";
-import { Node } from "../core/Node.js";
 import { Model } from "../core/render/scene/Model.js";
 import { Stroke } from "../Stroke.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 
 export class StrokeRenderer extends BoundedRenderer {
-    private readonly _stroke: Stroke;
+    private readonly _stroke = new Stroke();
 
     public get bounds(): Readonly<AABB3D> {
         return this._stroke.mesh.bounds;
-    }
-
-    constructor(node: Node) {
-        super(node);
-
-        this._stroke = new Stroke();
     }
 
     protected createModel(): Model | null {

@@ -2,6 +2,8 @@
 
 %include "../jsb/bigint_ptr.i"
 
+%ignore physWorld_setDebugDrawer;
+
 #define PK_EXPORT
 
 %bigint_ptr(float)

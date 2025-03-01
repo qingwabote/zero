@@ -1,7 +1,7 @@
 
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
-import { BoxShape, vehicle } from 'physics';
+import { BoxShape, DebugDrawer, vehicle } from 'physics';
 import { Joystick } from './Joystick.js';
 
 const primitive = await (await bundle.cache('models/primitive', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
@@ -68,9 +68,9 @@ export class App extends Zero {
         main_camera.visibilities = VisibilityFlagBits.WORLD;
         node.position = [16, 16, 16];
 
-        // node = new Node;
-        // node.visibility = VisibilityBit.DEFAULT;
-        // node.addComponent(DebugDrawer);
+        node = new Node;
+        node.visibility = VisibilityFlagBits.WORLD;
+        node.addComponent(DebugDrawer);
 
         const ground_size = vec3.create(30, 0.2, 30);
 
@@ -111,7 +111,7 @@ export class App extends Zero {
         const cube = primitive.createScene("Cube")!.children[0];
         meshRenderer = cube.getComponent(MeshRenderer)!;
         const material = meshRenderer.materials![0];
-        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(1, 0, 0, 1));
+        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(0.1, 0, 0, 1));
         cube.scale = chassis_size;
         cube.visibility = VisibilityFlagBits.WORLD;
         cube.position = [0, 3, 0];
