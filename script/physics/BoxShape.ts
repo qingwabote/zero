@@ -15,15 +15,6 @@ const physT_a = phys.fn.physTransform_new();
 export class BoxShape extends Component {
     private _dirtyFlags = DirtyFlagBits.ALL;
 
-    private _size = vec3.create(0, 0, 0);
-    public get size(): Vec3 {
-        return this._size;
-    }
-    public set size(value: Vec3) {
-        this._size = value;
-        this._dirtyFlags |= DirtyFlagBits.SCALE;
-    }
-
     private _origin = vec3.create(0, 0, 0);
     public get origin(): Vec3 {
         return this._origin;
@@ -56,8 +47,7 @@ export class BoxShape extends Component {
         // }
 
         if (this._dirtyFlags & DirtyFlagBits.SCALE) {
-            const scale = vec3.multiply(vec3.create(), this._size, this.node.world_scale);
-            phys.fn.physVector3_set(physV3_a, ...scale)
+            phys.fn.physVector3_set(physV3_a, ...this.node.world_scale)
             phys.fn.physCollisionShape_setScale(this.pointer, physV3_a);
         }
 

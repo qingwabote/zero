@@ -1,11 +1,10 @@
 
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
-import { BoxShape } from 'physics';
+import { BoxShape, vehicle } from 'physics';
 import { Joystick } from './Joystick.js';
-import Vehicle from './Vehicle.js';
 
-const primitive = await (await bundle.cache('models/primitive/scene', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
+const primitive = await (await bundle.cache('models/primitive', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
 
 enum VisibilityFlagBits {
     NONE = 0,
@@ -15,6 +14,34 @@ enum VisibilityFlagBits {
 }
 
 const pipeline = await (await bundle.cache('pipelines/forward-csm', Pipeline)).instantiate(VisibilityFlagBits);
+
+const chassis_size = vec3.create(1.8, 0.6, 4);
+
+const wheel_radius = .4;
+const wheel_width = .3;
+const wheel_halfTrack = 1;
+const wheel_axis_height = .3;
+const wheel_axis_front_position = -1.7;
+const wheel_axis_back_position = 1;
+
+const wheel_create_infos = [
+    {
+        connection: vec3.create(wheel_halfTrack, wheel_axis_height, wheel_axis_front_position),
+        front: true
+    },
+    {
+        connection: vec3.create(-wheel_halfTrack, wheel_axis_height, wheel_axis_front_position),
+        front: true
+    },
+    {
+        connection: vec3.create(wheel_halfTrack, wheel_axis_height, wheel_axis_back_position),
+        front: false
+    },
+    {
+        connection: vec3.create(-wheel_halfTrack, wheel_axis_height, wheel_axis_back_position),
+        front: false
+    }
+]
 
 export class App extends Zero {
     start() {
@@ -50,11 +77,9 @@ export class App extends Zero {
         const ground = primitive.createScene("Cube")!.children[0];
         let meshRenderer = ground.getComponent(MeshRenderer)!
         ground.visibility = VisibilityFlagBits.WORLD;
-        let shape = ground.addComponent(BoxShape);
-        let aabb = meshRenderer.bounds;
-        shape.size = vec3.create(aabb.halfExtent[0] * 2, aabb.halfExtent[1] * 2, aabb.halfExtent[2] * 2)
-        ground.scale = [ground_size[0] / (aabb.halfExtent[0] * 2), ground_size[1] / (aabb.halfExtent[1] * 2), ground_size[2] / (aabb.halfExtent[2] * 2)]
+        ground.scale = ground_size;
         ground.position = [0, -ground_size[1] / 2, 0];
+        let shape = ground.addComponent(BoxShape);
 
         const box_size = 1;
         const wall_size = vec2.create(6, 6);
@@ -73,23 +98,47 @@ export class App extends Zero {
 
                 const box = primitive.createScene("Cube")!.children[0];
                 box.visibility = VisibilityFlagBits.WORLD;
+                box.scale = [box_size, box_size, box_size];
+                box.position = [box_x, box_y, box_z];
                 let meshRenderer = box.getComponent(MeshRenderer)!;
                 const material = meshRenderer.materials![0];
                 material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(0, 0, 1, 1));
                 shape = box.addComponent(BoxShape);
                 shape.body.mass = 0.1;
-                aabb = meshRenderer.bounds;
-                shape.size = vec3.create(aabb.halfExtent[0] * 2, aabb.halfExtent[1] * 2, aabb.halfExtent[2] * 2)
-                box.scale = [box_size / (aabb.halfExtent[0] * 2), box_size / (aabb.halfExtent[1] * 2), box_size / (aabb.halfExtent[2] * 2)]
-                box.position = [box_x, box_y, box_z];
             }
         }
 
-        node = new Node();
-        const vehicle = node.addComponent(Vehicle);
-        vehicle.primitive = primitive;
-        node.visibility = VisibilityFlagBits.WORLD;
-        node.position = [0, 3, 0];
+        const cube = primitive.createScene("Cube")!.children[0];
+        meshRenderer = cube.getComponent(MeshRenderer)!;
+        const material = meshRenderer.materials![0];
+        material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(1, 0, 0, 1));
+        cube.scale = chassis_size;
+        cube.visibility = VisibilityFlagBits.WORLD;
+        cube.position = [0, 3, 0];
+        const chassis = cube.addComponent(vehicle.Chassis);
+        chassis.mass = 1;
+        const wheels: vehicle.Wheel[] = [];
+        for (const info of wheel_create_infos) {
+            const node = new Node;
+            node.visibility = VisibilityFlagBits.WORLD;
+            const cylinder = primitive.createScene("Cylinder")!.children[0];
+            cylinder.scale = vec3.create(wheel_radius * 2, wheel_width, wheel_radius * 2)
+            cylinder.euler = vec3.create(0, 0, 90)
+            node.addChild(cylinder)
+            const cube = primitive.createScene("Cube")!.children[0];
+            cube.scale = vec3.create(wheel_width + 0.01, wheel_radius * 2 - 0.01, wheel_radius * 2 / 3)
+            const meshRenderer = cube.getComponent(MeshRenderer)!;
+            const material = meshRenderer.materials![0];
+            material.passes[1] = material.passes[1].copy().setPropertyByName('albedo', vec4.create(1, 0, 0, 1));
+            const wheel = node.addComponent(vehicle.Wheel);
+            wheel.connection = info.connection;
+            wheel.front = info.front;
+            wheel.radius = wheel_radius;
+            wheel.chassis = chassis;
+            wheels.push(wheel);
+            node.addChild(cube)
+        }
+
 
         // UI
         node = new Node;
@@ -128,10 +177,11 @@ export class App extends Zero {
                 steering = -6;
             }
 
-            vehicle.setEngineForce(engineForce, 2);
-            vehicle.setEngineForce(engineForce, 3);
-            vehicle.setSteeringValue(steering, 0);
-            vehicle.setSteeringValue(steering, 1);
+            wheels[2].force = engineForce;
+            wheels[3].force = engineForce;
+
+            wheels[0].steering = steering;
+            wheels[1].steering = steering;
         })
         joystick.positionType = PositionType.Absolute;
         joystick.setPosition(Edge.Right, 0);

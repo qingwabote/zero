@@ -119,6 +119,13 @@ export const vec3 = {
         return out;
     },
 
+    divide<Out extends Vec3Like>(out: Out, a: Readonly<Vec3Like>, b: Readonly<Vec3Like>) {
+        out[0] = a[0] / b[0];
+        out[1] = a[1] / b[1];
+        out[2] = a[2] / b[2];
+        return out;
+    },
+
     dot(a: Readonly<Vec3Like>, b: Readonly<Vec3Like>): number {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },
