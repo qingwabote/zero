@@ -1,5 +1,6 @@
 import { Component, Node, quat, vec3 } from 'engine';
 import { phys } from 'phys';
+import { BoxShape } from './BoxShape.js';
 import { PhysicsSystem } from "./PhysicsSystem.js";
 
 const physV3_a = phys.fn.physVector3_new();
@@ -23,16 +24,23 @@ export class RigidBody extends Component {
         this._mass = value;
     }
 
+    private readonly _shapes: Set<BoxShape> = new Set;
+
     constructor(node: Node) {
         super(node);
 
-        phys.fn.physWorld_addRigidBody(PhysicsSystem.instance.pointer, this.pointer)
+        PhysicsSystem.instance.addRigidBody(this);
 
         // set after addRigidBody
         this.mass = 0;
     }
 
-    override update(): void {
+    public addShape(shape: BoxShape) {
+        phys.fn.physRigidBody_addShape(this.pointer, shape.pointer);
+        this._shapes.add(shape);
+    }
+
+    ping(): void {
         if (this.node.hasChangedFlag.value) {
             phys.fn.physTransform_identity(physT_a);
 
@@ -43,10 +51,14 @@ export class RigidBody extends Component {
             phys.fn.physTransform_setRotation(physT_a, physQ_a)
 
             phys.fn.physRigidBody_setWorldTransform(this.pointer, physT_a);
+
+            const shape = phys.fn.physRigidBody_getCollisionShape(this.pointer);
+            phys.fn.physVector3_set(physV3_a, ...this.node.world_scale)
+            phys.fn.physCollisionShape_setScale(shape, physV3_a);
         }
     }
 
-    override lateUpdate(): void {
+    pong(): void {
         if (!this._mass) {
             return;
         }

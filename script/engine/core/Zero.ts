@@ -57,6 +57,10 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._system2priority.set(system, priority);
     }
 
+    static unregisterSystem(system: System) {
+        this._system2priority.delete(system);
+    }
+
     private readonly _input = new Input;
     public get input(): Input.Readonly {
         return this._input;
