@@ -2,7 +2,10 @@
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape, DebugDrawer, vehicle } from 'physics';
+import { Frame } from './Frame.js';
+import { FrameLocal } from './FrameLocal.js';
 import { Joystick } from './Joystick.js';
+import { JoystickInput } from './JoystickInput.js';
 
 const primitive = await (await bundle.cache('models/primitive', GLTF)).instantiate({ USE_SHADOW_MAP: 1, SHADOW_MAP_CASCADED: 1, SHADOW_MAP_PCF: 1 });
 
@@ -158,22 +161,20 @@ export class App extends Zero {
         const cameraControl = doc.node.addComponent(CameraControl);
         cameraControl.camera = main_camera;
 
-        node = new Node;
-        const joystick = node.addComponent(Joystick);
-        this.setInterval(() => {
-            // const speed = vehicle.speedKmHour;
+        const frame: Frame = new FrameLocal;
 
-            // let breakingForce = 0;
+        const input = frame.input;
+        input.on(JoystickInput.Events.CHANGE, () => {
             let engineForce = 0;
             let steering = 0;
-            if (joystick.point[1] > 0) {
+            if (input.point[1] > 0) {
                 engineForce = 2
-            } else if (joystick.point[1] < 0) {
+            } else if (input.point[1] < 0) {
                 engineForce = -2
             }
-            if (joystick.point[0] > 0) {
+            if (input.point[0] > 0) {
                 steering = 6;
-            } else if (joystick.point[0] < 0) {
+            } else if (input.point[0] < 0) {
                 steering = -6;
             }
 
@@ -183,6 +184,10 @@ export class App extends Zero {
             wheels[0].steering = steering;
             wheels[1].steering = steering;
         })
+
+        node = new Node;
+        const joystick = node.addComponent(Joystick);
+        joystick.input = input;
         joystick.positionType = PositionType.Absolute;
         joystick.setPosition(Edge.Right, 0);
         joystick.setPosition(Edge.Bottom, 0);

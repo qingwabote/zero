@@ -14,7 +14,7 @@ export class DebugDrawer extends Component {
 
         const stroke = node.addComponent(StrokeRenderer);
 
-        phys.fn.physWorld_setDebugDrawer_PK(PhysicsSystem.instance.pointer, phys.heap.addFunction((args) => {
+        phys.fn.physWorld_setDebugDrawer_PK(PhysicsSystem.instance.world.pointer, phys.heap.addFunction((args) => {
             const [from, to, color] = phys.heap.getArgs(args, 'p', 'p', 'p');
             stroke.line(
                 phys.heap.cpyBuffer(vec3_a, phys.fn.physVector3_get(from), 'f32', 3),

@@ -77,7 +77,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     private readonly _queueExecuted = boot.device.createSemaphore();
     private readonly _fence = boot.device.createFence(true);
 
-    private _time = boot.initial;
+    private _time = boot.now();
 
     public get pipeline(): Pipeline {
         return this._pipeline;
@@ -123,7 +123,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._componentScheduler.add(com);
     }
 
-    setInterval(func: () => void, delay: number = 0) {
+    setInterval(func: (dt: number) => void, delay: number = 0) {
         return this._timeScheduler.setInterval(func, delay);
     }
 
@@ -150,9 +150,10 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         const delta = (time - this._time) / 1000;
         this._time = time;
 
+        this._timeScheduler.update(delta);
+
         // updates component, responds to user input
         this._componentScheduler.update(delta);
-        this._timeScheduler.update();
         // updates systems, applies physics and then animation
         for (const system of this._systems) {
             system.update(delta);

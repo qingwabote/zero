@@ -29,7 +29,7 @@ export class RigidBody extends Component {
     constructor(node: Node) {
         super(node);
 
-        PhysicsSystem.instance.addRigidBody(this);
+        PhysicsSystem.instance.world.addRigidBody(this);
 
         // set after addRigidBody
         this.mass = 0;

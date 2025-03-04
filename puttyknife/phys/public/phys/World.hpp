@@ -18,4 +18,6 @@ extern "C"
     PK_EXPORT void physWorld_addRigidBody(phys::World *world, phys::RigidBody *body);
 
     void physWorld_setDebugDrawer(phys::World *world, phys::DrawLineFunc &&drawLineFunc);
+
+    PK_EXPORT void physWorld_drawDebug(phys::World *world);
 }

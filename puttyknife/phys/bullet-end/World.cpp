@@ -48,9 +48,7 @@ phys::World *physWorld_new()
 
 int physWorld_stepSimulation(phys::World *world, float timeStep, int maxSubSteps, float fixedTimeStep)
 {
-    int res = world->stepSimulation(timeStep, maxSubSteps, fixedTimeStep);
-    world->debugDrawWorld();
-    return res;
+    return world->stepSimulation(timeStep, maxSubSteps, fixedTimeStep);
 }
 
 void physWorld_addRigidBody(phys::World *world, phys::RigidBody *body)
@@ -68,4 +66,9 @@ void physWorld_setDebugDrawer(phys::World *world, phys::DrawLineFunc &&drawLineF
 
     drawer = new phys::DebugDrawer(std::move(drawLineFunc));
     world->setDebugDrawer(drawer);
+}
+
+void physWorld_drawDebug(phys::World *world)
+{
+    world->debugDrawWorld();
 }

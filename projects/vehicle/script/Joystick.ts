@@ -1,64 +1,55 @@
-import { Input, Node, StrokeRenderer, Vec2, Vec4, vec2, vec3 } from "engine";
-import { Element, ElementContainer, Renderer } from "flex";
+import { Input, StrokeRenderer, Vec2, Vec4, vec2, vec3 } from "engine";
+import { ElementContainer, Renderer } from "flex";
+import { JoystickInput } from "./JoystickInput.js";
 
 const vec3_a = vec3.create()
 const vec3_b = vec3.create()
 const vec3_c = vec3.create()
 const vec3_d = vec3.create()
 
-enum EventType {
-    CHANGED = 'CHANGED'
-}
+export class Joystick extends ElementContainer {
+    input!: JoystickInput
 
-interface EventToListener extends Element.EventToListener {
-    [EventType.CHANGED]: () => void;
-}
-
-export class Joystick extends ElementContainer<EventToListener> {
-    private _point = vec2.create();
-    get point(): Readonly<Vec2> {
-        return this._point;
-    }
-
-    constructor(node: Node) {
-        super(node);
-
+    start(): void {
+        const point: Vec2 = vec2.create();
         const color: Vec4 = [0, 1, 0, 1]
 
         const primitive = Renderer.create(StrokeRenderer);
-        primitive.setWidthPercent(100);
-        primitive.setHeightPercent(100);
-        this.draw(primitive, this._point, color)
-        this.addElement(primitive);
+
+        this.input.on(JoystickInput.Events.CHANGE, () => {
+            this.draw(primitive, this.input.point, color)
+        })
 
         primitive.emitter.on(Input.TouchEvents.START, event => {
             const local = event.touch.local;
             vec2.set(
-                this._point,
+                point,
                 Math.max(Math.min(local[0], 1), -1),
                 Math.max(Math.min(local[1], 1), -1)
             )
-            this.draw(primitive, this._point, color)
-            this.emitter.emit(EventType.CHANGED);
+            this.input.point = point;
         });
         primitive.emitter.on(Input.TouchEvents.MOVE, event => {
             const local = event.touch.local;
             vec2.set(
-                this._point,
+                point,
                 Math.max(Math.min(local[0], 1), -1),
                 Math.max(Math.min(local[1], 1), -1)
             )
-            this.draw(primitive, this._point, color)
-            this.emitter.emit(EventType.CHANGED);
+            this.input.point = point;
         });
         primitive.emitter.on(Input.TouchEvents.END, () => {
-            vec2.set(this._point, 0, 0);
-            this.draw(primitive, this._point, color)
-            this.emitter.emit(EventType.CHANGED);
+            vec2.set(point, 0, 0);
+            this.input.point = point;
         });
+
+        primitive.setWidthPercent(100);
+        primitive.setHeightPercent(100);
+        this.draw(primitive, this.input.point, color)
+        this.addElement(primitive);
     }
 
-    draw(primitive: Renderer<StrokeRenderer>, point: Vec2, color: Vec4): void {
+    draw(primitive: Renderer<StrokeRenderer>, point: Readonly<Vec2>, color: Readonly<Vec4>): void {
         const impl = primitive.impl;
         impl.clear();
 
@@ -84,10 +75,4 @@ export class Joystick extends ElementContainer<EventToListener> {
         impl.line(vec3_c, vec3_d, color)
         impl.line(vec3_d, vec3_a, color)
     }
-}
-
-Joystick.EventType = EventType;
-
-export declare namespace Joystick {
-    export { EventType }
 }

@@ -55,7 +55,7 @@ export class Wheel extends Component {
     }
 
     override lateUpdate(): void {
-        phys.fn.physVehicle_updateWheelTransform(this.chassis.pointer, this._index);
+        // phys.fn.physVehicle_updateWheelTransform(this.chassis.pointer, this._index);
         const t = phys.fn.physVehicle_getWheelTransform(this.chassis.pointer, this._index);
         const p = phys.fn.physTransform_getPosition(t);
         const q = phys.fn.physTransform_getRotation(t);

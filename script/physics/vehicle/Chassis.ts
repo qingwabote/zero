@@ -19,6 +19,6 @@ export class Chassis extends Component {
         super(node);
 
         phys.fn.physCollisionObject_setActivationState(this._shape.body.pointer, 4);
-        this.pointer = phys.fn.physVehicle_new(PhysicsSystem.instance.pointer, this._shape.body.pointer);
+        this.pointer = phys.fn.physVehicle_new(PhysicsSystem.instance.world.pointer, this._shape.body.pointer);
     }
 }
