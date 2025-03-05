@@ -1,8 +1,11 @@
 // load console first
 import { log } from "./console.js";
 //
+import * as boot from "boot";
 import { Device } from "gfx";
 import * as loop from "./loop.js";
+
+export const WebSocket = globalThis.WebSocket as typeof boot.WebSocket;
 
 const pixelRatio: number = devicePixelRatio;
 const pixelWidth: number = document.documentElement.clientWidth * pixelRatio;
@@ -36,13 +39,7 @@ export function textDecode(input: Uint8Array): string {
 
 export function now() { return performance.now(); }
 
-export interface ResultTypes {
-    text: string,
-    buffer: ArrayBuffer,
-    bitmap: ImageBitmap
-}
-
-export function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]> {
+export function load<T extends keyof boot.ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<boot.ResultTypes[T]> {
     return new Promise((resolve, reject) => {
         function rej(reason: any) {
             log(reason);

@@ -2,7 +2,6 @@
 
 #include <mutex>
 #include <queue>
-#include <functional>
 
 template <class T>
 class ThreadSafeQueue
@@ -27,14 +26,6 @@ public:
     bool pop(T &val, bool blocked = false)
     {
         std::unique_lock<std::mutex> lock(_mutex);
-        // if (_queue.empty())
-        // {
-        //     if (!blocked)
-        //     {
-        //         return false;
-        //     }
-        //     _cv.wait(lock);
-        // }
 
         while (_queue.empty())
         {

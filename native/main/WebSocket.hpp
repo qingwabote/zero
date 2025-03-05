@@ -4,38 +4,42 @@
 #include <vector>
 #include <memory>
 #include "base/callable.hpp"
+#include "base/TaskRunner.hpp"
 
-class WebSocketEvent
+namespace zero
 {
-private:
-    bool _isBinary{true};
-    std::shared_ptr<std::vector<char>> _buffer{nullptr};
+    class WebSocketEvent
+    {
+    private:
+        bool _isBinary{true};
+        std::shared_ptr<std::vector<char>> _buffer{nullptr};
 
-public:
-    bool isBinary() { return _isBinary; }
-    std::shared_ptr<std::vector<char>> buffer() { return _buffer; }
+    public:
+        bool isBinary() { return _isBinary; }
+        std::shared_ptr<std::vector<char>> buffer() { return _buffer; }
 
-    WebSocketEvent() {}
+        WebSocketEvent() {}
 
-    WebSocketEvent(const std::shared_ptr<std::vector<char>> &buffer, bool isBinary) : _buffer(buffer), _isBinary(isBinary) {}
-};
+        WebSocketEvent(const std::shared_ptr<std::vector<char>> &buffer, bool isBinary) : _buffer(buffer), _isBinary(isBinary) {}
+    };
 
-class WebSocketImpl;
+    class WebSocketImpl;
 
-class WebSocket
-{
-private:
-    std::unique_ptr<WebSocketImpl> _impl;
+    class WebSocket
+    {
+    private:
+        std::unique_ptr<WebSocketImpl> _impl;
 
-public:
-    WebSocket(const std::string &url);
+    public:
+        WebSocket(const std::string &url);
 
-    void onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
-    void onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
+        virtual void onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
+        virtual void onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
 
-    void send(const void *buffer, size_t length);
+        virtual void WebSocket::send(std::string &&message);
 
-    void service(int timeout_ms);
+        void service(int timeout_ms);
 
-    ~WebSocket();
-};
+        virtual ~WebSocket();
+    };
+}

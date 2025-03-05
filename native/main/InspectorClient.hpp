@@ -7,7 +7,7 @@
 class InspectorClient : public v8_inspector::V8InspectorClient
 {
 private:
-    std::unique_ptr<WebSocket> _socket;
+    std::shared_ptr<zero::WebSocket> _socket;
     std::unique_ptr<v8_inspector::V8Inspector> _inspector;
     std::unique_ptr<v8_inspector::V8InspectorSession> _session;
     std::unique_ptr<InspectorChannel> _channel;
@@ -15,7 +15,7 @@ private:
     bool _blocked{false};
 
 public:
-    InspectorClient();
+    InspectorClient(const std::shared_ptr<zero::WebSocket> &socket);
 
     void runMessageLoopOnPause(int contextGroupId) override;
     void quitMessageLoopOnPause() override;
