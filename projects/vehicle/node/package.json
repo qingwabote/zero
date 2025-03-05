@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "dependencies": {
+    "ws": "^8.18.1"
+  },
+  "scripts": {
+    "dev": "tsc -p . --outDir dist --watch",
+    "server": "node ./dist/main.js"
+  }
+}

@@ -3,7 +3,7 @@ import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bun
 import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
 import { BoxShape, DebugDrawer, vehicle } from 'physics';
 import { Frame } from './Frame.js';
-import { FrameLocal } from './FrameLocal.js';
+import { FrameRemote } from './FrameRemote.js';
 import { Joystick } from './Joystick.js';
 import { JoystickInput } from './JoystickInput.js';
 
@@ -161,7 +161,7 @@ export class App extends Zero {
         const cameraControl = doc.node.addComponent(CameraControl);
         cameraControl.camera = main_camera;
 
-        const frame: Frame = new FrameLocal;
+        const frame: Frame = new FrameRemote;
 
         const input = frame.input;
         input.on(JoystickInput.Events.CHANGE, () => {

@@ -1,0 +1,46 @@
+import { WebSocket } from "boot";
+import { Zero } from "engine";
+import { PhysicsSystem } from "physics";
+import { Frame } from "./Frame.js";
+import { JoystickInputRemote } from "./JoystickInputRemote.js";
+import { PhysicsStepper } from "./PhysicsStepper.js";
+
+const stepTime = 1 / 30;
+
+const physicsStepper = new PhysicsStepper(stepTime);
+Zero.unregisterSystem(PhysicsSystem.instance);
+Zero.registerSystem(physicsStepper, 1);
+
+export class FrameRemote implements Frame {
+    readonly input = new JoystickInputRemote
+
+    constructor() {
+        let id;
+
+        const socket = new WebSocket("ws://127.0.0.1:8080")
+        socket.onerror = (e) => {
+            console.log('socket onerror', e)
+        }
+        socket.onopen = () => {
+            console.log('socket onopen')
+        }
+        socket.onclose = (e) => {
+            console.log('socket onclose', e.reason)
+        }
+        socket.onmessage = (e) => {
+            console.log('socket onmessage', e.data)
+            if (e.data == "{}") {
+                physicsStepper.step(stepTime);
+                return;
+            }
+
+            const res = JSON.parse(e.data);
+            if (res.id) {
+                id = res.id;
+                return;
+            }
+        }
+
+        physicsStepper.step(0);
+    }
+}

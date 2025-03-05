@@ -127,4 +127,25 @@ public:
 
         return true;
     }
+
+    bool any()
+    {
+        Block *block = _head.load(std::memory_order_relaxed);
+        uint32_t head = block->head.load(std::memory_order_relaxed);
+
+        if (head == block->tail.load(std::memory_order_acquire))
+        {
+            if (block == _tail.load(std::memory_order_acquire))
+            {
+                return false;
+            }
+
+            if ((block->tail.load(std::memory_order_acquire) + 1) % block->data.size() == head)
+            {
+                return any();
+            }
+        }
+
+        return true;
+    }
 };

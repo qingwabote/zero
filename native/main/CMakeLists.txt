@@ -22,6 +22,7 @@ set(SRC_FILES
     bg/Device.cpp
     bg/CommandBuffer.cpp
     bg/Queue.cpp
+    bg/WebSocket.cpp
 )
 
 add_library(zero_main STATIC ${SRC_FILES})

@@ -9,6 +9,7 @@
 #include "internal/console.hpp"
 #include "internal/text.hpp"
 #include "bg/Device.hpp"
+#include "bg/WebSocket.hpp"
 #include <chrono>
 #include <atomic>
 #include <nlohmann/json.hpp>
@@ -37,6 +38,8 @@ double Window::now()
 {
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() * 0.001;
 }
+
+std::unique_ptr<zero::WebSocket> Window::ws(const std::string &url) { return std::make_unique<bg::WebSocket>(this, url); }
 
 int Window::loop(SDL_Window *sdl_window)
 {
@@ -68,8 +71,7 @@ int Window::loop(SDL_Window *sdl_window)
     const std::string project_name = bootstrap_json["project"];
     const std::filesystem::path project_path = std::filesystem::path(root).append("projects/" + project_name);
 
-    std::unique_ptr<v8::Platform>
-        platform = v8::platform::NewDefaultPlatform();
+    std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(platform.get());
     v8::V8::SetFlagsFromString("--expose-gc-as=__gc__");
     v8::V8::Initialize();
@@ -108,14 +110,15 @@ int Window::loop(SDL_Window *sdl_window)
         v8::Local<v8::Context> context = v8::Context::New(isolate.get());
         v8::Context::Scope context_scope(context);
 
-        auto inspector = std::make_unique<InspectorClient>();
+        auto inspector = std::make_unique<InspectorClient>(std::make_shared<zero::WebSocket>("xxx:6086"));
 
         _loader = std::make_unique<loader::Loader>(project_path, this, &ThreadPool::shared());
-        _device = std::make_unique<gfx::Device>(sdl_window,
-                                                [&]
-                                                {
-                                                    running = -1;
-                                                });
+        _device = std::make_unique<gfx::Device>(
+            sdl_window,
+            [&]
+            {
+                running = -1;
+            });
         _device->initialize();
         _sdl_window = sdl_window;
 
@@ -150,17 +153,20 @@ int Window::loop(SDL_Window *sdl_window)
 
         console_initialize(context, ns_global);
 
-        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "require"),
-                       v8::FunctionTemplate::New(isolate.get(),
-                                                 [](const v8::FunctionCallbackInfo<v8::Value> &info)
-                                                 {
-                                                     auto isolate = info.GetIsolate();
-                                                     auto context = isolate->GetCurrentContext();
+        ns_global->Set(
+            context,
+            v8::String::NewFromUtf8Literal(isolate.get(), "require"),
+            v8::FunctionTemplate::New(
+                isolate.get(),
+                [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                {
+                    auto isolate = info.GetIsolate();
+                    auto context = isolate->GetCurrentContext();
 
-                                                     sugar::v8::run(context, *_v8::String::Utf8Value(isolate, info[0]));
-                                                 })
-                           ->GetFunction(context)
-                           .ToLocalChecked());
+                    sugar::v8::run(context, *_v8::String::Utf8Value(isolate, info[0]));
+                })
+                ->GetFunction(context)
+                .ToLocalChecked());
 
         std::filesystem::path indexSrc = std::filesystem::path(script_path).append("dist/script/index.js");
         {
@@ -207,6 +213,7 @@ int Window::loop(SDL_Window *sdl_window)
 
             while (v8::platform::PumpMessageLoop(platform.get(), isolate.get()))
             {
+                // do nothing
             }
 
             if (!index_promise.IsEmpty())

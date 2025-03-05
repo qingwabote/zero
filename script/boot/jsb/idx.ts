@@ -1,3 +1,4 @@
+import { ResultTypes } from "boot";
 import { Device } from "gfx";
 
 export interface TouchEvent {
@@ -65,12 +66,6 @@ export function now(): number {
     return w.now();
 }
 
-export interface ResultTypes {
-    text: string,
-    buffer: ArrayBuffer,
-    bitmap: ImageBitmap
-}
-
 const loader = w.loader();
 
 export function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]> {
@@ -100,6 +95,8 @@ export async function loadWasm(url: string, imports: WebAssembly.Imports): Promi
 }
 
 export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
+
+// export function ws(url: string) { return new WebSocket(url) }
 
 export function attach(listener: EventListener) {
     w.onTouchStart(function (event: any) {

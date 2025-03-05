@@ -6,6 +6,7 @@
 #include "events.hpp"
 #include "Loader.hpp"
 #include "gfx/Device.hpp"
+#include "WebSocket.hpp"
 
 class Window : public TaskRunner
 {
@@ -41,8 +42,11 @@ public:
 
     double now();
 
-    Window(){};
+    Window() {};
 
+    std::unique_ptr<zero::WebSocket> ws(const std::string &url);
+
+    // refer to wx api
     void onTouchStart(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchStartCb = std::move(cb); }
     void onTouchMove(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchMoveCb = std::move(cb); }
     void onTouchEnd(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchEndCb = std::move(cb); }
@@ -55,5 +59,5 @@ public:
 
     int loop(SDL_Window *sdl_window);
 
-    ~Window(){};
+    ~Window() {};
 };

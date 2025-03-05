@@ -3,8 +3,6 @@
 #include <locale>
 #include "log.h"
 
-InspectorChannel::InspectorChannel(WebSocket *socket) : _socket(socket) {}
-
 void InspectorChannel::sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> Conv;
@@ -13,7 +11,7 @@ void InspectorChannel::sendResponse(int callId, std::unique_ptr<v8_inspector::St
 
     // ZERO_LOG_INFO("sendResponse %s", utf8.c_str());
 
-    _socket->send(utf8.c_str(), utf8.size());
+    _socket->send(std::move(utf8));
 }
 
 void InspectorChannel::sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message)
@@ -24,9 +22,11 @@ void InspectorChannel::sendNotification(std::unique_ptr<v8_inspector::StringBuff
 
     // ZERO_LOG_INFO("sendNotification %s", utf8.c_str());
 
-    _socket->send(utf8.c_str(), utf8.size());
+    _socket->send(std::move(utf8));
 }
 
 void InspectorChannel::flushProtocolNotifications()
 {
+    // https://github.com/Tencent/puerts/blob/006e6c63479a9ffb4050d071201f7f9faf1fdb66/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp
+    // do noting
 }
