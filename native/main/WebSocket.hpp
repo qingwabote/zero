@@ -12,15 +12,15 @@ namespace zero
     {
     private:
         bool _isBinary{true};
-        std::shared_ptr<std::vector<char>> _buffer{nullptr};
+        std::string _data;
 
     public:
         bool isBinary() { return _isBinary; }
-        std::shared_ptr<std::vector<char>> buffer() { return _buffer; }
+        std::string &data() { return _data; }
 
         WebSocketEvent() {}
 
-        WebSocketEvent(const std::shared_ptr<std::vector<char>> &buffer, bool isBinary) : _buffer(buffer), _isBinary(isBinary) {}
+        WebSocketEvent(std::string &&data, bool isBinary) : _data(std::move(data)), _isBinary(isBinary) {}
     };
 
     class WebSocketImpl;

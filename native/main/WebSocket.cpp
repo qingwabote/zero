@@ -29,6 +29,8 @@ namespace zero
 
         std::shared_ptr<std::vector<char>> _buffer{nullptr};
 
+        std::string _data;
+
         std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> _onopen;
         std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> _onmessage;
 
@@ -78,21 +80,15 @@ namespace zero
                     ZERO_LOG_INFO("  first");
 
                     auto size = len + remaining;
-                    _buffer = std::make_shared<std::vector<char>>();
-                    _buffer->reserve(binary ? size : size + 1);
+                    _data.reserve(size);
                 }
                 ZERO_LOG_INFO("  insert");
-                _buffer->insert(_buffer->end(), in, in + len);
+                _data.append(reinterpret_cast<char *>(in), len);
                 if (remaining == 0)
                 {
-                    if (!binary)
-                    {
-                        _buffer->push_back('\0');
-                    }
-
                     if (_onmessage)
                     {
-                        _onmessage->call(std::make_unique<WebSocketEvent>(std::move(_buffer), binary));
+                        _onmessage->call(std::make_unique<WebSocketEvent>(std::move(_data), binary));
                     }
                 }
                 break;
