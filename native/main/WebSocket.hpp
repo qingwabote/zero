@@ -29,12 +29,14 @@ namespace zero
     public:
         WebSocket(const std::string &url);
 
-        virtual void onopen(WebSocketCallback callback);
-        virtual void onmessage(WebSocketCallback callback);
+        virtual void onopen(WebSocketCallback &&callback);
+        virtual void onmessage(WebSocketCallback &&callback);
 
         virtual void WebSocket::send(std::string &&message);
 
         void service(int timeout_ms);
+
+        void cancel();
 
         virtual ~WebSocket();
     };
