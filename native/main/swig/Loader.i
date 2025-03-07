@@ -11,7 +11,7 @@
 %}
 
 // Result
-%shared_ptr(ImageBitmap)
+%unique_ptr(ImageBitmap)
 
 %ignore loader::Result::Result;
 
