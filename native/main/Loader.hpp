@@ -12,8 +12,6 @@ namespace loader
     class Result
     {
     private:
-        std::string _error;
-
         std::unique_ptr<char[]> _text{nullptr};
 
         std::unique_ptr<std::vector<char>> _buffer{nullptr};
@@ -21,7 +19,9 @@ namespace loader
         std::unique_ptr<ImageBitmap> _bitmap{nullptr};
 
     public:
-        Result(std::string &&error) : _error(std::move(error)) {}
+        const std::string error;
+
+        Result(std::string &&error) : error(std::move(error)) {}
 
         Result(std::unique_ptr<char[]> text) : _text(std::move(text)) {}
 
@@ -29,14 +29,12 @@ namespace loader
 
         Result(std::unique_ptr<ImageBitmap> bitmap) : _bitmap(std::move(bitmap)) {}
 
-        std::string &error() { return _error; }
-
         /*C String*/
         std::unique_ptr<char[]> takeText() { return std::move(_text); }
 
         std::unique_ptr<std::vector<char>> takeBuffer() { return std::move(_buffer); }
 
-        std::shared_ptr<ImageBitmap> takeBitmap() { return std::move(_bitmap); }
+        std::unique_ptr<ImageBitmap> takeBitmap() { return std::move(_bitmap); }
     };
 
     class Loader
