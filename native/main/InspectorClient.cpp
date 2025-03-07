@@ -21,7 +21,7 @@ InspectorClient::InspectorClient(const std::shared_ptr<zero::WebSocket> &socket)
     socket->onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>>(new callable::CallableLambda(new auto(
         [this](std::unique_ptr<zero::WebSocketEvent> event)
         {
-            v8_inspector::StringView stringView(reinterpret_cast<uint8_t *>(event->data().data()), event->data().size());
+            v8_inspector::StringView stringView(reinterpret_cast<uint8_t *>(event->data.data()), event->data.size());
             _session->dispatchProtocolMessage(stringView);
         }))));
     _socket = socket;

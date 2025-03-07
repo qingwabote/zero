@@ -44,7 +44,7 @@ public:
 
     Window() {};
 
-    std::shared_ptr<zero::WebSocket> ws(const std::string &url);
+    std::unique_ptr<zero::WebSocket> ws(const std::string &url);
 
     // refer to wx api
     void onTouchStart(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchStartCb = std::move(cb); }

@@ -22,8 +22,8 @@ namespace bg
     public:
         WebSocket(TaskRunner *foreground, const std::string &url);
 
-        virtual void onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>> &&callback) override;
-        virtual void onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>> &&callback) override;
+        virtual void onopen(zero::WebSocketCallback callback) override;
+        virtual void onmessage(zero::WebSocketCallback callback) override;
 
         virtual void WebSocket::send(std::string &&message) override;
 

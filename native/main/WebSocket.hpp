@@ -10,21 +10,17 @@ namespace zero
 {
     class WebSocketEvent
     {
-    private:
-        bool _isBinary{true};
-        std::string _data;
-
     public:
-        bool isBinary() { return _isBinary; }
-        std::string &data() { return _data; }
+        const bool isBinary = false;
+        std::string data;
 
         WebSocketEvent() {}
 
-        WebSocketEvent(std::string &&data, bool isBinary) : _data(std::move(data)), _isBinary(isBinary) {}
+        WebSocketEvent(std::string &&data, bool isBinary) : data(std::move(data)), isBinary(isBinary) {}
     };
 
+    using WebSocketCallback = std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>;
     class WebSocketImpl;
-
     class WebSocket
     {
     private:
@@ -33,8 +29,8 @@ namespace zero
     public:
         WebSocket(const std::string &url);
 
-        virtual void onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
-        virtual void onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback);
+        virtual void onopen(WebSocketCallback callback);
+        virtual void onmessage(WebSocketCallback callback);
 
         virtual void WebSocket::send(std::string &&message);
 

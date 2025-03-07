@@ -31,8 +31,8 @@ namespace zero
 
         std::string _data;
 
-        std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> _onopen;
-        std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> _onmessage;
+        WebSocketCallback _onopen;
+        WebSocketCallback _onmessage;
 
         std::queue<std::string> _messageQueue;
 
@@ -128,12 +128,12 @@ namespace zero
             return 0;
         }
 
-        void onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
+        void onopen(WebSocketCallback callback)
         {
             _onopen = std::move(callback);
         }
 
-        void onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
+        void onmessage(WebSocketCallback callback)
         {
             _onmessage = std::move(callback);
         }
@@ -161,14 +161,14 @@ namespace zero
 
     WebSocket::WebSocket(const std::string &url) : _impl(new WebSocketImpl(url)) {}
 
-    void WebSocket::onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
+    void WebSocket::onopen(WebSocketCallback callback)
     {
-        _impl->onopen(std::forward<std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>>(callback));
+        _impl->onopen(std::move(callback));
     }
 
-    void WebSocket::onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>> &&callback)
+    void WebSocket::onmessage(WebSocketCallback callback)
     {
-        _impl->onmessage(std::forward<std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>>(callback));
+        _impl->onmessage(std::move(callback));
     }
 
     void WebSocket::send(std::string &&message)

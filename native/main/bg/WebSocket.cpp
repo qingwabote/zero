@@ -20,9 +20,9 @@ namespace bg
             });
     }
 
-    void WebSocket::onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>> &&callback)
+    void WebSocket::onopen(zero::WebSocketCallback callback)
     {
-        std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>> cb(new callable::CallableLambda(new auto(
+        zero::WebSocketCallback cb(new callable::CallableLambda(new auto(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
                 _foreground->post(new auto(
@@ -38,9 +38,9 @@ namespace bg
             }))));
     }
 
-    void WebSocket::onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>> &&callback)
+    void WebSocket::onmessage(zero::WebSocketCallback callback)
     {
-        std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>> cb(new callable::CallableLambda(new auto(
+        zero::WebSocketCallback cb(new callable::CallableLambda(new auto(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
                 _foreground->post(new auto(

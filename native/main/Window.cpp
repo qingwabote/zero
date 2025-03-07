@@ -39,7 +39,7 @@ double Window::now()
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() * 0.001;
 }
 
-std::shared_ptr<zero::WebSocket> Window::ws(const std::string &url) { return std::make_shared<bg::WebSocket>(this, url); }
+std::unique_ptr<zero::WebSocket> Window::ws(const std::string &url) { return std::make_unique<bg::WebSocket>(this, url); }
 
 int Window::loop(SDL_Window *sdl_window)
 {
