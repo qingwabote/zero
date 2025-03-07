@@ -5,11 +5,11 @@
 #include "sugars/sdlsugar.hpp"
 #include "sugars/v8sugar.hpp"
 #include "v8/libplatform/libplatform.h"
+#include "WebSocket.hpp"
 #include "InspectorClient.hpp"
 #include "internal/console.hpp"
 #include "internal/text.hpp"
 #include "bg/Device.hpp"
-#include "bg/WebSocket.hpp"
 #include <chrono>
 #include <atomic>
 #include <nlohmann/json.hpp>
@@ -22,6 +22,7 @@ extern "C"
 {
     void ImageBitmap_initialize(v8::Local<v8::Object> exports_obj);
     void Loader_initialize(v8::Local<v8::Object> exports_obj);
+    void WebSocket_initialize(v8::Local<v8::Object> exports_obj);
     void gfx_initialize(v8::Local<v8::Object> exports_obj);
     void Window_initialize(v8::Local<v8::Object> exports_obj);
 }
@@ -38,8 +39,6 @@ double Window::now()
 {
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() * 0.001;
 }
-
-std::unique_ptr<zero::WebSocket> Window::ws(const std::string &url) { return std::make_unique<bg::WebSocket>(this, url); }
 
 int Window::loop(SDL_Window *sdl_window)
 {
@@ -146,6 +145,7 @@ int Window::loop(SDL_Window *sdl_window)
         auto ns_zero = v8::Object::New(isolate.get());
         ImageBitmap_initialize(ns_zero);
         Loader_initialize(ns_zero);
+        WebSocket_initialize(ns_zero);
         Window_initialize(ns_zero);
 
         text_initialize(context, ns_zero);

@@ -31,12 +31,12 @@ namespace zero
 
         std::string _data;
 
-        WebSocketCallback _onopen;
-        WebSocketCallback _onmessage;
-
         std::queue<std::string> _messageQueue;
 
     public:
+        WebSocketCallback onopen;
+        WebSocketCallback onmessage;
+
         WebSocketImpl(const std::string &url)
         {
             auto port = url.substr(url.rfind(":") + 1);
@@ -64,9 +64,9 @@ namespace zero
                 break;
             case LWS_CALLBACK_ESTABLISHED:
                 ZERO_LOG_INFO("LWS_CALLBACK_ESTABLISHED");
-                if (_onopen)
+                if (onopen)
                 {
-                    _onopen->call(std::make_unique<WebSocketEvent>());
+                    onopen->call(std::make_unique<WebSocketEvent>());
                 }
                 lws_callback_on_writable(wsi);
                 break;
@@ -86,15 +86,16 @@ namespace zero
                 _data.append(reinterpret_cast<char *>(in), len);
                 if (remaining == 0)
                 {
-                    if (_onmessage)
+                    if (onmessage)
                     {
-                        _onmessage->call(std::make_unique<WebSocketEvent>(std::move(_data), binary));
+                        onmessage->call(std::make_unique<WebSocketEvent>(std::move(_data), binary));
                     }
                 }
                 break;
             }
             case LWS_CALLBACK_SERVER_WRITEABLE:
             {
+                ZERO_LOG_INFO("LWS_CALLBACK_SERVER_WRITEABLE");
                 if (_messageQueue.empty())
                 {
                     break;
@@ -128,16 +129,6 @@ namespace zero
             return 0;
         }
 
-        void onopen(WebSocketCallback callback)
-        {
-            _onopen = std::move(callback);
-        }
-
-        void onmessage(WebSocketCallback callback)
-        {
-            _onmessage = std::move(callback);
-        }
-
         void send(std::string &&message)
         {
             _messageQueue.push(std::move(message));
@@ -147,6 +138,11 @@ namespace zero
         void service(int timeout_ms)
         {
             lws_service(_context, timeout_ms);
+        }
+
+        void cancel()
+        {
+            lws_cancel_service(_context);
         }
 
         ~WebSocketImpl()
@@ -161,14 +157,14 @@ namespace zero
 
     WebSocket::WebSocket(const std::string &url) : _impl(new WebSocketImpl(url)) {}
 
-    void WebSocket::onopen(WebSocketCallback callback)
+    void WebSocket::onopen(WebSocketCallback &&callback)
     {
-        _impl->onopen(std::move(callback));
+        _impl->onopen = std::move(callback);
     }
 
-    void WebSocket::onmessage(WebSocketCallback callback)
+    void WebSocket::onmessage(WebSocketCallback &&callback)
     {
-        _impl->onmessage(std::move(callback));
+        _impl->onmessage = std::move(callback);
     }
 
     void WebSocket::send(std::string &&message)
@@ -179,6 +175,11 @@ namespace zero
     void WebSocket::service(int timeout_ms)
     {
         _impl->service(timeout_ms);
+    }
+
+    void WebSocket::cancel()
+    {
+        _impl->cancel();
     }
 
     WebSocket::~WebSocket() {}

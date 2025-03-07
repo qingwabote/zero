@@ -1,9 +1,12 @@
 #include "./WebSocket.hpp"
+#include "../Window.hpp"
+#include "log.h"
 
 namespace bg
 {
-    WebSocket::WebSocket(TaskRunner *foreground, const std::string &url) : zero::WebSocket(url), _foreground(foreground)
+    WebSocket::WebSocket(const std::string &url) : zero::WebSocket(url)
     {
+        ZERO_LOG_INFO("WebSocket create thread");
         _thread = std::make_unique<std::thread>(
             [this]()
             {
@@ -20,12 +23,12 @@ namespace bg
             });
     }
 
-    void WebSocket::onopen(zero::WebSocketCallback callback)
+    void WebSocket::onopen(zero::WebSocketCallback &&callback)
     {
         zero::WebSocketCallback cb(new callable::CallableLambda(new auto(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                _foreground->post(new auto(
+                Window::instance().post(new auto(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
@@ -38,12 +41,12 @@ namespace bg
             }))));
     }
 
-    void WebSocket::onmessage(zero::WebSocketCallback callback)
+    void WebSocket::onmessage(zero::WebSocketCallback &&callback)
     {
         zero::WebSocketCallback cb(new callable::CallableLambda(new auto(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                _foreground->post(new auto(
+                Window::instance().post(new auto(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
@@ -68,6 +71,7 @@ namespace bg
 
     WebSocket::~WebSocket()
     {
+        cancel();
         _running = false;
         _thread->join();
     }
