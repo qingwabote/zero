@@ -154,19 +154,20 @@ int Window::loop(SDL_Window *sdl_window)
         console_initialize(context, ns_global);
 
         ns_global->Set(
-            context,
-            v8::String::NewFromUtf8Literal(isolate.get(), "require"),
-            v8::FunctionTemplate::New(
-                isolate.get(),
-                [](const v8::FunctionCallbackInfo<v8::Value> &info)
-                {
-                    auto isolate = info.GetIsolate();
-                    auto context = isolate->GetCurrentContext();
+                     context,
+                     v8::String::NewFromUtf8Literal(isolate.get(), "require"),
+                     v8::FunctionTemplate::New(
+                         isolate.get(),
+                         [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                         {
+                             auto isolate = info.GetIsolate();
+                             auto context = isolate->GetCurrentContext();
 
-                    sugar::v8::run(context, *_v8::String::Utf8Value(isolate, info[0]));
-                })
-                ->GetFunction(context)
-                .ToLocalChecked());
+                             sugar::v8::run(context, *_v8::String::Utf8Value(isolate, info[0]));
+                         })
+                         ->GetFunction(context)
+                         .ToLocalChecked())
+            .ToChecked();
 
         std::filesystem::path indexSrc = std::filesystem::path(script_path).append("dist/script/index.js");
         {
@@ -205,7 +206,7 @@ int Window::loop(SDL_Window *sdl_window)
         {
             inspector->tick();
 
-            std::unique_ptr<callable::Callable<void>> f{};
+            std::unique_ptr<bastard::Lambda<void>> f{};
             while (_beforeTickQueue.pop(f))
             {
                 f->call();
@@ -238,7 +239,7 @@ int Window::loop(SDL_Window *sdl_window)
                 case SDL_FINGERUP:
                 case SDL_FINGERMOTION:
                 {
-                    callable::Callable<void, std::shared_ptr<TouchEvent>> *touchCb = nullptr;
+                    bastard::Lambda<void, std::shared_ptr<TouchEvent>> *touchCb = nullptr;
                     if (event.type == SDL_FINGERDOWN)
                     {
                         touches.emplace(event.tfinger.fingerId, new Touch{int32_t(event.tfinger.x * width * pixelRatio), int32_t(event.tfinger.y * height * pixelRatio)});

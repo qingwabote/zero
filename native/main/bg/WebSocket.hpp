@@ -1,9 +1,8 @@
 #pragma once
 
 #include "../WebSocket.hpp"
-#include "../base/TaskRunner.hpp"
 #include "../base/threading/SCSP.hpp"
-#include "../base/callable.hpp"
+#include <bastard/lambda.hpp>
 #include <atomic>
 #include <thread>
 
@@ -15,7 +14,7 @@ namespace bg
         std::atomic<bool> _running = true;
         std::unique_ptr<std::thread> _thread;
 
-        SCSP<std::unique_ptr<callable::Callable<void>>> _tasks{8};
+        SCSP<std::unique_ptr<bastard::Lambda<void>>> _tasks{8};
 
     public:
         WebSocket(const std::string &url);
@@ -28,7 +27,7 @@ namespace bg
         void onmessage(zero::WebSocketCallback &callback) { onmessage(std::move(callback)); }
         virtual void onmessage(zero::WebSocketCallback &&callback) override;
 
-        virtual void WebSocket::send(std::string &&message) override;
+        virtual void send(std::string &&message) override;
 
         ~WebSocket();
     };

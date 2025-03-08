@@ -1,5 +1,3 @@
-#pragma once
-
 #include <yoga/context.h>
 #include "NodeContext.hpp"
 

@@ -12,7 +12,7 @@ namespace bg
             {
                 while (_running)
                 {
-                    std::unique_ptr<callable::Callable<void>> task;
+                    std::unique_ptr<bastard::Lambda<void>> task;
                     while (_tasks.pop(task))
                     {
                         task->call();
@@ -25,48 +25,47 @@ namespace bg
 
     void WebSocket::onopen(zero::WebSocketCallback &&callback)
     {
-        zero::WebSocketCallback cb(new callable::CallableLambda(new auto(
+        zero::WebSocketCallback cb(bastard::take_lambda(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                Window::instance().post(new auto(
+                Window::instance().post(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
-                    }));
-            })));
-        _tasks.push(std::unique_ptr<callable::Callable<void>>(new callable::CallableLambda(new auto(
+                    });
+            }));
+        _tasks.push(bastard::take_lambda(
             [this, cb = std::move(cb)]() mutable
             {
                 zero::WebSocket::onopen(std::move(cb));
-            }))));
+            }));
     }
 
     void WebSocket::onmessage(zero::WebSocketCallback &&callback)
     {
-        zero::WebSocketCallback cb(new callable::CallableLambda(new auto(
+        zero::WebSocketCallback cb(bastard::take_lambda(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                Window::instance().post(new auto(
+                Window::instance().post(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
-                    }));
-            })));
-        _tasks.push(std::unique_ptr<callable::Callable<void>>(new callable::CallableLambda(new auto(
+                    });
+            }));
+        _tasks.push(bastard::take_lambda(
             [this, cb = std::move(cb)]() mutable
             {
                 zero::WebSocket::onmessage(std::move(cb));
-            }))));
+            }));
     }
 
     void WebSocket::send(std::string &&message)
     {
-        auto f = new auto(
+        _tasks.push(bastard::take_lambda(
             [this, message = std::move(message)]() mutable
             {
                 zero::WebSocket::send(std::move(message));
-            });
-        _tasks.push(std::unique_ptr<callable::Callable<void>>(new callable::CallableLambda(f)));
+            }));
     }
 
     WebSocket::~WebSocket()

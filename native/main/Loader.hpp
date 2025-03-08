@@ -37,6 +37,7 @@ namespace loader
         std::unique_ptr<ImageBitmap> takeBitmap() { return std::move(_bitmap); }
     };
 
+    using LoaderCallback = std::unique_ptr<bastard::Lambda<void, std::unique_ptr<Result>>>;
     class Loader
     {
     private:
@@ -53,6 +54,6 @@ namespace loader
         Loader(std::filesystem::path currentPath, TaskRunner *foreground, TaskRunner *background)
             : _currentPath(currentPath), _foreground(foreground), _background(background) {}
 
-        void load(const std::string &path, const std::string &type, std::unique_ptr<callable::Callable<void, std::unique_ptr<Result>>> &&callback);
+        void load(const std::string &path, const std::string &type, LoaderCallback &&callback);
     };
 }
