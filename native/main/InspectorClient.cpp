@@ -11,19 +11,19 @@ InspectorClient::InspectorClient(const std::shared_ptr<zero::WebSocket> &socket)
 
     _channel = std::make_unique<InspectorChannel>(socket);
 
-    socket->onopen(std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>>(new callable::CallableLambda(new auto(
+    socket->onopen(bastard::take_lambda(
         [this](std::unique_ptr<zero::WebSocketEvent> event)
         {
             v8_inspector::StringView DummyState;
             _session = _inspector->connect(1, _channel.get(), DummyState, v8_inspector::V8Inspector::kFullyTrusted);
-        }))));
+        }));
 
-    socket->onmessage(std::unique_ptr<callable::Callable<void, std::unique_ptr<zero::WebSocketEvent>>>(new callable::CallableLambda(new auto(
+    socket->onmessage(bastard::take_lambda(
         [this](std::unique_ptr<zero::WebSocketEvent> event)
         {
             v8_inspector::StringView stringView(reinterpret_cast<uint8_t *>(event->data.data()), event->data.size());
             _session->dispatchProtocolMessage(stringView);
-        }))));
+        }));
     _socket = socket;
 }
 

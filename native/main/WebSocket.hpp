@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "base/callable.hpp"
+#include <bastard/lambda.hpp>
 #include "base/TaskRunner.hpp"
 
 namespace zero
@@ -19,7 +19,7 @@ namespace zero
         WebSocketEvent(std::string &&data, bool isBinary) : data(std::move(data)), isBinary(isBinary) {}
     };
 
-    using WebSocketCallback = std::unique_ptr<callable::Callable<void, std::unique_ptr<WebSocketEvent>>>;
+    using WebSocketCallback = std::unique_ptr<bastard::Lambda<void, std::unique_ptr<WebSocketEvent>>>;
     class WebSocketImpl;
     class WebSocket
     {

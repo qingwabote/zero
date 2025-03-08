@@ -9,7 +9,7 @@
 
 %typemap(in) zero::WebSocketCallback* (zero::WebSocketCallback out){
     v8::Global<v8::Function> js_func(v8::Isolate::GetCurrent(), $input.As<v8::Function>());
-    auto c_func = new auto(
+    out = bastard::take_lambda(
         [js_func = std::move(js_func)](std::unique_ptr<zero::WebSocketEvent> res) mutable
         {
           v8::Isolate *isolate = v8::Isolate::GetCurrent();
@@ -17,7 +17,6 @@
           v8::Local<v8::Value> args[] = {SWIG_NewPointerObj(res.release(), $descriptor(zero::WebSocketEvent *), SWIG_POINTER_OWN)};
           js_func.Get(isolate)->Call(context, context->Global(), std::size(args), args);
         });
-    out.reset(new callable::CallableLambda(c_func));
     $1 = &out;
 }
 
