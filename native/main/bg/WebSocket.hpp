@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../WebSocket.hpp"
-#include "../base/TaskRunner.hpp"
 #include "../base/threading/SCSP.hpp"
 #include <bastard/lambda.hpp>
 #include <atomic>
@@ -28,7 +27,7 @@ namespace bg
         void onmessage(zero::WebSocketCallback &callback) { onmessage(std::move(callback)); }
         virtual void onmessage(zero::WebSocketCallback &&callback) override;
 
-        virtual void WebSocket::send(std::string &&message) override;
+        virtual void send(std::string &&message) override;
 
         ~WebSocket();
     };

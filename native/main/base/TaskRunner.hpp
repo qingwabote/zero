@@ -1,19 +1,16 @@
 #pragma once
 
-#include "base/callable.hpp"
+#include <bastard/lambda.hpp>
 
 class TaskRunner
 {
 public:
-    /**
-     * @brief it takes the ownership of lambda.
-     */
     template <typename T>
-    void post(T f)
+    void post(T &&lambda)
     {
-        post(std::unique_ptr<callable::Callable<void>>(new callable::CallableLambda(f)));
+        post(bastard::take_lambda(std::move(lambda)));
     }
 
 protected:
-    virtual void post(std::unique_ptr<callable::Callable<void>> &&callable) = 0;
+    virtual void post(std::unique_ptr<bastard::Lambda<void>> &&lambda) = 0;
 };

@@ -3,6 +3,7 @@
 #include <thread>
 #include "ThreadSafeQueue.hpp"
 #include "base/TaskRunner.hpp"
+#include <bastard/lambda.hpp>
 
 class ThreadPool : public TaskRunner
 {
@@ -13,10 +14,10 @@ private:
 
     std::vector<std::unique_ptr<std::thread>> _threads;
 
-    ThreadSafeQueue<std::unique_ptr<callable::Callable<void>>> _functionQueue;
+    ThreadSafeQueue<std::unique_ptr<bastard::Lambda<void>>> _functionQueue;
 
 protected:
-    void post(std::unique_ptr<callable::Callable<void>> &&callable) override;
+    void post(std::unique_ptr<bastard::Lambda<void>> &&callable) override;
 
 public:
     static ThreadPool &shared();

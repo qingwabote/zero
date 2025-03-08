@@ -10,7 +10,7 @@ namespace loader
 {
     uint32_t Loader::_taskCount = 0;
 
-    void Loader::load(const std::string &path, const std::string &type, std::unique_ptr<callable::Callable<void, std::unique_ptr<Result>>> &&callback)
+    void Loader::load(const std::string &path, const std::string &type, LoaderCallback &&callback)
     {
         std::filesystem::current_path(_currentPath);
         std::error_code ec;
@@ -28,7 +28,7 @@ namespace loader
         }
 
         auto foreground = _foreground;
-        _background->post(new auto(
+        _background->post(
             [foreground, type, abs_path, size, callback = std::move(callback)]() mutable
             {
                 std::unique_ptr<Result> result;
@@ -68,13 +68,13 @@ namespace loader
                     result = std::make_unique<Result>("unsupported type: " + type);
                 }
 
-                foreground->post(new auto(
+                foreground->post(
                     [callback = std::move(callback), result = std::move(result)]() mutable
                     {
                         callback->call(std::move(result));
                         Loader::_taskCount--;
-                    }));
-            }));
+                    });
+            });
 
         Loader::_taskCount++;
     }

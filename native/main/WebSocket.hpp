@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include <bastard/lambda.hpp>
-#include "base/TaskRunner.hpp"
 
 namespace zero
 {
@@ -32,7 +31,7 @@ namespace zero
         virtual void onopen(WebSocketCallback &&callback);
         virtual void onmessage(WebSocketCallback &&callback);
 
-        virtual void WebSocket::send(std::string &&message);
+        virtual void send(std::string &&message);
 
         void service(int timeout_ms);
 

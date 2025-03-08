@@ -15,7 +15,7 @@
           v8::Isolate *isolate = v8::Isolate::GetCurrent();
           v8::Local<v8::Context> context = isolate->GetCurrentContext();
           v8::Local<v8::Value> args[] = {SWIG_NewPointerObj(res.release(), $descriptor(zero::WebSocketEvent *), SWIG_POINTER_OWN)};
-          js_func.Get(isolate)->Call(context, context->Global(), std::size(args), args);
+          js_func.Get(isolate)->Call(context, context->Global(), std::size(args), args).ToLocalChecked();
         });
     $1 = &out;
 }

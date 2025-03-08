@@ -16,20 +16,20 @@ private:
 
     std::unique_ptr<gfx::Device> _device;
 
-    std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchStartCb;
-    std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchMoveCb;
-    std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> _touchEndCb;
+    std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> _touchStartCb;
+    std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> _touchMoveCb;
+    std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> _touchEndCb;
 
-    std::unique_ptr<callable::Callable<void, std::shared_ptr<WheelEvent>>> _wheelCb;
+    std::unique_ptr<bastard::Lambda<void, std::shared_ptr<WheelEvent>>> _wheelCb;
 
-    std::unique_ptr<callable::Callable<void>> _frameCb;
+    std::unique_ptr<bastard::Lambda<void>> _frameCb;
 
-    ThreadSafeQueue<std::unique_ptr<callable::Callable<void>>> _beforeTickQueue;
+    ThreadSafeQueue<std::unique_ptr<bastard::Lambda<void>>> _beforeTickQueue;
 
 protected:
-    void post(std::unique_ptr<callable::Callable<void>> &&func) override
+    void post(std::unique_ptr<bastard::Lambda<void>> &&lambda) override
     {
-        _beforeTickQueue.push(std::forward<std::unique_ptr<callable::Callable<void>>>(func));
+        _beforeTickQueue.push(std::move(lambda));
     }
 
 public:
@@ -44,13 +44,13 @@ public:
     Window() {};
 
     // refer to wx api
-    void onTouchStart(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchStartCb = std::move(cb); }
-    void onTouchMove(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchMoveCb = std::move(cb); }
-    void onTouchEnd(std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchEndCb = std::move(cb); }
+    void onTouchStart(std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchStartCb = std::move(cb); }
+    void onTouchMove(std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchMoveCb = std::move(cb); }
+    void onTouchEnd(std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> &&cb) { _touchEndCb = std::move(cb); }
 
-    void onWheel(std::unique_ptr<callable::Callable<void, std::shared_ptr<WheelEvent>>> &&cb) { _wheelCb = std::move(cb); }
+    void onWheel(std::unique_ptr<bastard::Lambda<void, std::shared_ptr<WheelEvent>>> &&cb) { _wheelCb = std::move(cb); }
 
-    void onFrame(std::unique_ptr<callable::Callable<void>> &&cb) { _frameCb = std::move(cb); }
+    void onFrame(std::unique_ptr<bastard::Lambda<void>> &&cb) { _frameCb = std::move(cb); }
 
     using TaskRunner::post;
 

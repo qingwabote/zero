@@ -26,10 +26,10 @@ void SWIGV8_DeletePrivateData(SWIGV8_OBJECT objRef) {
 }
 %}
 
-%typemap(in) std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> && (std::unique_ptr<callable::Callable<void, std::shared_ptr<TouchEvent>>> temp){
+%typemap(in) std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> && (std::unique_ptr<bastard::Lambda<void, std::shared_ptr<TouchEvent>>> out){
     auto js_func = $input.As<v8::Function>();
     v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
-    auto c_func = new auto(
+    out = bastard::take_lambda(
         [js_g_func = std::move(js_g_func)](std::shared_ptr<TouchEvent> event) mutable
         {
           v8::Isolate *isolate = v8::Isolate::GetCurrent();
@@ -38,14 +38,13 @@ void SWIGV8_DeletePrivateData(SWIGV8_OBJECT objRef) {
           v8::Local<v8::Value> args[] = {js_event};
           js_g_func.Get(isolate)->Call(context, context->Global(), 1, args);
         });
-    temp.reset(new callable::CallableLambda(c_func));
-    $1 = &temp;
+    $1 = &out;
 }
 
-%typemap(in) std::unique_ptr<callable::Callable<void, std::shared_ptr<WheelEvent>>> && (std::unique_ptr<callable::Callable<void, std::shared_ptr<WheelEvent>>> temp){
+%typemap(in) std::unique_ptr<bastard::Lambda<void, std::shared_ptr<WheelEvent>>> && (std::unique_ptr<bastard::Lambda<void, std::shared_ptr<WheelEvent>>> out){
     auto js_func = $input.As<v8::Function>();
     v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
-    auto c_func = new auto(
+    out = bastard::take_lambda(
         [js_g_func = std::move(js_g_func)](std::shared_ptr<WheelEvent> event) mutable
         {
           v8::Isolate *isolate = v8::Isolate::GetCurrent();
@@ -54,22 +53,20 @@ void SWIGV8_DeletePrivateData(SWIGV8_OBJECT objRef) {
           v8::Local<v8::Value> args[] = {js_event};
           js_g_func.Get(isolate)->Call(context, context->Global(), 1, args);
         });
-    temp.reset(new callable::CallableLambda(c_func));
-    $1 = &temp;
+    $1 = &out;
 }
 
-%typemap(in) std::unique_ptr<callable::Callable<void>> && (std::unique_ptr<callable::Callable<void>> temp){
+%typemap(in) std::unique_ptr<bastard::Lambda<void>> && (std::unique_ptr<bastard::Lambda<void>> out){
     auto js_func = $input.As<v8::Function>();
     v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
-    auto c_func = new auto(
+    out = bastard::take_lambda(
         [js_g_func = std::move(js_g_func)]() mutable
         {
           v8::Isolate *isolate = v8::Isolate::GetCurrent();
           v8::Local<v8::Context> context = isolate->GetCurrentContext();
           js_g_func.Get(isolate)->Call(context, context->Global(), 0, nullptr);
         });
-    temp.reset(new callable::CallableLambda(c_func));
-    $1 = &temp;
+    $1 = &out;
 }
 
 %import "base/TaskRunner.hpp"

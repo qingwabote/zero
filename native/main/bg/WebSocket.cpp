@@ -28,11 +28,11 @@ namespace bg
         zero::WebSocketCallback cb(bastard::take_lambda(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                Window::instance().post(new auto(
+                Window::instance().post(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
-                    }));
+                    });
             }));
         _tasks.push(bastard::take_lambda(
             [this, cb = std::move(cb)]() mutable
@@ -46,11 +46,11 @@ namespace bg
         zero::WebSocketCallback cb(bastard::take_lambda(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                Window::instance().post(new auto(
+                Window::instance().post(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
-                    }));
+                    });
             }));
         _tasks.push(bastard::take_lambda(
             [this, cb = std::move(cb)]() mutable

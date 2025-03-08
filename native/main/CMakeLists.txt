@@ -39,7 +39,7 @@ FetchContent_MakeAvailable(json)
 target_link_libraries(zero_main PRIVATE nlohmann_json::nlohmann_json)
 
 add_subdirectory(../bastard bastard)
-target_link_libraries(zero_main PRIVATE bastard)
+target_link_libraries(zero_main PUBLIC bastard)
 
 add_subdirectory(../../puttyknife/jsb puttyknife)
 target_link_libraries(puttyknife PRIVATE v8)
