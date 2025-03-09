@@ -109,7 +109,8 @@ int Window::loop(SDL_Window *sdl_window)
         v8::Context::Scope context_scope(context);
 
         // create InspectorClient once context created
-        InspectorClient inspectorClient(context);
+        std::unique_ptr<InspectorClient> inspectorClient;
+        //  = std::make_unique<InspectorClient>(context);
 
         _loader = std::make_unique<loader::Loader>(project_path, &zero::Loop::instance(), &ThreadPool::shared());
         _device = std::make_unique<gfx::Device>(
@@ -189,7 +190,7 @@ int Window::loop(SDL_Window *sdl_window)
             return -1;
         }
 
-        loop_ec = zero::Loop::instance().service(sdl_window, platform.get(), isolate.get(), inspectorClient, index_promise);
+        loop_ec = zero::Loop::instance().service(sdl_window, platform.get(), isolate.get(), index_promise, inspectorClient.get());
 
         ThreadPool::shared().join();
 

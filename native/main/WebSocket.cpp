@@ -6,6 +6,7 @@
 #include <iterator>
 #include "log.h"
 #include <queue>
+#include <regex>
 
 // https://libwebsockets.org/lws-api-doc-main/html/md_READMEs_README_coding.html
 
@@ -33,19 +34,54 @@ namespace zero
 
         std::queue<std::string> _messageQueue;
 
+        int _readyState{-1};
+
     public:
+        int readyState() { return _readyState; }
+
         WebSocketCallback onopen;
         WebSocketCallback onmessage;
 
         WebSocketImpl(const std::string &url)
         {
-            auto port = url.substr(url.rfind(":") + 1);
+            std::smatch match;
+            if (!std::regex_match(url, match, std::regex(R"(ws://(.*):(\d+))")))
+            {
+                ZERO_LOG_ERROR("WebSocket url match fails: %s", url.c_str());
+                return;
+            }
 
-            lws_context_creation_info info{};
-            info.port = std::stoi(port);
-            info.protocols = protocols;
-            info.user = this;
-            _context = lws_create_context(&info);
+            std::string host = match[1].str();
+            std::string port = match[2].str();
+
+            lws_context_creation_info context_info{};
+            context_info.protocols = protocols;
+            context_info.user = this;
+            if (host.length()) // client
+            {
+                context_info.port = CONTEXT_PORT_NO_LISTEN;
+                _context = lws_create_context(&context_info);
+
+                lws_client_connect_info connect_info{};
+                connect_info.context = _context;
+                connect_info.address = host.c_str();
+                connect_info.port = std::stoi(port);
+                connect_info.protocol = protocols[0].name;
+                _connection = lws_client_connect_via_info(&connect_info);
+                if (!_connection)
+                {
+                    lws_context_destroy(_context);
+                    ZERO_LOG_ERROR("lws_client_connect_via_info fails");
+                    return;
+                }
+            }
+            else if (match[2].matched) // server
+            {
+                context_info.port = std::stoi(port);
+                _context = lws_create_context(&context_info);
+            }
+
+            _readyState = 0;
         }
 
         int lws_callback(lws *wsi, enum lws_callback_reasons reason, uint8_t *in, size_t len)
@@ -63,6 +99,7 @@ namespace zero
                 ZERO_LOG_INFO("LWS_CALLBACK_WSI_DESTROY");
                 break;
             case LWS_CALLBACK_ESTABLISHED:
+            case LWS_CALLBACK_CLIENT_ESTABLISHED:
                 ZERO_LOG_INFO("LWS_CALLBACK_ESTABLISHED");
                 if (onopen)
                 {
@@ -71,6 +108,7 @@ namespace zero
                 lws_callback_on_writable(wsi);
                 break;
             case LWS_CALLBACK_RECEIVE:
+            case LWS_CALLBACK_CLIENT_RECEIVE:
             {
                 // ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE");
                 bool binary = lws_frame_is_binary(wsi);
@@ -85,13 +123,14 @@ namespace zero
                 {
                     if (onmessage)
                     {
-                        // ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE %s", _data.c_str());
+                        ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE %s", _data.c_str());
                         onmessage->call(std::make_unique<WebSocketEvent>(std::move(_data), binary));
                     }
                 }
                 break;
             }
             case LWS_CALLBACK_SERVER_WRITEABLE:
+            case LWS_CALLBACK_CLIENT_WRITEABLE:
             {
                 // ZERO_LOG_INFO("LWS_CALLBACK_SERVER_WRITEABLE");
                 if (_messageQueue.empty())
@@ -154,6 +193,11 @@ namespace zero
     const lws_protocols WebSocketImpl::protocols[] = {
         {"", WebSocketImpl::lws_callback, 0, 65536, 0, NULL, 0},
         LWS_PROTOCOL_LIST_TERM};
+
+    int WebSocket::readyState()
+    {
+        return _impl->readyState();
+    }
 
     WebSocket::WebSocket(const std::string &url) : _impl(new WebSocketImpl(url)) {}
 

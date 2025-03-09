@@ -6,6 +6,11 @@ namespace bg
 {
     WebSocket::WebSocket(const std::string &url) : zero::WebSocket(url)
     {
+        if (readyState() < 0)
+        {
+            return;
+        }
+
         ZERO_LOG_INFO("WebSocket create thread");
         _thread = std::make_unique<std::thread>(
             [this]()
@@ -29,7 +34,7 @@ namespace bg
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
                 zero::Loop::instance().post(
-                    [callback = std::move(callback), event = std::move(event)]() mutable
+                    [&callback, event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
                     });
@@ -47,7 +52,7 @@ namespace bg
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
                 zero::Loop::instance().post(
-                    [callback = std::move(callback), event = std::move(event)]() mutable
+                    [&callback, event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
                     });
@@ -70,8 +75,11 @@ namespace bg
 
     WebSocket::~WebSocket()
     {
-        cancel();
-        _running = false;
-        _thread->join();
+        if (_thread)
+        {
+            cancel();
+            _running = false;
+            _thread->join();
+        }
     }
 }

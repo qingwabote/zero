@@ -14,6 +14,8 @@ Zero.registerSystem(physicsStepper, 1);
 export class FrameRemote implements Frame {
     readonly input = new JoystickInputRemote
 
+    readonly _socket: WebSocket;
+
     constructor() {
         let id;
 
@@ -40,6 +42,7 @@ export class FrameRemote implements Frame {
                 return;
             }
         }
+        this._socket = socket;
 
         physicsStepper.step(0);
     }

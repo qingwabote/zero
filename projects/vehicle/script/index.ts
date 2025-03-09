@@ -46,6 +46,8 @@ const wheel_create_infos = [
     }
 ]
 
+let frame: Frame;
+
 export class App extends Zero {
     start() {
         const width = 640;
@@ -161,7 +163,7 @@ export class App extends Zero {
         const cameraControl = doc.node.addComponent(CameraControl);
         cameraControl.camera = main_camera;
 
-        const frame: Frame = new FrameRemote;
+        frame = new FrameRemote;
 
         const input = frame.input;
         input.on(JoystickInput.Events.CHANGE, () => {

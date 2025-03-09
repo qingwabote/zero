@@ -6,6 +6,7 @@
 %include "std_shared_ptr.i"
 
 %ignore zero::WebSocketEvent::WebSocketEvent;
+%ignore zero::WebSocket;
 
 %typemap(in) zero::WebSocketCallback* (zero::WebSocketCallback out){
     v8::Global<v8::Function> js_func(v8::Isolate::GetCurrent(), $input.As<v8::Function>());
@@ -29,6 +30,6 @@
 %{
 #include "bg/WebSocket.hpp"
 %}
-%import "WebSocket.hpp"
+%include "WebSocket.hpp"
 %include "bg/WebSocket.hpp"
 

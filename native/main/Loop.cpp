@@ -6,7 +6,7 @@
 
 namespace zero
 {
-    int Loop::service(SDL_Window *window, v8::Platform *platform, v8::Isolate *isolate, InspectorClient &inspectorClient, v8::Local<v8::Promise> promise)
+    int Loop::service(SDL_Window *window, v8::Platform *platform, v8::Isolate *isolate, v8::Local<v8::Promise> promise, InspectorClient *inspectorClient)
     {
         int width = 0;
         int height = 0;
@@ -23,7 +23,10 @@ namespace zero
         std::unordered_map<SDL_FingerID, std::shared_ptr<Touch>> touches;
         while (_running > 0)
         {
-            inspectorClient.tick();
+            if (inspectorClient)
+            {
+                inspectorClient->tick();
+            }
 
             std::unique_ptr<bastard::Lambda<void>> f{};
             while (_taskQueue.pop(f))

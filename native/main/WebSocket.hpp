@@ -26,6 +26,8 @@ namespace zero
         std::unique_ptr<WebSocketImpl> _impl;
 
     public:
+        int readyState();
+
         WebSocket(const std::string &url);
 
         virtual void onopen(WebSocketCallback &&callback);
