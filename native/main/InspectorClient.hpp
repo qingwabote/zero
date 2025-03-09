@@ -7,7 +7,7 @@
 class InspectorClient : public v8_inspector::V8InspectorClient
 {
 private:
-    zero::WebSocket _socket{"xxx:6086"};
+    zero::WebSocket _socket{"ws://:6086"};
     std::unique_ptr<v8_inspector::V8Inspector> _inspector;
     std::unique_ptr<v8_inspector::V8InspectorSession> _session;
     std::unique_ptr<InspectorChannel> _channel;

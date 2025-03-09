@@ -47,7 +47,7 @@ namespace zero
 
         using TaskRunner::post;
 
-        int service(SDL_Window *window, v8::Platform *platform, v8::Isolate *isolate, InspectorClient &inspectorClient, v8::Local<v8::Promise> promise);
+        int service(SDL_Window *window, v8::Platform *platform, v8::Isolate *isolate, v8::Local<v8::Promise> promise, InspectorClient *inspectorClient);
 
         void terminate()
         {
