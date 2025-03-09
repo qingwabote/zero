@@ -1,5 +1,5 @@
 #include "./WebSocket.hpp"
-#include "../Window.hpp"
+#include "../Loop.hpp"
 #include "log.h"
 
 namespace bg
@@ -28,7 +28,7 @@ namespace bg
         zero::WebSocketCallback cb(bastard::take_lambda(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                Window::instance().post(
+                zero::Loop::instance().post(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));
@@ -46,7 +46,7 @@ namespace bg
         zero::WebSocketCallback cb(bastard::take_lambda(
             [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
             {
-                Window::instance().post(
+                zero::Loop::instance().post(
                     [callback = std::move(callback), event = std::move(event)]() mutable
                     {
                         callback->call(std::move(event));

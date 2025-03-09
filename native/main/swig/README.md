@@ -11,6 +11,7 @@ swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o 
 swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\Loader_wrap.cpp Loader.i
 swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\WebSocket_wrap.cpp WebSocket.i
 swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\gfx_wrap.cpp gfx.i
+swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\Loop_wrap.cpp Loop.i
 swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\Window_wrap.cpp Window.i
 ```
 *swig -I<这里不支持相对路径>😭*

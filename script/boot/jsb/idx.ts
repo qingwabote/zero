@@ -88,22 +88,24 @@ export async function loadWasm(url: string, imports: WebAssembly.Imports): Promi
 
 export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
 
+const loop = zero.Loop.instance();
+
 export function attach(listener: EventListener) {
-    w.onTouchStart(function (event: any) {
+    loop.onTouchStart(function (event: any) {
         listener.onTouchStart(new TouchEventImpl(event));
     })
-    w.onTouchMove(function (event: any) {
+    loop.onTouchMove(function (event: any) {
         listener.onTouchMove(new TouchEventImpl(event))
     })
-    w.onTouchEnd(function (event: any) {
+    loop.onTouchEnd(function (event: any) {
         listener.onTouchEnd(new TouchEventImpl(event))
     })
 
-    w.onWheel(function (event: any) {
+    loop.onWheel(function (event: any) {
         listener.onWheel(new WheelEventImpl(event))
     })
 
-    w.onFrame(function () {
+    loop.onFrame(function () {
         listener.onFrame();
     });
 }

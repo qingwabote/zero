@@ -11,7 +11,7 @@ void InspectorChannel::sendResponse(int callId, std::unique_ptr<v8_inspector::St
 
     // ZERO_LOG_INFO("sendResponse %s", utf8.c_str());
 
-    _socket->send(std::move(utf8));
+    _socket.send(std::move(utf8));
 }
 
 void InspectorChannel::sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message)
@@ -22,7 +22,7 @@ void InspectorChannel::sendNotification(std::unique_ptr<v8_inspector::StringBuff
 
     // ZERO_LOG_INFO("sendNotification %s", utf8.c_str());
 
-    _socket->send(std::move(utf8));
+    _socket.send(std::move(utf8));
 }
 
 void InspectorChannel::flushProtocolNotifications()

@@ -1,30 +1,28 @@
 #include "InspectorClient.hpp"
 #include "log.h"
 
-InspectorClient::InspectorClient(const std::shared_ptr<zero::WebSocket> &socket)
+InspectorClient::InspectorClient(v8::Local<v8::Context> context)
 {
-    v8::Isolate *isolate = v8::Isolate::GetCurrent();
-    _inspector = v8_inspector::V8Inspector::create(isolate, this);
+    _inspector = v8_inspector::V8Inspector::create(context->GetIsolate(), this);
 
     const uint8_t name[] = "V8InspectorContext";
-    _inspector->contextCreated(v8_inspector::V8ContextInfo(isolate->GetCurrentContext(), 1, v8_inspector::StringView(name, sizeof(name) - 1)));
+    _inspector->contextCreated(v8_inspector::V8ContextInfo(context, 1, v8_inspector::StringView(name, sizeof(name) - 1)));
 
-    _channel = std::make_unique<InspectorChannel>(socket);
+    _channel = std::make_unique<InspectorChannel>(_socket);
 
-    socket->onopen(bastard::take_lambda(
+    _socket.onopen(bastard::take_lambda(
         [this](std::unique_ptr<zero::WebSocketEvent> event)
         {
             v8_inspector::StringView DummyState;
             _session = _inspector->connect(1, _channel.get(), DummyState, v8_inspector::V8Inspector::kFullyTrusted);
         }));
 
-    socket->onmessage(bastard::take_lambda(
+    _socket.onmessage(bastard::take_lambda(
         [this](std::unique_ptr<zero::WebSocketEvent> event)
         {
             v8_inspector::StringView stringView(reinterpret_cast<uint8_t *>(event->data.data()), event->data.size());
             _session->dispatchProtocolMessage(stringView);
         }));
-    _socket = socket;
 }
 
 void InspectorClient::runMessageLoopOnPause(int contextGroupId)
@@ -32,7 +30,7 @@ void InspectorClient::runMessageLoopOnPause(int contextGroupId)
     _blocked = true;
     while (_blocked)
     {
-        _socket->service(0);
+        _socket.service(0);
     }
 }
 
@@ -44,7 +42,7 @@ void InspectorClient::quitMessageLoopOnPause()
 void InspectorClient::tick()
 {
     // https://github.com/warmcat/libwebsockets/issues/1735
-    _socket->service(-1);
+    _socket.service(-1);
 }
 
 InspectorClient::~InspectorClient()
