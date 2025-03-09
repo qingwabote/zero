@@ -3,6 +3,7 @@ target_include_directories(v8 INTERFACE ./v8)
 set(SRC_FILES
     base/threading/ThreadPool.cpp
     gfx/info.cpp
+    Loop.cpp
     Window.cpp
     Loader.cpp
     sugars/sdlsugar.cpp
@@ -19,6 +20,7 @@ set(SRC_FILES
     swig/auto/Loader_wrap.cpp
     swig/auto/gfx_wrap.cpp
     swig/auto/WebSocket_wrap.cpp
+    swig/auto/Loop_wrap.cpp
     swig/auto/Window_wrap.cpp
     bg/Device.cpp
     bg/CommandBuffer.cpp

@@ -72,22 +72,20 @@ namespace zero
                 break;
             case LWS_CALLBACK_RECEIVE:
             {
-                ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE");
+                // ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE");
                 bool binary = lws_frame_is_binary(wsi);
                 auto remaining = lws_remaining_packet_payload(wsi);
                 if (lws_is_first_fragment(wsi))
                 {
-                    ZERO_LOG_INFO("  first");
-
                     auto size = len + remaining;
                     _data.reserve(size);
                 }
-                ZERO_LOG_INFO("  insert");
                 _data.append(reinterpret_cast<char *>(in), len);
                 if (remaining == 0)
                 {
                     if (onmessage)
                     {
+                        // ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE %s", _data.c_str());
                         onmessage->call(std::make_unique<WebSocketEvent>(std::move(_data), binary));
                     }
                 }
@@ -95,7 +93,7 @@ namespace zero
             }
             case LWS_CALLBACK_SERVER_WRITEABLE:
             {
-                ZERO_LOG_INFO("LWS_CALLBACK_SERVER_WRITEABLE");
+                // ZERO_LOG_INFO("LWS_CALLBACK_SERVER_WRITEABLE");
                 if (_messageQueue.empty())
                 {
                     break;
@@ -106,6 +104,8 @@ namespace zero
 
                 std::string message = std::move(_messageQueue.front());
                 _messageQueue.pop();
+
+                // ZERO_LOG_INFO("LWS_CALLBACK_SERVER_WRITEABLE %s", message.c_str());
 
                 std::copy(message.begin(), message.end(), std::back_inserter(buffer));
                 if (lws_write(wsi, buffer.data() + LWS_PRE, message.size(), LWS_WRITE_TEXT) < message.size())
@@ -123,7 +123,7 @@ namespace zero
             }
 
             default:
-                ZERO_LOG_INFO("lws_callback_reasons: %d", reason);
+                // ZERO_LOG_INFO("lws_callback_reasons: %d", reason);
                 break;
             }
             return 0;
