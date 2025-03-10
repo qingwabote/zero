@@ -2,11 +2,10 @@
 
 %include "attribute.i"
 
-%{
-#include "ImageBitmap.hpp"
-%}
-
 %ignore ImageBitmap::ImageBitmap;
 %ignore ImageBitmap::pixels;
 
-%include "ImageBitmap.hpp"
+%{
+#include <gfx/ImageBitmap.hpp>
+%}
+%include <gfx/ImageBitmap.hpp>

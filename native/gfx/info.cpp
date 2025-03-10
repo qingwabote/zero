@@ -1,4 +1,4 @@
-#include "info.hpp"
+#include <gfx/info.hpp>
 
 namespace gfx
 {

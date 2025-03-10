@@ -2,7 +2,6 @@ target_include_directories(v8 INTERFACE ./v8)
 
 set(SRC_FILES
     base/threading/ThreadPool.cpp
-    gfx/info.cpp
     Loop.cpp
     Window.cpp
     Loader.cpp
@@ -31,6 +30,7 @@ set(SRC_FILES
 add_library(zero_main STATIC ${SRC_FILES})
 
 target_link_libraries(zero_main PUBLIC sdl)
+target_link_libraries(zero_main PUBLIC gfx)
 target_link_libraries(zero_main PUBLIC websockets)
 target_link_libraries(zero_main PUBLIC v8)
 target_include_directories(zero_main PUBLIC ./ ./lws ./v8)
@@ -40,7 +40,6 @@ FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download
 FetchContent_MakeAvailable(json)
 target_link_libraries(zero_main PRIVATE nlohmann_json::nlohmann_json)
 
-add_subdirectory(../bastard bastard)
 target_link_libraries(zero_main PUBLIC bastard)
 
 add_subdirectory(../../puttyknife/jsb puttyknife)

@@ -1,4 +1,3 @@
-#include "log.h"
 #include "gfx/DescriptorSet.hpp"
 #include "gfx/DescriptorSetLayout.hpp"
 #include "DescriptorSetImpl.hpp"
@@ -111,7 +110,6 @@ namespace gfx
         if (pool->empty())
         {
             pool->multiply();
-            // ZERO_LOG_INFO("DescriptorSetPool multiply: layout name \"%s\"", layout->name.c_str());
         }
         impl->initialize(pool->get());
 

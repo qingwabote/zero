@@ -1,6 +1,6 @@
 #include "gfx/Device.hpp"
 #include "DeviceImpl.hpp"
-#include "log.h"
+#include "SDL_log.h"
 
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
@@ -23,23 +23,23 @@ namespace
     {
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
         {
-            ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            SDL_LogError(0, "%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
         }
         else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            ZERO_LOG_WARN("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            SDL_LogWarn(0, "%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
         }
         else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
-            ZERO_LOG_INFO("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            SDL_LogInfo(0, "%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
         }
         else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
         {
-            ZERO_LOG_VERBOSE("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            SDL_LogVerbose(0, "%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
         }
         else
         {
-            ZERO_LOG_ERROR("%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
+            SDL_LogError(0, "%s: %s", callbackData->pMessageIdName, callbackData->pMessage);
         }
         gfx::DeviceImpl *device = reinterpret_cast<gfx::DeviceImpl *>(userData);
         device->debugMessengerCallback();
@@ -59,7 +59,7 @@ namespace gfx
         {
             uint32_t v;
             vkEnumerateInstanceVersion(&v);
-            ZERO_LOG_INFO("Instance Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
+            SDL_LogInfo(0, "Instance Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
         }
 
         VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
@@ -115,7 +115,7 @@ namespace gfx
         VkSurfaceKHR surface = nullptr;
         if (!SDL_Vulkan_CreateSurface(_window, instance, &surface))
         {
-            ZERO_LOG_ERROR("failed to create surface, SDL Error: %s", SDL_GetError());
+            SDL_LogError(0, "failed to create surface, SDL Error: %s", SDL_GetError());
             return true;
         }
 
@@ -157,7 +157,7 @@ namespace gfx
         vkGetPhysicalDeviceProperties(gpu, &_gpuProperties);
         {
             auto v = _gpuProperties.apiVersion;
-            ZERO_LOG_INFO("Device Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
+            SDL_LogInfo(0, "Device Version: %d.%d.%d", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
         }
 
         // uint32_t extension_count = 0;
@@ -166,7 +166,7 @@ namespace gfx
         // vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extension_count, extensions_supported.data());
         // for (auto &&i : extensions_supported)
         // {
-        //     ZERO_LOG_INFO("extensions_supported: %s", i.extensionName);
+        //     SDL_LogInfo(0, "extensions_supported: %s", i.extensionName);
         // }
 
         std::vector<const char *> device_extensions{
@@ -194,7 +194,7 @@ namespace gfx
             auto res = vkCreateDevice(gpu, &device_info, nullptr, &device);
             if (res)
             {
-                ZERO_LOG_ERROR("vkCreateDevice %s", string_VkResult(res));
+                SDL_LogError(0, "vkCreateDevice %s", string_VkResult(res));
                 return true;
             }
         }
@@ -227,7 +227,7 @@ namespace gfx
 
         // char *pStatsString = nullptr;
         // vmaBuildStatsString(_allocator, &pStatsString, VK_FALSE);
-        // ZERO_LOG_INFO("vmaBuildStatsString: %s", pStatsString);
+        // SDL_LogInfo(0, "vmaBuildStatsString: %s", pStatsString);
         // vmaFreeStatsString(_allocator, pStatsString);
 
         // command pool and a buffer

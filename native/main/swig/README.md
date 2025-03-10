@@ -7,7 +7,7 @@
 新建目录 auto, 然后生成绑定：
 ```ps
 cd .\native\main\swig
-swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\ImageBitmap_wrap.cpp ImageBitmap.i
+swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -IC:\Users\logan\Documents\GitHub\zero\native\gfx\include -o .\auto\ImageBitmap_wrap.cpp ImageBitmap.i
 swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\Loader_wrap.cpp Loader.i
 swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\WebSocket_wrap.cpp WebSocket.i
 swig -c++ -javascript -v8 -IC:\Users\logan\Documents\GitHub\zero\native\main -o .\auto\gfx_wrap.cpp gfx.i

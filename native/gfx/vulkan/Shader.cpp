@@ -1,6 +1,6 @@
 #include "gfx/Shader.hpp"
 #include "ShaderImpl.hpp"
-#include "log.h"
+#include "SDL_log.h"
 
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/SPIRV/SpvTools.h"
@@ -149,14 +149,14 @@ namespace gfx
             // https://docs.vulkan.org/guide/latest/versions.html#_spir_v
             if (_device->version() < VK_API_VERSION_1_1)
             {
-                ZERO_LOG_ERROR("GLSL Unsupported vulkan api version");
+                SDL_LogError(0, "GLSL Unsupported vulkan api version");
                 return true;
             }
             shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
 
             if (!shader.parse(&DefaultTBuiltInResource, version_semantics, false, messages))
             {
-                ZERO_LOG_ERROR("GLSL Parsing Failed:\n%s\n%s\nsource:\n%s", shader.getInfoLog(), shader.getInfoDebugLog(), src.c_str());
+                SDL_LogError(0, "GLSL Parsing Failed:\n%s\n%s\nsource:\n%s", shader.getInfoLog(), shader.getInfoDebugLog(), src.c_str());
                 return true;
             }
 
@@ -164,7 +164,7 @@ namespace gfx
             program.addShader(&shader);
             if (!program.link(messages))
             {
-                ZERO_LOG_ERROR("GLSL Linking Failed:\n%s\n%s\nsource:\n%s", program.getInfoLog(), program.getInfoDebugLog(), src.c_str());
+                SDL_LogError(0, "GLSL Linking Failed:\n%s\n%s\nsource:\n%s", program.getInfoLog(), program.getInfoDebugLog(), src.c_str());
                 return true;
             }
 

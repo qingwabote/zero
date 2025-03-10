@@ -5,7 +5,7 @@
 #include <memory>
 #include <filesystem>
 #include "base/TaskRunner.hpp"
-#include "ImageBitmap.hpp"
+#include <gfx/ImageBitmap.hpp>
 
 namespace loader
 {

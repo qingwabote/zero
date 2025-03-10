@@ -2,7 +2,7 @@
 #include "SDL.h"
 #include "env.hpp"
 #include "Window.hpp"
-#include "gfx/vulkan/tests/triangle.hpp"
+// #include "gfx/vulkan/tests/triangle.hpp"
 
 namespace
 {
