@@ -33,7 +33,7 @@ add_library(zero_main STATIC ${SRC_FILES})
 target_link_libraries(zero_main PUBLIC sdl)
 target_link_libraries(zero_main PUBLIC websockets)
 target_link_libraries(zero_main PUBLIC v8)
-target_include_directories(zero_main PUBLIC ./ ./sdl ./lws ./v8)
+target_include_directories(zero_main PUBLIC ./ ./lws ./v8)
 
 include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
