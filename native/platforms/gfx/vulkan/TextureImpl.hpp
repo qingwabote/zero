@@ -2,7 +2,7 @@
 
 #include "DeviceImpl.hpp"
 #include "gfx/info.hpp"
-#include "base/event/Emitter.hpp"
+#include <bastard/EventEmitter.hpp>
 
 namespace gfx
 {
@@ -11,7 +11,7 @@ namespace gfx
         RESET
     };
 
-    class TextureImpl : public event::Emitter<TextureImplEvent>
+    class TextureImpl : public bastard::EventEmitter<TextureImplEvent>
     {
     private:
         DeviceImpl *_device{nullptr};

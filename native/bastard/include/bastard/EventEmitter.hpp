@@ -4,27 +4,27 @@
 #include <memory>
 #include <bastard/lambda.hpp>
 
-namespace event
+namespace bastard
 {
-    using Handle = void *;
+    using EventListener = void *;
 
     template <typename EventType>
-    class Emitter
+    class EventEmitter
     {
     private:
         std::unordered_multimap<EventType, std::unique_ptr<bastard::LambdaBase>> _listeners;
 
     public:
         template <typename Lambda>
-        Handle on(EventType type, Lambda &&callback)
+        EventListener on(EventType type, Lambda &&callback)
         {
             auto listener = bastard::take_lambda(std::move(callback));
-            Handle handle = listener.get();
+            EventListener handle = listener.get();
             _listeners.emplace(type, std::move(listener));
             return handle;
         }
 
-        void off(EventType type, Handle handle)
+        void off(EventType type, EventListener handle)
         {
             auto range = _listeners.equal_range(type);
             for (auto it = range.first; it != range.second; ++it)

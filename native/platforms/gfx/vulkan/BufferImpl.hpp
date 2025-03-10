@@ -2,7 +2,7 @@
 
 #include "DeviceImpl.hpp"
 #include "gfx/info.hpp"
-#include "base/event/Emitter.hpp"
+#include <bastard/EventEmitter.hpp>
 
 namespace gfx
 {
@@ -11,7 +11,7 @@ namespace gfx
         RESET
     };
 
-    class BufferImpl : public event::Emitter<BufferImplEvent>
+    class BufferImpl : public bastard::EventEmitter<BufferImplEvent>
     {
     private:
         DeviceImpl *_device = nullptr;
