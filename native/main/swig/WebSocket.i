@@ -22,8 +22,10 @@
 }
 
 %attributeval(bg::WebSocket, zero::WebSocketCallback, onopen, onopen, onopen);
+%attributeval(bg::WebSocket, zero::WebSocketCallback, onclose, onclose, onclose);
 %attributeval(bg::WebSocket, zero::WebSocketCallback, onmessage, onmessage, onmessage);
 %ignore bg::WebSocket::onopen;
+%ignore bg::WebSocket::onclose;
 %ignore bg::WebSocket::onmessage;
 %unique_ptr(bg::WebSocket)
 

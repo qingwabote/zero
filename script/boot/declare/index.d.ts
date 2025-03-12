@@ -18,23 +18,14 @@ export declare interface EventListener {
     onFrame(): void;
 }
 
-declare interface CloseEvent {
-    readonly reason: string;
-}
-
-declare interface ErrorEvent {
-
-}
-
 declare interface MessageEvent {
     readonly data: any;
 }
 
 export declare class WebSocket {
-    onclose: ((ev: CloseEvent) => any) | null;
-    onerror: ((ev: ErrorEvent) => any) | null;
-    onmessage: ((ev: MessageEvent) => any) | null;
     onopen: (() => any) | null;
+    onclose: (() => any) | null;
+    onmessage: ((ev: MessageEvent) => any) | null;
 
     constructor(url: string);
 

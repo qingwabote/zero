@@ -46,6 +46,24 @@ namespace bg
             }));
     }
 
+    void WebSocket::onclose(zero::WebSocketCallback &&callback)
+    {
+        zero::WebSocketCallback cb(bastard::take_lambda(
+            [this, callback = std::move(callback)](std::unique_ptr<zero::WebSocketEvent> event) mutable
+            {
+                zero::Loop::instance().post(
+                    [&callback, event = std::move(event)]() mutable
+                    {
+                        callback->call(std::move(event));
+                    });
+            }));
+        _tasks.push(bastard::take_lambda(
+            [this, cb = std::move(cb)]() mutable
+            {
+                zero::WebSocket::onclose(std::move(cb));
+            }));
+    }
+
     void WebSocket::onmessage(zero::WebSocketCallback &&callback)
     {
         zero::WebSocketCallback cb(bastard::take_lambda(

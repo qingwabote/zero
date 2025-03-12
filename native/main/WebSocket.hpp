@@ -31,6 +31,7 @@ namespace zero
         WebSocket(const std::string &url);
 
         virtual void onopen(WebSocketCallback &&callback);
+        virtual void onclose(WebSocketCallback &&callback);
         virtual void onmessage(WebSocketCallback &&callback);
 
         virtual void send(std::string &&message);

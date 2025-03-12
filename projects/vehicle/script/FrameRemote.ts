@@ -20,14 +20,11 @@ export class FrameRemote implements Frame {
         let id;
 
         const socket = new WebSocket("ws://127.0.0.1:8080")
-        socket.onerror = (e) => {
-            console.log('socket onerror', e)
-        }
         socket.onopen = () => {
             console.log('socket onopen')
         }
-        socket.onclose = (e) => {
-            console.log('socket onclose', e.reason)
+        socket.onclose = () => {
+            console.log('socket onclose')
         }
         socket.onmessage = (e) => {
             console.log('socket onmessage', e.data)

@@ -40,6 +40,7 @@ namespace zero
         int readyState() { return _readyState; }
 
         WebSocketCallback onopen;
+        WebSocketCallback onclose;
         WebSocketCallback onmessage;
 
         WebSocketImpl(const std::string &url)
@@ -97,6 +98,13 @@ namespace zero
             case LWS_CALLBACK_WSI_DESTROY:
                 _connection = nullptr;
                 ZERO_LOG_INFO("LWS_CALLBACK_WSI_DESTROY");
+                break;
+            case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
+                ZERO_LOG_INFO("LWS_CALLBACK_CLIENT_CONNECTION_ERROR");
+                if (onclose)
+                {
+                    onclose->call(std::make_unique<WebSocketEvent>());
+                }
                 break;
             case LWS_CALLBACK_ESTABLISHED:
             case LWS_CALLBACK_CLIENT_ESTABLISHED:
@@ -162,7 +170,7 @@ namespace zero
             }
 
             default:
-                // ZERO_LOG_INFO("lws_callback_reasons: %d", reason);
+                ZERO_LOG_INFO("lws_callback_reasons: %d", reason);
                 break;
             }
             return 0;
@@ -200,6 +208,11 @@ namespace zero
     }
 
     WebSocket::WebSocket(const std::string &url) : _impl(new WebSocketImpl(url)) {}
+
+    void WebSocket::onclose(WebSocketCallback &&callback)
+    {
+        _impl->onclose = std::move(callback);
+    }
 
     void WebSocket::onopen(WebSocketCallback &&callback)
     {
