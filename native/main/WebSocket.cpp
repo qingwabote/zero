@@ -131,7 +131,7 @@ namespace zero
                 {
                     if (onmessage)
                     {
-                        ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE %s", _data.c_str());
+                        // ZERO_LOG_INFO("LWS_CALLBACK_RECEIVE %s", _data.c_str());
                         onmessage->call(std::make_unique<WebSocketEvent>(std::move(_data), binary));
                     }
                 }

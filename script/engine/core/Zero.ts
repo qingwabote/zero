@@ -58,7 +58,9 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     }
 
     static unregisterSystem(system: System) {
-        this._system2priority.delete(system);
+        if (!this._system2priority.delete(system)) {
+            throw new Error("unregisterSystem");
+        }
     }
 
     private readonly _input = new Input;

@@ -12,6 +12,12 @@ export abstract class Frame extends System {
 
     private readonly _queue: Data[] = [];
 
+    constructor(readonly stepTime: number) {
+        super();
+
+        World.instance.stepTime = stepTime;
+    }
+
     abstract start(): void;
 
     protected push(data: Data) {

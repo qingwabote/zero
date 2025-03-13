@@ -46,7 +46,9 @@ const wheel_create_infos = [
     }
 ]
 
-let frame: Frame = new FrameRemote;
+const stepTime = 1 / 30;
+
+let frame: Frame = new FrameRemote(stepTime);
 
 Zero.unregisterSystem(PhysicsSystem.instance);
 Zero.registerSystem(frame, 1);
