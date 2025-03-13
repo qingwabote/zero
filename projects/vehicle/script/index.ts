@@ -1,7 +1,7 @@
 
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
 import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
-import { BoxShape, DebugDrawer, vehicle } from 'physics';
+import { BoxShape, DebugDrawer, PhysicsSystem, vehicle } from 'physics';
 import { Frame } from './Frame.js';
 import { FrameRemote } from './FrameRemote.js';
 import { Joystick } from './Joystick.js';
@@ -46,7 +46,10 @@ const wheel_create_infos = [
     }
 ]
 
-let frame: Frame;
+let frame: Frame = new FrameRemote;
+
+Zero.unregisterSystem(PhysicsSystem.instance);
+Zero.registerSystem(frame, 1);
 
 export class App extends Zero {
     start() {
@@ -163,8 +166,6 @@ export class App extends Zero {
         const cameraControl = doc.node.addComponent(CameraControl);
         cameraControl.camera = main_camera;
 
-        frame = new FrameRemote;
-
         const input = frame.input;
         input.on(JoystickInput.Events.CHANGE, () => {
             let engineForce = 0;
@@ -186,6 +187,7 @@ export class App extends Zero {
             wheels[0].steering = steering;
             wheels[1].steering = steering;
         })
+        frame.start();
 
         node = new Node;
         const joystick = node.addComponent(Joystick);

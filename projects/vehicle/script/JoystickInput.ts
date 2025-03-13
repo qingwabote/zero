@@ -1,17 +1,34 @@
 import { EventEmitter } from "bastard";
-import { Vec2 } from "engine";
+import { vec2, Vec2 } from "engine";
 
-export namespace JoystickInput {
-    export enum Events {
-        CHANGE = 'CHANGE'
-    }
-
-    export interface EventToListener {
-        [Events.CHANGE]: () => void;
-    }
+enum Events {
+    DIRTY = 'DIRTY',
+    CHANGE = 'CHANGE'
 }
 
-export interface JoystickInput extends EventEmitter<JoystickInput.EventToListener> {
-    point: Readonly<Vec2>;
+interface EventToListener {
+    [Events.DIRTY]: () => void;
+    [Events.CHANGE]: () => void;
+}
+
+export class JoystickInput extends EventEmitter.Impl<EventToListener> {
+    private _point = vec2.create();
+    get point(): Readonly<Vec2> {
+        return this._point;
+    }
+    set point(value: Readonly<Vec2>) {
+        vec2.copy(this._point, value);
+        this.emit(Events.DIRTY);
+    }
+
+    step(value: Readonly<Vec2>) {
+        vec2.copy(this._point, value);
+        this.emit(Events.CHANGE);
+    }
+}
+JoystickInput.Events = Events;
+
+export declare namespace JoystickInput {
+    export { Events, EventToListener }
 }
 

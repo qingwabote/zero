@@ -4,7 +4,7 @@
     "ws": "^8.18.1"
   },
   "scripts": {
-    "dev": "tsc -p . --outDir dist --watch",
+    "tsc": "tsc -p . --outDir dist",
     "server": "node ./dist/main.js"
   }
 }
