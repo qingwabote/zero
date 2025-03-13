@@ -187,7 +187,7 @@ namespace zero
             lws_service(_context, timeout_ms);
         }
 
-        void cancel()
+        void wake()
         {
             lws_cancel_service(_context);
         }
@@ -234,9 +234,9 @@ namespace zero
         _impl->service(timeout_ms);
     }
 
-    void WebSocket::cancel()
+    void WebSocket::wake()
     {
-        _impl->cancel();
+        _impl->wake();
     }
 
     WebSocket::~WebSocket() {}

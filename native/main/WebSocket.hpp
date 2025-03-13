@@ -38,7 +38,7 @@ namespace zero
 
         void service(int timeout_ms);
 
-        void cancel();
+        void wake();
 
         virtual ~WebSocket();
     };

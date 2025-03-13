@@ -89,13 +89,14 @@ namespace bg
             {
                 zero::WebSocket::send(std::move(message));
             }));
+        wake();
     }
 
     WebSocket::~WebSocket()
     {
         if (_thread)
         {
-            cancel();
+            wake();
             _running = false;
             _thread->join();
         }
