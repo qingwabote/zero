@@ -1,12 +1,12 @@
 import { System } from "engine";
-import { PhysicsSystem } from "physics";
+import { World } from "physics";
 
 export class PhysicsStepper extends System {
     private readonly _steps: number[] = [];
 
     constructor(stepTime: number) {
         super();
-        PhysicsSystem.instance.world.stepTime = stepTime;
+        World.instance.stepTime = stepTime;
     }
 
     step(dt: number) {
@@ -15,8 +15,10 @@ export class PhysicsStepper extends System {
 
     override update(): void {
         for (const dt of this._steps) {
-            PhysicsSystem.instance.update(dt);
+            World.instance.step(dt);
         }
         this._steps.length = 0;
+
+        World.instance.draw();
     }
 }

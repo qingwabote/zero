@@ -1,7 +1,7 @@
 import { Component, Node } from "engine";
 import { phys } from "phys";
 import { BoxShape } from "../BoxShape.js";
-import { PhysicsSystem } from "../PhysicsSystem.js";
+import { World } from "../World.js";
 
 export class Chassis extends Component {
     readonly pointer;
@@ -19,6 +19,6 @@ export class Chassis extends Component {
         super(node);
 
         phys.fn.physCollisionObject_setActivationState(this._shape.body.pointer, 4);
-        this.pointer = phys.fn.physVehicle_new(PhysicsSystem.instance.world.pointer, this._shape.body.pointer);
+        this.pointer = phys.fn.physVehicle_new(World.instance.pointer, this._shape.body.pointer);
     }
 }

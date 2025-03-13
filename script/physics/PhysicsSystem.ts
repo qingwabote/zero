@@ -5,10 +5,12 @@ export class PhysicsSystem extends System {
 
     static readonly instance = new PhysicsSystem();
 
-    readonly world = new World;
+    private constructor() {
+        super();
+    }
 
     override update(dt: number): void {
-        this.world.step(dt);
+        World.instance.step(dt);
     }
 }
 Zero.registerSystem(PhysicsSystem.instance, 1)

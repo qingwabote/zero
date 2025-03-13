@@ -1,7 +1,7 @@
 import { Component, Node, quat, vec3 } from 'engine';
 import { phys } from 'phys';
 import { BoxShape } from './BoxShape.js';
-import { PhysicsSystem } from "./PhysicsSystem.js";
+import { World } from './World.js';
 
 const physV3_a = phys.fn.physVector3_new();
 const physQ_a = phys.fn.physQuat_new();
@@ -29,7 +29,7 @@ export class RigidBody extends Component {
     constructor(node: Node) {
         super(node);
 
-        PhysicsSystem.instance.world.addRigidBody(this);
+        World.instance.addRigidBody(this);
 
         // set after addRigidBody
         this.mass = 0;
