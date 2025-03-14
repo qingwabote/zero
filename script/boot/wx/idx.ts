@@ -1,10 +1,9 @@
 // run env first
 import { gl, pixelRatio, windowInfo } from "./env.js";
 //
-import * as boot from "boot";
 import { Device } from "gfx";
 
-export const WebSocket = globalThis.WebSocket as typeof boot.WebSocket;
+export { WebSocket } from "./WebSocket.js";
 
 export interface TouchEvent {
     get count(): number;

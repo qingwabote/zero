@@ -23,9 +23,9 @@ declare interface MessageEvent {
 }
 
 export declare class WebSocket {
-    onopen: (() => any) | null;
-    onclose: (() => any) | null;
-    onmessage: ((ev: MessageEvent) => any) | null;
+    set onopen(value: () => void);
+    set onclose(value: () => void);
+    set onmessage(value: (e: MessageEvent) => void);
 
     constructor(url: string);
 

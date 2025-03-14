@@ -93,7 +93,7 @@ new Promise(() => {
     (async function () {
         const boot = await System.import('boot');
         await System.import('splash');
-        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('spine'), boot.loadBundle('skeleton')]);
-        System.import('skeleton')
+        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('physics'), boot.loadBundle('vehicle')]);
+        System.import('vehicle')
     })()
 })

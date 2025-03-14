@@ -14,7 +14,7 @@
         "flex": "tsc -p ../script/flex --outDir ./dist/subpackages/engine/flex/script --module system --watch",
         "spi": "tsc -p ../script/spi/wasm --outDir ./dist/subpackages/spine/spi/script --module system --watch",
         "spine": "tsc -p ../script/spine --outDir ./dist/subpackages/spine/script --module system --watch",
-        "phys": "tsc -p ../script/phys/ammo --outDir ./dist/subpackages/physics/phys/script --module system --watch",
+        "phys": "tsc -p ../script/phys/wasm --outDir ./dist/subpackages/physics/phys/script --module system --watch",
         "physics": "tsc -p ../script/physics --outDir ./dist/subpackages/physics --module system --watch",
         "navigation": "tsc -p ../projects/navigation/script --outDir ./dist/subpackages/projects/navigation/script --module system --watch",
         "animation": "tsc -p ../projects/animation/script --outDir ./dist/subpackages/projects/animation/script --module system --watch",
