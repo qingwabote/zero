@@ -92,6 +92,12 @@ export const vec3 = {
         out[2] = a[2] * b[2];
         return out;
     },
+    divide(out, a, b) {
+        out[0] = a[0] / b[0];
+        out[1] = a[1] / b[1];
+        out[2] = a[2] / b[2];
+        return out;
+    },
     dot(a, b) {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },

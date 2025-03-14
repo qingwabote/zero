@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "-fno-exceptions -sSUPPORT_LONGJMP=0 -sDISABLE_EXCEPTION_CAT
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto")
 
-add_executable(phys-wasm ./null.cpp)
+add_executable(phys-wasm ./callbacks.cpp)
 
 add_subdirectory(../phys/${PHYS} phys)
 target_link_libraries(phys-wasm PRIVATE -Wl,--whole-archive phys -Wl,--no-whole-archive)

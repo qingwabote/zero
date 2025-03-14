@@ -8,15 +8,8 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT z
 
 add_executable(zero WIN32 main.cpp)
 
-# sdl
-add_library(sdl SHARED IMPORTED GLOBAL)
-set_target_properties(sdl PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.dll
-    IMPORTED_IMPLIB ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.lib
-)
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/SDL2.dll $<TARGET_FILE_DIR:${PROJECT_NAME}>/${SDL2.dll}
-)
+# add_subdirectory(../../sdl/win sdl)
+add_subdirectory(../../gfx/win gfx)
 
 # websockets
 add_library(websockets SHARED IMPORTED GLOBAL)
@@ -65,19 +58,5 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 target_link_libraries(v8 INTERFACE v8_libbase v8_libplatform)
 
-# glslang
-set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
-
-foreach(name IN LISTS glslang_libs)
-    add_library(${name} STATIC IMPORTED GLOBAL)
-    set_target_properties(${name} PROPERTIES
-        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}d.lib
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/${name}.lib
-    )
-endforeach()
-
 add_subdirectory(../../main main)
 target_link_libraries(zero PRIVATE zero::main)
-
-add_subdirectory(../gfx/vulkan gfx)
-target_link_libraries(zero PRIVATE zero::gfx)

@@ -89,3 +89,13 @@
   });
   $1 = &span;
 }
+
+
+// https://stackoverflow.com/a/62214721/19640923
+
+%include "std_string.i"
+
+%typemap(in, noblock=1, fragment="SWIG_AsVal_std_string") std::string&& (std::string temp) {
+  SWIG_AsVal_std_string($input, &temp);
+  $1 = &temp;
+}

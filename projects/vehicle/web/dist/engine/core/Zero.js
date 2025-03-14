@@ -16,8 +16,8 @@ var Event;
     Event["SCENE_UPDATE"] = "SCENE_UPDATE";
     Event["PIPELINE_UPDATE"] = "PIPELINE_UPDATE";
     Event["DEVICE_SYNC"] = "DEVICE_SYNC";
-    Event["UPLOAD"] = "UPLOAD";
     Event["PIPELINE_BATCH"] = "PIPELINE_BATCH";
+    Event["UPLOAD"] = "UPLOAD";
     Event["RENDER"] = "RENDER";
     Event["FRAME_END"] = "FRAME_END";
 })(Event || (Event = {}));
@@ -30,6 +30,11 @@ export class Zero extends EventEmitter.Impl {
     }
     static registerSystem(system, priority) {
         this._system2priority.set(system, priority);
+    }
+    static unregisterSystem(system) {
+        if (!this._system2priority.delete(system)) {
+            throw new Error("unregisterSystem");
+        }
     }
     get input() {
         return this._input;
@@ -47,11 +52,11 @@ export class Zero extends EventEmitter.Impl {
         this._input = new Input;
         this._componentScheduler = new ComponentScheduler;
         this._timeScheduler = new TimeScheduler;
-        this.commandBuffer = boot.device.createCommandBuffer();
+        this._commandBuffer = boot.device.createCommandBuffer();
         this._swapchainUsable = boot.device.createSemaphore();
         this._queueExecuted = boot.device.createSemaphore();
         this._fence = boot.device.createFence(true);
-        this._time = boot.initial;
+        this._time = boot.now();
         this.profile = new Profile;
         this.scene = new Scene(models);
         const systems = [...Zero._system2priority.keys()];
@@ -97,9 +102,9 @@ export class Zero extends EventEmitter.Impl {
         const time = boot.now();
         const delta = (time - this._time) / 1000;
         this._time = time;
+        this._timeScheduler.update(delta);
         // updates component, responds to user input
         this._componentScheduler.update(delta);
-        this._timeScheduler.update();
         // updates systems, applies physics and then animation
         for (const system of this._systems) {
             system.update(delta);
@@ -120,18 +125,19 @@ export class Zero extends EventEmitter.Impl {
         boot.device.waitForFence(this._fence);
         boot.device.swapchain.acquire(this._swapchainUsable);
         this.emit(Event.DEVICE_SYNC);
-        this._componentScheduler.upload(this.commandBuffer);
-        quad.indexBufferView.update(this.commandBuffer);
-        this._pipeline.upload(this);
-        this.emit(Event.UPLOAD);
-        this.commandBuffer.begin();
-        this._pipeline.batch(this);
+        const cmd = this._commandBuffer;
+        cmd.begin();
+        this._pipeline.batch(this, cmd);
         this.emit(Event.PIPELINE_BATCH);
-        this._pipeline.render(this);
-        this.commandBuffer.end();
+        this._componentScheduler.upload(cmd);
+        quad.indexBufferView.update(cmd);
+        this._pipeline.upload(this, cmd);
+        this.emit(Event.UPLOAD);
+        this._pipeline.render(this, cmd);
+        cmd.end();
         this.emit(Event.RENDER);
         const submitInfo = new SubmitInfo;
-        submitInfo.commandBuffer = this.commandBuffer;
+        submitInfo.commandBuffer = cmd;
         submitInfo.waitSemaphore = this._swapchainUsable;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
         submitInfo.signalSemaphore = this._queueExecuted;

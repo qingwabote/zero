@@ -1,14 +1,18 @@
 import { System, Zero } from 'engine';
-import { phys } from 'phys';
+import { World } from './World.js';
 
 export class PhysicsSystem extends System {
 
     static readonly instance = new PhysicsSystem();
 
-    readonly pointer = phys.fn.physWorld_new();
+    private constructor() {
+        super();
+    }
 
     override update(dt: number): void {
-        phys.fn.physWorld_stepSimulation(this.pointer, dt, 1, 1 / 60);
+        World.instance.ping();
+        World.instance.step(dt);
+        World.instance.pong();
     }
 }
 Zero.registerSystem(PhysicsSystem.instance, 1)

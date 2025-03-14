@@ -19,13 +19,13 @@ export class LightUBO extends UBO {
     get buffer() {
         return this._view.buffer;
     }
-    upload(context, dumping) {
+    upload(context, commandBuffer, dumping) {
         const light = context.scene.directionalLight;
         if (dumping || light.transform.hasChangedFlag.value) {
             vec3.transformQuat(vec3_a, vec3.FORWARD, light.transform.world_rotation);
             vec3.negate(vec3_a, vec3_a);
             this._view.set(vec3_a, 0);
-            this._view.update(context.commandBuffer);
+            this._view.update(commandBuffer);
         }
     }
 }

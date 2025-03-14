@@ -12,23 +12,23 @@ export class Pipeline {
     update(context) {
         this.data.update(context.profile, this._dumping);
     }
-    batch(context) {
+    batch(context, commandBuffer) {
         for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                flow.batch(context, i);
+                flow.batch(context, commandBuffer, i);
             }
         }
     }
-    upload(context) {
+    upload(context, commandBuffer) {
         for (const ubo of this.ubos) {
-            ubo.upload(context, this._dumping);
+            ubo.upload(context, commandBuffer, this._dumping);
         }
         this._dumping = false;
     }
-    render(context) {
+    render(context, commandBuffer) {
         for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                flow.render(context, i);
+                flow.render(context, commandBuffer, i);
             }
         }
     }

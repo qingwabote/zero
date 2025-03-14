@@ -2,12 +2,12 @@ import { Model } from "../core/render/scene/Model.js";
 import { Stroke } from "../Stroke.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
 export class StrokeRenderer extends BoundedRenderer {
+    constructor() {
+        super(...arguments);
+        this._stroke = new Stroke();
+    }
     get bounds() {
         return this._stroke.mesh.bounds;
-    }
-    constructor(node) {
-        super(node);
-        this._stroke = new Stroke();
     }
     createModel() {
         return new Model(this.node, this._stroke.mesh, [{ passes: [this._stroke.pass] }]);

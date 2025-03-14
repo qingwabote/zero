@@ -6,21 +6,13 @@ namespace bg
 
     void Queue::submit(const std::shared_ptr<gfx::SubmitInfo> &info, const std::shared_ptr<gfx::Fence> &fence)
     {
-        auto f = new auto(
-            [=]()
-            {
-                gfx::Queue::submit(info, fence);
-            });
-        _background->post(f);
+        _background->post([=]()
+                          { gfx::Queue::submit(info, fence); });
     }
 
     void Queue::present(const std::shared_ptr<gfx::Semaphore> &waitSemaphore)
     {
-        auto f = new auto(
-            [=]()
-            {
-                gfx::Queue::present(waitSemaphore);
-            });
-        _background->post(f);
+        _background->post([=]()
+                          { gfx::Queue::present(waitSemaphore); });
     }
 }

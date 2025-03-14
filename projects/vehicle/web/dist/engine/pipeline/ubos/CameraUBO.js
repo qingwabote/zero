@@ -33,7 +33,7 @@ export class CameraUBO extends UBO {
         return UBO.align(BlockSize) * cameraIndex;
     }
     ;
-    upload(context, dumping) {
+    upload(context, commandBuffer, dumping) {
         const cameras = context.scene.cameras;
         const size = UBO.align(BlockSize);
         this._view.resize(size * cameras.length / this._view.BYTES_PER_ELEMENT);
@@ -50,7 +50,7 @@ export class CameraUBO extends UBO {
                 this._view.set(camera.transform.world_position, offset + Block.members.position.offset);
             }
         }
-        this._view.update(context.commandBuffer);
+        this._view.update(commandBuffer);
     }
 }
 CameraUBO.definition = Block;

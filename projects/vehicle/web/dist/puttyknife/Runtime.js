@@ -24,8 +24,66 @@ export class Runtime {
         this._u8.set(buffer, ptr);
         return ptr;
     }
-    getBuffer(ptr, size) {
-        return this._u8.subarray(ptr, ptr + size);
+    getBuffer(handle, type, elements) {
+        let begin;
+        let source;
+        switch (type) {
+            case 'p':
+                begin = handle >> 2;
+                source = this._u32;
+                break;
+            case 'u8':
+                begin = handle;
+                source = this._u8;
+                break;
+            case 'u16':
+                begin = handle >> 1;
+                source = this._u16;
+                break;
+            case 'i32':
+                begin = handle >> 2;
+                source = this._i32;
+                break;
+            case 'f32':
+                begin = handle >> 2;
+                source = this._f32;
+                break;
+            default:
+                throw new Error(`unsupported type: ${type}`);
+        }
+        return source.subarray(begin, begin + elements);
+    }
+    cpyBuffer(out, handle, type, elements) {
+        let begin;
+        let source;
+        switch (type) {
+            case 'p':
+                begin = handle >> 2;
+                source = this._u32;
+                break;
+            case 'u8':
+                begin = handle;
+                source = this._u8;
+                break;
+            case 'u16':
+                begin = handle >> 1;
+                source = this._u16;
+                break;
+            case 'i32':
+                begin = handle >> 2;
+                source = this._i32;
+                break;
+            case 'f32':
+                begin = handle >> 2;
+                source = this._f32;
+                break;
+            default:
+                throw new Error(`unsupported type: ${type}`);
+        }
+        for (let i = 0; i < elements; i++) {
+            out[i] = source[begin + i];
+        }
+        return out;
     }
     delBuffer(ptr) {
         this._exports.free(ptr);

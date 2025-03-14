@@ -33,7 +33,7 @@ export class Buffer {
         return false;
     }
 
-    update(src: ArrayBufferView, src_offset: number, src_length: number, dst_offset: number): void {
+    upload(src: ArrayBufferView, src_offset: number, src_length: number, dst_offset: number): void {
         const gl = this._gl;
 
         const target = usage2target(gl, this.info.usage);

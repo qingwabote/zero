@@ -1,4 +1,4 @@
-import { Texture } from "gfx";
+import { CommandBuffer, Texture } from "gfx";
 import { Context } from "./Context.js";
 import { Data } from "./pipeline/Data.js";
 import { Flow } from "./pipeline/Flow.js";
@@ -22,25 +22,25 @@ export class Pipeline {
         this.data.update(context.profile, this._dumping);
     }
 
-    batch(context: Context) {
+    batch(context: Context, commandBuffer: CommandBuffer) {
         for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                flow.batch(context, i);
+                flow.batch(context, commandBuffer, i);
             }
         }
     }
 
-    upload(context: Context) {
+    upload(context: Context, commandBuffer: CommandBuffer) {
         for (const ubo of this.ubos) {
-            ubo.upload(context, this._dumping);
+            ubo.upload(context, commandBuffer, this._dumping);
         }
         this._dumping = false;
     }
 
-    render(context: Context) {
+    render(context: Context, commandBuffer: CommandBuffer) {
         for (let i = 0; i < context.scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                flow.render(context, i);
+                flow.render(context, commandBuffer, i);
             }
         }
     }

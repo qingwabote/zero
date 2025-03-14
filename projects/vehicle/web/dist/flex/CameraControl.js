@@ -23,32 +23,37 @@ export class CameraControl extends Component {
         this._fixed_changed = true;
     }
     start() {
-        let point;
+        let point = null;
         this.panel.emitter.on(Input.TouchEvents.START, event => {
             point = event.touch.local;
         });
         this.panel.emitter.on(Input.TouchEvents.MOVE, event => {
-            const dx = event.touch.local[0] - point[0];
-            const dy = event.touch.local[1] - point[1];
-            if (this.fixed) {
-                const rotation = quat.fromEuler(quat_a, -dy, dx, 0);
-                this.camera.node.position = vec3.transformQuat(vec3_a, this.camera.node.position, rotation);
-                this.camera.node.lookAt(vec3.ZERO);
-            }
-            else {
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    const rad = -Math.PI / 180 * dx;
-                    const rot = quat.create();
-                    quat.fromAxisAngle(rot, vec3.UNIT_Y, rad);
-                    quat.multiply(rot, this.camera.node.rotation, rot);
-                    this.camera.node.rotation = rot;
+            if (point) {
+                const dx = event.touch.local[0] - point[0];
+                const dy = event.touch.local[1] - point[1];
+                if (this.fixed) {
+                    const rotation = quat.fromEuler(quat_a, -dy, dx, 0);
+                    this.camera.node.position = vec3.transformQuat(vec3_a, this.camera.node.position, rotation);
+                    this.camera.node.lookAt(vec3.ZERO);
                 }
                 else {
-                    let delta_position = vec3.create(0, dy / 100, 0);
-                    this.camera.node.position = vec3.add(vec3.create(), this.camera.node.position, delta_position);
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        const rad = -Math.PI / 180 * dx;
+                        const rot = quat.create();
+                        quat.fromAxisAngle(rot, vec3.UNIT_Y, rad);
+                        quat.multiply(rot, this.camera.node.rotation, rot);
+                        this.camera.node.rotation = rot;
+                    }
+                    else {
+                        let delta_position = vec3.create(0, dy / 100, 0);
+                        this.camera.node.position = vec3.add(vec3.create(), this.camera.node.position, delta_position);
+                    }
                 }
             }
             point = event.touch.local;
+        });
+        this.panel.emitter.on(Input.TouchEvents.END, () => {
+            point = null;
         });
         this.panel.emitter.on(Input.GestureEvents.PINCH, event => {
             if (this.camera.fov != -1) {

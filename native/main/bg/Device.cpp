@@ -5,12 +5,12 @@
 
 namespace bg
 {
-    Device::Device(SDL_Window *window) : gfx::Device(window)
+    Device::Device(SDL_Window *window, std::function<void()> &&debugMessengerCallback) : gfx::Device(window, std::move(debugMessengerCallback))
     {
         _bg_thread = std::thread(
             [this]()
             {
-                std::unique_ptr<callable::Callable<void>> f{};
+                std::unique_ptr<bastard::Lambda<void>> f{};
                 while (_bg_running.load(std::memory_order_relaxed))
                 {
                     _bg_queue.pop(f, true);
@@ -32,32 +32,28 @@ namespace bg
     {
         std::promise<void> promise;
         std::future<void> future = promise.get_future();
-        auto f = new auto(
-            [=, &promise]()
-            {
-                gfx::Device::waitForFence(fence);
-                promise.set_value();
-            });
-        post(f);
+        post([=, &promise]()
+             {
+            gfx::Device::waitForFence(fence);
+            promise.set_value(); });
         future.get();
     }
 
     void Device::finish()
     {
         _bg_running.store(false, std::memory_order_relaxed);
-        auto nudge = new auto(
-            [=]()
-            {
-                // do nothing
-            });
-        post(nudge); // wake the blocked threads up
+        // wake the blocked threads up
+        post([=]()
+             {
+                 // do nothing
+             });
         _bg_thread.join();
 
         gfx::Device::finish();
     }
 
-    void Device::post(std::unique_ptr<callable::Callable<void>> &&callable)
+    void Device::post(std::unique_ptr<bastard::Lambda<void>> &&lambda)
     {
-        _bg_queue.push(std::forward<std::unique_ptr<callable::Callable<void>>>(callable));
+        _bg_queue.push(std::move(lambda));
     }
 }

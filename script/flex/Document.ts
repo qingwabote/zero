@@ -8,7 +8,7 @@ import { LayoutSystem } from "./LayoutSystem.js";
 const mat4_a = mat4.create();
 
 export class Document extends ElementContainer {
-    private _touchClaimed: Map<Element, Element> = new Map;
+    private _touchClaimed: Set<Element> = new Set;
 
     constructor(node: Node) {
         super(node);
@@ -16,10 +16,8 @@ export class Document extends ElementContainer {
             this.eventHandler(event, Input.TouchEvents.START);
         });
         Zero.instance.input.on(Input.TouchEvents.END, event => {
-            for (const element of this._touchClaimed.keys()) {
-                if (element.emitter.has(Input.TouchEvents.END)) {
-                    element.emitter.emit(Input.TouchEvents.END);
-                }
+            for (const element of this._touchClaimed) {
+                element.emitter.emit(Input.TouchEvents.END);
             }
             this._touchClaimed.clear();
         });
@@ -90,7 +88,7 @@ export class Document extends ElementContainer {
                         //     element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
                         // }
                         if (name == Input.TouchEvents.START) {
-                            this._touchClaimed.set(element, element);
+                            this._touchClaimed.add(element);
                         }
                         return true;
                     }
@@ -101,7 +99,7 @@ export class Document extends ElementContainer {
                 element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
             }
             if (name == Input.TouchEvents.START) {
-                this._touchClaimed.set(element, element);
+                this._touchClaimed.add(element);
             }
             return true;
         }

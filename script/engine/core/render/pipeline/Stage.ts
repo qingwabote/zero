@@ -1,6 +1,6 @@
 import { RecycleQueue } from "bastard";
 import { device } from "boot";
-import { ClearFlagBits, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { ClearFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { shaderLib } from "../../shaderLib.js";
 import { Context } from "../Context.js";
@@ -53,7 +53,7 @@ export class Stage {
         private readonly _rect?: Readonly<Vec4>
     ) { }
 
-    batch(context: Context, cameraIndex: number): void {
+    batch(context: Context, commandBuffer: CommandBuffer, cameraIndex: number): void {
         const camera = context.scene.cameras[cameraIndex];
         let queue = this._camera2queue.get(camera);
         if (!queue) {
@@ -61,12 +61,12 @@ export class Stage {
         }
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.batch(queue, context, cameraIndex);
+                phase.batch(queue, context, commandBuffer, cameraIndex);
             }
         }
     }
 
-    render(context: Context, cameraIndex: number) {
+    render(context: Context, commandBuffer: CommandBuffer, cameraIndex: number) {
         const camera = context.scene.cameras[cameraIndex];
         const queue = this._camera2queue.get(camera)!;
 
@@ -74,7 +74,7 @@ export class Stage {
         const rect = this._rect ?? camera.rect;
 
         const { width, height } = this._framebuffer.info;
-        context.commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
+        commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
 
         let material: DescriptorSet | undefined;
         let pipeline: Pipeline | undefined;
@@ -82,30 +82,30 @@ export class Stage {
         while (pass2batches = queue.front()) {
             for (const [pass, batches] of pass2batches) {
                 if (pass.descriptorSet && material != pass.descriptorSet) {
-                    context.commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
+                    commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                     material = pass.descriptorSet;
 
                     context.profile.materials++;
                 }
                 for (const batch of batches) {
                     if (batch.descriptorSet) {
-                        context.commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
                     }
 
                     const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout || descriptorSetLayoutNull]);
                     if (pipeline != pl) {
-                        context.commandBuffer.bindPipeline(pl);
+                        commandBuffer.bindPipeline(pl);
                         pipeline = pl;
 
                         context.profile.pipelines++;
                     }
 
-                    context.commandBuffer.bindInputAssembler(batch.inputAssembler);
+                    commandBuffer.bindInputAssembler(batch.inputAssembler);
 
                     if (batch.inputAssembler.indexInput) {
-                        context.commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
+                        commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
                     } else {
-                        context.commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
+                        commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
                     }
                     context.profile.draws++;
                 }
@@ -113,7 +113,7 @@ export class Stage {
             queue.pop();
         }
 
-        context.commandBuffer.endRenderPass();
+        commandBuffer.endRenderPass();
 
         context.profile.stages++;
     }

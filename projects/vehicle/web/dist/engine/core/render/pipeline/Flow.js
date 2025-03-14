@@ -7,15 +7,15 @@ export class Flow {
         this._visibilities = _visibilities;
         this._flowLoopIndex = _flowLoopIndex;
     }
-    batch(context, cameraIndex) {
+    batch(context, commandBuffer, cameraIndex) {
         if ((context.scene.cameras[cameraIndex].visibilities & this._visibilities) == 0) {
             return;
         }
         for (const stage of this.stages) {
-            stage.batch(context, cameraIndex);
+            stage.batch(context, commandBuffer, cameraIndex);
         }
     }
-    render(context, cameraIndex) {
+    render(context, commandBuffer, cameraIndex) {
         if ((context.scene.cameras[cameraIndex].visibilities & this._visibilities) == 0) {
             return;
         }
@@ -26,9 +26,9 @@ export class Flow {
                 dynamicOffsets.add(offset);
             }
         }
-        context.commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
+        commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
         for (const stage of this.stages) {
-            stage.render(context, cameraIndex);
+            stage.render(context, commandBuffer, cameraIndex);
         }
     }
 }

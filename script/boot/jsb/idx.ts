@@ -1,16 +1,11 @@
+import * as boot from "boot";
 import { Device } from "gfx";
 
-export interface TouchEvent {
-    get count(): number;
-    x(index: number): number;
-    y(index: number): number;
-}
+declare const zero: any;
 
-export interface WheelEvent extends TouchEvent {
-    get delta(): number;
-}
+export const WebSocket = zero.WebSocket as typeof boot.WebSocket;
 
-class TouchEventImpl implements TouchEvent {
+class TouchEventImpl implements boot.TouchEvent {
     get count(): number {
         return this._event.touches.size();
     }
@@ -26,23 +21,21 @@ class TouchEventImpl implements TouchEvent {
     }
 }
 
-class WheelEventImpl extends TouchEventImpl implements WheelEvent {
+class WheelEventImpl extends TouchEventImpl implements boot.WheelEvent {
     get delta(): number {
         return this._event.delta;
     }
 }
 
 export interface EventListener {
-    onTouchStart(event: TouchEvent): void;
-    onTouchMove(event: TouchEvent): void;
-    onTouchEnd(event: TouchEvent): void;
-    onWheel(event: WheelEvent): void;
+    onTouchStart(event: boot.TouchEvent): void;
+    onTouchMove(event: boot.TouchEvent): void;
+    onTouchEnd(event: boot.TouchEvent): void;
+    onWheel(event: boot.WheelEvent): void;
     onFrame(): void;
 }
 
 export const platform = 'jsb';
-
-declare const zero: any;
 
 const w = zero.Window.instance();
 
@@ -65,15 +58,9 @@ export function now(): number {
     return w.now();
 }
 
-export interface ResultTypes {
-    text: string,
-    buffer: ArrayBuffer,
-    bitmap: ImageBitmap
-}
-
 const loader = w.loader();
 
-export function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]> {
+export function load<T extends keyof boot.ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<boot.ResultTypes[T]> {
     return new Promise((resolve, reject) => {
         loader.load(url, type, (res: any) => {
             if (res.error) {
@@ -101,22 +88,24 @@ export async function loadWasm(url: string, imports: WebAssembly.Imports): Promi
 
 export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
 
+const loop = zero.Loop.instance();
+
 export function attach(listener: EventListener) {
-    w.onTouchStart(function (event: any) {
+    loop.onTouchStart(function (event: any) {
         listener.onTouchStart(new TouchEventImpl(event));
     })
-    w.onTouchMove(function (event: any) {
+    loop.onTouchMove(function (event: any) {
         listener.onTouchMove(new TouchEventImpl(event))
     })
-    w.onTouchEnd(function (event: any) {
+    loop.onTouchEnd(function (event: any) {
         listener.onTouchEnd(new TouchEventImpl(event))
     })
 
-    w.onWheel(function (event: any) {
+    loop.onWheel(function (event: any) {
         listener.onWheel(new WheelEventImpl(event))
     })
 
-    w.onFrame(function () {
+    loop.onFrame(function () {
         listener.onFrame();
     });
 }

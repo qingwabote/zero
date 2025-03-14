@@ -7,15 +7,13 @@ const mat4_a = mat4.create();
 export class Document extends ElementContainer {
     constructor(node) {
         super(node);
-        this._touchClaimed = new Map;
+        this._touchClaimed = new Set;
         Zero.instance.input.on(Input.TouchEvents.START, event => {
             this.eventHandler(event, Input.TouchEvents.START);
         });
         Zero.instance.input.on(Input.TouchEvents.END, event => {
-            for (const element of this._touchClaimed.keys()) {
-                if (element.emitter.has(Input.TouchEvents.END)) {
-                    element.emitter.emit(Input.TouchEvents.END);
-                }
+            for (const element of this._touchClaimed) {
+                element.emitter.emit(Input.TouchEvents.END);
             }
             this._touchClaimed.clear();
         });
@@ -77,7 +75,7 @@ export class Document extends ElementContainer {
                         //     element.emitter.emit(name, { touch: { world: world_position, local: local_position }, ...name == Input.GestureEvents.PINCH && { delta: (event as Input.GestureEvent).delta } });
                         // }
                         if (name == Input.TouchEvents.START) {
-                            this._touchClaimed.set(element, element);
+                            this._touchClaimed.add(element);
                         }
                         return true;
                     }
@@ -88,7 +86,7 @@ export class Document extends ElementContainer {
                 element.emitter.emit(name, Object.assign({ touch: { world: world_position, local: local_position } }, name == Input.GestureEvents.PINCH && { delta: event.delta }));
             }
             if (name == Input.TouchEvents.START) {
-                this._touchClaimed.set(element, element);
+                this._touchClaimed.add(element);
             }
             return true;
         }

@@ -7,7 +7,7 @@ System.register(['assets'], (function (exports) {
         }],
         execute: (function () {
 
-            const bundle = exports('bundle', new Bundle("dist/subpackages/spine2/spi/assets"));
+            const bundle = exports('bundle', new Bundle("dist/subpackages/spine/spi/assets"));
 
         })
     };

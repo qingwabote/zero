@@ -11,5 +11,6 @@ extern "C"
     PK_EXPORT float physVector3_getY(phys::Vector3 *v3);
     PK_EXPORT float physVector3_getZ(phys::Vector3 *v3);
 
+    PK_EXPORT float *physVector3_get(phys::Vector3 *v3);
     PK_EXPORT void physVector3_set(phys::Vector3 *v3, float x, float y, float z);
 }

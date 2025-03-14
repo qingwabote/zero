@@ -21,8 +21,8 @@ enum Event {
     SCENE_UPDATE = 'SCENE_UPDATE',
     PIPELINE_UPDATE = 'PIPELINE_UPDATE',
     DEVICE_SYNC = 'DEVICE_SYNC',
-    UPLOAD = 'UPLOAD',
     PIPELINE_BATCH = 'PIPELINE_BATCH',
+    UPLOAD = 'UPLOAD',
     RENDER = 'RENDER',
     FRAME_END = 'FRAME_END',
 }
@@ -34,8 +34,8 @@ interface EventToListener {
     [Event.SCENE_UPDATE]: () => void;
     [Event.PIPELINE_UPDATE]: () => void;
     [Event.DEVICE_SYNC]: () => void;
-    [Event.UPLOAD]: () => void;
     [Event.PIPELINE_BATCH]: () => void;
+    [Event.UPLOAD]: () => void;
     [Event.RENDER]: () => void;
     [Event.FRAME_END]: () => void;
 }
@@ -57,6 +57,12 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._system2priority.set(system, priority);
     }
 
+    static unregisterSystem(system: System) {
+        if (!this._system2priority.delete(system)) {
+            throw new Error("unregisterSystem");
+        }
+    }
+
     private readonly _input = new Input;
     public get input(): Input.Readonly {
         return this._input;
@@ -68,14 +74,12 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
 
     private readonly _systems: readonly System[];
 
-    public readonly commandBuffer = boot.device.createCommandBuffer();
+    private readonly _commandBuffer = boot.device.createCommandBuffer();
     private readonly _swapchainUsable = boot.device.createSemaphore();
     private readonly _queueExecuted = boot.device.createSemaphore();
     private readonly _fence = boot.device.createFence(true);
 
-    private _time = boot.initial;
-
-    public profile = new Profile;
+    private _time = boot.now();
 
     public get pipeline(): Pipeline {
         return this._pipeline;
@@ -85,7 +89,8 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._pipeline.dump();
     }
 
-    readonly scene: Scene;
+    public readonly scene: Scene;
+    public readonly profile = new Profile;
 
     constructor(private _pipeline: Pipeline, models: ModelCollection = new ModelArray) {
         super();
@@ -120,7 +125,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._componentScheduler.add(com);
     }
 
-    setInterval(func: () => void, delay: number = 0) {
+    setInterval(func: (dt: number) => void, delay: number = 0) {
         return this._timeScheduler.setInterval(func, delay);
     }
 
@@ -147,9 +152,10 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         const delta = (time - this._time) / 1000;
         this._time = time;
 
+        this._timeScheduler.update(delta);
+
         // updates component, responds to user input
         this._componentScheduler.update(delta);
-        this._timeScheduler.update();
         // updates systems, applies physics and then animation
         for (const system of this._systems) {
             system.update(delta);
@@ -174,21 +180,22 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         boot.device.swapchain.acquire(this._swapchainUsable);
         this.emit(Event.DEVICE_SYNC);
 
-        this._componentScheduler.upload(this.commandBuffer);
-        quad.indexBufferView.update(this.commandBuffer);
-        this._pipeline.upload(this);
-        this.emit(Event.UPLOAD);
-
-        this.commandBuffer.begin();
-        this._pipeline.batch(this);
+        const cmd = this._commandBuffer;
+        cmd.begin();
+        this._pipeline.batch(this, cmd);
         this.emit(Event.PIPELINE_BATCH);
 
-        this._pipeline.render(this);
-        this.commandBuffer.end();
+        this._componentScheduler.upload(cmd);
+        quad.indexBufferView.update(cmd);
+        this._pipeline.upload(this, cmd);
+        this.emit(Event.UPLOAD);
+
+        this._pipeline.render(this, cmd);
+        cmd.end();
         this.emit(Event.RENDER);
 
         const submitInfo = new SubmitInfo;
-        submitInfo.commandBuffer = this.commandBuffer;
+        submitInfo.commandBuffer = cmd;
         submitInfo.waitSemaphore = this._swapchainUsable;
         submitInfo.waitDstStageMask = PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT;
         submitInfo.signalSemaphore = this._queueExecuted;

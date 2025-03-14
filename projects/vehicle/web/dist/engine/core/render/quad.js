@@ -53,7 +53,7 @@ function createVertexBuffer(width, height, upsideDown = false) {
     bufferInfo.size = vertexes.byteLength;
     bufferInfo.usage = BufferUsageFlagBits.VERTEX;
     const buffer = device.createBuffer(bufferInfo);
-    buffer.update(vertexes, 0, 0, 0);
+    buffer.upload(vertexes, 0, 0, 0);
     return buffer;
 }
 function createVertexBufferView() {

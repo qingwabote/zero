@@ -18,6 +18,20 @@ export declare interface EventListener {
     onFrame(): void;
 }
 
+declare interface MessageEvent {
+    readonly data: any;
+}
+
+export declare class WebSocket {
+    set onopen(value: () => void);
+    set onclose(value: () => void);
+    set onmessage(value: (e: MessageEvent) => void);
+
+    constructor(url: string);
+
+    send(data: string): void;
+}
+
 export declare const platform: 'jsb' | 'web' | 'wx';
 
 export declare const safeArea: {

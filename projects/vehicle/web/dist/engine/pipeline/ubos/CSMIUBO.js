@@ -37,7 +37,7 @@ export class CSMIUBO extends UBO {
         this._view = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
         data.shadow = new Shadow(visibilities, _num);
     }
-    upload(context, dumping) {
+    upload(context, commandBuffer, dumping) {
         const size = UBO.align(BlockSize);
         let index = -1;
         for (const camera of context.scene.cameras) {
@@ -52,7 +52,7 @@ export class CSMIUBO extends UBO {
                 }
             }
         }
-        this._view.update(context.commandBuffer);
+        this._view.update(commandBuffer);
     }
 }
 CSMIUBO.definition = Block;

@@ -28,7 +28,7 @@ export class Buffer {
         gl.bindBuffer(target, null);
         return false;
     }
-    update(src, src_offset, src_length, dst_offset) {
+    upload(src, src_offset, src_length, dst_offset) {
         const gl = this._gl;
         const target = usage2target(gl, this.info.usage);
         gl.bindVertexArray(null);

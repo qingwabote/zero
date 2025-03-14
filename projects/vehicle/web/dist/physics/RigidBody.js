@@ -1,6 +1,6 @@
 import { Component, quat, vec3 } from 'engine';
 import { phys } from 'phys';
-import { PhysicsSystem } from "./PhysicsSystem.js";
+import { World } from './World.js';
 const physV3_a = phys.fn.physVector3_new();
 const physQ_a = phys.fn.physQuat_new();
 const physT_a = phys.fn.physTransform_new();
@@ -20,11 +20,16 @@ export class RigidBody extends Component {
         super(node);
         this.pointer = phys.fn.physRigidBody_new();
         this._mass = 0;
-        phys.fn.physWorld_addRigidBody(PhysicsSystem.instance.pointer, this.pointer);
+        this._shapes = new Set;
+        World.instance.addRigidBody(this);
         // set after addRigidBody
         this.mass = 0;
     }
-    update() {
+    addShape(shape) {
+        phys.fn.physRigidBody_addShape(this.pointer, shape.pointer);
+        this._shapes.add(shape);
+    }
+    ping() {
         if (this.node.hasChangedFlag.value) {
             phys.fn.physTransform_identity(physT_a);
             phys.fn.physVector3_set(physV3_a, ...this.node.world_position);
@@ -32,18 +37,19 @@ export class RigidBody extends Component {
             phys.fn.physQuat_set(physQ_a, ...this.node.world_rotation);
             phys.fn.physTransform_setRotation(physT_a, physQ_a);
             phys.fn.physRigidBody_setWorldTransform(this.pointer, physT_a);
+            const shape = phys.fn.physRigidBody_getCollisionShape(this.pointer);
+            phys.fn.physVector3_set(physV3_a, ...this.node.world_scale);
+            phys.fn.physCollisionShape_setScale(shape, physV3_a);
         }
     }
-    lateUpdate() {
+    pong() {
         if (!this._mass) {
             return;
         }
         const transform = phys.fn.physRigidBody_getWorldTransform(this.pointer);
         const position = phys.fn.physTransform_getPosition(transform);
-        vec3.set(v3_a, phys.fn.physVector3_getX(position), phys.fn.physVector3_getY(position), phys.fn.physVector3_getZ(position));
-        this.node.world_position = v3_a;
+        this.node.world_position = phys.heap.cpyBuffer(v3_a, phys.fn.physVector3_get(position), 'f32', 3);
         const rotation = phys.fn.physTransform_getRotation(transform);
-        quat.set(q_a, phys.fn.physQuat_getX(rotation), phys.fn.physQuat_getY(rotation), phys.fn.physQuat_getZ(rotation), phys.fn.physQuat_getW(rotation));
-        this.node.world_rotation = q_a;
+        this.node.world_rotation = phys.heap.cpyBuffer(q_a, phys.fn.physQuat_get(rotation), 'f32', 4);
     }
 }

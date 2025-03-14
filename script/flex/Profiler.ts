@@ -3,8 +3,6 @@ import { Node, TextRenderer, Zero, pipeline, render } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";
 
-let boot_time = 0;
-
 export class Profiler extends ElementContainer {
     private _time: number = 0;
     private _frames: number = 1;
@@ -79,8 +77,6 @@ export class Profiler extends ElementContainer {
     }
 
     override update(dt: number): void {
-        boot_time = boot_time || dt;
-
         if (this._time < 1) {
             this._frames++;
             this._time += dt;
@@ -103,8 +99,6 @@ render   ${(this._render_delta / this._frames).toFixed(2)}ms
 material ${Zero.instance.profile.materials}
 pipeline ${Zero.instance.profile.pipelines}
 draw     ${Zero.instance.profile.draws}`
-        //             + `
-        // boot     ${boot_time.toFixed(2)}s`;
 
         this._frames = 1;
         this._time = dt;

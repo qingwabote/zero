@@ -49,6 +49,7 @@ int WINAPI WinMain(
     if (Window::instance().loop(sdl_window))
     // if (test::triangle::draw(std::move(sdl_window)))
     {
+        ZERO_LOG_INFO("sleep");
         std::this_thread::sleep_for(std::chrono::nanoseconds(30000000000));
     }
 

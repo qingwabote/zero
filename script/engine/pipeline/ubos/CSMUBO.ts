@@ -1,4 +1,4 @@
-import { Buffer, BufferUsageFlagBits, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gpu/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
@@ -46,7 +46,7 @@ export class CSMUBO extends UBO {
         super(data, visibilities);
     }
 
-    upload(context: Context, dumping: boolean): void {
+    upload(context: Context, commandBuffer: CommandBuffer, dumping: boolean): void {
         const size = UBO.align(this.range);
 
         let index = -1;
@@ -63,7 +63,7 @@ export class CSMUBO extends UBO {
             }
         }
 
-        this._view.update(context.commandBuffer);
+        this._view.update(commandBuffer);
     }
 
 }

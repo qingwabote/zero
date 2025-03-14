@@ -1,4 +1,4 @@
-import { Uint32Vector } from "gfx";
+import { CommandBuffer, Uint32Vector } from "gfx";
 import { Context } from "../Context.js";
 import { FlowContext } from "./FlowContext.js";
 import { Stage } from "./Stage.js";
@@ -13,17 +13,17 @@ export class Flow {
         private readonly _flowLoopIndex: number,
     ) { }
 
-    batch(context: Context, cameraIndex: number) {
+    batch(context: Context, commandBuffer: CommandBuffer, cameraIndex: number) {
         if ((context.scene.cameras[cameraIndex].visibilities & this._visibilities) == 0) {
             return;
         }
 
         for (const stage of this.stages) {
-            stage.batch(context, cameraIndex);
+            stage.batch(context, commandBuffer, cameraIndex);
         }
     }
 
-    render(context: Context, cameraIndex: number) {
+    render(context: Context, commandBuffer: CommandBuffer, cameraIndex: number) {
         if ((context.scene.cameras[cameraIndex].visibilities & this._visibilities) == 0) {
             return;
         }
@@ -35,10 +35,10 @@ export class Flow {
                 dynamicOffsets.add(offset);
             }
         }
-        context.commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
+        commandBuffer.bindDescriptorSet(0, this._context.descriptorSet, dynamicOffsets);
 
         for (const stage of this.stages) {
-            stage.render(context, cameraIndex);
+            stage.render(context, commandBuffer, cameraIndex);
         }
     }
 }

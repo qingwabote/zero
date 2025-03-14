@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "boot": "file:../declare",
-    "gfx": "file:../../gfx/webgl2"
+    "gfx": "file:../../gfx/webgl2",
+    "minigame-api-typings": "^3.8.9"
   }
 }

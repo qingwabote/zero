@@ -23,6 +23,11 @@ float physQuat_getW(phys::Quat *q)
     return q->getW();
 }
 
+float *physQuat_get(phys::Quat *q)
+{
+    return *q;
+}
+
 void physQuat_set(phys::Quat *q, float x, float y, float z, float w)
 {
     q->setValue(x, y, z, w);

@@ -4,6 +4,8 @@
     "engine": "file:../../../script/engine",
     "flex": "file:../../../script/flex",
     "physics": "file:../../../script/physics",
-    "phys": "file:../../../script/phys/declare"
+    "phys": "file:../../../script/phys/declare",
+    "bastard": "file:../../../script/bastard",
+    "boot": "file:../../../script/boot/declare"
   }
 }

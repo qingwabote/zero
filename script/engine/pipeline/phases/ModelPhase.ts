@@ -108,7 +108,7 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    batch(out: RecycleQueue<Map<Pass, Batch[]>>, context: Context, cameraIndex: number): void {
+    batch(out: RecycleQueue<Map<Pass, Batch[]>>, context: Context, commandBuffer: CommandBuffer, cameraIndex: number): void {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':
@@ -152,9 +152,9 @@ export class ModelPhase extends Phase {
 
                         context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
                         for (const [pass, batches] of pass2batches) {
-                            pass.upload(context.commandBuffer);
+                            pass.upload(commandBuffer);
                             for (const batch of batches) {
-                                (batch as InstancedBatch).upload(context.commandBuffer);
+                                (batch as InstancedBatch).upload(commandBuffer);
                             }
                         }
                         context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
@@ -205,9 +205,9 @@ export class ModelPhase extends Phase {
         }
         context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
         for (const [pass, batches] of pass2batches) {
-            pass.upload(context.commandBuffer);
+            pass.upload(commandBuffer);
             for (const batch of batches) {
-                (batch as InstancedBatch).upload(context.commandBuffer);
+                (batch as InstancedBatch).upload(commandBuffer);
             }
         }
         context.profile.emit(Profile.Event.BATCH_UPLOAD_END)

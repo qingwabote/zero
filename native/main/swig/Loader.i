@@ -11,27 +11,22 @@
 %}
 
 // Result
-%shared_ptr(ImageBitmap)
-
-%attribute(loader::Result, std::string, error, error);
+%unique_ptr(ImageBitmap)
 
 %ignore loader::Result::Result;
 
 // Loader
-%typemap(in) std::unique_ptr<callable::Callable<void, std::unique_ptr<loader::Result>>> && (std::unique_ptr<callable::Callable<void, std::unique_ptr<loader::Result>>> temp){
-    auto js_func = $input.As<v8::Function>();
-    v8::Global<v8::Function> js_g_func(v8::Isolate::GetCurrent(), js_func);
-    auto c_func = new auto(
-        [js_g_func = std::move(js_g_func)](std::unique_ptr<loader::Result> res) mutable
+%typemap(in) loader::LoaderCallback && (loader::LoaderCallback out){
+    v8::Global<v8::Function> js_func(v8::Isolate::GetCurrent(), $input.As<v8::Function>());
+    out = bastard::take_lambda(
+        [js_func = std::move(js_func)](std::unique_ptr<loader::Result> res) mutable
         {
           v8::Isolate *isolate = v8::Isolate::GetCurrent();
           v8::Local<v8::Context> context = isolate->GetCurrentContext();
-          auto js_res = SWIG_NewPointerObj(res.release(), $descriptor(loader::Result *), SWIG_POINTER_OWN);
-          v8::Local<v8::Value> args[] = {js_res};
-          js_g_func.Get(isolate)->Call(context, context->Global(), 1, args);
+          v8::Local<v8::Value> args[] = {SWIG_NewPointerObj(res.release(), $descriptor(loader::Result *), SWIG_POINTER_OWN)};
+          js_func.Get(isolate)->Call(context, context->Global(), std::size(args), args).ToLocalChecked();
         });
-    temp.reset(new callable::CallableLambda(c_func));
-    $1 = &temp;
+    $1 = &out;
 }
 
 %ignore loader::Loader::Loader;

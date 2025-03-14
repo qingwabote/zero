@@ -1,31 +1,13 @@
-import { mat3 } from "../../math/mat3.js";
 import { mat4 } from "../../math/mat4.js";
 import { quat } from "../../math/quat.js";
 import { vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
 import { Periodic } from "./Periodic.js";
 const vec3_a = vec3.create();
-const mat3_a = mat3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
 const dirtyTransforms = [];
 export class Transform {
-    get visibility() {
-        var _a, _b, _c, _d;
-        return (_d = (_b = (_a = this._explicit_visibility) !== null && _a !== void 0 ? _a : this._implicit_visibility) !== null && _b !== void 0 ? _b : (this._implicit_visibility = (_c = this._parent) === null || _c === void 0 ? void 0 : _c.visibility)) !== null && _d !== void 0 ? _d : 0;
-    }
-    set visibility(value) {
-        const stack = [...this.children];
-        let child;
-        while (child = stack.pop()) {
-            if (child._explicit_visibility != undefined) {
-                continue;
-            }
-            child._implicit_visibility = value;
-            stack.push(...child.children);
-        }
-        this._explicit_visibility = value;
-    }
     get position() {
         return this._position;
     }
@@ -58,7 +40,7 @@ export class Transform {
         this.invalidate();
     }
     get matrix() {
-        this.local_update();
+        this.update();
         return this._matrix;
     }
     set matrix(value) {
@@ -75,8 +57,8 @@ export class Transform {
             return;
         }
         mat4.invert(mat4_a, this._parent.world_matrix);
-        vec3.transformMat4(vec3_a, value, mat4_a);
-        this.position = vec3_a;
+        vec3.transformMat4(this._position, value, mat4_a);
+        this.invalidate();
     }
     get world_rotation() {
         this.world_update();
@@ -107,15 +89,29 @@ export class Transform {
     get hasChangedFlag() {
         return this._hasChangedFlag;
     }
+    get visibility() {
+        var _a, _b, _c, _d;
+        return (_d = (_b = (_a = this._vis_exp) !== null && _a !== void 0 ? _a : this._vis_imp) !== null && _b !== void 0 ? _b : (this._vis_imp = (_c = this._parent) === null || _c === void 0 ? void 0 : _c.visibility)) !== null && _d !== void 0 ? _d : 0;
+    }
+    set visibility(value) {
+        const stack = [...this.children];
+        let child;
+        while (child = stack.pop()) {
+            if (child._vis_exp != undefined) {
+                continue;
+            }
+            child._vis_imp = value;
+            stack.push(...child.children);
+        }
+        this._vis_exp = value;
+    }
     constructor(name = '') {
         this.name = name;
-        this._explicit_visibility = undefined;
-        this._implicit_visibility = undefined;
-        this._local_invalidated = false;
         this._position = vec3.create();
         this._rotation = quat.create();
         this._scale = vec3.create(1, 1, 1);
         this._euler = vec3.create();
+        this._invalidated = false;
         this._matrix = mat4.create();
         this._world_invalidated = false;
         this._world_position = vec3.create();
@@ -125,9 +121,11 @@ export class Transform {
         this._children = [];
         this._parent = undefined;
         this._hasChangedFlag = new Periodic(1, 0);
+        this._vis_exp = undefined;
+        this._vis_imp = undefined;
     }
     addChild(child) {
-        child._implicit_visibility = undefined;
+        child._vis_imp = undefined;
         child._parent = this;
         child.invalidate();
         this._children.push(child);
@@ -167,13 +165,13 @@ export class Transform {
                 dirtyTransforms[i++] = child;
             }
         }
-        this._local_invalidated = true;
+        this._invalidated = true;
     }
-    local_update() {
-        if (!this._local_invalidated)
+    update() {
+        if (!this._invalidated)
             return;
         mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
-        this._local_invalidated = false;
+        this._invalidated = false;
     }
     world_update() {
         let i = 0;
@@ -189,12 +187,7 @@ export class Transform {
             const child = dirtyTransforms[--i];
             if (cur) {
                 mat4.multiply(child._world_matrix, cur._world_matrix, child.matrix);
-                vec3.transformMat4(child._world_position, vec3.ZERO, child._world_matrix);
-                quat.multiply(child._world_rotation, cur._world_rotation, child._rotation);
-                quat.conjugate(quat_a, child._world_rotation);
-                mat3.fromQuat(mat3_a, quat_a);
-                mat3.multiplyMat4(mat3_a, mat3_a, child._world_matrix);
-                vec3.set(child._world_scale, mat3_a[0], mat3_a[4], mat3_a[8]);
+                mat4.toTRS(child._world_matrix, child._world_position, child._world_rotation, child._world_scale);
             }
             else {
                 child._world_matrix.splice(0, child.matrix.length, ...child.matrix);

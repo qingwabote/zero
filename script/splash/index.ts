@@ -81,14 +81,14 @@ const vertexBufferInfo = new BufferInfo;
 vertexBufferInfo.size = vertexes.byteLength;
 vertexBufferInfo.usage = BufferUsageFlagBits.VERTEX;
 const vertexBuffer = device.createBuffer(vertexBufferInfo);
-vertexBuffer.update(vertexes, 0, 0);
+vertexBuffer.upload(vertexes, 0, 0, 0);
 
 const indexes = new Uint16Array([0, 1, 3, 1, 2, 3])
 const indexBufferInfo = new BufferInfo;
 indexBufferInfo.size = indexes.byteLength;
 indexBufferInfo.usage = BufferUsageFlagBits.INDEX;
 const indexBuffer = device.createBuffer(indexBufferInfo);
-indexBuffer.update(indexes, 0, 0);
+indexBuffer.upload(indexes, 0, 0, 0);
 
 const inputAssembler = new InputAssembler;
 inputAssembler.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;

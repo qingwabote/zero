@@ -5,15 +5,14 @@ project(zero)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(NATIVE_DIR "../../../../../../native")
+
 # armeabi-v7a requires cpufeatures library
 # include(AndroidNdkModules)
 # android_ndk_import_module_cpufeatures()
 
-# sdl
-add_library(sdl SHARED IMPORTED GLOBAL)
-set_target_properties(sdl PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/sdl/libSDL2.so
-)
+# add_subdirectory(${NATIVE_DIR}/sdl/android sdl)
+add_subdirectory(${NATIVE_DIR}/gfx/android gfx)
 
 # websockets
 add_library(websockets SHARED IMPORTED GLOBAL)
@@ -33,31 +32,9 @@ set_target_properties(v8 PROPERTIES
 find_library(log-lib log)
 target_link_libraries(v8 INTERFACE ${log-lib})
 
-# glslang
-set(glslang_libs glslang glslang-default-resource-limits MachineIndependent OGLCompiler OSDependent SPIRV GenericCodeGen)
-
-foreach(name IN LISTS glslang_libs)
-    add_library(${name} STATIC IMPORTED GLOBAL)
-    set_target_properties(${name} PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/glslang/lib${name}.a
-    )
-endforeach()
-
-# vkLayer
-add_library(vkLayer SHARED IMPORTED)
-set_target_properties(vkLayer PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/vklayer/libVkLayer_khronos_validation.so
-)
-
 add_library(main SHARED main.cpp)
-target_link_libraries(main vkLayer)
-
-set(NATIVE_DIR "../../../../../../native")
 
 add_subdirectory(${NATIVE_DIR}/main main)
 target_link_libraries(main zero::main)
-
-add_subdirectory(${NATIVE_DIR}/platforms/gfx/vulkan gfx)
-target_link_libraries(main zero::gfx)
 
 target_include_directories(main PRIVATE ${NATIVE_DIR}/platforms/)

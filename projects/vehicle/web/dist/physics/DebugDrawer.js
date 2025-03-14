@@ -1,17 +1,20 @@
-import { Component, StrokeRenderer, vec3, vec4 } from 'engine';
-import * as phys from 'phys';
-import { PhysicsSystem } from "./PhysicsSystem.js";
+import { Component, StrokeRenderer, vec3, vec4 } from "engine";
+import { phys } from "phys";
+import { World } from "./World.js";
+const vec3_a = vec3.create();
+const vec3_b = vec3.create();
+const vec4_a = vec4.create(0, 0, 0, 1);
 export class DebugDrawer extends Component {
-    start() {
-        const primitive = this.node.addComponent(StrokeRenderer);
-        const debugDrawer = new phys.DebugDrawer;
-        debugDrawer.drawLine = (from, to, color) => {
-            primitive.line(vec3.create(from.x, from.y, from.z), vec3.create(to.x, to.y, to.z), vec4.create(color.x, color.y, color.z, 1));
-        };
-        PhysicsSystem.instance.world.debugDrawer = debugDrawer;
+    constructor(node) {
+        super(node);
+        const stroke = node.addComponent(StrokeRenderer);
+        phys.fn.physWorld_setDebugDrawer_PK(World.instance.pointer, phys.heap.addFunction((args) => {
+            const [from, to, color] = phys.heap.getArgs(args, 'p', 'p', 'p');
+            stroke.line(phys.heap.cpyBuffer(vec3_a, phys.fn.physVector3_get(from), 'f32', 3), phys.heap.cpyBuffer(vec3_b, phys.fn.physVector3_get(to), 'f32', 3), phys.heap.cpyBuffer(vec4_a, phys.fn.physVector3_get(color), 'f32', 3));
+        }));
+        this._stroke = stroke;
     }
-    update() {
-        var _a;
-        (_a = this.node.getComponent(StrokeRenderer)) === null || _a === void 0 ? void 0 : _a.clear();
+    update(dt) {
+        this._stroke.clear();
     }
 }

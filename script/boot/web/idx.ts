@@ -1,7 +1,11 @@
 // load console first
 import { log } from "./console.js";
 //
+import * as boot from "boot";
 import { Device } from "gfx";
+import * as loop from "./loop.js";
+
+export const WebSocket = globalThis.WebSocket as typeof boot.WebSocket;
 
 const pixelRatio: number = devicePixelRatio;
 const pixelWidth: number = document.documentElement.clientWidth * pixelRatio;
@@ -20,64 +24,6 @@ export const safeArea = (function () {
 
 export const platform = 'web';
 
-export interface TouchEvent {
-    get count(): number;
-    x(index: number): number;
-    y(index: number): number;
-}
-
-export interface WheelEvent extends TouchEvent {
-    get delta(): number;
-}
-
-const canvasBoundingClientRect = canvas.getBoundingClientRect();
-
-class TouchEventImpl implements TouchEvent {
-    get count(): number {
-        return this._event.touches.length;
-    }
-
-    constructor(private _event: globalThis.TouchEvent) { }
-
-    x(index: number): number {
-        return (this._event.touches[index].clientX - canvasBoundingClientRect.x) * pixelRatio;
-    }
-
-    y(index: number): number {
-        return (this._event.touches[index].clientY - canvasBoundingClientRect.y) * pixelRatio;
-    }
-}
-
-class MouseEventImpl implements TouchEvent {
-    get count(): number {
-        return 1;
-    }
-
-    constructor(protected _event: globalThis.MouseEvent) { }
-
-    x(index: number): number {
-        return this._event.offsetX * pixelRatio;
-    }
-
-    y(index: number): number {
-        return this._event.offsetY * pixelRatio;
-    }
-}
-
-class WheelEventImpl extends MouseEventImpl implements WheelEvent {
-    get delta(): number {
-        return -(this._event as globalThis.WheelEvent).deltaY;
-    }
-}
-
-export interface EventListener {
-    onTouchStart(event: TouchEvent): void;
-    onTouchMove(event: TouchEvent): void;
-    onTouchEnd(event: TouchEvent): void;
-    onWheel(event: WheelEvent): void;
-    onFrame(): void;
-}
-
 export const device = new Device(canvas.getContext('webgl2', { antialias: false })!);
 
 export const initial = performance.now();
@@ -93,13 +39,7 @@ export function textDecode(input: Uint8Array): string {
 
 export function now() { return performance.now(); }
 
-export interface ResultTypes {
-    text: string,
-    buffer: ArrayBuffer,
-    bitmap: ImageBitmap
-}
-
-export function load<T extends keyof ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<ResultTypes[T]> {
+export function load<T extends keyof boot.ResultTypes>(url: string, type: T, onProgress?: (loaded: number, total: number, url: string) => void): Promise<boot.ResultTypes[T]> {
     return new Promise((resolve, reject) => {
         function rej(reason: any) {
             log(reason);
@@ -154,45 +94,14 @@ export async function loadWasm(url: string, imports: WebAssembly.Imports): Promi
 
 export function loadBundle(name: string): Promise<void> { throw new Error("unimplemented"); }
 
-export function attach(listener: EventListener) {
-    canvas.addEventListener('touchstart', function (touchEvent) {
-        listener.onTouchStart(new TouchEventImpl(touchEvent));
-        touchEvent.preventDefault(); // prevent mousedown
-    })
-    canvas.addEventListener('touchmove', function (touchEvent) {
-        listener.onTouchMove(new TouchEventImpl(touchEvent));
-    })
-    canvas.addEventListener('touchend', function (touchEvent) {
-        listener.onTouchEnd(new TouchEventImpl(touchEvent));
-    })
-    canvas.addEventListener('touchcancel', function (touchEvent) {
-        listener.onTouchEnd(new TouchEventImpl(touchEvent));
-    })
-
-    canvas.addEventListener("mousedown", function (mouseEvent) {
-        listener.onTouchStart(new MouseEventImpl(mouseEvent));
-    })
-    canvas.addEventListener("mouseup", function (mouseEvent) {
-        listener.onTouchEnd(new MouseEventImpl(mouseEvent))
-    })
-    canvas.addEventListener("mousemove", function (mouseEvent) {
-        if (mouseEvent.buttons) {
-            listener.onTouchMove(new MouseEventImpl(mouseEvent))
-        }
-    })
-
-    canvas.addEventListener("wheel", function (wheelEvent) {
-        listener.onWheel(new WheelEventImpl(wheelEvent));
-        wheelEvent.preventDefault();
-    })
-
-    function loop() {
-        listener.onFrame();
-        requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+export function attach(listener: loop.EventListener) {
+    loop.attach(canvas, listener);
 }
 
-export function detach(listener: EventListener) { throw new Error("unimplemented"); }
+export function detach(listener: loop.EventListener) {
+    loop.detach(listener);
+}
 
 export function reboot() { throw new Error("unimplemented"); }
+
+

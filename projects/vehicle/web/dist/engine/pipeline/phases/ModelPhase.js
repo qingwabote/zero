@@ -82,7 +82,7 @@ export class ModelPhase extends Phase {
         this._model = _model;
         this._pass = _pass;
     }
-    batch(out, context, cameraIndex) {
+    batch(out, context, commandBuffer, cameraIndex) {
         var _a, _b;
         let models;
         switch (this._culling) {
@@ -122,9 +122,9 @@ export class ModelPhase extends Phase {
                         }
                         context.profile.emit(Profile.Event.BATCH_UPLOAD_START);
                         for (const [pass, batches] of pass2batches) {
-                            pass.upload(context.commandBuffer);
+                            pass.upload(commandBuffer);
                             for (const batch of batches) {
-                                batch.upload(context.commandBuffer);
+                                batch.upload(commandBuffer);
                             }
                         }
                         context.profile.emit(Profile.Event.BATCH_UPLOAD_END);
@@ -169,9 +169,9 @@ export class ModelPhase extends Phase {
         }
         context.profile.emit(Profile.Event.BATCH_UPLOAD_START);
         for (const [pass, batches] of pass2batches) {
-            pass.upload(context.commandBuffer);
+            pass.upload(commandBuffer);
             for (const batch of batches) {
-                batch.upload(context.commandBuffer);
+                batch.upload(commandBuffer);
             }
         }
         context.profile.emit(Profile.Event.BATCH_UPLOAD_END);

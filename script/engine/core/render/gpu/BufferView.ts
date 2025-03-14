@@ -42,6 +42,6 @@ export class BufferView extends MemoryView {
             offset = 0;
             length = this.length;
         }
-        this._buffer.update(this._source, offset, length, offset * this._source.BYTES_PER_ELEMENT);
+        this._buffer.upload(this._source, offset, length, offset * this._source.BYTES_PER_ELEMENT);
     }
 }
