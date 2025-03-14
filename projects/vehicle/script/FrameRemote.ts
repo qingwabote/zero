@@ -12,7 +12,7 @@ export class FrameRemote extends Frame {
 
         let running = false;
 
-        const socket = new WebSocket("ws://127.0.0.1:8080");
+        const socket = new WebSocket("ws://192.168.1.11:8080");
         socket.onopen = () => {
             this.input.on(JoystickInput.Events.DIRTY, () => {
                 if (running) {
@@ -42,7 +42,5 @@ export class FrameRemote extends Frame {
             this.push({ delta: res.delta })
         }
         this._socket = socket;
-
-        this.push({ delta: 0 })
     }
 }

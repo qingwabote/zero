@@ -10,7 +10,9 @@ export class PhysicsSystem extends System {
     }
 
     override update(dt: number): void {
+        World.instance.ping();
         World.instance.step(dt);
+        World.instance.pong();
     }
 }
 Zero.registerSystem(PhysicsSystem.instance, 1)

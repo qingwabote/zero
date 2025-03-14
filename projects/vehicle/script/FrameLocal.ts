@@ -18,7 +18,5 @@ export class FrameLocal extends Frame {
             }
             this.push(data);
         }, this.stepTime)
-
-        this.push({ delta: 0 })
     }
 }

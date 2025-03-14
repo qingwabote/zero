@@ -25,6 +25,7 @@ export abstract class Frame extends System {
     }
 
     override update(dt: number): void {
+        World.instance.ping();
         for (const data of this._queue) {
             if (data.input) {
                 this.input.step(data.input)
@@ -32,6 +33,7 @@ export abstract class Frame extends System {
             World.instance.step(data.delta);
         }
         this._queue.length = 0;
+        World.instance.pong();
 
         World.instance.draw();
     }

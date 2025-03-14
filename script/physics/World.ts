@@ -17,11 +17,17 @@ export class World {
         this._bodies.add(body);
     }
 
-    public step(dt: number) {
+    public ping() {
         for (const body of this._bodies) {
             body.ping();
         }
+    }
+
+    public step(dt: number) {
         phys.fn.physWorld_stepSimulation(this.pointer, dt, 1, this.stepTime);
+    }
+
+    public pong() {
         for (const body of this._bodies) {
             body.pong();
         }
