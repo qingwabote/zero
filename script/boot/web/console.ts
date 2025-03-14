@@ -6,7 +6,7 @@ function log(...args: any[]) {
 }
 
 window.addEventListener('error', function (e) {
-    log(e.message);
+    log(e.error);
 });
 
 window.addEventListener('unhandledrejection', function (e) {
@@ -14,3 +14,4 @@ window.addEventListener('unhandledrejection', function (e) {
 })
 
 export { log };
+

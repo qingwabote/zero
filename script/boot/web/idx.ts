@@ -5,7 +5,7 @@ import * as boot from "boot";
 import { Device } from "gfx";
 import * as loop from "./loop.js";
 
-export const WebSocket = globalThis.WebSocket as typeof boot.WebSocket;
+export const WebSocket = globalThis.WebSocket as unknown as typeof boot.WebSocket;
 
 const pixelRatio: number = devicePixelRatio;
 const pixelWidth: number = document.documentElement.clientWidth * pixelRatio;
