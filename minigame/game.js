@@ -35,8 +35,8 @@ new Promise(() => {
             "flex": "./dist/subpackages/engine/flex/script/index.js",
             "@esotericsoftware/spine-core": "./dist/subpackages/spine/spine-core.js",
             "spine": "./dist/subpackages/spine/index.js",
-            "spi": "./dist/subpackages/spine2/spi/index.js",
-            "spine2": "./dist/subpackages/spine2/script/index.js",
+            "spi": "./dist/subpackages/spine/spi/script/index.js",
+            "spine": "./dist/subpackages/spine/script/index.js",
             "phys": "./dist/subpackages/physics/phys/script/index.js",
             "physics": "./dist/subpackages/physics/index.js",
             "navigation": "./dist/subpackages/projects/navigation/script/index.js",
@@ -44,7 +44,6 @@ new Promise(() => {
             "shadow": "./dist/subpackages/projects/shadow/script/index.js",
             "skin": "./dist/subpackages/projects/skin/script/index.js",
             "skeleton": "./dist/subpackages/projects/skeleton/script/index.js",
-            "skeleton2": "./dist/subpackages/projects/skeleton2/script/index.js",
             "vehicle": "./dist/subpackages/projects/vehicle/script/index.js",
             "cutting2d": "./dist/subpackages/projects/cutting2d/script/index.js",
             "instancing": "./dist/subpackages/projects/instancing/script/index.js"
@@ -59,7 +58,7 @@ new Promise(() => {
             "./dist/subpackages/engine/flex/yoga/": {
                 "bundling": "./bundling-yoga.js"
             },
-            "./dist/subpackages/spine2/spi/": {
+            "./dist/subpackages/spine/spi/": {
                 "bundling": "./bundling-spi.js"
             },
             "./dist/subpackages/physics/phys/": {
@@ -76,9 +75,6 @@ new Promise(() => {
             },
             "./dist/subpackages/projects/skeleton/": {
                 "bundling": "./bundling-skeleton.js"
-            },
-            "./dist/subpackages/projects/skeleton2/": {
-                "bundling": "./bundling-skeleton2.js"
             },
             "./dist/subpackages/projects/instancing/": {
                 "bundling": "./bundling-instancing.js"
@@ -97,7 +93,7 @@ new Promise(() => {
     (async function () {
         const boot = await System.import('boot');
         await System.import('splash');
-        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('spine2'), boot.loadBundle('skeleton2')]);
-        System.import('skeleton2')
+        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('spine'), boot.loadBundle('skeleton')]);
+        System.import('skeleton')
     })()
 })

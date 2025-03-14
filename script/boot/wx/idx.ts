@@ -1,9 +1,10 @@
 // run env first
 import { gl, pixelRatio, windowInfo } from "./env.js";
 //
+import * as boot from "boot";
 import { Device } from "gfx";
 
-declare const wx: any;
+export const WebSocket = globalThis.WebSocket as typeof boot.WebSocket;
 
 export interface TouchEvent {
     get count(): number;
@@ -40,8 +41,8 @@ if (wx.getPerformance) {
         now: function () {
             return (wxPerf.now() - initTime) / 1000
         }
-    })
-    globalThis.performance = platform === 'devtools' ? wxPerf : clientPerfAdapter
+    });
+    (globalThis as any).performance = platform === 'devtools' ? wxPerf : clientPerfAdapter
 }
 
 export interface EventListener {
@@ -95,7 +96,7 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
         if (type == 'bitmap') {
             const image = wx.createImage();
             image.onload = function () {
-                resolve(image);
+                resolve(image as any);
             }
             image.onerror = function (err: string) {
                 reject(err);
@@ -104,11 +105,11 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
         } else {
             fs.readFile({
                 filePath: url,
-                encoding: type == 'text' ? 'utf8' : '',
-                success: function (result: any) {
-                    resolve(result.data)
+                ...type == 'text' && { encoding: 'utf8' },
+                success: function (result) {
+                    resolve(result.data as any)
                 },
-                fail: function (result: any) {
+                fail: function (result) {
                     reject(result.errMsg);
                 }
             });
@@ -116,10 +117,9 @@ export function load<T extends keyof ResultTypes>(url: string, type: T, onProgre
     })
 }
 
-declare const WXWebAssembly: any;
-globalThis.WebAssembly = WXWebAssembly;
+globalThis.WebAssembly = WXWebAssembly as any;
 export function loadWasm(url: string, imports: WebAssembly.Imports): Promise<WebAssembly.WebAssemblyInstantiatedSource> {
-    return WXWebAssembly.instantiate(url, imports);
+    return WXWebAssembly.instantiate(url, imports as any) as any;
 }
 
 export function loadBundle(name: string): Promise<void> {
@@ -130,8 +130,11 @@ export function loadBundle(name: string): Promise<void> {
                 console.log(`load ${name} success`);
                 resolve();
             },
-            fail: function (res: any) {
+            fail: function (res) {
                 reject(`load ${name} fail. ${res.errMsg}`);
+            },
+            complete: function () {
+                // do nothing
             }
         });
         task.onProgressUpdate((res: any) => {
@@ -196,5 +199,5 @@ export function detach(listener: EventListener) {
 }
 
 export function reboot() {
-    wx.restartMiniProgram();
+    wx.restartMiniProgram({});
 }
