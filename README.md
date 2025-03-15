@@ -5,7 +5,7 @@
 - [Skinning & Instancing & baking](https://qingwabote.github.io/zero/projects/skin/web/index.html)
 - [Octree Scene Culling](https://qingwabote.github.io/zero/projects/culling/web/index.html)
 - [Spine](https://qingwabote.github.io/zero/projects/skeleton/web/index.html)
-- [Physics](https://qingwabote.github.io/zero/projects/vehicle/web/index.html)
+- [Deterministic Physics](http://82.156.151.167:8003/projects/vehicle/web/index.html)
 - [Pipeline Switch](https://qingwabote.github.io/zero/projects/pipeline/web/index.html)
 - [MSAA & FXAA](https://qingwabote.github.io/zero/projects/cutting2d/web/index.html)
 
@@ -27,10 +27,10 @@
 - 冯氏光照
 - 级联阴影
 - 动画混合（一维）
-- 蒙皮动画（烘焙）
-- 场景剔除（八叉树）
+- 蒙皮动画（支持烘焙）
+- 场景剔除（支持八叉树）
 - 骨骼动画（spine）
-- 物理引擎（bullet）
+- 物理引擎（deterministic physics by bullet+webassembly）
 - MSAA & FXAA
 - GPU Instancing
 
