@@ -1,6 +1,0 @@
-{
-  "name": "yoga",
-  "dependencies": {
-    "puttyknife": "file:../../../puttyknife/declare"
-  }
-}

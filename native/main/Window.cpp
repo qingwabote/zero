@@ -131,15 +131,11 @@ int Window::loop(SDL_Window *sdl_window)
         auto ns_runtime = v8::Object::New(isolate.get());
         puttyknife::Runtime(context, ns_runtime);
         ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "runtime"), ns_runtime).ToChecked();
-        auto ns_yoga = v8::Object::New(isolate.get());
-        puttyknife::Yoga(context, ns_yoga);
-        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "yoga"), ns_yoga).ToChecked();
-        auto ns_spi = v8::Object::New(isolate.get());
-        puttyknife::Spi(context, ns_spi);
-        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "spi"), ns_spi).ToChecked();
-        auto ns_phys = v8::Object::New(isolate.get());
-        puttyknife::Phys(context, ns_phys);
-        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "phys"), ns_phys).ToChecked();
+        auto ns_exports = v8::Object::New(isolate.get());
+        puttyknife::Yoga(context, ns_exports);
+        puttyknife::Spi(context, ns_exports);
+        puttyknife::Phys(context, ns_exports);
+        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "exports"), ns_exports).ToChecked();
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "puttyknife"), ns_puttyknife).ToChecked();
 
         auto ns_zero = v8::Object::New(isolate.get());

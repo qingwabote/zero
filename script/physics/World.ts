@@ -1,4 +1,4 @@
-import { phys } from "phys";
+import { pk } from "puttyknife";
 import { RigidBody } from "./RigidBody.js";
 
 export class World {
@@ -6,14 +6,14 @@ export class World {
 
     stepTime = 1 / 60;
 
-    readonly pointer = phys.fn.physWorld_new();
+    readonly pointer = pk.fn.physWorld_new();
 
     private readonly _bodies: Set<RigidBody> = new Set;
 
     private constructor() { }
 
     public addRigidBody(body: RigidBody): void {
-        phys.fn.physWorld_addRigidBody(this.pointer, body.pointer);
+        pk.fn.physWorld_addRigidBody(this.pointer, body.pointer);
         this._bodies.add(body);
     }
 
@@ -24,7 +24,7 @@ export class World {
     }
 
     public step(dt: number) {
-        phys.fn.physWorld_stepSimulation(this.pointer, dt, 1, this.stepTime);
+        pk.fn.physWorld_stepSimulation(this.pointer, dt, 1, this.stepTime);
     }
 
     public pong() {
@@ -34,6 +34,6 @@ export class World {
     }
 
     public draw() {
-        phys.fn.physWorld_drawDebug(this.pointer);
+        pk.fn.physWorld_drawDebug(this.pointer);
     }
 }

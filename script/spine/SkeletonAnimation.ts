@@ -1,5 +1,5 @@
 import { CommandBuffer } from "gfx";
-import { spi } from "spi";
+import { pk } from "puttyknife";
 import { AnimationState } from "./AnimationState.js";
 import { SkeletonData } from "./SkeletonData.js";
 import { SkeletonRenderer } from "./SkeletonRenderer.js";
@@ -25,7 +25,7 @@ export class SkeletonAnimation extends SkeletonRenderer {
     }
 
     override upload(commandBuffer: CommandBuffer): void {
-        spi.fn.spiAnimationState_apply(this._state!.pointer, this._pointer);
+        pk.fn.spiAnimationState_apply(this._state!.pointer, this._pointer);
         super.upload(commandBuffer);
     }
 }

@@ -2,6 +2,6 @@
     "name": "physics",
     "dependencies": {
         "engine": "file:../engine",
-        "phys": "file:../phys/declare"
+        "puttyknife": "file:../puttyknife/declare"
     }
 }

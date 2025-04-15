@@ -1,6 +1,6 @@
 import { BoundedRenderer, bundle, device, Node, scene, Shader, shaderLib, vec4 } from "engine";
 import { BlendFactor, BlendState, Buffer, BufferInfo, BufferUsageFlagBits, CommandBuffer, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
-import { spi } from "spi";
+import { pk } from "puttyknife";
 import { textureMap } from "./context.js";
 import { SkeletonData } from "./SkeletonData.js";
 
@@ -81,9 +81,9 @@ export class SkeletonRenderer extends BoundedRenderer {
     }
     public set data(value: SkeletonData) {
         if (this._pointer) {
-            spi.fn.spiSkeleton_dispose(this._pointer);
+            pk.fn.spiSkeleton_dispose(this._pointer);
         }
-        const skeletonPtr = spi.fn.spiSkeleton_create(value.pointer);
+        const skeletonPtr = pk.fn.spiSkeleton_create(value.pointer);
         // spi.fn.spiSkeleton_updateWorldTransform(skeletonPtr);
         this._pointer = skeletonPtr;
         this._data = value;
@@ -94,7 +94,7 @@ export class SkeletonRenderer extends BoundedRenderer {
 
     private readonly _inputAssembler: InputAssembler;
 
-    private readonly _spiModel: number = spi.fn.spiModel_create();
+    private readonly _spiModel: number = pk.fn.spiModel_create();
 
     constructor(node: Node) {
         super(node);
@@ -128,16 +128,16 @@ export class SkeletonRenderer extends BoundedRenderer {
     }
 
     override lateUpdate(): void {
-        spi.fn.spiModel_update(this._spiModel, this._pointer);
+        pk.fn.spiModel_update(this._spiModel, this._pointer);
 
         this._materials.length = 0;
-        const subModelsSize = spi.fn.spiModel_getSubModelsSize(this._spiModel);
-        const subModels = spi.fn.spiModel_getSubModels(this._spiModel);
+        const subModelsSize = pk.fn.spiModel_getSubModelsSize(this._spiModel);
+        const subModels = pk.fn.spiModel_getSubModels(this._spiModel);
         let first = 0;
         for (let i = 0; i < subModelsSize; i++) {
-            const subModel = spi.heap.objAtArr(subModels, i)
-            const range = spi.fn.spiSubModel_getRange(subModel);
-            const texture = spi.fn.spiSubModel_getRendererObject(subModel);
+            const subModel = pk.heap.objAtArr(subModels, i)
+            const range = pk.fn.spiSubModel_getRange(subModel);
+            const texture = pk.fn.spiSubModel_getRendererObject(subModel);
             this._materials.push(material_cache(0, texture));
             if (this._subMeshes.length == i) {
                 this._subMeshes.push(new scene.SubMesh(this._inputAssembler))
@@ -152,15 +152,15 @@ export class SkeletonRenderer extends BoundedRenderer {
     }
 
     override upload(commandBuffer: CommandBuffer): void {
-        const verticesSize = spi.fn.spiModel_getVerticesSize(this._spiModel);
-        const verticesPtr = spi.fn.spiModel_getVertices(this._spiModel);
-        const vertices = spi.heap.getBuffer(verticesPtr, 'f32', verticesSize);
+        const verticesSize = pk.fn.spiModel_getVerticesSize(this._spiModel);
+        const verticesPtr = pk.fn.spiModel_getVertices(this._spiModel);
+        const vertices = pk.heap.getBuffer(verticesPtr, 'f32', verticesSize);
         this._vertexBuffer.resize(vertices.byteLength);
         this._vertexBuffer.upload(vertices, 0, 0, 0);
 
-        const indicesSize = spi.fn.spiModel_getIndicesSize(this._spiModel);
-        const indicesPtr = spi.fn.spiModel_getIndices(this._spiModel);
-        const indices = spi.heap.getBuffer(indicesPtr, 'u16', indicesSize)
+        const indicesSize = pk.fn.spiModel_getIndicesSize(this._spiModel);
+        const indicesPtr = pk.fn.spiModel_getIndices(this._spiModel);
+        const indices = pk.heap.getBuffer(indicesPtr, 'u16', indicesSize)
         this._indexBuffer.resize(indices.byteLength);
         this._indexBuffer.upload(indices, 0, 0, 0);
     }

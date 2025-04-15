@@ -6,10 +6,9 @@
         "boot": "./dist/boot/index.js",
         "assets": "./dist/assets/index.js",
         "engine": "./dist/engine/index.js",
-        "flex": "./dist/flex/index.js",
+        "pk": "./dist/pk/index.js",
         "puttyknife": "./dist/puttyknife/index.js",
-        "yoga": "./dist/yoga/index.js",
-        "spi": "./dist/spi/index.js",
+        "flex": "./dist/flex/index.js",
         "spine": "./dist/spine/index.js",
         "bundling": "./bundling-builtin.js"
     },

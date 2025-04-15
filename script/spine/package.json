@@ -6,6 +6,6 @@
         "bundling": "file:../bundling",
         "engine": "file:../engine",
         "gfx": "file:../gfx/declare",
-        "spi": "file:../spi/declare"
+        "puttyknife": "file:../puttyknife/declare"
     }
 }

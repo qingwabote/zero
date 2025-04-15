@@ -5,6 +5,6 @@
     "boot": "file:../boot/declare",
     "bundling": "file:../bundling",
     "engine": "file:../engine",
-    "yoga": "file:../yoga/declare"
+    "puttyknife": "file:../puttyknife/declare"
   }
 }

@@ -1,7 +1,7 @@
 import { Asset, once } from "assets";
 import { load } from "boot";
 import { Texture } from 'engine';
-import { spi } from "spi";
+import { pk } from "puttyknife";
 import { textureMap } from "./context.js";
 
 export class Atlas implements Asset {
@@ -21,23 +21,23 @@ export class Atlas implements Asset {
         const [, base, name] = res;
         const bin = await load(`${base}/${name}.atlas`, 'buffer');
 
-        const dataPtr = spi.heap.addBuffer(new Uint8Array(bin));
-        const atlasPtr = spi.fn.spiAtlas_create(dataPtr, bin.byteLength);
-        spi.heap.delBuffer(dataPtr);
+        const dataPtr = pk.heap.addBuffer(new Uint8Array(bin));
+        const atlasPtr = pk.fn.spiAtlas_create(dataPtr, bin.byteLength);
+        pk.heap.delBuffer(dataPtr);
 
         const promises: Promise<void>[] = [];
-        let pagePtr = spi.fn.spiAtlas_getPages(atlasPtr);
+        let pagePtr = pk.fn.spiAtlas_getPages(atlasPtr);
         while (pagePtr) {
             promises.push(
                 (async () => {
                     const page = pagePtr;
-                    const name = spi.fn.spiAtlasPage_getName(page);
-                    const texture = await once(`${base}/${spi.heap.getString(name)}`, Texture);
-                    spi.fn.spiAtlasPage_setRendererObject(page, textureMap.register(texture.impl));
+                    const name = pk.fn.spiAtlasPage_getName(page);
+                    const texture = await once(`${base}/${pk.heap.getString(name)}`, Texture);
+                    pk.fn.spiAtlasPage_setRendererObject(page, textureMap.register(texture.impl));
                     this._textures.push(texture);
                 })()
             );
-            pagePtr = spi.fn.spiAtlasPage_getNext(pagePtr);
+            pagePtr = pk.fn.spiAtlasPage_getNext(pagePtr);
         }
         await Promise.all(promises);
 

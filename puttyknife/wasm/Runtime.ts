@@ -1,4 +1,4 @@
-import type { ArgHandle, ArrayTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle, TypedArray, Types } from 'puttyknife';
+import type { ArgHandle, ArrayTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle, TypedArray, Types } from 'pk';
 import { textDecode, textEncode } from './text.js';
 
 const noop = function () { };

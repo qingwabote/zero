@@ -7,13 +7,12 @@
         "boot": "tsc -p ../../../script/boot/web --outDir dist/boot --watch",
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
-        "puttyknife": "tsc -p ../../../puttyknife/wasm --outDir dist/puttyknife --watch",
-        "yoga": "tsc -p ../../../script/yoga/wasm --outDir dist/yoga --watch",
+        "pk": "tsc -p ../../../puttyknife/wasm --outDir dist/pk --watch",
+        "puttyknife": "tsc -p ../../../script/puttyknife/wasm --outDir dist/puttyknife --watch",
         "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
-        "spi": "tsc -p ../../../script/spi/wasm --outDir dist/spi --watch",
         "spine": "tsc -p ../../../script/spine --outDir dist/spine --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",
         "server": "http-server ../../../ -p 8003 -o projects/skeleton/web/index.html -c-1",
-        "dev": "concurrently \"npm run bastard\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\" \"npm run puttyknife\" \"npm run yoga\" \"npm run flex\"  \"npm run spi\" \"npm run spine\" \"npm run script\" \"npm run server\""
+        "dev": "concurrently \"npm run bastard\" \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run engine\" \"npm run pk\" \"npm run puttyknife\"  \"npm run flex\"  \"npm run spine\" \"npm run script\" \"npm run server\""
     }
 }

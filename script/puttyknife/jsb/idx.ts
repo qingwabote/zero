@@ -1,6 +1,6 @@
 declare const puttyknife: any
 
-export const yoga = {
-    fn: puttyknife.yoga,
+export const pk = {
+    fn: puttyknife.exports,
     heap: puttyknife.runtime
 } as const

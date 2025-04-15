@@ -1,6 +1,0 @@
-{
-  "name": "spi",
-  "dependencies": {
-    "puttyknife": "file:../../../puttyknife/declare"
-  }
-}

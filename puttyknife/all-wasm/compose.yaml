@@ -1,0 +1,14 @@
+services:
+  all-debug:
+    volumes:
+      - ../../:/zero
+      - ./build/:/src
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Debug -S /zero/puttyknife/all-wasm -B ./debug && cmake --build ./debug"
+  all-release:
+    volumes:
+      - ../../:/zero
+      - ./build/:/src
+    image: "emscripten/emsdk"
+    command: bash -c "emcmake cmake -DCMAKE_BUILD_TYPE=Release -S /zero/puttyknife/all-wasm -B ./release && cmake --build ./release"
+    

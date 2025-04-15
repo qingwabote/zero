@@ -1,7 +1,7 @@
 import { wasi } from 'bastard';
 import { loadWasm, textDecode } from 'boot';
 import { bundle } from 'bundling';
-import { Runtime } from 'puttyknife';
+import { Runtime } from 'pk';
 
 const preview1 = wasi.preview1(function (input: Uint8Array) {
     const text = textDecode(input);
@@ -10,7 +10,7 @@ const preview1 = wasi.preview1(function (input: Uint8Array) {
 
 const runtime = new Runtime;
 
-const source = await loadWasm(bundle.resolve('yoga.wasm'), {
+const source = await loadWasm(bundle.resolve('puttyknife.wasm'), {
     env: runtime.env,
     wasi_snapshot_preview1: preview1.moduleImports
 })
@@ -18,7 +18,7 @@ const source = await loadWasm(bundle.resolve('yoga.wasm'), {
 preview1.init(source.instance);
 runtime.init(source.instance);
 
-export const yoga = {
+export const pk = {
     fn: source.instance.exports as any,
     heap: runtime
 } as const

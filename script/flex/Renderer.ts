@@ -1,6 +1,6 @@
 import { DeepReadonly } from "bastard";
 import { AABB2D, BoundedRenderer, Node, vec3 } from "engine";
-import { yoga } from "yoga";
+import { pk } from "puttyknife";
 import { Element } from "./Element.js";
 
 const vec3_a = vec3.create();
@@ -23,24 +23,24 @@ export class Renderer<T extends BoundedRenderer> extends Element {
 
     constructor(node: Node) {
         super(node);
-        const f = yoga.heap.addFunction((args) => {
-            const [size, node, width, widthMode, height, heightMode] = yoga.heap.getArgs(args, 'p', 'p', 'f32', 'i32', 'f32', 'i32');
+        const f = pk.heap.addFunction((args) => {
+            const [size, node, width, widthMode, height, heightMode] = pk.heap.getArgs(args, 'p', 'p', 'f32', 'i32', 'f32', 'i32');
             const PIXELS_PER_UNIT = (this.impl.constructor as typeof BoundedRenderer).PIXELS_PER_UNIT;
             const halfExtent = this.impl.bounds.halfExtent;
-            yoga.fn.YGSizeSet(size, halfExtent[0] * 2 * PIXELS_PER_UNIT, halfExtent[1] * 2 * PIXELS_PER_UNIT)
+            pk.fn.YGSizeSet(size, halfExtent[0] * 2 * PIXELS_PER_UNIT, halfExtent[1] * 2 * PIXELS_PER_UNIT)
         })
-        yoga.fn.YGNodeSetMeasureFunc_PK(this.yg_node, f);
+        pk.fn.YGNodeSetMeasureFunc_PK(this.yg_node, f);
 
         this.impl.on(BoundedRenderer.EventName.BOUNDS_CHANGED, () => {
-            yoga.fn.YGNodeMarkDirty(this.yg_node);
+            pk.fn.YGNodeMarkDirty(this.yg_node);
         })
     }
 
     override doLayout(): void {
-        const left = yoga.fn.YGNodeLayoutGetLeft(this.yg_node);
-        const top = yoga.fn.YGNodeLayoutGetTop(this.yg_node);
-        const width = yoga.fn.YGNodeLayoutGetWidth(this.yg_node);
-        const height = yoga.fn.YGNodeLayoutGetHeight(this.yg_node);
+        const left = pk.fn.YGNodeLayoutGetLeft(this.yg_node);
+        const top = pk.fn.YGNodeLayoutGetTop(this.yg_node);
+        const width = pk.fn.YGNodeLayoutGetWidth(this.yg_node);
+        const height = pk.fn.YGNodeLayoutGetHeight(this.yg_node);
 
         const bounds = this.impl.bounds;
 

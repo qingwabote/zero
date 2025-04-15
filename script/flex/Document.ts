@@ -1,6 +1,6 @@
 import { TouchEvent } from "boot";
 import { BoundedRenderer, Input, Node, Vec2, Zero, aabb2d, mat4, scene, vec2 } from "engine";
-import { yoga } from "yoga";
+import { pk } from "puttyknife";
 import { Element } from "./Element.js";
 import { ElementContainer } from "./ElementContainer.js";
 import { LayoutSystem } from "./LayoutSystem.js";
@@ -107,8 +107,8 @@ export class Document extends ElementContainer {
     }
 
     override doLayout(): void {
-        const width = yoga.fn.YGNodeLayoutGetWidth(this.yg_node);
-        const height = yoga.fn.YGNodeLayoutGetHeight(this.yg_node);
+        const width = pk.fn.YGNodeLayoutGetWidth(this.yg_node);
+        const height = pk.fn.YGNodeLayoutGetHeight(this.yg_node);
         vec2.set(this._bounds.halfExtent, width / 2, height / 2);
         vec2.set(this._bounds.center, width / 2, -height / 2);
     }

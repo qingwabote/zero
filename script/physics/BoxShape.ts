@@ -1,11 +1,11 @@
 import { Component, Node } from 'engine';
-import { phys } from 'phys';
+import { pk } from 'puttyknife';
 import { RigidBody } from './RigidBody.js';
 
 export class BoxShape extends Component {
     readonly body: RigidBody;
 
-    readonly pointer = phys.fn.physBoxShape_new();
+    readonly pointer = pk.fn.physBoxShape_new();
 
     constructor(node: Node) {
         super(node);

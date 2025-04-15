@@ -1,5 +1,5 @@
 import { Component, Node } from "engine";
-import { phys } from "phys";
+import { pk } from "puttyknife";
 import { BoxShape } from "../BoxShape.js";
 import { World } from "../World.js";
 
@@ -18,7 +18,7 @@ export class Chassis extends Component {
     constructor(node: Node) {
         super(node);
 
-        phys.fn.physCollisionObject_setActivationState(this._shape.body.pointer, 4);
-        this.pointer = phys.fn.physVehicle_new(World.instance.pointer, this._shape.body.pointer);
+        pk.fn.physCollisionObject_setActivationState(this._shape.body.pointer, 4);
+        this.pointer = pk.fn.physVehicle_new(World.instance.pointer, this._shape.body.pointer);
     }
 }

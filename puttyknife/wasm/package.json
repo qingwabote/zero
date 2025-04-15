@@ -1,6 +1,6 @@
 {
-    "name": "puttyknife",
+    "name": "pk",
     "dependencies": {
-        "puttyknife": "file:../declare"
+        "pk": "file:../declare"
     }
 }
