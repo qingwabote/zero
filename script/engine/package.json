@@ -1,11 +1,12 @@
 {
     "name": "engine",
     "dependencies": {
-        "bastard": "file:../bastard",
         "assets": "file:../assets",
+        "bastard": "file:../bastard",
         "boot": "file:../boot/declare",
         "bundling": "file:../bundling",
         "gfx": "file:../gfx/declare",
+        "puttyknife": "file:../puttyknife/declare",
         "yaml": "^2.3.2"
     }
 }

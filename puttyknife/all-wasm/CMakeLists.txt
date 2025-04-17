@@ -9,6 +9,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto")
 
 add_executable(puttyknife ./null.cpp)
 
+add_subdirectory(../sampler/ sampler)
+target_compile_definitions(sampler PRIVATE "SAMPLER_EXPORT=__attribute__((used))")
+target_link_libraries(puttyknife PRIVATE -Wl,--whole-archive sampler -Wl,--no-whole-archive)
+
 add_subdirectory(../phys-wasm/ phys-wasm)
 target_link_libraries(puttyknife PRIVATE -Wl,--whole-archive phys-wasm -Wl,--no-whole-archive)
 target_link_libraries(puttyknife PRIVATE -Wl,--whole-archive phys -Wl,--no-whole-archive)

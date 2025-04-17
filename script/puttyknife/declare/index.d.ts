@@ -1,6 +1,2 @@
-import { Runtime } from 'pk';
+export * as pk from './export.js';
 
-declare export const pk: {
-    readonly fn: any,
-    readonly heap: Runtime
-} 
