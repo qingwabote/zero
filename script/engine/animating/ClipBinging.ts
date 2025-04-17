@@ -1,7 +1,15 @@
 import { TRS } from "../core/math/TRS.js";
+import { vec4 } from "../core/math/vec4.js";
 import { AnimationClip } from "./AnimationClip.js";
-import { ChannelBinding } from "./ChannelBinding.js";
-import { ChannelBindingQuat, ChannelBindingVec3 } from "./values.js";
+import { sampleQuat, sampleVec3 } from "./sampler.js";
+
+interface ChannelBinding {
+    input: ArrayLike<number>,
+    output: ArrayLike<number>,
+    transform: TRS
+}
+
+const vec4_a = vec4.create();
 
 /**
  * Bind clip and target, call sample to update target by time
@@ -9,38 +17,63 @@ import { ChannelBindingQuat, ChannelBindingVec3 } from "./values.js";
 export class ClipBinging {
     readonly duration: number;
 
-    private readonly _channels: ChannelBinding[];
+    private readonly _positions: ChannelBinding[];
+    private readonly _rotations: ChannelBinding[];
+    private readonly _scales: ChannelBinding[];
 
     constructor(clip: AnimationClip, getTarget: (path: readonly string[]) => TRS) {
-        const channels: ChannelBinding[] = [];
+        const positions: ChannelBinding[] = [];
+        const rotations: ChannelBinding[] = [];
+        const scales: ChannelBinding[] = [];
         for (const channel of clip.channels) {
             if (channel.sampler.interpolation != 'LINEAR') {
                 throw new Error(`unsupported interpolation: ${channel.sampler.interpolation}`);
             }
             const node = getTarget(channel.node)
-            let property: ChannelBinding.Value;
             switch (channel.path) {
                 case 'translation':
-                    property = new ChannelBindingVec3(node, 'position');
+                    positions.push({
+                        input: channel.sampler.input,
+                        output: channel.sampler.output,
+                        transform: node
+                    })
                     break;
                 case 'rotation':
-                    property = new ChannelBindingQuat(node, 'rotation');
+                    rotations.push({
+                        input: channel.sampler.input,
+                        output: channel.sampler.output,
+                        transform: node
+                    });
                     break;
                 case 'scale':
-                    property = new ChannelBindingVec3(node, 'scale');
+                    scales.push({
+                        input: channel.sampler.input,
+                        output: channel.sampler.output,
+                        transform: node
+                    });
                     break;
                 default:
                     throw new Error(`unsupported path: ${channel.path}`);
             }
-            channels.push(new ChannelBinding(channel.sampler.input, channel.sampler.output, property));
         }
         this.duration = clip.duration;
-        this._channels = channels;
+        this._positions = positions;
+        this._rotations = rotations;
+        this._scales = scales;
     }
 
     sample(time: number): void {
-        for (const channel of this._channels) {
-            channel.sample(time);
+        for (const channel of this._positions) {
+            sampleVec3(vec4_a, channel.input, channel.output, time);
+            channel.transform.position = vec4_a;
+        }
+        for (const channel of this._rotations) {
+            sampleQuat(vec4_a, channel.input, channel.output, time);
+            channel.transform.rotation = vec4_a;
+        }
+        for (const channel of this._scales) {
+            sampleVec3(vec4_a, channel.input, channel.output, time);
+            channel.transform.scale = vec4_a;
         }
     }
 }

@@ -15,7 +15,7 @@ class SkinnedAnimationState extends AnimationState {
         return this._clip.duration
     }
 
-    public baked: boolean = true;
+    public baked: boolean = false;
 
     private readonly _binding: ClipBinging;
 
