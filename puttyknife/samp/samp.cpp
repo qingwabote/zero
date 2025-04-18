@@ -1,8 +1,8 @@
-#include <sampler/sampler.hpp>
+#include <samp/samp.h>
 
 #define EPSILON 1e-6f
 
-int sampler_binarySearch(float *srcData, unsigned int srcLength, float value)
+int sampSeek(float *srcData, unsigned int srcLength, float value)
 {
     if (value < srcData[0])
     {
@@ -36,9 +36,9 @@ int sampler_binarySearch(float *srcData, unsigned int srcLength, float value)
     return ~head;
 }
 
-void sampler_vec3(float3 *out, float *inputData, unsigned int inputLength, float3 *output, float time)
+void sampVec3(samp::Vec3 *out, float *inputData, unsigned int inputLength, samp::Vec3 *output, float time)
 {
-    int index = sampler_binarySearch(inputData, inputLength, time);
+    int index = sampSeek(inputData, inputLength, time);
     if (index >= 0)
     {
         *out = *(output + index);
@@ -53,9 +53,9 @@ void sampler_vec3(float3 *out, float *inputData, unsigned int inputLength, float
     }
 }
 
-void sampler_quat(float4 *out, float *inputData, unsigned int inputLength, float4 *output, float time)
+void sampQuat(samp::Quat *out, float *inputData, unsigned int inputLength, samp::Quat *output, float time)
 {
-    int index = sampler_binarySearch(inputData, inputLength, time);
+    int index = sampSeek(inputData, inputLength, time);
     if (index >= 0)
     {
         *out = *(output + index);

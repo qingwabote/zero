@@ -62,15 +62,15 @@ export class ClipBinging {
 
     sample(time: number): void {
         for (const channel of this._positions) {
-            pk.fn.sampler_vec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
+            pk.fn.sampVec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
             channel.transform.position = vec4_a_data as unknown as Vec3Like;
         }
         for (const channel of this._rotations) {
-            pk.fn.sampler_quat(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
+            pk.fn.sampQuat(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
             channel.transform.rotation = vec4_a_data as unknown as Vec4Like;
         }
         for (const channel of this._scales) {
-            pk.fn.sampler_vec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
+            pk.fn.sampVec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
             channel.transform.scale = vec4_a_data as unknown as Vec3Like;
         }
     }
