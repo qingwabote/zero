@@ -35,7 +35,21 @@ export class Runtime {
 
     addBuffer(buffer: TypedArray): BufferHandle {
         const ptr = this._exports.malloc(buffer.byteLength);
-        this._u8.set(buffer, ptr);
+        let source: TypedArray;
+        let offset: number;
+        switch (buffer.constructor.name) {
+            case 'Uint8Array':
+                source = this._u8;
+                offset = ptr;
+                break;
+            case 'Float32Array':
+                source = this._f32;
+                offset = ptr >> 2;
+                break;
+            default:
+                throw new Error(`unsupported type: ${buffer.constructor.name}`);
+        }
+        source.set(buffer, offset);
         return ptr;
     }
 

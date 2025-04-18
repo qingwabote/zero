@@ -1,15 +1,16 @@
+import { pk } from "puttyknife";
 import { TRS } from "../core/math/TRS.js";
-import { vec4 } from "../core/math/vec4.js";
+import { Vec3Like } from "../core/math/vec3.js";
+import { Vec4Like } from "../core/math/vec4.js";
 import { AnimationClip } from "./AnimationClip.js";
-import { sampleQuat, sampleVec3 } from "./sampler.js";
 
 interface ChannelBinding {
-    input: ArrayLike<number>,
-    output: ArrayLike<number>,
+    sampler: AnimationClip.Sampler
     transform: TRS
 }
 
-const vec4_a = vec4.create();
+const vec4_a_handle = pk.heap.addBuffer(new Float32Array(4));
+const vec4_a_data = pk.heap.getBuffer(vec4_a_handle, 'f32', 4);
 
 /**
  * Bind clip and target, call sample to update target by time
@@ -33,22 +34,19 @@ export class ClipBinging {
             switch (channel.path) {
                 case 'translation':
                     positions.push({
-                        input: channel.sampler.input,
-                        output: channel.sampler.output,
+                        sampler: channel.sampler,
                         transform: node
                     })
                     break;
                 case 'rotation':
                     rotations.push({
-                        input: channel.sampler.input,
-                        output: channel.sampler.output,
+                        sampler: channel.sampler,
                         transform: node
                     });
                     break;
                 case 'scale':
                     scales.push({
-                        input: channel.sampler.input,
-                        output: channel.sampler.output,
+                        sampler: channel.sampler,
                         transform: node
                     });
                     break;
@@ -64,16 +62,16 @@ export class ClipBinging {
 
     sample(time: number): void {
         for (const channel of this._positions) {
-            sampleVec3(vec4_a, channel.input, channel.output, time);
-            channel.transform.position = vec4_a;
+            pk.fn.sampler_vec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
+            channel.transform.position = vec4_a_data as unknown as Vec3Like;
         }
         for (const channel of this._rotations) {
-            sampleQuat(vec4_a, channel.input, channel.output, time);
-            channel.transform.rotation = vec4_a;
+            pk.fn.sampler_quat(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
+            channel.transform.rotation = vec4_a_data as unknown as Vec4Like;
         }
         for (const channel of this._scales) {
-            sampleVec3(vec4_a, channel.input, channel.output, time);
-            channel.transform.scale = vec4_a;
+            pk.fn.sampler_vec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
+            channel.transform.scale = vec4_a_data as unknown as Vec3Like;
         }
     }
 }

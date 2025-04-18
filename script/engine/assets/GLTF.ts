@@ -4,6 +4,7 @@ import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
 import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
+import { pk } from "puttyknife";
 import { AnimationClip } from "../animating/AnimationClip.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { Node } from "../core/Node.js";
@@ -348,16 +349,21 @@ export class GLTF implements Asset {
                 // the input/output pair: 
                 // a set of floating-point scalar values representing linear time in seconds; 
                 // and a set of vectors or scalars representing the animated property. 
-                let input: Float32Array;
+                let inputData: pk.BufferHandle;
+                let inputLength: number;
+                let duration: number;
                 {
                     const accessor = json.accessors[sampler.input];
                     const bufferView = json.bufferViews[accessor.bufferView];
                     if (bufferView.byteStride != undefined) {
                         throw new Error;
                     }
-                    input = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
+                    const data = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
+                    duration = data[data.length - 1];
+                    inputData = pk.heap.addBuffer(data);
+                    inputLength = data.length;
                 }
-                let output: Float32Array;
+                let output: pk.BufferHandle;
                 {
                     const accessor = json.accessors[sampler.output];
                     const bufferView = json.bufferViews[accessor.bufferView];
@@ -372,13 +378,14 @@ export class GLTF implements Asset {
                         default:
                             throw new Error(`unsupported accessor type: ${accessor.type}`);
                     }
-                    output = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
+                    const data = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
+                    output = pk.heap.addBuffer(data);
                     // if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
                     //     throw new Error;
                     // }
                 }
 
-                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { input, output, interpolation: sampler.interpolation } })
+                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { inputData, inputLength, output, interpolation: sampler.interpolation, duration } })
             }
             this._animationClips.push(new AnimationClip(channels, animation.name));
         }
