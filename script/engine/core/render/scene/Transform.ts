@@ -183,6 +183,9 @@ export class Transform implements TRS {
 
         while (i) {
             let cur = dirtyTransforms[--i];
+            if (cur._world_invalidated) {
+                continue;
+            }
             cur._world_invalidated = true;
             cur._hasChangedFlag.value = 1;
             for (const child of cur._children) {
