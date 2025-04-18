@@ -22,7 +22,6 @@ new Promise(() => {
 
     System.addImportMap({
         imports: {
-            "gfx-common": "./dist/gfx-common/index.js",
             "gfx": "./dist/gfx/index.js",
             "boot": "./dist/boot/index.js",
             "assets": "./dist/assets/index.js",
@@ -30,14 +29,10 @@ new Promise(() => {
             "yaml": "./dist/subpackages/engine/yaml.js",
             "bastard": "./dist/subpackages/engine/bastard/index.js",
             "engine": "./dist/subpackages/engine/script/index.js",
+            "pk": "./dist/subpackages/engine/pk/index.js",
             "puttyknife": "./dist/subpackages/engine/puttyknife/index.js",
-            "yoga": "./dist/subpackages/engine/flex/yoga/script/index.js",
-            "flex": "./dist/subpackages/engine/flex/script/index.js",
-            "@esotericsoftware/spine-core": "./dist/subpackages/spine/spine-core.js",
+            "flex": "./dist/subpackages/engine/flex/index.js",
             "spine": "./dist/subpackages/spine/index.js",
-            "spi": "./dist/subpackages/spine/spi/script/index.js",
-            "spine": "./dist/subpackages/spine/script/index.js",
-            "phys": "./dist/subpackages/physics/phys/script/index.js",
             "physics": "./dist/subpackages/physics/index.js",
             "navigation": "./dist/subpackages/projects/navigation/script/index.js",
             "animation": "./dist/subpackages/projects/animation/script/index.js",
@@ -54,15 +49,6 @@ new Promise(() => {
             },
             "./dist/subpackages/engine/": {
                 "bundling": "./bundling-engine.js"
-            },
-            "./dist/subpackages/engine/flex/yoga/": {
-                "bundling": "./bundling-yoga.js"
-            },
-            "./dist/subpackages/spine/spi/": {
-                "bundling": "./bundling-spi.js"
-            },
-            "./dist/subpackages/physics/phys/": {
-                "bundling": "./bundling-phys.js"
             },
             "./dist/subpackages/projects/animation/": {
                 "bundling": "./bundling-animation.js"
@@ -93,7 +79,7 @@ new Promise(() => {
     (async function () {
         const boot = await System.import('boot');
         await System.import('splash');
-        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('physics'), boot.loadBundle('vehicle')]);
-        System.import('vehicle')
+        await Promise.all([boot.loadBundle('engine'), boot.loadBundle('shadow')]);
+        System.import('shadow')
     })()
 })
