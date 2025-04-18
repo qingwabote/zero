@@ -1,0 +1,1 @@
+c:\portable\swigwin-4.3.0\swig.exe -javascript -v8 -Ic:\Users\logan\Documents\GitHub\zero\puttyknife\sampler\include -o .\build\sampler_swig.cpp sampler.i

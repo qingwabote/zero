@@ -16,6 +16,7 @@
 #include <puttyknife/yoga.hpp>
 #include <puttyknife/spi.hpp>
 #include <puttyknife/phys.hpp>
+#include <puttyknife/sampler.hpp>
 
 extern "C"
 {
@@ -135,6 +136,7 @@ int Window::loop(SDL_Window *sdl_window)
         puttyknife::Yoga(context, ns_exports);
         puttyknife::Spi(context, ns_exports);
         puttyknife::Phys(context, ns_exports);
+        puttyknife::Sampler(context, ns_exports);
         ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "exports"), ns_exports).ToChecked();
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "puttyknife"), ns_puttyknife).ToChecked();
 

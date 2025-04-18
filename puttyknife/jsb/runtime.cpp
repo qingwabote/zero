@@ -16,7 +16,9 @@ namespace puttyknife
                                                        auto context = isolate->GetCurrentContext();
 
                                                        v8::Local<v8::ArrayBufferView> view = info[0].As<v8::ArrayBufferView>();
-                                                       void *ptr = reinterpret_cast<uint8_t *>(view->Buffer()->Data()) + view->ByteOffset();
+                                                       // use zero copy instead?
+                                                       void *ptr = malloc(view->ByteLength());
+                                                       view->CopyContents(ptr, view->ByteLength());
                                                        uint64_t address = reinterpret_cast<uint64_t>(ptr);
                                                        info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, address));
                                                    })
@@ -98,7 +100,12 @@ namespace puttyknife
                              .ToLocalChecked());
         exports_obj->Set(context, v8::String::NewFromUtf8Literal(isolate, "delBuffer"),
                          v8::FunctionTemplate::New(isolate,
-                                                   [](const v8::FunctionCallbackInfo<v8::Value> &info) {})
+                                                   [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                                                   {
+                                                       uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
+                                                       void *ptr = reinterpret_cast<void *>(address);
+                                                       free(ptr);
+                                                   })
                              ->GetFunction(context)
                              .ToLocalChecked());
 
@@ -145,11 +152,6 @@ namespace puttyknife
                          v8::FunctionTemplate::New(isolate,
                                                    [](const v8::FunctionCallbackInfo<v8::Value> &info)
                                                    {
-                                                       auto isolate = info.GetIsolate();
-                                                       v8::HandleScope scope(isolate);
-
-                                                       auto context = isolate->GetCurrentContext();
-
                                                        uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
                                                        void *ptr = reinterpret_cast<void *>(address);
                                                        free(ptr);

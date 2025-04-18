@@ -58,4 +58,8 @@ add_subdirectory(../../puttyknife/phys-jsb phys-jsb)
 target_link_libraries(phys-jsb PRIVATE v8)
 target_link_libraries(zero_main PRIVATE phys-jsb)
 
+add_subdirectory(../../puttyknife/sampler-jsb sampler-jsb)
+target_link_libraries(sampler-jsb PRIVATE v8)
+target_link_libraries(zero_main PRIVATE sampler-jsb)
+
 add_library(zero::main ALIAS zero_main)
