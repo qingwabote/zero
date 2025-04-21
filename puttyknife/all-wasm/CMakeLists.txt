@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS "-fno-exceptions -sSUPPORT_LONGJMP=0 -sDISABLE_EXCEPTION_CAT
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto")
 
-add_executable(puttyknife ./null.cpp)
+add_executable(puttyknife ./malloc.cpp)
 
 add_subdirectory(../samp/ samp)
 target_compile_definitions(samp PRIVATE "SAMP_EXPORT=__attribute__((used))")

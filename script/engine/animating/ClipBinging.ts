@@ -9,7 +9,7 @@ interface ChannelBinding {
     transform: TRS
 }
 
-const vec4_a_handle = pk.heap.addBuffer(new Float32Array(4));
+const vec4_a_handle = pk.heap.addBuffer(new Float32Array(4), 0);
 const vec4_a_data = pk.heap.getBuffer(vec4_a_handle, 'f32', 4);
 
 /**

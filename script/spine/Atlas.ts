@@ -21,7 +21,7 @@ export class Atlas implements Asset {
         const [, base, name] = res;
         const bin = await load(`${base}/${name}.atlas`, 'buffer');
 
-        const dataPtr = pk.heap.addBuffer(new Uint8Array(bin));
+        const dataPtr = pk.heap.addBuffer(new Uint8Array(bin), 0);
         const atlasPtr = pk.fn.spiAtlas_create(dataPtr, bin.byteLength);
         pk.heap.delBuffer(dataPtr);
 

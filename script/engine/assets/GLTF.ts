@@ -360,7 +360,7 @@ export class GLTF implements Asset {
                     }
                     const data = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
                     duration = data[data.length - 1];
-                    inputData = pk.heap.addBuffer(data);
+                    inputData = pk.heap.addBuffer(data, 0);
                     inputLength = data.length;
                 }
                 let output: pk.BufferHandle;
@@ -379,7 +379,7 @@ export class GLTF implements Asset {
                             throw new Error(`unsupported accessor type: ${accessor.type}`);
                     }
                     const data = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
-                    output = pk.heap.addBuffer(data);
+                    output = pk.heap.addBuffer(data, 0);
                     // if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
                     //     throw new Error;
                     // }

@@ -1,4 +1,5 @@
 #include <puttyknife/runtime.hpp>
+#include "malloc.h"
 
 namespace puttyknife
 {
@@ -16,8 +17,18 @@ namespace puttyknife
                                                        auto context = isolate->GetCurrentContext();
 
                                                        v8::Local<v8::ArrayBufferView> view = info[0].As<v8::ArrayBufferView>();
-                                                       // use zero copy instead?
-                                                       void *ptr = malloc(view->ByteLength());
+                                                       uint32_t alignment = info[1].As<v8::Number>()->Uint32Value(context).ToChecked();
+
+                                                       void *ptr = nullptr;
+                                                       if (alignment)
+                                                       {
+                                                           ptr = sted::aligned_alloc(alignment, view->ByteLength());
+                                                       }
+                                                       else
+                                                       {
+                                                           ptr = sted::malloc(view->ByteLength());
+                                                       }
+
                                                        view->CopyContents(ptr, view->ByteLength());
                                                        uint64_t address = reinterpret_cast<uint64_t>(ptr);
                                                        info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, address));
@@ -104,7 +115,7 @@ namespace puttyknife
                                                    {
                                                        uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
                                                        void *ptr = reinterpret_cast<void *>(address);
-                                                       free(ptr);
+                                                       sted::free(ptr);
                                                    })
                              ->GetFunction(context)
                              .ToLocalChecked());
