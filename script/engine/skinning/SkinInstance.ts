@@ -6,48 +6,11 @@ import { Skin } from "../skinning/Skin.js";
 
 const mat4_a = mat4.create();
 
-const toModelSpace = (function () {
-    interface ModelSpaceTransform {
-        readonly hasUpdatedFlag: Periodic;
-        readonly matrix: Mat4;
-    }
-
-    const joint2modelSpace: WeakMap<Transform, ModelSpaceTransform> = new WeakMap;
-    const dirtyJoints: Transform[] = [];
-
-    return function (root: Transform, joint: Transform) {
-        let parent: Transform = joint;
-        let modelSpace: ModelSpaceTransform | undefined;
-        let i = 0;
-
-        while (parent != root) {
-            modelSpace = joint2modelSpace.get(parent);
-            if (!modelSpace) {
-                joint2modelSpace.set(parent, modelSpace = { hasUpdatedFlag: new Periodic(0, 0), matrix: mat4.create() });
-            }
-            if (modelSpace.hasUpdatedFlag.value) {
-                break;
-            }
-
-            dirtyJoints[i++] = parent;
-            parent = parent.parent!;
-        }
-
-        while (i) {
-            const child = dirtyJoints[--i];
-            modelSpace = joint2modelSpace.get(child)!;
-            if (parent == root) {
-                modelSpace.matrix.splice(0, child.matrix.length, ...child.matrix);
-            } else {
-                mat4.multiply_affine(modelSpace.matrix, joint2modelSpace.get(parent)!.matrix, child.matrix)
-            }
-            modelSpace.hasUpdatedFlag.value = 1;
-            parent = child;
-        }
-
-        return modelSpace!.matrix;
-    }
-})()
+interface Node {
+    trs: Transform;
+    children: Set<Node>;
+    m: Mat4;
+}
 
 export class SkinInstance {
     public store: Skin.JointStore;
@@ -60,10 +23,37 @@ export class SkinInstance {
         this._offset.value = value;
     }
 
-    private readonly _joints: readonly Transform[];
+    private readonly _joints: readonly Node[];
+
+    private readonly _hierarchy: Node;
 
     constructor(readonly proto: Skin, readonly root: Transform) {
-        this._joints = proto.joints.map(paths => root.getChildByPath(paths)!)
+        const joints: Node[] = [];
+        const hierarchy: Node = { trs: root, children: new Set, m: mat4.create() };
+        const trs2node: Map<Transform, Node> = new Map;
+        for (let trs of proto.joints.map(paths => root.getChildByPath(paths)!)) {
+            const node: Node = { trs, children: new Set, m: mat4.create() };
+            trs2node.set(trs, node);
+            joints.push(node);
+
+            let child: Node | undefined;
+            do {
+                let node = trs2node.get(trs);
+                if (!node) {
+                    trs2node.set(trs, node = { trs, children: new Set, m: mat4.create() });
+                }
+                if (child) {
+                    node.children.add(child);
+                }
+
+                child = node;
+                trs = trs.parent!;
+            } while (trs != root);
+            hierarchy.children.add(child);
+        }
+        this._hierarchy = hierarchy;
+        this._joints = joints;
+
         this.store = this.proto.alive;
     }
 
@@ -72,10 +62,19 @@ export class SkinInstance {
             return;
         }
 
+        const nodeQueue: Node[] = [this._hierarchy];
+        while (nodeQueue.length) {
+            const node = nodeQueue.pop()!;
+            for (const child of node.children) {
+                nodeQueue.push(child);
+                mat4.multiply_affine(child.m, node.m, child.trs.matrix);
+            }
+        }
+
         const [source, offset] = this.store.add();
 
         for (let i = 0; i < this._joints.length; i++) {
-            mat4.multiply_affine(mat4_a, toModelSpace(this.root, this._joints[i]), this.proto.inverseBindMatrices[i]);
+            mat4.multiply_affine(mat4_a, this._joints[i].m, this.proto.inverseBindMatrices[i]);
             gfxUtil.compressAffineMat4(source, 4 * 3 * i + offset, mat4_a);
         }
 
