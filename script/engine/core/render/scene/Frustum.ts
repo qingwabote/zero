@@ -1,6 +1,6 @@
 import { AABB3D } from "../../math/aabb3d.js";
 import { frustum } from "../../math/frustum.js";
-import { Mat4 } from "../../math/mat4.js";
+import { Mat4Like } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
 import { Periodic } from "./Periodic.js";
 
@@ -42,7 +42,7 @@ export class Frustum {
         this._hasChangedFlag.value = 1
     }
 
-    transform(m: Readonly<Mat4>) {
+    transform(m: Readonly<Mat4Like>) {
         for (let i = 0; i < this._vertices_raw.length; i++) {
             vec3.transformMat4(this._vertices_tra[i], this._vertices_raw[i], m);
         }

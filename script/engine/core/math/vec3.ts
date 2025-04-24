@@ -4,7 +4,12 @@ import { QuatLike } from "./quat.js";
 
 export type Vec3 = [number, number, number];
 
-export type Vec3Like = [number, number, number, ...number[]];
+export interface Vec3Like extends ArrayLike<number> {
+    0: number,
+    1: number,
+    2: number,
+    [Symbol.iterator](): Iterator<number>;
+};
 
 function create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
     return [x, y, z]

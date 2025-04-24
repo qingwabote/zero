@@ -17,7 +17,25 @@ export type Mat4 = [
     number, number, number, number
 ]
 
-export type Mat4Like = Mat4
+export interface Mat4Like extends ArrayLike<number> {
+    0: number,
+    1: number,
+    2: number,
+    3: number,
+    4: number,
+    5: number,
+    6: number,
+    7: number,
+    8: number,
+    9: number,
+    10: number,
+    11: number,
+    12: number,
+    13: number,
+    14: number,
+    15: number,
+    [Symbol.iterator](): Iterator<number>;
+};
 
 export const preTransforms = [
     [1, 0, 0, 1], // SurfaceTransform.IDENTITY

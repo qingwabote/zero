@@ -55,7 +55,10 @@ export class Transform implements TRS {
 
     private _matrix = mat4.create();
     public get matrix(): Readonly<Mat4> {
-        this.update();
+        if (this._invalidated) {
+            mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
+            this._invalidated = false;
+        }
         return this._matrix;
     }
     public set matrix(value: Readonly<Mat4Like>) {
@@ -196,12 +199,6 @@ export class Transform implements TRS {
         this._invalidated = true;
     }
 
-    private update(): void {
-        if (!this._invalidated) return;
-        mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
-        this._invalidated = false;
-    }
-
     private world_update(): void {
         let i = 0;
         let cur: Transform | undefined = this;
@@ -221,11 +218,11 @@ export class Transform implements TRS {
 
                 mat4.toTRS(child._world_matrix, child._world_position, child._world_rotation, child._world_scale);
             } else {
-                child._world_matrix.splice(0, child.matrix.length, ...child.matrix);
+                child._world_matrix.splice(0, 16, ...child.matrix);
 
-                child._world_position.splice(0, child._position.length, ...child._position);
-                child._world_rotation.splice(0, child._rotation.length, ...child._rotation);
-                child._world_scale.splice(0, child._scale.length, ...child._scale);
+                child._world_position.splice(0, 3, ...child._position);
+                child._world_rotation.splice(0, 4, ...child._rotation);
+                child._world_scale.splice(0, 3, ...child._scale);
             }
             child._world_invalidated = false;
             cur = child;

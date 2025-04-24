@@ -1,7 +1,13 @@
 
 export type Vec4 = [number, number, number, number];
 
-export type Vec4Like = [number, number, number, number, ...number[]];
+export interface Vec4Like extends ArrayLike<number> {
+    0: number,
+    1: number,
+    2: number,
+    3: number,
+    [Symbol.iterator](): Iterator<number>;
+};
 
 function create(x = 0, y = 0, z = 0, w = 0): Vec4 {
     return [x, y, z, w];

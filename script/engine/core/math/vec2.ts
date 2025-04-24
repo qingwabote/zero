@@ -2,7 +2,10 @@ import { Mat4Like } from "./mat4.js";
 
 export type Vec2 = [number, number];
 
-export type Vec2Like = [number, number, ...number[]];
+export type Vec2Like = {
+    0: number,
+    1: number,
+};
 
 function create(x: number = 0, y: number = 0): Vec2 {
     return [x, y];
