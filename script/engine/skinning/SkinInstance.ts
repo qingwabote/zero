@@ -6,11 +6,23 @@ import { Skin } from "../skinning/Skin.js";
 
 const mat4_a = mat4.create();
 
+interface Top {
+    trs: Transform;
+    children: Set<Node>;
+    m: Readonly<Mat4>;
+}
+
 interface Node {
     trs: Transform;
     children: Set<Node>;
     m: Mat4;
 }
+
+function createNode(trs: Transform): Node {
+    return { trs, children: new Set, m: mat4.create() }
+}
+
+const nodeQueue: Node[] = [];
 
 export class SkinInstance {
     public store: Skin.JointStore;
@@ -25,14 +37,14 @@ export class SkinInstance {
 
     private readonly _joints: readonly Node[];
 
-    private readonly _hierarchy: Node;
+    private readonly _hierarchy: readonly Top[];
 
     constructor(readonly proto: Skin, readonly root: Transform) {
         const joints: Node[] = [];
-        const hierarchy: Node = { trs: root, children: new Set, m: mat4.create() };
+        const hierarchy: Set<Node> = new Set;
         const trs2node: Map<Transform, Node> = new Map;
         for (let trs of proto.joints.map(paths => root.getChildByPath(paths)!)) {
-            const node: Node = { trs, children: new Set, m: mat4.create() };
+            const node: Node = createNode(trs);
             trs2node.set(trs, node);
             joints.push(node);
 
@@ -40,7 +52,7 @@ export class SkinInstance {
             do {
                 let node = trs2node.get(trs);
                 if (!node) {
-                    trs2node.set(trs, node = { trs, children: new Set, m: mat4.create() });
+                    trs2node.set(trs, node = createNode(trs));
                 }
                 if (child) {
                     node.children.add(child);
@@ -49,9 +61,9 @@ export class SkinInstance {
                 child = node;
                 trs = trs.parent!;
             } while (trs != root);
-            hierarchy.children.add(child);
+            hierarchy.add(child);
         }
-        this._hierarchy = hierarchy;
+        this._hierarchy = [...hierarchy];
         this._joints = joints;
 
         this.store = this.proto.alive;
@@ -62,7 +74,11 @@ export class SkinInstance {
             return;
         }
 
-        const nodeQueue: Node[] = [this._hierarchy];
+        nodeQueue.length = 0;
+        for (const child of this._hierarchy) {
+            child.m = child.trs.matrix;
+            nodeQueue.push(child as Node);
+        }
         while (nodeQueue.length) {
             const node = nodeQueue.pop()!;
             for (const child of node.children) {
