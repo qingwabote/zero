@@ -1,9 +1,10 @@
 import { TRS } from "../../math/TRS.js";
-import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
-import { Quat, QuatLike, quat } from "../../math/quat.js";
+import { Mat4Like, mat4 } from "../../math/mat4.js";
+import { QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
 import { Periodic } from "./Periodic.js";
+import { BlockAllocator } from "./internal/BlockAllocator.js";
 
 const vec3_a = vec3.create();
 const mat4_a = mat4.create();
@@ -11,67 +12,75 @@ const quat_a = quat.create();
 
 const dirtyTransforms: Transform[] = [];
 
+const trs = {
+    position: 3,
+    rotation: 4,
+    scale: 3,
+    invalidated: 1,
+    matrix: 16,
+}
+
+const local_allocator = new BlockAllocator(trs);
+const world_allocator = new BlockAllocator(trs);
+
+const transforms: Transform[] = [];
+
 export class Transform implements TRS {
-    private _position = vec3.create();
-    get position(): Readonly<Vec3> {
-        return this._position;
+
+    private _local_block: ReturnType<typeof local_allocator.alloc>;
+    get position(): Readonly<Vec3Like> {
+        return this._local_block.position as any
     }
     set position(value: Readonly<Vec3Like>) {
-        vec3.copy(this._position, value)
+        vec3.copy(this._local_block.position as any, value)
         this.invalidate();
     }
 
-    private _rotation = quat.create()
     /**
      * rotation is normalized.
      */
-    get rotation(): Readonly<Quat> {
-        return this._rotation;
+    get rotation(): Readonly<QuatLike> {
+        return this._local_block.rotation as any;
     }
     set rotation(value: Readonly<QuatLike>) {
-        vec4.copy(this._rotation, value)
+        vec4.copy(this._local_block.rotation as any, value)
         this.invalidate();
     }
 
-    private _scale = vec3.create(1, 1, 1);
-    get scale(): Readonly<Vec3> {
-        return this._scale
+    get scale(): Readonly<Vec3Like> {
+        return this._local_block.scale as any;
     }
     set scale(value: Readonly<Vec3Like>) {
-        vec3.copy(this._scale, value)
+        vec3.copy(this._local_block.scale as any, value)
         this.invalidate();
     }
 
     private _euler = vec3.create();
-    get euler(): Readonly<Vec3> {
-        return quat.toEuler(this._euler, this._rotation);
+    get euler(): Readonly<Vec3Like> {
+        return quat.toEuler(this._euler, this.rotation);
     }
     set euler(value: Readonly<Vec3Like>) {
-        quat.fromEuler(this._rotation, value[0], value[1], value[2]);
+        quat.fromEuler(this.rotation, value[0], value[1], value[2]);
         this.invalidate();
     }
 
-    private _invalidated = false;
-
-    private _matrix = mat4.create();
-    public get matrix(): Readonly<Mat4> {
-        if (this._invalidated) {
-            mat4.fromTRS(this._matrix, this._position, this._rotation, this._scale);
-            this._invalidated = false;
+    public get matrix(): Readonly<Mat4Like> {
+        if (this._local_block.invalidated[0] == 1) {
+            mat4.fromTRS(this._local_block.matrix as any, this.position, this.rotation, this.scale);
+            this._local_block.invalidated[0] = 0;
         }
-        return this._matrix;
+        return this._local_block.matrix as any;
     }
     public set matrix(value: Readonly<Mat4Like>) {
-        mat4.toTRS(value, this._position, this._rotation, this._scale);
+        mat4.toTRS(value, this.position, this.rotation, this.scale);
         this.invalidate();
     }
 
-    private _world_invalidated = false;
+    private _world_block: ReturnType<typeof world_allocator.alloc>;
 
-    private _world_position = vec3.create();
-    get world_position(): Readonly<Vec3> {
+    get world_position(): Readonly<Vec3Like> {
         this.world_update();
-        return this._world_position;
+        return this._world_block.position as any;
     }
     set world_position(value: Readonly<Vec3Like>) {
         if (!this._parent) {
@@ -80,14 +89,13 @@ export class Transform implements TRS {
         }
 
         mat4.invert(mat4_a, this._parent.world_matrix);
-        vec3.transformMat4(this._position, value, mat4_a);
+        vec3.transformMat4(this.position, value, mat4_a);
         this.invalidate();
     }
 
-    private _world_rotation = quat.create()
-    get world_rotation(): Readonly<Quat> {
+    get world_rotation(): Readonly<QuatLike> {
         this.world_update();
-        return this._world_rotation;
+        return this._world_block.rotation as any;
     }
     set world_rotation(value: Readonly<QuatLike>) {
         if (!this._parent) {
@@ -95,20 +103,19 @@ export class Transform implements TRS {
             return;
         }
 
-        quat.conjugate(this._rotation, this._parent.world_rotation);
-        quat.multiply(this._rotation, this._rotation, value);
+        quat.conjugate(this.rotation, this._parent.world_rotation);
+        quat.multiply(this.rotation, this.rotation, value);
         this.invalidate();
     }
 
-    private _world_scale = vec3.create(1, 1, 1);
-    public get world_scale(): Readonly<Vec3> {
-        return this._world_scale;
+    public get world_scale(): Readonly<Vec3Like> {
+        this.world_update();
+        return this._world_block.scale as any;
     }
 
-    private _world_matrix = mat4.create();
-    get world_matrix(): Readonly<Mat4> {
+    get world_matrix(): Readonly<Mat4Like> {
         this.world_update();
-        return this._world_matrix;
+        return this._world_block.matrix as any;
     }
 
     private _children: this[] = [];
@@ -144,7 +151,26 @@ export class Transform implements TRS {
         this._vis_exp = value;
     }
 
-    constructor(public readonly name: string = '') { }
+    constructor(public readonly name: string = '') {
+        const local_block = local_allocator.alloc();
+        local_block.position.set(vec3.ZERO);
+        local_block.rotation.set(quat.IDENTITY);
+        local_block.scale.set(vec3.ONE);
+        local_block.matrix.set(mat4.IDENTITY);
+        local_block.invalidated[0] = 0;
+        this._local_block = local_block;
+
+
+        const world_block = world_allocator.alloc();
+        world_block.position.set(vec3.ZERO);
+        world_block.rotation.set(quat.IDENTITY);
+        world_block.scale.set(vec3.ONE);
+        world_block.matrix.set(mat4.IDENTITY);
+        world_block.invalidated[0] = 0;
+        this._world_block = world_block;
+
+        transforms.push(this);
+    }
 
     addChild(child: this): void {
         child._vis_imp = undefined;
@@ -186,24 +212,24 @@ export class Transform implements TRS {
 
         while (i) {
             let cur = dirtyTransforms[--i];
-            if (cur._world_invalidated) {
+            if (cur._world_block.invalidated[0] == 1) {
                 continue;
             }
-            cur._world_invalidated = true;
+            cur._world_block.invalidated[0] = 1;
             cur._hasChangedFlag.value = 1;
             for (const child of cur._children) {
                 dirtyTransforms[i++] = child;
             }
         }
 
-        this._invalidated = true;
+        this._local_block.invalidated[0] = 1;
     }
 
     private world_update(): void {
         let i = 0;
         let cur: Transform | undefined = this;
         while (cur) {
-            if (!cur._world_invalidated) {
+            if (cur._world_block.invalidated[0] == 0) {
                 break;
             }
 
@@ -214,17 +240,15 @@ export class Transform implements TRS {
         while (i) {
             const child = dirtyTransforms[--i];
             if (cur) {
-                mat4.multiply(child._world_matrix, cur._world_matrix, child.matrix);
-
-                mat4.toTRS(child._world_matrix, child._world_position, child._world_rotation, child._world_scale);
+                mat4.multiply(child._world_block.matrix as any, cur._world_block.matrix as any, child.matrix);
+                mat4.toTRS(child._world_block.matrix as any, child._world_block.position as any, child._world_block.rotation as any, child._world_block.scale as any);
             } else {
-                child._world_matrix.splice(0, 16, ...child.matrix);
-
-                child._world_position.splice(0, 3, ...child._position);
-                child._world_rotation.splice(0, 4, ...child._rotation);
-                child._world_scale.splice(0, 3, ...child._scale);
+                child._world_block.position.set(child._local_block.position)
+                child._world_block.rotation.set(child._local_block.rotation)
+                child._world_block.scale.set(child._local_block.scale)
+                child._world_block.matrix.set(child.matrix)
             }
-            child._world_invalidated = false;
+            child._world_block.invalidated[0] = 0;
             cur = child;
         }
     }

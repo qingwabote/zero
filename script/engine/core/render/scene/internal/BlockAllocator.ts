@@ -1,30 +1,38 @@
+export const block_index = Symbol('index');
+
 export interface BlockHandle {
-    index: number;
-    view: Float32Array;
+    [block_index]: number
 }
 
-export class BlockAllocator {
-    private _chunks: ArrayBuffer[] = [];
-    private _blockIndex: number = 0;
+export class BlockAllocator<Members extends Record<string, number>> {
+    private readonly _chunks: Float32Array[] = [];
+    private readonly _block_elements: number
+    private readonly _block_handles: any[] = [];
+    private _block_index: number = 0;
 
-    private _handles: BlockHandle[] = [];
     constructor(
-        public readonly blockBytes: number,
-        public readonly chunkSize: number
+        private readonly _members: Members,
+        private readonly _chunk_blocks: number = 32
     ) {
+        this._block_elements = Object.keys(_members).reduce((acc, key) => acc + _members[key], 0);
     }
 
-    alloc(): Readonly<BlockHandle> {
-        const chunkIndex = Math.floor(this._blockIndex / this.chunkSize);
-        const localIndex = this._blockIndex % this.chunkSize;
+    alloc(): { [Key in keyof Members]: Float32Array } & BlockHandle {
+        const chunkIndex = Math.floor(this._block_index / this._chunk_blocks);
         if (!this._chunks[chunkIndex]) {
-            this._chunks[chunkIndex] = new ArrayBuffer(this.blockBytes * this.chunkSize);
+            this._chunks[chunkIndex] = new Float32Array(this._block_elements * this._chunk_blocks)
         }
-        if (!this._handles[this._blockIndex]) {
-            this._handles[this._blockIndex] = { index: this._blockIndex, view: new Float32Array(this._chunks[chunkIndex], this.blockBytes * localIndex, this.blockBytes / 4) }
+        if (!this._block_handles[this._block_index]) {
+            const block: any = {};
+            let offset = this._block_elements * (this._block_index % this._chunk_blocks);
+            for (const key in this._members) {
+                block[key] = this._chunks[chunkIndex].subarray(offset, offset += this._members[key]);
+            }
+            block[block_index] = this._block_index;
+            this._block_handles[this._block_index] = block
         }
 
-        return this._handles[this._blockIndex++];
+        return this._block_handles[this._block_index++];
     }
 
     free(hanlde: Readonly<BlockHandle>) {
@@ -32,6 +40,6 @@ export class BlockAllocator {
     }
 
     reset() {
-        this._blockIndex = 0;
+        this._block_index = 0;
     }
 }

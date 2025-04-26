@@ -1,4 +1,5 @@
-import { Mat4, mat4 } from "../core/math/mat4.js";
+import { mat4, Mat4Like } from "../core/math/mat4.js";
+import { BlockAllocator } from "../core/render/scene/internal/BlockAllocator.js";
 import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { gfxUtil } from "../gfxUtil.js";
@@ -9,20 +10,21 @@ const mat4_a = mat4.create();
 interface Top {
     trs: Transform;
     children: Set<Node>;
-    m: Readonly<Mat4>;
+    m: Readonly<Mat4Like>;
 }
 
 interface Node {
     trs: Transform;
     children: Set<Node>;
-    m: Mat4;
+    m: Mat4Like;
 }
 
 function createNode(trs: Transform): Node {
-    return { trs, children: new Set, m: mat4.create() }
+    return { trs, children: new Set, m: null! }
 }
 
 const nodeQueue: Node[] = [];
+const m_allocator = new BlockAllocator({ m: 16 });
 
 export class SkinInstance {
     public store: Skin.JointStore;
@@ -74,6 +76,7 @@ export class SkinInstance {
             return;
         }
 
+        m_allocator.reset();
         nodeQueue.length = 0;
         for (const child of this._hierarchy) {
             child.m = child.trs.matrix;
@@ -82,8 +85,9 @@ export class SkinInstance {
         while (nodeQueue.length) {
             const node = nodeQueue.pop()!;
             for (const child of node.children) {
-                nodeQueue.push(child);
+                child.m = m_allocator.alloc().m as any;
                 mat4.multiply_affine(child.m, node.m, child.trs.matrix);
+                nodeQueue.push(child);
             }
         }
 

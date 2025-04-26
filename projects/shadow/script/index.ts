@@ -76,7 +76,7 @@ export class App extends Zero {
         const circles: [Vec3, number][] = [
             [vec3.create(0, 0, -1.5), 6],
             [vec3.create(0, 0, -3), 10],
-            [vec3.create(0, 0, -4.5), 22]
+            [vec3.create(0, 0, -4.5), 444]
         ]
         for (let i = 0; i < circles.length; i++) {
             const [origin, steps] = circles[i];
