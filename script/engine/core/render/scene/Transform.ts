@@ -1,6 +1,6 @@
 import { TRS } from "../../math/TRS.js";
-import { Mat4Like, mat4 } from "../../math/mat4.js";
-import { QuatLike, quat } from "../../math/quat.js";
+import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
+import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
 import { Periodic } from "./Periodic.js";
@@ -12,7 +12,7 @@ const quat_a = quat.create();
 
 const dirtyTransforms: Transform[] = [];
 
-const trs = {
+const block_trs = {
     position: 3,
     rotation: 4,
     scale: 3,
@@ -20,15 +20,13 @@ const trs = {
     matrix: 16,
 }
 
-const local_allocator = new BlockAllocator(trs);
-const world_allocator = new BlockAllocator(trs);
-
-const transforms: Transform[] = [];
+const local_allocator = new BlockAllocator(block_trs);
+const world_allocator = new BlockAllocator(block_trs);
 
 export class Transform implements TRS {
 
     private _local_block: ReturnType<typeof local_allocator.alloc>;
-    get position(): Readonly<Vec3Like> {
+    get position(): Readonly<Vec3> {
         return this._local_block.position as any
     }
     set position(value: Readonly<Vec3Like>) {
@@ -39,7 +37,7 @@ export class Transform implements TRS {
     /**
      * rotation is normalized.
      */
-    get rotation(): Readonly<QuatLike> {
+    get rotation(): Readonly<Quat> {
         return this._local_block.rotation as any;
     }
     set rotation(value: Readonly<QuatLike>) {
@@ -47,7 +45,7 @@ export class Transform implements TRS {
         this.invalidate();
     }
 
-    get scale(): Readonly<Vec3Like> {
+    get scale(): Readonly<Vec3> {
         return this._local_block.scale as any;
     }
     set scale(value: Readonly<Vec3Like>) {
@@ -56,7 +54,7 @@ export class Transform implements TRS {
     }
 
     private _euler = vec3.create();
-    get euler(): Readonly<Vec3Like> {
+    get euler(): Readonly<Vec3> {
         return quat.toEuler(this._euler, this.rotation);
     }
     set euler(value: Readonly<Vec3Like>) {
@@ -64,7 +62,7 @@ export class Transform implements TRS {
         this.invalidate();
     }
 
-    public get matrix(): Readonly<Mat4Like> {
+    public get matrix(): Readonly<Mat4> {
         if (this._local_block.invalidated[0] == 1) {
             mat4.fromTRS(this._local_block.matrix as any, this.position, this.rotation, this.scale);
             this._local_block.invalidated[0] = 0;
@@ -78,7 +76,7 @@ export class Transform implements TRS {
 
     private _world_block: ReturnType<typeof world_allocator.alloc>;
 
-    get world_position(): Readonly<Vec3Like> {
+    get world_position(): Readonly<Vec3> {
         this.world_update();
         return this._world_block.position as any;
     }
@@ -93,7 +91,7 @@ export class Transform implements TRS {
         this.invalidate();
     }
 
-    get world_rotation(): Readonly<QuatLike> {
+    get world_rotation(): Readonly<Quat> {
         this.world_update();
         return this._world_block.rotation as any;
     }
@@ -108,12 +106,12 @@ export class Transform implements TRS {
         this.invalidate();
     }
 
-    public get world_scale(): Readonly<Vec3Like> {
+    public get world_scale(): Readonly<Vec3> {
         this.world_update();
         return this._world_block.scale as any;
     }
 
-    get world_matrix(): Readonly<Mat4Like> {
+    get world_matrix(): Readonly<Mat4> {
         this.world_update();
         return this._world_block.matrix as any;
     }
@@ -168,8 +166,6 @@ export class Transform implements TRS {
         world_block.matrix.set(mat4.IDENTITY);
         world_block.invalidated[0] = 0;
         this._world_block = world_block;
-
-        transforms.push(this);
     }
 
     addChild(child: this): void {
@@ -207,6 +203,8 @@ export class Transform implements TRS {
     }
 
     private invalidate(): void {
+        this._local_block.invalidated[0] = 1;
+
         let i = 0;
         dirtyTransforms[i++] = this;
 
@@ -221,8 +219,6 @@ export class Transform implements TRS {
                 dirtyTransforms[i++] = child;
             }
         }
-
-        this._local_block.invalidated[0] = 1;
     }
 
     private world_update(): void {

@@ -2,16 +2,24 @@ import { Mat3Like } from "./mat3.js";
 import { Mat4Like } from "./mat4.js";
 import { QuatLike } from "./quat.js";
 
-export type Vec3 = [number, number, number];
+type V3 = [number, number, number];
 
-export interface Vec3Like extends ArrayLike<number> {
+export interface Vec3 {
     0: number,
     1: number,
     2: number,
+    [n: number]: number;
+    length: 3;
     [Symbol.iterator](): Iterator<number>;
+}
+
+export interface Vec3Like {
+    0: number,
+    1: number,
+    2: number,
 };
 
-function create(x: number = 0, y: number = 0, z: number = 0): Vec3 {
+function create(x: number = 0, y: number = 0, z: number = 0): V3 {
     return [x, y, z]
 }
 

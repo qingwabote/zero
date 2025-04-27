@@ -10,14 +10,14 @@ function vec3_length(x: number, y: number, z: number) {
     return Math.sqrt(x * x + y * y + z * z);
 }
 
-export type Mat4 = [
+type M4 = [
     number, number, number, number,
     number, number, number, number,
     number, number, number, number,
     number, number, number, number
 ]
 
-export interface Mat4Like extends ArrayLike<number> {
+export interface Mat4 {
     0: number,
     1: number,
     2: number,
@@ -34,7 +34,28 @@ export interface Mat4Like extends ArrayLike<number> {
     13: number,
     14: number,
     15: number,
+    [n: number]: number;
+    length: 16;
     [Symbol.iterator](): Iterator<number>;
+};
+
+export interface Mat4Like {
+    0: number,
+    1: number,
+    2: number,
+    3: number,
+    4: number,
+    5: number,
+    6: number,
+    7: number,
+    8: number,
+    9: number,
+    10: number,
+    11: number,
+    12: number,
+    13: number,
+    14: number,
+    15: number,
 };
 
 export const preTransforms = [
@@ -52,7 +73,7 @@ export const mat4 = {
         0, 0, 0, 1
     ],
 
-    create(): Mat4 {
+    create(): M4 {
         return [
             1, 0, 0, 0,
             0, 1, 0, 0,

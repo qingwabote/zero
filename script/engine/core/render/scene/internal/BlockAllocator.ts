@@ -17,7 +17,7 @@ export class BlockAllocator<Members extends Record<string, number>> {
         this._block_elements = Object.keys(_members).reduce((acc, key) => acc + _members[key], 0);
     }
 
-    alloc(): { [Key in keyof Members]: Float32Array } & BlockHandle {
+    alloc(): Readonly<{ [Key in keyof Members]: Float32Array } & BlockHandle> {
         const chunkIndex = Math.floor(this._block_index / this._chunk_blocks);
         if (!this._chunks[chunkIndex]) {
             this._chunks[chunkIndex] = new Float32Array(this._block_elements * this._chunk_blocks)

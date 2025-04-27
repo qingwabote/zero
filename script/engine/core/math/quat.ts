@@ -4,6 +4,8 @@ import { vec4, Vec4, Vec4Like } from "./vec4.js";
 
 const halfToRad = 0.5 * Math.PI / 180.0;
 
+type V4 = [number, number, number, number];
+
 export type Quat = Vec4;
 
 export type QuatLike = Vec4Like
@@ -11,7 +13,7 @@ export type QuatLike = Vec4Like
 export const quat = {
     IDENTITY: [0, 0, 0, 1],
 
-    create(x = 0, y = 0, z = 0, w = 1): Quat {
+    create(x = 0, y = 0, z = 0, w = 1): V4 {
         return [x, y, z, w]
     },
 

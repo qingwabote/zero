@@ -303,7 +303,7 @@ export class GLTF implements Asset {
             const accessor = json.accessors[skin.inverseBindMatrices];
             const bufferView = json.bufferViews[accessor.bufferView];
             for (let i = 0; i < accessor.count; i++) {
-                inverseBindMatrices[i] = [...new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16)] as Mat4;
+                inverseBindMatrices[i] = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as any;
             }
             const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
 
