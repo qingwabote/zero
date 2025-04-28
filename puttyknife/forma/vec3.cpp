@@ -1,6 +1,6 @@
-#include <samp/vec3.h>
+#include <forma/vec3.h>
 
-namespace samp
+namespace forma
 {
     void lerp(Vec3 &out, Vec3 &a, Vec3 &b, float t)
     {

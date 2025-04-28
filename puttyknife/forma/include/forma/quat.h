@@ -1,6 +1,6 @@
 #pragma once
 
-namespace samp
+namespace forma
 {
     struct Quat
     {

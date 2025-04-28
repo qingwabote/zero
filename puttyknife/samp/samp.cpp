@@ -36,7 +36,7 @@ int sampSeek(float *srcData, unsigned int srcLength, float value)
     return ~head;
 }
 
-void sampVec3(samp::Vec3 *out, float *inputData, unsigned int inputLength, samp::Vec3 *output, float time)
+void sampVec3(forma::Vec3 *out, float *inputData, unsigned int inputLength, forma::Vec3 *output, float time)
 {
     int index = sampSeek(inputData, inputLength, time);
     if (index >= 0)
@@ -53,7 +53,7 @@ void sampVec3(samp::Vec3 *out, float *inputData, unsigned int inputLength, samp:
     }
 }
 
-void sampQuat(samp::Quat *out, float *inputData, unsigned int inputLength, samp::Quat *output, float time)
+void sampQuat(forma::Quat *out, float *inputData, unsigned int inputLength, forma::Quat *output, float time)
 {
     int index = sampSeek(inputData, inputLength, time);
     if (index >= 0)

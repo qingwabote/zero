@@ -1,7 +1,7 @@
-#include <samp/quat.h>
+#include <forma/quat.h>
 #include <math.h>
 
-namespace samp
+namespace forma
 {
     void slerp(Quat &out, Quat &a, Quat &b, float t)
     {

@@ -58,6 +58,10 @@ add_subdirectory(../../puttyknife/phys-jsb phys-jsb)
 target_link_libraries(phys-jsb PRIVATE v8)
 target_link_libraries(zero_main PRIVATE phys-jsb)
 
+add_subdirectory(../../puttyknife/forma-jsb forma-jsb)
+target_link_libraries(forma-jsb PRIVATE v8)
+target_link_libraries(zero_main PRIVATE forma-jsb)
+
 add_subdirectory(../../puttyknife/samp-jsb samp-jsb)
 target_link_libraries(samp-jsb PRIVATE v8)
 target_link_libraries(zero_main PRIVATE samp-jsb)

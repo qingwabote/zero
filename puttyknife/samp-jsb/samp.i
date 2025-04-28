@@ -4,8 +4,8 @@
 %include "../jsb/bigint_ptr.i"
 
 %bigint_ptr(float)
-%bigint_ptr(samp::Vec3)
-%bigint_ptr(samp::Quat)
+%bigint_ptr(forma::Vec3)
+%bigint_ptr(forma::Quat)
 
 %include <samp/samp.h>
 

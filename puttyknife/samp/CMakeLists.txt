@@ -1,2 +1,5 @@
-add_library(samp STATIC ./vec3.cpp ./quat.cpp ./samp.cpp)
+add_library(samp STATIC ./samp.cpp)
 target_include_directories(samp PUBLIC ./include)
+
+add_subdirectory(../forma forma)
+target_link_libraries(samp PUBLIC forma)
