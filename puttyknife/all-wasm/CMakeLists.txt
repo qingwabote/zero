@@ -9,6 +9,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto")
 
 add_executable(puttyknife ./malloc.cpp)
 
+add_subdirectory(../forma/ forma)
+target_compile_definitions(forma PRIVATE "FORMA_EXPORT=__attribute__((used))")
+target_link_libraries(puttyknife PRIVATE -Wl,--whole-archive forma -Wl,--no-whole-archive)
+
 add_subdirectory(../samp/ samp)
 target_compile_definitions(samp PRIVATE "SAMP_EXPORT=__attribute__((used))")
 target_link_libraries(puttyknife PRIVATE -Wl,--whole-archive samp -Wl,--no-whole-archive)
