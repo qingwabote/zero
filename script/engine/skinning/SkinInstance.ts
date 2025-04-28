@@ -85,7 +85,7 @@ export class SkinInstance {
         while (nodeQueue.length) {
             const node = nodeQueue.pop()!;
             for (const child of node.children) {
-                child.m = m_allocator.alloc().m as any;
+                child.m = m_allocator.alloc().m.view as any;
                 mat4.multiply_affine(child.m, node.m, child.trs.matrix);
                 nodeQueue.push(child);
             }
