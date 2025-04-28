@@ -31,7 +31,9 @@ export declare type TypedArray = ArrayTypes[keyof ArrayTypes];
 export declare class Runtime {
     constructor(...args: any[]);
 
+    newBuffer(bytes: number, alignment: number): BufferHandle;
     addBuffer(copy: TypedArray, alignment: number): BufferHandle;
+    locBuffer(handle: BufferHandle, offset: number): BufferHandle;
     getBuffer<T extends keyof ArrayTypes>(handle: BufferHandle, type: T, elements: number): ArrayTypes[T];
     cpyBuffer<Out extends number[], T extends keyof ArrayTypes>(out: Out, handle: BufferHandle, type: T, elements: number): Out;
     delBuffer(handle: BufferHandle): void;
@@ -44,5 +46,5 @@ export declare class Runtime {
 
     getArgs<T extends (keyof Types)[]>(handle: ArgHandle, ...types: T): { [P in keyof T]: Types[T[P]]; };
 
-    objAtArr(handle: ObjectHandle, n: number): ObjectHandle;
+    objAtArr(arr: ObjectHandle, n: number): ObjectHandle;
 }

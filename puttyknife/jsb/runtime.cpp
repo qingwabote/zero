@@ -7,6 +7,33 @@ namespace puttyknife
     {
         auto isolate = context->GetIsolate();
 
+        exports_obj->Set(context, v8::String::NewFromUtf8Literal(isolate, "newBuffer"),
+                         v8::FunctionTemplate::New(isolate,
+                                                   [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                                                   {
+                                                       auto isolate = info.GetIsolate();
+                                                       v8::HandleScope scope(isolate);
+
+                                                       auto context = isolate->GetCurrentContext();
+
+                                                       uint32_t bytes = info[0].As<v8::Number>()->Uint32Value(context).ToChecked();
+                                                       uint32_t alignment = info[1].As<v8::Number>()->Uint32Value(context).ToChecked();
+
+                                                       void *ptr = nullptr;
+                                                       if (alignment)
+                                                       {
+                                                           ptr = sted::aligned_alloc(alignment, bytes);
+                                                       }
+                                                       else
+                                                       {
+                                                           ptr = sted::malloc(bytes);
+                                                       }
+
+                                                       uint64_t address = reinterpret_cast<uint64_t>(ptr);
+                                                       info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, address));
+                                                   })
+                             ->GetFunction(context)
+                             .ToLocalChecked());
         exports_obj->Set(context, v8::String::NewFromUtf8Literal(isolate, "addBuffer"),
                          v8::FunctionTemplate::New(isolate,
                                                    [](const v8::FunctionCallbackInfo<v8::Value> &info)
@@ -32,6 +59,21 @@ namespace puttyknife
                                                        view->CopyContents(ptr, view->ByteLength());
                                                        uint64_t address = reinterpret_cast<uint64_t>(ptr);
                                                        info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, address));
+                                                   })
+                             ->GetFunction(context)
+                             .ToLocalChecked());
+        exports_obj->Set(context, v8::String::NewFromUtf8Literal(isolate, "locBuffer"),
+                         v8::FunctionTemplate::New(isolate,
+                                                   [](const v8::FunctionCallbackInfo<v8::Value> &info)
+                                                   {
+                                                       auto isolate = info.GetIsolate();
+                                                       v8::HandleScope scope(isolate);
+
+                                                       auto context = isolate->GetCurrentContext();
+
+                                                       uint64_t address = info[0].As<v8::BigInt>()->Uint64Value();
+                                                       int32_t offset = info[1].As<v8::Number>()->Int32Value(context).ToChecked();
+                                                       info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, address + offset));
                                                    })
                              ->GetFunction(context)
                              .ToLocalChecked());

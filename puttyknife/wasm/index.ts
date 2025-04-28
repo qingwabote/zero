@@ -33,13 +33,18 @@ export class Runtime {
         this._exports = instance.exports;
     }
 
-    addBuffer(buffer: TypedArray, alignment: number): BufferHandle {
+    newBuffer(bytes: number, alignment: number): BufferHandle {
         let ptr;
         if (alignment) {
-            ptr = this._exports.aligned_alloc(alignment, buffer.byteLength);
+            ptr = this._exports.aligned_alloc(alignment, bytes);
         } else {
-            ptr = this._exports.malloc(buffer.byteLength);
+            ptr = this._exports.malloc(bytes);
         }
+        return ptr;
+    }
+
+    addBuffer(buffer: TypedArray, alignment: number): BufferHandle {
+        let ptr: number = this.newBuffer(buffer.byteLength, alignment) as any;
         let source: TypedArray;
         let offset: number;
         switch (buffer.constructor.name) {
@@ -55,7 +60,11 @@ export class Runtime {
                 throw new Error(`unsupported type: ${buffer.constructor.name}`);
         }
         source.set(buffer, offset);
-        return ptr;
+        return ptr as any;
+    }
+
+    locBuffer(handle: BufferHandle, offset: number): BufferHandle {
+        return handle as any + offset;
     }
 
     getBuffer<T extends keyof ArrayTypes>(handle: BufferHandle, type: T, elements: number): ArrayTypes[T] {
