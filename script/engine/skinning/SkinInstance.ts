@@ -76,8 +76,10 @@ export class SkinInstance {
         m_allocator.reset();
         nodeQueue.length = 0;
         for (const child of this._hierarchy) {
-            child.m = child.trs.local_handle.matrix;
-            child.m_view = child.trs.local_view.matrix;
+            const block = m_allocator.alloc()
+            pk.fn.formaMat4_fromTRS(block.m, child.trs.local_handle.position, child.trs.local_handle.rotation, child.trs.local_handle.scale);
+            child.m = block.m
+            child.m_view = m_allocator.map(block).m;
             nodeQueue.push(child);
         }
         while (nodeQueue.length) {
@@ -86,9 +88,10 @@ export class SkinInstance {
                 const block = m_allocator.alloc()
                 child.m = block.m;
                 child.m_view = m_allocator.map(block).m;
-                child.trs.matrix;
-                // mat4.multiply_affine(child.m_view as any, node.m_view as any, child.trs.local_block_view.matrix as any);
-                pk.fn.formaMat4_multiply_affine(child.m, node.m, child.trs.local_handle.matrix)
+
+                const temp_mat4 = m_allocator.alloc().m;
+                pk.fn.formaMat4_fromTRS(temp_mat4, child.trs.local_handle.position, child.trs.local_handle.rotation, child.trs.local_handle.scale);
+                pk.fn.formaMat4_multiply_affine(child.m, node.m, temp_mat4)
                 nodeQueue.push(child);
             }
         }

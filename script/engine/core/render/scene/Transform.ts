@@ -1,3 +1,4 @@
+import { pk } from "puttyknife";
 import { TRS } from "../../math/TRS.js";
 import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
@@ -10,18 +11,23 @@ const vec3_a = vec3.create();
 const mat4_a = mat4.create();
 const quat_a = quat.create();
 
+const mat4_handle_a = pk.heap.newBuffer(16 * 4, 0);
+
 const dirtyTransforms: Transform[] = [];
 
-const block_trs = {
+const local_allocator = new BlockAllocator({
+    position: 3,
+    rotation: 4,
+    scale: 3,
+});
+
+const world_allocator = new BlockAllocator({
     position: 3,
     rotation: 4,
     scale: 3,
     invalidated: 1,
     matrix: 16,
-}
-
-const local_allocator = new BlockAllocator(block_trs);
-const world_allocator = new BlockAllocator(block_trs);
+});
 
 export class Transform implements TRS {
 
@@ -63,13 +69,6 @@ export class Transform implements TRS {
         this.invalidate();
     }
 
-    public get matrix(): Readonly<Mat4> {
-        if (this.local_view.invalidated[0] == 1) {
-            mat4.fromTRS(this.local_view.matrix as any, this.position, this.rotation, this.scale);
-            this.local_view.invalidated[0] = 0;
-        }
-        return this.local_view.matrix as any;
-    }
     public set matrix(value: Readonly<Mat4Like>) {
         mat4.toTRS(value, this.position, this.rotation, this.scale);
         this.invalidate();
@@ -157,8 +156,6 @@ export class Transform implements TRS {
         local_view.position.set(vec3.ZERO);
         local_view.rotation.set(quat.IDENTITY);
         local_view.scale.set(vec3.ONE);
-        local_view.matrix.set(mat4.IDENTITY);
-        local_view.invalidated[0] = 0;
         this.local_view = local_view;
         this.local_handle = local_handle;
 
@@ -208,8 +205,6 @@ export class Transform implements TRS {
     }
 
     private invalidate(): void {
-        this.local_view.invalidated[0] = 1;
-
         let i = 0;
         dirtyTransforms[i++] = this;
 
@@ -241,15 +236,14 @@ export class Transform implements TRS {
         while (i) {
             const child = dirtyTransforms[--i];
             if (cur) {
-                mat4.multiply_affine(child._world_view.matrix as any, cur._world_view.matrix as any, child.matrix);
-                // child.matrix;
-                // pk.fn.formaMat4_multiply_affine(child._world_block.matrix.handle, cur._world_block.matrix.handle, child.local_block.matrix.handle);
+                pk.fn.formaMat4_fromTRS(mat4_handle_a, child.local_handle.position, child.local_handle.rotation, child.local_handle.scale);
+                pk.fn.formaMat4_multiply_affine(child._world_handle.matrix, cur._world_handle.matrix, mat4_handle_a);
                 mat4.toTRS(child._world_view.matrix as any, child._world_view.position as any, child._world_view.rotation as any, child._world_view.scale as any);
             } else {
                 child._world_view.position.set(child.local_view.position)
                 child._world_view.rotation.set(child.local_view.rotation)
                 child._world_view.scale.set(child.local_view.scale)
-                child._world_view.matrix.set(child.matrix)
+                pk.fn.formaMat4_fromTRS(child._world_handle.matrix, child.local_handle.position, child.local_handle.rotation, child.local_handle.scale);
             }
             child._world_view.invalidated[0] = 0;
             cur = child;
