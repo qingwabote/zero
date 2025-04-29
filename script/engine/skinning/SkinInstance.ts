@@ -1,30 +1,27 @@
-import { mat4, Mat4Like } from "../core/math/mat4.js";
+import { pk } from "puttyknife";
+import { mat4 } from "../core/math/mat4.js";
 import { BlockAllocator } from "../core/render/scene/internal/BlockAllocator.js";
 import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { gfxUtil } from "../gfxUtil.js";
 import { Skin } from "../skinning/Skin.js";
 
-const mat4_a = mat4.create();
+const m_allocator = new BlockAllocator({ m: 16 });
 
-interface Top {
-    trs: Transform;
-    children: Set<Node>;
-    m: Readonly<Mat4Like>;
-}
+const mat4_a = mat4.create();
 
 interface Node {
     trs: Transform;
     children: Set<Node>;
-    m: Mat4Like;
+    m: ReturnType<typeof m_allocator.alloc>['m'];
+    m_view: ReturnType<typeof m_allocator.map>['m'];
 }
 
 function createNode(trs: Transform): Node {
-    return { trs, children: new Set, m: null! }
+    return { trs, children: new Set, m: null!, m_view: null! }
 }
 
 const nodeQueue: Node[] = [];
-const m_allocator = new BlockAllocator({ m: 16 });
 
 export class SkinInstance {
     public store: Skin.JointStore;
@@ -39,7 +36,7 @@ export class SkinInstance {
 
     private readonly _joints: readonly Node[];
 
-    private readonly _hierarchy: readonly Top[];
+    private readonly _hierarchy: readonly Node[];
 
     constructor(readonly proto: Skin, readonly root: Transform) {
         const joints: Node[] = [];
@@ -79,14 +76,19 @@ export class SkinInstance {
         m_allocator.reset();
         nodeQueue.length = 0;
         for (const child of this._hierarchy) {
-            child.m = child.trs.matrix;
-            nodeQueue.push(child as Node);
+            child.m = child.trs.local_handle.matrix;
+            child.m_view = child.trs.local_view.matrix;
+            nodeQueue.push(child);
         }
         while (nodeQueue.length) {
             const node = nodeQueue.pop()!;
             for (const child of node.children) {
-                child.m = m_allocator.alloc().m.view as any;
-                mat4.multiply_affine(child.m, node.m, child.trs.matrix);
+                const block = m_allocator.alloc()
+                child.m = block.m;
+                child.m_view = m_allocator.map(block).m;
+                child.trs.matrix;
+                // mat4.multiply_affine(child.m_view as any, node.m_view as any, child.trs.local_block_view.matrix as any);
+                pk.fn.formaMat4_multiply_affine(child.m, node.m, child.trs.local_handle.matrix)
                 nodeQueue.push(child);
             }
         }
@@ -94,7 +96,7 @@ export class SkinInstance {
         const [source, offset] = this.store.add();
 
         for (let i = 0; i < this._joints.length; i++) {
-            mat4.multiply_affine(mat4_a, this._joints[i].m, this.proto.inverseBindMatrices[i]);
+            mat4.multiply_affine(mat4_a, this._joints[i].m_view as any, this.proto.inverseBindMatrices[i]);
             gfxUtil.compressAffineMat4(source, 4 * 3 * i + offset, mat4_a);
         }
 
