@@ -1,11 +1,11 @@
 import { pk } from "puttyknife";
+import { BlockAllocator } from "../../BlockAllocator.js";
 import { TRS } from "../../math/TRS.js";
 import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
 import { Periodic } from "./Periodic.js";
-import { BlockAllocator } from "./internal/BlockAllocator.js";
 
 const vec3_a = vec3.create();
 const mat4_a = mat4.create();
@@ -21,6 +21,8 @@ const local_allocator = new BlockAllocator({
     scale: 3,
 });
 
+type Local = ReturnType<typeof local_allocator.alloc>;
+
 const world_allocator = new BlockAllocator({
     position: 3,
     rotation: 4,
@@ -31,13 +33,14 @@ const world_allocator = new BlockAllocator({
 
 export class Transform implements TRS {
 
-    readonly local_handle: ReturnType<typeof local_allocator.alloc>;
-    readonly local_view: ReturnType<typeof local_allocator.map>;
+    public readonly local: Local;
+    private readonly _local_view: ReturnType<typeof local_allocator.map>;
+
     get position(): Readonly<Vec3> {
-        return this.local_view.position as any
+        return this._local_view.position as any
     }
     set position(value: Readonly<Vec3Like>) {
-        vec3.copy(this.local_view.position as any, value)
+        vec3.copy(this._local_view.position as any, value)
         this.invalidate();
     }
 
@@ -45,18 +48,18 @@ export class Transform implements TRS {
      * rotation is normalized.
      */
     get rotation(): Readonly<Quat> {
-        return this.local_view.rotation as any;
+        return this._local_view.rotation as any;
     }
     set rotation(value: Readonly<QuatLike>) {
-        vec4.copy(this.local_view.rotation as any, value)
+        vec4.copy(this._local_view.rotation as any, value)
         this.invalidate();
     }
 
     get scale(): Readonly<Vec3> {
-        return this.local_view.scale as any;
+        return this._local_view.scale as any;
     }
     set scale(value: Readonly<Vec3Like>) {
-        vec3.copy(this.local_view.scale as any, value)
+        vec3.copy(this._local_view.scale as any, value)
         this.invalidate();
     }
 
@@ -74,7 +77,7 @@ export class Transform implements TRS {
         this.invalidate();
     }
 
-    private _world_handle: ReturnType<typeof world_allocator.alloc>;
+    private _world: ReturnType<typeof world_allocator.alloc>;
     private _world_view: ReturnType<typeof world_allocator.map>;
 
     get world_position(): Readonly<Vec3> {
@@ -151,23 +154,23 @@ export class Transform implements TRS {
     }
 
     constructor(public readonly name: string = '') {
-        const local_handle = local_allocator.alloc();
-        const local_view = local_allocator.map(local_handle);
+        const local = local_allocator.alloc();
+        const local_view = local_allocator.map(local);
         local_view.position.set(vec3.ZERO);
         local_view.rotation.set(quat.IDENTITY);
         local_view.scale.set(vec3.ONE);
-        this.local_view = local_view;
-        this.local_handle = local_handle;
+        this._local_view = local_view;
+        this.local = local;
 
-        const world_handle = world_allocator.alloc();
-        const world_view = world_allocator.map(world_handle);
+        const world = world_allocator.alloc();
+        const world_view = world_allocator.map(world);
         world_view.position.set(vec3.ZERO);
         world_view.rotation.set(quat.IDENTITY);
         world_view.scale.set(vec3.ONE);
         world_view.matrix.set(mat4.IDENTITY);
         world_view.invalidated[0] = 0;
         this._world_view = world_view;
-        this._world_handle = world_handle;
+        this._world = world;
     }
 
     addChild(child: this): void {
@@ -236,17 +239,21 @@ export class Transform implements TRS {
         while (i) {
             const child = dirtyTransforms[--i];
             if (cur) {
-                pk.fn.formaMat4_fromTRS(mat4_handle_a, child.local_handle.position, child.local_handle.rotation, child.local_handle.scale);
-                pk.fn.formaMat4_multiply_affine(child._world_handle.matrix, cur._world_handle.matrix, mat4_handle_a);
+                pk.fn.formaMat4_fromTRS(mat4_handle_a, child.local.position, child.local.rotation, child.local.scale);
+                pk.fn.formaMat4_multiply_affine(child._world.matrix, cur._world.matrix, mat4_handle_a);
                 mat4.toTRS(child._world_view.matrix as any, child._world_view.position as any, child._world_view.rotation as any, child._world_view.scale as any);
             } else {
-                child._world_view.position.set(child.local_view.position)
-                child._world_view.rotation.set(child.local_view.rotation)
-                child._world_view.scale.set(child.local_view.scale)
-                pk.fn.formaMat4_fromTRS(child._world_handle.matrix, child.local_handle.position, child.local_handle.rotation, child.local_handle.scale);
+                child._world_view.position.set(child._local_view.position)
+                child._world_view.rotation.set(child._local_view.rotation)
+                child._world_view.scale.set(child._local_view.scale)
+                pk.fn.formaMat4_fromTRS(child._world.matrix, child.local.position, child.local.rotation, child.local.scale);
             }
             child._world_view.invalidated[0] = 0;
             cur = child;
         }
     }
+}
+
+export declare namespace Transform {
+    export { Local }
 }

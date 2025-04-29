@@ -1,24 +1,20 @@
 import { pk } from "puttyknife";
-import { mat4 } from "../core/math/mat4.js";
-import { BlockAllocator } from "../core/render/scene/internal/BlockAllocator.js";
+import { BlockAllocator } from "../core/BlockAllocator.js";
 import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { gfxUtil } from "../gfxUtil.js";
 import { Skin } from "../skinning/Skin.js";
 
-const m_allocator = new BlockAllocator({ m: 16 });
-
-const mat4_a = mat4.create();
+const matrix_allocator = new BlockAllocator({ matrix: 16 });
 
 interface Node {
-    trs: Transform;
+    local: Transform.Local;
     children: Set<Node>;
-    m: ReturnType<typeof m_allocator.alloc>['m'];
-    m_view: ReturnType<typeof m_allocator.map>['m'];
+    matrix: ReturnType<typeof matrix_allocator.alloc>['matrix'];
 }
 
-function createNode(trs: Transform): Node {
-    return { trs, children: new Set, m: null!, m_view: null! }
+function createNode(local: Transform.Local): Node {
+    return { local, children: new Set, matrix: null! }
 }
 
 const nodeQueue: Node[] = [];
@@ -43,7 +39,7 @@ export class SkinInstance {
         const hierarchy: Set<Node> = new Set;
         const trs2node: Map<Transform, Node> = new Map;
         for (let trs of proto.joints.map(paths => root.getChildByPath(paths)!)) {
-            const node: Node = createNode(trs);
+            const node: Node = createNode(trs.local);
             trs2node.set(trs, node);
             joints.push(node);
 
@@ -51,7 +47,7 @@ export class SkinInstance {
             do {
                 let node = trs2node.get(trs);
                 if (!node) {
-                    trs2node.set(trs, node = createNode(trs));
+                    trs2node.set(trs, node = createNode(trs.local));
                 }
                 if (child) {
                     node.children.add(child);
@@ -73,25 +69,23 @@ export class SkinInstance {
             return;
         }
 
-        m_allocator.reset();
+        matrix_allocator.reset();
+
+        const temp_block = matrix_allocator.alloc();
+        const temp_mat4_handle = temp_block.matrix;
+        const temp_mat4_view = matrix_allocator.map(temp_block).matrix;
+
         nodeQueue.length = 0;
         for (const child of this._hierarchy) {
-            const block = m_allocator.alloc()
-            pk.fn.formaMat4_fromTRS(block.m, child.trs.local_handle.position, child.trs.local_handle.rotation, child.trs.local_handle.scale);
-            child.m = block.m
-            child.m_view = m_allocator.map(block).m;
+            child.matrix = matrix_allocator.alloc().matrix;
+            pk.fn.formaMat4_fromTRS(child.matrix, child.local.position, child.local.rotation, child.local.scale);
             nodeQueue.push(child);
         }
         while (nodeQueue.length) {
             const node = nodeQueue.pop()!;
             for (const child of node.children) {
-                const block = m_allocator.alloc()
-                child.m = block.m;
-                child.m_view = m_allocator.map(block).m;
-
-                const temp_mat4 = m_allocator.alloc().m;
-                pk.fn.formaMat4_fromTRS(temp_mat4, child.trs.local_handle.position, child.trs.local_handle.rotation, child.trs.local_handle.scale);
-                pk.fn.formaMat4_multiply_affine(child.m, node.m, temp_mat4)
+                child.matrix = matrix_allocator.alloc().matrix;
+                pk.fn.formaMat4_multiply_affine_TRS(child.matrix, node.matrix, child.local.position, child.local.rotation, child.local.scale)
                 nodeQueue.push(child);
             }
         }
@@ -99,8 +93,8 @@ export class SkinInstance {
         const [source, offset] = this.store.add();
 
         for (let i = 0; i < this._joints.length; i++) {
-            mat4.multiply_affine(mat4_a, this._joints[i].m_view as any, this.proto.inverseBindMatrices[i]);
-            gfxUtil.compressAffineMat4(source, 4 * 3 * i + offset, mat4_a);
+            pk.fn.formaMat4_multiply_affine(temp_mat4_handle, this._joints[i].matrix, this.proto.inverseBindMatrices[i]);
+            gfxUtil.compressAffineMat4(source, 4 * 3 * i + offset, temp_mat4_view as any);
         }
 
         this._offset.value = offset / 4;

@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Filter } from "gfx";
-import { Mat4Like } from "../core/math/mat4.js";
+import { pk } from "puttyknife";
 import { TextureView } from "../core/render/gpu/TextureView.js";
 import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
@@ -69,7 +69,7 @@ export class Skin {
     }
 
     constructor(
-        readonly inverseBindMatrices: readonly Readonly<Mat4Like>[],
+        readonly inverseBindMatrices: readonly Readonly<pk.BufferHandle>[],
         readonly joints: readonly (readonly string[])[],
         readonly jointData: Float32Array
     ) { }

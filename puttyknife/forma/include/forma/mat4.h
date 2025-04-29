@@ -14,5 +14,7 @@ namespace forma
 
     void fromTRS(forma::Mat4 &out, forma::Vec3 &t, forma::Quat &r, forma::Vec3 &s);
 
+    void multiply(forma::Mat4 &out, forma::Mat4 &a, forma::Mat4 &b);
+
     void multiply_affine(forma::Mat4 &out, forma::Mat4 &a, forma::Mat4 &b);
 }

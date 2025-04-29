@@ -91,7 +91,13 @@ namespace puttyknife
                                                        uint32_t elements = info[2].As<v8::Number>()->Uint32Value(context).ToChecked();
 
                                                        v8::Local<v8::TypedArray> array;
-                                                       if (strcmp(*type, "u16") == 0)
+                                                       if (strcmp(*type, "u8") == 0)
+                                                       {
+                                                           size_t size = elements;
+                                                           auto store = v8::ArrayBuffer::NewBackingStore(reinterpret_cast<void *>(address), size, v8::BackingStore::EmptyDeleter, nullptr);
+                                                           array = v8::Uint8Array::New(v8::ArrayBuffer::New(isolate, std::move(store)), 0, elements);
+                                                       }
+                                                       else if (strcmp(*type, "u16") == 0)
                                                        {
                                                            size_t size = elements * 2;
                                                            auto store = v8::ArrayBuffer::NewBackingStore(reinterpret_cast<void *>(address), size, v8::BackingStore::EmptyDeleter, nullptr);

@@ -8,7 +8,7 @@ import { pk } from "puttyknife";
 import { AnimationClip } from "../animating/AnimationClip.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { Node } from "../core/Node.js";
-import { mat4, Mat4 } from "../core/math/mat4.js";
+import { mat4 } from "../core/math/mat4.js";
 import { quat } from "../core/math/quat.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
@@ -140,6 +140,9 @@ export class GLTF implements Asset {
 
     private _instances: Record<string, Instance> = {};
 
+    // FIXME: free it.
+    private _bin!: pk.BufferHandle;
+
     async load(url: string): Promise<this> {
         const res = url.match(/(.+)\/(.+)$/);
         if (!res) {
@@ -148,15 +151,20 @@ export class GLTF implements Asset {
 
         const [, parent, name] = res;
         const json = JSON.parse(await load(`${parent}/${name}.gltf`, "text"));
-        const [bin, textures] = await Promise.all([
-            await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer"),
-            json.images ? Promise.all((json.images as []).map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture))) : Promise.resolve([])
-        ]);
-        this._textures = textures;
-        this._json = json;
+
+        let bin_handle: pk.BufferHandle;
+        let bin_view: Uint8Array;
+        {
+            let bin: ArrayBuffer;
+            [bin, this._textures] = await Promise.all([
+                await load(`${parent}/${uri2path(json.buffers[0].uri)}`, "buffer"),
+                json.images ? Promise.all((json.images as []).map((info: any) => cache(`${parent}/${uri2path(info.uri)}`, Texture))) : Promise.resolve([])
+            ]);
+            bin_handle = pk.heap.addBuffer(new Uint8Array(bin), 0);
+            bin_view = pk.heap.getBuffer(bin_handle, 'u8', bin.byteLength);
+        }
 
         if (json.meshes) {
-            const binView = new Uint8Array(bin);
             const buffers: Buffer[] = [];
             function getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
                 if (index in buffers) {
@@ -172,7 +180,7 @@ export class GLTF implements Asset {
                 info.usage = usage;
                 info.size = viewInfo.byteLength;
                 const buffer = device.createBuffer(info);
-                buffer.upload(binView, viewInfo.byteOffset || 0, viewInfo.byteLength, 0);
+                buffer.upload(bin_view, viewInfo.byteOffset || 0, viewInfo.byteLength, 0);
 
                 return buffers[index] = buffer;
             }
@@ -299,11 +307,11 @@ export class GLTF implements Asset {
 
         // skin
         for (const skin of json.skins || []) {
-            const inverseBindMatrices: Mat4[] = [];
+            const inverseBindMatrices: pk.BufferHandle[] = [];
             const accessor = json.accessors[skin.inverseBindMatrices];
             const bufferView = json.bufferViews[accessor.bufferView];
             for (let i = 0; i < accessor.count; i++) {
-                inverseBindMatrices[i] = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i, 16) as any;
+                inverseBindMatrices[i] = pk.heap.locBuffer(bin_handle, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i);
             }
             const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
 
@@ -335,7 +343,7 @@ export class GLTF implements Asset {
                     parent = child;
                 }
                 const out = mat4_b;
-                gfxUtil.compressAffineMat4(jointData, 4 * 3 * index, mat4.multiply_affine(out, world, inverseBindMatrices[index]));
+                gfxUtil.compressAffineMat4(jointData, 4 * 3 * index, mat4.multiply_affine(out, world, pk.heap.getBuffer(inverseBindMatrices[index], 'f32', 16) as any));
             }
             this._skins.push(new Skin(inverseBindMatrices, joints, jointData));
         }
@@ -358,10 +366,9 @@ export class GLTF implements Asset {
                     if (bufferView.byteStride != undefined) {
                         throw new Error;
                     }
-                    const data = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count);
-                    duration = data[data.length - 1];
-                    inputData = pk.heap.addBuffer(data, 0);
-                    inputLength = data.length;
+                    inputData = pk.heap.locBuffer(bin_handle, (accessor.byteOffset || 0) + bufferView.byteOffset)
+                    inputLength = accessor.count;
+                    duration = pk.heap.getBuffer(inputData, 'f32', inputLength)[inputLength - 1];
                 }
                 let output: pk.BufferHandle;
                 {
@@ -378,8 +385,7 @@ export class GLTF implements Asset {
                         default:
                             throw new Error(`unsupported accessor type: ${accessor.type}`);
                     }
-                    const data = new Float32Array(bin, (accessor.byteOffset || 0) + bufferView.byteOffset, accessor.count * components);
-                    output = pk.heap.addBuffer(data, 0);
+                    output = pk.heap.locBuffer(bin_handle, (accessor.byteOffset || 0) + bufferView.byteOffset)
                     // if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
                     //     throw new Error;
                     // }
@@ -390,6 +396,8 @@ export class GLTF implements Asset {
             this._animationClips.push(new AnimationClip(channels, animation.name));
         }
 
+        this._json = json;
+        this._bin = bin_handle;
         return this;
     }
 

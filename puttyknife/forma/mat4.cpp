@@ -45,6 +45,50 @@ namespace forma
         out[15] = 1;
     }
 
+    void multiply(forma::Mat4 &out, forma::Mat4 &a, forma::Mat4 &b)
+    {
+        float a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+              a04 = a[4], a05 = a[5], a06 = a[6], a07 = a[7],
+              a08 = a[8], a09 = a[9], a10 = a[10], a11 = a[11],
+              a12 = a[12], a13 = a[13], a14 = a[14], a15 = a[15];
+
+        float x = b[0];
+        float y = b[1];
+        float z = b[2];
+        float w = b[3];
+        out[0] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[1] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[2] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[3] = x * a03 + y * a07 + z * a11 + w * a15;
+
+        x = b[4];
+        y = b[5];
+        z = b[6];
+        w = b[7];
+        out[4] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[5] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[6] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[7] = x * a03 + y * a07 + z * a11 + w * a15;
+
+        x = b[8];
+        y = b[9];
+        z = b[10];
+        w = b[11];
+        out[8] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[9] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[10] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[11] = x * a03 + y * a07 + z * a11 + w * a15;
+
+        x = b[12];
+        y = b[13];
+        z = b[14];
+        w = b[15];
+        out[12] = x * a00 + y * a04 + z * a08 + w * a12;
+        out[13] = x * a01 + y * a05 + z * a09 + w * a13;
+        out[14] = x * a02 + y * a06 + z * a10 + w * a14;
+        out[15] = x * a03 + y * a07 + z * a11 + w * a15;
+    }
+
     void multiply_affine(forma::Mat4 &out, forma::Mat4 &a, forma::Mat4 &b)
     {
         float a00 = a[0], a01 = a[1], a02 = a[2],
