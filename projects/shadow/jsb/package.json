@@ -6,9 +6,10 @@
         "boot": "tsc -p ../../../script/boot/jsb --outDir dist/boot --watch",
         "assets": "tsc -p ../../../script/assets --outDir dist/assets --watch",
         "engine": "tsc -p ../../../script/engine --outDir dist/engine --watch",
+        "pk": "tsc -p ../../../puttyknife/jsb --outDir dist/pk --watch",
         "puttyknife": "tsc -p ../../../script/puttyknife/jsb --outDir dist/puttyknife --watch",
         "flex": "tsc -p ../../../script/flex --outDir dist/flex --watch",
         "script": "tsc -p ../script --outDir dist/script --watch",
-        "dev": "concurrently \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\" \"npm run puttyknife\" \"npm run flex\" \"npm run script\""
+        "dev": "concurrently \"npm run gfx\" \"npm run boot\" \"npm run assets\" \"npm run bastard\" \"npm run engine\" \"npm run pk\" \"npm run puttyknife\" \"npm run flex\" \"npm run script\""
     }
 }

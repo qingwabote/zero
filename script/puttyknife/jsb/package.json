@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "pk": "file:../../../puttyknife/jsb",
     "puttyknife": "file:../declare"
   }
 }

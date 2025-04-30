@@ -1,0 +1,6 @@
+{
+    "name": "pk",
+    "dependencies": {
+        "pk": "file:../declare"
+    }
+}

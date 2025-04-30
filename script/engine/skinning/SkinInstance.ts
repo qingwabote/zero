@@ -72,7 +72,6 @@ export class SkinInstance {
 
         const temp_block = matrix_allocator.alloc();
         const temp_mat4_handle = temp_block.matrix;
-        const temp_mat4_view = matrix_allocator.map(temp_block).matrix;
 
         nodeQueue.length = 0;
         for (const child of this._hierarchy) {
