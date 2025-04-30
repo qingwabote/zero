@@ -20,7 +20,7 @@ export class LightUBO extends UBO {
 
     static readonly definition = Block;
 
-    private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM, BlockSize);
+    private _view: BufferView = new BufferView('f32', BufferUsageFlagBits.UNIFORM, BlockSize);
     get buffer(): Buffer {
         return this._view.buffer;
     }

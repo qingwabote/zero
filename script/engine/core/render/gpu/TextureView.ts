@@ -1,5 +1,6 @@
 import { device } from "boot";
 import { CommandBuffer, Format, Texture, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { pk } from "puttyknife";
 import { MemoryView } from "./MemoryView.js";
 
 function length2extent(length: number): number {
@@ -10,7 +11,7 @@ function length2extent(length: number): number {
 }
 
 export class TextureView extends MemoryView {
-    private _texture: Texture;
+    private readonly _texture: Texture;
     get texture(): Texture {
         return this._texture;
     }
@@ -18,7 +19,8 @@ export class TextureView extends MemoryView {
     constructor(length: number = 0) {
         const extent = length2extent(length);
         const capacity = extent * extent * 4;
-        super(new Float32Array(capacity), length);
+        const handle = pk.heap.newBuffer(capacity * 4, 0);
+        super(handle, pk.heap.getBuffer(handle, 'f32', capacity), length);
 
         const info = new TextureInfo;
         info.format = Format.RGBA32_SFLOAT;
@@ -27,14 +29,16 @@ export class TextureView extends MemoryView {
         this._texture = device.createTexture(info);
     }
 
-    public override reserve(min: number): MemoryView.TypedArray | null {
+    public override reserve(min: number) {
         const extent = length2extent(min);
         const capacity = extent * extent * 4;
-        if (this._source.length >= capacity) {
+        if (this._view.length >= capacity) {
             return null;
         }
-        const old = this._source;
-        this._source = new Float32Array(capacity);
+        const old = { handle: this._handle, view: this._view };
+        const buffer = pk.heap.newBuffer(capacity * 4, 0);
+        this._view = pk.heap.getBuffer(buffer, 'f32', capacity);
+        this._handle = buffer;
         return old;
     }
 
@@ -50,6 +54,6 @@ export class TextureView extends MemoryView {
 
         const row_start = Math.floor(Math.floor(offset / 4) / width);
         const row_end = Math.ceil(Math.ceil((offset + length) / 4) / width);
-        commandBuffer.copyBufferToTexture(this._source, row_start * width * 4, this._texture, 0, row_start, width, row_end - row_start);
+        commandBuffer.copyBufferToTexture(this._view, row_start * width * 4, this._texture, 0, row_start, width, row_end - row_start);
     }
 }

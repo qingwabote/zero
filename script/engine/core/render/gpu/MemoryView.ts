@@ -1,8 +1,7 @@
 import { CommandBuffer } from "gfx";
+import { pk } from "puttyknife";
 
-type TypedArray = Uint16Array | Uint32Array | Float32Array
-
-type Source = {
+type View = {
     [index: number]: number;
     readonly length: number;
 }
@@ -12,32 +11,34 @@ export abstract class MemoryView {
         return this._length;
     }
 
-    get source(): Source {
-        return this._source;
+    get view(): View {
+        return this._view;
+    }
+
+    get handle(): pk.BufferHandle {
+        return this._handle;
     }
 
     get BYTES_PER_ELEMENT(): number {
-        return this._source.BYTES_PER_ELEMENT;
+        return this._view.BYTES_PER_ELEMENT;
     }
-
-    private _block: [Source, number] = [undefined!, 0];
 
     private _invalidated_start: number = Number.MAX_SAFE_INTEGER;
     private _invalidated_end: number = Number.MIN_SAFE_INTEGER;
 
     private readonly _length_default: number;
 
-    constructor(protected _source: TypedArray, private _length: number) {
+    constructor(protected _handle: pk.BufferHandle, protected _view: pk.TypedArray, private _length: number) {
         this._length_default = _length;
     }
 
     set(array: ArrayLike<number>, offset: number = 0) {
-        this._source.set(array, offset);
+        this._view.set(array, offset);
         this.invalidate(offset, array.length);
     }
 
     setElement(element: number, offset: number = 0) {
-        this._source[offset] = element;
+        this._view[offset] = element;
         this.invalidate(offset, 1);
     }
 
@@ -53,14 +54,11 @@ export abstract class MemoryView {
         this.setElement(element, offset);
     }
 
-    addBlock(length: number): readonly [Source, number] {
+    addBlock(length: number): number {
         const offset = this._length;
         this.resize(offset + length);
         this.invalidate(offset, length);
-
-        this._block[0] = this._source;
-        this._block[1] = offset;
-        return this._block;
+        return offset;
     }
 
     invalidate(offset: number, length: number) {
@@ -69,14 +67,18 @@ export abstract class MemoryView {
     }
 
     reset(length: number = this._length_default) {
-        this.reserve(length)
+        const old = this.reserve(length);
+        if (old) {
+            pk.heap.delBuffer(old.handle);
+        }
         this._length = length;
     }
 
     resize(length: number) {
         const old = this.reserve(length);
         if (old) {
-            this.set(old);
+            this.set(old.view);
+            pk.heap.delBuffer(old.handle);
         }
         this._length = length;
     }
@@ -97,9 +99,5 @@ export abstract class MemoryView {
 
     protected abstract upload(commandBuffer: CommandBuffer, offset: number, length: number): void;
 
-    public abstract reserve(capacity: number): TypedArray | null;
-}
-
-export declare namespace MemoryView {
-    export { TypedArray }
+    public abstract reserve(capacity: number): { handle: pk.BufferHandle, view: pk.TypedArray } | null;
 }

@@ -20,7 +20,7 @@ export class CSMIUBO extends UBO {
 
     static readonly definition = Block;
 
-    private _view: BufferView = new BufferView("Float32", BufferUsageFlagBits.UNIFORM);
+    private _view: BufferView = new BufferView('f32', BufferUsageFlagBits.UNIFORM);
     get buffer(): Buffer {
         return this._view.buffer;
     }

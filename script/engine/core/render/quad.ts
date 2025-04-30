@@ -3,7 +3,7 @@ import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInpu
 import { shaderLib } from "../shaderLib.js";
 import { BufferView } from "./gpu/BufferView.js";
 
-const indexBufferView = new BufferView("Uint16", BufferUsageFlagBits.INDEX);
+const indexBufferView = new BufferView('u16', BufferUsageFlagBits.INDEX);
 
 let _quads = 0;
 
@@ -12,7 +12,8 @@ function indexGrowTo(quads: number) {
         return;
     }
 
-    let [source, offset] = indexBufferView.addBlock(6 * (quads - _quads))
+    let offset = indexBufferView.addBlock(6 * (quads - _quads));
+    const source = indexBufferView.view;
     for (; _quads < quads; _quads++) {
         // By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles
         source[offset + 0] = 4 * _quads + 0;
@@ -71,7 +72,7 @@ function createVertexBuffer(width: number, height: number, upsideDown = false) {
 }
 
 function createVertexBufferView() {
-    return new BufferView("Float32", BufferUsageFlagBits.VERTEX);
+    return new BufferView('f32', BufferUsageFlagBits.VERTEX);
 }
 
 function createInputAssembler(vertexBuffer: Buffer) {

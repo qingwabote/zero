@@ -13,9 +13,17 @@ const SkinUniform = shaderLib.sets.batch.uniforms.Skin;
 const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
 
 abstract class JointStore {
-    readonly descriptorSet: DescriptorSet;
+    public readonly descriptorSet: DescriptorSet;
 
     protected readonly _view: TextureView;
+
+    public get handle() {
+        return this._view.handle;
+    }
+
+    public get view() {
+        return this._view.view;
+    }
 
     constructor(protected readonly _stride: number) {
         const view = new TextureView;
@@ -25,7 +33,7 @@ abstract class JointStore {
         this._view = view;
     }
 
-    abstract add(): readonly [{ [index: number]: number }, number];
+    abstract add(): number;
 
     upload(commandBuffer: CommandBuffer) {
         this._view.update(commandBuffer);

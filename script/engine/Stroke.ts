@@ -72,7 +72,7 @@ export class Stroke {
 
     readonly mesh: Mesh;
 
-    private _view = new BufferView("Float32", BufferUsageFlagBits.VERTEX);
+    private _view = new BufferView('f32', BufferUsageFlagBits.VERTEX);
 
     constructor() {
         const ia = new InputAssembler;

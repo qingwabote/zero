@@ -2,7 +2,6 @@ import { pk } from "puttyknife";
 import { BlockAllocator } from "../core/BlockAllocator.js";
 import { Periodic } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
-import { gfxUtil } from "../gfxUtil.js";
 import { Skin } from "../skinning/Skin.js";
 
 const matrix_allocator = new BlockAllocator({ matrix: 16 });
@@ -90,11 +89,11 @@ export class SkinInstance {
             }
         }
 
-        const [source, offset] = this.store.add();
-
+        const offset = this.store.add();
         for (let i = 0; i < this._joints.length; i++) {
             pk.fn.formaMat4_multiply_affine(temp_mat4_handle, this._joints[i].matrix, this.proto.inverseBindMatrices[i]);
-            gfxUtil.compressAffineMat4(source, 4 * 3 * i + offset, temp_mat4_view as any);
+            pk.fn.formaMat4_to3x4(pk.heap.locBuffer(this.store.handle, (4 * 3 * i + offset) * 4), temp_mat4_handle);
+            // gfxUtil.compressAffineMat4(this.store.source, 4 * 3 * i + offset, temp_mat4_view as any);
         }
 
         this._offset.value = offset / 4;

@@ -83,6 +83,10 @@ export class Runtime {
                 begin = handle as unknown as number >> 1;
                 source = this._u16;
                 break;
+            case 'u32':
+                begin = handle as unknown as number >> 2;
+                source = this._u32;
+                break;
             case 'i32':
                 begin = handle as unknown as number >> 2;
                 source = this._i32;

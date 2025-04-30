@@ -17,4 +17,6 @@ namespace forma
     void multiply(forma::Mat4 &out, forma::Mat4 &a, forma::Mat4 &b);
 
     void multiply_affine(forma::Mat4 &out, forma::Mat4 &a, forma::Mat4 &b);
+
+    void to3x4(float *out, forma::Mat4 &m);
 }

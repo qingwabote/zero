@@ -103,6 +103,12 @@ namespace puttyknife
                                                            auto store = v8::ArrayBuffer::NewBackingStore(reinterpret_cast<void *>(address), size, v8::BackingStore::EmptyDeleter, nullptr);
                                                            array = v8::Uint16Array::New(v8::ArrayBuffer::New(isolate, std::move(store)), 0, elements);
                                                        }
+                                                       else if (strcmp(*type, "u32") == 0)
+                                                       {
+                                                           size_t size = elements * 4;
+                                                           auto store = v8::ArrayBuffer::NewBackingStore(reinterpret_cast<void *>(address), size, v8::BackingStore::EmptyDeleter, nullptr);
+                                                           array = v8::Uint32Array::New(v8::ArrayBuffer::New(isolate, std::move(store)), 0, elements);
+                                                       }
                                                        else if (strcmp(*type, "f32") == 0)
                                                        {
                                                            size_t size = elements * 4;

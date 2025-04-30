@@ -46,7 +46,7 @@ export class Pass implements _Pass {
         } else {
             const block = meta.blocks['Props'];
             if (block) {
-                this._props = new BufferView('Float32', BufferUsageFlagBits.UNIFORM, block.size);
+                this._props = new BufferView('f32', BufferUsageFlagBits.UNIFORM, block.size);
                 this.descriptorSet.bindBuffer(block.binding, this._props.buffer);
             }
         }
@@ -62,8 +62,8 @@ export class Pass implements _Pass {
 
     setProperty(value: ArrayLike<number>, offset: number): Pass {
         if (this._props_state & PropsStateBit.EXTERNAL) {
-            const props = new BufferView('Float32', BufferUsageFlagBits.UNIFORM, shaderLib.getShaderMeta(this.state.shader).blocks['Props'].size);
-            props.set(this._props!.source);
+            const props = new BufferView('f32', BufferUsageFlagBits.UNIFORM, shaderLib.getShaderMeta(this.state.shader).blocks['Props'].size);
+            props.set(this._props!.view);
             this._props = props;
             this._props_state &= ~PropsStateBit.EXTERNAL
         }

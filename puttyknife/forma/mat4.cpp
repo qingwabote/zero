@@ -124,4 +124,25 @@ namespace forma
         out[13] = x * a01 + y * a05 + z * a09 + a13;
         out[14] = x * a02 + y * a06 + z * a10 + a14;
     }
+
+    void to3x4(float *out, forma::Mat4 &m)
+    {
+        out[0] = m[0];
+        out[1] = m[1];
+        out[2] = m[2];
+
+        out[3] = m[12];
+
+        out[4] = m[4];
+        out[5] = m[5];
+        out[6] = m[6];
+
+        out[7] = m[13];
+
+        out[8] = m[8];
+        out[9] = m[9];
+        out[10] = m[10];
+
+        out[11] = m[14];
+    }
 }

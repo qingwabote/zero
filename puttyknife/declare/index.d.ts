@@ -22,6 +22,7 @@ export declare interface ArrayTypes {
     p: Uint32Array,
     u8: Uint8Array,
     u16: Uint16Array,
+    u32: Uint32Array,
     i32: Int32Array,
     f32: Float32Array,
 }

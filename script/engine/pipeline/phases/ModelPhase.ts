@@ -44,13 +44,13 @@ class InstancedBatch implements Batch {
             let view: BufferView;
             switch (attr.format) {
                 case Format.R16_UINT:
-                    view = new BufferView('Uint16', BufferUsageFlagBits.VERTEX);
+                    view = new BufferView('u16', BufferUsageFlagBits.VERTEX);
                     break;
                 case Format.R32_UINT:
-                    view = new BufferView('Uint32', BufferUsageFlagBits.VERTEX);
+                    view = new BufferView('u32', BufferUsageFlagBits.VERTEX);
                     break;
                 case Format.RGBA32_SFLOAT:
-                    view = new BufferView('Float32', BufferUsageFlagBits.VERTEX);
+                    view = new BufferView('f32', BufferUsageFlagBits.VERTEX);
                     break;
                 default:
                     throw new Error(`unsupported attribute format: ${attr.format}`);

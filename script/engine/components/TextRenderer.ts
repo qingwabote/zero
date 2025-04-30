@@ -175,7 +175,8 @@ export class TextRenderer extends BoundedRenderer {
             const pos_t = y - yoffset;
             const pos_b = y - yoffset - height;
 
-            const [source, offset] = this._vertexView.addBlock(16);
+            const offset = this._vertexView.addBlock(16);
+            const source = this._vertexView.view;
 
             source[offset + 0] = pos_l;
             source[offset + 1] = pos_t;
