@@ -129,10 +129,8 @@ int Window::loop(SDL_Window *sdl_window)
         gfx_initialize(ns_gfx);
         ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "gfx"), ns_gfx).ToChecked();
 
-        auto ns_puttyknife = v8::Object::New(isolate.get());
-        auto ns_runtime = v8::Object::New(isolate.get());
-        puttyknife::Runtime(context, ns_runtime);
-        ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "runtime"), ns_runtime).ToChecked();
+        puttyknife::Runtime(context);
+        v8::Local<v8::Object> ns_puttyknife = ns_global->Get(context, v8::String::NewFromUtf8Literal(isolate.get(), "puttyknife")).ToLocalChecked().As<v8::Object>();
         auto ns_exports = v8::Object::New(isolate.get());
         puttyknife::Yoga(context, ns_exports);
         puttyknife::Spi(context, ns_exports);
@@ -140,7 +138,6 @@ int Window::loop(SDL_Window *sdl_window)
         puttyknife::Forma(context, ns_exports);
         puttyknife::Samp(context, ns_exports);
         ns_puttyknife->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "exports"), ns_exports).ToChecked();
-        ns_global->Set(context, v8::String::NewFromUtf8Literal(isolate.get(), "puttyknife"), ns_puttyknife).ToChecked();
 
         auto ns_zero = v8::Object::New(isolate.get());
         ImageBitmap_initialize(ns_zero);
