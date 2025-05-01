@@ -16,5 +16,5 @@ extern "C"
 
     FORMA_EXPORT void formaMat4_multiply_affine_TRS(forma::Mat4 *out, forma::Mat4 *m, forma::Vec3 *t, forma::Quat *r, forma::Vec3 *s);
 
-    FORMA_EXPORT void formaMat4_to3x4(float *out, forma::Mat4 *m);
+    FORMA_EXPORT void formaMat4_to3x4(float *out, int offset, forma::Mat4 *m);
 }

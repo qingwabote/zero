@@ -17,7 +17,7 @@ void formaMat4_multiply_affine_TRS(forma::Mat4 *out, forma::Mat4 *m, forma::Vec3
     forma::multiply_affine(*out, *m, temp);
 }
 
-void formaMat4_to3x4(float *out, forma::Mat4 *m)
+void formaMat4_to3x4(float *out, int offset, forma::Mat4 *m)
 {
-    forma::to3x4(out, *m);
+    forma::to3x4(out + offset, *m);
 }

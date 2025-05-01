@@ -91,8 +91,8 @@ export class SkinInstance {
         const offset = this.store.add();
         for (let i = 0; i < this._joints.length; i++) {
             pk.fn.formaMat4_multiply_affine(temp_mat4_handle, this._joints[i].matrix, this.proto.inverseBindMatrices[i]);
-            pk.fn.formaMat4_to3x4(pk.heap.locBuffer(this.store.handle, (4 * 3 * i + offset) * 4), temp_mat4_handle);
-            // gfxUtil.compressAffineMat4(this.store.source, 4 * 3 * i + offset, temp_mat4_view as any);
+            // pk.fn.formaMat4_to3x4(pk.heap.locBuffer(this.store.handle, (4 * 3 * i + offset) * 4), 0,temp_mat4_handle);
+            pk.fn.formaMat4_to3x4(this.store.handle, 4 * 3 * i + offset, temp_mat4_handle);
         }
 
         this._offset.value = offset / 4;
