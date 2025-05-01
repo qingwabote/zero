@@ -27,7 +27,6 @@ const world_allocator = new BlockAllocator({
     position: 3,
     rotation: 4,
     scale: 3,
-    invalidated: 1,
     matrix: 16,
 });
 
@@ -79,6 +78,7 @@ export class Transform implements TRS {
 
     private _world: ReturnType<typeof world_allocator.alloc>;
     private _world_view: ReturnType<typeof world_allocator.map>;
+    private _world_invalidated = false;
 
     get world_position(): Readonly<Vec3> {
         this.world_update();
@@ -168,7 +168,6 @@ export class Transform implements TRS {
         world_view.rotation.set(quat.IDENTITY);
         world_view.scale.set(vec3.ONE);
         world_view.matrix.set(mat4.IDENTITY);
-        world_view.invalidated[0] = 0;
         this._world_view = world_view;
         this._world = world;
     }
@@ -213,10 +212,10 @@ export class Transform implements TRS {
 
         while (i) {
             let cur = dirtyTransforms[--i];
-            if (cur._world_view.invalidated[0] == 1) {
+            if (cur._world_invalidated) {
                 continue;
             }
-            cur._world_view.invalidated[0] = 1;
+            cur._world_invalidated = true;
             cur._hasChangedFlag.value = 1;
             for (const child of cur._children) {
                 dirtyTransforms[i++] = child;
@@ -228,7 +227,7 @@ export class Transform implements TRS {
         let i = 0;
         let cur: Transform | undefined = this;
         while (cur) {
-            if (cur._world_view.invalidated[0] == 0) {
+            if (!cur._world_invalidated) {
                 break;
             }
 
@@ -248,7 +247,7 @@ export class Transform implements TRS {
                 child._world_view.scale.set(child._local_view.scale)
                 pk.fn.formaMat4_fromTRS(child._world.matrix, child.local.position, child.local.rotation, child.local.scale);
             }
-            child._world_view.invalidated[0] = 0;
+            child._world_invalidated = false;
             cur = child;
         }
     }

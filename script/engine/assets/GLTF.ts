@@ -15,7 +15,6 @@ import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
-import { gfxUtil } from "../gfxUtil.js";
 import { Material } from "../scene/Material.js";
 import { Skin } from "../skinning/Skin.js";
 import { SkinnedMeshRenderer } from "../skinning/SkinnedMeshRenderer.js";
@@ -343,7 +342,7 @@ export class GLTF implements Asset {
                     parent = child;
                 }
                 const out = mat4_b;
-                gfxUtil.compressAffineMat4(jointData, 4 * 3 * index, mat4.multiply_affine(out, world, pk.heap.getBuffer(inverseBindMatrices[index], 'f32', 16) as any));
+                mat4.to3x4(jointData, 4 * 3 * index, mat4.multiply_affine(out, world, pk.heap.getBuffer(inverseBindMatrices[index], 'f32', 16) as any));
             }
             this._skins.push(new Skin(inverseBindMatrices, joints, jointData));
         }
