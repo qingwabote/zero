@@ -10,7 +10,12 @@ namespace forma
         {
             return data[i];
         }
+
+        float operator[](int i) const
+        {
+            return data[i];
+        }
     };
 
-    void lerp(Vec3 &out, Vec3 &a, Vec3 &b, float t);
+    void lerp(Vec3 &out, const Vec3 &a, const Vec3 &b, float t);
 }

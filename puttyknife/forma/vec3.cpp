@@ -2,7 +2,7 @@
 
 namespace forma
 {
-    void lerp(Vec3 &out, Vec3 &a, Vec3 &b, float t)
+    void lerp(Vec3 &out, const Vec3 &a, const Vec3 &b, float t)
     {
         out[0] = a[0] + t * (b[0] - a[0]);
         out[1] = a[1] + t * (b[1] - a[1]);

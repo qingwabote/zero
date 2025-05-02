@@ -10,7 +10,12 @@ namespace forma
         {
             return data[i];
         }
+
+        float operator[](int i) const
+        {
+            return data[i];
+        }
     };
 
-    void slerp(Quat &out, Quat &a, Quat &b, float t);
+    void slerp(Quat &out, const Quat &a, const Quat &b, float t);
 }

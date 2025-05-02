@@ -1,16 +1,13 @@
 import { pk } from "puttyknife";
 import { TRS } from "../core/math/TRS.js";
-import { Vec3Like } from "../core/math/vec3.js";
-import { Vec4Like } from "../core/math/vec4.js";
+import { vec3 } from "../core/math/vec3.js";
+import { vec4 } from "../core/math/vec4.js";
 import { AnimationClip } from "./AnimationClip.js";
 
-interface ChannelBinding {
-    sampler: AnimationClip.Sampler
-    transform: TRS
-}
+let float_handle = pk.heap.newBuffer(512 * 4, 0);
+let float_view = pk.heap.getBuffer(float_handle, 'f32', 512);
 
-const vec4_a_handle = pk.heap.addBuffer(new Float32Array(4), 0);
-const vec4_a_data = pk.heap.getBuffer(vec4_a_handle, 'f32', 4);
+const vec4_a = vec4.create();
 
 /**
  * Bind clip and target, call sample to update target by time
@@ -18,60 +15,60 @@ const vec4_a_data = pk.heap.getBuffer(vec4_a_handle, 'f32', 4);
 export class ClipBinging {
     readonly duration: number;
 
-    private readonly _positions: ChannelBinding[];
-    private readonly _rotations: ChannelBinding[];
-    private readonly _scales: ChannelBinding[];
+    private readonly _bindings: TRS[]
 
-    constructor(clip: AnimationClip, getTarget: (path: readonly string[]) => TRS) {
-        const positions: ChannelBinding[] = [];
-        const rotations: ChannelBinding[] = [];
-        const scales: ChannelBinding[] = [];
-        for (const channel of clip.channels) {
-            if (channel.sampler.interpolation != 'LINEAR') {
-                throw new Error(`unsupported interpolation: ${channel.sampler.interpolation}`);
-            }
+    constructor(private readonly _clip: AnimationClip, getTarget: (path: readonly string[]) => TRS) {
+        const bindings: TRS[] = []
+        let float_count = 0;
+        for (const channel of _clip.channels) {
             const node = getTarget(channel.node)
             switch (channel.path) {
                 case 'translation':
-                    positions.push({
-                        sampler: channel.sampler,
-                        transform: node
-                    })
+                    float_count += 3;
                     break;
                 case 'rotation':
-                    rotations.push({
-                        sampler: channel.sampler,
-                        transform: node
-                    });
+                    float_count += 4;
                     break;
                 case 'scale':
-                    scales.push({
-                        sampler: channel.sampler,
-                        transform: node
-                    });
+                    float_count += 3;
                     break;
                 default:
                     throw new Error(`unsupported path: ${channel.path}`);
             }
+            bindings.push(node);
         }
-        this.duration = clip.duration;
-        this._positions = positions;
-        this._rotations = rotations;
-        this._scales = scales;
+        this.duration = _clip.duration;
+        this._bindings = bindings;
+
+        if (float_view.length < float_count) {
+            pk.heap.delBuffer(float_handle);
+
+            float_handle = pk.heap.newBuffer(float_count * 4, 0);
+            float_view = pk.heap.getBuffer(float_handle, 'f32', float_count);
+        }
     }
 
     sample(time: number): void {
-        for (const channel of this._positions) {
-            pk.fn.sampVec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
-            channel.transform.position = vec4_a_data as unknown as Vec3Like;
-        }
-        for (const channel of this._rotations) {
-            pk.fn.sampQuat(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
-            channel.transform.rotation = vec4_a_data as unknown as Vec4Like;
-        }
-        for (const channel of this._scales) {
-            pk.fn.sampVec3(vec4_a_handle, channel.sampler.inputData, channel.sampler.inputLength, channel.sampler.output, time);
-            channel.transform.scale = vec4_a_data as unknown as Vec3Like;
+        pk.fn.sampClip_sample(this._clip.handle, float_handle, time);
+        let offset = 0;
+        for (let i = 0; i < this._bindings.length; i++) {
+            const channel = this._clip.channels[i];
+            switch (channel.path) {
+                case 'translation':
+                    this._bindings[i].position = vec3.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2])
+                    offset += 3;
+                    break;
+                case 'rotation':
+                    this._bindings[i].rotation = vec4.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2], float_view[offset + 3])
+                    offset += 4;
+                    break;
+                case 'scale':
+                    this._bindings[i].scale = vec3.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2])
+                    offset += 3;
+                    break;
+                default:
+                    throw new Error(`unsupported path: ${channel.path}`);
+            }
         }
     }
 }

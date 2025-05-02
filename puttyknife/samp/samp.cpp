@@ -1,71 +1,21 @@
 #include <samp/samp.h>
 
-#define EPSILON 1e-6f
-
-int sampSeek(float *srcData, unsigned int srcLength, float value)
+samp::Clip *sampClip_new()
 {
-    if (value < srcData[0])
-    {
-        return 0;
-    }
-
-    if (value > srcData[srcLength - 1])
-    {
-        return srcLength - 1;
-    }
-
-    unsigned int head = 0;
-    unsigned int tail = srcLength - 1;
-    while (head <= tail)
-    {
-        unsigned int mid = (head + tail) >> 1;
-        float res = srcData[mid];
-        if ((value + EPSILON) < res)
-        {
-            tail = mid - 1;
-        }
-        else if ((value - EPSILON) > res)
-        {
-            head = mid + 1;
-        }
-        else
-        {
-            return mid;
-        }
-    }
-    return ~head;
+    return new samp::Clip();
 }
 
-void sampVec3(forma::Vec3 *out, float *inputData, unsigned int inputLength, forma::Vec3 *output, float time)
+void sampClip_addChannel(samp::Clip *self,
+                         int path,
+                         const float *const input_data,
+                         const unsigned int input_length,
+                         const float *const output_data
+                         /* ,const unsigned int output_length */)
 {
-    int index = sampSeek(inputData, inputLength, time);
-    if (index >= 0)
-    {
-        *out = *(output + index);
-    }
-    else
-    {
-        int next = ~index;
-        int prev = next - 1;
-
-        float t = (time - inputData[prev]) / (inputData[next] - inputData[prev]);
-        lerp(*out, *(output + prev), *(output + next), t);
-    }
+    self->addChannel(static_cast<samp::ChannelPath>(path), input_data, input_length, output_data, 0);
 }
 
-void sampQuat(forma::Quat *out, float *inputData, unsigned int inputLength, forma::Quat *output, float time)
+void sampClip_sample(samp::Clip *self, float *out, float time)
 {
-    int index = sampSeek(inputData, inputLength, time);
-    if (index >= 0)
-    {
-        *out = *(output + index);
-    }
-    else
-    {
-        int next = ~index;
-        int prev = next - 1;
-
-        float t = (time - inputData[prev]) / (inputData[next] - inputData[prev]);
-        slerp(*out, *(output + prev), *(output + next), t);
-    }
+    self->sample(out, time);
 }

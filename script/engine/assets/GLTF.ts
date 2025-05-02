@@ -349,16 +349,21 @@ export class GLTF implements Asset {
 
         // animation
         for (const animation of json.animations || []) {
+            const handle = pk.fn.sampClip_new();
             const channels: AnimationClip.Channel[] = []
+            let duration: number = 0;
             for (const channel of animation.channels) {
                 const sampler = animation.samplers[channel.sampler];
+
+                if (sampler.interpolation != 'LINEAR') {
+                    throw new Error(`unsupported interpolation: ${sampler.interpolation}`);
+                }
 
                 // the input/output pair: 
                 // a set of floating-point scalar values representing linear time in seconds; 
                 // and a set of vectors or scalars representing the animated property. 
                 let inputData: pk.BufferHandle;
                 let inputLength: number;
-                let duration: number;
                 {
                     const accessor = json.accessors[sampler.input];
                     const bufferView = json.bufferViews[accessor.bufferView];
@@ -367,32 +372,34 @@ export class GLTF implements Asset {
                     }
                     inputData = pk.heap.locBuffer(bin_handle, (accessor.byteOffset || 0) + bufferView.byteOffset)
                     inputLength = accessor.count;
-                    duration = pk.heap.getBuffer(inputData, 'f32', inputLength)[inputLength - 1];
+                    duration = Math.max(duration, pk.heap.getBuffer(inputData, 'f32', inputLength)[inputLength - 1]);
                 }
                 let output: pk.BufferHandle;
                 {
                     const accessor = json.accessors[sampler.output];
                     const bufferView = json.bufferViews[accessor.bufferView];
-                    let components: number;
-                    switch (accessor.type) {
-                        case 'VEC3':
-                            components = 3;
-                            break;
-                        case 'VEC4':
-                            components = 4;
-                            break;
-                        default:
-                            throw new Error(`unsupported accessor type: ${accessor.type}`);
-                    }
                     output = pk.heap.locBuffer(bin_handle, (accessor.byteOffset || 0) + bufferView.byteOffset)
-                    // if (components != bufferView.byteStride / Float32Array.BYTES_PER_ELEMENT) {
-                    //     throw new Error;
-                    // }
                 }
-
-                channels.push({ node: node2path(channel.target.node), path: channel.target.path, sampler: { inputData, inputLength, output, interpolation: sampler.interpolation, duration } })
+                const path = channel.target.path as AnimationClip.ChannelPath;
+                let path_enum: number;
+                switch (path) {
+                    case "translation":
+                        path_enum = 0;
+                        break;
+                    case "rotation":
+                        path_enum = 1;
+                        break;
+                    case "scale":
+                        path_enum = 2;
+                        break;
+                    case "weights":
+                    default:
+                        throw new Error(`unsupported channel path: ${path}`);
+                }
+                pk.fn.sampClip_addChannel(handle, path_enum, inputData, inputLength, output);
+                channels.push({ node: node2path(channel.target.node), path })
             }
-            this._animationClips.push(new AnimationClip(channels, animation.name));
+            this._animationClips.push(new AnimationClip(channels, animation.name, duration, handle));
         }
 
         this._json = json;

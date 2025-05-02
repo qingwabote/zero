@@ -3,7 +3,7 @@
 
 namespace forma
 {
-    void slerp(Quat &out, Quat &a, Quat &b, float t)
+    void slerp(Quat &out, Quat const &a, const Quat &b, float t)
     {
         // benchmarks:
         //    http://jsperf.com/quaternion-slerp-implementations
