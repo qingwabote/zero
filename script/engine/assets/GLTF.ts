@@ -9,7 +9,6 @@ import { AnimationClip } from "../animating/AnimationClip.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
 import { Node } from "../core/Node.js";
 import { mat4 } from "../core/math/mat4.js";
-import { quat } from "../core/math/quat.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
@@ -313,38 +312,10 @@ export class GLTF implements Asset {
                 inverseBindMatrices[i] = pk.heap.locBuffer(bin_handle, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i);
             }
             const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
-
-            const jointData = new Float32Array(4 * 3 * skin.joints.length)
-            for (let index = 0; index < skin.joints.length; index++) {
-                const node = skin.joints[index];
-                const parent2child = array_a;
-                let parent = node;
-                let i = 0;
-                while (parent != undefined) {
-                    parent2child[i++] = parent;
-                    parent = node2parent[parent];
-                }
-                const world = mat4_a;
-                while (i) {
-                    const child = parent2child[--i];
-                    const info = json.nodes[child];
-                    const local = mat4_b;
-                    if (info.matrix) {
-                        local.splice(0, 16, ...info.matrix);
-                    } else {
-                        mat4.fromTRS(local, info.translation || vec3.ZERO, info.rotation || quat.IDENTITY, info.scale || vec3.ONE);
-                    }
-                    if (parent == undefined) {
-                        world.splice(0, 16, ...local);
-                    } else {
-                        mat4.multiply_affine(world, world, local)
-                    }
-                    parent = child;
-                }
-                const out = mat4_b;
-                mat4.to3x4(jointData, 4 * 3 * index, mat4.multiply_affine(out, world, pk.heap.getBuffer(inverseBindMatrices[index], 'f32', 16) as any));
+            if (skin.skeleton == undefined) {
+                throw new Error(`undefined skeleton`);
             }
-            this._skins.push(new Skin(inverseBindMatrices, joints, jointData));
+            this._skins.push(new Skin(inverseBindMatrices, joints));
         }
 
         // animation

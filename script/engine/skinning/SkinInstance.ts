@@ -12,8 +12,12 @@ interface Node {
     matrix: ReturnType<typeof matrix_allocator.alloc>['matrix'];
 }
 
-function createNode(local: Transform.Local): Node {
-    return { local, children: new Set, matrix: null! }
+function getNode(cache: Map<Transform, Node>, trs: Transform): Node {
+    let node = cache.get(trs);
+    if (!node) {
+        cache.set(trs, node = { local: trs.local, children: new Set, matrix: null! });
+    }
+    return node;
 }
 
 const nodeQueue: Node[] = [];
@@ -31,33 +35,27 @@ export class SkinInstance {
 
     private readonly _joints: readonly Node[];
 
-    private readonly _hierarchy: readonly Node[];
+    private readonly _root: Node;
 
     constructor(readonly proto: Skin, readonly root: Transform) {
-        const joints: Node[] = [];
-        const hierarchy: Set<Node> = new Set;
         const trs2node: Map<Transform, Node> = new Map;
+        this._root = getNode(trs2node, root);
+        const joints: Node[] = [];
         for (let trs of proto.joints.map(paths => root.getChildByPath(paths)!)) {
-            const node: Node = createNode(trs.local);
-            trs2node.set(trs, node);
-            joints.push(node);
+            joints.push(getNode(trs2node, trs));
 
+            let node: Node | undefined
             let child: Node | undefined;
             do {
-                let node = trs2node.get(trs);
-                if (!node) {
-                    trs2node.set(trs, node = createNode(trs.local));
-                }
+                node = getNode(trs2node, trs);
                 if (child) {
                     node.children.add(child);
                 }
 
                 child = node;
                 trs = trs.parent!;
-            } while (trs != root);
-            hierarchy.add(child);
+            } while (node != this._root);
         }
-        this._hierarchy = [...hierarchy];
         this._joints = joints;
 
         this.store = this.proto.alive;
@@ -74,7 +72,7 @@ export class SkinInstance {
         const temp_mat4_handle = temp_block.matrix;
 
         nodeQueue.length = 0;
-        for (const child of this._hierarchy) {
+        for (const child of this._root.children) {
             child.matrix = matrix_allocator.alloc().matrix;
             pk.fn.formaMat4_fromTRS(child.matrix, child.local.position, child.local.rotation, child.local.scale);
             nodeQueue.push(child);
@@ -91,7 +89,6 @@ export class SkinInstance {
         const offset = this.store.add();
         for (let i = 0; i < this._joints.length; i++) {
             pk.fn.formaMat4_multiply_affine(temp_mat4_handle, this._joints[i].matrix, this.proto.inverseBindMatrices[i]);
-            // pk.fn.formaMat4_to3x4(pk.heap.locBuffer(this.store.handle, (4 * 3 * i + offset) * 4), 0,temp_mat4_handle);
             pk.fn.formaMat4_to3x4(this.store.handle, 4 * 3 * i + offset, temp_mat4_handle);
         }
 

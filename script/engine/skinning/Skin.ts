@@ -78,8 +78,7 @@ export class Skin {
 
     constructor(
         readonly inverseBindMatrices: readonly Readonly<pk.BufferHandle>[],
-        readonly joints: readonly (readonly string[])[],
-        readonly jointData: Float32Array
+        readonly joints: readonly (readonly string[])[]
     ) { }
 
     instantiate(root: Transform): SkinInstance {

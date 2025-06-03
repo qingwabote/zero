@@ -27,7 +27,7 @@
 - 冯氏光照
 - 级联阴影
 - 动画混合（一维）
-- 蒙皮动画（支持烘焙）
+- [蒙皮动画（GPU, 支持烘焙）](skinning.md)
 - 场景剔除（支持八叉树）
 - 骨骼动画（spine）
 - 物理引擎（deterministic physics by bullet+webassembly）
@@ -52,6 +52,11 @@
 无需使用 module bundler 打包引擎 javascript 源码, 引擎使用 [import-maps](https://github.com/WICG/import-maps) 实现 bare import specifiers, 依赖的 npm packages 则使用 rollup 打包
 
 ## 支持微信分包加载
+
+## GPU Instancing Only
+引擎中，GPU Instancing 和非 Instancing 使用统一的 code path，区别仅在于 instance count, 非 Instancing 被视作 Instancing 的特例，其 instance count 固定为 1
+
+Matrix 目前储存于 vertex buffer, 好处是不受 WebGL UBO 大小限制，缺陷是 vertex attribute 数量有限
 
 # 架构
 
