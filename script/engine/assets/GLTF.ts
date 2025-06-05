@@ -311,11 +311,7 @@ export class GLTF implements Asset {
             for (let i = 0; i < accessor.count; i++) {
                 inverseBindMatrices[i] = pk.heap.locBuffer(bin_handle, (accessor.byteOffset || 0) + bufferView.byteOffset + Float32Array.BYTES_PER_ELEMENT * 16 * i);
             }
-            const joints: string[][] = (skin.joints as Array<number>).map(joint => node2path(joint));
-            if (skin.skeleton == undefined) {
-                throw new Error(`undefined skeleton`);
-            }
-            this._skins.push(new Skin(inverseBindMatrices, joints));
+            this._skins.push(new Skin(inverseBindMatrices, (skin.joints as Array<number>).map(joint => node2path(joint))));
         }
 
         // animation

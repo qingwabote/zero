@@ -8,19 +8,10 @@ const matrix_allocator = new BlockAllocator({ matrix: 16 });
 
 interface Node {
     local: Transform.Local;
-    children: Set<Node>;
-    matrix: ReturnType<typeof matrix_allocator.alloc>['matrix'];
+    parent: number;
 }
 
-function getNode(cache: Map<Transform, Node>, trs: Transform): Node {
-    let node = cache.get(trs);
-    if (!node) {
-        cache.set(trs, node = { local: trs.local, children: new Set, matrix: null! });
-    }
-    return node;
-}
-
-const nodeQueue: Node[] = [];
+const matrixes: ReturnType<typeof matrix_allocator.alloc>['matrix'][] = [];
 
 export class SkinInstance {
     public store: Skin.JointStore;
@@ -33,30 +24,45 @@ export class SkinInstance {
         this._offset.value = value;
     }
 
-    private readonly _joints: readonly Node[];
-
-    private readonly _root: Node;
+    private readonly _nodes: readonly Node[];
+    private readonly _joints: number;
 
     constructor(readonly proto: Skin, readonly root: Transform) {
-        const trs2node: Map<Transform, Node> = new Map;
-        this._root = getNode(trs2node, root);
-        const joints: Node[] = [];
-        for (let trs of proto.joints.map(paths => root.getChildByPath(paths)!)) {
-            joints.push(getNode(trs2node, trs));
-
-            let node: Node | undefined
-            let child: Node | undefined;
-            do {
-                node = getNode(trs2node, trs);
-                if (child) {
-                    node.children.add(child);
+        // assume proto.joints are topologically sorted (though not required by glTF spec)
+        const nodes: Node[] = [];
+        let parent = root;
+        for (let i = 0; i < proto.joints[0].length - 1; i++) {
+            const name = proto.joints[0][i];
+            let err = true;
+            for (const child of parent.children) {
+                if (child.name == name) {
+                    nodes.push({ local: child.local, parent: nodes.length - 1 })
+                    parent = child;
+                    err = false;
+                    break;
                 }
-
-                child = node;
-                trs = trs.parent!;
-            } while (node != this._root);
+            }
+            if (err) {
+                throw new Error(`${name} not exists`);
+            }
         }
-        this._joints = joints;
+        this._joints = nodes.length;
+        for (const path of proto.joints) {
+            const child = root.getChildByPath(path)!
+            let parent = -1;
+            for (let i = nodes.length - 1; i > -1; i--) {
+                if (nodes[i].local == child.parent!.local) {
+                    parent = i;
+                    break;
+                }
+            }
+            if (parent == -1) {
+                throw new Error(`parent not exists`);
+            }
+            const node = { local: child.local, matrix: null!, parent }
+            nodes.push(node);
+        }
+        this._nodes = nodes;
 
         this.store = this.proto.alive;
     }
@@ -71,24 +77,20 @@ export class SkinInstance {
         const temp_block = matrix_allocator.alloc();
         const temp_mat4_handle = temp_block.matrix;
 
-        nodeQueue.length = 0;
-        for (const child of this._root.children) {
-            child.matrix = matrix_allocator.alloc().matrix;
-            pk.fn.formaMat4_fromTRS(child.matrix, child.local.position, child.local.rotation, child.local.scale);
-            nodeQueue.push(child);
-        }
-        while (nodeQueue.length) {
-            const node = nodeQueue.pop()!;
-            for (const child of node.children) {
-                child.matrix = matrix_allocator.alloc().matrix;
-                pk.fn.formaMat4_multiply_affine_TRS(child.matrix, node.matrix, child.local.position, child.local.rotation, child.local.scale)
-                nodeQueue.push(child);
+        for (let i = 0; i < this._nodes.length; i++) {
+            const node = this._nodes[i];
+            const matrix = matrix_allocator.alloc().matrix;
+            if (node.parent == -1) {
+                pk.fn.formaMat4_fromTRS(matrix, node.local.position, node.local.rotation, node.local.scale);
+            } else {
+                pk.fn.formaMat4_multiply_affine_TRS(matrix, matrixes[node.parent], node.local.position, node.local.rotation, node.local.scale)
             }
+            matrixes[i] = matrix;
         }
 
         const offset = this.store.add();
-        for (let i = 0; i < this._joints.length; i++) {
-            pk.fn.formaMat4_multiply_affine(temp_mat4_handle, this._joints[i].matrix, this.proto.inverseBindMatrices[i]);
+        for (let i = 0; i < this.proto.joints.length; i++) {
+            pk.fn.formaMat4_multiply_affine(temp_mat4_handle, matrixes[i + this._joints], this.proto.inverseBindMatrices[i]);
             pk.fn.formaMat4_to3x4(this.store.handle, 4 * 3 * i + offset, temp_mat4_handle);
         }
 
