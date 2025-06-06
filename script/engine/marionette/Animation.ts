@@ -1,11 +1,12 @@
 import { AnimationClip } from "../animating/AnimationClip.js";
+import { AnimationState } from "../animating/AnimationState.js";
 import { AnimationSystem } from "../animating/AnimationSystem.js";
 import { ClipBinging } from "../animating/ClipBinging.js";
 import { Component } from "../core/Component.js";
-import { AnimationStateSingle } from "./internal/AnimationStateSingle.js";
+import { Solo } from "./sampler/Solo.js";
 
 export class Animation extends Component {
-    private _name2state: Record<string, AnimationStateSingle> = {};
+    private _name2state: Record<string, AnimationState> = {};
 
     private _clips: readonly AnimationClip[] = [];
     public get clips(): readonly AnimationClip[] {
@@ -13,7 +14,7 @@ export class Animation extends Component {
     }
     public set clips(value: readonly AnimationClip[]) {
         for (const clip of value) {
-            this._name2state[clip.name] = new AnimationStateSingle(new ClipBinging(clip, path => this.node.getChildByPath(path)!));
+            this._name2state[clip.name] = new AnimationState(new Solo(new ClipBinging(clip, clip.channels.map(channel => this.node.getChildByPath(channel.node)!))));
         }
         this._clips = value;
     }
@@ -22,7 +23,7 @@ export class Animation extends Component {
         AnimationSystem.instance.addAnimation(this._name2state[name]);
     }
 
-    getState(name: string): AnimationStateSingle {
+    getState(name: string): AnimationState {
         return this._name2state[name];
     }
 }

@@ -1,33 +1,28 @@
-export abstract class AnimationState {
-    public abstract get duration(): number;
+import { AnimationSampler } from "./AnimationSampler.js";
 
-    /**When set new time, we should ensure the frame at the specified time being played at next update.*/
-    private _time_dirty = true;
+export class AnimationState {
     private _time: number = 0;
     public get time(): number {
         return this._time;
     }
     public set time(value: number) {
         this._time = value;
-        this._time_dirty = true;
     }
 
-    speed: number = 1;
+    constructor(private readonly _sampler: AnimationSampler) { }
 
     update(dt: number): void {
-        const duration = this.duration;
+        let time = this._time;
+        this._sampler.update(time)
 
-        this._time += this._time_dirty ? 0 : (dt * this.speed);
-        this._time = Math.min(this._time, duration);
-
-        this.sample(this._time);
-
-        this._time_dirty = false;
-
-        if (this._time >= duration) {
-            this.time = 0;
+        const duration = this._sampler.duration;
+        if (time < duration) {
+            time += dt;
+            time = Math.min(time, duration);
         }
+        else {
+            time = 0;
+        }
+        this._time = time;
     }
-
-    protected abstract sample(time: number): void;
 }

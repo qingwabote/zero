@@ -15,13 +15,9 @@ const vec4_a = vec4.create();
 export class ClipBinging {
     readonly duration: number;
 
-    private readonly _bindings: TRS[]
-
-    constructor(private readonly _clip: AnimationClip, getTarget: (path: readonly string[]) => TRS) {
-        const bindings: TRS[] = []
+    constructor(private readonly _clip: AnimationClip, private readonly _targets: TRS[]) {
         let float_count = 0;
         for (const channel of _clip.channels) {
-            const node = getTarget(channel.node)
             switch (channel.path) {
                 case 'translation':
                     float_count += 3;
@@ -35,10 +31,8 @@ export class ClipBinging {
                 default:
                     throw new Error(`unsupported path: ${channel.path}`);
             }
-            bindings.push(node);
         }
         this.duration = _clip.duration;
-        this._bindings = bindings;
 
         if (float_view.length < float_count) {
             pk.heap.delBuffer(float_handle);
@@ -51,19 +45,19 @@ export class ClipBinging {
     sample(time: number): void {
         pk.fn.sampClip_sample(this._clip.handle, float_handle, time);
         let offset = 0;
-        for (let i = 0; i < this._bindings.length; i++) {
+        for (let i = 0; i < this._targets.length; i++) {
             const channel = this._clip.channels[i];
             switch (channel.path) {
                 case 'translation':
-                    this._bindings[i].position = vec3.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2])
+                    this._targets[i].position = vec3.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2])
                     offset += 3;
                     break;
                 case 'rotation':
-                    this._bindings[i].rotation = vec4.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2], float_view[offset + 3])
+                    this._targets[i].rotation = vec4.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2], float_view[offset + 3])
                     offset += 4;
                     break;
                 case 'scale':
-                    this._bindings[i].scale = vec3.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2])
+                    this._targets[i].scale = vec3.set(vec4_a, float_view[offset], float_view[offset + 1], float_view[offset + 2])
                     offset += 3;
                     break;
                 default:

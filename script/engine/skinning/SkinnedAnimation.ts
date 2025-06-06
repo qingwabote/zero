@@ -1,5 +1,6 @@
 import { CachedFactory } from "bastard";
 import { AnimationClip } from "../animating/AnimationClip.js";
+import { AnimationSampler } from "../animating/AnimationSampler.js";
 import { AnimationState } from "../animating/AnimationState.js";
 import { AnimationSystem } from "../animating/AnimationSystem.js";
 import { ClipBinging } from "../animating/ClipBinging.js";
@@ -10,7 +11,7 @@ import { SkinnedMeshRenderer } from "./SkinnedMeshRenderer.js";
 const cache_keys: AnimationClip[] = [undefined!];
 const cache: CachedFactory<typeof cache_keys, Record<number, number>> = new CachedFactory(function () { return {}; }, true)
 
-class SkinnedAnimationState extends AnimationState {
+class SkinnedAnimationSampler implements AnimationSampler {
     public get duration(): number {
         return this._clip.duration
     }
@@ -22,12 +23,11 @@ class SkinnedAnimationState extends AnimationState {
     private readonly _frames: number;
 
     constructor(private readonly _clip: AnimationClip, private readonly _skin: SkinInstance) {
-        super();
-        this._binding = new ClipBinging(_clip, path => _skin.root.getChildByPath(path)!)
+        this._binding = new ClipBinging(_clip, _clip.channels.map(channel => _skin.root.getChildByPath(channel.node)!))
         this._frames = _clip.duration * 60;
     }
 
-    protected sample(time: number): void {
+    public update(time: number): void {
         this._skin.store = this.baked ? this._skin.proto.persistent : this._skin.proto.transient;
 
         if (this.baked) {
@@ -53,12 +53,12 @@ class SkinnedAnimationState extends AnimationState {
 export class SkinnedAnimation extends Component {
     clips: readonly AnimationClip[] = [];
 
-    private _state: SkinnedAnimationState | undefined = undefined;
-    get state(): SkinnedAnimationState | undefined {
+    private _state: AnimationState | undefined = undefined;
+    get state(): AnimationState | undefined {
         return this._state;
     }
 
-    private _states: Record<string, SkinnedAnimationState> = {};
+    private _states: Record<string, AnimationState> = {};
 
     play(name: string) {
         if (this._state) {
@@ -66,7 +66,7 @@ export class SkinnedAnimation extends Component {
         }
         let state = this._states[name];
         if (!state) {
-            this._states[name] = state = new SkinnedAnimationState(this.clips.find(clip => clip.name == name)!, this.node.getComponent(SkinnedMeshRenderer, true)!.skin!)
+            this._states[name] = state = new AnimationState(new SkinnedAnimationSampler(this.clips.find(clip => clip.name == name)!, this.node.getComponent(SkinnedMeshRenderer, true)!.skin!))
         }
         AnimationSystem.instance.addAnimation(state);
     }
