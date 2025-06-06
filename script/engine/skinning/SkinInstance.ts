@@ -1,6 +1,6 @@
 import { pk } from "puttyknife";
 import { BlockAllocator } from "../core/BlockAllocator.js";
-import { Periodic } from "../core/render/scene/Periodic.js";
+import { Transient } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { Skin } from "../skinning/Skin.js";
 
@@ -16,7 +16,7 @@ const matrixes: ReturnType<typeof matrix_allocator.alloc>['matrix'][] = [];
 export class SkinInstance {
     public store: Skin.JointStore;
 
-    private _offset: Periodic = new Periodic(-1, -1);
+    private _offset: Transient = new Transient(-1, -1);
     public get offset() {
         return this._offset.value;
     }
@@ -64,7 +64,7 @@ export class SkinInstance {
         }
         this._nodes = nodes;
 
-        this.store = this.proto.alive;
+        this.store = this.proto.transient;
     }
 
     update() {

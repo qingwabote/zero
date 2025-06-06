@@ -4,7 +4,7 @@ import { shaderLib } from "../../shaderLib.js";
 import { MemoryView } from "../gpu/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
-import { Periodic } from "./Periodic.js";
+import { Transient } from "./Periodic.js";
 import { Transform } from "./Transform.js";
 
 interface InstancedAttribute {
@@ -34,7 +34,7 @@ export class Model {
         return this._bounds;
     }
 
-    private _hasOwnChanged = new Periodic(ChangeBits.BOUNDS, ChangeBits.NONE);
+    private _hasOwnChanged = new Transient(ChangeBits.BOUNDS, ChangeBits.NONE);
     get hasChanged(): number {
         let flag = this._hasOwnChanged.value;
         if (this._mesh.hasChanged || this._transform.hasChangedFlag.value) {

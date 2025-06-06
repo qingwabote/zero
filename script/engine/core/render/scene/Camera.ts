@@ -5,7 +5,7 @@ import { Vec2Like, vec2 } from "../../math/vec2.js";
 import { Vec3Like, vec3 } from "../../math/vec3.js";
 import { Vec4, vec4 } from "../../math/vec4.js";
 import { Frustum } from "./Frustum.js";
-import { Periodic } from "./Periodic.js";
+import { Transient } from "./Periodic.js";
 import { Transform } from "./Transform.js";
 
 const vec2_a = vec2.create();
@@ -71,8 +71,8 @@ export class Camera {
         return (width * this._rect[2]) / (height * this._rect[3]);
     }
 
-    private _hasChangedFlag: Periodic = new Periodic(0xffffffff, 0)
-    get hasChangedFlag(): Readonly<Periodic> {
+    private _hasChangedFlag: Transient = new Transient(0xffffffff, 0)
+    get hasChangedFlag(): Readonly<Transient> {
         return this._hasChangedFlag;
     }
 

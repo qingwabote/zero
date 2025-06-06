@@ -9,21 +9,21 @@ import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
-import { Periodic } from "../../core/render/scene/Periodic.js";
+import { Transient } from "../../core/render/scene/Periodic.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { gfxUtil } from "../../gfxUtil.js";
 
 class InstancedBatch implements Batch {
     readonly attributes: Readonly<Record<string, MemoryView>>;
 
-    private _uploadFlag: Periodic = new Periodic(0, 0);
+    private _uploadFlag: Transient = new Transient(0, 0);
     get uploaded(): boolean {
         return this._uploadFlag.value != 0;
     }
 
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
-    private _countFlag: Periodic = new Periodic(0, 0);
+    private _countFlag: Transient = new Transient(0, 0);
     get count(): number {
         return this._countFlag.value;
     }

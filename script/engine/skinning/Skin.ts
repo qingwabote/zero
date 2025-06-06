@@ -2,7 +2,7 @@ import { device } from "boot";
 import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Filter } from "gfx";
 import { pk } from "puttyknife";
 import { TextureView } from "../core/render/gpu/TextureView.js";
-import { Periodic } from "../core/render/scene/Periodic.js";
+import { Transient } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -40,8 +40,8 @@ abstract class JointStore {
     }
 }
 
-class JointAlive extends JointStore {
-    private readonly _reset = new Periodic(0, 0);
+class JointTransient extends JointStore {
+    private readonly _reset = new Transient(0, 0);
 
     add() {
         if (this._reset.value == 0) {
@@ -53,27 +53,27 @@ class JointAlive extends JointStore {
     }
 }
 
-class JointBaked extends JointStore {
+class JointPersistent extends JointStore {
     add() {
         return this._view.addBlock(4 * 3 * this._stride)
     }
 }
 
 export class Skin {
-    private _alive?: JointAlive = undefined;
-    get alive() {
-        if (!this._alive) {
-            this._alive = new JointAlive(this.joints.length);
+    private _transient?: JointTransient = undefined;
+    get transient() {
+        if (!this._transient) {
+            this._transient = new JointTransient(this.joints.length);
         }
-        return this._alive;
+        return this._transient;
     }
 
-    private _baked?: JointBaked = undefined;
-    public get baked(): JointBaked {
-        if (!this._baked) {
-            this._baked = new JointBaked(this.joints.length);
+    private _persistent?: JointPersistent = undefined;
+    public get persistent(): JointPersistent {
+        if (!this._persistent) {
+            this._persistent = new JointPersistent(this.joints.length);
         }
-        return this._baked;
+        return this._persistent;
     }
 
     constructor(

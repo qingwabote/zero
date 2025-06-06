@@ -7,7 +7,7 @@ import { Component } from "../core/Component.js";
 import { SkinInstance } from "./SkinInstance.js";
 import { SkinnedMeshRenderer } from "./SkinnedMeshRenderer.js";
 
-const cache_keys: [AnimationClip] = [undefined!];
+const cache_keys: AnimationClip[] = [undefined!];
 const cache: CachedFactory<typeof cache_keys, Record<number, number>> = new CachedFactory(function () { return {}; }, true)
 
 class SkinnedAnimationState extends AnimationState {
@@ -28,7 +28,7 @@ class SkinnedAnimationState extends AnimationState {
     }
 
     protected sample(time: number): void {
-        this._skin.store = this.baked ? this._skin.proto.baked : this._skin.proto.alive;
+        this._skin.store = this.baked ? this._skin.proto.persistent : this._skin.proto.transient;
 
         if (this.baked) {
             const ratio = time / this.duration;

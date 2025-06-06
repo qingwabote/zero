@@ -1,6 +1,6 @@
 import { Zero } from "../../Zero.js";
 
-export class Periodic<T = number> {
+export class Transient<T = number> {
     private _version = Zero.frameCount;
 
     get value(): T {
