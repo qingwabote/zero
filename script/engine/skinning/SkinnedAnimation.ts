@@ -1,9 +1,9 @@
 import { CachedFactory } from "bastard";
 import { AnimationClip } from "../animating/AnimationClip.js";
+import { AnimationClipInstance } from "../animating/AnimationClipInstance.js";
 import { AnimationSampler } from "../animating/AnimationSampler.js";
 import { AnimationState } from "../animating/AnimationState.js";
 import { AnimationSystem } from "../animating/AnimationSystem.js";
-import { ClipBinging } from "../animating/ClipBinging.js";
 import { Component } from "../core/Component.js";
 import { SkinInstance } from "./SkinInstance.js";
 import { SkinnedMeshRenderer } from "./SkinnedMeshRenderer.js";
@@ -18,12 +18,12 @@ class SkinnedAnimationSampler implements AnimationSampler {
 
     public baked: boolean = false;
 
-    private readonly _binding: ClipBinging;
+    private readonly _binding: AnimationClipInstance;
 
     private readonly _frames: number;
 
     constructor(private readonly _clip: AnimationClip, private readonly _skin: SkinInstance) {
-        this._binding = new ClipBinging(_clip, _clip.channels.map(channel => _skin.root.getChildByPath(channel.node)!))
+        this._binding = new AnimationClipInstance(_clip, _clip.channels.map(channel => _skin.root.getChildByPath(channel.node)!))
         this._frames = _clip.duration * 60;
     }
 

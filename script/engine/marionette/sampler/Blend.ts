@@ -1,6 +1,6 @@
 import { AnimationClip } from "../../animating/AnimationClip.js";
+import { AnimationClipInstance } from "../../animating/AnimationClipInstance.js";
 import { AnimationSampler } from "../../animating/AnimationSampler.js";
-import { ClipBinging } from "../../animating/ClipBinging.js";
 import { quat } from "../../core/math/quat.js";
 import { TRS } from "../../core/math/TRS.js";
 import { vec3, Vec3Like } from "../../core/math/vec3.js";
@@ -116,7 +116,7 @@ class Blender implements TRS {
 }
 
 export class Blend implements AnimationSampler {
-    private _clips: readonly ClipBinging[] = [];
+    private _clips: readonly AnimationClipInstance[];
 
     private _weights: number[];
     public get weights(): readonly number[] {
@@ -145,9 +145,9 @@ export class Blend implements AnimationSampler {
     private readonly _context: Context = { weight: 0 };
 
     constructor(root: Node, clips: readonly AnimationClip[], private _thresholds: readonly number[]) {
-        const _clips: ClipBinging[] = [];
+        const instances: AnimationClipInstance[] = [];
         for (const clip of clips) {
-            _clips.push(new ClipBinging(clip, clip.channels.map((channel) => {
+            instances.push(new AnimationClipInstance(clip, clip.channels.map((channel) => {
                 const node = root.getChildByPath(channel.node)!
                 let blender = this._blenders.get(node);
                 if (!blender) {
@@ -156,7 +156,7 @@ export class Blend implements AnimationSampler {
                 return blender;
             })));
         }
-        this._clips = _clips;
+        this._clips = instances;
 
         this._weights = new Array(clips.length);
     }

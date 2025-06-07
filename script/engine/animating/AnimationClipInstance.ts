@@ -12,7 +12,7 @@ const vec4_a = vec4.create();
 /**
  * Bind clip and target, call sample to update target by time
  */
-export class ClipBinging {
+export class AnimationClipInstance {
     readonly duration: number;
 
     constructor(private readonly _clip: AnimationClip, private readonly _targets: TRS[]) {
