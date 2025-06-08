@@ -54,7 +54,7 @@ export class App extends Zero {
             node.position = [-1, 1, -1];
             let animation = node.addComponent(Animation);
             animation.clips = clips;
-            animation.play(animation.clips[0].name);
+            animation.play(0);
 
             node = gltf.createScene("Sketchfab_Scene")!;
             node.visibility = VisibilityFlagBits.WORLD;
@@ -62,7 +62,7 @@ export class App extends Zero {
             node.position = [1, 1, -1];
             animation = node.addComponent(Animation);
             animation.clips = clips;
-            animation.play(animation.clips[2].name);
+            animation.play(2);
         }
 
         // UI

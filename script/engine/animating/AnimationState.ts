@@ -13,7 +13,7 @@ export class AnimationState {
 
     update(dt: number): void {
         let time = this._time;
-        this._sampler.update(time)
+        this._sampler.sample(time)
 
         const duration = this._sampler.duration;
         if (time < duration) {
