@@ -47,7 +47,7 @@ export class App extends Zero {
         main_camera.fov = 45;
         main_camera.far = 32;
         main_camera.visibilities = VisibilityFlagBits.WORLD;
-        node.position = [12, 12, 12];
+        node.position = [.1, .1, .1];
 
         node = primitive.createScene("Plane")!;
         node.visibility = VisibilityFlagBits.WORLD
@@ -67,7 +67,7 @@ export class App extends Zero {
                 node.visibility = VisibilityFlagBits.WORLD;
                 const animation = node.addComponent(SkinnedAnimation);
                 animation.clips = model.proto.animationClips;
-                animation.play(animation.clips[j % 3].name);
+                animation.play(j % 3);
                 node.position = vec3.transformMat3(origin, origin, stride);
             }
         }

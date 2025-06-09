@@ -9,8 +9,8 @@ import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Profile } from "../../core/render/pipeline/Profile.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
-import { Transient } from "../../core/render/scene/Periodic.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
+import { Transient } from "../../core/render/scene/Transient.js";
 import { gfxUtil } from "../../gfxUtil.js";
 
 class InstancedBatch implements Batch {

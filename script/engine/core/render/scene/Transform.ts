@@ -5,7 +5,7 @@ import { Mat4, Mat4Like, mat4 } from "../../math/mat4.js";
 import { Quat, QuatLike, quat } from "../../math/quat.js";
 import { Vec3, Vec3Like, vec3 } from "../../math/vec3.js";
 import { vec4 } from "../../math/vec4.js";
-import { Transient } from "./Periodic.js";
+import { Transient } from "./Transient.js";
 
 const vec3_a = vec3.create();
 const mat4_a = mat4.create();

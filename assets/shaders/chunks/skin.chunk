@@ -11,7 +11,7 @@ mat4 skin_jointMatrix(uint idx)
 
     vec4 m[3];   
 
-    uint i = idx * 3u + a_skin_offset;
+    uint i = idx * 3u + a_skin_offset / 4u;
     uint y = i / width;
     uint x = i % width;
     for (uint n = 0u; n < 3u; n++)

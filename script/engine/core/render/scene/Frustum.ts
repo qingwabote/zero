@@ -2,7 +2,7 @@ import { AABB3D } from "../../math/aabb3d.js";
 import { frustum } from "../../math/frustum.js";
 import { Mat4Like } from "../../math/mat4.js";
 import { vec3 } from "../../math/vec3.js";
-import { Transient } from "./Periodic.js";
+import { Transient } from "./Transient.js";
 
 export class Frustum {
     private _vertices_raw = frustum.vertices();

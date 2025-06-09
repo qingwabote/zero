@@ -1,7 +1,7 @@
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { Vec3, vec3 } from "../../math/vec3.js";
-import { Transient } from "./Periodic.js";
 import { SubMesh } from "./SubMesh.js";
+import { Transient } from "./Transient.js";
 
 export class Mesh {
     private _bounds = aabb3d.create();

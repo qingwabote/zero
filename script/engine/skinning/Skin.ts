@@ -2,8 +2,8 @@ import { device } from "boot";
 import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Filter } from "gfx";
 import { pk } from "puttyknife";
 import { TextureView } from "../core/render/gpu/TextureView.js";
-import { Transient } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
+import { Transient } from "../core/render/scene/Transient.js";
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { SkinInstance } from "./SkinInstance.js";
@@ -21,9 +21,9 @@ abstract class JointStore {
         return this._view.handle;
     }
 
-    public get view() {
-        return this._view.view;
-    }
+    // public get view() {
+    //     return this._view.view;
+    // }
 
     constructor(protected readonly _stride: number) {
         const view = new TextureView;
@@ -34,6 +34,10 @@ abstract class JointStore {
     }
 
     abstract add(): number;
+
+    invalidate(offset: number) {
+        this._view.invalidate(offset, 4 * 3 * this._stride);
+    }
 
     upload(commandBuffer: CommandBuffer) {
         this._view.update(commandBuffer);

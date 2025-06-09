@@ -5,8 +5,8 @@ import { Vec2Like, vec2 } from "../../math/vec2.js";
 import { Vec3Like, vec3 } from "../../math/vec3.js";
 import { Vec4, vec4 } from "../../math/vec4.js";
 import { Frustum } from "./Frustum.js";
-import { Transient } from "./Periodic.js";
 import { Transform } from "./Transform.js";
+import { Transient } from "./Transient.js";
 
 const vec2_a = vec2.create();
 const mat4_a = mat4.create();

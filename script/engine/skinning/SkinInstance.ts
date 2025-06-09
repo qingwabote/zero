@@ -1,7 +1,7 @@
 import { pk } from "puttyknife";
 import { BlockAllocator } from "../core/BlockAllocator.js";
-import { Transient } from "../core/render/scene/Periodic.js";
 import { Transform } from "../core/render/scene/Transform.js";
+import { Transient } from "../core/render/scene/Transient.js";
 import { Skin } from "../skinning/Skin.js";
 
 const matrix_allocator = new BlockAllocator({ matrix: 16 });
@@ -16,13 +16,15 @@ const matrixes: ReturnType<typeof matrix_allocator.alloc>['matrix'][] = [];
 export class SkinInstance {
     public store: Skin.JointStore;
 
-    private _offset: Transient = new Transient(-1, -1);
+    private readonly _offset: Transient = new Transient(-1, -1);
     public get offset() {
         return this._offset.value;
     }
     public set offset(value: number) {
         this._offset.value = value;
     }
+
+    readonly updated: Transient = new Transient(0, 0);
 
     private readonly _nodes: readonly Node[];
     private readonly _joints: number;
@@ -67,9 +69,19 @@ export class SkinInstance {
         this.store = this.proto.transient;
     }
 
+    alloc() {
+        return this._offset.value = this.store.add();
+    }
+
     update() {
-        if (this._offset.value != -1) {
+        if (this.updated.value != 0) {
             return;
+        }
+
+        if (this._offset.value == -1) {
+            this.alloc();
+        } else {
+            this.store.invalidate(this._offset.value);
         }
 
         matrix_allocator.reset();
@@ -88,12 +100,11 @@ export class SkinInstance {
             matrixes[i] = matrix;
         }
 
-        const offset = this.store.add();
         for (let i = 0; i < this.proto.joints.length; i++) {
             pk.fn.formaMat4_multiply_affine(temp_mat4_handle, matrixes[i + this._joints], this.proto.inverseBindMatrices[i]);
-            pk.fn.formaMat4_to3x4(this.store.handle, 4 * 3 * i + offset, temp_mat4_handle);
+            pk.fn.formaMat4_to3x4(this.store.handle, 4 * 3 * i + this._offset.value, temp_mat4_handle);
         }
 
-        this._offset.value = offset / 4;
+        this.updated.value = 1;
     }
 }

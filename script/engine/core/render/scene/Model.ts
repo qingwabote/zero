@@ -4,8 +4,8 @@ import { shaderLib } from "../../shaderLib.js";
 import { MemoryView } from "../gpu/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
-import { Transient } from "./Periodic.js";
 import { Transform } from "./Transform.js";
+import { Transient } from "./Transient.js";
 
 interface InstancedAttribute {
     readonly location: number

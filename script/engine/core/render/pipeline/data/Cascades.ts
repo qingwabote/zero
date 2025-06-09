@@ -6,7 +6,7 @@ import { Mat4, mat4 } from "../../../math/mat4.js";
 import { vec3 } from "../../../math/vec3.js";
 import { Camera } from "../../scene/Camera.js";
 import { Frustum } from "../../scene/Frustum.js";
-import { Transient } from "../../scene/Periodic.js";
+import { Transient } from "../../scene/Transient.js";
 
 const frustum_a = frustum.vertices();
 const aabb_a = aabb3d.create();
