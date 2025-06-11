@@ -1,7 +1,7 @@
 import { DescriptorSet, Format } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { shaderLib } from "../../shaderLib.js";
-import { MemoryView } from "../gpu/MemoryView.js";
+import { MemoryView } from "../gfx/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";

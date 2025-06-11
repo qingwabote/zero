@@ -10,7 +10,7 @@ import { AABB3D } from "../core/math/aabb3d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
-import { BufferView } from "../core/render/gpu/BufferView.js";
+import { BufferView } from "../core/render/gfx/BufferView.js";
 import { quad } from "../core/render/quad.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
@@ -176,7 +176,7 @@ export class TextRenderer extends BoundedRenderer {
             const pos_b = y - yoffset - height;
 
             const offset = this._vertexView.addBlock(16);
-            const source = this._vertexView.view;
+            const source = this._vertexView.source;
 
             source[offset + 0] = pos_l;
             source[offset + 1] = pos_t;

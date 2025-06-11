@@ -1,7 +1,7 @@
 import { device } from "boot";
 import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Filter } from "gfx";
 import { pk } from "puttyknife";
-import { TextureView } from "../core/render/gpu/TextureView.js";
+import { TextureView } from "../core/render/gfx/TextureView.js";
 import { Transform } from "../core/render/scene/Transform.js";
 import { Transient } from "../core/render/scene/Transient.js";
 import { getSampler } from "../core/sc.js";

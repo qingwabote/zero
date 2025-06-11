@@ -1,8 +1,8 @@
 import { CachedFactory, empty, RecycleQueue } from "bastard";
 import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute } from "gfx";
 import { Context } from "../../core/render/Context.js";
-import { BufferView } from "../../core/render/gpu/BufferView.js";
-import { MemoryView } from "../../core/render/gpu/MemoryView.js";
+import { BufferView } from "../../core/render/gfx/BufferView.js";
+import { MemoryView } from "../../core/render/gfx/MemoryView.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";

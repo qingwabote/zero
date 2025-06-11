@@ -1,5 +1,5 @@
 import { DescriptorSet, Format } from "gfx";
-import { MemoryView } from "../core/render/gpu/MemoryView.js";
+import { MemoryView } from "../core/render/gfx/MemoryView.js";
 import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";

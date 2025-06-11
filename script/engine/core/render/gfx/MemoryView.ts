@@ -1,9 +1,21 @@
 import { CommandBuffer } from "gfx";
 import { pk } from "puttyknife";
 
-type View = {
+type Store = {
     [index: number]: number;
     readonly length: number;
+}
+
+function format2bytes(format: keyof pk.ArrayTypes) {
+    switch (format) {
+        case 'u16':
+            return 2;
+        case 'u32':
+        case 'f32':
+            return 4;
+        default:
+            throw new Error(`unsupported format: ${format}`);
+    }
 }
 
 export abstract class MemoryView {
@@ -11,16 +23,18 @@ export abstract class MemoryView {
         return this._length;
     }
 
-    get view(): View {
-        return this._view;
+    protected _source: pk.TypedArray
+    get source(): Store {
+        return this._source;
     }
 
+    private _handle: pk.BufferHandle
     get handle(): pk.BufferHandle {
         return this._handle;
     }
 
     get BYTES_PER_ELEMENT(): number {
-        return this._view.BYTES_PER_ELEMENT;
+        return this._source.BYTES_PER_ELEMENT;
     }
 
     private _invalidated_start: number = Number.MAX_SAFE_INTEGER;
@@ -28,17 +42,21 @@ export abstract class MemoryView {
 
     private readonly _length_default: number;
 
-    constructor(protected _handle: pk.BufferHandle, protected _view: pk.TypedArray, private _length: number) {
+    constructor(private readonly _format: keyof pk.ArrayTypes, private _length: number, capacity: number = 0) {
+        capacity = Math.max(_length, capacity);
+        const handle = pk.heap.newBuffer(capacity * format2bytes(_format), 0);
+        this._source = pk.heap.getBuffer(handle, _format, capacity);
+        this._handle = handle;
         this._length_default = _length;
     }
 
     set(array: ArrayLike<number>, offset: number = 0) {
-        this._view.set(array, offset);
+        this._source.set(array, offset);
         this.invalidate(offset, array.length);
     }
 
     setElement(element: number, offset: number = 0) {
-        this._view[offset] = element;
+        this._source[offset] = element;
         this.invalidate(offset, 1);
     }
 
@@ -77,7 +95,7 @@ export abstract class MemoryView {
     resize(length: number) {
         const old = this.reserve(length);
         if (old) {
-            this.set(old.view);
+            this.set(old.source);
             pk.heap.delBuffer(old.handle);
         }
         this._length = length;
@@ -97,7 +115,16 @@ export abstract class MemoryView {
         this._invalidated_end = Number.MIN_SAFE_INTEGER;;
     }
 
-    protected abstract upload(commandBuffer: CommandBuffer, offset: number, length: number): void;
+    protected reserve(capacity: number): { handle: pk.BufferHandle, source: pk.TypedArray } | null {
+        if (this._source.length >= capacity) {
+            return null;
+        }
+        const old = { handle: this._handle, source: this._source };
+        const handle = pk.heap.newBuffer(capacity * format2bytes(this._format), 0);
+        this._source = pk.heap.getBuffer(handle, this._format, capacity);
+        this._handle = handle;
+        return old;
+    }
 
-    public abstract reserve(capacity: number): { handle: pk.BufferHandle, view: pk.TypedArray } | null;
+    protected abstract upload(commandBuffer: CommandBuffer, offset: number, length: number): void;
 }

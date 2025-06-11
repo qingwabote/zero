@@ -1,7 +1,6 @@
 import { device } from "boot";
 import { CommandBuffer, Format, Texture, TextureInfo, TextureUsageFlagBits } from "gfx";
-import { pk } from "puttyknife";
-import { MemoryView } from "./MemoryView.js";
+import { MemoryView } from "../gfx/MemoryView.js";
 
 function length2extent(length: number): number {
     const texels = Math.ceil(length / 4);
@@ -18,9 +17,7 @@ export class TextureView extends MemoryView {
 
     constructor(length: number = 0) {
         const extent = length2extent(length);
-        const capacity = extent * extent * 4;
-        const handle = pk.heap.newBuffer(capacity * 4, 0);
-        super(handle, pk.heap.getBuffer(handle, 'f32', capacity), length);
+        super('f32', length, extent * extent * 4)
 
         const info = new TextureInfo;
         info.format = Format.RGBA32_SFLOAT;
@@ -32,14 +29,7 @@ export class TextureView extends MemoryView {
     public override reserve(min: number) {
         const extent = length2extent(min);
         const capacity = extent * extent * 4;
-        if (this._view.length >= capacity) {
-            return null;
-        }
-        const old = { handle: this._handle, view: this._view };
-        const buffer = pk.heap.newBuffer(capacity * 4, 0);
-        this._view = pk.heap.getBuffer(buffer, 'f32', capacity);
-        this._handle = buffer;
-        return old;
+        return super.reserve(capacity);
     }
 
     protected override upload(commandBuffer: CommandBuffer, offset: number, length: number) {
@@ -54,6 +44,6 @@ export class TextureView extends MemoryView {
 
         const row_start = Math.floor(Math.floor(offset / 4) / width);
         const row_end = Math.ceil(Math.ceil((offset + length) / 4) / width);
-        commandBuffer.copyBufferToTexture(this._view, row_start * width * 4, this._texture, 0, row_start, width, row_end - row_start);
+        commandBuffer.copyBufferToTexture(this._source, row_start * width * 4, this._texture, 0, row_start, width, row_end - row_start);
     }
 }

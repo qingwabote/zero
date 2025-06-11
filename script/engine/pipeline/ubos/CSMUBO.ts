@@ -1,6 +1,6 @@
 import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { Context } from "../../core/render/Context.js";
-import { BufferView } from "../../core/render/gpu/BufferView.js";
+import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Zero } from "../../core/Zero.js";

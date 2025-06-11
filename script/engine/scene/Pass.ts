@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Sampler, Texture } from "gfx";
-import { BufferView } from "../core/render/gpu/BufferView.js";
+import { BufferView } from "../core/render/gfx/BufferView.js";
 import { Pass as _Pass } from '../core/render/scene/Pass.js';
 import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
@@ -63,7 +63,7 @@ export class Pass implements _Pass {
     setProperty(value: ArrayLike<number>, offset: number): Pass {
         if (this._props_state & PropsStateBit.EXTERNAL) {
             const props = new BufferView('f32', BufferUsageFlagBits.UNIFORM, shaderLib.getShaderMeta(this.state.shader).blocks['Props'].size);
-            props.set(this._props!.view);
+            props.set(this._props!.source);
             this._props = props;
             this._props_state &= ~PropsStateBit.EXTERNAL
         }

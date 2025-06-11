@@ -5,7 +5,7 @@ import { AABB3D, aabb3d } from "./core/math/aabb3d.js";
 import { frustum } from "./core/math/frustum.js";
 import { vec3, Vec3 } from "./core/math/vec3.js";
 import { vec4 } from "./core/math/vec4.js";
-import { BufferView } from "./core/render/gpu/BufferView.js";
+import { BufferView } from "./core/render/gfx/BufferView.js";
 import { Mesh } from "./core/render/scene/Mesh.js";
 import { SubMesh } from "./core/render/scene/SubMesh.js";
 import { shaderLib } from "./core/shaderLib.js";
