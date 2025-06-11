@@ -12,7 +12,7 @@ const SkinUniform = shaderLib.sets.batch.uniforms.Skin;
 
 const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
 
-abstract class JointStore {
+class Store {
     public readonly descriptorSet: DescriptorSet;
 
     protected readonly _view: TextureView;
@@ -20,10 +20,6 @@ abstract class JointStore {
     public get handle() {
         return this._view.handle;
     }
-
-    // public get view() {
-    //     return this._view.view;
-    // }
 
     constructor(protected readonly _stride: number) {
         const view = new TextureView;
@@ -33,7 +29,9 @@ abstract class JointStore {
         this._view = view;
     }
 
-    abstract add(): number;
+    add(): number {
+        return this._view.addBlock(4 * 3 * this._stride);
+    }
 
     invalidate(offset: number) {
         this._view.invalidate(offset, 4 * 3 * this._stride);
@@ -44,38 +42,32 @@ abstract class JointStore {
     }
 }
 
-class JointTransient extends JointStore {
+class TransientStore extends Store {
     private readonly _reset = new Transient(0, 0);
 
-    add() {
+    override add() {
         if (this._reset.value == 0) {
             this._view.reset();
             this._reset.value = 1;
         }
 
-        return this._view.addBlock(4 * 3 * this._stride)
-    }
-}
-
-class JointPersistent extends JointStore {
-    add() {
-        return this._view.addBlock(4 * 3 * this._stride)
+        return super.add();
     }
 }
 
 export class Skin {
-    private _transient?: JointTransient = undefined;
+    private _transient?: TransientStore = undefined;
     get transient() {
         if (!this._transient) {
-            this._transient = new JointTransient(this.joints.length);
+            this._transient = new TransientStore(this.joints.length);
         }
         return this._transient;
     }
 
-    private _persistent?: JointPersistent = undefined;
-    public get persistent(): JointPersistent {
+    private _persistent?: Store = undefined;
+    public get persistent(): Store {
         if (!this._persistent) {
-            this._persistent = new JointPersistent(this.joints.length);
+            this._persistent = new Store(this.joints.length);
         }
         return this._persistent;
     }
@@ -91,5 +83,5 @@ export class Skin {
 }
 
 export declare namespace Skin {
-    export type { JointStore }
+    export type { Store as JointStore }
 }

@@ -10,10 +10,7 @@ function length2extent(length: number): number {
 }
 
 export class TextureView extends MemoryView {
-    private readonly _texture: Texture;
-    get texture(): Texture {
-        return this._texture;
-    }
+    readonly texture: Texture;
 
     constructor(length: number = 0) {
         const extent = length2extent(length);
@@ -23,7 +20,7 @@ export class TextureView extends MemoryView {
         info.format = Format.RGBA32_SFLOAT;
         info.usage = TextureUsageFlagBits.SAMPLED | TextureUsageFlagBits.TRANSFER_DST;
         info.width = info.height = extent;
-        this._texture = device.createTexture(info);
+        this.texture = device.createTexture(info);
     }
 
     public override reserve(min: number) {
@@ -34,9 +31,9 @@ export class TextureView extends MemoryView {
 
     protected override upload(commandBuffer: CommandBuffer, offset: number, length: number) {
         const extent = length2extent(this.length);
-        let width = this._texture.info.width;
+        let width = this.texture.info.width;
         if (width < extent) {
-            this._texture.resize(extent, extent);
+            this.texture.resize(extent, extent);
             width = extent;
             offset = 0;
             length = this.length;
@@ -44,6 +41,6 @@ export class TextureView extends MemoryView {
 
         const row_start = Math.floor(Math.floor(offset / 4) / width);
         const row_end = Math.ceil(Math.ceil((offset + length) / 4) / width);
-        commandBuffer.copyBufferToTexture(this._source, row_start * width * 4, this._texture, 0, row_start, width, row_end - row_start);
+        commandBuffer.copyBufferToTexture(this._source, row_start * width * 4, this.texture, 0, row_start, width, row_end - row_start);
     }
 }

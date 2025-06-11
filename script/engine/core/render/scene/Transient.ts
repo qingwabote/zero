@@ -5,7 +5,7 @@ export class Transient<T = number> {
 
     get value(): T {
         if (this._version != Zero.frameCount) {
-            return this._default;
+            return this._reset;
         }
         return this._value;
     }
@@ -14,5 +14,5 @@ export class Transient<T = number> {
         this._version = Zero.frameCount;
     }
 
-    constructor(private _value: T, private readonly _default: T) { }
+    constructor(private _value: T, private readonly _reset: T) { }
 }

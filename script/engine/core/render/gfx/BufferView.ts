@@ -4,10 +4,7 @@ import { pk } from "puttyknife";
 import { MemoryView } from "./MemoryView.js";
 
 export class BufferView extends MemoryView {
-    private _buffer: Buffer;
-    get buffer(): Buffer {
-        return this._buffer;
-    }
+    readonly buffer: Buffer;
 
     constructor(format: keyof pk.ArrayTypes, usage: BufferUsageFlagBits, length: number = 0) {
         super(format, length);
@@ -15,16 +12,16 @@ export class BufferView extends MemoryView {
         const info = new BufferInfo;
         info.usage = usage;
         info.size = this._source.byteLength;
-        this._buffer = device.createBuffer(info);
+        this.buffer = device.createBuffer(info);
     }
 
     protected override upload(commandBuffer: CommandBuffer, offset: number, length: number) {
         const bytes = this.length * this._source.BYTES_PER_ELEMENT;
-        if (this._buffer.info.size < bytes) {
-            this._buffer.resize(bytes);
+        if (this.buffer.info.size < bytes) {
+            this.buffer.resize(bytes);
             offset = 0;
             length = this.length;
         }
-        this._buffer.upload(this._source, offset, length, offset * this._source.BYTES_PER_ELEMENT);
+        this.buffer.upload(this._source, offset, length, offset * this._source.BYTES_PER_ELEMENT);
     }
 }
