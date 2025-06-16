@@ -47,7 +47,7 @@ export class App extends Zero {
         main_camera.fov = 45;
         main_camera.far = 32;
         main_camera.visibilities = VisibilityFlagBits.WORLD;
-        node.position = [.1, .1, .1];
+        node.position = [12, 12, 12];
 
         node = primitive.createScene("Plane")!;
         node.visibility = VisibilityFlagBits.WORLD

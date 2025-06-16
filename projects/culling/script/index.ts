@@ -71,7 +71,7 @@ class App extends Zero {
                     const guardian = model.createScene("Sketchfab_Scene")!;
                     const animation = guardian.addComponent(Animation);
                     animation.clips = model.proto.animationClips;
-                    animation.play(animation.clips[0].name);
+                    animation.play(0);
                     guardian.visibility = VisibilityFlagBits.WORLD;
                     guardian.position = vec3.transformMat3(pos, pos, rotation);
                 }
