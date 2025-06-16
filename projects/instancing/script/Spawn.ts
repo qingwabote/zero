@@ -1,5 +1,4 @@
-import { Animation, Component, GLTF, quat, vec3, Vec3 } from "engine";
-import { Transform } from "engine/core/render/scene/Transform.js";
+import { Animation, Component, GLTF, Node, quat, vec3, Vec3 } from "engine";
 import { VisibilityFlagBits } from "./VisibilityFlagBits.js";
 
 const vec3_a = vec3.create();
@@ -13,11 +12,11 @@ export class Spawn extends Component {
 
     num: number = 0;
 
-    private _transforms!: Transform[];
+    private _transforms!: Node[];
     private _destinations!: Vec3[];
 
     start(): void {
-        const transforms: Transform[] = new Array(this.num);
+        const transforms: Node[] = new Array(this.num);
         const destinations: Vec3[] = new Array(this.num);
         for (let i = 0; i < this.num; i++) {
             const node = this.model.createScene("Sketchfab_Scene")!;
