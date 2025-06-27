@@ -47,7 +47,7 @@ const vertexAttributes = (function () {
     const texCoord = new VertexAttribute;
     texCoord.format = Format.RG32_SFLOAT;
     texCoord.offset = FormatInfos[position.format].bytes;
-    texCoord.location = shaderLib.attributes.uv.location;
+    texCoord.location = shaderLib.attributes.texcoord.location;
     attributes.add(texCoord);
 
     return attributes;

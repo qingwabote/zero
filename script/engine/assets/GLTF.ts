@@ -22,10 +22,10 @@ import { Texture } from "./Texture.js";
 
 const attributeMap: Record<string, keyof typeof shaderLib.attributes> = {
     "POSITION": "position",
-    "TEXCOORD_0": "uv",
+    "TEXCOORD_0": "texcoord",
     "NORMAL": "normal",
-    "JOINTS_0": "skin_joints",
-    "WEIGHTS_0": "skin_weights"
+    "JOINTS_0": "joints",
+    "WEIGHTS_0": "weights"
 }
 
 const format_part1: Record<string, string> = {

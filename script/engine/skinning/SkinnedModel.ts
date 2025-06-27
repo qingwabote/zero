@@ -7,10 +7,10 @@ import { Transform } from "../core/render/scene/Transform.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { SkinInstance } from "./SkinInstance.js";
 
-const a_skin_offset: Model.InstancedAttribute = { location: shaderLib.attributes.skin_index.location, format: Format.R32_UINT /* uint16 has very bad performance on wx iOSHighPerformance+ */ }
+const a_jointOffset: Model.InstancedAttribute = { location: shaderLib.attributes.jointOffset.location, format: Format.R32_UINT /* uint16 has very bad performance on wx iOSHighPerformance+ */ }
 
 export class SkinnedModel extends Model {
-    static readonly attributes: readonly Model.InstancedAttribute[] = [...Model.attributes, a_skin_offset];
+    static readonly attributes: readonly Model.InstancedAttribute[] = [...Model.attributes, a_jointOffset];
 
     get descriptorSet(): DescriptorSet {
         return this._skin.store.descriptorSet;
@@ -22,7 +22,7 @@ export class SkinnedModel extends Model {
 
     override upload(attributes: Readonly<Record<string, MemoryView>>) {
         this._skin.update();
-        attributes[a_skin_offset.location].addElement(this._skin.offset)
+        attributes[a_jointOffset.location].addElement(this._skin.offset)
         attributes[Model.a_model.location].add(this._skin.root.world_matrix)
     }
 }

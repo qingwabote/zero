@@ -8,9 +8,9 @@ import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { SkinInstance } from "./SkinInstance.js";
 
-const SkinUniform = shaderLib.sets.batch.uniforms.Skin;
+const jointMap = shaderLib.sets.batch.uniforms.jointMap;
 
-const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([SkinUniform]);
+const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([jointMap]);
 
 class Store {
     public readonly descriptorSet: DescriptorSet;
@@ -24,7 +24,7 @@ class Store {
     constructor(protected readonly _stride: number) {
         const view = new TextureView;
         const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
-        descriptorSet.bindTexture(SkinUniform.binding, view.texture, getSampler(Filter.NEAREST, Filter.NEAREST));
+        descriptorSet.bindTexture(jointMap.binding, view.texture, getSampler(Filter.NEAREST, Filter.NEAREST));
         this.descriptorSet = descriptorSet;
         this._view = view;
     }

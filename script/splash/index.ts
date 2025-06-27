@@ -8,12 +8,12 @@ const TEXTURE_BINDING = 0;
 
 const vs = `
 layout(location = 0) in vec4 a_position;
-layout(location = 1) in vec2 a_texCoord;
+layout(location = 1) in vec2 a_texcoord;
 
 layout(location = 0) out vec2 v_uv;
 
 void main() {
-    v_uv = a_texCoord;
+    v_uv = a_texcoord;
     gl_Position = a_position;
 }`
 
@@ -62,11 +62,11 @@ a_position.offset = 0;
 a_position.buffer = 0;
 a_position.location = 0;
 
-const a_texCoord = new VertexAttribute;
-a_texCoord.format = Format.RG32_SFLOAT;
-a_texCoord.offset = FormatInfos[a_position.format].bytes;
-a_texCoord.buffer = 0;
-a_texCoord.location = 1;
+const a_texcoord = new VertexAttribute;
+a_texcoord.format = Format.RG32_SFLOAT;
+a_texcoord.offset = FormatInfos[a_position.format].bytes;
+a_texcoord.buffer = 0;
+a_texcoord.location = 1;
 
 const { width, height } = device.swapchain.color.info;
 const ratio = width / height;
@@ -93,7 +93,7 @@ indexBuffer.upload(indexes, 0, 0, 0);
 const inputAssembler = new InputAssembler;
 inputAssembler.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
 inputAssembler.vertexInputState.attributes.add(a_position);
-inputAssembler.vertexInputState.attributes.add(a_texCoord);
+inputAssembler.vertexInputState.attributes.add(a_texcoord);
 inputAssembler.vertexInput.buffers.add(vertexBuffer);
 inputAssembler.vertexInput.offsets.add(0);
 const indexInput = new IndexInput;

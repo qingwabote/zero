@@ -51,10 +51,9 @@ export class SkinInstance {
         this._joints = nodes.length;
         for (const path of proto.joints) {
             const child = root.getChildByPath(path)!
-            let parent = -1;
-            for (let i = nodes.length - 1; i > -1; i--) {
-                if (nodes[i].local == child.parent!.local) {
-                    parent = i;
+            let parent = nodes.length - 1;
+            for (; parent > -1; parent--) {
+                if (nodes[parent].local == child.parent!.local) {
                     break;
                 }
             }

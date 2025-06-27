@@ -3,7 +3,7 @@
 
 layout(location = 0) in vec4 a_position;
 #if USE_ALBEDO_MAP
-    layout(location = 1) in vec2 a_texCoord;
+    layout(location = 1) in vec2 a_texcoord;
 #endif
 layout(location = 2) in vec3 a_normal;
 
@@ -19,7 +19,7 @@ layout(location = 2) out vec3 v_position;
 
 void main() {
     #if USE_ALBEDO_MAP
-        v_uv = a_texCoord;
+        v_uv = a_texcoord;
     #endif
     v_normal = normalize((a_model * vec4(a_normal, 0.0)).xyz);
 

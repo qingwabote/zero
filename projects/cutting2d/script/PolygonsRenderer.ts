@@ -12,11 +12,11 @@ a_position.format = Format.RG32_SFLOAT;
 a_position.location = shaderLib.attributes.position.location;
 vertexAttributes.add(a_position);
 
-const a_texCoord = new VertexAttribute;
-a_texCoord.format = Format.RG32_SFLOAT;
-a_texCoord.offset = FormatInfos[a_position.format].bytes;
-a_texCoord.location = shaderLib.attributes.uv.location;
-vertexAttributes.add(a_texCoord);
+const a_texcoord = new VertexAttribute;
+a_texcoord.format = Format.RG32_SFLOAT;
+a_texcoord.offset = FormatInfos[a_position.format].bytes;
+a_texcoord.location = shaderLib.attributes.texcoord.location;
+vertexAttributes.add(a_texcoord);
 
 function triangulate(n: number, indexBuffer: render.BufferView) {
     const triangles = n - 2;
