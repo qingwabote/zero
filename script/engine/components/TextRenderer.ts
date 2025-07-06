@@ -21,8 +21,6 @@ import { BoundedRenderer } from "./BoundedRenderer.js";
 
 const fnt_zero = await bundle.cache('fnt/zero', FNT);
 
-const default_color = vec4.ONE;
-
 const pass = await (async function () {
     const ss_unlit = await bundle.cache('shaders/unlit', Shader);
 
@@ -34,7 +32,7 @@ const pass = await (async function () {
 
     const pass = new Pass({ shader: shaderLib.getShader(ss_unlit, { USE_ALBEDO_MAP: 1 }), blendState });
     pass.setTexture('albedoMap', fnt_zero.texture.impl);
-    pass.setProperty(default_color, pass.getPropertyOffset('albedo'));
+    pass.setProperty(vec4.ONE, pass.getPropertyOffset('albedo'));
     return pass;
 })()
 
@@ -68,13 +66,13 @@ export class TextRenderer extends BoundedRenderer {
         this._dirties |= DirtyFlagBits.TEXT;
     }
 
-    private _color = default_color;
+    private _color = vec4.create(1, 1, 1, 1);
     public get color(): Readonly<Vec4> {
         return this._color;
     }
     public set color(value: Readonly<Vec4>) {
         this._pass.setProperty(value, this._pass.getPropertyOffset('albedo'));
-        this._color = value;
+        vec4.copy(this._color, value);
     }
 
     private _size: number = fnt_zero.info.size;

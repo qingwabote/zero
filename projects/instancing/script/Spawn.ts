@@ -1,4 +1,4 @@
-import { Animation, Component, GLTF, Node, quat, vec3, Vec3 } from "engine";
+import { Component, GLTF, Node, quat, vec3, Vec3 } from "engine";
 import { VisibilityFlagBits } from "./VisibilityFlagBits.js";
 
 const vec3_a = vec3.create();
@@ -21,10 +21,11 @@ export class Spawn extends Component {
         for (let i = 0; i < this.num; i++) {
             const node = this.model.createScene("Sketchfab_Scene")!;
             node.visibility = VisibilityFlagBits.WORLD;
-            const animation = node.addComponent(Animation);
-            animation.clips = this.model.proto.animationClips;
-            animation.play(0);
-            node.scale = vec3.create(0.3, 0.3, 0.3)
+            // const animation = node.addComponent(Animation);
+            // animation.clips = this.model.proto.animationClips;
+            // animation.play(0);
+            node.scale = vec3.create(0.3, 0.3, 0.3);
+            node.position = vec3.set(vec3_a, Math.random() * 6 - 3, 0, Math.random() * 12 - 6)
             transforms[i] = node;
             destinations[i] = vec3.create();
         }
@@ -32,25 +33,25 @@ export class Spawn extends Component {
         this._destinations = destinations;
     }
 
-    update(dt: number): void {
-        for (let i = 0; i < this.num; i++) {
-            var transform = this._transforms[i];
-            var destination = this._destinations[i];
+    // update(dt: number): void {
+    //     for (let i = 0; i < this.num; i++) {
+    //         var transform = this._transforms[i];
+    //         var destination = this._destinations[i];
 
-            var d = vec3.subtract(vec3_a, destination, transform.position);
-            if (vec3.length(d) < 1) {
-                vec3.set(destination, Math.random() * 6 - 3, 0, Math.random() * 12 - 6)
-                continue;
-            }
+    //         var d = vec3.subtract(vec3_a, destination, transform.position);
+    //         if (vec3.length(d) < 1) {
+    //             vec3.set(destination, Math.random() * 6 - 3, 0, Math.random() * 12 - 6)
+    //             continue;
+    //         }
 
-            vec3.normalize(d, d);
-            var rot = quat.fromViewUp(quat_a, d);
+    //         vec3.normalize(d, d);
+    //         var rot = quat.fromViewUp(quat_a, d);
 
-            transform.rotation = quat.slerp(quat_b, transform.rotation, rot, 0.05);
+    //         transform.rotation = quat.slerp(quat_b, transform.rotation, rot, 0.05);
 
-            const move = vec3.transformQuat(vec3_a, SPEED, transform.rotation);
-            vec3.add(move, transform.position, move);
-            transform.position = move;
-        }
-    }
+    //         const move = vec3.transformQuat(vec3_a, SPEED, transform.rotation);
+    //         vec3.add(move, transform.position, move);
+    //         transform.position = move;
+    //     }
+    // }
 }

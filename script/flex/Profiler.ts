@@ -1,5 +1,5 @@
 import { now } from "boot";
-import { Node, TextRenderer, Zero, pipeline, render } from "engine";
+import { Node, TextRenderer, Vec4, Zero, pipeline, render } from "engine";
 import { ElementContainer } from "./ElementContainer.js";
 import { Renderer } from "./Renderer.js";
 
@@ -22,12 +22,18 @@ export class Profiler extends ElementContainer {
 
     private _text!: Renderer<TextRenderer>;
 
+    public get color(): Readonly<Vec4> {
+        return this._text.impl.color;
+    }
+    public set color(value: Readonly<Vec4>) {
+        this._text.impl.color = value;
+    }
+
     constructor(node: Node) {
         super(node);
 
         const text = Renderer.create(TextRenderer);
         text.impl.size = 24;
-        text.impl.color = [0.8, 0.8, 0.8, 1];
         this.addElement(text);
         this._text = text;
 
