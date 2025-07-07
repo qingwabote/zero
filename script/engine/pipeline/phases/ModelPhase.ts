@@ -1,5 +1,5 @@
 import { CachedFactory, empty, RecycleQueue } from "bastard";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, Format, InputAssembler, VertexAttribute } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, Format, InputAssembler, VertexAttribute } from "gfx";
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { MemoryView } from "../../core/render/gfx/MemoryView.js";
@@ -27,9 +27,8 @@ class InstancedBatch implements Batch {
     get count(): number {
         return this._countFlag.value;
     }
-    readonly descriptorSetLayout: DescriptorSetLayout | undefined;
 
-    constructor(subMesh: SubMesh, attributes: readonly Model.InstancedAttribute[], readonly descriptorSet?: DescriptorSet) {
+    constructor(subMesh: SubMesh, attributes: readonly Model.InstancedAttribute[], readonly local?: Batch.ResourceBinding) {
         const ia = gfxUtil.cloneInputAssembler(subMesh.inputAssembler);
         const attributeViews: Record<string, BufferView> = {};
         for (const attr of attributes) {
@@ -63,7 +62,6 @@ class InstancedBatch implements Batch {
 
         this.inputAssembler = ia;
         this.draw = subMesh.draw;
-        this.descriptorSetLayout = descriptorSet?.layout;
     }
 
     next() {
@@ -121,19 +119,19 @@ export class ModelPhase extends Phase {
                 throw new Error(`unsupported culling: ${this._culling}`);
         }
 
-        const modelQueue: Model[] = [];
+        const queue: Model[] = [];
         for (const model of models) {
             if (model.type == this._model) {
-                modelQueue.push(model);
+                queue.push(model);
             }
         }
-        modelQueue.sort(compareModel);
+        queue.sort(compareModel);
 
-        let pass2batches = out.push();
-        let pass2batches_order: number = 0; // The models with smaller order value will be draw first, but the models with the same order value may not be draw by their access order for better batching 
+        let batchGroup = out.push();
+        let batchGroup_order: number = 0; // The models with smaller order value will be draw first, but the models with the same order value may not be draw by their access order for better batching 
         const batch2pass: Map<InstancedBatch, Pass> = new Map;
-        for (const model of modelQueue) {
-            const diff = model.order - pass2batches_order;
+        for (const model of queue) {
+            const diff = model.order - batchGroup_order;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
                 if (model.mesh.subMeshes[i].draw.count == 0) {
                     continue;
@@ -145,29 +143,29 @@ export class ModelPhase extends Phase {
                     }
 
                     if (diff) {
-                        const batches = pass2batches.get(pass);
+                        const batches = batchGroup.get(pass);
                         if (diff == 1 && batches) { // moving to next 
-                            pass2batches.delete(pass);
+                            batchGroup.delete(pass);
                         }
 
                         context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
-                        for (const [pass, batches] of pass2batches) {
+                        for (const [pass, batches] of batchGroup) {
                             pass.upload(commandBuffer);
                             for (const batch of batches) {
                                 (batch as InstancedBatch).upload(commandBuffer);
                             }
                         }
                         context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
-                        pass2batches = out.push();
+                        batchGroup = out.push();
 
                         if (diff == 1 && batches) { // moved to next
-                            pass2batches.set(pass, batches);
+                            batchGroup.set(pass, batches);
                         }
                     }
 
-                    let batches = pass2batches.get(pass);
+                    let batches = batchGroup.get(pass);
                     if (!batches) {
-                        pass2batches.set(pass, batches = []);
+                        batchGroup.set(pass, batches = []);
                     }
 
                     let batch: InstancedBatch | undefined;
@@ -188,8 +186,8 @@ export class ModelPhase extends Phase {
                         break;
                     }
                     if (!batch) {
-                        batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, model.descriptorSet);
-                        bucket.push(batch);
+                        const local = model.descriptorSet ? { descriptorSetLayout: (model.constructor as typeof Model).descriptorSetLayout!, descriptorSet: model.descriptorSet } : undefined
+                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, local));
                     }
                     if (batch.count == 0) {
                         batch.reset();
@@ -201,10 +199,10 @@ export class ModelPhase extends Phase {
                 }
             }
 
-            pass2batches_order = model.order;
+            batchGroup_order = model.order;
         }
         context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
-        for (const [pass, batches] of pass2batches) {
+        for (const [pass, batches] of batchGroup) {
             pass.upload(commandBuffer);
             for (const batch of batches) {
                 (batch as InstancedBatch).upload(commandBuffer);

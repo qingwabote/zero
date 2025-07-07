@@ -14,7 +14,7 @@ interface Node {
 const matrixes: ReturnType<typeof matrix_allocator.alloc>['matrix'][] = [];
 
 export class SkinInstance {
-    public store: Skin.JointStore;
+    public store: Skin.Store;
 
     private readonly _offset: Transient = new Transient(-1, -1);
     public get offset() {

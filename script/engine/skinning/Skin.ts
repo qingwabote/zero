@@ -1,5 +1,5 @@
 import { device } from "boot";
-import { CommandBuffer, DescriptorSet, DescriptorSetLayout, Filter } from "gfx";
+import { CommandBuffer, DescriptorSet, Filter } from "gfx";
 import { pk } from "puttyknife";
 import { TextureView } from "../core/render/gfx/TextureView.js";
 import { Transform } from "../core/render/scene/Transform.js";
@@ -8,11 +8,11 @@ import { getSampler } from "../core/sc.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { SkinInstance } from "./SkinInstance.js";
 
-const jointMap = shaderLib.sets.batch.uniforms.jointMap;
-
-const descriptorSetLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([jointMap]);
+const jointMap = shaderLib.sets.local.uniforms.jointMap;
 
 class Store {
+    static readonly descriptorSetLayout = shaderLib.createDescriptorSetLayout([jointMap]);
+
     public readonly descriptorSet: DescriptorSet;
 
     protected readonly _view: TextureView;
@@ -23,7 +23,7 @@ class Store {
 
     constructor(protected readonly _stride: number) {
         const view = new TextureView;
-        const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
+        const descriptorSet = device.createDescriptorSet(Store.descriptorSetLayout);
         descriptorSet.bindTexture(jointMap.binding, view.texture, getSampler(Filter.NEAREST, Filter.NEAREST));
         this.descriptorSet = descriptorSet;
         this._view = view;
@@ -81,7 +81,8 @@ export class Skin {
         return new SkinInstance(this, root);
     }
 }
+Skin.Store = Store;
 
 export declare namespace Skin {
-    export type { Store as JointStore }
+    export { Store }
 }

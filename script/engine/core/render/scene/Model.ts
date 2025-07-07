@@ -1,4 +1,4 @@
-import { DescriptorSet, Format } from "gfx";
+import { DescriptorSet, DescriptorSetLayout, Format } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { shaderLib } from "../../shaderLib.js";
 import { MemoryView } from "../gfx/MemoryView.js";
@@ -24,6 +24,8 @@ export class Model {
     static readonly a_model = a_model;
 
     static readonly attributes: readonly InstancedAttribute[] = [a_model];
+
+    static readonly descriptorSetLayout?: DescriptorSetLayout = undefined;
 
     get descriptorSet(): DescriptorSet | undefined {
         return undefined;

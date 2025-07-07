@@ -34,11 +34,11 @@ const defaultFramebuffer = (function () {
     return device.createFramebuffer(framebufferInfo)
 })();
 
-function pass2batch_create(): Map<Pass, Batch[]> {
+function batchGroup_create(): Map<Pass, Batch[]> {
     return new Map;
 }
 
-function pass2batch_recycle(value: Map<Pass, Batch[]>) {
+function batchGroup_recycle(value: Map<Pass, Batch[]>) {
     value.clear();
 }
 
@@ -57,7 +57,7 @@ export class Stage {
         const camera = context.scene.cameras[cameraIndex];
         let queue = this._camera2queue.get(camera);
         if (!queue) {
-            this._camera2queue.set(camera, queue = new RecycleQueue(pass2batch_create, pass2batch_recycle));
+            this._camera2queue.set(camera, queue = new RecycleQueue(batchGroup_create, batchGroup_recycle));
         }
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
@@ -68,7 +68,6 @@ export class Stage {
 
     render(context: Context, commandBuffer: CommandBuffer, cameraIndex: number) {
         const camera = context.scene.cameras[cameraIndex];
-        const queue = this._camera2queue.get(camera)!;
 
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this._rect ?? camera.rect;
@@ -77,10 +76,10 @@ export class Stage {
         commandBuffer.beginRenderPass(renderPass, this._framebuffer, width * rect[0], height * rect[1], width * rect[2], height * rect[3]);
 
         let material: DescriptorSet | undefined;
+        let local: DescriptorSet | undefined;
         let pipeline: Pipeline | undefined;
-        let pass2batches: ReadonlyMap<Pass, Batch[]> | null;
-        while (pass2batches = queue.front()) {
-            for (const [pass, batches] of pass2batches) {
+        for (const batchGroup of this._camera2queue.get(camera)!.drain()) {
+            for (const [pass, batches] of batchGroup) {
                 if (pass.descriptorSet && material != pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                     material = pass.descriptorSet;
@@ -88,11 +87,12 @@ export class Stage {
                     context.profile.materials++;
                 }
                 for (const batch of batches) {
-                    if (batch.descriptorSet) {
-                        commandBuffer.bindDescriptorSet(shaderLib.sets.batch.index, batch.descriptorSet);
+                    if (batch.local && local != batch.local.descriptorSet) {
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);
+                        local = batch.local.descriptorSet;
                     }
 
-                    const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.descriptorSetLayout || descriptorSetLayoutNull]);
+                    const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.local?.descriptorSetLayout || descriptorSetLayoutNull]);
                     if (pipeline != pl) {
                         commandBuffer.bindPipeline(pl);
                         pipeline = pl;
@@ -110,7 +110,6 @@ export class Stage {
                     context.profile.draws++;
                 }
             }
-            queue.pop();
         }
 
         commandBuffer.endRenderPass();

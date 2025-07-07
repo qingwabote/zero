@@ -28,7 +28,7 @@ const sets = {
     material: {
         index: 1
     },
-    batch: {
+    local: {
         index: 2,
         uniforms: {
             jointMap: {
