@@ -1,5 +1,6 @@
 import { CachedFactory, empty, RecycleQueue } from "bastard";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, Format, InputAssembler, VertexAttribute } from "gfx";
+import { device } from "boot";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, InputAssembler } from "gfx";
 import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { MemoryView } from "../../core/render/gfx/MemoryView.js";
@@ -11,10 +12,10 @@ import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { Transient } from "../../core/render/scene/Transient.js";
-import { gfxUtil } from "../../gfxUtil.js";
 
 class InstancedBatch implements Batch {
     readonly attributes: Readonly<Record<string, MemoryView>>;
+    readonly properties: Readonly<Record<string, MemoryView>>;
 
     private _uploadFlag: Transient = new Transient(0, 0);
     get uploaded(): boolean {
@@ -28,40 +29,62 @@ class InstancedBatch implements Batch {
         return this._countFlag.value;
     }
 
-    constructor(subMesh: SubMesh, attributes: readonly Model.InstancedAttribute[], readonly local?: Batch.ResourceBinding) {
-        const ia = gfxUtil.cloneInputAssembler(subMesh.inputAssembler);
-        const attributeViews: Record<string, BufferView> = {};
-        for (const attr of attributes) {
-            const attribute = new VertexAttribute;
-            attribute.location = attr.location;
-            attribute.format = attr.format;
-            attribute.multiple = attr.multiple || 1;
-            attribute.buffer = ia.vertexInput.buffers.size();
-            attribute.instanced = true;
-            ia.vertexInputState.attributes.add(attribute);
+    readonly instanced: Batch.ResourceBinding;
 
-            let view: BufferView;
-            switch (attr.format) {
-                case Format.R16_UINT:
-                    view = new BufferView('u16', BufferUsageFlagBits.VERTEX);
-                    break;
-                case Format.R32_UINT:
-                    view = new BufferView('u32', BufferUsageFlagBits.VERTEX);
-                    break;
-                case Format.RGBA32_SFLOAT:
-                    view = new BufferView('f32', BufferUsageFlagBits.VERTEX);
+    constructor(subMesh: SubMesh, attributes: readonly Model.InstancedAttribute[], properties: DescriptorSetLayout, readonly local?: Batch.ResourceBinding) {
+        const attributeViews: Record<string, BufferView> = {};
+        // const ia = gfxUtil.cloneInputAssembler(subMesh.inputAssembler);
+        // for (const attr of attributes) {
+        //     const attribute = new VertexAttribute;
+        //     attribute.location = attr.location;
+        //     attribute.format = attr.format;
+        //     attribute.multiple = attr.multiple || 1;
+        //     attribute.buffer = ia.vertexInput.buffers.size();
+        //     attribute.instanced = true;
+        //     ia.vertexInputState.attributes.add(attribute);
+
+        //     let view: BufferView;
+        //     switch (attr.format) {
+        //         case Format.R16_UINT:
+        //             view = new BufferView('u16', BufferUsageFlagBits.VERTEX);
+        //             break;
+        //         case Format.R32_UINT:
+        //             view = new BufferView('u32', BufferUsageFlagBits.VERTEX);
+        //             break;
+        //         case Format.RGBA32_SFLOAT:
+        //             view = new BufferView('f32', BufferUsageFlagBits.VERTEX);
+        //             break;
+        //         default:
+        //             throw new Error(`unsupported attribute format: ${attr.format}`);
+        //     }
+        //     ia.vertexInput.buffers.add(view.buffer);
+        //     ia.vertexInput.offsets.add(0);
+        //     attributeViews[attr.location] = view;
+        // }
+        this.attributes = attributeViews;
+        this.inputAssembler = subMesh.inputAssembler;
+        this.draw = subMesh.draw;
+
+        const descriptorSet = device.createDescriptorSet(properties);
+        const propertyViews: Record<string, MemoryView> = {};
+        const bindings = properties.info.bindings;
+        for (let i = 0; i < bindings.size(); i++) {
+            const binding = bindings.get(i);
+            let view: MemoryView;
+            switch (binding.descriptorType) {
+                case DescriptorType.UNIFORM_BUFFER:
+                    const buffer = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, 256 * 16);
+                    descriptorSet.bindBuffer(binding.binding, buffer.buffer);
+                    view = buffer;
                     break;
                 default:
-                    throw new Error(`unsupported attribute format: ${attr.format}`);
+                    throw new Error(`unsupported type: ${binding.descriptorType}`);
             }
-            ia.vertexInput.buffers.add(view.buffer);
-            ia.vertexInput.offsets.add(0);
-            attributeViews[attr.location] = view;
+            propertyViews[binding.binding] = view;
         }
-        this.attributes = attributeViews;
 
-        this.inputAssembler = ia;
-        this.draw = subMesh.draw;
+        this.instanced = { descriptorSetLayout: properties, descriptorSet };
+        this.properties = propertyViews;
     }
 
     next() {
@@ -72,12 +95,18 @@ class InstancedBatch implements Batch {
         for (const key in this.attributes) {
             this.attributes[key].update(commandBuffer);
         }
+        for (const key in this.properties) {
+            this.properties[key].update(commandBuffer);
+        }
         this._uploadFlag.value = 1;
     }
 
     reset(): void {
         for (const key in this.attributes) {
             this.attributes[key].reset();
+        }
+        for (const key in this.properties) {
+            this.properties[key].reset();
         }
     }
 }
@@ -173,6 +202,10 @@ export class ModelPhase extends Phase {
                     cache_keys[1] = model.descriptorSet || empty.obj as DescriptorSet;
                     const bucket = cache.get(cache_keys);
                     for (const bat of bucket) {
+                        if (bat.count > 255) {
+                            continue;
+                        }
+
                         if (bat.uploaded) {
                             continue;
                         }
@@ -187,13 +220,13 @@ export class ModelPhase extends Phase {
                     }
                     if (!batch) {
                         const local = model.descriptorSet ? { descriptorSetLayout: (model.constructor as typeof Model).descriptorSetLayout!, descriptorSet: model.descriptorSet } : undefined
-                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, local));
+                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, (model.constructor as typeof Model).properties, local));
                     }
                     if (batch.count == 0) {
                         batch.reset();
                         batches.push(batch);
                     }
-                    model.upload(batch.attributes)
+                    model.upload(batch.attributes, batch.properties)
                     batch.next();
                     batch2pass.set(batch, pass);
                 }

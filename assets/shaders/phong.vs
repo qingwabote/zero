@@ -21,13 +21,13 @@ void main() {
     #if USE_ALBEDO_MAP
         v_uv = a_texcoord;
     #endif
-    v_normal = normalize((a_model * vec4(a_normal, 0.0)).xyz);
+    v_normal = normalize((models[gl_InstanceIndex] * vec4(a_normal, 0.0)).xyz);
 
     vec4 pos = a_position;
     #if USE_SKIN
         skin_transform(pos);
     #endif 
-    pos = a_model * pos;
+    pos = models[gl_InstanceIndex] * pos;
 
     v_position = pos.xyz;
     gl_Position = camera.projection * camera.view * pos;

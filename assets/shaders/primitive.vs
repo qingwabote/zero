@@ -8,5 +8,5 @@ layout(location = 0) out vec4 v_color;
 
 void main() {
     v_color = a_color;
-    gl_Position = camera.projection * camera.view * a_model * a_position;
+    gl_Position = camera.projection * camera.view * models[gl_InstanceIndex] * a_position;
 }

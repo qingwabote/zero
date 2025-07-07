@@ -63,7 +63,7 @@ export class Shader {
                 source = source.replace(/layout\s*\(\s*location\s*=\s*\d\s*\)\s*in/g, 'in');
             }
 
-            source = source.replace('gl_InstanceIndex', 'gl_InstanceID');
+            source = source.replace(/gl_InstanceIndex/g, 'gl_InstanceID');
 
             source = `#version 300 es\n${source}`;
 

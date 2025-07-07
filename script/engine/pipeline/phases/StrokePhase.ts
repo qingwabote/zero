@@ -13,7 +13,7 @@ import { Stroke } from "../../Stroke.js";
 export class StrokePhase extends Phase {
     readonly stroke: Stroke;
 
-    private readonly _batches: Batch[];
+    // private readonly _batches: Batch[];
 
     constructor(visibility: number) {
         super(visibility);
@@ -42,13 +42,13 @@ export class StrokePhase extends Phase {
         ia.vertexInput.buffers.add(buffer);
         ia.vertexInput.offsets.add(0);
 
-        this._batches = [{ inputAssembler: ia, draw: subMesh.draw, count: 1 }]
+        // this._batches = [{ inputAssembler: ia, draw: subMesh.draw, count: 1 }]
 
         this.stroke = stroke;
     }
 
     batch(out: RecycleQueue<Map<Pass, Batch[]>>, context: Context, commandBuffer: CommandBuffer): void {
         this.stroke.upload(commandBuffer);
-        out.push().set(this.stroke.pass, this._batches);
+        // out.push().set(this.stroke.pass, this._batches);
     }
 }

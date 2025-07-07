@@ -363,7 +363,10 @@ namespace gfx
     Shader *Device::createShader(const std::shared_ptr<ShaderInfo> &info)
     {
         auto shader = new Shader(_impl, info);
-        shader->initialize();
+        if (shader->initialize())
+        {
+            return nullptr;
+        }
         return shader;
     }
 

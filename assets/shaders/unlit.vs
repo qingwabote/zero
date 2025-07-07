@@ -9,5 +9,5 @@ layout(location = 0) out vec2 v_uv;
 void main() {
     v_uv = a_texcoord;
 
-    gl_Position = camera.projection * camera.view * a_model * a_position;
+    gl_Position = camera.projection * camera.view * models[gl_InstanceIndex] * a_position;
 }

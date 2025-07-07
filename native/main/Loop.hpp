@@ -52,7 +52,7 @@ namespace zero
         void terminate()
         {
             post([this]
-                 { _running = 0; });
+                 { _running = -1; });
         }
 
         ~Loop() {};

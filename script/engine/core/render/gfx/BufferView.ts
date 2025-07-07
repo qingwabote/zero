@@ -6,8 +6,8 @@ import { MemoryView } from "./MemoryView.js";
 export class BufferView extends MemoryView {
     readonly buffer: Buffer;
 
-    constructor(format: keyof pk.ArrayTypes, usage: BufferUsageFlagBits, length: number = 0) {
-        super(format, length);
+    constructor(format: keyof pk.ArrayTypes, usage: BufferUsageFlagBits, length: number = 0, capacity: number = 0) {
+        super(format, length, capacity);
 
         const info = new BufferInfo;
         info.usage = usage;

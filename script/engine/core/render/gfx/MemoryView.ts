@@ -4,6 +4,7 @@ import { pk } from "puttyknife";
 type Store = {
     [index: number]: number;
     readonly length: number;
+    set(array: ArrayLike<number>, offset?: number): void;
 }
 
 function format2bytes(format: keyof pk.ArrayTypes) {

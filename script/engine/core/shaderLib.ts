@@ -28,6 +28,16 @@ const sets = {
     material: {
         index: 1
     },
+    instanced: {
+        index: 2,
+        uniforms: {
+            models: {
+                type: DescriptorType.UNIFORM_BUFFER,
+                stageFlags: ShaderStageFlagBits.VERTEX,
+                binding: 0
+            }
+        }
+    },
     local: {
         index: 2,
         uniforms: {
