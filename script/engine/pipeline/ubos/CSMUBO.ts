@@ -1,9 +1,8 @@
 import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
-import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
-import { Zero } from "../../core/Zero.js";
+import { Scene } from "../../core/render/Scene.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
@@ -28,10 +27,10 @@ export class CSMUBO extends UBO {
         return BlockSize * this._num
     }
 
-    override dynamicOffset(context: Context, cameraIndex: number): number {
+    override dynamicOffset(scene: Scene, cameraIndex: number): number {
         let index = -1;
-        for (let i = 0; i < context.scene.cameras.length; i++) {
-            const camera = context.scene.cameras[i];
+        for (let i = 0; i < scene.cameras.length; i++) {
+            const camera = scene.cameras[i];
             if (camera.visibilities & this._data.shadow!.visibilities) {
                 index++;
                 if (i == cameraIndex) {
@@ -46,11 +45,11 @@ export class CSMUBO extends UBO {
         super(data, visibilities);
     }
 
-    upload(context: Context, commandBuffer: CommandBuffer, dumping: boolean): void {
+    upload(scene: Scene, commandBuffer: CommandBuffer, dumping: boolean): void {
         const size = UBO.align(this.range);
 
         let index = -1;
-        for (const camera of Zero.instance.scene.cameras) {
+        for (const camera of scene.cameras) {
             if (camera.visibilities & this._data.shadow!.visibilities) {
                 index++;
                 const cascades = this._data.shadow!.getCascades(camera)!;

@@ -3,13 +3,14 @@ import { device } from "boot";
 import { ClearFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { shaderLib } from "../../shaderLib.js";
-import { Context } from "../Context.js";
+import { Scene } from "../Scene.js";
 import { Camera } from "../scene/Camera.js";
 import { Pass } from "../scene/Pass.js";
 import { Batch } from "./Batch.js";
 import { FlowContext } from "./FlowContext.js";
 import { Phase } from "./Phase.js";
 import { getRenderPass } from "./rpc.js";
+import { Status } from "./Status.js";
 
 const descriptorSetLayoutNull = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);
 
@@ -53,21 +54,21 @@ export class Stage {
         private readonly _rect?: Readonly<Vec4>
     ) { }
 
-    batch(context: Context, commandBuffer: CommandBuffer, cameraIndex: number): void {
-        const camera = context.scene.cameras[cameraIndex];
+    batch(scene: Scene, cameraIndex: number): void {
+        const camera = scene.cameras[cameraIndex];
         let queue = this._camera2queue.get(camera);
         if (!queue) {
             this._camera2queue.set(camera, queue = new RecycleQueue(batchGroup_create, batchGroup_recycle));
         }
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
-                phase.batch(queue, context, commandBuffer, cameraIndex);
+                phase.batch(queue, scene, cameraIndex);
             }
         }
     }
 
-    render(context: Context, commandBuffer: CommandBuffer, cameraIndex: number) {
-        const camera = context.scene.cameras[cameraIndex];
+    render(status: Status, scene: Scene, commandBuffer: CommandBuffer, cameraIndex: number) {
+        const camera = scene.cameras[cameraIndex];
 
         const renderPass = getRenderPass(this._framebuffer.info, this._clears ?? camera.clears);
         const rect = this._rect ?? camera.rect;
@@ -80,13 +81,17 @@ export class Stage {
         let pipeline: Pipeline | undefined;
         for (const batchGroup of this._camera2queue.get(camera)!.drain()) {
             for (const [pass, batches] of batchGroup) {
+                pass.upload(commandBuffer);
+
                 if (pass.descriptorSet && material != pass.descriptorSet) {
                     commandBuffer.bindDescriptorSet(shaderLib.sets.material.index, pass.descriptorSet);
                     material = pass.descriptorSet;
 
-                    context.profile.materials++;
+                    status.materials++;
                 }
                 for (const batch of batches) {
+                    batch.upload(commandBuffer);
+
                     commandBuffer.bindDescriptorSet(shaderLib.sets.instanced.index, batch.instanced.descriptorSet);
 
                     // if (batch.local && local != batch.local.descriptorSet) {
@@ -99,7 +104,7 @@ export class Stage {
                         commandBuffer.bindPipeline(pl);
                         pipeline = pl;
 
-                        context.profile.pipelines++;
+                        status.pipelines++;
                     }
 
                     commandBuffer.bindInputAssembler(batch.inputAssembler);
@@ -109,13 +114,13 @@ export class Stage {
                     } else {
                         commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
                     }
-                    context.profile.draws++;
+                    status.draws++;
                 }
             }
         }
 
         commandBuffer.endRenderPass();
 
-        context.profile.stages++;
+        status.stages++;
     }
 }

@@ -1,8 +1,9 @@
 import { CommandBuffer, Texture } from "gfx";
-import { Context } from "./Context.js";
 import { Data } from "./pipeline/Data.js";
 import { Flow } from "./pipeline/Flow.js";
+import { Status } from "./pipeline/Status.js";
 import { UBO } from "./pipeline/UBO.js";
+import { Scene } from "./Scene.js";
 
 export class Pipeline {
     private _dumping = false;
@@ -18,29 +19,31 @@ export class Pipeline {
         this._dumping = true;
     }
 
-    update(context: Context) {
-        this.data.update(context.profile, this._dumping);
+    update() {
+        this.data.update(this._dumping);
     }
 
-    batch(context: Context, commandBuffer: CommandBuffer) {
-        for (let i = 0; i < context.scene.cameras.length; i++) {
+    cull() {
+        this.data.cull();
+    }
+
+    batch(scene: Scene) {
+        for (let i = 0; i < scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                flow.batch(context, commandBuffer, i);
+                flow.batch(scene, i);
             }
         }
     }
 
-    upload(context: Context, commandBuffer: CommandBuffer) {
+    render(status: Status, scene: Scene, commandBuffer: CommandBuffer) {
         for (const ubo of this.ubos) {
-            ubo.upload(context, commandBuffer, this._dumping);
+            ubo.upload(scene, commandBuffer, this._dumping);
         }
         this._dumping = false;
-    }
 
-    render(context: Context, commandBuffer: CommandBuffer) {
-        for (let i = 0; i < context.scene.cameras.length; i++) {
+        for (let i = 0; i < scene.cameras.length; i++) {
             for (const flow of this.flows) {
-                flow.render(context, commandBuffer, i);
+                flow.render(status, scene, commandBuffer, i);
             }
         }
     }

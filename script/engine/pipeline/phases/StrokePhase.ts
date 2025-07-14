@@ -1,8 +1,7 @@
 import { RecycleQueue } from "bastard";
 import { device } from "boot";
-import { BufferInfo, BufferUsageFlagBits, CommandBuffer, Format, VertexAttribute } from "gfx";
+import { BufferInfo, BufferUsageFlagBits, Format, VertexAttribute } from "gfx";
 import { mat4 } from "../../core/math/mat4.js";
-import { Context } from "../../core/render/Context.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Pass } from "../../core/render/scene/Pass.js";
@@ -47,8 +46,8 @@ export class StrokePhase extends Phase {
         this.stroke = stroke;
     }
 
-    batch(out: RecycleQueue<Map<Pass, Batch[]>>, context: Context, commandBuffer: CommandBuffer): void {
-        this.stroke.upload(commandBuffer);
+    batch(out: RecycleQueue<Map<Pass, Batch[]>>): void {
+        // this.stroke.upload(commandBuffer);
         // out.push().set(this.stroke.pass, this._batches);
     }
 }

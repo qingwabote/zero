@@ -1,8 +1,8 @@
 import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { vec3 } from "../../core/math/vec3.js";
-import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
+import { Scene } from "../../core/render/Scene.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER,
@@ -25,8 +25,8 @@ export class LightUBO extends UBO {
         return this._view.buffer;
     }
 
-    upload(context: Context, commandBuffer: CommandBuffer, dumping: boolean): void {
-        const light = context.scene.directionalLight!;
+    upload(scene: Scene, commandBuffer: CommandBuffer, dumping: boolean): void {
+        const light = scene.directionalLight!;
 
         if (dumping || light.transform.hasChangedFlag.value) {
             vec3.transformQuat(vec3_a, vec3.FORWARD, light.transform.world_rotation);

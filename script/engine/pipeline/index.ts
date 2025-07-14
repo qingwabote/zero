@@ -12,8 +12,8 @@ export * from '../core/render/pipeline/data/Culling.js';
 export * from '../core/render/pipeline/Flow.js';
 export * from '../core/render/pipeline/FlowContext.js';
 export * from '../core/render/pipeline/Phase.js';
-export * from '../core/render/pipeline/Profile.js';
 export * from '../core/render/pipeline/rpc.js';
 export * from '../core/render/pipeline/Stage.js';
+export * from '../core/render/pipeline/Status.js';
 export * from '../core/render/pipeline/UBO.js';
 

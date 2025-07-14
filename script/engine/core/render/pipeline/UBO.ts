@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { Buffer, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
-import { Context } from "../Context.js";
+import { Scene } from "../Scene.js";
 import { Data } from "./Data.js";
 
 interface UBODefinition {
@@ -22,7 +22,7 @@ export abstract class UBO {
         return 0;
     };
 
-    dynamicOffset(context: Context, cameraIndex: number, flowLoopIndex: number): number {
+    dynamicOffset(scene: Scene, cameraIndex: number, flowLoopIndex: number): number {
         return -1;
     }
 
@@ -31,5 +31,5 @@ export abstract class UBO {
         protected readonly _visibilities: number
     ) { }
 
-    abstract upload(context: Context, commandBuffer: CommandBuffer, dumping: boolean): void;
+    abstract upload(scene: Scene, commandBuffer: CommandBuffer, dumping: boolean): void;
 }

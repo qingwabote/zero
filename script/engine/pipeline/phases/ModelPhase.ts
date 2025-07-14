@@ -1,13 +1,12 @@
 import { CachedFactory, empty, RecycleQueue } from "bastard";
 import { device } from "boot";
 import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, InputAssembler } from "gfx";
-import { Context } from "../../core/render/Context.js";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { MemoryView } from "../../core/render/gfx/MemoryView.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
-import { Profile } from "../../core/render/pipeline/Profile.js";
+import { Scene } from "../../core/render/Scene.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
@@ -17,9 +16,9 @@ class InstancedBatch implements Batch {
     readonly attributes: Readonly<Record<string, MemoryView>>;
     readonly properties: Readonly<Record<string, MemoryView>>;
 
-    private _uploadFlag: Transient = new Transient(0, 0);
-    get uploaded(): boolean {
-        return this._uploadFlag.value != 0;
+    private _frozen: Transient = new Transient(0, 0);
+    get frozen(): boolean {
+        return this._frozen.value != 0;
     }
 
     readonly inputAssembler: InputAssembler;
@@ -91,6 +90,10 @@ class InstancedBatch implements Batch {
         this._countFlag.value++;
     }
 
+    freeze() {
+        this._frozen.value = 1;
+    }
+
     upload(commandBuffer: CommandBuffer): void {
         for (const key in this.attributes) {
             this.attributes[key].update(commandBuffer);
@@ -98,7 +101,6 @@ class InstancedBatch implements Batch {
         for (const key in this.properties) {
             this.properties[key].update(commandBuffer);
         }
-        this._uploadFlag.value = 1;
     }
 
     reset(): void {
@@ -135,14 +137,14 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    batch(out: RecycleQueue<Map<Pass, Batch[]>>, context: Context, commandBuffer: CommandBuffer, cameraIndex: number): void {
+    batch(out: RecycleQueue<Map<Pass, Batch[]>>, scene: Scene, cameraIndex: number): void {
         let models: Iterable<Model>;
         switch (this._culling) {
             case 'View':
-                models = this._data.culling?.getView(context.scene.cameras[cameraIndex]).camera || context.scene.models;
+                models = this._data.culling?.getView(scene.cameras[cameraIndex]).camera || scene.models;
                 break;
             case 'CSM':
-                models = this._data.culling?.getView(context.scene.cameras[cameraIndex]).shadow[this._flowLoopIndex] || context.scene.models;
+                models = this._data.culling?.getView(scene.cameras[cameraIndex]).shadow[this._flowLoopIndex] || scene.models;
                 break;
             default:
                 throw new Error(`unsupported culling: ${this._culling}`);
@@ -177,14 +179,6 @@ export class ModelPhase extends Phase {
                             batchGroup.delete(pass);
                         }
 
-                        context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
-                        for (const [pass, batches] of batchGroup) {
-                            pass.upload(commandBuffer);
-                            for (const batch of batches) {
-                                (batch as InstancedBatch).upload(commandBuffer);
-                            }
-                        }
-                        context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
                         batchGroup = out.push();
 
                         if (diff == 1 && batches) { // moved to next
@@ -206,7 +200,7 @@ export class ModelPhase extends Phase {
                             continue;
                         }
 
-                        if (bat.uploaded) {
+                        if (bat.frozen) {
                             continue;
                         }
 
@@ -234,14 +228,6 @@ export class ModelPhase extends Phase {
 
             batchGroup_order = model.order;
         }
-        context.profile.emit(Profile.Event.BATCH_UPLOAD_START)
-        for (const [pass, batches] of batchGroup) {
-            pass.upload(commandBuffer);
-            for (const batch of batches) {
-                (batch as InstancedBatch).upload(commandBuffer);
-            }
-        }
-        context.profile.emit(Profile.Event.BATCH_UPLOAD_END)
     }
 }
 

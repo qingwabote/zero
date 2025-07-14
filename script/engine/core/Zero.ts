@@ -6,10 +6,9 @@ import { Input } from "./Input.js";
 import { System } from "./System.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
-import { Context } from "./render/Context.js";
 import { Pipeline } from "./render/Pipeline.js";
 import { Scene } from "./render/Scene.js";
-import { Profile } from "./render/pipeline/Profile.js";
+import { Status } from "./render/pipeline/Status.js";
 import { quad } from "./render/quad.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
@@ -20,9 +19,9 @@ enum Event {
     LATE_UPDATE = 'LATE_UPDATE',
     SCENE_UPDATE = 'SCENE_UPDATE',
     PIPELINE_UPDATE = 'PIPELINE_UPDATE',
-    DEVICE_SYNC = 'DEVICE_SYNC',
+    SCENE_CULL = 'SCENE_CULL',
     PIPELINE_BATCH = 'PIPELINE_BATCH',
-    UPLOAD = 'UPLOAD',
+    DEVICE_SYNC = 'DEVICE_SYNC',
     RENDER = 'RENDER',
     FRAME_END = 'FRAME_END',
 }
@@ -33,14 +32,14 @@ interface EventToListener {
     [Event.LATE_UPDATE]: () => void;
     [Event.SCENE_UPDATE]: () => void;
     [Event.PIPELINE_UPDATE]: () => void;
-    [Event.DEVICE_SYNC]: () => void;
+    [Event.SCENE_CULL]: () => void;
     [Event.PIPELINE_BATCH]: () => void;
-    [Event.UPLOAD]: () => void;
+    [Event.DEVICE_SYNC]: () => void;
     [Event.RENDER]: () => void;
     [Event.FRAME_END]: () => void;
 }
 
-export abstract class Zero extends EventEmitter.Impl<EventToListener> implements Context, boot.EventListener {
+export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
     private static _frameCount = 1;
     public static get frameCount(): number {
         return this._frameCount;
@@ -90,7 +89,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     }
 
     public readonly scene: Scene;
-    public readonly profile = new Profile;
+    public readonly profile = new Status;
 
     constructor(private _pipeline: Pipeline, models: ModelCollection = new ModelArray) {
         super();
@@ -169,12 +168,17 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         }
         this.emit(Event.LATE_UPDATE);
 
-        this.profile.clear();
         this.scene.update();
         this.emit(Event.SCENE_UPDATE);
 
-        this._pipeline.update(this);
+        this._pipeline.update();
         this.emit(Event.PIPELINE_UPDATE);
+
+        this._pipeline.cull();
+        this.emit(Event.SCENE_CULL);
+
+        this._pipeline.batch(this.scene);
+        this.emit(Event.PIPELINE_BATCH);
 
         boot.device.waitForFence(this._fence);
         boot.device.swapchain.acquire(this._swapchainUsable);
@@ -182,15 +186,9 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
 
         const cmd = this._commandBuffer;
         cmd.begin();
-        this._pipeline.batch(this, cmd);
-        this.emit(Event.PIPELINE_BATCH);
-
         this._componentScheduler.upload(cmd);
         quad.indexBufferView.update(cmd);
-        this._pipeline.upload(this, cmd);
-        this.emit(Event.UPLOAD);
-
-        this._pipeline.render(this, cmd);
+        this._pipeline.render(this.profile.clear(), this.scene, cmd);
         cmd.end();
         this.emit(Event.RENDER);
 

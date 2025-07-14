@@ -1,4 +1,4 @@
-import { DescriptorSet, DescriptorSetLayout, InputAssembler } from "gfx";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler } from "gfx";
 import { SubMesh } from "../scene/SubMesh.js";
 
 interface ResourceBinding {
@@ -12,6 +12,8 @@ export interface Batch {
     readonly count: number;
     readonly instanced: ResourceBinding;
     readonly local?: ResourceBinding | undefined;
+
+    upload(commandBuffer: CommandBuffer): void;
 }
 
 export declare namespace Batch {
