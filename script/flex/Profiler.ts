@@ -74,9 +74,9 @@ cull     ${(this._scene_cull_delta / this._frames).toFixed(2)}ms
 batch    ${(this._pipeline_batch_delta / this._frames).toFixed(2)}ms
 sync     ${(this._device_sync_delta / this._frames).toFixed(2)}ms
 render   ${(this._render_delta / this._frames).toFixed(2)}ms
-material ${Zero.instance.profile.materials}
-pipeline ${Zero.instance.profile.pipelines}
-draw     ${Zero.instance.profile.draws}`
+material ${Zero.instance.status.materials}
+pipeline ${Zero.instance.status.pipelines}
+draw     ${Zero.instance.status.draws}`
 
         this._frames = 1;
         this._time = dt;

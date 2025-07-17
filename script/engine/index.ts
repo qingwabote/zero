@@ -52,3 +52,5 @@ export * from './core/shaderLib.js';
 export * as pipeline from './pipeline/index.js';
 export * as scene from './scene/index.js';
 
+export * as escapism from './escapism/index.js';
+

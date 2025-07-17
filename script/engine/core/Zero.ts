@@ -3,7 +3,9 @@ import * as boot from "boot";
 import { PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
 import { Input } from "./Input.js";
+import { Profile } from "./Profile.js";
 import { System } from "./System.js";
+import { escapee } from "./escapism/Escapee.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
@@ -37,6 +39,18 @@ interface EventToListener {
     [Event.DEVICE_SYNC]: () => void;
     [Event.RENDER]: () => void;
     [Event.FRAME_END]: () => void;
+}
+
+enum Phase {
+    UPDATE,
+    LATE_UPDATE,
+    SCENE_UPDATE,
+    PIPELINE_UPDATE,
+    SCENE_CULL,
+    PIPELINE_BATCH,
+    DEVICE_SYNC,
+    RENDER,
+    _COUNT
 }
 
 export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
@@ -89,7 +103,9 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     }
 
     public readonly scene: Scene;
-    public readonly profile = new Status;
+    public readonly status = new Status;
+
+    readonly profile: Profile<typeof Phase> = new Profile(Phase._COUNT);
 
     constructor(private _pipeline: Pipeline, models: ModelCollection = new ModelArray) {
         super();
@@ -147,7 +163,8 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     onFrame() {
         this.emit(Event.FRAME_START);
 
-        const time = boot.now();
+        let time = boot.now();
+        let t;
         const delta = (time - this._time) / 1000;
         this._time = time;
 
@@ -160,6 +177,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
             system.update(delta);
         }
         this.emit(Event.UPDATE);
+
         // after the update of components and systems
         this._componentScheduler.lateUpdate();
         // layout engine works here, after all positions and sizes set by the above settle down
@@ -167,30 +185,45 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
             system.lateUpdate(delta);
         }
         this.emit(Event.LATE_UPDATE);
+        this.profile.record(Phase.LATE_UPDATE, (t = boot.now()) - time);
+        time = t;
 
         this.scene.update();
         this.emit(Event.SCENE_UPDATE);
+        this.profile.record(Phase.SCENE_UPDATE, (t = boot.now()) - time);
+        time = t;
 
         this._pipeline.update();
         this.emit(Event.PIPELINE_UPDATE);
+        this.profile.record(Phase.PIPELINE_UPDATE, (t = boot.now()) - time);
+        time = t;
 
         this._pipeline.cull();
         this.emit(Event.SCENE_CULL);
+        this.profile.record(Phase.SCENE_CULL, (t = boot.now()) - time);
+        time = t;
 
         this._pipeline.batch(this.scene);
         this.emit(Event.PIPELINE_BATCH);
+        this.profile.record(Phase.PIPELINE_BATCH, (t = boot.now()) - time);
+        time = t;
 
         boot.device.waitForFence(this._fence);
         boot.device.swapchain.acquire(this._swapchainUsable);
         this.emit(Event.DEVICE_SYNC);
+        this.profile.record(Phase.DEVICE_SYNC, (t = boot.now()) - time);
+        time = t;
 
         const cmd = this._commandBuffer;
         cmd.begin();
         this._componentScheduler.upload(cmd);
         quad.indexBufferView.update(cmd);
-        this._pipeline.render(this.profile.clear(), this.scene, cmd);
+        this._pipeline.render(this.status.clear(), this.scene, cmd);
+        escapee.render(cmd);
         cmd.end();
         this.emit(Event.RENDER);
+        this.profile.record(Phase.RENDER, (t = boot.now()) - time);
+        this.profile.update();
 
         const submitInfo = new SubmitInfo;
         submitInfo.commandBuffer = cmd;
@@ -205,7 +238,8 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
     }
 }
 Zero.Event = Event;
+Zero.Phase = Phase;
 
 export declare namespace Zero {
-    export { Event }
+    export { Event, Phase }
 }

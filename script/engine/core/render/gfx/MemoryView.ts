@@ -91,6 +91,7 @@ export abstract class MemoryView {
             pk.heap.delBuffer(old.handle);
         }
         this._length = length;
+        return this;
     }
 
     resize(length: number) {
