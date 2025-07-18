@@ -16,7 +16,7 @@ flows:
     stages:
       - name: shadow
         phases:
-          - culling: CSM
+          - frustum: CSM
             pass: shadow
             visibility: ${DEFAULT}
         framebuffer:

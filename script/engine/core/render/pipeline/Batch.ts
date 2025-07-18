@@ -9,11 +9,12 @@ interface ResourceBinding {
 export interface Batch {
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
+
     readonly count: number;
     readonly instanced: ResourceBinding;
     readonly local?: ResourceBinding | undefined;
 
-    upload(commandBuffer: CommandBuffer): void;
+    flush(commandBuffer: CommandBuffer): number;
 }
 
 export declare namespace Batch {

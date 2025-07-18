@@ -85,7 +85,7 @@ export abstract class MemoryView {
         this._invalidated_end = Math.max(offset + length, this._invalidated_end);
     }
 
-    reset(length: number = this._length_default) {
+    reset(length: number = this._length_default): this {
         const old = this.reserve(length);
         if (old) {
             pk.heap.delBuffer(old.handle);
@@ -105,16 +105,18 @@ export abstract class MemoryView {
 
     shrink() { }
 
-    update(commandBuffer: CommandBuffer) {
+    update(commandBuffer: CommandBuffer): this {
         const length = this._invalidated_end - this._invalidated_start;
         if (length < 1) {
-            return;
+            return this;
         }
 
         this.upload(commandBuffer, this._invalidated_start, length);
 
         this._invalidated_start = Number.MAX_SAFE_INTEGER
-        this._invalidated_end = Number.MIN_SAFE_INTEGER;;
+        this._invalidated_end = Number.MIN_SAFE_INTEGER;
+
+        return this;
     }
 
     protected reserve(capacity: number): { handle: pk.BufferHandle, source: pk.TypedArray } | null {

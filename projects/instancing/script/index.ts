@@ -10,7 +10,7 @@ const [model, primitive, pipeline] = await Promise.all([
     await (await builtin.cache('pipelines/forward', Pipeline)).instantiate(VisibilityFlagBits)
 ])
 
-// pipeline.data.culling = null;
+pipeline.data.culling = null;
 
 export class App extends Zero {
     start() {

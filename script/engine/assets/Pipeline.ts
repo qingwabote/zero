@@ -17,7 +17,7 @@ interface PhaseBase {
 }
 interface ModelPhase extends PhaseBase {
     type?: 'model';
-    culling?: pipeline.ModelPhase.Culling;
+    frustum?: pipeline.ModelPhase.Frustum;
     model?: string;
     pass?: string;
 }
@@ -43,7 +43,7 @@ const phaseFactory = (function () {
 
     return {
         model: async function (info: ModelPhase, visibility: number, flowLoopIndex: number, data: Data): Promise<pipeline.Phase> {
-            return new pipeline.ModelPhase(visibility, flowLoopIndex, data, info.culling, info.model, info.pass);
+            return new pipeline.ModelPhase(visibility, flowLoopIndex, data, info.frustum, info.model, info.pass);
         },
         fxaa: async function (info: FxaaPhase, visibility: number): Promise<pipeline.Phase> {
             const shaderAsset = await bundle.cache('shaders/fxaa', Shader);

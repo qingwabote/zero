@@ -90,7 +90,7 @@ export class Stage {
                     status.materials++;
                 }
                 for (const batch of batches) {
-                    batch.upload(commandBuffer);
+                    const count = batch.flush(commandBuffer);
 
                     commandBuffer.bindDescriptorSet(shaderLib.sets.instanced.index, batch.instanced.descriptorSet);
 
@@ -110,9 +110,9 @@ export class Stage {
                     commandBuffer.bindInputAssembler(batch.inputAssembler);
 
                     if (batch.inputAssembler.indexInput) {
-                        commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.count);
+                        commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, count);
                     } else {
-                        commandBuffer.draw(batch.draw.count, batch.draw.first, batch.count);
+                        commandBuffer.draw(batch.draw.count, batch.draw.first, count);
                     }
                     status.draws++;
                 }

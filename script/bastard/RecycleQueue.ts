@@ -12,6 +12,13 @@ export class RecycleQueue<T> {
         return this.data[this._count++];
     }
 
+    *[Symbol.iterator]() {
+        for (let i = 0; i < this._count; i++) {
+            const item = this.data[i];
+            yield item;
+        }
+    }
+
     *drain(): IterableIterator<T> {
         for (let i = 0; i < this._count; i++) {
             const item = this.data[i];

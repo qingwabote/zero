@@ -77,6 +77,11 @@ export class Transform implements TRS {
     }
 
     private _world: ReturnType<typeof world_allocator.alloc>;
+    public get world(): ReturnType<typeof world_allocator.alloc> {
+        this.world_update();
+        return this._world;
+    }
+
     private _world_view: ReturnType<typeof world_allocator.map>;
     private _world_invalidated = false;
 

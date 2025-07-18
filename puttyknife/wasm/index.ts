@@ -1,4 +1,4 @@
-import { ArgHandle, ArrayTypes, BufferHandle, FunctionHandle, ObjectHandle, StringHandle, TypedArray, Types } from 'pk';
+import { ArgHandle, ArrayTypes, BufferHandle, FunctionHandle, ObjectHandle, Pointer, StringHandle, TypedArray, Types } from 'pk';
 import { textDecode, textEncode } from './text.js';
 
 const noop = function () { };
@@ -199,6 +199,12 @@ export class Runtime {
 
     objAtArr(ptr: ObjectHandle, n: number): ObjectHandle {
         return this._u32[(ptr as unknown as number + 4 * n) >> 2] as unknown as ObjectHandle;
+    }
+
+    cpy32(dest: Pointer, src: Pointer, count: number, dest_offset: number = 0, src_offset: number = 0): void {
+        const d = (dest as unknown as number >> 2) + dest_offset;
+        const s = (src as unknown as number >> 2) + src_offset;
+        this._u32.copyWithin(d, s, s + count);
     }
 }
 

@@ -6,9 +6,11 @@ export declare type BufferHandle = { readonly [kind]: 'Buffer' }
 
 export declare type StringHandle = { readonly [kind]: 'String' }
 
+export declare type ArgHandle = { readonly [kind]: 'Arg' }
+
 export declare type FunctionHandle = { readonly [kind]: 'Function' }
 
-export declare type ArgHandle = { readonly [kind]: 'Arg' }
+export declare type Pointer = ObjectHandle | BufferHandle | StringHandle | ArgHandle;
 
 export declare interface Types {
     p: ObjectHandle,
@@ -48,4 +50,6 @@ export declare class Runtime {
     getArgs<T extends (keyof Types)[]>(handle: ArgHandle, ...types: T): { [P in keyof T]: Types[T[P]]; };
 
     objAtArr(arr: ObjectHandle, n: number): ObjectHandle;
+
+    cpy32(dest: Pointer, src: Pointer, count: number, dest_offset?: number, src_offset?: number): void;
 }

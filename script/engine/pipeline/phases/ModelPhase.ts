@@ -23,9 +23,10 @@ class InstancedBatch implements Batch {
 
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
-    private _countFlag: Transient = new Transient(0, 0);
+
+    private _count: number = 0
     get count(): number {
-        return this._countFlag.value;
+        return this._count;
     }
 
     readonly instanced: Batch.ResourceBinding;
@@ -87,29 +88,23 @@ class InstancedBatch implements Batch {
     }
 
     next() {
-        this._countFlag.value++;
+        this._count++;
     }
 
     freeze() {
         this._frozen.value = 1;
     }
 
-    upload(commandBuffer: CommandBuffer): void {
+    flush(commandBuffer: CommandBuffer): number {
         for (const key in this.attributes) {
-            this.attributes[key].update(commandBuffer);
+            this.attributes[key].update(commandBuffer).reset();
         }
         for (const key in this.properties) {
-            this.properties[key].update(commandBuffer);
+            this.properties[key].update(commandBuffer).reset();
         }
-    }
-
-    reset(): void {
-        for (const key in this.attributes) {
-            this.attributes[key].reset();
-        }
-        for (const key in this.properties) {
-            this.properties[key].reset();
-        }
+        const count = this._count;
+        this._count = 0;
+        return count;
     }
 }
 
@@ -121,14 +116,14 @@ function compareModel(a: Model, b: Model) {
     return a.order - b.order;
 }
 
-type Culling = 'View' | 'CSM';
+type Frustum = 'View' | 'CSM';
 
 export class ModelPhase extends Phase {
     constructor(
         visibility: number,
         private readonly _flowLoopIndex: number,
         private readonly _data: Data,
-        private readonly _culling: Culling = 'View',
+        private readonly _frustum: Frustum = 'View',
         /**The model type that indicates which models should run in this phase */
         private readonly _model = 'default',
         /**The pass type that indicates which passes should run in this phase */
@@ -139,7 +134,7 @@ export class ModelPhase extends Phase {
 
     batch(out: RecycleQueue<Map<Pass, Batch[]>>, scene: Scene, cameraIndex: number): void {
         let models: Iterable<Model>;
-        switch (this._culling) {
+        switch (this._frustum) {
             case 'View':
                 models = this._data.culling?.getView(scene.cameras[cameraIndex]).camera || scene.models;
                 break;
@@ -147,7 +142,7 @@ export class ModelPhase extends Phase {
                 models = this._data.culling?.getView(scene.cameras[cameraIndex]).shadow[this._flowLoopIndex] || scene.models;
                 break;
             default:
-                throw new Error(`unsupported culling: ${this._culling}`);
+                throw new Error(`unsupported culling: ${this._frustum}`);
         }
 
         const queue: Model[] = [];
@@ -217,7 +212,6 @@ export class ModelPhase extends Phase {
                         bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, (model.constructor as typeof Model).properties, local));
                     }
                     if (batch.count == 0) {
-                        batch.reset();
                         batches.push(batch);
                     }
                     model.upload(batch.attributes, batch.properties)
@@ -232,5 +226,5 @@ export class ModelPhase extends Phase {
 }
 
 export declare namespace ModelPhase {
-    export { Culling }
+    export { Frustum }
 }
