@@ -213,6 +213,10 @@ namespace gfx
         {
             impl->_dynamicOffsets[index] = dynamicOffsets;
         }
+        else
+        {
+            impl->_dynamicOffsets.erase(index);
+        }
     }
 
     void CommandBuffer::bindInputAssembler(const std::shared_ptr<InputAssembler> &inputAssembler)

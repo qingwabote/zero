@@ -6,8 +6,6 @@ namespace gfx
 {
     class SamplerImpl
     {
-        friend class Sampler;
-
     private:
         DeviceImpl *_device = nullptr;
 
@@ -15,6 +13,8 @@ namespace gfx
 
     public:
         SamplerImpl(DeviceImpl *device);
+
+        bool initialize(const SamplerInfo &info);
 
         operator VkSampler() { return _sampler; }
 

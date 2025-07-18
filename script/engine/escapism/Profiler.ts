@@ -1,6 +1,6 @@
 import { device } from "boot";
 import { bundle } from "bundling";
-import { AttachmentDescription, BlendFactor, BlendState, CommandBuffer, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, Format, FramebufferInfo, ImageLayout, LOAD_OP, Pipeline, PipelineInfo, PipelineLayoutInfo, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { AttachmentDescription, BlendFactor, BlendState, CommandBuffer, DescriptorSetLayoutBinding, DescriptorSetLayoutInfo, DescriptorType, Filter, FramebufferInfo, ImageLayout, LOAD_OP, Pipeline, PipelineInfo, PipelineLayoutInfo, RasterizationState, RenderPassInfo, SamplerInfo, ShaderInfo, ShaderStageFlagBits } from "gfx";
 import { FNT } from "../assets/FNT.js";
 import { bmfont } from "../bmfont.js";
 import { Component } from "../core/escapism/Component.js";
@@ -55,18 +55,13 @@ shaderInfo.types.add(ShaderStageFlagBits.FRAGMENT);
 const shader = device.createShader(shaderInfo);
 
 const colorAttachmentDescription = new AttachmentDescription;
+colorAttachmentDescription.format = device.swapchain.color.info.format;
 colorAttachmentDescription.loadOp = LOAD_OP.LOAD;
-colorAttachmentDescription.initialLayout = ImageLayout.UNDEFINED;
+colorAttachmentDescription.initialLayout = ImageLayout.PRESENT_SRC;
 colorAttachmentDescription.finalLayout = ImageLayout.PRESENT_SRC;
-
-const depthStencilAttachment = new AttachmentDescription();
-depthStencilAttachment.loadOp = LOAD_OP.CLEAR;
-depthStencilAttachment.initialLayout = ImageLayout.UNDEFINED;
-depthStencilAttachment.finalLayout = ImageLayout.DEPTH_STENCIL;
 
 const renderPassInfo = new RenderPassInfo
 renderPassInfo.colors.add(colorAttachmentDescription);
-renderPassInfo.depthStencil = depthStencilAttachment;
 renderPassInfo.samples = 1;
 
 const renderPass = device.createRenderPass(renderPassInfo);
@@ -75,7 +70,7 @@ const descriptorSetLayoutBinding = new DescriptorSetLayoutBinding
 descriptorSetLayoutBinding.descriptorType = DescriptorType.SAMPLER_TEXTURE;
 descriptorSetLayoutBinding.stageFlags = ShaderStageFlagBits.FRAGMENT;
 descriptorSetLayoutBinding.binding = TEXTURE_BINDING;
-descriptorSetLayoutBinding.descriptorCount = 0;
+descriptorSetLayoutBinding.descriptorCount = 1;
 
 const descriptorSetLayoutInfo = new DescriptorSetLayoutInfo
 descriptorSetLayoutInfo.bindings.add(descriptorSetLayoutBinding);
@@ -95,20 +90,13 @@ blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
 
 const framebufferInfo = new FramebufferInfo;
 framebufferInfo.colors.add(device.swapchain.color);
-const depthStencilTextureInfo = new TextureInfo;
-depthStencilTextureInfo.usage = TextureUsageFlagBits.DEPTH_STENCIL;
-depthStencilTextureInfo.format = Format.D32_SFLOAT;
-depthStencilTextureInfo.width = width;
-depthStencilTextureInfo.height = height;
-const depthStencilTexture = device.createTexture(depthStencilTextureInfo);
-framebufferInfo.depthStencil = depthStencilTexture;
 framebufferInfo.renderPass = renderPass;
 framebufferInfo.width = width;
 framebufferInfo.height = height;
 const framebuffer = device.createFramebuffer(framebufferInfo);
 
 const samplerInfo = new SamplerInfo;
-samplerInfo.magFilter = Filter.LINEAR;
+samplerInfo.minFilter = Filter.LINEAR;
 samplerInfo.magFilter = Filter.LINEAR;
 const sampler = device.createSampler(samplerInfo)
 const descriptorSet = device.createDescriptorSet(descriptorSetLayout);
@@ -147,7 +135,7 @@ material ${Zero.instance.status.materials}
 pipeline ${Zero.instance.status.pipelines}
 draw     ${Zero.instance.status.draws}`
 
-        const quads = bmfont.mesh(this._vertexView.reset(), vec2_a, vec2_b, fnt, text, 0.6, - width / 2 + 30, -height / 2 + 1500);
+        const quads = bmfont.mesh(this._vertexView.reset(), vec2_a, vec2_b, fnt, text, 0.7, - width / 2 + 30, -height / 2 + 470);
         quad.indexBufferView.update(cmd);
         this._vertexView.update(cmd);
 

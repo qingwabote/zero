@@ -7,14 +7,9 @@ interface StatusReadonly {
 }
 
 export class Status implements StatusReadonly {
-    static readonly Event = Event;
-
     materials: number = 0;
-
     pipelines: number = 0;
-
     draws: number = 0;
-
     stages: number = 0;
 
     clear() {

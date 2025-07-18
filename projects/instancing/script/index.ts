@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
 import { Camera, DirectionalLight, GLTF, Node, Pipeline, Zero, bundle as builtin, device, escapism, vec3 } from "engine";
-import { Align, Document, Edge, Justify, PositionType, Profiler } from 'flex';
+import { Align, Document, Justify } from 'flex';
 import { Spawn } from './Spawn.js';
 import { VisibilityFlagBits } from './VisibilityFlagBits.js';
 
@@ -67,11 +67,11 @@ export class App extends Zero {
         doc.setWidth(width);
         doc.setHeight(height);
 
-        const profiler = (new Node).addComponent(Profiler)
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
+        // const profiler = (new Node).addComponent(Profiler)
+        // profiler.positionType = PositionType.Absolute;
+        // profiler.setPosition(Edge.Left, 8)
+        // profiler.setPosition(Edge.Bottom, 8)
+        // doc.addElement(profiler);
 
         escapism.escapee.addComponent(escapism.Profiler);
     }

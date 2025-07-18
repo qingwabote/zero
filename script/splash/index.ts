@@ -165,7 +165,7 @@ framebufferInfo.height = height;
 const framebuffer = device.createFramebuffer(framebufferInfo);
 
 const samplerInfo = new SamplerInfo;
-samplerInfo.magFilter = Filter.LINEAR;
+samplerInfo.minFilter = Filter.LINEAR;
 samplerInfo.magFilter = Filter.LINEAR;
 const sampler = device.createSampler(samplerInfo)
 const descriptorSet = device.createDescriptorSet(descriptorSetLayout);

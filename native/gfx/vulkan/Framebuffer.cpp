@@ -52,37 +52,36 @@ namespace gfx
             info.width = width;
             info.height = height;
             info.layers = 1;
-            std::vector<VkImageView> attachments(colorAttachments->size() + 1 + resolveAttachments->size());
-            uint32_t attachmentIdx = 0;
+            std::vector<VkImageView> attachments;
             for (size_t idx = 0; idx < colorAttachments->size(); idx++)
             {
                 auto attachment = colorAttachments->at(idx).get();
                 if (attachment == swapchainAttachment)
                 {
-                    attachments[attachmentIdx] = impl->_device->swapchain()->imageViews()[framebufferIdx];
+                    attachments.push_back(impl->_device->swapchain()->imageViews()[framebufferIdx]);
                 }
                 else
                 {
-                    attachments[attachmentIdx] = *attachment->impl;
+                    attachments.push_back(*attachment->impl);
                 }
-                attachmentIdx++;
             }
 
-            attachments[attachmentIdx] = *depthStencilAttachment->impl;
-            attachmentIdx++;
+            if (depthStencilAttachment)
+            {
+                attachments.push_back(*depthStencilAttachment->impl);
+            }
 
             for (size_t idx = 0; idx < resolveAttachments->size(); idx++)
             {
                 auto attachment = resolveAttachments->at(idx).get();
                 if (attachment == swapchainAttachment)
                 {
-                    attachments[attachmentIdx] = impl->_device->swapchain()->imageViews()[framebufferIdx];
+                    attachments.push_back(impl->_device->swapchain()->imageViews()[framebufferIdx]);
                 }
                 else
                 {
-                    attachments[attachmentIdx] = *attachment->impl;
+                    attachments.push_back(*attachment->impl);
                 }
-                attachmentIdx++;
             }
 
             info.pAttachments = attachments.data();

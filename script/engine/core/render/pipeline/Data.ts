@@ -2,10 +2,7 @@ import { Culling } from "./data/Culling.js";
 import { Shadow } from "./data/Shadow.js";
 
 export class Data {
-    static readonly Event = Event;
-
     public shadow: Shadow | null = null;
-
     public culling: Culling | null = new Culling;
 
     update(dumping: boolean) {
