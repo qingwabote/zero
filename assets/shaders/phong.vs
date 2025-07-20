@@ -1,5 +1,4 @@
 #include <global/camera>
-#include <local>
 
 layout(location = 0) in vec4 a_position;
 #if USE_ALBEDO_MAP
@@ -17,17 +16,28 @@ layout(location = 2) in vec3 a_normal;
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) out vec3 v_position;
 
+struct Instance {
+    mat4 model;
+#if USE_SKIN
+    vec4 joint;
+#endif
+};
+
+layout(set = 2, binding = 0) uniform PerInstance {
+    Instance instances[204];
+};
+
 void main() {
     #if USE_ALBEDO_MAP
         v_uv = a_texcoord;
     #endif
-    v_normal = normalize((models[gl_InstanceIndex] * vec4(a_normal, 0.0)).xyz);
+    v_normal = normalize((instances[gl_InstanceIndex].model * vec4(a_normal, 0.0)).xyz);
 
     vec4 pos = a_position;
     #if USE_SKIN
-        skin_transform(pos);
+        skin_transform(pos, uint(instances[gl_InstanceIndex].joint.x));
     #endif 
-    pos = models[gl_InstanceIndex] * pos;
+    pos = instances[gl_InstanceIndex].model * pos;
 
     v_position = pos.xyz;
     gl_Position = camera.projection * camera.view * pos;

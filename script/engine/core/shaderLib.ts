@@ -39,12 +39,12 @@ const sets = {
         }
     },
     local: {
-        index: 2,
+        index: 3,
         uniforms: {
             jointMap: {
                 type: DescriptorType.SAMPLER_TEXTURE,
                 stageFlags: ShaderStageFlagBits.VERTEX,
-                binding: 1
+                binding: 0
             }
         }
     }

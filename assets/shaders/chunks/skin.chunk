@@ -3,15 +3,15 @@ layout(location = 4) in vec4 a_weights;
 
 layout(location = 9) in uint a_jointOffset;
 
-layout(set = 2, binding = 1) uniform sampler2D jointMap;
+layout(set = 3, binding = 0) uniform sampler2D jointMap;
 
-mat4 skin_jointMatrix(uint idx)
+mat4 skin_jointMatrix(uint offset, uint idx)
 {
     uint width = uint(textureSize(jointMap, 0).x);
 
     vec4 m[3];   
 
-    uint i = idx * 3u + a_jointOffset / 4u;
+    uint i = offset / 4u + idx * 3u;
     uint y = i / width;
     uint x = i % width;
     for (uint n = 0u; n < 3u; n++)
@@ -36,11 +36,11 @@ mat4 skin_jointMatrix(uint idx)
         vec4(m[0].w, m[1].w, m[2].w, 1.0));
 }
 
-void skin_transform(inout vec4 pos) {
+void skin_transform(inout vec4 pos, uint offset) {
     mat4 m = 
-        skin_jointMatrix(a_joints.x) * a_weights.x + 
-        skin_jointMatrix(a_joints.y) * a_weights.y + 
-        skin_jointMatrix(a_joints.z) * a_weights.z +
-        skin_jointMatrix(a_joints.w) * a_weights.w;
+        skin_jointMatrix(offset, a_joints.x) * a_weights.x + 
+        skin_jointMatrix(offset, a_joints.y) * a_weights.y + 
+        skin_jointMatrix(offset, a_joints.z) * a_weights.z +
+        skin_jointMatrix(offset, a_joints.w) * a_weights.w;
     pos = m * pos;
 }

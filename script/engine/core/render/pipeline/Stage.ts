@@ -94,10 +94,10 @@ export class Stage {
 
                     commandBuffer.bindDescriptorSet(shaderLib.sets.instanced.index, batch.instanced.descriptorSet);
 
-                    // if (batch.local && local != batch.local.descriptorSet) {
-                    //     commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);
-                    //     local = batch.local.descriptorSet;
-                    // }
+                    if (batch.local && local != batch.local.descriptorSet) {
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);
+                        local = batch.local.descriptorSet;
+                    }
 
                     const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.instanced.descriptorSetLayout, batch.local?.descriptorSetLayout || descriptorSetLayoutNull]);
                     if (pipeline != pl) {

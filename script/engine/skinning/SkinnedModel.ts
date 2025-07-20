@@ -8,6 +8,7 @@ import { shaderLib } from "../core/shaderLib.js";
 import { Skin } from "./Skin.js";
 import { SkinInstance } from "./SkinInstance.js";
 
+const models = shaderLib.sets.instanced.uniforms.models;
 const a_jointOffset: Model.InstancedAttribute = { location: shaderLib.attributes.jointOffset.location, format: Format.R32_UINT /* uint16 has very bad performance on wx iOSHighPerformance+ */ }
 
 export class SkinnedModel extends Model {
@@ -23,9 +24,15 @@ export class SkinnedModel extends Model {
         super(transform, mesh, materials);
     }
 
-    override upload(attributes: Readonly<Record<string, MemoryView>>) {
+    override upload(attributes: Readonly<Record<string, MemoryView>>, properties: Readonly<Record<string, MemoryView>>) {
         this._skin.update();
-        attributes[a_jointOffset.location].addElement(this._skin.offset)
-        attributes[Model.a_model.location].add(this._skin.root.world_matrix)
+        // attributes[a_jointOffset.location].addElement(this._skin.offset)
+        // attributes[Model.a_model.location].add(this._skin.root.world_matrix)
+
+        const view = properties[models.binding];
+        const offset = view.addBlock(20);
+        view.source.set(this._skin.root.world_matrix, offset);
+        view.source[offset + 16] = this._skin.offset;
+        // properties[models.binding].add(this._skin.root.world_matrix);
     }
 }

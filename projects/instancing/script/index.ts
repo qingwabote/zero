@@ -4,9 +4,8 @@ import { Align, Document, Justify } from 'flex';
 import { Spawn } from './Spawn.js';
 import { VisibilityFlagBits } from './VisibilityFlagBits.js';
 
-const [model, primitive, pipeline] = await Promise.all([
-    await (await bundle.once('lowpoly_airplane/scene', GLTF)).instantiate(),
-    await (await builtin.cache('models/primitive/scene', GLTF)).instantiate(),
+const [model, pipeline] = await Promise.all([
+    await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate(),
     await (await builtin.cache('pipelines/forward', Pipeline)).instantiate(VisibilityFlagBits)
 ])
 
@@ -40,15 +39,10 @@ export class App extends Zero {
         node.position = [0, 10, 0];
         node.euler = [-90, 0, 0];
 
-        node = primitive.createScene("Plane")!;
-        node.visibility = VisibilityFlagBits.WORLD
-        node.scale = [6, 1, 6];
-        node.position = [0, 0, 0];
-
         node = new Node;
         const spawn = node.addComponent(Spawn);
         spawn.model = model;
-        spawn.num = 1024;
+        spawn.num = 512;
 
         // UI
         node = new Node;

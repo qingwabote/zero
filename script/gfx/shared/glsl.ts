@@ -36,6 +36,8 @@ export const glsl = {
                         const [_, type, name] = match;
                         members[name] = { type, offset }
                         switch (type) {
+                            case "Instance":
+                                break;
                             case "vec3":
                             case "vec4":
                                 offset += 4;

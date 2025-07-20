@@ -1,3 +1,7 @@
-layout(set = 2, binding = 0) uniform Models {
-    mat4 models[256];
+struct Instance {
+    mat4 model;
+};
+
+layout(set = 2, binding = 0) uniform PerInstance {
+    Instance instances[256];
 };
