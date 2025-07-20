@@ -1,6 +1,6 @@
 import { CachedFactory, empty, RecycleQueue } from "bastard";
 import { device } from "boot";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, Format, InputAssembler, VertexAttribute } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, InputAssembler } from "gfx";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { MemoryView } from "../../core/render/gfx/MemoryView.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
@@ -11,10 +11,8 @@ import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { Transient } from "../../core/render/scene/Transient.js";
-import { gfxUtil } from "../../gfxUtil.js";
 
 class InstancedBatch implements Batch {
-    readonly attributes: Readonly<Record<string, MemoryView>>;
     readonly properties: Readonly<Record<string, MemoryView>>;
 
     private _frozen: Transient = new Transient(0, 0);
@@ -32,37 +30,7 @@ class InstancedBatch implements Batch {
 
     readonly instanced: Batch.ResourceBinding;
 
-    constructor(subMesh: SubMesh, attributes: readonly Model.InstancedAttribute[], properties: DescriptorSetLayout, readonly local?: Batch.ResourceBinding) {
-        const attributeViews: Record<string, BufferView> = {};
-        const ia = gfxUtil.cloneInputAssembler(subMesh.inputAssembler);
-        for (const attr of attributes) {
-            const attribute = new VertexAttribute;
-            attribute.location = attr.location;
-            attribute.format = attr.format;
-            attribute.multiple = attr.multiple || 1;
-            attribute.buffer = ia.vertexInput.buffers.size();
-            attribute.instanced = true;
-            ia.vertexInputState.attributes.add(attribute);
-
-            let view: BufferView;
-            switch (attr.format) {
-                case Format.R16_UINT:
-                    view = new BufferView('u16', BufferUsageFlagBits.VERTEX);
-                    break;
-                case Format.R32_UINT:
-                    view = new BufferView('u32', BufferUsageFlagBits.VERTEX);
-                    break;
-                case Format.RGBA32_SFLOAT:
-                    view = new BufferView('f32', BufferUsageFlagBits.VERTEX);
-                    break;
-                default:
-                    throw new Error(`unsupported attribute format: ${attr.format}`);
-            }
-            ia.vertexInput.buffers.add(view.buffer);
-            ia.vertexInput.offsets.add(0);
-            attributeViews[attr.location] = view;
-        }
-        this.attributes = attributeViews;
+    constructor(subMesh: SubMesh, properties: DescriptorSetLayout, readonly local?: Batch.ResourceBinding) {
         this.inputAssembler = subMesh.inputAssembler;
         this.draw = subMesh.draw;
 
@@ -97,9 +65,6 @@ class InstancedBatch implements Batch {
     }
 
     flush(commandBuffer: CommandBuffer): number {
-        for (const key in this.attributes) {
-            this.attributes[key].update(commandBuffer).reset();
-        }
         for (const key in this.properties) {
             this.properties[key].update(commandBuffer).reset();
         }
@@ -210,12 +175,12 @@ export class ModelPhase extends Phase {
                     }
                     if (!batch) {
                         const local = model.descriptorSet ? { descriptorSetLayout: (model.constructor as typeof Model).descriptorSetLayout!, descriptorSet: model.descriptorSet } : undefined
-                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).attributes, (model.constructor as typeof Model).properties, local));
+                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).properties, local));
                     }
                     if (batch.count == 0) {
                         batches.push(batch);
                     }
-                    model.upload(batch.attributes, batch.properties)
+                    model.upload(batch.properties)
                     batch.next();
                     batch2pass.set(batch, pass);
                 }

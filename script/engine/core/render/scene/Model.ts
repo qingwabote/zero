@@ -1,4 +1,4 @@
-import { DescriptorSet, DescriptorSetLayout, Format } from "gfx";
+import { DescriptorSet, DescriptorSetLayout } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { shaderLib } from "../../shaderLib.js";
 import { MemoryView } from "../gfx/MemoryView.js";
@@ -6,14 +6,6 @@ import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";
 import { Transient } from "./Transient.js";
-
-interface InstancedAttribute {
-    readonly location: number
-    readonly format: Format
-    readonly multiple?: number
-}
-
-const a_model: InstancedAttribute = { location: shaderLib.attributes.model.location, format: Format.RGBA32_SFLOAT, multiple: 4 }
 
 const models = shaderLib.sets.instanced.uniforms.models;
 
@@ -23,10 +15,6 @@ enum ChangeBits {
 }
 
 export class Model {
-    static readonly a_model = a_model;
-
-    static readonly attributes: readonly InstancedAttribute[] = [a_model];
-
     static readonly properties: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([models]);
 
     static readonly descriptorSetLayout?: DescriptorSetLayout = undefined;
@@ -74,13 +62,12 @@ export class Model {
         aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
 
-    upload(attributes: Readonly<Record<string, MemoryView>>, properties: Readonly<Record<string, MemoryView>>) {
-        // attributes[a_model.location].add(this._transform.world_matrix);
+    upload(properties: Readonly<Record<string, MemoryView>>) {
         properties[models.binding].add(this._transform.world_matrix);
     }
 }
 Model.ChangeBits = ChangeBits;
 
 export declare namespace Model {
-    export { InstancedAttribute, ChangeBits }
+    export { ChangeBits }
 }

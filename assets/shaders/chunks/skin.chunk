@@ -1,8 +1,6 @@
 layout(location = 3) in uvec4 a_joints;
 layout(location = 4) in vec4 a_weights;
 
-layout(location = 9) in uint a_jointOffset;
-
 layout(set = 3, binding = 0) uniform sampler2D jointMap;
 
 mat4 skin_jointMatrix(uint offset, uint idx)

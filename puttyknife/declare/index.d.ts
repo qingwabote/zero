@@ -51,5 +51,5 @@ export declare class Runtime {
 
     objAtArr(arr: ObjectHandle, n: number): ObjectHandle;
 
-    cpy32(dest: Pointer, src: Pointer, count: number, dest_offset?: number, src_offset?: number): void;
+    // cpy32(dest: Pointer, src: Pointer, count: number, dest_offset?: number, src_offset?: number): void;
 }
