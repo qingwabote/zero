@@ -10,8 +10,7 @@ export interface Batch {
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
 
-    readonly count: number;
-    readonly instanced: ResourceBinding;
+    readonly instance?: ResourceBinding | undefined;
     readonly local?: ResourceBinding | undefined;
 
     flush(commandBuffer: CommandBuffer): number;

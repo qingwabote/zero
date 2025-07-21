@@ -1,13 +1,10 @@
 import { DescriptorSet, DescriptorSetLayout } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { shaderLib } from "../../shaderLib.js";
 import { MemoryView } from "../gfx/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";
 import { Transient } from "./Transient.js";
-
-const models = shaderLib.sets.instanced.uniforms.models;
 
 enum ChangeBits {
     NONE = 0,
@@ -15,8 +12,6 @@ enum ChangeBits {
 }
 
 export class Model {
-    static readonly properties: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([models]);
-
     static readonly descriptorSetLayout?: DescriptorSetLayout = undefined;
 
     get descriptorSet(): DescriptorSet | undefined {
@@ -62,8 +57,8 @@ export class Model {
         aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
 
-    upload(properties: Readonly<Record<string, MemoryView>>) {
-        properties[models.binding].add(this._transform.world_matrix);
+    upload(data: MemoryView) {
+        data.add(this._transform.world_matrix);
     }
 }
 Model.ChangeBits = ChangeBits;

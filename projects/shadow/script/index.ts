@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, Node, Pipeline, Shader, SkinnedAnimation, SpriteFrame, SpriteRenderer, StrokeRenderer, TextRenderer, Vec3, Zero, bundle as builtin, device, mat3, pipeline, shaderLib, vec3, vec4 } from 'engine';
-import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from 'flex';
+import { Camera, DirectionalLight, GLTF, Node, Pipeline, Shader, SkinnedAnimation, SpriteFrame, SpriteRenderer, StrokeRenderer, TextRenderer, Vec3, Zero, bundle as builtin, device, escapism, mat3, shaderLib, vec3, vec4 } from 'engine';
+import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
     UP: 1 << 1,
@@ -76,7 +76,7 @@ export class App extends Zero {
         const circles: [Vec3, number][] = [
             [vec3.create(0, 0, -1.5), 6],
             [vec3.create(0, 0, -3), 10],
-            [vec3.create(0, 0, -4.5), 444]
+            [vec3.create(0, 0, -4.5), 22]
         ]
         for (let i = 0; i < circles.length; i++) {
             const [origin, steps] = circles[i];
@@ -125,8 +125,7 @@ export class App extends Zero {
             //     }
             // }
         }
-        csm_off.data.on(pipeline.Data.Event.UPDATE, debugDraw)
-        csm_on.data.on(pipeline.Data.Event.UPDATE, debugDraw)
+        this.on(Zero.Phase.PIPELINE_UPDATE, debugDraw)
 
         // UI
         node = new Node;
@@ -150,12 +149,6 @@ export class App extends Zero {
         sprite.setPosition(Edge.Right, 0);
         sprite.setPosition(Edge.Bottom, 0);
         doc.addElement(sprite);
-
-        const profiler = (new Node).addComponent(Profiler)
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
 
         const up_container = Node.build(ElementContainer)
         up_container.setWidth(width);
@@ -235,6 +228,8 @@ export class App extends Zero {
 
         }
         doc.addElement(down_container)
+
+        escapism.escapee.addComponent(escapism.Profiler);
     }
 }
 

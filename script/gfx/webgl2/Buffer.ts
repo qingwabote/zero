@@ -38,8 +38,6 @@ export class Buffer {
 
         const target = usage2target(gl, this.info.usage);
 
-        gl.bindVertexArray(null);
-
         gl.bindBuffer(target, this._impl);
         gl.bufferSubData(target, dst_offset, src, src_offset, src_length);
 

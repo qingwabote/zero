@@ -1,7 +1,6 @@
 import { FNT } from "./assets/FNT.js";
 import { vec2, Vec2Like } from "./core/math/vec2.js";
 import { BufferView } from "./core/render/gfx/BufferView.js";
-import { quad } from "./core/render/quad.js";
 
 const lineBreak = '\n'.charCodeAt(0);
 
@@ -70,8 +69,6 @@ export const bmfont = {
 
             quads++;
         }
-
-        quad.indexGrowTo(quads);
 
         vec2.set(out_min, l, b);
         vec2.set(out_max, r, t);

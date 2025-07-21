@@ -1,11 +1,29 @@
-import { CommandBuffer } from "gfx";
+import { bundle } from "bundling";
+import { BlendFactor, BlendState, CommandBuffer, DepthStencilState } from "gfx";
+import { Shader } from "../assets/Shader.js";
 import { AABB3D } from "../core/math/aabb3d.js";
 import { frustum } from "../core/math/frustum.js";
 import { Vec3 } from "../core/math/vec3.js";
 import { Vec4 } from "../core/math/vec4.js";
 import { Model } from "../core/render/scene/Model.js";
+import { shaderLib } from "../core/shaderLib.js";
+import { Pass } from "../scene/Pass.js";
 import { Stroke } from "../Stroke.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
+
+const primitive = await bundle.cache('./shaders/primitive', Shader);
+
+const pass = (function () {
+    const depthStencilState = new DepthStencilState;
+    depthStencilState.depthTestEnable = true;
+    const blendState = new BlendState;
+    blendState.srcRGB = BlendFactor.SRC_ALPHA;
+    blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
+    blendState.srcAlpha = BlendFactor.ONE;
+    blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
+
+    return new Pass({ shader: shaderLib.getShader(primitive), depthStencilState, blendState })
+})()
 
 export class StrokeRenderer extends BoundedRenderer {
     private readonly _stroke = new Stroke();
@@ -15,7 +33,7 @@ export class StrokeRenderer extends BoundedRenderer {
     }
 
     protected createModel(): Model | null {
-        return new Model(this.node, this._stroke.mesh, [{ passes: [this._stroke.pass] }]);
+        return new Model(this.node, this._stroke.mesh, [{ passes: [pass] }]);
     }
 
     line(from: Readonly<Vec3>, to: Readonly<Vec3>, color: Readonly<Vec4>) {

@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
-import { bundle as builtin, Camera, device, Node, Pipeline, vec3, Zero } from 'engine';
-import { Align, Document, Edge, Justify, PositionType, Profiler, Renderer } from 'flex';
+import { bundle as builtin, Camera, device, escapism, Node, Pipeline, vec3, Zero } from 'engine';
+import { Align, Document, Justify, Renderer } from 'flex';
 import { Atlas, SkeletonAnimation, SkeletonData } from 'spine';
 
 const atlas = await bundle.once('spineboy/spineboy-pma', Atlas);
@@ -50,12 +50,7 @@ export class App extends Zero {
         skeleton.impl.state!.addAnimationByName(0, 'portal', true, 0);
         doc.addElement(skeleton)
 
-        node = new Node(Profiler.name)
-        const profiler = node.addComponent(Profiler)
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
+        escapism.escapee.addComponent(escapism.Profiler);
     }
 }
 

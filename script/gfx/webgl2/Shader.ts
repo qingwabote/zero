@@ -80,8 +80,9 @@ export class Shader {
                 let err = `${types[i] == ShaderStageFlagBits.VERTEX ? "VertexShader" : "FragmentShader"} in compilation failed.\n`
                 err += gl.getShaderInfoLog(shader) + '\n';
                 let lineNumber = 1;
-                err += 'Shader source dump:' + source.replace(/^|\n/g, () => `\n${lineNumber++} `)
-                throw new Error(err);
+                err += 'Shader source dump:' + source.replace(/^|\n/g, () => `\n${lineNumber++} `);
+                console.error(err);
+                return true;
             }
             shaders.push(shader);
         }
@@ -92,7 +93,8 @@ export class Shader {
         }
         gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw new Error('Failed to link shader.\n' + gl.getProgramInfoLog(program))
+            console.error('Failed to link shader.\n' + gl.getProgramInfoLog(program));
+            return true;
         }
 
         //After the link operation, applications are free to modify attached shader objects, compile attached shader objects, detach shader objects, delete shader objects, and attach additional shader objects. None of these operations affects the information log or the program that is part of the program object

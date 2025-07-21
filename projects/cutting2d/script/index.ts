@@ -1,5 +1,5 @@
 import { Camera, Input, Node, Pipeline, TextRenderer, Texture, Zero, bundle as builtin, device, render, safeArea, vec3 } from "engine";
-import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, PositionType, Profiler, Renderer } from "flex";
+import { Align, Document, Edge, ElementContainer, FlexDirection, Gutter, Renderer } from "flex";
 import { CuttingBoard } from "./CuttingBoard.js";
 
 const favicon = await builtin.cache('favicon.ico', Texture);
@@ -97,12 +97,6 @@ export default class App extends Zero {
             }
         })
         doc.addElement(cuttingBoard);
-
-        const profiler = (new Node).addComponent(Profiler)
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
     }
 
     private onPipelineText(pipeline: render.Pipeline, renderer: TextRenderer) {

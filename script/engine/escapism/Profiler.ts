@@ -6,7 +6,7 @@ import { bmfont } from "../bmfont.js";
 import { Component } from "../core/escapism/Component.js";
 import { mat4 } from "../core/math/mat4.js";
 import { vec2 } from "../core/math/vec2.js";
-import { quad } from "../core/render/quad.js";
+import { Quadrat } from "../core/render/Quadrat.js";
 import { Zero } from "../core/Zero.js";
 
 const { width, height } = device.swapchain.color.info;
@@ -105,9 +105,11 @@ descriptorSet.bindTexture(TEXTURE_BINDING, texture.impl, sampler)
 const vec2_a = vec2.create();
 const vec2_b = vec2.create();
 
+const quadrat = new Quadrat;
+
 export class Profiler implements Component {
-    private readonly _vertexView = quad.createVertexBufferView();
-    private readonly _ia = quad.createInputAssembler(this._vertexView.buffer)
+    private readonly _vertexView = quadrat.createVertexBufferView();
+    private readonly _ia = quadrat.createInputAssembler(this._vertexView.buffer)
     private readonly _pipeline: Pipeline;
 
     constructor() {
@@ -136,7 +138,8 @@ pipeline ${Zero.instance.status.pipelines}
 draw     ${Zero.instance.status.draws}`
 
         const quads = bmfont.mesh(this._vertexView.reset(), vec2_a, vec2_b, fnt, text, 0.7, - width / 2 + 30, -height / 2 + 470);
-        quad.indexBufferView.update(cmd);
+        quadrat.reserve(quads);
+        quadrat.update(cmd);
         this._vertexView.update(cmd);
 
         cmd.beginRenderPass(renderPass, framebuffer, 0, 0, width, height);

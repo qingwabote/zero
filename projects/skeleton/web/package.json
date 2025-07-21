@@ -1,5 +1,4 @@
 {
-    "type": "module",
     "scripts": {
         "yaml": "rollup -i ../../../script/engine/node_modules/yaml/browser/index.js -o dist/yaml.js",
         "bastard": "tsc -p ../../../script/bastard --outDir dist/bastard --watch",

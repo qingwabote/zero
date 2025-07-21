@@ -1,7 +1,7 @@
 import { bundle } from 'bundling';
-import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, device, mat3, pipeline, scene, vec3, vec4 } from "engine";
+import { Animation, Camera, DirectionalLight, GLTF, Input, Node, Pipeline, TextRenderer, Zero, aabb3d, device, escapism, mat3, pipeline, scene, vec3, vec4 } from "engine";
 import { ModelTreeNode } from 'engine/scene/ModelTreeNode.js';
-import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Profiler, Renderer } from "flex";
+import { CameraControlPanel, Document, Edge, ElementContainer, PositionType, Renderer } from "flex";
 
 enum VisibilityFlagBits {
     UP = 1 << 1,
@@ -81,7 +81,7 @@ class App extends Zero {
         if (debug) {
             const stroke = (this.pipeline.flows[0].stages[0].phases[1] as pipeline.StrokePhase).stroke;
 
-            this.pipeline.data.on(pipeline.Data.Event.UPDATE, () => {
+            this.on(Zero.Phase.PIPELINE_UPDATE, () => {
                 stroke.clear();
 
                 if (this.pipeline.data.culling) {
@@ -99,6 +99,10 @@ class App extends Zero {
 
                     stroke.frustum(up_camera.frustum.vertices, vec4.ONE);
                 }
+            })
+
+            this.on(Zero.Phase.DEVICE_SYNC, (cmd) => {
+                stroke.upload(cmd)
             })
         }
 
@@ -188,11 +192,7 @@ class App extends Zero {
         }
         doc.addElement(down_container)
 
-        const profiler = Node.build(Profiler);
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
+        escapism.escapee.addComponent(escapism.Profiler);
     }
 }
 

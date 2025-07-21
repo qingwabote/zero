@@ -1,9 +1,9 @@
 
 import { Camera, DirectionalLight, GLTF, MeshRenderer, Node, Pipeline, Zero, bundle, device, vec2, vec3, vec4 } from 'engine';
-import { CameraControl, Document, Edge, PositionType, Profiler } from 'flex';
+import { CameraControl, Document, Edge, PositionType } from 'flex';
 import { BoxShape, DebugDrawer, PhysicsSystem, vehicle } from 'physics';
 import { Frame } from './Frame.js';
-import { FrameRemote } from './FrameRemote.js';
+import { FrameLocal } from './FrameLocal.js';
 import { Joystick } from './Joystick.js';
 import { JoystickInput } from './JoystickInput.js';
 
@@ -48,7 +48,7 @@ const wheel_create_infos = [
 
 const stepTime = 1 / 30;
 
-let frame: Frame = new FrameRemote(stepTime);
+let frame: Frame = new FrameLocal(stepTime);
 
 Zero.unregisterSystem(PhysicsSystem.instance);
 Zero.registerSystem(frame, 1);
@@ -200,13 +200,6 @@ export class App extends Zero {
         joystick.setWidth(height / 4);
         joystick.setHeight(height / 4);
         doc.addElement(joystick);
-
-        node = new Node(Profiler.name)
-        const profiler = node.addComponent(Profiler)
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
     }
 }
 

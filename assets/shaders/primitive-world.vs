@@ -1,5 +1,4 @@
 #include <global/camera>
-#include <instance>
 
 layout(location = 0) in vec4 a_position;
 layout(location = 4) in vec4 a_color;
@@ -8,5 +7,5 @@ layout(location = 0) out vec4 v_color;
 
 void main() {
     v_color = a_color;
-    gl_Position = camera.projection * camera.view * instances[gl_InstanceIndex].model * a_position;
+    gl_Position = camera.projection * camera.view * a_position;
 }

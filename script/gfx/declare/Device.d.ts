@@ -38,7 +38,7 @@ export declare class Device {
     createRenderPass(info: RenderPassInfo): RenderPass;
     createSampler(info: SamplerInfo): Sampler;
     createSemaphore(): Semaphore;
-    createShader(info: ShaderInfo): Shader;
+    createShader(info: ShaderInfo): Shader | null;
     createTexture(info: TextureInfo): Texture;
 
     waitForFence(fence: Fence): void { }

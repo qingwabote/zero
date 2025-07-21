@@ -90,16 +90,16 @@ export class Stage {
                     status.materials++;
                 }
                 for (const batch of batches) {
-                    const count = batch.flush(commandBuffer);
-
-                    commandBuffer.bindDescriptorSet(shaderLib.sets.instanced.index, batch.instanced.descriptorSet);
+                    if (batch.instance) {
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.instance.index, batch.instance.descriptorSet);
+                    }
 
                     if (batch.local && local != batch.local.descriptorSet) {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);
                         local = batch.local.descriptorSet;
                     }
 
-                    const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.instanced.descriptorSetLayout, batch.local?.descriptorSetLayout || descriptorSetLayoutNull]);
+                    const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.instance?.descriptorSetLayout || descriptorSetLayoutNull, batch.local?.descriptorSetLayout || descriptorSetLayoutNull]);
                     if (pipeline != pl) {
                         commandBuffer.bindPipeline(pl);
                         pipeline = pl;
@@ -110,9 +110,9 @@ export class Stage {
                     commandBuffer.bindInputAssembler(batch.inputAssembler);
 
                     if (batch.inputAssembler.indexInput) {
-                        commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, count);
+                        commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.flush(commandBuffer));
                     } else {
-                        commandBuffer.draw(batch.draw.count, batch.draw.first, count);
+                        commandBuffer.draw(batch.draw.count, batch.draw.first, batch.flush(commandBuffer));
                     }
                     status.draws++;
                 }

@@ -1,6 +1,6 @@
 import { Texture } from "gfx";
 import { vec3 } from "../core/math/vec3.js";
-import { quad } from "../core/render/quad.js";
+import { quadrat } from "../core/render/Quadrat.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
 
@@ -15,7 +15,7 @@ export class SpriteFrame {
         const height = texture.info.height / SpriteFrame.PIXELS_PER_UNIT;
 
         const subMesh = new SubMesh(
-            quad.createInputAssembler(quad.createVertexBuffer(width, height)),
+            quadrat.createInputAssembler(quadrat.createVertexBuffer(width, height)),
             {
                 count: 6,
                 first: 0

@@ -4,11 +4,8 @@ import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
 import { Transform } from "../core/render/scene/Transform.js";
-import { shaderLib } from "../core/shaderLib.js";
 import { Skin } from "./Skin.js";
 import { SkinInstance } from "./SkinInstance.js";
-
-const models = shaderLib.sets.instanced.uniforms.models;
 
 export class SkinnedModel extends Model {
     static readonly descriptorSetLayout = Skin.Store.descriptorSetLayout;
@@ -21,12 +18,11 @@ export class SkinnedModel extends Model {
         super(transform, mesh, materials);
     }
 
-    override upload(properties: Readonly<Record<string, MemoryView>>) {
+    override upload(data: MemoryView) {
         this._skin.update();
 
-        const view = properties[models.binding];
-        const offset = view.addBlock(20);
-        view.source.set(this._skin.root.world_matrix, offset);
-        view.source[offset + 16] = this._skin.offset;
+        const offset = data.addBlock(20);
+        data.source.set(this._skin.root.world_matrix, offset);
+        data.source[offset + 16] = this._skin.offset;
     }
 }

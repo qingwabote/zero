@@ -61,12 +61,6 @@ export class App extends Zero {
         doc.setWidth(width);
         doc.setHeight(height);
 
-        // const profiler = (new Node).addComponent(Profiler)
-        // profiler.positionType = PositionType.Absolute;
-        // profiler.setPosition(Edge.Left, 8)
-        // profiler.setPosition(Edge.Bottom, 8)
-        // doc.addElement(profiler);
-
         escapism.escapee.addComponent(escapism.Profiler);
     }
 }

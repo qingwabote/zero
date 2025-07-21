@@ -94,9 +94,11 @@ export class Device implements Device {
         return new Semaphore;
     }
 
-    createShader(info: ShaderInfo): Shader {
+    createShader(info: ShaderInfo): Shader | null {
         const shader = new Shader(this._gl, info);
-        shader.initialize();
+        if (shader.initialize()) {
+            return null;
+        }
         return shader;
     }
 

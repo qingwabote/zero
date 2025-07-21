@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
-import { Animation, AnimationClip, BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, vec3 } from "engine";
-import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Profiler, Renderer, Slider } from 'flex';
+import { Animation, AnimationClip, BlendAnimation, Camera, DirectionalLight, GLTF, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, escapism, vec3 } from "engine";
+import { Align, CameraControlPanel, Document, Edge, ElementContainer, Justify, PositionType, Renderer, Slider } from 'flex';
 
 const gltf = await (await bundle.once('walkrun_and_idle/scene', GLTF)).instantiate({}, function (params: GLTF.MaterialParams) {
     const res = GLTF.materialFuncPhong(params);
@@ -126,11 +126,7 @@ Run  ${weights[2].toFixed(2)}`
 
         doc.addElement(panel);
 
-        const profiler = Node.build(Profiler);
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8);
-        profiler.setPosition(Edge.Bottom, 8);
-        doc.addElement(profiler);
+        escapism.escapee.addComponent(escapism.Profiler);
     }
 }
 

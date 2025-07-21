@@ -1,8 +1,7 @@
 import { CachedFactory, empty, RecycleQueue } from "bastard";
 import { device } from "boot";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, InputAssembler } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, InputAssembler, ShaderStageFlagBits } from "gfx";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
-import { MemoryView } from "../../core/render/gfx/MemoryView.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Phase } from "../../core/render/pipeline/Phase.js";
@@ -10,50 +9,41 @@ import { Scene } from "../../core/render/Scene.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { SubMesh } from "../../core/render/scene/SubMesh.js";
-import { Transient } from "../../core/render/scene/Transient.js";
+import { shaderLib } from "../../core/shaderLib.js";
+
+const instanceLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([{
+    type: DescriptorType.UNIFORM_BUFFER,
+    stageFlags: ShaderStageFlagBits.VERTEX,
+    binding: 0
+}]);
 
 class InstancedBatch implements Batch {
-    readonly properties: Readonly<Record<string, MemoryView>>;
-
-    private _frozen: Transient = new Transient(0, 0);
-    get frozen(): boolean {
-        return this._frozen.value != 0;
-    }
-
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
+
+    readonly instance: Batch.ResourceBinding;
+    readonly data: BufferView;
 
     private _count: number = 0
     get count(): number {
         return this._count;
     }
 
-    readonly instanced: Batch.ResourceBinding;
+    private _frozen = false;
+    get frozen(): boolean {
+        return this._frozen;
+    }
 
-    constructor(subMesh: SubMesh, properties: DescriptorSetLayout, readonly local?: Batch.ResourceBinding) {
+    constructor(subMesh: SubMesh, readonly local?: Batch.ResourceBinding) {
         this.inputAssembler = subMesh.inputAssembler;
         this.draw = subMesh.draw;
 
-        const descriptorSet = device.createDescriptorSet(properties);
-        const propertyViews: Record<string, MemoryView> = {};
-        const bindings = properties.info.bindings;
-        for (let i = 0; i < bindings.size(); i++) {
-            const binding = bindings.get(i);
-            let view: MemoryView;
-            switch (binding.descriptorType) {
-                case DescriptorType.UNIFORM_BUFFER:
-                    const buffer = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, 256 * 16);
-                    descriptorSet.bindBuffer(binding.binding, buffer.buffer);
-                    view = buffer;
-                    break;
-                default:
-                    throw new Error(`unsupported type: ${binding.descriptorType}`);
-            }
-            propertyViews[binding.binding] = view;
-        }
+        const descriptorSet = device.createDescriptorSet(instanceLayout);
+        const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, 256 * 16);
+        descriptorSet.bindBuffer(0, view.buffer);
 
-        this.instanced = { descriptorSetLayout: properties, descriptorSet };
-        this.properties = propertyViews;
+        this.instance = { descriptorSetLayout: instanceLayout, descriptorSet };
+        this.data = view;
     }
 
     next() {
@@ -61,13 +51,12 @@ class InstancedBatch implements Batch {
     }
 
     freeze() {
-        this._frozen.value = 1;
+        this._frozen = true;
     }
 
     flush(commandBuffer: CommandBuffer): number {
-        for (const key in this.properties) {
-            this.properties[key].update(commandBuffer).reset();
-        }
+        this.data.update(commandBuffer).reset();
+        this._frozen = false;
         const count = this._count;
         this._count = 0;
         return count;
@@ -140,6 +129,11 @@ export class ModelPhase extends Phase {
                             batchGroup.delete(pass);
                         }
 
+                        for (const [_, batches] of batchGroup) {
+                            for (const batch of batches) {
+                                (batch as InstancedBatch).freeze();
+                            }
+                        }
                         batchGroup = out.push();
 
                         if (diff == 1 && batches) { // moved to next
@@ -175,18 +169,23 @@ export class ModelPhase extends Phase {
                     }
                     if (!batch) {
                         const local = model.descriptorSet ? { descriptorSetLayout: (model.constructor as typeof Model).descriptorSetLayout!, descriptorSet: model.descriptorSet } : undefined
-                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).properties, local));
+                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], local));
                     }
                     if (batch.count == 0) {
                         batches.push(batch);
                     }
-                    model.upload(batch.properties)
+                    model.upload(batch.data)
                     batch.next();
                     batch2pass.set(batch, pass);
                 }
             }
 
             batchGroup_order = model.order;
+        }
+        for (const [_, batches] of batchGroup) {
+            for (const batch of batches) {
+                (batch as InstancedBatch).freeze();
+            }
         }
     }
 }

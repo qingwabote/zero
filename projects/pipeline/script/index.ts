@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
 import { Animation, Camera, DirectionalLight, Effect, GLTF, Input, Node, Pipeline, TextRenderer, Zero, bundle as builtin, device, render, vec3 } from 'engine';
-import { Align, CameraControlPanel, Document, Edge, ElementContainer, FlexDirection, Gutter, Justify, PositionType, Profiler, Renderer } from 'flex';
+import { Align, CameraControlPanel, Document, Edge, ElementContainer, FlexDirection, Gutter, Justify, PositionType, Renderer } from 'flex';
 
 const VisibilityFlagBits = {
     UI: 1 << 29,
@@ -161,16 +161,10 @@ export class App extends Zero {
         pipelineBar.setPosition(Edge.Top, 30)
         doc.addElement(pipelineBar);
 
-        const profiler = (new Node).addComponent(Profiler)
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
-
         node = guardian.createScene("Sketchfab_Scene")!;
         const animation = node.addComponent(Animation);
         animation.clips = guardian.proto.animationClips;
-        animation.play('WalkCycle')
+        animation.play(0)
         node.visibility = VisibilityFlagBits.DEFAULT;
         node.position = [0, -1, 0]
 

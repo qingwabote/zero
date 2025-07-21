@@ -10,15 +10,6 @@ const attributes = {
     joints: { name: 'a_joints', location: 3 },
     weights: { name: 'a_weights', location: 4 },
     color: { name: 'a_color', location: 4 }, // a_weights and a_color both are vec4 and not exist in same shader, they can share the same location
-
-    // instanced
-
-    model: {
-        name: 'a_model',
-        /**5~8 */
-        location: 5
-    },
-    jointOffset: { name: 'a_skin_index', location: 9 }
 } as const
 
 /**
@@ -28,15 +19,8 @@ const sets = {
     material: {
         index: 1
     },
-    instanced: {
-        index: 2,
-        uniforms: {
-            models: {
-                type: DescriptorType.UNIFORM_BUFFER,
-                stageFlags: ShaderStageFlagBits.VERTEX,
-                binding: 0
-            }
-        }
+    instance: {
+        index: 2
     },
     local: {
         index: 3,
@@ -152,7 +136,7 @@ export const shaderLib = {
 
             const shader = device.createShader(info);
             if (!shader) {
-                throw new Error(`failed to initialize shader: ${shaderKey}`)
+                throw new Error(`failed to initialize shader ${asset.name}`)
             }
             _key2shader[shaderKey] = shader;
             _shader2meta.set(shader, { key: shaderKey, ...glsl.parse(sources, types) });

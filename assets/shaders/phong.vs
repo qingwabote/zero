@@ -1,4 +1,5 @@
 #include <global/camera>
+#include <instance>
 
 layout(location = 0) in vec4 a_position;
 #if USE_ALBEDO_MAP
@@ -15,17 +16,6 @@ layout(location = 2) in vec3 a_normal;
 #endif
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) out vec3 v_position;
-
-struct Instance {
-    mat4 model;
-#if USE_SKIN
-    vec4 joint;
-#endif
-};
-
-layout(set = 2, binding = 0) uniform PerInstance {
-    Instance instances[204];
-};
 
 void main() {
     #if USE_ALBEDO_MAP

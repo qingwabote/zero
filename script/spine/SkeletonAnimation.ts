@@ -1,4 +1,3 @@
-import { CommandBuffer } from "gfx";
 import { pk } from "puttyknife";
 import { AnimationState } from "./AnimationState.js";
 import { SkeletonData } from "./SkeletonData.js";
@@ -24,8 +23,8 @@ export class SkeletonAnimation extends SkeletonRenderer {
         super.data = value;
     }
 
-    override upload(commandBuffer: CommandBuffer): void {
+    override lateUpdate(): void {
         pk.fn.spiAnimationState_apply(this._state!.pointer, this._pointer);
-        super.upload(commandBuffer);
+        super.lateUpdate();
     }
 }

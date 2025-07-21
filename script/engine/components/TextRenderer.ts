@@ -11,8 +11,8 @@ import { AABB3D } from "../core/math/aabb3d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
+import { quadrat } from "../core/render/Quadrat.js";
 import { BufferView } from "../core/render/gfx/BufferView.js";
-import { quad } from "../core/render/quad.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
 import { SubMesh } from "../core/render/scene/SubMesh.js";
@@ -99,8 +99,8 @@ export class TextRenderer extends BoundedRenderer {
     constructor(node: Node) {
         super(node);
 
-        const vertexView = quad.createVertexBufferView();
-        const subMesh: SubMesh = new SubMesh(quad.createInputAssembler(vertexView.buffer));
+        const vertexView = quadrat.createVertexBufferView();
+        const subMesh: SubMesh = new SubMesh(quadrat.createInputAssembler(vertexView.buffer));
 
         this._mesh = new Mesh([subMesh]);
         this._vertexView = vertexView;
@@ -140,7 +140,8 @@ export class TextRenderer extends BoundedRenderer {
             return;
         }
 
-        this._quads = bmfont.mesh(this._vertexView.reset(), vec3_a, vec3_b, fnt, this._text, TextRenderer.PIXELS_PER_UNIT / (this._size / fnt.info.size))
+        this._quads = bmfont.mesh(this._vertexView.reset(), vec3_a, vec3_b, fnt, this._text, TextRenderer.PIXELS_PER_UNIT / (this._size / fnt.info.size));
+        quadrat.reserve(this._quads);
 
         this._dirties = DirtyFlagBits.NONE;
 

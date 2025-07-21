@@ -1,6 +1,6 @@
 import { EventEmitter } from "bastard";
 import * as boot from "boot";
-import { PipelineStageFlagBits, SubmitInfo } from "gfx";
+import { CommandBuffer, PipelineStageFlagBits, SubmitInfo } from "gfx";
 import { Component } from "./Component.js";
 import { Input } from "./Input.js";
 import { Profile } from "./Profile.js";
@@ -9,37 +9,11 @@ import { escapee } from "./escapism/Escapee.js";
 import { ComponentScheduler } from "./internal/ComponentScheduler.js";
 import { TimeScheduler } from "./internal/TimeScheduler.js";
 import { Pipeline } from "./render/Pipeline.js";
+import { quadrat } from "./render/Quadrat.js";
 import { Scene } from "./render/Scene.js";
 import { Status } from "./render/pipeline/Status.js";
-import { quad } from "./render/quad.js";
 import { ModelArray } from "./render/scene/ModelArray.js";
 import { ModelCollection } from "./render/scene/ModelCollection.js";
-
-enum Event {
-    FRAME_START = 'FRAME_START',
-    UPDATE = 'UPDATE',
-    LATE_UPDATE = 'LATE_UPDATE',
-    SCENE_UPDATE = 'SCENE_UPDATE',
-    PIPELINE_UPDATE = 'PIPELINE_UPDATE',
-    SCENE_CULL = 'SCENE_CULL',
-    PIPELINE_BATCH = 'PIPELINE_BATCH',
-    DEVICE_SYNC = 'DEVICE_SYNC',
-    RENDER = 'RENDER',
-    FRAME_END = 'FRAME_END',
-}
-
-interface EventToListener {
-    [Event.FRAME_START]: () => void;
-    [Event.UPDATE]: () => void;
-    [Event.LATE_UPDATE]: () => void;
-    [Event.SCENE_UPDATE]: () => void;
-    [Event.PIPELINE_UPDATE]: () => void;
-    [Event.SCENE_CULL]: () => void;
-    [Event.PIPELINE_BATCH]: () => void;
-    [Event.DEVICE_SYNC]: () => void;
-    [Event.RENDER]: () => void;
-    [Event.FRAME_END]: () => void;
-}
 
 enum Phase {
     UPDATE,
@@ -51,6 +25,17 @@ enum Phase {
     DEVICE_SYNC,
     RENDER,
     _COUNT
+}
+
+interface EventToListener {
+    [Phase.UPDATE]: () => void;
+    [Phase.LATE_UPDATE]: () => void;
+    [Phase.SCENE_UPDATE]: () => void;
+    [Phase.PIPELINE_UPDATE]: () => void;
+    [Phase.SCENE_CULL]: () => void;
+    [Phase.PIPELINE_BATCH]: () => void;
+    [Phase.DEVICE_SYNC]: (cmd: CommandBuffer) => void;
+    [Phase.RENDER]: () => void;
 }
 
 export abstract class Zero extends EventEmitter.Impl<EventToListener> implements boot.EventListener {
@@ -161,8 +146,6 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         this._input.onWheel(event);
     }
     onFrame() {
-        this.emit(Event.FRAME_START);
-
         let time = boot.now();
         let t;
         const delta = (time - this._time) / 1000;
@@ -176,7 +159,7 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         for (const system of this._systems) {
             system.update(delta);
         }
-        this.emit(Event.UPDATE);
+        this.emit(Phase.UPDATE);
 
         // after the update of components and systems
         this._componentScheduler.lateUpdate();
@@ -184,44 +167,44 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         for (const system of this._systems) {
             system.lateUpdate(delta);
         }
-        this.emit(Event.LATE_UPDATE);
+        this.emit(Phase.LATE_UPDATE);
         this.profile.record(Phase.LATE_UPDATE, (t = boot.now()) - time);
         time = t;
 
         this.scene.update();
-        this.emit(Event.SCENE_UPDATE);
+        this.emit(Phase.SCENE_UPDATE);
         this.profile.record(Phase.SCENE_UPDATE, (t = boot.now()) - time);
         time = t;
 
         this._pipeline.update();
-        this.emit(Event.PIPELINE_UPDATE);
+        this.emit(Phase.PIPELINE_UPDATE);
         this.profile.record(Phase.PIPELINE_UPDATE, (t = boot.now()) - time);
         time = t;
 
         this._pipeline.cull();
-        this.emit(Event.SCENE_CULL);
+        this.emit(Phase.SCENE_CULL);
         this.profile.record(Phase.SCENE_CULL, (t = boot.now()) - time);
         time = t;
 
         this._pipeline.batch(this.scene);
-        this.emit(Event.PIPELINE_BATCH);
+        this.emit(Phase.PIPELINE_BATCH);
         this.profile.record(Phase.PIPELINE_BATCH, (t = boot.now()) - time);
         time = t;
 
         boot.device.waitForFence(this._fence);
         boot.device.swapchain.acquire(this._swapchainUsable);
-        this.emit(Event.DEVICE_SYNC);
+        const cmd = this._commandBuffer;
+        cmd.begin();
+        this.emit(Phase.DEVICE_SYNC, cmd);
         this.profile.record(Phase.DEVICE_SYNC, (t = boot.now()) - time);
         time = t;
 
-        const cmd = this._commandBuffer;
-        cmd.begin();
         this._componentScheduler.upload(cmd);
-        quad.indexBufferView.update(cmd);
+        quadrat.update(cmd);
         this._pipeline.render(this.status.clear(), this.scene, cmd);
         escapee.render(cmd);
         cmd.end();
-        this.emit(Event.RENDER);
+        this.emit(Phase.RENDER);
         this.profile.record(Phase.RENDER, (t = boot.now()) - time);
         this.profile.update();
 
@@ -232,14 +215,12 @@ export abstract class Zero extends EventEmitter.Impl<EventToListener> implements
         submitInfo.signalSemaphore = this._queueExecuted;
         boot.device.queue.submit(submitInfo, this._fence);
         boot.device.queue.present(this._queueExecuted);
-        this.emit(Event.FRAME_END);
 
         Zero._frameCount++;
     }
 }
-Zero.Event = Event;
 Zero.Phase = Phase;
 
 export declare namespace Zero {
-    export { Event, Phase }
+    export { Phase }
 }

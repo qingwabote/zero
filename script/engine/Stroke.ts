@@ -1,6 +1,4 @@
-import { bundle } from "bundling";
-import { BlendFactor, BlendState, BufferUsageFlagBits, CommandBuffer, DepthStencilState, Format, FormatInfos, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
-import { Shader } from "./assets/Shader.js";
+import { BufferUsageFlagBits, CommandBuffer, Format, FormatInfos, InputAssembler, PrimitiveTopology, VertexAttribute, VertexAttributeVector } from "gfx";
 import { AABB3D, aabb3d } from "./core/math/aabb3d.js";
 import { frustum } from "./core/math/frustum.js";
 import { vec3, Vec3 } from "./core/math/vec3.js";
@@ -9,21 +7,6 @@ import { BufferView } from "./core/render/gfx/BufferView.js";
 import { Mesh } from "./core/render/scene/Mesh.js";
 import { SubMesh } from "./core/render/scene/SubMesh.js";
 import { shaderLib } from "./core/shaderLib.js";
-import { Pass } from "./scene/Pass.js";
-
-const primitive = await bundle.cache('./shaders/primitive', Shader);
-
-const pass = (function () {
-    const depthStencilState = new DepthStencilState;
-    depthStencilState.depthTestEnable = true;
-    const blendState = new BlendState;
-    blendState.srcRGB = BlendFactor.SRC_ALPHA;
-    blendState.dstRGB = BlendFactor.ONE_MINUS_SRC_ALPHA;
-    blendState.srcAlpha = BlendFactor.ONE;
-    blendState.dstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
-
-    return new Pass({ shader: shaderLib.getShader(primitive), depthStencilState, blendState })
-})()
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
 
@@ -68,8 +51,6 @@ const drawAABB = {
 } as const
 
 export class Stroke {
-    readonly pass = pass;
-
     readonly mesh: Mesh;
 
     private _view = new BufferView('f32', BufferUsageFlagBits.VERTEX);

@@ -111,13 +111,13 @@ export default class PolygonsRenderer extends Element {
             ia.vertexInputState.attributes = vertexAttributes;
             ia.vertexInputState.primitive = PrimitiveTopology.TRIANGLE_LIST;
 
-            const vertexView = new render.BufferView('Float32', BufferUsageFlagBits.VERTEX)
+            const vertexView = new render.BufferView('f32', BufferUsageFlagBits.VERTEX)
             const vertexInput = new VertexInput;
             vertexInput.buffers.add(vertexView.buffer);
             vertexInput.offsets.add(0);
             ia.vertexInput = vertexInput;
 
-            const indexView = new render.BufferView('Uint16', BufferUsageFlagBits.INDEX);
+            const indexView = new render.BufferView('u16', BufferUsageFlagBits.INDEX);
             const indexInput = new IndexInput;
             indexInput.buffer = indexView.buffer;
             indexInput.type = IndexType.UINT16;

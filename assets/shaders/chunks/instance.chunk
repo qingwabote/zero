@@ -1,7 +1,10 @@
 struct Instance {
     mat4 model;
+#if USE_SKIN
+    vec4 joint;
+#endif
 };
 
 layout(set = 2, binding = 0) uniform PerInstance {
-    Instance instances[256];
+    Instance instances[204];
 };

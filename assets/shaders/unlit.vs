@@ -1,5 +1,5 @@
 #include <global/camera>
-#include <local>
+#include <instance>
 
 layout(location = 0) in vec4 a_position;
 layout(location = 1) in vec2 a_texcoord;

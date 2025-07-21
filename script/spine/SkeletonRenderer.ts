@@ -17,7 +17,7 @@ const [VERTEX_ATTRIBUTES, VERTEX_ELEMENTS] = (function () {
     const texCoord = new VertexAttribute;
     texCoord.format = Format.RG32_SFLOAT;
     texCoord.offset = FormatInfos[position.format].bytes;
-    texCoord.location = shaderLib.attributes.uv.location;
+    texCoord.location = shaderLib.attributes.texcoord.location;
     attributes.add(texCoord);
     elements += FormatInfos[texCoord.format].elements;
 
@@ -129,7 +129,6 @@ export class SkeletonRenderer extends BoundedRenderer {
 
     override lateUpdate(): void {
         pk.fn.spiModel_update(this._spiModel, this._pointer);
-
         this._materials.length = 0;
         const subModelsSize = pk.fn.spiModel_getSubModelsSize(this._spiModel);
         const subModels = pk.fn.spiModel_getSubModels(this._spiModel);
