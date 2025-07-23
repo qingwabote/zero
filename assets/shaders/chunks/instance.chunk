@@ -5,6 +5,12 @@ struct Instance {
 #endif
 };
 
-layout(set = 2, binding = 0) uniform PerInstance {
-    Instance instances[204];
+#if USE_SKIN
+    #define INSTANCE_NUM 204
+#else
+    #define INSTANCE_NUM 256
+#endif
+
+layout(set = 2, binding = 0) uniform PerDraw {
+    Instance instances[INSTANCE_NUM];
 };

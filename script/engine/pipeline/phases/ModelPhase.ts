@@ -17,6 +17,8 @@ const instanceLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout(
     binding: 0
 }]);
 
+const INSTANCE_UBO_LENGTH = 16 * 1024 / 4;
+
 class InstancedBatch implements Batch {
     readonly inputAssembler: InputAssembler;
     readonly draw: Readonly<SubMesh.Draw>;
@@ -39,7 +41,7 @@ class InstancedBatch implements Batch {
         this.draw = subMesh.draw;
 
         const descriptorSet = device.createDescriptorSet(instanceLayout);
-        const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, 256 * 16);
+        const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, INSTANCE_UBO_LENGTH);
         descriptorSet.bindBuffer(0, view.buffer);
 
         this.instance = { descriptorSetLayout: instanceLayout, descriptorSet };
