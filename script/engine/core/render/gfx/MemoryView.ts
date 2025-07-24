@@ -86,19 +86,20 @@ export abstract class MemoryView {
     }
 
     reset(length: number = this._length_default): this {
-        const old = this.reserve(length);
-        if (old) {
-            pk.heap.delBuffer(old.handle);
+        const handle = this._handle;
+        if (this.reserve(length)) {
+            pk.heap.delBuffer(handle);
         }
         this._length = length;
         return this;
     }
 
     resize(length: number) {
-        const old = this.reserve(length);
-        if (old) {
-            this.set(old.source);
-            pk.heap.delBuffer(old.handle);
+        const source = this._source;
+        const handle = this._handle;
+        if (this.reserve(length)) {
+            this._source.set(source);
+            pk.heap.delBuffer(handle);
         }
         this._length = length;
     }
@@ -119,15 +120,14 @@ export abstract class MemoryView {
         return this;
     }
 
-    protected reserve(capacity: number): { handle: pk.BufferHandle, source: pk.TypedArray } | null {
+    protected reserve(capacity: number): boolean {
         if (this._source.length >= capacity) {
-            return null;
+            return false;
         }
-        const old = { handle: this._handle, source: this._source };
         const handle = pk.heap.newBuffer(capacity * format2bytes(this._format), 0);
         this._source = pk.heap.getBuffer(handle, this._format, capacity);
         this._handle = handle;
-        return old;
+        return true;
     }
 
     protected abstract upload(commandBuffer: CommandBuffer, offset: number, length: number): void;
