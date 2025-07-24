@@ -1,6 +1,6 @@
 import { RecycleQueue } from "bastard";
 import { device } from "boot";
-import { ClearFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { shaderLib } from "../../shaderLib.js";
 import { Scene } from "../Scene.js";
@@ -9,7 +9,7 @@ import { Pass } from "../scene/Pass.js";
 import { Batch } from "./Batch.js";
 import { FlowContext } from "./FlowContext.js";
 import { Phase } from "./Phase.js";
-import { getRenderPass } from "./rpc.js";
+import { ClearFlagBits, getRenderPass } from "./rpc.js";
 import { Status } from "./Status.js";
 
 const descriptorSetLayoutNull = device.createDescriptorSetLayout(new DescriptorSetLayoutInfo);

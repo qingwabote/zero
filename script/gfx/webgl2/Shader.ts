@@ -1,6 +1,6 @@
+import { ShaderStageFlagBits } from "./constant.js";
 import { ShaderInfo } from "./info.js";
 import { PipelineLayout } from "./PipelineLayout.js";
-import { ShaderStageFlagBits } from "./shared/constants.js";
 import { glsl } from "./shared/glsl.js";
 
 export class Shader {

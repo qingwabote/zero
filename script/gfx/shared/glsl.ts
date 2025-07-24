@@ -1,4 +1,5 @@
-import { ShaderStageFlagBits } from "./constants.js";
+import type { ShaderStageFlagBits } from "../constant.js";
+import { or } from "./bit.js";
 
 interface UniformMember {
     readonly type: string
@@ -50,10 +51,10 @@ export const glsl = {
                         }
                     }
                     const block = blocks[name];
-                    blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, size: offset, stageFlags: block ? types[i] | block.stageFlags : types[i] };
+                    blocks[name] = { set: parseInt(set), binding: parseInt(binding), members, size: offset, stageFlags: block ? or(types[i], block.stageFlags) : types[i] };
                 } else if (type == 'sampler2D') {
                     const samplerTexture = samplerTextures[name];
-                    samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding), stageFlags: samplerTexture ? types[i] | samplerTexture.stageFlags : types[i] };
+                    samplerTextures[name] = { set: parseInt(set), binding: parseInt(binding), stageFlags: samplerTexture ? or(types[i], samplerTexture.stageFlags) : types[i] };
                 }
             }
         }

@@ -1,11 +1,12 @@
 import { Buffer } from "./Buffer.js";
 import { CommandBuffer } from "./CommandBuffer.js";
+import { BlendFactor, BufferUsageFlagBits, Filter, PrimitiveTopology, ShaderStageFlagBits } from "./constant.js";
 import { DescriptorSetLayout } from "./DescriptorSetLayout.js";
 import { PipelineLayout } from "./PipelineLayout.js";
 import { RenderPass } from "./RenderPass.js";
 import { Semaphore } from "./Semaphore.js";
 import { Shader } from "./Shader.js";
-import { BlendFactor, BufferUsageFlagBits, CullMode, DescriptorType, Filter, Format, ImageLayout, IndexType, LOAD_OP, PipelineStageFlagBits, PrimitiveTopology, SampleCountFlagBits, ShaderStageFlagBits, TextureUsageFlagBits } from "./shared/constants.js";
+import { CullMode, DescriptorType, Format, ImageLayout, IndexType, LOAD_OP, PipelineStageFlagBits, SampleCountFlagBits, TextureUsageFlagBits } from "./shared/constants.js";
 import { Texture } from "./Texture.js";
 
 export abstract class Vector<T> {
@@ -28,7 +29,7 @@ export class StringVector extends Vector<string> { };
 
 
 export class BufferInfo {
-    usage: BufferUsageFlagBits = 0;
+    usage: BufferUsageFlagBits = BufferUsageFlagBits.NONE;
     size: number = 0;
 }
 
@@ -36,7 +37,7 @@ export class DescriptorSetLayoutBinding {
     binding: number = 0;
     descriptorType: DescriptorType = 0;
     descriptorCount: number = 0;
-    stageFlags: ShaderStageFlagBits = 0;
+    stageFlags: ShaderStageFlagBits = ShaderStageFlagBits.NONE;
 }
 export class DescriptorSetLayoutBindingVector extends Vector<DescriptorSetLayoutBinding> { };
 export class DescriptorSetLayoutInfo {
@@ -77,13 +78,13 @@ export class FramebufferInfo {
 }
 
 export class SamplerInfo {
-    magFilter: Filter = 0;
-    minFilter: Filter = 0;
+    magFilter = Filter.NEAREST;
+    minFilter = Filter.NEAREST;
 }
 
 export class ShaderInfo {
     sources: StringVector = new StringVector;
-    types: Uint32Vector = new Uint32Vector;
+    types: Vector<ShaderStageFlagBits> = new Uint32Vector as unknown as Vector<ShaderStageFlagBits>;
 }
 
 export class DescriptorSetLayoutVector extends Vector<DescriptorSetLayout> { };
@@ -104,7 +105,7 @@ export class VertexAttributeVector extends Vector<VertexAttribute> { };
 
 export class VertexInputState {
     attributes = new VertexAttributeVector;
-    primitive = (0 as PrimitiveTopology);
+    primitive: PrimitiveTopology = PrimitiveTopology.POINT_LIST;
 }
 
 export class BufferVector extends Vector<Buffer> { };
@@ -131,10 +132,10 @@ export class DepthStencilState {
 }
 
 export class BlendState {
-    srcRGB: BlendFactor = 0;
-    dstRGB: BlendFactor = 0;
-    srcAlpha: BlendFactor = 0;
-    dstAlpha: BlendFactor = 0;
+    srcRGB: BlendFactor = BlendFactor.ZERO;
+    dstRGB: BlendFactor = BlendFactor.ZERO;
+    srcAlpha: BlendFactor = BlendFactor.ZERO;
+    dstAlpha: BlendFactor = BlendFactor.ZERO;
 }
 
 export class PipelineInfo implements PipelineInfo {

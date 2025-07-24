@@ -1,7 +1,7 @@
-import { ClearFlagBits } from "gfx";
 import { Component } from "../core/Component.js";
 import { Zero } from "../core/Zero.js";
 import { Vec4 } from "../core/math/vec4.js";
+import { ClearFlagBits } from "../core/render/pipeline/rpc.js";
 import { Camera as render_Camera } from "../core/render/scene/Camera.js";
 
 export class Camera extends Component {

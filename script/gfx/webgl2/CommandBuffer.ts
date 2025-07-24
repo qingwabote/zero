@@ -6,18 +6,7 @@ import { RenderPass } from "./RenderPass.js";
 import { Texture } from "./Texture.js";
 import { AttachmentDescription, InputAssembler, Uint32Vector, Vector, VertexAttribute } from "./info.js";
 import { Formats } from "./internal/mapping.js";
-import { BlendFactor, CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP, PrimitiveTopology } from "./shared/constants.js";
-
-function bendFactor2WebGL(gl: WebGL2RenderingContext, factor: BlendFactor): GLenum {
-    switch (factor) {
-        case BlendFactor.ZERO: return gl.ZERO;
-        case BlendFactor.ONE: return gl.ONE;
-        case BlendFactor.SRC_ALPHA: return gl.SRC_ALPHA;
-        case BlendFactor.DST_ALPHA: return gl.DST_ALPHA;
-        case BlendFactor.ONE_MINUS_SRC_ALPHA: return gl.ONE_MINUS_SRC_ALPHA;
-        case BlendFactor.ONE_MINUS_DST_ALPHA: return gl.ONE_MINUS_DST_ALPHA;
-    }
-}
+import { CullMode, DescriptorType, Format, FormatInfos, IndexType, LOAD_OP } from "./shared/constants.js";
 
 const input2vao: WeakMap<InputAssembler, WebGLVertexArrayObject> = new WeakMap;
 
@@ -113,10 +102,10 @@ export class CommandBuffer {
         const blendState = info.blendState;
         if (blendState) {
             gl.blendFuncSeparate(
-                bendFactor2WebGL(gl, blendState.srcRGB),
-                bendFactor2WebGL(gl, blendState.dstRGB),
-                bendFactor2WebGL(gl, blendState.srcAlpha),
-                bendFactor2WebGL(gl, blendState.dstAlpha),
+                blendState.srcRGB as unknown as GLenum,
+                blendState.dstRGB as unknown as GLenum,
+                blendState.srcAlpha as unknown as GLenum,
+                blendState.dstAlpha as unknown as GLenum,
             );
             gl.enable(gl.BLEND);
         } else {
@@ -218,20 +207,7 @@ export class CommandBuffer {
         this.bindDescriptorSets();
 
         const gl = this._gl;
-
-        let mode: GLenum;
-        switch (this._inputAssembler.vertexInputState.primitive) {
-            case PrimitiveTopology.LINE_LIST:
-                mode = gl.LINES;
-                break;
-            case PrimitiveTopology.TRIANGLE_LIST:
-                mode = gl.TRIANGLES;
-                break;
-            default:
-                throw new Error(`unsupported primitive: ${this._inputAssembler.vertexInputState.primitive}`)
-        }
-
-        gl.drawArraysInstanced(mode, firstVertex, vertexCount, instanceCount);
+        gl.drawArraysInstanced(this._inputAssembler.vertexInputState.primitive as unknown as GLenum, firstVertex, vertexCount, instanceCount);
         gl.bindVertexArray(null);
     }
 

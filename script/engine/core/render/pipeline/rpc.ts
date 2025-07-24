@@ -1,7 +1,13 @@
 import { device } from "boot";
-import { AttachmentDescription, ClearFlagBits, FramebufferInfo, ImageLayout, LOAD_OP, RenderPass, RenderPassInfo, TextureUsageFlagBits } from "gfx";
+import { AttachmentDescription, FramebufferInfo, ImageLayout, LOAD_OP, RenderPass, RenderPassInfo, TextureUsageFlagBits } from "gfx";
 
 const framebuffer2clearFlags2renderPass: Map<FramebufferInfo, Record<string, RenderPass>> = new Map;
+
+export enum ClearFlagBits {
+    NONE = 0,
+    COLOR = 0x1,
+    DEPTH = 0x2
+}
 
 export function getRenderPass(framebuffer: FramebufferInfo, clears = ClearFlagBits.NONE) {
     let clearFlags2renderPass = framebuffer2clearFlags2renderPass.get(framebuffer);

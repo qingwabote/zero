@@ -1,9 +1,9 @@
 import { device } from "boot";
-import { ClearFlagBits } from "gfx";
 import { Mat4, mat4 } from "../../math/mat4.js";
 import { Vec2Like, vec2 } from "../../math/vec2.js";
 import { Vec3Like, vec3 } from "../../math/vec3.js";
 import { Vec4, vec4 } from "../../math/vec4.js";
+import { ClearFlagBits } from "../pipeline/rpc.js";
 import { Frustum } from "./Frustum.js";
 import { Transform } from "./Transform.js";
 import { Transient } from "./Transient.js";

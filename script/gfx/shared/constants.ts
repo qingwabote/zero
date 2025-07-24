@@ -39,22 +39,6 @@ export const FormatInfos: Readonly<Record<Format, FormatInfo>> = {
     [Format.D32_SFLOAT]: { name: "D32_SFLOAT", bytes: 44, elements: 1 },
 }
 
-// copy values from VkBufferUsageFlagBits in vulkan_core.h
-export enum BufferUsageFlagBits {
-    NONE = 0,
-    TRANSFER_DST = 0x00000002,
-    UNIFORM = 0x00000010,
-    INDEX = 0x00000040,
-    VERTEX = 0x00000080,
-}
-
-// copy values from VkShaderStageFlagBits in vulkan_core.h
-export enum ShaderStageFlagBits {
-    NONE = 0,
-    VERTEX = 0x1,
-    FRAGMENT = 0x10
-}
-
 // copy values from VkDescriptorType in vulkan_core.h
 export enum DescriptorType {
     NONE = 0,
@@ -96,11 +80,6 @@ export enum ImageLayout {
     PRESENT_SRC = 1000001002,
 }
 
-// copy values from VkFilter in vulkan_core.h
-export enum Filter {
-    NEAREST = 0,
-    LINEAR = 1
-}
 // copy values from VkSamplerAddressMode in vulkan_core.h
 // export enum Address {
 //     REPEAT = 0,
@@ -119,38 +98,7 @@ export enum CullMode {
     BACK = 0x00000002,
 }
 
-// copy values from VkBlendFactor in vulkan_core.h
-export enum BlendFactor {
-    ZERO = 0,
-    ONE = 1,
-    SRC_ALPHA = 6,
-    ONE_MINUS_SRC_ALPHA = 7,
-    DST_ALPHA = 8,
-    ONE_MINUS_DST_ALPHA = 9,
-    // SRC_COLOR,
-    // DST_COLOR,
-    // ONE_MINUS_SRC_COLOR,
-    // ONE_MINUS_DST_COLOR,
-    // SRC_ALPHA_SATURATE,
-    // CONSTANT_COLOR,
-    // ONE_MINUS_CONSTANT_COLOR,
-    // CONSTANT_ALPHA,
-    // ONE_MINUS_CONSTANT_ALPHA,
-}
-
-// copy values from VkPrimitiveTopology in vulkan_core.h
-export enum PrimitiveTopology {
-    LINE_LIST = 1,
-    TRIANGLE_LIST = 3
-}
-
 // copy values from VkPipelineStageFlagBits in vulkan_core.h
 export enum PipelineStageFlagBits {
     COLOR_ATTACHMENT_OUTPUT = 0x00000400
-}
-
-export enum ClearFlagBits {
-    NONE = 0,
-    COLOR = 0x1,
-    DEPTH = 0x2
 }

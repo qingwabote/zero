@@ -1,4 +1,4 @@
-import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { bit, Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { UBO } from "../../core/render/pipeline/UBO.js";
 import { Scene } from "../../core/render/Scene.js";
@@ -6,7 +6,7 @@ import { Camera } from "../../core/render/scene/Camera.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
-    stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
+    stageFlags: bit.or<ShaderStageFlagBits>(ShaderStageFlagBits.VERTEX, ShaderStageFlagBits.FRAGMENT),
     members: {
         view: {
             offset: 0

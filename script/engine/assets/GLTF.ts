@@ -3,7 +3,7 @@
 import { Asset, cache } from "assets";
 import { device, load } from "boot";
 import { bundle } from "bundling";
-import { Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
+import { bit, Buffer, BufferInfo, BufferUsageFlagBits, Format, FormatInfos, IndexInput, IndexType, InputAssembler, PrimitiveTopology, VertexAttribute } from "gfx";
 import { pk } from "puttyknife";
 import { AnimationClip } from "../animating/AnimationClip.js";
 import { MeshRenderer } from "../components/MeshRenderer.js";
@@ -166,7 +166,7 @@ export class GLTF implements Asset {
             const buffers: Buffer[] = [];
             function getBuffer(index: number, usage: BufferUsageFlagBits): Buffer {
                 if (index in buffers) {
-                    if ((buffers[index].info.usage & usage) != usage) {
+                    if (!bit.has(buffers[index].info.usage, usage)) {
                         throw new Error(`buffer.info.usage(${buffers[index].info.usage}) & usage(${usage})) != usage`);
                     }
                     return buffers[index];

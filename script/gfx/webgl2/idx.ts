@@ -1,5 +1,6 @@
 export * from './Buffer.js';
 export * from './CommandBuffer.js';
+export * from './constant.js';
 export * from './DescriptorSet.js';
 export * from './DescriptorSetLayout.js';
 export * from './Device.js';

@@ -3,9 +3,9 @@ import { Filter, Sampler, SamplerInfo } from "gfx";
 
 const hash2sampler: Map<number, Sampler> = new Map;
 
-export function getSampler(minFilter = Filter.LINEAR, magFilter = Filter.LINEAR) {
-    let hash = minFilter;
-    hash |= (magFilter << 2);
+export function getSampler(minFilter: Filter = Filter.LINEAR, magFilter: Filter = Filter.LINEAR) {
+    let hash = minFilter as unknown as number;
+    hash |= (magFilter as unknown as number << 2);
     let sampler = hash2sampler.get(hash);
     if (!sampler) {
         const info = new SamplerInfo;

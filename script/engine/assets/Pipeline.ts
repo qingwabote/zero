@@ -112,7 +112,7 @@ interface Framebuffer {
     samples?: number;
 }
 
-type Clear = keyof typeof gfx.ClearFlagBits;
+type Clear = keyof typeof pipeline.ClearFlagBits;
 
 interface CameraUBO {
     type: 'Camera';
@@ -286,11 +286,11 @@ export class Pipeline extends Yml {
                     }
                     let framebuffer: gfx.Framebuffer | undefined;
                     let viewport = _flow?.stages?.[i].viewport;
-                    let clears: gfx.ClearFlagBits | undefined;
+                    let clears: pipeline.ClearFlagBits | undefined;
                     if (stage.clears) {
-                        clears = gfx.ClearFlagBits.NONE;
+                        clears = pipeline.ClearFlagBits.NONE;
                         for (const clear of stage.clears) {
-                            clears |= gfx.ClearFlagBits[clear];
+                            clears |= pipeline.ClearFlagBits[clear];
                         }
                     }
                     if (stage.framebuffer) {

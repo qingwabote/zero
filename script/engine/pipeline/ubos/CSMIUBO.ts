@@ -1,4 +1,4 @@
-import { Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { bit, Buffer, BufferUsageFlagBits, CommandBuffer, DescriptorType, ShaderStageFlagBits } from "gfx";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { Data } from "../../core/render/pipeline/Data.js";
 import { Shadow } from "../../core/render/pipeline/data/Shadow.js";
@@ -7,7 +7,7 @@ import { Scene } from "../../core/render/Scene.js";
 
 const Block = {
     type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
-    stageFlags: ShaderStageFlagBits.VERTEX | ShaderStageFlagBits.FRAGMENT,
+    stageFlags: bit.or<ShaderStageFlagBits>(ShaderStageFlagBits.VERTEX, ShaderStageFlagBits.FRAGMENT),
     members: {
         viewProj: {}
     }

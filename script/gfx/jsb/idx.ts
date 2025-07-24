@@ -1,5 +1,7 @@
 export * from './shared/index.js';
 
+export * from './constant.js';
+
 export const {
     Vector,
     FloatVector,
