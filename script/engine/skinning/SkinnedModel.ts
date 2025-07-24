@@ -1,5 +1,4 @@
 import { DescriptorSet } from "gfx";
-import { MemoryView } from "../core/render/gfx/MemoryView.js";
 import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
@@ -10,6 +9,8 @@ import { SkinInstance } from "./SkinInstance.js";
 export class SkinnedModel extends Model {
     static readonly descriptorSetLayout = Skin.Store.descriptorSetLayout;
 
+    static readonly INSTANCE_STRIDE = 20;
+
     get descriptorSet(): DescriptorSet {
         return this._skin.store.descriptorSet;
     }
@@ -18,11 +19,10 @@ export class SkinnedModel extends Model {
         super(transform, mesh, materials);
     }
 
-    override upload(data: MemoryView) {
+    upload(out: Float32Array, offset: number) {
         this._skin.update();
 
-        const offset = data.addBlock(20);
-        data.source.set(this._skin.root.world_matrix, offset);
-        data.source[offset + 16] = this._skin.offset;
+        out.set(this._skin.root.world_matrix, offset);
+        out[offset + 16] = this._skin.offset;
     }
 }

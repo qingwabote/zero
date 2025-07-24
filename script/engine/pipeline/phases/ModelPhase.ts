@@ -36,7 +36,7 @@ class InstancedBatch implements Batch {
         return this._frozen;
     }
 
-    constructor(subMesh: SubMesh, readonly local?: Batch.ResourceBinding) {
+    constructor(subMesh: SubMesh, private readonly _stride: number, readonly local?: Batch.ResourceBinding) {
         this.inputAssembler = subMesh.inputAssembler;
         this.draw = subMesh.draw;
 
@@ -48,8 +48,9 @@ class InstancedBatch implements Batch {
         this.data = view;
     }
 
-    next() {
+    add(): number {
         this._count++;
+        return this.data.addBlock(this._stride);
     }
 
     freeze() {
@@ -171,13 +172,13 @@ export class ModelPhase extends Phase {
                     }
                     if (!batch) {
                         const local = model.descriptorSet ? { descriptorSetLayout: (model.constructor as typeof Model).descriptorSetLayout!, descriptorSet: model.descriptorSet } : undefined
-                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], local));
+                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).INSTANCE_STRIDE, local));
                     }
                     if (batch.count == 0) {
                         batches.push(batch);
                     }
-                    model.upload(batch.data)
-                    batch.next();
+                    const offset = batch.add();
+                    model.upload(batch.data.source, offset)
                     batch2pass.set(batch, pass);
                 }
             }

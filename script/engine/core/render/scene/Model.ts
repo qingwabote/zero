@@ -1,6 +1,5 @@
 import { DescriptorSet, DescriptorSetLayout } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
-import { MemoryView } from "../gfx/MemoryView.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
 import { Transform } from "./Transform.js";
@@ -11,8 +10,15 @@ enum ChangeBits {
     BOUNDS = 1 << 0,
 }
 
+type Store = {
+    [index: number]: number;
+    set(array: ArrayLike<number>, offset?: number): void;
+}
+
 export class Model {
     static readonly descriptorSetLayout?: DescriptorSetLayout = undefined;
+
+    static readonly INSTANCE_STRIDE: number = 16;
 
     get descriptorSet(): DescriptorSet | undefined {
         return undefined;
@@ -57,8 +63,8 @@ export class Model {
         aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
 
-    upload(data: MemoryView) {
-        data.add(this._transform.world_matrix);
+    upload(out: Store, offset: number) {
+        out.set(this._transform.world_matrix, offset);
     }
 }
 Model.ChangeBits = ChangeBits;
