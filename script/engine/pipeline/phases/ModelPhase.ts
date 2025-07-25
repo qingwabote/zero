@@ -12,12 +12,15 @@ import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const instanceLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([{
-    type: DescriptorType.UNIFORM_BUFFER,
+    type: DescriptorType.UNIFORM_BUFFER_DYNAMIC,
     stageFlags: ShaderStageFlagBits.VERTEX,
     binding: 0
 }]);
 
-const INSTANCE_UBO_LENGTH = 16 * 1024 / 4;
+if (device.capabilities.uniformBufferOffsetAlignment % 4 != 0) {
+    throw new Error(`unexpected uniformBufferOffsetAlignment ${device.capabilities.uniformBufferOffsetAlignment}`);
+}
+const alignment = device.capabilities.uniformBufferOffsetAlignment / 4;
 
 class InstancedBatch implements Batch {
     readonly inputAssembler: InputAssembler;
@@ -36,33 +39,63 @@ class InstancedBatch implements Batch {
         return this._frozen;
     }
 
+    private _current: [number, number] = [0, 0];
+
     constructor(subMesh: SubMesh, private readonly _stride: number, readonly local?: Batch.ResourceBinding) {
         this.inputAssembler = subMesh.inputAssembler;
         this.draw = subMesh.draw;
 
+        const range_instances = Math.floor(4096 / _stride);
+        const range_floats = _stride * range_instances;
+
+        const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, range_floats);
         const descriptorSet = device.createDescriptorSet(instanceLayout);
-        const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, INSTANCE_UBO_LENGTH);
-        descriptorSet.bindBuffer(0, view.buffer);
+        descriptorSet.bindBuffer(0, view.buffer, range_floats * 4);
 
         this.instance = { descriptorSetLayout: instanceLayout, descriptorSet };
         this.data = view;
     }
 
     add(): number {
-        this._count++;
-        return this.data.addBlock(this._stride);
+        const stride = this._stride;
+        const count = ++this._count;
+
+        const range_instances = Math.floor(4096 / stride);
+        const range_floats = stride * range_instances;
+        const gap = alignment - range_floats % alignment;
+        const n = Math.ceil(count / range_instances);
+
+        this.data.resize((range_floats + gap) * n);
+
+        return stride * (count - 1) + gap * (n - 1);
     }
 
     freeze() {
         this._frozen = true;
     }
 
-    flush(commandBuffer: CommandBuffer): number {
-        this.data.update(commandBuffer).reset();
-        this._frozen = false;
+    *flush(commandBuffer: CommandBuffer): IterableIterator<[number, number]> {
+        const stride = this._stride;
         const count = this._count;
+
+        const range_instances = Math.floor(4096 / stride);
+        const range_floats = stride * range_instances;
+        const gap = alignment - range_floats % alignment;
+        const n = Math.ceil(count / range_instances);
+
+        this.data.invalidate(0, stride * count + gap * (n - 1))
+        this.data.update(commandBuffer);
+
+        const current = this._current;
+        for (let i = 0; i < n; i++) {
+            current[0] = Math.min(range_instances, count - range_instances * i);
+            current[1] = (range_floats + gap) * i * 4;
+            yield current;
+        }
+
+        this.data.reset();
         this._count = 0;
-        return count;
+        this._frozen = false;
     }
 }
 
@@ -154,10 +187,6 @@ export class ModelPhase extends Phase {
                     cache_keys[1] = model.descriptorSet || empty.obj as DescriptorSet;
                     const bucket = cache.get(cache_keys);
                     for (const bat of bucket) {
-                        if (bat.count > 203) {
-                            continue;
-                        }
-
                         if (bat.frozen) {
                             continue;
                         }

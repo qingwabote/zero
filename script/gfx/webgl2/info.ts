@@ -10,7 +10,7 @@ import { CullMode, DescriptorType, Format, ImageLayout, IndexType, LOAD_OP, Pipe
 import { Texture } from "./Texture.js";
 
 export abstract class Vector<T> {
-    data: Array<T> = [];
+    readonly data: Array<T> = [];
 
     size(): number {
         return this.data.length
@@ -20,6 +20,9 @@ export abstract class Vector<T> {
     }
     add(v: T): void {
         this.data.push(v);
+    }
+    set(i: number, v: T): void {
+        this.data[i] = v;
     }
 }
 

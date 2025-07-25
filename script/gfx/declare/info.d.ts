@@ -13,6 +13,7 @@ export declare abstract class Vector<T> {
     size(): number;
     get(i: number): T;
     add(v: T): void;
+    set(i: number, v: T): void;
 }
 
 export declare class FloatVector extends Vector<number> { }

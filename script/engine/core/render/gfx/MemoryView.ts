@@ -80,9 +80,9 @@ export abstract class MemoryView {
         return offset;
     }
 
-    invalidate(offset: number, length: number) {
-        this._invalidated_start = Math.min(offset, this._invalidated_start);
-        this._invalidated_end = Math.max(offset + length, this._invalidated_end);
+    invalidate(start: number, length: number) {
+        this._invalidated_start = Math.min(start, this._invalidated_start);
+        this._invalidated_end = Math.max(start + length, this._invalidated_end);
     }
 
     reset(length: number = this._length_default): this {

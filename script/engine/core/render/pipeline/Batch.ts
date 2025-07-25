@@ -13,7 +13,7 @@ export interface Batch {
     readonly instance?: ResourceBinding | undefined;
     readonly local?: ResourceBinding | undefined;
 
-    flush(commandBuffer: CommandBuffer): number;
+    flush(commandBuffer: CommandBuffer): IterableIterator<[number, number]>;
 }
 
 export declare namespace Batch {

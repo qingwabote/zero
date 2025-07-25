@@ -119,6 +119,8 @@ export class CommandBuffer {
         this._descriptorSets.set(index, descriptorSet);
         if (dynamicOffsets) {
             this._dynamicOffsets.set(index, dynamicOffsets);
+        } else {
+            this._dynamicOffsets.delete(index);
         }
     }
 
@@ -193,12 +195,9 @@ export class CommandBuffer {
             }
 
             input2vao.set(inputAssembler, vao);
-
-            gl.bindVertexArray(null);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        } else {
+            gl.bindVertexArray(vao);
         }
-        gl.bindVertexArray(vao);
 
         this._inputAssembler = inputAssembler;
     }
@@ -208,7 +207,6 @@ export class CommandBuffer {
 
         const gl = this._gl;
         gl.drawArraysInstanced(this._inputAssembler.vertexInputState.primitive as unknown as GLenum, firstVertex, vertexCount, instanceCount);
-        gl.bindVertexArray(null);
     }
 
     drawIndexed(indexCount: number, firstIndex: number, instanceCount: number) {
@@ -234,7 +232,6 @@ export class CommandBuffer {
         }
 
         gl.drawElementsInstanced(gl.TRIANGLES, indexCount, type, type_bytes * firstIndex, instanceCount);
-        gl.bindVertexArray(null);
     }
 
     endRenderPass() {
@@ -251,6 +248,8 @@ export class CommandBuffer {
                     gl.COLOR_BUFFER_BIT, gl.LINEAR);
             }
         }
+
+        gl.bindVertexArray(null);
     }
 
     end(): void { }

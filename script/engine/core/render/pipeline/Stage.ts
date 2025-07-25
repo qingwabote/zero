@@ -1,6 +1,6 @@
 import { RecycleQueue } from "bastard";
 import { device } from "boot";
-import { CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits, Uint32Vector } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { shaderLib } from "../../shaderLib.js";
 import { Scene } from "../Scene.js";
@@ -42,6 +42,9 @@ function batchGroup_create(): Map<Pass, Batch[]> {
 function batchGroup_recycle(value: Map<Pass, Batch[]>) {
     value.clear();
 }
+
+const dynamicOffsets = new Uint32Vector;
+dynamicOffsets.add(0);
 
 export class Stage {
     private _camera2queue: WeakMap<Camera, RecycleQueue<Map<Pass, Batch[]>>> = new WeakMap;
@@ -90,10 +93,6 @@ export class Stage {
                     status.materials++;
                 }
                 for (const batch of batches) {
-                    if (batch.instance) {
-                        commandBuffer.bindDescriptorSet(shaderLib.sets.instance.index, batch.instance.descriptorSet);
-                    }
-
                     if (batch.local && local != batch.local.descriptorSet) {
                         commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local.descriptorSet);
                         local = batch.local.descriptorSet;
@@ -109,12 +108,20 @@ export class Stage {
 
                     commandBuffer.bindInputAssembler(batch.inputAssembler);
 
-                    if (batch.inputAssembler.indexInput) {
-                        commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, batch.flush(commandBuffer));
-                    } else {
-                        commandBuffer.draw(batch.draw.count, batch.draw.first, batch.flush(commandBuffer));
+                    for (const [count, offset] of batch.flush(commandBuffer)) {
+                        if (batch.instance) {
+                            dynamicOffsets.set(0, offset);
+                            commandBuffer.bindDescriptorSet(shaderLib.sets.instance.index, batch.instance.descriptorSet, dynamicOffsets);
+                        }
+
+                        if (batch.inputAssembler.indexInput) {
+                            commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, count);
+                        } else {
+                            commandBuffer.draw(batch.draw.count, batch.draw.first, count);
+                        }
+
+                        status.draws++;
                     }
-                    status.draws++;
                 }
             }
         }
