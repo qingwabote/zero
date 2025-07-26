@@ -75,7 +75,7 @@ export class ModelPhase extends Phase {
                             batchGroup.delete(pass);
                         }
 
-                        for (const [_, batches] of batchGroup) {
+                        for (const batches of batchGroup.values()) {
                             for (const batch of batches) {
                                 (batch as InstancedBatch).freeze();
                             }
@@ -110,21 +110,19 @@ export class ModelPhase extends Phase {
                         break;
                     }
                     if (!batch) {
-                        const local = model.descriptorSet ? model.descriptorSet : undefined
-                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).INSTANCE_STRIDE, local));
+                        bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).INSTANCE_STRIDE, model.descriptorSet));
                     }
                     if (batch.count == 0) {
                         batches.push(batch);
                     }
-                    const offset = batch.add();
-                    model.upload(batch.data.source, offset)
+                    model.upload(...batch.add())
                     batch2pass.set(batch, pass);
                 }
             }
 
             batchGroup_order = model.order;
         }
-        for (const [_, batches] of batchGroup) {
+        for (const batches of batchGroup.values()) {
             for (const batch of batches) {
                 (batch as InstancedBatch).freeze();
             }
