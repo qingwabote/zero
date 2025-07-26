@@ -3,9 +3,9 @@ import { AABB3D, aabb3d } from "./core/math/aabb3d.js";
 import { frustum } from "./core/math/frustum.js";
 import { vec3, Vec3 } from "./core/math/vec3.js";
 import { vec4 } from "./core/math/vec4.js";
+import { Draw } from "./core/render/Draw.js";
 import { BufferView } from "./core/render/gfx/BufferView.js";
 import { Mesh } from "./core/render/scene/Mesh.js";
-import { SubMesh } from "./core/render/scene/SubMesh.js";
 import { shaderLib } from "./core/shaderLib.js";
 
 const VERTEX_COMPONENTS = 3/*xyz*/ + 4/*rgba*/;
@@ -62,11 +62,11 @@ export class Stroke {
         ia.vertexInput.buffers.add(this._view.buffer);
         ia.vertexInput.offsets.add(0);
 
-        this.mesh = new Mesh([new SubMesh(ia)])
+        this.mesh = new Mesh([new Draw(ia)])
     }
 
     line(from: Readonly<Vec3>, to: Readonly<Vec3>, color = vec4.ONE): void {
-        const draw = this.mesh.subMeshes[0].draw;
+        const draw = this.mesh.subMeshes[0].range;
 
         const length = (draw.count + 2) * VERTEX_COMPONENTS;
         this._view.resize(length)
@@ -156,8 +156,7 @@ export class Stroke {
     }
 
     upload(commandBuffer: CommandBuffer): void {
-        const draw = this.mesh.subMeshes[0].draw;
-        if (draw.count == 0) {
+        if (this.mesh.subMeshes[0].range.count == 0) {
             return;
         }
 
@@ -165,7 +164,6 @@ export class Stroke {
     }
 
     clear() {
-        const draw = this.mesh.subMeshes[0].draw;
-        draw.count = 0;
+        this.mesh.subMeshes[0].range.count = 0;
     }
 }

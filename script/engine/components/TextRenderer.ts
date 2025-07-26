@@ -11,11 +11,11 @@ import { AABB3D } from "../core/math/aabb3d.js";
 import { vec2 } from "../core/math/vec2.js";
 import { vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
+import { Draw } from "../core/render/Draw.js";
 import { quadrat } from "../core/render/Quadrat.js";
 import { BufferView } from "../core/render/gfx/BufferView.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
-import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { Pass } from "../scene/Pass.js";
 import { BoundedRenderer } from "./BoundedRenderer.js";
@@ -100,7 +100,7 @@ export class TextRenderer extends BoundedRenderer {
         super(node);
 
         const vertexView = quadrat.createVertexBufferView();
-        const subMesh: SubMesh = new SubMesh(quadrat.createInputAssembler(vertexView.buffer));
+        const subMesh: Draw = new Draw(quadrat.createInputAssembler(vertexView.buffer));
 
         this._mesh = new Mesh([subMesh]);
         this._vertexView = vertexView;
@@ -118,7 +118,7 @@ export class TextRenderer extends BoundedRenderer {
 
     override upload(commandBuffer: CommandBuffer): void {
         this._vertexView.update(commandBuffer);
-        this._mesh.subMeshes[0].draw.count = 6 * this._quads;
+        this._mesh.subMeshes[0].range.count = 6 * this._quads;
     }
 
     private updateData(): void {

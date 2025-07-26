@@ -11,8 +11,8 @@ import { Node } from "../core/Node.js";
 import { mat4 } from "../core/math/mat4.js";
 import { Vec3, vec3 } from "../core/math/vec3.js";
 import { Vec4, vec4 } from "../core/math/vec4.js";
+import { Draw } from "../core/render/Draw.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
-import { SubMesh } from "../core/render/scene/SubMesh.js";
 import { shaderLib } from "../core/shaderLib.js";
 import { Material } from "../scene/Material.js";
 import { Skin } from "../skinning/Skin.js";
@@ -184,7 +184,7 @@ export class GLTF implements Asset {
             }
             for (let i = 0; i < json.meshes.length; i++) {
                 const info = json.meshes[i];
-                const subMeshes: SubMesh[] = [];
+                const subMeshes: Draw[] = [];
                 vec3.set(vec3_a, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
                 vec3.set(vec3_b, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
                 for (const primitive of info.primitives) {
@@ -266,7 +266,7 @@ export class GLTF implements Asset {
                     }
 
                     subMeshes.push(
-                        new SubMesh(
+                        new Draw(
                             ia,
                             {
                                 count: indexAccessor.count,

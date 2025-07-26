@@ -98,7 +98,8 @@ export class Stage {
                         local = batch.local.descriptorSet;
                     }
 
-                    const pl = this._flow.getPipeline(pass.state, batch.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.instance?.descriptorSetLayout || descriptorSetLayoutNull, batch.local?.descriptorSetLayout || descriptorSetLayoutNull]);
+                    const draw = batch.draw;
+                    const pl = this._flow.getPipeline(pass.state, draw.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.instance?.descriptorSetLayout || descriptorSetLayoutNull, batch.local?.descriptorSetLayout || descriptorSetLayoutNull]);
                     if (pipeline != pl) {
                         commandBuffer.bindPipeline(pl);
                         pipeline = pl;
@@ -106,7 +107,7 @@ export class Stage {
                         status.pipelines++;
                     }
 
-                    commandBuffer.bindInputAssembler(batch.inputAssembler);
+                    commandBuffer.bindInputAssembler(draw.inputAssembler);
 
                     for (const [count, offset] of batch.flush(commandBuffer)) {
                         if (batch.instance) {
@@ -114,10 +115,10 @@ export class Stage {
                             commandBuffer.bindDescriptorSet(shaderLib.sets.instance.index, batch.instance.descriptorSet, dynamicOffsets);
                         }
 
-                        if (batch.inputAssembler.indexInput) {
-                            commandBuffer.drawIndexed(batch.draw.count, batch.draw.first, count);
+                        if (draw.inputAssembler.indexInput) {
+                            commandBuffer.drawIndexed(draw.range.count, draw.range.first, count);
                         } else {
-                            commandBuffer.draw(batch.draw.count, batch.draw.first, count);
+                            commandBuffer.draw(draw.range.count, draw.range.first, count);
                         }
 
                         status.draws++;

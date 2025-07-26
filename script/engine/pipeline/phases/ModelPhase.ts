@@ -1,6 +1,7 @@
 import { CachedFactory, empty, RecycleQueue } from "bastard";
 import { device } from "boot";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, InputAssembler, ShaderStageFlagBits } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { Draw } from "../../core/render/Draw.js";
 import { BufferView } from "../../core/render/gfx/BufferView.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
 import { Data } from "../../core/render/pipeline/Data.js";
@@ -8,7 +9,6 @@ import { Phase } from "../../core/render/pipeline/Phase.js";
 import { Scene } from "../../core/render/Scene.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
-import { SubMesh } from "../../core/render/scene/SubMesh.js";
 import { shaderLib } from "../../core/shaderLib.js";
 
 const instanceLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout([{
@@ -23,9 +23,6 @@ if (device.capabilities.uniformBufferOffsetAlignment % 4 != 0) {
 const alignment = device.capabilities.uniformBufferOffsetAlignment / 4;
 
 class InstancedBatch implements Batch {
-    readonly inputAssembler: InputAssembler;
-    readonly draw: Readonly<SubMesh.Draw>;
-
     readonly instance: Batch.ResourceBinding;
     readonly data: BufferView;
 
@@ -41,10 +38,7 @@ class InstancedBatch implements Batch {
 
     private _current: [number, number] = [0, 0];
 
-    constructor(subMesh: SubMesh, private readonly _stride: number, readonly local?: Batch.ResourceBinding) {
-        this.inputAssembler = subMesh.inputAssembler;
-        this.draw = subMesh.draw;
-
+    constructor(readonly draw: Draw, private readonly _stride: number, readonly local?: Batch.ResourceBinding) {
         const range_instances = Math.floor(4096 / _stride);
         const range_floats = _stride * range_instances;
 
@@ -99,7 +93,7 @@ class InstancedBatch implements Batch {
     }
 }
 
-const cache_keys: [SubMesh, DescriptorSet] = [undefined!, undefined!];
+const cache_keys: [Draw, DescriptorSet] = [undefined!, undefined!];
 
 const cache: CachedFactory<typeof cache_keys, InstancedBatch[]> = new CachedFactory(function () { return []; }, true)
 
@@ -150,7 +144,7 @@ export class ModelPhase extends Phase {
         for (const model of queue) {
             const diff = model.order - batchGroup_order;
             for (let i = 0; i < model.mesh.subMeshes.length; i++) {
-                if (model.mesh.subMeshes[i].draw.count == 0) {
+                if (model.mesh.subMeshes[i].range.count == 0) {
                     continue;
                 }
 

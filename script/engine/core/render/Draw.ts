@@ -1,17 +1,17 @@
 import { InputAssembler } from "gfx";
 
-interface Draw {
+interface Range {
     count: number;
     first: number;
 }
 
-export class SubMesh {
+export class Draw {
     constructor(
         readonly inputAssembler: InputAssembler,
-        readonly draw: Draw = { count: 0, first: 0 }
+        readonly range: Range = { count: 0, first: 0 }
     ) { }
 }
 
-export declare namespace SubMesh {
-    export { Draw }
+export declare namespace Draw {
+    export { Range }
 }

@@ -1,5 +1,5 @@
-import { CommandBuffer, DescriptorSet, DescriptorSetLayout, InputAssembler } from "gfx";
-import { SubMesh } from "../scene/SubMesh.js";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayout } from "gfx";
+import { Draw } from "../Draw.js";
 
 interface ResourceBinding {
     readonly descriptorSetLayout: DescriptorSetLayout,
@@ -7,8 +7,7 @@ interface ResourceBinding {
 }
 
 export interface Batch {
-    readonly inputAssembler: InputAssembler;
-    readonly draw: Readonly<SubMesh.Draw>;
+    readonly draw: Draw;
 
     readonly instance?: ResourceBinding | undefined;
     readonly local?: ResourceBinding | undefined;

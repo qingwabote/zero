@@ -1,6 +1,6 @@
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { Vec3, vec3 } from "../../math/vec3.js";
-import { SubMesh } from "./SubMesh.js";
+import { Draw } from "../Draw.js";
 import { Transient } from "./Transient.js";
 
 export class Mesh {
@@ -15,7 +15,7 @@ export class Mesh {
     }
 
     constructor(
-        readonly subMeshes: readonly SubMesh[],
+        readonly subMeshes: readonly Draw[],
         pointMin = vec3.ZERO,
         pointMax = vec3.ZERO,
     ) {
