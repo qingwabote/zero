@@ -16,11 +16,12 @@ export class BufferView extends MemoryView {
     }
 
     protected override upload(commandBuffer: CommandBuffer, offset: number, length: number) {
-        const bytes = this.length * this._source.BYTES_PER_ELEMENT;
-        if (this.buffer.info.size < bytes) {
-            this.buffer.resize(bytes);
+        const size_old = this.buffer.info.size;
+        const size_new = this.length * this._source.BYTES_PER_ELEMENT;
+        if (this.buffer.info.size < size_new) {
+            this.buffer.resize(size_new);
+            length = Math.max(size_old / this._source.BYTES_PER_ELEMENT, offset + length);
             offset = 0;
-            length = this.length;
         }
         this.buffer.upload(this._source, offset, length, offset * this._source.BYTES_PER_ELEMENT);
     }
