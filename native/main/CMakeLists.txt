@@ -15,12 +15,12 @@ set(SRC_FILES
     tests/websockets.cpp
     internal/console.cpp
     internal/text.cpp
-    swig/auto/ImageBitmap_wrap.cpp
-    swig/auto/Loader_wrap.cpp
-    swig/auto/gfx_wrap.cpp
-    swig/auto/WebSocket_wrap.cpp
-    swig/auto/Loop_wrap.cpp
-    swig/auto/Window_wrap.cpp
+    swig/build/ImageBitmap_wrap.cpp
+    swig/build/Loader_wrap.cpp
+    swig/build/gfx_wrap.cpp
+    swig/build/WebSocket_wrap.cpp
+    swig/build/Loop_wrap.cpp
+    swig/build/Window_wrap.cpp
     bg/Device.cpp
     bg/CommandBuffer.cpp
     bg/Queue.cpp

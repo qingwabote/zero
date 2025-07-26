@@ -5,12 +5,6 @@
 %ignore YGNodeSetDirtiedFunc;
 %ignore YGNodeGetDirtiedFunc;
 
-// ignore these by defining them to null
-#define YG_EXTERN_C_BEGIN
-#define YG_EXTERN_C_END
-#define YG_EXPORT
-#define YG_DEPRECATED(message)
-
 // ignore enum by defining them to int
 typedef int YGAlign;
 typedef int YGBoxSizing;
@@ -41,6 +35,12 @@ typedef int YGWrap;
 %ignore YGNodeFinalize;
 %bigint_ptr(struct YGNode)
 
+// ignore these by defining them to null
+#define YG_EXTERN_C_BEGIN
+#define YG_EXTERN_C_END
+#define YG_EXPORT
+#define YG_DEPRECATED(message)
+#define PK_EXPORT
 %include <yoga/YGNode.h>
 %include <yoga/YGNodeStyle.h>
 %include <yoga/YGNodeLayout.h>

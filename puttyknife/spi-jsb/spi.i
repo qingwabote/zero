@@ -25,6 +25,7 @@ typedef int spBlendMode;
 %bigint_ptr(spiSubModel)
 %bigint_ptr(spiSubModel*)
 
+#define PK_EXPORT
 %include <spi/AnimationState.h>
 %include <spi/Atlas.h>
 %include <spi/Model.h>
