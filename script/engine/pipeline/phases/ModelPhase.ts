@@ -8,10 +8,12 @@ import { Scene } from "../../core/render/Scene.js";
 import { Model } from "../../core/render/scene/Model.js";
 import { Pass } from "../../core/render/scene/Pass.js";
 import { InstancedBatch } from "./internal/InstancedBatch.js";
+import { TransientPool } from "./internal/TransientPool.js";
 
-const cache_keys: [Draw, DescriptorSet] = [undefined!, undefined!];
+const batchPool: TransientPool<InstancedBatch[]> = new TransientPool(function () { return [] });
 
-const cache: CachedFactory<typeof cache_keys, InstancedBatch[]> = new CachedFactory(function () { return []; }, true)
+const batchKey: [Draw, DescriptorSet] = [undefined!, undefined!];
+const batchCache: CachedFactory<typeof batchKey, InstancedBatch[]> = new CachedFactory(function () { return []; }, true);
 
 function compareModel(a: Model, b: Model) {
     return a.order - b.order;
@@ -89,13 +91,15 @@ export class ModelPhase extends Phase {
 
                     let batches = batchGroup.get(pass);
                     if (!batches) {
-                        batchGroup.set(pass, batches = []);
+                        batches = batchPool.get();
+                        batches.length = 0;
+                        batchGroup.set(pass, batches);
                     }
 
                     let batch: InstancedBatch | undefined;
-                    cache_keys[0] = model.mesh.subMeshes[i];
-                    cache_keys[1] = model.descriptorSet || empty.obj as DescriptorSet;
-                    const bucket = cache.get(cache_keys);
+                    batchKey[0] = model.mesh.subMeshes[i];
+                    batchKey[1] = model.descriptorSet || empty.obj as DescriptorSet;
+                    const bucket = batchCache.get(batchKey);
                     for (const bat of bucket) {
                         if (bat.frozen) {
                             continue;
