@@ -1,12 +1,6 @@
 import { CommandBuffer } from "gfx";
 import { pk } from "puttyknife";
 
-type Store = {
-    [index: number]: number;
-    readonly length: number;
-    set(array: ArrayLike<number>, offset?: number): void;
-}
-
 function format2bytes(format: keyof pk.ArrayTypes) {
     switch (format) {
         case 'u16':
@@ -25,7 +19,7 @@ export abstract class MemoryView {
     }
 
     protected _source: pk.TypedArray
-    get source(): Store {
+    get source() {
         return this._source;
     }
 

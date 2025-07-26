@@ -1,3 +1,4 @@
+import { TypedArrayLike } from "bastard";
 import { DescriptorSet } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { Material } from "./Material.js";
@@ -8,11 +9,6 @@ import { Transient } from "./Transient.js";
 enum ChangeBits {
     NONE = 0,
     BOUNDS = 1 << 0,
-}
-
-type Store = {
-    [index: number]: number;
-    set(array: ArrayLike<number>, offset?: number): void;
 }
 
 export class Model {
@@ -61,7 +57,7 @@ export class Model {
         aabb3d.transform(this._bounds, this._mesh.bounds, this._transform.world_matrix);
     }
 
-    upload(out: Store, offset: number) {
+    upload(out: TypedArrayLike, offset: number) {
         out.set(this._transform.world_matrix, offset);
     }
 }

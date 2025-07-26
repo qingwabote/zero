@@ -9,3 +9,8 @@ export * as wasi from './wasi/preview1.js';
 export type DeepReadonly<T> = {
     readonly [K in keyof T]: DeepReadonly<T[K]>;
 };
+
+export type TypedArrayLike = {
+    [index: number]: number;
+    set(array: ArrayLike<number>, offset?: number): void;
+};
