@@ -17,7 +17,7 @@ export class Pass implements _Pass {
     readonly id = id++;
 
     readonly descriptorSetLayout: DescriptorSetLayout
-    readonly descriptorSet: DescriptorSet | undefined;
+    readonly descriptorSet: DescriptorSet;
 
     private _props_state: PropsStateBit = PropsStateBit.DONE;
     private _props: BufferView | undefined = undefined;

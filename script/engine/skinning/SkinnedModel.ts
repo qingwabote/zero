@@ -3,12 +3,9 @@ import { Material } from "../core/render/scene/Material.js";
 import { Mesh } from "../core/render/scene/Mesh.js";
 import { Model } from "../core/render/scene/Model.js";
 import { Transform } from "../core/render/scene/Transform.js";
-import { Skin } from "./Skin.js";
 import { SkinInstance } from "./SkinInstance.js";
 
 export class SkinnedModel extends Model {
-    static readonly descriptorSetLayout = Skin.Store.descriptorSetLayout;
-
     static readonly INSTANCE_STRIDE = 20;
 
     get descriptorSet(): DescriptorSet {

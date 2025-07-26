@@ -1,4 +1,4 @@
-import { DescriptorSet, DescriptorSetLayout } from "gfx";
+import { DescriptorSet } from "gfx";
 import { AABB3D, aabb3d } from "../../math/aabb3d.js";
 import { Material } from "./Material.js";
 import { Mesh } from "./Mesh.js";
@@ -16,8 +16,6 @@ type Store = {
 }
 
 export class Model {
-    static readonly descriptorSetLayout?: DescriptorSetLayout = undefined;
-
     static readonly INSTANCE_STRIDE: number = 16;
 
     get descriptorSet(): DescriptorSet | undefined {
