@@ -14,7 +14,9 @@ const instanceLayout: DescriptorSetLayout = shaderLib.createDescriptorSetLayout(
 if (device.capabilities.uniformBufferOffsetAlignment % 4 != 0) {
     throw new Error(`unexpected uniformBufferOffsetAlignment ${device.capabilities.uniformBufferOffsetAlignment}`);
 }
-const alignment = device.capabilities.uniformBufferOffsetAlignment / 4;
+if (16 * 1024 % device.capabilities.uniformBufferOffsetAlignment != 0) {
+    throw new Error(`unexpected uniformBufferOffsetAlignment ${device.capabilities.uniformBufferOffsetAlignment}`);
+}
 
 export class InstancedBatch implements Batch {
     readonly instance: DescriptorSet;
@@ -33,12 +35,9 @@ export class InstancedBatch implements Batch {
     private _current: [number, number] = [0, 0];
 
     constructor(readonly draw: Draw, private readonly _stride: number, readonly local: DescriptorSet | null = null) {
-        const range_instances = Math.floor(4096 / _stride);
-        const range_floats = _stride * range_instances;
-
-        const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, range_floats);
+        const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, 4096);
         const descriptorSet = device.createDescriptorSet(instanceLayout);
-        descriptorSet.bindBuffer(0, view.buffer, range_floats * 4);
+        descriptorSet.bindBuffer(0, view.buffer, 16 * 1024);
 
         this.instance = descriptorSet;
         this.data = view;
@@ -49,11 +48,10 @@ export class InstancedBatch implements Batch {
         const count = ++this._count;
 
         const range_instances = Math.floor(4096 / stride);
-        const range_floats = stride * range_instances;
-        const gap = alignment - range_floats % alignment;
+        const gap = 4096 % stride;
         const n = Math.ceil(count / range_instances);
 
-        this.data.resize((range_floats + gap) * n);
+        this.data.resize(4096 * n);
 
         return stride * (count - 1) + gap * (n - 1);
     }
@@ -67,8 +65,7 @@ export class InstancedBatch implements Batch {
         const count = this._count;
 
         const range_instances = Math.floor(4096 / stride);
-        const range_floats = stride * range_instances;
-        const gap = alignment - range_floats % alignment;
+        const gap = 4096 % stride;
         const n = Math.ceil(count / range_instances);
 
         this.data.invalidate(0, stride * count + gap * (n - 1))
@@ -77,7 +74,7 @@ export class InstancedBatch implements Batch {
         const current = this._current;
         for (let i = 0; i < n; i++) {
             current[0] = Math.min(range_instances, count - range_instances * i);
-            current[1] = (range_floats + gap) * i * 4;
+            current[1] = 16 * 1024 * i;
             yield current;
         }
 
