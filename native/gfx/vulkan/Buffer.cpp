@@ -52,11 +52,11 @@ namespace gfx
 
     bool Buffer::initialize() { return impl->initialize(); }
 
-    void Buffer::upload(const std::shared_ptr<const Span> &src, size_t src_offset, size_t src_length, size_t dst_offset)
+    void Buffer::upload(const std::shared_ptr<const Span> &src, size_t src_offset, size_t src_length, size_t dst_offset_bytes)
     {
         impl->upload(reinterpret_cast<uint8_t *>(src->data) + src->stride * src_offset,
                      src->stride * (src_length == 0 ? src->size : src_length),
-                     dst_offset);
+                     dst_offset_bytes);
     }
 
     void Buffer::resize(uint32_t size)

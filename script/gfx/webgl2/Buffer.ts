@@ -21,12 +21,12 @@ export class Buffer {
         return false;
     }
 
-    upload(src: ArrayBufferView, src_offset: number, src_length: number, dst_offset: number): void {
+    upload(src: ArrayBufferView, src_offset: number, src_length: number, dst_offset_bytes: number): void {
         const gl = this._gl;
 
         const target = this.info.usage as unknown as GLenum;
         gl.bindBuffer(target, this._impl);
-        gl.bufferSubData(target, dst_offset, src, src_offset, src_length);
+        gl.bufferSubData(target, dst_offset_bytes, src, src_offset, src_length);
         gl.bindBuffer(target, null);
     }
 
