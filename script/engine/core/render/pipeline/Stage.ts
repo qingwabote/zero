@@ -1,6 +1,6 @@
 import { Queue, RecycleQueue } from "bastard";
 import { device } from "boot";
-import { CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits, Uint32Vector } from "gfx";
+import { CommandBuffer, DescriptorSet, DescriptorSetLayoutInfo, Format, Framebuffer, FramebufferInfo, Pipeline, TextureInfo, TextureUsageFlagBits } from "gfx";
 import { Vec4 } from "../../math/vec4.js";
 import { shaderLib } from "../../shaderLib.js";
 import { Scene } from "../Scene.js";
@@ -42,9 +42,6 @@ function batchGroup_create(): Map<Pass, Queue<Batch>> {
 function batchGroup_recycle(value: Map<Pass, Queue<Batch>>) {
     value.clear();
 }
-
-const dynamicOffsets = new Uint32Vector;
-dynamicOffsets.add(0);
 
 export class Stage {
     private _camera2queue: WeakMap<Camera, RecycleQueue<Map<Pass, Queue<Batch>>>> = new WeakMap;
@@ -92,12 +89,8 @@ export class Stage {
 
                     status.materials++;
                 }
-                for (const batch of Queue.drain(batches)) {
-                    if (batch.local && local != batch.local) {
-                        commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local);
-                        local = batch.local;
-                    }
 
+                for (const batch of Queue.drain(batches)) {
                     const draw = batch.draw;
                     const pl = this._flow.getPipeline(pass.state, draw.inputAssembler.vertexInputState, renderPass, [pass.descriptorSetLayout, batch.instance?.layout || descriptorSetLayoutNull, batch.local?.layout || descriptorSetLayoutNull]);
                     if (pipeline != pl) {
@@ -109,12 +102,12 @@ export class Stage {
 
                     commandBuffer.bindInputAssembler(draw.inputAssembler);
 
-                    for (const [count, offset] of batch.flush(commandBuffer)) {
-                        if (batch.instance) {
-                            dynamicOffsets.set(0, offset);
-                            commandBuffer.bindDescriptorSet(shaderLib.sets.instance.index, batch.instance, dynamicOffsets);
-                        }
+                    if (batch.local && local != batch.local) {
+                        commandBuffer.bindDescriptorSet(shaderLib.sets.local.index, batch.local);
+                        local = batch.local;
+                    }
 
+                    for (const count of batch.flush(commandBuffer)) {
                         if (draw.inputAssembler.indexInput) {
                             commandBuffer.drawIndexed(draw.range.count, draw.range.first, count);
                         } else {

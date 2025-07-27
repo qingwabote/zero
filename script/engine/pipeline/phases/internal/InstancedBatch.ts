@@ -1,6 +1,6 @@
 import { TypedArrayLike } from "bastard";
 import { device } from "boot";
-import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, ShaderStageFlagBits } from "gfx";
+import { BufferUsageFlagBits, CommandBuffer, DescriptorSet, DescriptorSetLayout, DescriptorType, ShaderStageFlagBits, Uint32Vector } from "gfx";
 import { Draw } from "../../../core/render/Draw.js";
 import { BufferView } from "../../../core/render/gfx/BufferView.js";
 import { Batch } from "../../../core/render/pipeline/Batch.js";
@@ -19,6 +19,9 @@ if (16 * 1024 % device.capabilities.uniformBufferOffsetAlignment != 0) {
     throw new Error(`unexpected uniformBufferOffsetAlignment ${device.capabilities.uniformBufferOffsetAlignment}`);
 }
 
+const dynamicOffsets = new Uint32Vector;
+dynamicOffsets.add(0);
+
 export class InstancedBatch implements Batch {
     readonly instance: DescriptorSet;
     private readonly _data: BufferView;
@@ -33,11 +36,9 @@ export class InstancedBatch implements Batch {
         return this._frozen;
     }
 
-    private _current: [number, number] = [0, 0];
-
     private _add_return: [TypedArrayLike, number] = [null!, 0];
 
-    constructor(readonly draw: Draw, private readonly _stride: number, readonly local: DescriptorSet | null = null) {
+    constructor(readonly draw: Draw, private readonly _stride: number, readonly local?: DescriptorSet) {
         const view = new BufferView('f32', BufferUsageFlagBits.UNIFORM, 0, 4096);
         const descriptorSet = device.createDescriptorSet(instanceLayout);
         descriptorSet.bindBuffer(0, view.buffer, 16 * 1024);
@@ -66,7 +67,7 @@ export class InstancedBatch implements Batch {
         this._frozen = true;
     }
 
-    *flush(commandBuffer: CommandBuffer): IterableIterator<[number, number]> {
+    *flush(commandBuffer: CommandBuffer): IterableIterator<number> {
         const stride = this._stride;
         const count = this._count;
 
@@ -77,11 +78,10 @@ export class InstancedBatch implements Batch {
         this._data.invalidate(0, stride * count + gap * (n - 1))
         this._data.update(commandBuffer);
 
-        const current = this._current;
         for (let i = 0; i < n; i++) {
-            current[0] = Math.min(range_instances, count - range_instances * i);
-            current[1] = 16 * 1024 * i;
-            yield current;
+            dynamicOffsets.set(0, 16 * 1024 * i);
+            commandBuffer.bindDescriptorSet(shaderLib.sets.instance.index, this.instance, dynamicOffsets);
+            yield Math.min(range_instances, count - range_instances * i);
         }
 
         this._data.reset();

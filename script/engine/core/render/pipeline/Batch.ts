@@ -4,8 +4,8 @@ import { Draw } from "../Draw.js";
 export interface Batch {
     readonly draw: Draw;
 
-    readonly instance: DescriptorSet | null;
-    readonly local: DescriptorSet | null;
+    readonly instance?: DescriptorSet;
+    readonly local?: DescriptorSet | undefined;
 
-    flush(commandBuffer: CommandBuffer): IterableIterator<[number, number]>;
+    flush(commandBuffer: CommandBuffer): IterableIterator<number>;
 }

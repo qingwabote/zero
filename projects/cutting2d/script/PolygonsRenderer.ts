@@ -82,14 +82,14 @@ export default class PolygonsRenderer extends Element {
                 const indexBuffer = this._indexViews[i];
                 triangulate(polygon.vertexes.length, indexBuffer);
 
-                subMesh.draw.count = indexBuffer.length;
+                subMesh.range.count = indexBuffer.length;
 
                 renderer.node.position = vec3.create(...polygon.translation, 0)
             }
             for (; i < this._meshRenderers.length; i++) {
                 const renderer = this._meshRenderers[i];
                 const subMesh = renderer.mesh!.subMeshes[0];
-                subMesh.draw.count = 0;
+                subMesh.range.count = 0;
             }
             this._polygons_invalidated = false;
         }
@@ -123,7 +123,7 @@ export default class PolygonsRenderer extends Element {
             indexInput.type = IndexType.UINT16;
             ia.indexInput = indexInput;
 
-            const subMesh = new scene.SubMesh(ia);
+            const subMesh = new scene.Draw(ia);
             renderer = (new Node(`PolygonsRenderer${index}`)).addComponent(MeshRenderer)
             renderer.mesh = new scene.Mesh([subMesh]);
             renderer.materials = [this._material];

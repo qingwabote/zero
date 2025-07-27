@@ -26,7 +26,9 @@ const pass = (function () {
 export class StrokePhase extends Phase {
     readonly stroke: Stroke;
 
-    // private readonly _batches: Batch[];
+    private readonly _batch: Batch;
+
+    private readonly _batches: Batch[] = [];
 
     constructor(visibility: number) {
         super(visibility);
@@ -34,12 +36,13 @@ export class StrokePhase extends Phase {
         const stroke = new Stroke();
         const subMesh = stroke.mesh.subMeshes[0];
 
-        // this._batches = [{ inputAssembler: subMesh.inputAssembler, draw: subMesh.draw, flush() { return 1 } }]
+        this._batch = { draw: { inputAssembler: subMesh.inputAssembler, range: subMesh.range }, *flush() { yield 1 } }
 
         this.stroke = stroke;
     }
 
     override batch(out: RecycleQueue<Map<Pass, Queue<Batch>>>): void {
-        // out.push().set(pass, this._batches);
+        this._batches.push(this._batch);
+        out.push().set(pass, Queue(this._batches));
     }
 }
