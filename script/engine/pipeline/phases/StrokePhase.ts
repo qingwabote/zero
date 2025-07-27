@@ -1,4 +1,4 @@
-import { RecycleQueue } from "bastard";
+import { Queue, RecycleQueue } from "bastard";
 import { bundle } from "bundling";
 import { BlendFactor, BlendState, DepthStencilState } from "gfx";
 import { Shader } from "../../assets/Shader.js";
@@ -39,7 +39,7 @@ export class StrokePhase extends Phase {
         this.stroke = stroke;
     }
 
-    override batch(out: RecycleQueue<Map<Pass, Batch[]>>): void {
+    override batch(out: RecycleQueue<Map<Pass, Queue<Batch>>>): void {
         // out.push().set(pass, this._batches);
     }
 }

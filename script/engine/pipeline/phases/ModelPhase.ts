@@ -1,4 +1,4 @@
-import { CachedFactory, empty, RecycleQueue } from "bastard";
+import { CachedFactory, empty, Queue, RecycleQueue } from "bastard";
 import { DescriptorSet } from "gfx";
 import { Draw } from "../../core/render/Draw.js";
 import { Batch } from "../../core/render/pipeline/Batch.js";
@@ -35,7 +35,7 @@ export class ModelPhase extends Phase {
         super(visibility);
     }
 
-    batch(out: RecycleQueue<Map<Pass, Batch[]>>, scene: Scene, cameraIndex: number): void {
+    batch(out: RecycleQueue<Map<Pass, Queue<Batch>>>, scene: Scene, cameraIndex: number): void {
         let models: Iterable<Model>;
         switch (this._frustum) {
             case 'View':
@@ -78,8 +78,8 @@ export class ModelPhase extends Phase {
                         }
 
                         for (const batches of batchGroup.values()) {
-                            for (const batch of batches) {
-                                (batch as InstancedBatch).freeze();
+                            for (const batch of batches as unknown as InstancedBatch[]) {
+                                batch.freeze();
                             }
                         }
                         batchGroup = out.push();
@@ -91,8 +91,7 @@ export class ModelPhase extends Phase {
 
                     let batches = batchGroup.get(pass);
                     if (!batches) {
-                        batches = batchPool.get();
-                        batches.length = 0;
+                        batches = Queue(batchPool.get());
                         batchGroup.set(pass, batches);
                     }
 
@@ -117,7 +116,7 @@ export class ModelPhase extends Phase {
                         bucket.push(batch = new InstancedBatch(model.mesh.subMeshes[i], (model.constructor as typeof Model).INSTANCE_STRIDE, model.descriptorSet));
                     }
                     if (batch.count == 0) {
-                        batches.push(batch);
+                        (batches as unknown as InstancedBatch[]).push(batch);
                     }
                     model.upload(...batch.add())
                     batch2pass.set(batch, pass);
@@ -127,8 +126,8 @@ export class ModelPhase extends Phase {
             batchGroup_order = model.order;
         }
         for (const batches of batchGroup.values()) {
-            for (const batch of batches) {
-                (batch as InstancedBatch).freeze();
+            for (const batch of batches as unknown as InstancedBatch[]) {
+                batch.freeze();
             }
         }
     }
