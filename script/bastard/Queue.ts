@@ -1,6 +1,9 @@
 declare const kind: unique symbol;
 
-export declare type Queue<T> = { readonly [kind]: 'Queue' }
+export declare type Queue<T> = {
+    readonly [kind]: 'Queue';
+    [Symbol.iterator](): ArrayIterator<T>;
+}
 
 export function Queue<T>(impl: T[]): Queue<T> {
     return impl as unknown as Queue<T>;
