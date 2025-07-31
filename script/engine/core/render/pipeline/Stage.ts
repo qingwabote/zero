@@ -39,10 +39,6 @@ function batchGroup_create(): Map<Pass, Queue<Batch>> {
     return new Map;
 }
 
-function batchGroup_recycle(value: Map<Pass, Queue<Batch>>) {
-    value.clear();
-}
-
 export class Stage {
     private _camera2queue: WeakMap<Camera, RecycleQueue<Map<Pass, Queue<Batch>>>> = new WeakMap;
 
@@ -58,7 +54,7 @@ export class Stage {
         const camera = scene.cameras[cameraIndex];
         let queue = this._camera2queue.get(camera);
         if (!queue) {
-            this._camera2queue.set(camera, queue = new RecycleQueue(batchGroup_create, batchGroup_recycle));
+            this._camera2queue.set(camera, queue = new RecycleQueue(batchGroup_create));
         }
         for (const phase of this.phases) {
             if (camera.visibilities & phase.visibility) {
@@ -118,6 +114,7 @@ export class Stage {
                     }
                 }
             }
+            batchGroup.clear();
         }
 
         commandBuffer.endRenderPass();
