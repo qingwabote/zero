@@ -13,7 +13,7 @@ layout(set = 0, binding = 3) uniform CSMI {
 void main() {
     vec4 pos = a_position;
     #if USE_SKIN
-        skin_transform(pos, uint(instances[gl_InstanceIndex].joint.x));
+        skin_transform(pos, instances[gl_InstanceIndex].joint.x);
     #endif 
 
     gl_Position = csmi.viewProj * instances[gl_InstanceIndex].model * pos;

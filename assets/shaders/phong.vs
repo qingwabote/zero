@@ -25,7 +25,7 @@ void main() {
 
     vec4 pos = a_position;
     #if USE_SKIN
-        skin_transform(pos, uint(instances[gl_InstanceIndex].joint.x));
+        skin_transform(pos, instances[gl_InstanceIndex].joint.x);
     #endif 
     pos = instances[gl_InstanceIndex].model * pos;
 
