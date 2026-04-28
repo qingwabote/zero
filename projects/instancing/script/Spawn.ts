@@ -1,4 +1,4 @@
-import { Component, GLTF, Node, quat, vec3, Vec3 } from "engine";
+import { Animation, Component, GLTF, Node, quat, vec3, Vec3 } from "engine";
 import { VisibilityFlagBits } from "./VisibilityFlagBits.js";
 
 const vec3_a = vec3.create();
@@ -22,10 +22,11 @@ export class Spawn extends Component {
             const node = this.model.createScene("Sketchfab_Scene")!;
             node.visibility = VisibilityFlagBits.WORLD;
             // const animation = node.addComponent(SkinnedAnimation);
-            // animation.clips = this.model.proto.animationClips;
-            // animation.play(i % 3);
+            const animation = node.addComponent(Animation);
+            animation.clips = this.model.proto.animationClips;
+            animation.play(i % animation.clips.length);
             node.scale = vec3.create(0.3, 0.3, 0.3);
-            node.position = vec3.set(vec3_a, Math.random() * 6 - 3, 0, Math.random() * 12 - 6)
+            node.position = vec3.set(vec3_a, Math.random() * 6 - 3, 0, Math.random() * 12 - 6);
             transforms[i] = node;
             destinations[i] = vec3.create();
         }

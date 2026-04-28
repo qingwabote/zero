@@ -1,6 +1,6 @@
 import { bundle } from 'bundling';
-import { Camera, DirectionalLight, GLTF, Node, Pipeline, SkinnedAnimation, Vec3, Zero, bundle as builtin, device, mat3, vec3 } from "engine";
-import { Align, CameraControlPanel, Document, Edge, Justify, PositionType, Profiler } from 'flex';
+import { Camera, DirectionalLight, GLTF, Node, Pipeline, SkinnedAnimation, Vec3, Zero, bundle as builtin, device, escapism, mat3, vec3 } from "engine";
+import { Align, CameraControlPanel, Document, Justify } from 'flex';
 
 enum VisibilityFlagBits {
     NONE = 0,
@@ -96,11 +96,7 @@ export class App extends Zero {
         cameraControlPanel.setHeight(height);
         doc.addElement(cameraControlPanel);
 
-        const profiler = (new Node).addComponent(Profiler)
-        profiler.positionType = PositionType.Absolute;
-        profiler.setPosition(Edge.Left, 8)
-        profiler.setPosition(Edge.Bottom, 8)
-        doc.addElement(profiler);
+        escapism.escapee.addComponent(escapism.Profiler);
     }
 }
 

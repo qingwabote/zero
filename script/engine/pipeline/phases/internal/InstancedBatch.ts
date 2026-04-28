@@ -64,10 +64,6 @@ export class InstancedBatch implements Batch {
     }
 
     freeze() {
-        this._frozen = true;
-    }
-
-    *flush(commandBuffer: CommandBuffer): IterableIterator<number> {
         const stride = this._stride;
         const count = this._count;
 
@@ -76,7 +72,18 @@ export class InstancedBatch implements Batch {
         const n = Math.ceil(count / range_instances);
 
         this._data.invalidate(0, stride * count + gap * (n - 1))
+
+        this._frozen = true;
+    }
+
+    *flush(commandBuffer: CommandBuffer): IterableIterator<number> {
         this._data.update(commandBuffer);
+
+        const stride = this._stride;
+        const count = this._count;
+
+        const range_instances = Math.floor(4096 / stride);
+        const n = Math.ceil(count / range_instances);
 
         for (let i = 0; i < n; i++) {
             dynamicOffsets.set(0, 16 * 1024 * i);
